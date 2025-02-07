@@ -1,15 +1,19 @@
-﻿// SENSOR.cpp : アプリケーションのエントリ ポイントを定義します。
+﻿// OTE.cpp : アプリケーションのエントリ ポイントを定義します。
 //
 
 #include "framework.h"
-#include "SENSOR.h"
 
+#include "OTE.h"
 #include "CBasicControl.h"
-#include "CTiltSensor.h"
-#include "CClientService.h"
 #include "CSharedMem.h"	    //共有メモリクラス
 
-using namespace SENSOR;
+#include "CEnvironment.h"
+#include "CClientService.h"
+#include "CScada.h"
+#include "CPolicy.h"
+#include "CAgent.h"
+
+using namespace OTE;
 
 #define MAX_LOADSTRING 100
 
@@ -18,10 +22,10 @@ HINSTANCE hInst;                                // 現在のインターフェ�
 WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキスト
 WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
 
-CSharedMem* pSensor_Obj;
+CSharedMem* pOte_Obj;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
-static ST_SENSOR_WND        st_work_wnd;        //センサーウィンドウ管理用構造体   
+static ST_OTE_WND           st_work_wnd;        //センサーウィンドウ管理用構造体   
 
 vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
 static vector<HANDLE>	    VectHevent;		    //マルチスレッド用イベントのハンドル
@@ -29,9 +33,9 @@ static vector<HWND>	        VectTweetHandle;	//メインウィンドウのスレ
 static HIMAGELIST	        hImgListTaskIcon;	//タスクアイコン用イメージリスト
 
 
-LPWSTR          pszInifile;					    // iniファイルのパス
+LPWSTR              pszInifile;					// iniファイルのパス
 
-static HWND                 hTabWnd;            //操作パネル用タブコントロールウィンドウのハンドル
+static HWND         hTabWnd;                    //操作パネル用タブコントロールウィンドウのハンドル
 
 // このコード モジュールに含まれる関数の宣言を転送します:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -58,28 +62,28 @@ DWORD	            knlTaskStartUp(); //実行させるタスクスレッドの起
 VOID CALLBACK alarmHandlar(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // 共有メモリオブジェクトのインスタンス化
-    pSensor_Obj = new CSharedMem;
+    pOte_Obj = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_SENSOR, szWindowClass, MAX_LOADSTRING);
+    LoadStringW(hInstance, IDC_OTE, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
     // アプリケーション初期化の実行:
-    if (!InitInstance (hInstance, nCmdShow))
+    if (!InitInstance(hInstance, nCmdShow))
     {
         return FALSE;
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SENSOR));
+    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_OTE));
 
     MSG msg;
 
@@ -93,7 +97,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
 
 
@@ -108,17 +112,17 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SENSOR));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_SENSOR);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_OTE));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_OTE);
+    wcex.lpszClassName = szWindowClass;
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
     return RegisterClassExW(&wcex);
 }
@@ -135,158 +139,239 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // グローバル変数にインスタンス ハンドルを格納する
+    hInst = hInstance; // グローバル変数にインスタンス ハンドルを格納する
 
-   knl_manage_set.num_of_task = (unsigned)ENUM_THREAD::NUM_OF_THREAD;			//スレッド数
+    knl_manage_set.num_of_task = (unsigned)ENUM_THREAD::NUM_OF_THREAD;			//スレッド数
 
-   ///#メインウィンドウ生成
-   st_work_wnd.hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX,
-       SENSOR_WND_X, 
-       SENSOR_WND_Y, 
-       TAB_POS_X +TAB_DIALOG_W + TAB_SPACE, 
-       SENSOR_WND_MIN_H + (MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task + TAB_DIALOG_H,
-       nullptr, nullptr, hInstance, nullptr);
-   if (!st_work_wnd.hWnd)  return FALSE;
-   ShowWindow(st_work_wnd.hWnd, nCmdShow);
-   UpdateWindow(st_work_wnd.hWnd);
+    ///#メインウィンドウ生成
+    st_work_wnd.hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX,
+        OTE_WND_X,
+        OTE_WND_Y,
+        TAB_POS_X + TAB_DIALOG_W + TAB_SPACE,
+        OTE_WND_MIN_H + (MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task + TAB_DIALOG_H,
+        nullptr, nullptr, hInstance, nullptr);
+    if (!st_work_wnd.hWnd)  return FALSE;
+    ShowWindow(st_work_wnd.hWnd, nCmdShow);
+    UpdateWindow(st_work_wnd.hWnd);
 
-   /// アプリケーション固有の初期化処理を追加します。
+    /// アプリケーション固有の初期化処理を追加します。
 
-  ///-ini file path設定##################
-   static WCHAR dstpath[_MAX_PATH], szDrive[_MAX_DRIVE], szPath[_MAX_PATH], szFName[_MAX_FNAME], szExt[_MAX_EXT];
-   //--exe failのpathを取得
-   GetModuleFileName(NULL, dstpath, (sizeof(WCHAR) * _MAX_PATH / 2));
-   //--取得したpathを分割
-   _wsplitpath_s(dstpath, szDrive, sizeof(szDrive) / 2, szPath, sizeof(szPath) / 2, szFName, sizeof(szFName) / 2, szExt, sizeof(szExt) / 2);
-   //--フォルダのパスとiniファイルのパスに合成
-   _wmakepath_s(dstpath, sizeof(dstpath) / 2, szDrive, szPath, NAME_OF_INIFILE, EXT_OF_INIFILE);
-   pszInifile = dstpath;
+   ///-ini file path設定##################
+    static WCHAR dstpath[_MAX_PATH], szDrive[_MAX_DRIVE], szPath[_MAX_PATH], szFName[_MAX_FNAME], szExt[_MAX_EXT];
+    //--exe failのpathを取得
+    GetModuleFileName(NULL, dstpath, (sizeof(WCHAR) * _MAX_PATH / 2));
+    //--取得したpathを分割
+    _wsplitpath_s(dstpath, szDrive, sizeof(szDrive) / 2, szPath, sizeof(szPath) / 2, szFName, sizeof(szFName) / 2, szExt, sizeof(szExt) / 2);
+    //--フォルダのパスとiniファイルのパスに合成
+    _wmakepath_s(dstpath, sizeof(dstpath) / 2, szDrive, szPath, NAME_OF_INIFILE, EXT_OF_INIFILE);
+    pszInifile = dstpath;
 
-   ///-共有メモリ割付&設定##################
-   if (OK_SHMEM != pSensor_Obj->create_smem(SMEM_SENSOR_NAME, sizeof(ST_SENSOR_IO), MUTEX_SENSOR_NAME)) return(FALSE);
-  
+    ///-共有メモリ割付&設定##################
+    if (OK_SHMEM != pOte_Obj->create_smem(SMEM_SENSOR_NAME, sizeof(ST_SENSOR_IO), MUTEX_SENSOR_NAME)) return(FALSE);
 
-   HBITMAP hBmp;
-   CBasicControl* pobj;
-   int task_index = 0;
-   WCHAR taskname[BC_TASK_NAME_BUF_SIZE];
-
-   InitCommonControls();//コモンコントロール初期化
-   hImgListTaskIcon = ImageList_Create(32, 32, ILC_COLOR | ILC_MASK, 2, 0);//タスクアイコン表示用イメージリスト設定
-
-   ///# VectCtrlObjへの登録順は、ENUM_THREADに準じてください
-   ///##Task1 設定 Tilt Meter
-   {
-       /// -タスクインスタンス作成->リスト登録
-       pobj = new CTiltSensor;
-       VectCtrlObj.push_back(pobj);
-       pobj->inf.index = (int32_t)ENUM_THREAD::TILT;
-       /// -イベントオブジェクトクリエイト->リスト登録	
-       VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
-
-       /// -スレッド起動周期セット
-       pobj->inf.cycle_ms = TILT_SCAN_MS;       //タスクスキャンタイムmsec
-
-       /// -ツイートメッセージ用iconセット
-       hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_TILT");//ビットマップ割り当て
-       ImageList_AddMasked(hImgListTaskIcon, hBmp, RGB(255, 255, 255));
-       DeleteObject(hBmp);
-
-       ///オブジェクト名セット
-       DWORD	str_num = GetPrivateProfileString(OBJ_NAME_SECT_OF_INIFILE, TILT_KEY_OF_INIFILE, L"Tilt Sensor", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
-       pobj->inf.name.clear(); pobj->inf.name.append(taskname);
-       str_num = GetPrivateProfileString(OBJ_SNAME_SECT_OF_INIFILE, TILT_KEY_OF_INIFILE, L"TILT", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
-       pobj->inf.sname.clear(); pobj->inf.sname.append(taskname);
-       ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
-       pobj->inf.n_active_events = 1;
-       pobj->inf.status = BC_CODE_STAT_INIT_REQ;
-
-   }
-
-   ///##Task2 設定 Client Service
-   {
-       /// -タスクインスタンス作成->リスト登録
-       pobj = new CClientService;
-       VectCtrlObj.push_back(pobj);
-       pobj->inf.index = (int32_t)ENUM_THREAD::CS;
-       /// -イベントオブジェクトクリエイト->リスト登録	
-       VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
-
-       /// -スレッド起動周期セット
-       pobj->inf.cycle_ms = CS_SCAN_MS;       //タスクスキャンタイムmsec
-
-       /// -ツイートメッセージ用iconセット
-       hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_CS");//ビットマップ割り当て
-       ImageList_AddMasked(hImgListTaskIcon, hBmp, RGB(255, 255, 255));
-       DeleteObject(hBmp);
-
-       ///オブジェクト名セット
-      DWORD	str_num = GetPrivateProfileString(OBJ_NAME_SECT_OF_INIFILE, CS_KEY_OF_INIFILE, L"Client Service", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);//(wchar_t*)pobj->inf.name.c_str(), BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
-      pobj->inf.name.clear(); pobj->inf.name.append(taskname);
-      str_num = GetPrivateProfileString(OBJ_SNAME_SECT_OF_INIFILE, CS_KEY_OF_INIFILE, L"CS", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
-      pobj->inf.sname.clear(); pobj->inf.sname.append(taskname);
+    HBITMAP hBmp;
+    CBasicControl* pobj;
+    int task_index = 0;
+    WCHAR taskname[BC_TASK_NAME_BUF_SIZE];
  
-      ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
-       pobj->inf.n_active_events = 1;
-       pobj->inf.status = BC_CODE_STAT_INIT_REQ;
-          }
+    InitCommonControls();//コモンコントロール初期化
+    hImgListTaskIcon = ImageList_Create(32, 32, ILC_COLOR | ILC_MASK, 2, 0);//タスクアイコン表示用イメージリスト設定
 
-   ///##タスク設定ウィンドウ作成
-     hTabWnd = CreateTaskSettingWnd(st_work_wnd.hWnd);
+    ///# VectCtrlObjへの登録順は、ENUM_THREADに準じてください
+    ///##Task1 設定 Environment
+    {
+        /// -タスクインスタンス作成->リスト登録
+        pobj = new CEnvironment;
+        VectCtrlObj.push_back(pobj);
+        pobj->inf.index = (int32_t)ENUM_THREAD::ENV;
+        /// -イベントオブジェクトクリエイト->リスト登録	
+        VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
 
-	 ///##タスクパラメータセット
-     
-     for (unsigned i = 0; i < knl_manage_set.num_of_task; i++) {
-         CBasicControl* pobj = (CBasicControl*)VectCtrlObj[i];
-         pobj->inf.hwnd_parent = st_work_wnd.hWnd;//親ウィンドウのハンドルセット
-         pobj->inf.hInstance = hInst;//親ウィンドウのハンドルセット
+        /// -スレッド起動周期セット
+        pobj->inf.cycle_ms = ENV_SCAN_MS;       //タスクスキャンタイムmsec
 
-         // -ツイートメッセージ用Static window作成->リスト登録	
-         pobj->inf.hwnd_msgstatics = CreateWindow(L"STATIC", L"...", WS_CHILD | WS_VISIBLE, MSG_WND_ORG_X, MSG_WND_ORG_Y + MSG_WND_H * i + i * MSG_WND_Y_SPACE, MSG_WND_W, MSG_WND_H, st_work_wnd.hWnd, (HMENU)(IDC_OBJECT_BASE + i), hInst, NULL);
-         VectTweetHandle.push_back(pobj->inf.hwnd_msgstatics);
+        /// -ツイートメッセージ用iconセット
+        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_ENV");//ビットマップ割り当て
+        ImageList_AddMasked(hImgListTaskIcon, hBmp, RGB(255, 255, 255));
+        DeleteObject(hBmp);
 
-         //その他設定
-         pobj->inf.psys_counter = &knl_manage_set.sys_counter;
-         pobj->inf.act_count = 0;//起動チェック用カウンタリセット
-         //起動周期カウント値
-         if (pobj->inf.cycle_ms >= SYSTEM_TICK_ms)	pobj->inf.cycle_count = pobj->inf.cycle_ms / SYSTEM_TICK_ms;
-         else pobj->inf.cycle_count = 1;
+        ///オブジェクト名セット
+        DWORD	str_num = GetPrivateProfileString(OBJ_NAME_SECT_OF_INIFILE, ENV_KEY_OF_INIFILE, L"Environment", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.name.clear(); pobj->inf.name.append(taskname);
+        str_num = GetPrivateProfileString(OBJ_SNAME_SECT_OF_INIFILE, ENV_KEY_OF_INIFILE, L"ENV", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.sname.clear(); pobj->inf.sname.append(taskname);
+        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
+        pobj->inf.n_active_events = 1;
+        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
 
-         //ステータスを初期化要求にセット
-         pobj->inf.status = BC_CODE_STAT_INIT_REQ;
-     }
-      
-     InvalidateRect(st_work_wnd.hWnd, NULL, FALSE);            //WM_PAINTを発生させてアイコンを描画させる
-     UpdateWindow(st_work_wnd.hWnd);
+    }
+
+    ///##Task2 設定 Client Service
+    {
+        /// -タスクインスタンス作成->リスト登録
+        pobj = new CClientService;
+        VectCtrlObj.push_back(pobj);
+        pobj->inf.index = (int32_t)ENUM_THREAD::CS;
+        /// -イベントオブジェクトクリエイト->リスト登録	
+        VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
+
+        /// -スレッド起動周期セット
+        pobj->inf.cycle_ms = CS_SCAN_MS;       //タスクスキャンタイムmsec
+
+        /// -ツイートメッセージ用iconセット
+        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_CS");//ビットマップ割り当て
+        ImageList_AddMasked(hImgListTaskIcon, hBmp, RGB(255, 255, 255));
+        DeleteObject(hBmp);
+
+        ///オブジェクト名セット
+
+        DWORD	str_num = GetPrivateProfileString(OBJ_NAME_SECT_OF_INIFILE, CS_KEY_OF_INIFILE, L"Client Service", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE); //(DWORD)pobj->inf.name.length() * 2, PATH_OF_INIFILE);
+        pobj->inf.name.clear(); pobj->inf.name.append(taskname);
+        str_num = GetPrivateProfileString(OBJ_SNAME_SECT_OF_INIFILE, CS_KEY_OF_INIFILE, L"CS", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.sname.clear(); pobj->inf.sname.append(taskname);
+
+        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
+        pobj->inf.n_active_events = 1;
+        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+    }
+    ///##Task3 設定 SCADA
+    {
+        /// -タスクインスタンス作成->リスト登録
+        pobj = new CScada;
+        VectCtrlObj.push_back(pobj);
+        pobj->inf.index = (int32_t)ENUM_THREAD::SCAD;
+        /// -イベントオブジェクトクリエイト->リスト登録	
+        VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
+
+        /// -スレッド起動周期セット
+        pobj->inf.cycle_ms = SCADA_SCAN_MS;       //タスクスキャンタイムmsec
+
+        /// -ツイートメッセージ用iconセット
+        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_SCAD");//ビットマップ割り当て
+        ImageList_AddMasked(hImgListTaskIcon, hBmp, RGB(255, 255, 255));
+        DeleteObject(hBmp);
+
+        ///オブジェクト名セット
+        DWORD	str_num = GetPrivateProfileString(OBJ_NAME_SECT_OF_INIFILE, SCAD_KEY_OF_INIFILE, L"Scada", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.name.clear(); pobj->inf.name.append(taskname);
+        str_num = GetPrivateProfileString(OBJ_SNAME_SECT_OF_INIFILE, SCAD_KEY_OF_INIFILE, L"SCAD", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.sname.clear(); pobj->inf.sname.append(taskname);
  
-     // タスクオブジェクトスレッド起動	
-     knlTaskStartUp();
+        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
+        pobj->inf.n_active_events = 1;
+        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+    }
 
-   ///#タスクループ処理起動マルチメディアタイマ起動
-   {
-       // --マルチメディアタイマ精度設定
-       TIMECAPS wTc;//マルチメディアタイマ精度構造体
-       if (timeGetDevCaps(&wTc, sizeof(TIMECAPS)) != TIMERR_NOERROR) 	return((DWORD)FALSE);
-       knl_manage_set.mmt_resolution = MIN(MAX(wTc.wPeriodMin, TARGET_RESOLUTION), wTc.wPeriodMax);
-       if (timeBeginPeriod(knl_manage_set.mmt_resolution) != TIMERR_NOERROR) return((DWORD)FALSE);
+    ///##Task4 設定 Policy
+    {
+        /// -タスクインスタンス作成->リスト登録
+        pobj = new CPolicy;
+        VectCtrlObj.push_back(pobj);
+        pobj->inf.index = (int32_t)ENUM_THREAD::POL;
+        /// -イベントオブジェクトクリエイト->リスト登録	
+        VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
 
-       _RPT1(_CRT_WARN, "MMTimer Period = %d\n", knl_manage_set.mmt_resolution);
+        /// -スレッド起動周期セット
+        pobj->inf.cycle_ms = POLICY_SCAN_MS;       //タスクスキャンタイムmsec
 
-       // --マルチメディアタイマセット
-       knl_manage_set.KnlTick_TimerID = timeSetEvent(knl_manage_set.cycle_base, knl_manage_set.mmt_resolution, (LPTIMECALLBACK)alarmHandlar, 0, TIME_PERIODIC);
+        /// -ツイートメッセージ用iconセット
+        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_POL");//ビットマップ割り当て
+        ImageList_AddMasked(hImgListTaskIcon, hBmp, RGB(255, 255, 255));
+        DeleteObject(hBmp);
 
-       // --マルチメディアタイマー起動失敗判定　メッセージBOX出してFALSE　returen
-       if (knl_manage_set.KnlTick_TimerID == 0) {	 //失敗確認表示
-           LPVOID lpMsgBuf;
-           FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-               0, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language*/(LPTSTR)&lpMsgBuf, 0, NULL);
-           MessageBox(NULL, (LPCWSTR)lpMsgBuf, L"MMT Failed!!", MB_OK | MB_ICONINFORMATION);// Display the string.
-           LocalFree(lpMsgBuf);// Free the buffer.
-           return((DWORD)FALSE);
-       }
-   }
+        ///オブジェクト名セット
+        DWORD	str_num = GetPrivateProfileString(OBJ_NAME_SECT_OF_INIFILE, POL_KEY_OF_INIFILE, L"Policy", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.name.clear(); pobj->inf.name.append(taskname);
+        str_num = GetPrivateProfileString(OBJ_SNAME_SECT_OF_INIFILE, POL_KEY_OF_INIFILE, L"POL", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.sname.clear(); pobj->inf.sname.append(taskname);
+        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
+        pobj->inf.n_active_events = 1;
+        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+    }
+    ///##Task5 設定 Agent
+    {
+        /// -タスクインスタンス作成->リスト登録
+        pobj = new CAgent;
+        VectCtrlObj.push_back(pobj);
+        pobj->inf.index = (int32_t)ENUM_THREAD::AGENT;
+        /// -イベントオブジェクトクリエイト->リスト登録	
+        VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
 
-   return TRUE;
+        /// -スレッド起動周期セット
+        pobj->inf.cycle_ms = AGENT_SCAN_MS;       //タスクスキャンタイムmsec
+
+        /// -ツイートメッセージ用iconセット
+        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_AGENT");//ビットマップ割り当て
+        ImageList_AddMasked(hImgListTaskIcon, hBmp, RGB(255, 255, 255));
+        DeleteObject(hBmp);
+
+        ///オブジェクト名セット
+        DWORD	str_num = GetPrivateProfileString(OBJ_NAME_SECT_OF_INIFILE, AGENT_KEY_OF_INIFILE, L"Agent", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.name.clear(); pobj->inf.name.append(taskname);
+        str_num = GetPrivateProfileString(OBJ_SNAME_SECT_OF_INIFILE, AGENT_KEY_OF_INIFILE, L"AGENT", taskname, BC_TASK_NAME_BUF_SIZE, PATH_OF_INIFILE);
+        pobj->inf.sname.clear(); pobj->inf.sname.append(taskname);
+        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
+        pobj->inf.n_active_events = 1;
+        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+    }
+    ///##タスク設定ウィンドウ作成
+    pobj = VectCtrlObj[1];
+
+    hTabWnd = CreateTaskSettingWnd(st_work_wnd.hWnd);
+
+    ///##タスクパラメータセット
+
+    for (unsigned i = 0; i < knl_manage_set.num_of_task; i++) {
+        CBasicControl* pobj = (CBasicControl*)VectCtrlObj[i];
+        pobj->inf.hwnd_parent = st_work_wnd.hWnd;//親ウィンドウのハンドルセット
+        pobj->inf.hInstance = hInst;//親ウィンドウのハンドルセット
+
+        // -ツイートメッセージ用Static window作成->リスト登録	
+        pobj->inf.hwnd_msgstatics = CreateWindow(L"STATIC", L"...", WS_CHILD | WS_VISIBLE, MSG_WND_ORG_X, MSG_WND_ORG_Y + MSG_WND_H * i + i * MSG_WND_Y_SPACE, MSG_WND_W, MSG_WND_H, st_work_wnd.hWnd, (HMENU)(IDC_OBJECT_BASE + i), hInst, NULL);
+        VectTweetHandle.push_back(pobj->inf.hwnd_msgstatics);
+
+        //その他設定
+        pobj->inf.psys_counter = &knl_manage_set.sys_counter;
+        pobj->inf.act_count = 0;//起動チェック用カウンタリセット
+        //起動周期カウント値
+        if (pobj->inf.cycle_ms >= SYSTEM_TICK_ms)	pobj->inf.cycle_count = pobj->inf.cycle_ms / SYSTEM_TICK_ms;
+        else pobj->inf.cycle_count = 1;
+
+        //ステータスを初期化要求にセット
+        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+    }
+
+    InvalidateRect(st_work_wnd.hWnd, NULL, FALSE);            //WM_PAINTを発生させてアイコンを描画させる
+    UpdateWindow(st_work_wnd.hWnd);
+
+    // タスクオブジェクトスレッド起動	
+    knlTaskStartUp();
+
+    ///#タスクループ処理起動マルチメディアタイマ起動
+    {
+        // --マルチメディアタイマ精度設定
+        TIMECAPS wTc;//マルチメディアタイマ精度構造体
+        if (timeGetDevCaps(&wTc, sizeof(TIMECAPS)) != TIMERR_NOERROR) 	return((DWORD)FALSE);
+        knl_manage_set.mmt_resolution = MIN(MAX(wTc.wPeriodMin, TARGET_RESOLUTION), wTc.wPeriodMax);
+        if (timeBeginPeriod(knl_manage_set.mmt_resolution) != TIMERR_NOERROR) return((DWORD)FALSE);
+
+        _RPT1(_CRT_WARN, "MMTimer Period = %d\n", knl_manage_set.mmt_resolution);
+
+        // --マルチメディアタイマセット
+        knl_manage_set.KnlTick_TimerID = timeSetEvent(knl_manage_set.cycle_base, knl_manage_set.mmt_resolution, (LPTIMECALLBACK)alarmHandlar, 0, TIME_PERIODIC);
+
+        // --マルチメディアタイマー起動失敗判定　メッセージBOX出してFALSE　returen
+        if (knl_manage_set.KnlTick_TimerID == 0) {	 //失敗確認表示
+            LPVOID lpMsgBuf;
+            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
+                0, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language*/(LPTSTR)&lpMsgBuf, 0, NULL);
+            MessageBox(NULL, (LPCWSTR)lpMsgBuf, L"MMT Failed!!", MB_OK | MB_ICONINFORMATION);// Display the string.
+            LocalFree(lpMsgBuf);// Free the buffer.
+            return((DWORD)FALSE);
+        }
+    }
+
+    return TRUE;
 }
 
 //
@@ -306,7 +391,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_CREATE:
     {
- 
+
         //メインウィンドウにステータスバー付加
         st_work_wnd.hWnd_status_bar = CreateStatusbarMain(hWnd);
         SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, 0, (LPARAM)L"-");
@@ -314,28 +399,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     } break;
 
     case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        // 選択されたメニューの解析:
+        switch (wmId)
         {
-            int wmId = LOWORD(wParam);
-            // 選択されたメニューの解析:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
         }
-        break;
+    }
+    break;
 
     case WM_SIZE:
     {
         //ステータスバーにサイズ変更を通知
         SendMessage(st_work_wnd.hWnd_status_bar, WM_SIZE, wParam, lParam);
-	}break;
+    }break;
 
     case WM_NOTIFY://コモンコントロールでイベントが起こった場合、およびコモンコントロールが情報を親ウィンドウに要求する場合に、コモンコントロールの親ウィンドウに送信されます。
     {
@@ -346,7 +431,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             CBasicControl* pObj = (CBasicControl*)VectCtrlObj[i];
             //タスク設定パネルウィンドウ位置調整
             MoveWindow(pObj->inf.hwnd_opepane, TAB_POS_X, TAB_POS_Y + TAB_SIZE_H + (MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task, TAB_DIALOG_W, TAB_DIALOG_H - TAB_SIZE_H, TRUE);
-            
+
             if ((VectCtrlObj.size() - 1 - pObj->inf.index) == tab_index) //タブ選択されているタスクのみ処理
             {
                 ShowWindow(pObj->inf.hwnd_opepane, SW_SHOW);
@@ -360,14 +445,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
 
     case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            //タスクツィートメッセージアイコン描画
-            for (unsigned i = 0; i < knl_manage_set.num_of_task; i++) ImageList_Draw(hImgListTaskIcon, i, hdc, 0, i * (MSG_WND_H + MSG_WND_Y_SPACE), ILD_NORMAL);
-            EndPaint(hWnd, &ps);
-        }
-        break;
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+        //タスクツィートメッセージアイコン描画
+        for (unsigned i = 0; i < knl_manage_set.num_of_task; i++) ImageList_Draw(hImgListTaskIcon, i, hdc, 0, i * (MSG_WND_H + MSG_WND_Y_SPACE), ILD_NORMAL);
+        EndPaint(hWnd, &ps);
+    }
+    break;
     case WM_DESTROY:
 
         timeKillEvent(knl_manage_set.KnlTick_TimerID);//マルチメディアタイマ停止
@@ -448,7 +533,7 @@ HWND CreateTaskSettingWnd(HWND hWnd)
     //タブコントロールウィンドウの生成
     GetClientRect(hWnd, &rc);
     HWND hTab = CreateWindowEx(0, WC_TABCONTROL, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE,
-        rc.left + TAB_POS_X, rc.top + TAB_POS_Y+(MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task, TAB_DIALOG_W, TAB_DIALOG_H, hWnd, (HMENU)ID_TASK_SET_TAB, hInst, NULL);
+        rc.left + TAB_POS_X, rc.top + TAB_POS_Y + (MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task, TAB_DIALOG_W, TAB_DIALOG_H, hWnd, (HMENU)ID_TASK_SET_TAB, hInst, NULL);
 
     //Task Setting用パネルウィンドウタブ作成
     for (unsigned i = 0; i < VectCtrlObj.size(); i++) {
@@ -462,11 +547,11 @@ HWND CreateTaskSettingWnd(HWND hWnd)
 
         //パネルウィンドウの生成
         pObj->inf.hwnd_opepane = CreateDialog(hInst, L"IDD_DIALOG_TASK_SET", hWnd, (DLGPROC)TaskTabDlgProc);
-        //パネルのタスク名更新
-        SetWindowText(GetDlgItem(pObj->inf.hwnd_opepane, IDC_TAB_TASKNAME), pObj->inf.name.c_str());
-        //パネルの設定ボタンテキスト更新
+        
+        HWND hname_static = GetDlgItem(pObj->inf.hwnd_opepane, IDC_TAB_TASKNAME);
+        SetWindowText(hname_static, pObj->inf.name.c_str());
         pObj->set_func_pb_txt();
-        MoveWindow(pObj->inf.hwnd_opepane, TAB_POS_X, TAB_POS_Y + TAB_SIZE_H+(MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task, TAB_DIALOG_W, TAB_DIALOG_H - TAB_SIZE_H, TRUE);
+        MoveWindow(pObj->inf.hwnd_opepane, TAB_POS_X, TAB_POS_Y + TAB_SIZE_H + (MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task, TAB_DIALOG_W, TAB_DIALOG_H - TAB_SIZE_H, TRUE);
 
         //初期値はindex 0のウィンドウを表示
         if (i == 0) {
@@ -605,10 +690,10 @@ VOID	CALLBACK    alarmHandlar(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWOR
         pobj->inf.act_count++;
         if (pobj->inf.act_count >= pobj->inf.cycle_count) {
             PulseEvent(VectHevent[i]);
-			pobj->inf.period = pobj->inf.act_count * knl_manage_set.cycle_base;
+            pobj->inf.period = pobj->inf.act_count * knl_manage_set.cycle_base;
             pobj->inf.act_count = 0;
             pobj->inf.total_act++;
-  
+
             TCHAR tbuf[32];
             wsprintf(tbuf, L"\t%4d", (int)pobj->inf.period);
             SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, i, (LPARAM)tbuf);
@@ -632,4 +717,3 @@ VOID	CALLBACK    alarmHandlar(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWOR
     }
     return;
 }
-

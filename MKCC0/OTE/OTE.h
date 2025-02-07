@@ -2,17 +2,20 @@
 
 #include "resource.h"
 
-namespace SENSOR
-{
+namespace OTE
+{ 
 
-    // 割り当てスレッドコード
-    enum class ENUM_THREAD : unsigned int {
-        TILT = 0,           // 傾斜計
-        CS,                 // Client Service
-        NUM_OF_THREAD       // スレッド数
-    };
+// 割り当てスレッドコード
+enum class ENUM_THREAD : unsigned int {
+    ENV = 0,            // Environment
+    CS,                 // Client Service
+    SCAD,               // Scada
+    POL,                // Policy
+    AGENT,              // Agent
+    NUM_OF_THREAD       // スレッド数
+};
 
-    //-各タスクアイコン用イメージリスト設定値
+//-各タスクアイコン用イメージリスト設定値
 #define ICON_IMG_W					32		//アイコンイメージ幅
 #define ICON_IMG_H					32		//アイコンイメージ高さ
 
@@ -32,15 +35,18 @@ namespace SENSOR
 #define TAB_SIZE_H					35
 #define TAB_SPACE				    20		 
 
-#define SENSOR_WND_X                0
-#define SENSOR_WND_Y                0
-#define SENSOR_WND_W                640
-#define SENSOR_WND_H                460
-#define SENSOR_WND_MIN_H            100
+#define OTE_WND_X                0
+#define OTE_WND_Y                0
+#define OTE_WND_W                640
+#define OTE_WND_H                460
+#define OTE_WND_MIN_H            100
 
 
-#define TILT_SCAN_MS			100
+#define ENV_SCAN_MS			    100
 #define CS_SCAN_MS				100
+#define AGENT_SCAN_MS			100
+#define POLICY_SCAN_MS			100
+#define SCADA_SCAN_MS			100
 
 
 //マルチメディアタイマー管理構造体
@@ -61,32 +67,35 @@ namespace SENSOR
 
 //各セクションの各タスク用の情報を参照するためのキー
 #define MAIN_KEY_OF_INIFILE				L"MAIN"
-#define TILT_KEY_OF_INIFILE	            L"TILT"
+#define ENV_KEY_OF_INIFILE	            L"ENV"
 #define CS_KEY_OF_INIFILE	            L"CLIENT"
+#define POL_KEY_OF_INIFILE	            L"POL"
+#define AGENT_KEY_OF_INIFILE	        L"AGENT"
+#define SCAD_KEY_OF_INIFILE	            L"SCAD"
 
-    typedef struct stKnlManageSetTag {
-        WORD mmt_resolution = TARGET_RESOLUTION;			//マルチメディアタイマーの分解能
-        unsigned int cycle_base = SYSTEM_TICK_ms;			//マルチメディアタイマーの分解能
-        WORD KnlTick_TimerID = 0;							//マルチメディアタイマーのID
-        unsigned int num_of_task = 0;						//アプリケーションで利用するスレッド数
-        unsigned long sys_counter = 0;						//マルチメディア起動タイマカウンタ
-        SYSTEMTIME Knl_Time = { 0,0,0,0,0,0,0,0 };			//アプリケーション開始からの経過時間
-        unsigned int stackSize = INITIAL_TASK_STACK_SIZE;	//タスクの初期スタックサイズ
-    }ST_KNL_MANAGE_SET, * LPST_KNL_MANAGE_SET;
+typedef struct stKnlManageSetTag {
+    WORD mmt_resolution = TARGET_RESOLUTION;			//マルチメディアタイマーの分解能
+    unsigned int cycle_base = SYSTEM_TICK_ms;			//マルチメディアタイマーの分解能
+    WORD KnlTick_TimerID = 0;							//マルチメディアタイマーのID
+    unsigned int num_of_task = 0;						//アプリケーションで利用するスレッド数
+    unsigned long sys_counter = 0;						//マルチメディア起動タイマカウンタ
+    SYSTEMTIME Knl_Time = { 0,0,0,0,0,0,0,0 };			//アプリケーション開始からの経過時間
+    unsigned int stackSize = INITIAL_TASK_STACK_SIZE;	//タスクの初期スタックサイズ
+}ST_KNL_MANAGE_SET, * LPST_KNL_MANAGE_SET;
 
 
-    //-ID定義 Mainスレッド用　2100 +α
-#define ID_TASK_SET_TAB				2098
-#define ID_STATUS_BAR				2099
-#define IDC_OBJECT_BASE				2100
+//-ID定義 Mainスレッド用　3100 +α
+#define ID_TASK_SET_TAB				3098
+#define ID_STATUS_BAR				3099
+#define IDC_OBJECT_BASE				3100
 
 
 #define PRM_N_TASK_MSGLIST_ROW      100 
 
-    typedef struct stSensorWnd {
-        HWND hWnd_status_bar;
-        HWND hWnd;
-    } ST_SENSOR_WND, * LPST__SENSOR_WND;
+typedef struct stOteWnd {
+    HWND hWnd_status_bar;
+    HWND hWnd;
+} ST_OTE_WND, * LPST_OTE_WND;
 
 }
 

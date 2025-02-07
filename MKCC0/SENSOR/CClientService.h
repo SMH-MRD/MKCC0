@@ -6,11 +6,11 @@ public:
 	CClientService() {};
 	~CClientService() {};
 
-	virtual unsigned initialize(void* pObj) override {
-		return STAT_OK;
+	virtual HRESULT initialize(void* pObj) override {
+		return S_OK;
 	}
-	virtual int routine_work(void* pObj) override {
-		return STAT_OK;
+	virtual HRESULT routine_work(void* pObj) override {
+		return S_OK;
 	}
 
 };

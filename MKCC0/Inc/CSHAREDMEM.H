@@ -1,13 +1,14 @@
 #pragma once
 
 #include <string>
-#include "common_def.h"
-#include "spec.h"
-#include "CVector3.h"
-#include "SwySensor_DEF.h"
+#include "COMMON_DEF.h"
+#include "NET_DEF.h"
+#include "SPEC_DEF.h"
+#include "SENSOR_DEF.h"
 #include "OTE_DEF.h"
 #include "PLC_DEF.h"
-
+#include "CVector3.h"
+#include <dinput.h>
 
 #define SMEM_CRANE_STATUS_NAME			L"CRANE_STATUS"
 #define SMEM_SWAY_STATUS_NAME			L"SWAY_STATUS"
@@ -25,6 +26,7 @@
 #define SMEM_JOB_IO_NAME				L"JOB_IO"
 #define SMEM_OTE0_NAME					L"OTE0"
 #define SMEM_OTE_UI_NAME				L"OTE_UI"
+#define SMEM_SENSOR_NAME				L"SENSOR"
 
 #define MUTEX_CRANE_STATUS_NAME			L"MU_CRANE_STATUS"
 #define MUTEX_SWAY_STATUS_NAME			L"MU_SWAY_STATUS"
@@ -41,20 +43,7 @@
 #define MUTEX_JOB_IO_NAME				L"MU_JOB_IO"
 #define MUTEX_OTE0_NAME					L"MU_OTE0"
 #define MUTEX_OTE_UI_NAME				L"MU_OTE_UI"
-
-#define SMEM_OBJ_ID_CRANE_STATUS		0
-#define SMEM_OBJ_ID_SWAY_STATUS			1
-#define SMEM_OBJ_ID_OPERATION_STATUS	2
-#define SMEM_OBJ_ID_FAULT_STATUS		3
-#define SMEM_OBJ_ID_SIMULATION_STATUS	4
-#define SMEM_OBJ_ID_PLC_IO				5
-#define SMEM_OBJ_ID_SWAY_IO				6
-#define SMEM_OBJ_ID_REMOTE_IO			7
-#define SMEM_OBJ_ID_CS_INFO				8
-#define SMEM_OBJ_ID_POLICY_INFO			9
-#define SMEM_OBJ_ID_AGENT_INFO			10
-#define SMEM_OBJ_ID_CLIENT_IO			11
-#define SMEM_OBJ_ID_JOB_IO				12
+#define MUTEX_SENSOR_NAME				L"MU_SENSOR"
 
 //  共有メモリステータス
 #define	OK_SHMEM						0	// 共有メモリ 生成/破棄正常
@@ -67,72 +56,22 @@
 
 using namespace std;
 
-typedef struct StMoveSet {
-	double p;
-	double v;
-	double a;
+typedef struct _ST_MOVE_SET {
+	double p;	//位置
+	double v;	//速度
+	double a;	//加速度
 }ST_MOVE_SET, * LPST_MOVE_SET;
 
 /****************************************************************************/
 /*   PLC IO定義構造体                                                     　*/
 /* 　PLC_IF PROCがセットする共有メモリ上の情報　　　　　　　　　　　　　　  */
 #pragma region PLC IO
-#define PLC_IF_REMOTE_OFF_MODE		0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）
-#define PLC_IF_RMT_MODE_0			0x00000001		//遠隔運転モード（PCからの出力有効　通常運用モード）
-#define PLC_IF_SIM_MODE_1			0x00000003		//操作端末からの操作入力有効通常運用モード
-#define PLC_IF_SIM_MODE_2			0x00000007		//PLC切り離しモード（PLC IFで機器への指定（ブレーキ,MC等）をシミュレート）
-
-#define PLC_IF_PC_CTRL_ACTIVE		0x00000001
-#define PLC_IF_PC_CTRL_DEACTIVE		0x00000000
-
-
-#define PLC_DRUM_LAYER_MAX			10				//ドラム層数最大値
-
-// IO割付内容は、PLC_DEF.hに定義
-// PLC_状態信号構造体（機上センサ信号)
-#define PLC_IF_BRK_OPEN				true
-#define PLC_IF_BRK_CLOSE			false
-
-#define PLC_IF_INV_DIO_FWD			0x0001
-#define PLC_IF_INV_DIO_REV			0x0002
-
-#define PLC_IF_LIMIT_COM_FWD_NORM		0x0000001
-#define PLC_IF_LIMIT_COM_REV_NORM		0x0000002
-#define PLC_IF_LIMIT_COM_FWD_EMR		0x0000004
-#define PLC_IF_LIMIT_COM_REV_EMR		0x0000008
-#define PLC_IF_LIMIT_COM_FWD_SLOW		0x0000010
-#define PLC_IF_LIMIT_COM_REV_SLOW		0x0000020
-#define PLC_IF_LIMIT_COM_FWD_SLOW2		0x0000040
-#define PLC_IF_LIMIT_COM_REV_SLOW2		0x0000080
-#define PLC_IF_LIMIT_COM_FWD_NORM_EX1	0x0000100
-#define PLC_IF_LIMIT_COM_REV_NORM_EX1	0x0000200
-#define PLC_IF_LIMIT_COM_FWD_EMR_EX1	0x0000400
-#define PLC_IF_LIMIT_COM_REV_EMR_EX1	0x0000800
-#define PLC_IF_LIMIT_COM_FWD_NORM_EX2	0x0001000
-#define PLC_IF_LIMIT_COM_REV_NORM_EX2	0x0002000
-#define PLC_IF_LIMIT_COM_FWD_EMR_EX2	0x0004000
-#define PLC_IF_LIMIT_COM_REV_EMR_EX2	0x0008000
-#define PLC_IF_LIMIT_COM_FWD_NORM_EX3	0x0010000
-#define PLC_IF_LIMIT_COM_REV_NORM_EX3	0x0020000
-#define PLC_IF_LIMIT_COM_FWD_EMR_EX3	0x0040000
-#define PLC_IF_LIMIT_COM_REV_EMR_EX3	0x0080000
-
-#define PLC_IF_ID_MH7      0
-#define PLC_IF_ID_MH14     1
-#define PLC_IF_ID_MH21     2
-
-#define PLC_IF_ID_AH12     0
-#define PLC_IF_ID_AH24     1
-
-#define PLC_IF_ID_BH57     0
-#define PLC_IF_ID_BH62     1
-#define PLC_IF_ID_BH_REST  2
 
 /****************************************************************************/
 /*   PLC IO信号定義構造体                                  　         　	*/
 /* 　PLC_IF PROCがセットする共有メモリ上の情報　　　　　　　          　    */
 /****************************************************************************/
-typedef struct StPLC_IO {
+typedef struct _ST_PLC_IO {
 	INT32 mode;
 	INT32 healthy_cnt;
 	double v_fb[MOTION_ID_MAX];						//速度FB
@@ -173,15 +112,30 @@ typedef struct StPLC_IO {
 /* 　OTE_IF PROCがセットする共有メモリ上の情報　　　　　　　          　    */
 /****************************************************************************/
 #pragma region OTE
-typedef struct StOTE_IO {
-	ST_OTE_U_MSG	ote_umsg_in;								//端末からの受信データ（ユニキャスト）
-	ST_PC_U_MSG		ote_umsg_out;								//端末への送信データ（ユニキャスト）
-	UINT32			ote_id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
-	UINT32			ote_u_silent_cnt;  							//受信カウント変化無しでカウントアップ
-	UINT32			ote_estop;
-	UINT32			ote_grip;
-	UINT32			ote_padmode;
-}ST_OTE_IO, * LPST_OTE_IO;
+
+typedef struct _ST_OTE_ENV {
+	UINT32			target_crane;		//接続対象クレーン
+	UINT32			ote_mode;			//操作端末モード
+	UINT32			ote_id;				//端末ID
+
+	UINT32			grip_mode;
+	UINT32			gpad_mode = L_OFF;
+
+	DIJOYSTATE		pad_data;
+
+}ST_OTE_ENV, * LPST_OTE_ENV;
+
+typedef struct _ST_OTE_INF {
+
+	ST_OTE_ENV st_env;
+
+	ST_OTE_U_MSG	ote_umsg_in;		//端末からの受信データ（ユニキャスト）
+	ST_PC_U_MSG		ote_umsg_out;		//端末への送信データ（ユニキャスト）
+	UINT32			id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
+	UINT32			u_silent_cnt;  							//受信カウント変化無しでカウントアップ
+	UINT32			estop;
+
+}ST_OTE_INF, * LPST_OTE_INF;
 
 #pragma endregion 操作端末卓信号定義構造体
 /****************************************************************************/
@@ -191,36 +145,9 @@ typedef struct StOTE_IO {
 #pragma region SWAY SENSOR
 #define SENSOR_CAM_MAX				 2//カメラ数
 #define SENSOR_TARGET_MAX            4//検出ターゲット最大数
-#define SID_TG1                      0//ターゲットID
-#define SID_TG2                      1
-#define SID_TG3                      2
-#define SID_TG4                      3
-
 #define TG_LAMP_NUM_MAX              3//ターゲット毎のランプ最大数
-
-#define SID_RED                      0
-#define SID_GREEN                    1
-#define SID_BLUE                     2
-
 #define SWAY_FAULT_ITEM_MAX			 4//異常検出項目数
-#define SID_COMMON_FLT               0
-
-#define SID_AXIS_X					0
-#define SID_AXIS_Y					1
-
-#define SID_CAM_X              ID_SLEW
-#define SID_CAM_Y              ID_BOOM_H
-#define SID_CAM_XY             ID_TROLLY
-#define SID_LOAD_MH            0
-#define SID_LOAD_AH            1
-#define SID_N_LOAD             2
-#define SID_N_AXIS             4
-
-#define CODE_SWAY_IF_MODE_XR_FP_RP	0  //カメラX方向が半径方向　前側＋　右側＋
-#define CODE_SWAY_IF_MODE_YR_FP_RP	1  //カメラY方向が半径方向　前側＋　右側＋
-
-
-typedef struct StSwayIO {
+typedef struct _ST_SENSOR_IO {
 	DWORD proc_mode;
 	DWORD helthy_cnt;
 
@@ -238,28 +165,26 @@ typedef struct StSwayIO {
 	double ph[SID_N_LOAD][MOTION_ID_MAX];					//吊荷位相平面位相	rad
 	double rad_amp2[SID_N_LOAD][MOTION_ID_MAX];				//吊荷振角振幅の2乗		rad2
 	double cam_pix[SID_N_LOAD][MOTION_ID_MAX];				//振れセンサカメラPIX位置
-}ST_SWAY_IO, * LPST_SWAY_IO;
+}ST_SENSOR_IO, * LPST_SENSOR_IO;
 
 #pragma endregion 振れセンサ信号定義構造体
 /****************************************************************************/
 /*   シミュレーション信号定義構造体                                  　   　*/
 /* 　SIM PROCがセットする共有メモリ上の情報　　　　　　　          　    　 */
 #pragma region SIMULATOR
-typedef struct StSimLoad {//負荷
+typedef struct _ST_SIM_LOAD {//負荷
 	double m;	//質量
 	double wx;	//幅
 	double dy;	//奥行
 	double hz;	//高さ
 }ST_SIM_LOAD, * LPST_SIM_LOAD;
 
-#define SIM_ACTIVE_MODE			0x00000100					//シミュレーション実行モード
-#define SIM_SWAY_PACKET_MODE	0x00000010					//振れセンサパケット送信モード
 #define SIM_N_SENSOR			128							//センサ数
-typedef struct StSimulationStatus {
+typedef struct _ST_SIMULATION_STATUS {
 	DWORD mode;
 	DWORD helthy_cnt;
 	PLC_WRITE_BUF plc_w;
-	ST_SWAY_IO sway_io;
+	ST_SENSOR_IO sway_io;
 	Vector3 L, vL;											//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）
 	Vector3 L2, vL2;										//ﾛｰﾌﾟﾍﾞｸﾄﾙ(補巻振れ）
 	double a_fb[MOTION_ID_MAX];								//軸座標加速度fb
@@ -318,7 +243,7 @@ typedef struct StSimulationStatus {
 
 #define N_SWAY_DIR				4
 
-typedef struct stEnvSubproc {
+typedef struct _ST_ENV_SUBPROC {
 
 	bool is_plcio_join = false;
 	bool is_sim_join = false;
@@ -346,8 +271,7 @@ typedef struct stEnvSubproc {
 #define CODE_ENV_DEBUG_DEACTIVE           0
 #define CODE_ENV_DEBUG_SIM_MODE          0x0004
 
-
-typedef struct StCraneStatus {
+typedef struct _ST_CRANE_STATUS {
 //Event Update				:イベント条件で更新
 	bool is_tasks_standby_ok;							//タスクの立ち上がり確認
 	bool is_crane_status_ok=false;						//クレーンステータス初期化完了
@@ -443,7 +367,6 @@ typedef struct StCraneStatus {
 #define CTR_TYPE_VOUT_TIME_1SHOT			0x1010  //ステップ速度　時間完了
 #define CTR_TYPE_VOUT_TIME_2SHOT1			0x1020  //ステップ速度　時間完了
 #define CTR_TYPE_VOUT_TIME_2SHOT2			0x1040  //ステップ速度　時間完了
-
 
 #define CTR_TYPE_AOUT_TIME					0x2000  //加速速度　時間完了
 #define CTR_TYPE_AOUT_V						0x2001  //加速速度　速度到達完了

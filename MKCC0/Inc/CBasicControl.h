@@ -26,13 +26,22 @@ using namespace std;
 
 #define BC_EVENT_MAX                        8
 #define BC_DEFAUT_THREAD_CYCLE	            25		//定周期起動デフォルト値 msec
-#define BC_LISTVIEW_ROW_MAX                 1000    // リストビュー行数
+#define BC_LISTVIEW_ROW_MAX                 100     // リストビュー行数
 #define BC_LISTVIEW_COLUMN_MAX              2       // リストビュー列数
 #define BC_LISTVIEW_COLUMN_WIDTH_TIME       90      // リストビュー列幅(Time)
 #define BC_LISTVIEW_COLUMN_WIDTH_MESSAGE    450     // リストビュー列幅(Message)
 
 #define BC_N_FUNC_ITEM                      6     // リストビュー列幅(Message)
 #define BC_N_ACT_ITEM                       6     // リストビュー列幅(Message)
+
+#define BC_ID_MODE0                         0
+#define BC_ID_MODE1                         1
+#define BC_ID_MODE2                         2
+
+#define BC_ID_MON1                          0
+#define BC_ID_MON2                          1
+
+#define BC_TASK_NAME_BUF_SIZE               32
 
 typedef struct _tagTHREAD_INFO {
     // オブジェクト識別情報
@@ -60,31 +69,31 @@ typedef struct _tagTHREAD_INFO {
     LARGE_INTEGER sys_count;
     LARGE_INTEGER sys_freq;
     
-    DWORD    start_time;        // 現スキャンのスレッド開始時間
-    DWORD    act_time;          // 1スキャンのスレッド実処理時間
-    DWORD    period;            // スレッドループ周期実績
-    DWORD    act_count;         // スレッドループカウンタ
-    DWORD    total_act;         // 起動積算カウンタ
-    DWORD	 event_triggered;   // スレッドトリガイベント
-    uint32_t time_over_count;   // 予定周期をオーバーした回数
+    LONGLONG    start_time;        // 現スキャンのスレッド開始時間
+    LONGLONG    act_time;          // 1スキャンのスレッド実処理時間
+    LONGLONG    period;            // スレッドループ周期実績
+    LONGLONG    act_count;         // スレッドループカウンタ
+    LONGLONG    total_act;         // 起動積算カウンタ
+    LONGLONG	event_triggered;   // スレッドトリガイベント
+    uint32_t    time_over_count;   // 予定周期をオーバーした回数
 
     // 関連ウィンドウハンドル
     HWND hwnd_parent;       // 親ウィンドウのハンドル
     HWND hwnd_msgstatics;   // 親ウィンドウメッセージ表示用ウィンドウへのハンドル
     HWND hwnd_opepane;      // 自メインウィンドウのハンドル(メインフレーム上に配置,タブ選択で表示）
     HWND hwnd_msglist;      // 自メインウィンドウのメッセージ表示用リストコントロールへのハンドル
-    HWND hwnd_work;         // 自専用作業用ウインドウのハンドル
+    HWND hwnd_mon1;         // 自専用作業用ウインドウのハンドル
+    HWND hwnd_mon2;         // 自専用作業用ウインドウのハンドル
     HINSTANCE hInstance;    // アプリケーションのインスタンス
 
     // 操作パネル関連
     int32_t panel_msglist_count;                                // パネルメッセージリストのカウント数
     int32_t panel_func_id;                                      // パネルfunctionボタンの選択内容
     bool panel_act_chk[BC_N_FUNC_ITEM][BC_N_ACT_ITEM];          // パネルtypeボタンの選択内容
-    int32_t panel_mode_id;                                      // パネルtypeボタンの選択内容
+    int32_t mode_id;                                            // 
     
     // 外部インターフェース
     unsigned long* psys_counter;    // メインシステムカウンターの参照先ポインタ
-
 
     _tagTHREAD_INFO()
         : name(L"no name")
@@ -103,6 +112,8 @@ typedef struct _tagTHREAD_INFO {
         , priority(THREAD_PRIORITY_NORMAL)
         , status(BC_CODE_STAT_IDLE)
         , command(BC_CODE_COM_REPEAT_SCAN)
+        , sys_count{0}
+        , sys_freq{1000}
         , start_time(0)
         , act_time(0)
         , period(100)
@@ -114,7 +125,8 @@ typedef struct _tagTHREAD_INFO {
         , hwnd_msgstatics(NULL)
         , hwnd_opepane(NULL)
         , hwnd_msglist(NULL)
-        , hwnd_work(NULL)
+        , hwnd_mon1(NULL)
+        , hwnd_mon2(NULL)
         , hinstance(NULL)
         , panel_msglist_count(0)
         , panel_func_id(0)
@@ -126,6 +138,7 @@ typedef struct _tagTHREAD_INFO {
             false, false, false, false, false, false,
             false, false, false, false, false, false
         }
+        , mode_id(0)
         , psys_counter(NULL)
     {
     }
@@ -145,20 +158,19 @@ public:
  
     unsigned WINAPI run(void* param) ;        //スレッド実行
 
-    virtual unsigned __stdcall initialize(void* param) { return 0; }; //スレッド実行
+    virtual HRESULT __stdcall initialize(void* param) ; 
 
     //自タスク設定タブパネルウィンドウ処理関数
     virtual LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
     //タブパネルのStaticテキストを設定
-    virtual void set_panel_tip_txt() { return; };
- 
+    virtual void set_panel_tip_txt();
     //タブパネルのFunctionボタンのStaticテキストを設定
-    virtual void set_panel_pb_txt() { return; }
-
+    virtual void set_func_pb_txt();
+    //タブパネルのItem chkテキストを設定
+    virtual void set_item_chk_txt();
     //メインパネルのStaticWindowにコメント出力
     virtual void msg2host(wstring wstr);
-
     //タブパネルのListViewにコメント出力
     virtual void msg2listview(wstring wstr);
 
@@ -170,19 +182,20 @@ public:
  
     virtual int req_command(WORD com_code, WORD param, void* pparam) { return 0; };
 
-private:
+   virtual int set_outbuf(LPVOID) { return 0; };         //出力バッファセット
+   virtual int close() { return 0; }
 
-    virtual int set_outbuf(LPVOID) { return 0; };         //出力バッファセット
+private:
+ 
     virtual int input(void* param) { return 0; }                    //入力処理
     virtual int parse(void* param) { return 0; }                    //メイン処理
     virtual int output(void* param) { return 0; }                   //出力処理
-    virtual int clear() { return 0; }
 
-	virtual int routine_work(void* param) { 
+	virtual HRESULT routine_work(void* param) { 
 		input(param);
         parse(param);
         output(param);
-        return STAT_OK; 
+        return S_OK; 
     };
 };
 

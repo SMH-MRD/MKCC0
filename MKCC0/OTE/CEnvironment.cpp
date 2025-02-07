@@ -1,162 +1,119 @@
-
-#include "CTiltSensor.h"
+#include "CEnvironment.h"
 #include "resource.h"
+#include "CCUILib.h"
 
-LPST_TILT_SENSOR CTiltSensor::pst_work;
-ST_TILT_MON1 CTiltSensor::st_mon1;
-ST_TILT_MON2 CTiltSensor::st_mon2;
+ST_ENV_MON1 CEnvironment::st_mon1;
+ST_ENV_MON2 CEnvironment::st_mon2;
 
-HRESULT CTiltSensor::initialize(LPVOID lpParam){
+CGPad* CEnvironment::pPad;
+ST_OTE_ENV CEnvironment::st_work;
+
+CEnvironment::CEnvironment(){
+	
+}
+CEnvironment::~CEnvironment() {
+	if (pPad != NULL) delete pPad;
+}
+
+HRESULT CEnvironment::initialize(LPVOID lpParam) {
 
 	set_func_pb_txt();
 	set_item_chk_txt();
 	set_panel_tip_txt();
-
+	 
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
-	for (int i = 1; i < 6; i++)
-		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
+	for(int i=1;i<6;i++)
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1+i), BM_SETCHECK, BST_UNCHECKED, 0L);
 	//モード設定0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-
-	CTiltSensor* pTiltObj = (CTiltSensor*)lpParam;
-	pst_work = &(pTiltObj->st_work);
-
+	CEnvironment* pEnvObj = (CEnvironment*)lpParam;
 	int code = 0;
-
-	wos.str(L"");
-	if ((code = LALanioInit()) == 0) {
-		wos<<L"LANIO Init NG : Code "<< LALanioGetLastError();
-		msg2listview(wos.str());
-		return STAT_NG;
-	}
-	else{
-		wos <<L"LANIO Init OK : Code "<< code;
-	}
-	msg2listview(wos.str());
-
-	wos.str(L"");
-
-	if ((st_work.laniocount = LALanioSearch(st_work.timeout)) < 0) {
-		wos << L"LANIO Search ERROR : Code "<< LALanioGetLastError();
-		msg2listview(wos.str());
-		return STAT_NG;
-	}
-	else if(st_work.laniocount == 0){
-	//	LALanioConnectDirect(L"192,168,100,30", 1000);
-		wos << L"LANIO Search CANNOT FIND";
-		msg2listview(wos.str());
-		return STAT_NG;
-	}
-	else {
-		//IPアドレス確認
-		wos << L"LANIO Search OK : Count " << st_work.laniocount;
-		msg2listview(wos.str());
-
-		for (int i = 0; i < st_work.laniocount; i++) {
-
-			//ID,モデル確認
-			int error = LALanioGetId(0, &st_work.lanio_id[i]);
-			error = LALanioGetModel(i, &st_work.lanio_model[i]);
-			wos.str(L"");
-			if ((0 < st_work.lanio_model[i]) && (LANIO_N_MODEL > st_work.lanio_model[i]))
-				wos << L"ID : " << st_work.lanio_id[i] << L"    MODEL : " << st_work.model_text[st_work.lanio_model[i]];
-			else
-				wos << L"ID : " << st_work.lanio_id[i] << L"    MODEL : ??";
-
-			msg2listview(wos.str());
-
-			char ipaddress[16];
-			error = LALanioGetIpAddress(i, ipaddress);
-			wos.str(L"");
-			wos << L"IP : " << ipaddress;
-			msg2listview(wos.str());
-
-			st_work.hlanio[i] = LALanioConnect(i);
-			wos.str(L"");
-			if (st_work.hlanio[i] == -1) {
-				wos << L"  Connect ERROR Code " << LALanioGetLastError();
-				msg2listview(wos.str());
-				return STAT_NG;
-			}
-			else {
-				wos << L" Connect OK : Handle " << st_work.hlanio;
-				msg2listview(wos.str());
-			}
-
-			if (st_work.lanio_model[i] == LANIO_MODEL_LA_5AI) {
-
-				wos.str(L"");
-				wos << st_work.model_text[st_work.lanio_model[i]] << L" Set Range Code |";
-				for (int j = 0; j < LANIO_N_CH_LA_5AI; j++) {
-					if (LALanioSetAIRange(st_work.hlanio[i], j,st_work.lanio_ai_range[j])) {
-						wos << st_work.lanio_ai_range[j] << L"|";
-					}
-					else {
-						wos << L"NG|";
-					}
-				}
-				msg2listview(wos.str());
-
-				wos.str(L"");
-				if( LALanioSetADCsps(st_work.hlanio[i], st_work.lanio_sps[LANIO_MODEL_LA_5AI])){
-					wos << st_work.model_text[st_work.lanio_model[i]] << L" SPS set OK CODE:" << st_work.lanio_sps[LANIO_MODEL_LA_5AI];
-				}
-				else {
-					wos << st_work.model_text[st_work.lanio_model[i]] << L" SPS set NG";
-				}
-				msg2listview(wos.str());
-
-			}
-		}
-	}
-	return STAT_OK;
+	return S_OK;
 }
 
-HRESULT CTiltSensor::routine_work(void* pObj){
+HRESULT CEnvironment::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
 	return S_OK;
 }
 
-int CTiltSensor::input() {
+static UINT32	gpad_mode_last = L_OFF;
 
-	for (int i = 0; i < st_work.laniocount; i++) {
-		switch (st_work.lanio_model[i]) {
-		case LANIO_MODEL_LA_5AI: {
-			pst_work->lanio_stat[i] = LALanioAIAll(st_work.hlanio[i], st_work.lanio_ai_data);
-		}break;
-		default:break;
+int CEnvironment::input() {
+
+	//### GAME PAD
+	wos.str(L"");
+	if (st_work.gpad_mode == L_ON) {
+		if (gpad_mode_last == L_OFF) {
+			if (S_OK == init_gpad())	wos << L"GPad Init OK";
+			else						wos << L"GPad Init Failed";
+			msg2listview(wos.str());
+		}
+		else {
+			if(pPad->GetStat(&st_work.pad_data)==S_FALSE) wos << L"GPad Get Data Failed";
 		}
 	}
+	else {
+		if (gpad_mode_last == L_ON) {
+
+			pPad->ClearData();
+			close_gpad(); wos << L"GPad Closed";
+			msg2listview(wos.str());
+		}
+	}
+
+
+
+	//前回値保持
+	gpad_mode_last = st_work.gpad_mode;
 
 	return S_OK;
 }
 
-int CTiltSensor::close() {
-	int error = LALanioEnd();
+int CEnvironment::close() {
+
 	return 0;
 }
 
+
+/****************************************************************************/
+/*   GAMEPAD									                    */
+/****************************************************************************/
+HRESULT CEnvironment::init_gpad() {
+	if (pPad != NULL)close_gpad();
+	CGPad* pPad = new CGPad;
+	HRESULT hr = pPad->Initialize(inf.hwnd_parent);
+	pPad->ClearData();
+	return hr;
+}
+HRESULT CEnvironment::close_gpad() {
+	pPad->Close();
+	delete pPad;
+	return S_OK;
+}
+/****************************************************************************/
+/*   モニタウィンドウ									                    */
+/****************************************************************************/
 static wostringstream monwos;
 
-LRESULT CALLBACK CTiltSensor::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[TILT_ID_MON1_STATIC_INF] = CreateWindowW(TEXT("STATIC"), st_mon1.text[TILT_ID_MON1_STATIC_INF], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[TILT_ID_MON1_STATIC_INF].x, st_mon1.pt[TILT_ID_MON1_STATIC_INF].y, 
-			st_mon1.sz[TILT_ID_MON1_STATIC_INF].cx, st_mon1.sz[TILT_ID_MON1_STATIC_INF].cy, 
-			hWnd, (HMENU)(TILT_ID_MON1_CTRL_BASE + TILT_ID_MON1_STATIC_INF), hInst, NULL);
+		st_mon1.hctrl[ENV_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[ENV_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[ENV_ID_MON1_STATIC_GPAD].x, st_mon1.pt[ENV_ID_MON1_STATIC_GPAD].y,
+			st_mon1.sz[ENV_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[ENV_ID_MON1_STATIC_GPAD].cy,
+			hWnd, (HMENU)(ENV_ID_MON1_CTRL_BASE + ENV_ID_MON1_STATIC_GPAD), hInst, NULL);
 
 		//表示更新用タイマー
-		SetTimer(hWnd, TILT_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
+		SetTimer(hWnd, ENV_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
@@ -172,17 +129,20 @@ LRESULT CALLBACK CTiltSensor::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	}break;
 	case WM_TIMER: {
 		monwos.str(L"");
+		monwos << L"LX:"<<std::hex<<st_work.pad_data.lX << L" LY:" << st_work.pad_data.lY << L" LZ:" << st_work.pad_data.lZ;
+		monwos << L"\nlRx:" << st_work.pad_data.lRx << L" lRy:" << st_work.pad_data.lRy << L" lRz:" << st_work.pad_data.lRz;
+		monwos << L"\nPOV[0]:" << st_work.pad_data.rgdwPOV[0] << L" [1]:" << st_work.pad_data.rgdwPOV[1] << L" [2]:" << st_work.pad_data.rgdwPOV[2] << L" [3]:" << st_work.pad_data.rgdwPOV[3];
+		monwos << L"\nPB[ 0-7]:";
+		for (int i = 0; i < 8; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
+		monwos << L"\nPB[ 8-15]:";
+		for (int i = 8; i < 16; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
+		monwos << L"\nPB[16-23]:";
+		for (int i = 16; i < 24; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
+		monwos << L"\nPB[24-31]:";
+		for (int i = 24; i < 32; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
+		monwos << L"\nSLIDER[0]:" << st_work.pad_data.rglSlider[0] << L" [1]:" << st_work.pad_data.rglSlider[1];
 
-		for (int i = 0; i < pst_work->laniocount; i++) {
-			if (pst_work->lanio_model[i] == LANIO_MODEL_LA_5AI) {
-				monwos << L"AI DATA  STATUS[" << pst_work->lanio_stat[i] << L"]\n";
-				for (int j = 0; j < LANIO_N_CH_LA_5AI; j++) {
-					monwos << L"Ch" << j + 1 << L": " << pst_work->lanio_ai_data[j] << L"\n";
-				}
-			}
-		}
-
-		SetWindowText(st_mon1.hctrl[TILT_ID_MON1_STATIC_INF], monwos.str().c_str());
+		SetWindowText(st_mon1.hctrl[ENV_ID_MON1_STATIC_GPAD], monwos.str().c_str());
 	}break;
 
 	case WM_PAINT: {
@@ -191,8 +151,8 @@ LRESULT CALLBACK CTiltSensor::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		EndPaint(hWnd, &ps);
 	}break;
 	case WM_DESTROY: {
-		st_mon1.hwnd_mon= NULL;	
-		KillTimer(hWnd, TILT_ID_MON1_TIMER);
+		st_mon1.hwnd_mon = NULL;
+		KillTimer(hWnd, ENV_ID_MON1_TIMER);
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -200,7 +160,7 @@ LRESULT CALLBACK CTiltSensor::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	return S_OK;
 };
 
-LRESULT CALLBACK CTiltSensor::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -236,8 +196,8 @@ LRESULT CALLBACK CTiltSensor::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	return S_OK;
 }
 
-HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
-	
+HWND CEnvironment::open_monitor_wnd(HWND h_parent_wnd, int id) {
+
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
 
@@ -254,14 +214,14 @@ HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("TILT_MON1");
-		wcex.lpszClassName = TEXT("TILT_MON1");
+		wcex.lpszMenuName = TEXT("ENV_MON1");
+		wcex.lpszClassName = TEXT("ENV_MON1");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = inf.hwnd_mon1 = CreateWindowW(TEXT("TILT_MON1"), TEXT("TILT_MON1"), WS_OVERLAPPEDWINDOW,
-			TILT_MON1_WND_X, TILT_MON1_WND_Y, TILT_MON1_WND_W, TILT_MON1_WND_H,
+		st_mon1.hwnd_mon = inf.hwnd_mon1 = CreateWindowW(TEXT("ENV_MON1"), TEXT("ENV_MON1"), WS_OVERLAPPEDWINDOW,
+			ENV_MON1_WND_X, ENV_MON1_WND_Y, ENV_MON1_WND_W, ENV_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
 	}
@@ -275,14 +235,14 @@ HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("TILT_MON2");
-		wcex.lpszClassName = TEXT("TILT_MON2");
+		wcex.lpszMenuName = TEXT("ENV_MON2");
+		wcex.lpszClassName = TEXT("ENV_MON2");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon=inf.hwnd_mon2 = CreateWindowW(TEXT("TILT_MON2"), TEXT("TILT_MON2"), WS_OVERLAPPEDWINDOW,
-			TILT_MON2_WND_X, TILT_MON2_WND_Y, TILT_MON2_WND_W, TILT_MON2_WND_H,
+		st_mon2.hwnd_mon = inf.hwnd_mon2 = CreateWindowW(TEXT("ENV_MON2"), TEXT("ENV_MON2"), WS_OVERLAPPEDWINDOW,
+			ENV_MON2_WND_X, ENV_MON2_WND_Y, ENV_MON2_WND_W, ENV_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
 		show_monitor_wnd(id);
@@ -295,7 +255,7 @@ HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CTiltSensor::close_monitor_wnd(int id) {
+void CEnvironment::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
 		DestroyWindow(inf.hwnd_mon1);
 	else if (id == BC_ID_MON2)
@@ -303,7 +263,7 @@ void CTiltSensor::close_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CTiltSensor::show_monitor_wnd(int id) { 
+void CEnvironment::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
 		ShowWindow(inf.hwnd_mon1, SW_SHOW);
 		UpdateWindow(inf.hwnd_mon1);
@@ -315,19 +275,19 @@ void CTiltSensor::show_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CTiltSensor::hide_monitor_wnd(int id) { 
+void CEnvironment::hide_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
 		ShowWindow(inf.hwnd_mon1, SW_HIDE);
 	else if (id == BC_ID_MON2)
 		ShowWindow(inf.hwnd_mon2, SW_HIDE);
-	else;	
+	else;
 	return;
 }
-											
+
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -339,17 +299,30 @@ LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM l
 		case IDC_TASK_FUNC_RADIO5:
 		case IDC_TASK_FUNC_RADIO6:
 		{
-			inf.panel_func_id = LOWORD(wp); set_panel_tip_txt();
+			inf.panel_func_id = LOWORD(wp); 
+			set_panel_tip_txt();
+			set_item_chk_txt();
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-			for (int i = 0; i < BC_N_ACT_ITEM; i++) {
-				if (inf.panel_act_chk[wp - IDC_TASK_FUNC_RADIO1][i])
-					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1 + i), BM_SETCHECK, BST_CHECKED, 0L);
-				else
-					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
-			}
 		}break;
 
-		case IDC_TASK_ITEM_CHECK1:
+		case IDC_TASK_ITEM_CHECK1: {
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO4:
+				if (st_work.gpad_mode == L_ON) {
+					st_work.gpad_mode = L_OFF;
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else {
+
+					st_work.gpad_mode = L_ON;
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
+				}
+				set_item_chk_txt();
+				break;
+			default:break;
+			}
+
+		}break;
 		case IDC_TASK_ITEM_CHECK2:
 		case IDC_TASK_ITEM_CHECK3:
 		case IDC_TASK_ITEM_CHECK4:
@@ -362,7 +335,7 @@ LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM l
 				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = false;
 		}break;
 
-		case IDSET: 
+		case IDSET:
 		{
 			wstring wstr, wstr_tmp;
 
@@ -371,21 +344,21 @@ LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM l
 			msg2listview(wstr);
 
 		}break;
-		case IDRESET: 
+		case IDRESET:
 		{
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 		}break;
 
-		case IDC_TASK_MODE_RADIO0: 
+		case IDC_TASK_MODE_RADIO0:
 		{
 			inf.mode_id = BC_ID_MODE0;
 		}break;
-		case IDC_TASK_MODE_RADIO1: 
+		case IDC_TASK_MODE_RADIO1:
 		{
 			inf.mode_id = BC_ID_MODE1;
 		}break;
-		case IDC_TASK_MODE_RADIO2: 
+		case IDC_TASK_MODE_RADIO2:
 		{
 			inf.mode_id = BC_ID_MODE2;
 		}break;
@@ -393,7 +366,7 @@ LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM l
 		case IDC_TASK_MON_CHECK1:
 		{
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK1) == BST_CHECKED) {
-				open_monitor_wnd(inf.hwnd_parent,BC_ID_MON1);
+				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON1);
 			}
 			else {
 				close_monitor_wnd(BC_ID_MON1);
@@ -414,7 +387,7 @@ LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM l
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CTiltSensor::msg2listview(wstring wstr) {
+void CEnvironment::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -439,8 +412,7 @@ void CTiltSensor::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-
-void CTiltSensor::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CEnvironment::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -449,15 +421,27 @@ void CTiltSensor::set_PNLparam_value(float p1, float p2, float p3, float p4, flo
 	wstr += std::to_wstring(p5); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT5), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
-
-//タブパネルのStaticテキストを設定
-void CTiltSensor::set_panel_tip_txt() {
+//タブパネルのEdit Box説明テキストを設定
+void CEnvironment::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
+	case IDC_TASK_FUNC_RADIO4: {
+		wstr = L"1:-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM3), wstr.c_str());
+		wstr = L"2:-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM4), wstr.c_str());
+		wstr = L"3:-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM5), wstr.c_str());
+		wstr = L"4:-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM6), wstr.c_str());
+		wstr = L"5:-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM7), wstr.c_str());
+		wstr = L"6:-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM8), wstr.c_str());
+	}break;
 	case IDC_TASK_FUNC_RADIO1:
 	case IDC_TASK_FUNC_RADIO2:
 	case IDC_TASK_FUNC_RADIO3:
-	case IDC_TASK_FUNC_RADIO4:
 	case IDC_TASK_FUNC_RADIO5:
 	case IDC_TASK_FUNC_RADIO6:
 	default:
@@ -479,23 +463,46 @@ void CTiltSensor::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CTiltSensor::set_func_pb_txt() {
+void CEnvironment::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"GPAD");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO5, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO6, L"-");
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CTiltSensor::set_item_chk_txt() {
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
+void CEnvironment::set_item_chk_txt() {
+	wstring wstr_type; wstring wstr;
+	switch (inf.panel_func_id) {
+	case IDC_TASK_FUNC_RADIO4: {
+		if(st_work.gpad_mode == L_ON)
+			SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"ACTIVE");
+		else
+			SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"DEACTIVE");
+
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
+	}break;
+	case IDC_TASK_FUNC_RADIO1:
+	case IDC_TASK_FUNC_RADIO2:
+	case IDC_TASK_FUNC_RADIO3:
+	case IDC_TASK_FUNC_RADIO5:
+	case IDC_TASK_FUNC_RADIO6:
+	default:
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
+		break;
+	}
 	return;
 }
+
 

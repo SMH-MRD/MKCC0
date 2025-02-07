@@ -24,44 +24,17 @@
     <ClInclude Include="Resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="SENSOR.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CTiltSensor.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Inc\CBasicControl.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CClientService.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CSwaySensor.h">
+    <ClInclude Include="MKCC.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SENSOR.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CTiltSensor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\CBasicControl.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CClientService.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\CSharedMem.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CSwaySensor.cpp">
+    <ClCompile Include="MKCC.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="SENSOR.rc">
+    <ResourceCompile Include="MKCC.rc">
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -69,23 +42,8 @@
     <Image Include="small.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="SENSOR.ico">
+    <Image Include="MKCC.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="..\Img\tilt.png">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="..\Img\cam.png">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="..\Img\cs.bmp">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="..\Img\tilt.bmp">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sensor.ini" />
   </ItemGroup>
 </Project>

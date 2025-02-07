@@ -24,44 +24,53 @@
     <ClInclude Include="Resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="SENSOR.h">
+    <ClInclude Include="OTE.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CTiltSensor.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Inc\CBasicControl.h">
+    <ClInclude Include="CEnvironment.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="CClientService.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CSwaySensor.h">
+    <ClInclude Include="CPolicy.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="CScada.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="CAgent.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SENSOR.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CTiltSensor.cpp">
+    <ClCompile Include="OTE.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\Src\CBasicControl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="CEnvironment.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
     <ClCompile Include="CClientService.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="CPolicy.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="CScada.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="CAgent.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\Src\CSharedMem.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CSwaySensor.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="SENSOR.rc">
+    <ResourceCompile Include="OTE.rc">
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -69,23 +78,23 @@
     <Image Include="small.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="SENSOR.ico">
+    <Image Include="OTE.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="..\Img\tilt.png">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="..\Img\cam.png">
+    <Image Include="..\Img\agent.bmp">
       <Filter>リソース ファイル</Filter>
     </Image>
     <Image Include="..\Img\cs.bmp">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="..\Img\tilt.bmp">
+    <Image Include="..\Img\env.bmp">
       <Filter>リソース ファイル</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sensor.ini" />
+    <Image Include="..\Img\policy.bmp">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="..\Img\scada.bmp">
+      <Filter>リソース ファイル</Filter>
+    </Image>
   </ItemGroup>
 </Project>
