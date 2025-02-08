@@ -27,19 +27,19 @@
     <ClInclude Include="OTE.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CEnvironment.h">
+    <ClInclude Include="COteEnv.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CClientService.h">
+    <ClInclude Include="COteCS.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CPolicy.h">
+    <ClInclude Include="COtePol.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CScada.h">
+    <ClInclude Include="COteScad.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CAgent.h">
+    <ClInclude Include="COteAgent.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

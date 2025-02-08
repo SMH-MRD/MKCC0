@@ -32,7 +32,7 @@ namespace SENSOR
 #define TAB_SIZE_H					35
 #define TAB_SPACE				    20		 
 
-#define SENSOR_WND_X                0
+#define SENSOR_WND_X                0+640+640
 #define SENSOR_WND_Y                0
 #define SENSOR_WND_W                640
 #define SENSOR_WND_H                460

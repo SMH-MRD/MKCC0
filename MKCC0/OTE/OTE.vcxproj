@@ -81,7 +81,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>comctl32.lib;winmm.lib;ws2_32.lib;LibSockAlpha.lib;msimg32.lib;ipropsapi.lib;Gdiplus.lib;dinput8.lib;dxguid.lib;iphlpapi.lib;OTEUILib.lib;msimg32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CCUILib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;Gdiplus.lib;dinput8.lib;dxguid.lib;iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -100,7 +100,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>comctl32.lib;winmm.lib;ws2_32.lib;LibSockAlpha.lib;msimg32.lib;ipropsapi.lib;Gdiplus.lib;dinput8.lib;dxguid.lib;iphlpapi.lib;OTEUILib.lib;msimg32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CCUILib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;Gdiplus.lib;dinput8.lib;dxguid.lib;iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -139,11 +139,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CAgent.h" />
-    <ClInclude Include="CClientService.h" />
-    <ClInclude Include="CEnvironment.h" />
-    <ClInclude Include="CPolicy.h" />
-    <ClInclude Include="CScada.h" />
+    <ClInclude Include="COteAgent.h" />
+    <ClInclude Include="COteCS.h" />
+    <ClInclude Include="COteEnv.h" />
+    <ClInclude Include="COtePol.h" />
+    <ClInclude Include="COteScad.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="OTE.h" />
     <ClInclude Include="Resource.h" />

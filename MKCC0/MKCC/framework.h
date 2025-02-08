@@ -13,3 +13,12 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+
+#include <windowsx.h>
+#include <process.h>
+#include <mmsystem.h>
+#include <vector>
+#include <commctrl.h>       //コモンコントロール用
+
+#include "common_def.h"
+

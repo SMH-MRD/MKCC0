@@ -7,11 +7,11 @@
 #include "CBasicControl.h"
 #include "CSharedMem.h"	    //共有メモリクラス
 
-#include "CEnvironment.h"
-#include "CClientService.h"
-#include "CScada.h"
-#include "CPolicy.h"
-#include "CAgent.h"
+#include "COteEnv.h"
+#include "COteCS.h"
+#include "COteScad.h"
+#include "COtePol.h"
+#include "COteAgent.h"
 
 using namespace OTE;
 
@@ -22,6 +22,7 @@ HINSTANCE hInst;                                // 現在のインターフェ�
 WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキスト
 WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
 
+//共有メモリオブジェクト
 CSharedMem* pOte_Obj;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
@@ -167,7 +168,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     pszInifile = dstpath;
 
     ///-共有メモリ割付&設定##################
-    if (OK_SHMEM != pOte_Obj->create_smem(SMEM_SENSOR_NAME, sizeof(ST_SENSOR_IO), MUTEX_SENSOR_NAME)) return(FALSE);
+    if (OK_SHMEM != pOte_Obj->create_smem(SMEM_OTE_INF_NAME, sizeof(ST_OTE_INF), MUTEX_SENSOR_NAME)) return(FALSE);
 
     HBITMAP hBmp;
     CBasicControl* pobj;
@@ -696,7 +697,7 @@ VOID	CALLBACK    alarmHandlar(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWOR
 
             TCHAR tbuf[32];
             wsprintf(tbuf, L"\t%4d", (int)pobj->inf.period);
-            SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, i, (LPARAM)tbuf);
+            SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, knl_manage_set.num_of_task-i-1, (LPARAM)tbuf);
         }
     }
 

@@ -200,3 +200,9 @@ typedef struct DeviceCode {
     UINT16  option;
  }ST_DEVICE_CODE, * LPST_DEVICE_CODE;
 
+typedef struct _ST_MOVE_SET {
+    double p;	//ˆÊ’u
+    double v;	//‘¬“x
+    double a;	//‰Á‘¬“x
+}ST_MOVE_SET, * LPST_MOVE_SET;
+

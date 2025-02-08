@@ -1,4 +1,4 @@
-#include "CEnvironment.h"
+#include "COteEnv.h"
 #include "resource.h"
 #include "CCUILib.h"
 
@@ -6,7 +6,7 @@ ST_ENV_MON1 CEnvironment::st_mon1;
 ST_ENV_MON2 CEnvironment::st_mon2;
 
 CGPad* CEnvironment::pPad;
-ST_OTE_ENV CEnvironment::st_work;
+ST_CRANE_STAT_CC CEnvironment::st_work;
 
 CEnvironment::CEnvironment(){
 	
@@ -45,31 +45,6 @@ static UINT32	gpad_mode_last = L_OFF;
 
 int CEnvironment::input() {
 
-	//### GAME PAD
-	wos.str(L"");
-	if (st_work.gpad_mode == L_ON) {
-		if (gpad_mode_last == L_OFF) {
-			if (S_OK == init_gpad())	wos << L"GPad Init OK";
-			else						wos << L"GPad Init Failed";
-			msg2listview(wos.str());
-		}
-		else {
-			if(pPad->GetStat(&st_work.pad_data)==S_FALSE) wos << L"GPad Get Data Failed";
-		}
-	}
-	else {
-		if (gpad_mode_last == L_ON) {
-
-			pPad->ClearData();
-			close_gpad(); wos << L"GPad Closed";
-			msg2listview(wos.str());
-		}
-	}
-
-
-
-	//前回値保持
-	gpad_mode_last = st_work.gpad_mode;
 
 	return S_OK;
 }
@@ -80,21 +55,6 @@ int CEnvironment::close() {
 }
 
 
-/****************************************************************************/
-/*   GAMEPAD									                    */
-/****************************************************************************/
-HRESULT CEnvironment::init_gpad() {
-	if (pPad != NULL)close_gpad();
-	CGPad* pPad = new CGPad;
-	HRESULT hr = pPad->Initialize(inf.hwnd_parent);
-	pPad->ClearData();
-	return hr;
-}
-HRESULT CEnvironment::close_gpad() {
-	pPad->Close();
-	delete pPad;
-	return S_OK;
-}
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
@@ -128,20 +88,6 @@ LRESULT CALLBACK CEnvironment::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		}
 	}break;
 	case WM_TIMER: {
-		monwos.str(L"");
-		monwos << L"LX:"<<std::hex<<st_work.pad_data.lX << L" LY:" << st_work.pad_data.lY << L" LZ:" << st_work.pad_data.lZ;
-		monwos << L"\nlRx:" << st_work.pad_data.lRx << L" lRy:" << st_work.pad_data.lRy << L" lRz:" << st_work.pad_data.lRz;
-		monwos << L"\nPOV[0]:" << st_work.pad_data.rgdwPOV[0] << L" [1]:" << st_work.pad_data.rgdwPOV[1] << L" [2]:" << st_work.pad_data.rgdwPOV[2] << L" [3]:" << st_work.pad_data.rgdwPOV[3];
-		monwos << L"\nPB[ 0-7]:";
-		for (int i = 0; i < 8; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
-		monwos << L"\nPB[ 8-15]:";
-		for (int i = 8; i < 16; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
-		monwos << L"\nPB[16-23]:";
-		for (int i = 16; i < 24; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
-		monwos << L"\nPB[24-31]:";
-		for (int i = 24; i < 32; i++) monwos << st_work.pad_data.rgbButtons[i] << L" ";
-		monwos << L"\nSLIDER[0]:" << st_work.pad_data.rglSlider[0] << L" [1]:" << st_work.pad_data.rglSlider[1];
-
 		SetWindowText(st_mon1.hctrl[ENV_ID_MON1_STATIC_GPAD], monwos.str().c_str());
 	}break;
 
@@ -308,16 +254,6 @@ LRESULT CALLBACK CEnvironment::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM 
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
 			case IDC_TASK_FUNC_RADIO4:
-				if (st_work.gpad_mode == L_ON) {
-					st_work.gpad_mode = L_OFF;
-					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
-				}
-				else {
-
-					st_work.gpad_mode = L_ON;
-					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
-				}
-				set_item_chk_txt();
 				break;
 			default:break;
 			}
@@ -477,11 +413,6 @@ void CEnvironment::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
-		if(st_work.gpad_mode == L_ON)
-			SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"ACTIVE");
-		else
-			SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"DEACTIVE");
-
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");

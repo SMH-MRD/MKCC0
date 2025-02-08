@@ -35,7 +35,7 @@ enum class ENUM_THREAD : unsigned int {
 #define TAB_SIZE_H					35
 #define TAB_SPACE				    20		 
 
-#define OTE_WND_X                0
+#define OTE_WND_X                0+640
 #define OTE_WND_Y                0
 #define OTE_WND_W                640
 #define OTE_WND_H                460

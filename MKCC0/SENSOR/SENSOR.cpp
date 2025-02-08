@@ -163,7 +163,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    pszInifile = dstpath;
 
    ///-共有メモリ割付&設定##################
-   if (OK_SHMEM != pSensor_Obj->create_smem(SMEM_SENSOR_NAME, sizeof(ST_SENSOR_IO), MUTEX_SENSOR_NAME)) return(FALSE);
+   if (OK_SHMEM != pSensor_Obj->create_smem(SMEM_SENSOR_INF_NAME, sizeof(ST_SENSOR_INF), MUTEX_SENSOR_NAME)) return(FALSE);
   
 
    HBITMAP hBmp;
