@@ -50,19 +50,19 @@
     <ClCompile Include="..\Src\CBasicControl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CEnvironment.cpp">
+    <ClCompile Include="COteEnv.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CClientService.cpp">
+    <ClCompile Include="COteCS.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CPolicy.cpp">
+    <ClCompile Include="COtePol.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CScada.cpp">
+    <ClCompile Include="COteScad.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CAgent.cpp">
+    <ClCompile Include="COteAgent.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\Src\CSharedMem.cpp">

@@ -99,7 +99,7 @@ typedef struct _ST_SENSOR_INF {
 #define N_SWAY_DIR				4
 #define N_DRUM_LAYER			10	//ドラ巻取り層数最大値
 
-typedef struct _ST_CRANE_STAT_CC {
+typedef struct _ST_CC_CRANE_STAT {
 	//Event Update				:イベント条件で更新
 	bool is_tasks_standby_ok;							//タスクの立ち上がり確認
 	bool is_crane_status_ok = false;						//クレーンステータス初期化完了
@@ -162,14 +162,14 @@ typedef struct _ST_CRANE_STAT_CC {
 	ST_MOVE_SET	lrm;								//主巻ロープ長
 	ST_MOVE_SET	lra;								//補巻ロープ長
 
-}ST_CRANE_STAT_CC, * LPST_CRANE_STAT_CC;
+}ST_CC_CRANE_STAT, * LPST_CC_CRANE_STAT;
 #pragma endregion  クレーン状態定義構造体
 
 //## PLC IO定義構造体　PLC通信の情報　
 #define SMEM_PLC_IO_NAME				L"PLC_IO"
 #define MUTEX_PLC_IO_NAME				L"MU_PLC_IO"
 #pragma region PLC IO
-typedef struct _ST_PLC_IO {
+typedef struct _ST_CC_PLC_IO {
 	INT32 mode;
 	INT32 healthy_cnt;
 	double v_fb[MOTION_ID_MAX];						//速度FB
@@ -201,7 +201,7 @@ typedef struct _ST_PLC_IO {
 	INT32 ah_spd_mode;
 	INT32 bh_ope_mode;
 	double v_ratio[MOTION_ID_MAX] = { 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0 };
-}ST_PLC_IO, * LPST_PLC_IO;
+}ST_CC_PLC_IO, * LPST_CC_PLC_IO;
 
 #pragma endregion PLC IO定義構造体
 
@@ -480,7 +480,7 @@ typedef struct _ST_POL_INF_CC {
 #define AG_AXIS_STAT_AUTO_ENABLE		0x100000000	 //自動可
 #define AG_AXIS_STAT_ANTISWAY_ENABLE	0x200000000	 //振れ止め可
 
-typedef struct _ST_AGENT_INF_CC {
+typedef struct _ST_CC_AGENT_INF {
 
 	ST_COMMAND_SET st_as_comset;					//振れ止め用コマンドセット
 	ST_POS_TARGETS auto_pos_target;					//自動目標位置
@@ -500,7 +500,7 @@ typedef struct _ST_AGENT_INF_CC {
 	LPST_COMMAND_SET    pCom_hot;					//実行中コマンドセット
 	LPST_JOB_SET		pJob_hot;
 
-}ST_AGENT_INF_CC, * LPST_ST_AGENT_INF_CC;
+}ST_CC_AGENT_INF, * LPST_CC_AGENT_INF;
 
 #pragma endregion AGENT情報定義構造体
 
@@ -509,7 +509,7 @@ typedef struct _ST_AGENT_INF_CC {
 #define SMEM_CS_INF_CC_NAME				L"CS_INF_CC"
 #define MUTEX_CS_INF_CC_NAME			L"MU_CS_INF_CC"
 #pragma region CSInfo_CC
-typedef struct _ST_CSINF_CC {
+typedef struct _ST_CC_CS_INF {
 	//自動,遠隔設定（モード）
 	INT32		auto_mode;												//自動モード
 	INT32		antisway_mode;											//振れ止めモード
@@ -532,7 +532,7 @@ typedef struct _ST_CSINF_CC {
 	LPST_JOB_SET p_active_job;
 	int job_control_status;
 	int grip_status;
-}ST_CSINF_CC, * LPST_CSINF_CC;
+}ST_CC_CS_INF, * LPST_CC_CS_INF;
 
 #define N_JOB_TARGET_MAX	10
 #define N_JOB_OPTION_MAX	10
@@ -560,7 +560,6 @@ typedef struct stClientIO {
 }ST_CLIENT_IO, * LPST_CLIENT_IO;
 
 #pragma endregion Client Service情報定義構造体
-
 
 //#	Simulation
 #define SMEM_SIM_INF_CC_NAME		L"SIM_INF_CC"
@@ -620,46 +619,109 @@ typedef struct _ST_SIM_INF_CC {
 
 /****************************************************************************/
 /*   操作端末信号定義構造体                                  　         　	*/
-/* 　OTEがセットする共有メモリ上の情報　　　　　　　          　			*/
+/* 　CSがセットする共有メモリ上の情報　　　　　　　          　				*/
 /****************************************************************************/
 //#	OTE
 //## OTE_INF
 #define SMEM_OTE_INF_NAME				L"OTE_INF"
 #define MUTEX_OTE_INF_NAME				L"MU_OTE_INF"
 #pragma region OTE_INF
-
+//OTEの状態
 typedef struct _ST_OTE_ENV {
 	UINT32			target_crane;		//接続対象クレーン
 	UINT32			ote_mode;			//操作端末モード
 	UINT32			ote_id;				//端末ID
-	UINT32			grip_mode;
-	UINT32			gpad_mode = L_OFF;
+	UINT32			grip_mode;			//グリップスイッチモード
+	UINT32			gpad_mode = L_OFF;	//ゲームパッドモード
 	DIJOYSTATE		pad_data;
 }ST_OTE_ENV, * LPST_OTE_ENV;
 
-typedef struct _ST_OTE_INF {
+#define OTE_STOP_REQ_MODE_OFF			L_OFF
+#define OTE_STOP_REQ_MODE_ESTOP			0x00000001
+#define OTE_STOP_REQ_MODE_CTRL_OFF		0x00000002
+typedef struct _ST_CC_OTE_INF {
 
 	ST_OTE_ENV st_env;
 
-	ST_OTE_U_MSG	ote_umsg_in;		//端末からの受信データ（ユニキャスト）
-	ST_PC_U_MSG		ote_umsg_out;		//端末への送信データ（ユニキャスト）
-	UINT32			id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
-	UINT32			u_silent_cnt;  							//受信カウント変化無しでカウントアップ
-	UINT32			estop;
+	ST_OTE_U_MSG    st_msg_ote_u_rcv;
+	ST_PC_M_MSG     st_msg_pc_m_rcv;
+	ST_OTE_M_MSG    st_msg_ote_m_rcv;
 
-}ST_OTE_INF, * LPST_OTE_INF;
+	ST_PC_U_MSG     st_msg_pc_u_snd;
+	ST_PC_M_MSG     st_msg_pc_m_snd;
+	
+	UINT32			id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
+	SOCKADDR_IN		addr_in_to_oteu;
+	SOCKADDR_IN		addr_in_from_oteu;
+	SOCKADDR_IN		addr_in_from_pcm;	
+	SOCKADDR_IN		addr_in_from_otem;	
+			
+	UINT32			ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
+	UINT32			mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
+	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
+
+}ST_CC_OTE_INF, * LPST_CC_OTE_INF;
 #pragma endregion OTE_INF
 
+/****************************************************************************/
+/*   操作端末側制御PCIF信号定義構造体                                    　	*/
+/* 　OTE AGENTがセットする共有メモリ上の情報　　　　　　　          　		*/
+/****************************************************************************/
+//## OTE_CC_IF
+#define SMEM_OTE_CC_IF_NAME			L"OTE_CC_IF"
+#define MUTEX_OTE_CC_IF_NAME		L"MU_OTE_CC_IF"
+#pragma region OTE_CC_IF
+typedef struct _ST_OTE_CC_IF {
+
+	ST_PC_U_MSG     st_msg_pc_u_rcv;
+	ST_PC_M_MSG     st_msg_pc_m_rcv;
+	ST_OTE_M_MSG    st_msg_ote_m_rcv;
+
+	ST_OTE_U_MSG    st_msg_ote_u_snd;
+	ST_OTE_M_MSG    st_msg_ote_m_snd;
+
+	UINT32			id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
+	SOCKADDR_IN		addr_in_to_oteu;
+	SOCKADDR_IN		addr_in_from_oteu;
+	SOCKADDR_IN		addr_in_from_pcm;
+	SOCKADDR_IN		addr_in_from_otem;
+
+	UINT32			ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
+	UINT32			mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
+	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
+
+}ST_OTE_CC_IF, * LPST_OTE_CC_IF;
+#pragma endregion OTE_CC_IF
+
+//## OTE_PLC_IF
+#define SMEM_OTE_PLC_IF_NAME			L"OTE_PLC_IF"
+#define MUTEX_OTE_PLC_IF_NAME			L"MU_OTE_PLC_IF"
+#pragma region OTE_PLC_IF
+typedef struct _ST_OTE_PLC_IF {
+	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
+}ST_OTE_PLC_IF, * LPST_OTE_PLC_IF;
+#pragma endregion OTE_INF
+
+//## OTE_STATUS
+#define SMEM_OTE_STAT_NAME				L"OTE_STAT"
+#define MUTEX_OTE_STAT_NAME				L"MU_OTE_STAT"
+#pragma region OTE_STAT
+typedef struct _ST_OTE_STAT {
+	DWORD notch_pos_gmpad[MOTION_ID_MAX];
+	UINT16 pb_stat[N_OTE_PNL_PB];						//PB状態 OFFディレイカウント
+	UINT16 notch_pb_stat[N_OTE_PNL_PB];					//PB状態 OFFディレイカウント
+}ST_OTE_STAT, * LPST_OTE_STAT;
+#pragma endregion 操作端末状態構造体
 
 //## OTE_UI
 #define SMEM_OTE_UI_NAME				L"OTE_UI"
 #define MUTEX_OTE_UI_NAME				L"MU_OTE_UI"
 #pragma region OTE_UI
-typedef struct stOteUiIF {
+typedef struct _ST_OTE_UI {
 	DWORD notch_pos_gmpad[MOTION_ID_MAX];
 	UINT16 pb_stat[N_OTE_PNL_PB];						//PB状態 OFFディレイカウント
 	UINT16 notch_pb_stat[N_OTE_PNL_PB];					//PB状態 OFFディレイカウント
-}ST_OTE_UI_IF, * LPST_OTE_UI_IF;
+}ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 
 

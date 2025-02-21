@@ -4,69 +4,69 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 
-#define ENV_MON1_WND_X     640
-#define ENV_MON1_WND_Y     0
-#define ENV_MON1_WND_W     320
-#define ENV_MON1_WND_H     240
-#define ENV_MON1_N_CTRL    32
-#define ENV_MON1_N_WCHAR   64
+#define POL_MON1_WND_X     640
+#define POL_MON1_WND_Y     0
+#define POL_MON1_WND_W     320
+#define POL_MON1_WND_H     240
+#define POL_MON1_N_CTRL    32
+#define POL_MON1_N_WCHAR   64
 
-#define ENV_ID_MON1_CTRL_BASE   51100
-#define ENV_ID_MON1_STATIC_GPAD     0
+#define POL_ID_MON1_CTRL_BASE   54100
+#define POL_ID_MON1_STATIC_GPAD     0
 
-#define ENV_ID_MON2_CTRL_BASE   51140
+#define POL_ID_MON2_CTRL_BASE   541140
 
-#define ENV_ID_MON1_TIMER  51190
-#define ENV_ID_MON2_TIMER  51191
+#define POL_ID_MON1_TIMER  54190
+#define POL_ID_MON2_TIMER  54191
 
-#define ENV_PRM_MON1_TIMER_MS  200
-#define ENV_PRM_MON2_TIMER_MS  200
+#define POL_PRM_MON1_TIMER_MS  200
+#define POL_PRM_MON2_TIMER_MS  200
 
 
-typedef struct _ST_ENV_MON1 {
-    int timer_ms = ENV_PRM_MON1_TIMER_MS;
+typedef struct _ST_POL_MON1 {
+    int timer_ms = POL_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
-    HWND hctrl[ENV_MON1_N_CTRL] = {
+    HWND hctrl[POL_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
-    POINT pt[ENV_MON1_N_CTRL] = {
+    POINT pt[POL_MON1_N_CTRL] = {
         5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    SIZE sz[ENV_MON1_N_CTRL] = {
+    SIZE sz[POL_MON1_N_CTRL] = {
         295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    WCHAR text[ENV_MON1_N_CTRL][ENV_MON1_N_WCHAR] = {
+    WCHAR text[POL_MON1_N_CTRL][POL_MON1_N_WCHAR] = {
         L"GAME_PAD", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
-}ST_ENV_MON1, * LPST_ENV_MON1;
+}ST_POL_MON1, * LPST_POL_MON1;
 
-#define ENV_MON2_WND_X     ENV_MON1_WND_X
-#define ENV_MON2_WND_Y     ENV_MON1_WND_Y + ENV_MON1_WND_H   
-#define ENV_MON2_WND_W     320
-#define ENV_MON2_WND_H     240
+#define POL_MON2_WND_X     POL_MON1_WND_X
+#define POL_MON2_WND_Y     POL_MON1_WND_Y + POL_MON1_WND_H   
+#define POL_MON2_WND_W     320
+#define POL_MON2_WND_H     240
 
-typedef struct _ST_ENV_MON2 {
+typedef struct _ST_POL_MON2 {
     HWND hwnd_mon;
 
-}ST_ENV_MON2, * LPST_ENV_MON2;
+}ST_POL_MON2, * LPST_POL_MON2;
 
-class CEnvironment : public CBasicControl
+class CPolicy : public CBasicControl
 {
 public:
-    CEnvironment() ;
-    ~CEnvironment();
+    CPolicy();
+    ~CPolicy();
 
     virtual HRESULT initialize(LPVOID lpParam) override;
 
@@ -75,11 +75,11 @@ public:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static ST_ENV_MON1 st_mon1;
-    static ST_ENV_MON2 st_mon2;
+    static ST_POL_MON1 st_mon1;
+    static ST_POL_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_CRANE_STAT_CC st_work;
+    static ST_CC_CRANE_STAT st_work;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -122,5 +122,6 @@ private:
     }
     int close();
 };
+
 
 

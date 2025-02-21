@@ -1,19 +1,20 @@
-#include "CAgent.h"
+#include "CCcSim.h"
+
 #include "resource.h"
 
-ST_AGENT_MON1 CAgent::st_mon1;
-ST_AGENT_MON2 CAgent::st_mon2;
+ST_SIM_MON1 CSim::st_mon1;
+ST_SIM_MON2 CSim::st_mon2;
 
-ST_CRANE_STAT_CC CAgent::st_work;
+ST_SIM_INF_CC CSim::st_work;
 
-CAgent::CAgent() {
-
-}
-CAgent::~CAgent() {
+CSim::CSim() {
 
 }
+CSim::~CSim() {
 
-HRESULT CAgent::initialize(LPVOID lpParam) {
+}
+
+HRESULT CSim::initialize(LPVOID lpParam) {
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -27,12 +28,12 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-	CAgent* pEnvObj = (CAgent*)lpParam;
+	CSim* pEnvObj = (CSim*)lpParam;
 	int code = 0;
 	return S_OK;
 }
 
-HRESULT CAgent::routine_work(void* pObj) {
+HRESULT CSim::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
@@ -41,13 +42,13 @@ HRESULT CAgent::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
-int CAgent::input() {
+int CSim::input() {
 
 
 	return S_OK;
 }
 
-int CAgent::close() {
+int CSim::close() {
 
 	return 0;
 }
@@ -57,20 +58,20 @@ int CAgent::close() {
 /****************************************************************************/
 static wostringstream monwos;
 
-LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CSim::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[AGENT_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[AGENT_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[AGENT_ID_MON1_STATIC_GPAD].x, st_mon1.pt[AGENT_ID_MON1_STATIC_GPAD].y,
-			st_mon1.sz[AGENT_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[AGENT_ID_MON1_STATIC_GPAD].cy,
-			hWnd, (HMENU)(AGENT_ID_MON1_CTRL_BASE + AGENT_ID_MON1_STATIC_GPAD), hInst, NULL);
+		st_mon1.hctrl[SIM_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[SIM_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[SIM_ID_MON1_STATIC_GPAD].x, st_mon1.pt[SIM_ID_MON1_STATIC_GPAD].y,
+			st_mon1.sz[SIM_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[SIM_ID_MON1_STATIC_GPAD].cy,
+			hWnd, (HMENU)(SIM_ID_MON1_CTRL_BASE + SIM_ID_MON1_STATIC_GPAD), hInst, NULL);
 
 		//表示更新用タイマー
-		SetTimer(hWnd, AGENT_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
+		SetTimer(hWnd, SIM_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
@@ -94,7 +95,7 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
-		KillTimer(hWnd, AGENT_ID_MON1_TIMER);
+		KillTimer(hWnd, SIM_ID_MON1_TIMER);
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -102,7 +103,7 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 };
 
-LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CSim::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -138,7 +139,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 }
 
-HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CSim::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -156,14 +157,14 @@ HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("AGENT_MON1");
-		wcex.lpszClassName = TEXT("AGENT_MON1");
+		wcex.lpszMenuName = TEXT("SIM_MON1");
+		wcex.lpszClassName = TEXT("SIM_MON1");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = inf.hwnd_mon1 = CreateWindowW(TEXT("AGENT_MON1"), TEXT("AGENT_MON1"), WS_OVERLAPPEDWINDOW,
-			AGENT_MON1_WND_X, AGENT_MON1_WND_Y, AGENT_MON1_WND_W, AGENT_MON1_WND_H,
+		st_mon1.hwnd_mon = CreateWindowW(TEXT("SIM_MON1"), TEXT("SIM_MON1"), WS_OVERLAPPEDWINDOW,
+			SIM_MON1_WND_X, SIM_MON1_WND_Y, SIM_MON1_WND_W, SIM_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
 	}
@@ -177,18 +178,18 @@ HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("AGENT_MON2");
-		wcex.lpszClassName = TEXT("AGENT_MON2");
+		wcex.lpszMenuName = TEXT("SIM_MON2");
+		wcex.lpszClassName = TEXT("SIM_MON2");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon = inf.hwnd_mon2 = CreateWindowW(TEXT("AGENT_MON2"), TEXT("AGENT_MON2"), WS_OVERLAPPEDWINDOW,
-			AGENT_MON2_WND_X, AGENT_MON2_WND_Y, AGENT_MON2_WND_W, AGENT_MON2_WND_H,
+		st_mon2.hwnd_mon = CreateWindowW(TEXT("SIM_MON2"), TEXT("SIM_MON2"), WS_OVERLAPPEDWINDOW,
+			SIM_MON2_WND_X, SIM_MON2_WND_Y, SIM_MON2_WND_W, SIM_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
 		show_monitor_wnd(id);
-		return inf.hwnd_mon2;
+		return st_mon2.hwnd_mon;
 	}
 	else
 	{
@@ -197,31 +198,31 @@ HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CAgent::close_monitor_wnd(int id) {
+void CSim::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		DestroyWindow(inf.hwnd_mon1);
+		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
-		DestroyWindow(inf.hwnd_mon2);
+		DestroyWindow(st_mon2.hwnd_mon);
 	else;
 	return;
 }
-void CAgent::show_monitor_wnd(int id) {
+void CSim::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
-		ShowWindow(inf.hwnd_mon1, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon1);
+		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon1.hwnd_mon);
 	}
 	else if (id == BC_ID_MON2) {
-		ShowWindow(inf.hwnd_mon2, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon2);
+		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon2.hwnd_mon);
 	}
 	else;
 	return;
 }
-void CAgent::hide_monitor_wnd(int id) {
+void CSim::hide_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		ShowWindow(inf.hwnd_mon1, SW_HIDE);
+		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 	else if (id == BC_ID_MON2)
-		ShowWindow(inf.hwnd_mon2, SW_HIDE);
+		ShowWindow(st_mon2.hwnd_mon, SW_HIDE);
 	else;
 	return;
 }
@@ -229,7 +230,7 @@ void CAgent::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CSim::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -320,7 +321,7 @@ LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CAgent::msg2listview(wstring wstr) {
+void CSim::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -345,7 +346,7 @@ void CAgent::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CAgent::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CSim::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -355,7 +356,7 @@ void CAgent::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CAgent::set_panel_tip_txt() {
+void CSim::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -396,7 +397,7 @@ void CAgent::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CAgent::set_func_pb_txt() {
+void CSim::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -406,7 +407,7 @@ void CAgent::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CAgent::set_item_chk_txt() {
+void CSim::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -433,7 +434,6 @@ void CAgent::set_item_chk_txt() {
 	}
 	return;
 }
-
 
 
 

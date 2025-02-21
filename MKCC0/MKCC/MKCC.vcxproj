@@ -81,7 +81,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -99,7 +100,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,7 +115,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,16 +134,17 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CAgent.h" />
-    <ClInclude Include="CClientService.h" />
-    <ClInclude Include="CEnvironment.h" />
-    <ClInclude Include="CPolicy.h" />
-    <ClInclude Include="CScada.h" />
-    <ClInclude Include="CSim.h" />
+    <ClInclude Include="CCcAgent.h" />
+    <ClInclude Include="CCcCS.h" />
+    <ClInclude Include="CCcEnv.h" />
+    <ClInclude Include="CCcPol.h" />
+    <ClInclude Include="CCcScad.h" />
+    <ClInclude Include="CCcSim.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MKCC.h" />
     <ClInclude Include="Resource.h" />
@@ -149,12 +153,12 @@
   <ItemGroup>
     <ClCompile Include="..\Src\CBasicControl.cpp" />
     <ClCompile Include="..\Src\CSharedMem.cpp" />
-    <ClCompile Include="CAgent.cpp" />
-    <ClCompile Include="CClientService.cpp" />
-    <ClCompile Include="CEnvironment.cpp" />
-    <ClCompile Include="CPolicy.cpp" />
-    <ClCompile Include="CScada.cpp" />
-    <ClCompile Include="CSim.cpp" />
+    <ClCompile Include="CCcAgent.cpp" />
+    <ClCompile Include="CCcCS.cpp" />
+    <ClCompile Include="CCcEnv.cpp" />
+    <ClCompile Include="CCcPol.cpp" />
+    <ClCompile Include="CCcScad.cpp" />
+    <ClCompile Include="CCcSim.cpp" />
     <ClCompile Include="MKCC.cpp" />
   </ItemGroup>
   <ItemGroup>

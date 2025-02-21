@@ -6,7 +6,7 @@
 
 #include "CBasicControl.h"
 #include "CTiltSensor.h"
-#include "CClientService.h"
+#include "CCcCS.h"
 #include "CSharedMem.h"	    //共有メモリクラス
 
 using namespace SENSOR;

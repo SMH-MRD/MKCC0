@@ -260,7 +260,7 @@ HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = inf.hwnd_mon1 = CreateWindowW(TEXT("TILT_MON1"), TEXT("TILT_MON1"), WS_OVERLAPPEDWINDOW,
+		st_mon1.hwnd_mon = CreateWindowW(TEXT("TILT_MON1"), TEXT("TILT_MON1"), WS_OVERLAPPEDWINDOW,
 			TILT_MON1_WND_X, TILT_MON1_WND_Y, TILT_MON1_WND_W, TILT_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
@@ -281,12 +281,12 @@ HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon=inf.hwnd_mon2 = CreateWindowW(TEXT("TILT_MON2"), TEXT("TILT_MON2"), WS_OVERLAPPEDWINDOW,
+		st_mon2.hwnd_mon = CreateWindowW(TEXT("TILT_MON2"), TEXT("TILT_MON2"), WS_OVERLAPPEDWINDOW,
 			TILT_MON2_WND_X, TILT_MON2_WND_Y, TILT_MON2_WND_W, TILT_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
 		show_monitor_wnd(id);
-		return inf.hwnd_mon2;
+		return st_mon2.hwnd_mon;
 	}
 	else
 	{
@@ -297,29 +297,29 @@ HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
 }
 void CTiltSensor::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		DestroyWindow(inf.hwnd_mon1);
+		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
-		DestroyWindow(inf.hwnd_mon2);
+		DestroyWindow(st_mon2.hwnd_mon);
 	else;
 	return;
 }
 void CTiltSensor::show_monitor_wnd(int id) { 
 	if (id == BC_ID_MON1) {
-		ShowWindow(inf.hwnd_mon1, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon1);
+		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon1.hwnd_mon);
 	}
 	else if (id == BC_ID_MON2) {
-		ShowWindow(inf.hwnd_mon2, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon2);
+		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon2.hwnd_mon);
 	}
 	else;
 	return;
 }
 void CTiltSensor::hide_monitor_wnd(int id) { 
 	if (id == BC_ID_MON1)
-		ShowWindow(inf.hwnd_mon1, SW_HIDE);
+		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 	else if (id == BC_ID_MON2)
-		ShowWindow(inf.hwnd_mon2, SW_HIDE);
+		ShowWindow(st_mon2.hwnd_mon, SW_HIDE);
 	else;	
 	return;
 }

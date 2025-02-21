@@ -168,7 +168,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     pszInifile = dstpath;
 
     ///-共有メモリ割付&設定##################
-    if (OK_SHMEM != pOte_Obj->create_smem(SMEM_OTE_INF_NAME, sizeof(ST_OTE_INF), MUTEX_SENSOR_NAME)) return(FALSE);
+    if (OK_SHMEM != pOte_Obj->create_smem(SMEM_OTE_INF_NAME, sizeof(ST_CC_OTE_INF), MUTEX_SENSOR_NAME)) return(FALSE);
 
     HBITMAP hBmp;
     CBasicControl* pobj;
@@ -609,6 +609,15 @@ LRESULT CALLBACK TaskTabDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
     }break;
     case WM_COMMAND: {
         CBasicControl* pObj = VectCtrlObj[VectCtrlObj.size() - TabCtrl_GetCurSel(hTabWnd) - 1];
+
+        //タスクオブジェクト固有の処理
+        pObj->PanelProc(hDlg, msg, wp, lp);
+    }break;
+    case WM_USER_TASK_REQ:
+    {
+        //要求元タスク
+        WORD task_index = LOWORD(wp);
+        CBasicControl* pObj = VectCtrlObj[task_index];
 
         //タスクオブジェクト固有の処理
         pObj->PanelProc(hDlg, msg, wp, lp);

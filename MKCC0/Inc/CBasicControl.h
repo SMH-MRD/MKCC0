@@ -82,8 +82,6 @@ typedef struct _tagTHREAD_INFO {
     HWND hwnd_msgstatics;   // 親ウィンドウメッセージ表示用ウィンドウへのハンドル
     HWND hwnd_opepane;      // 自メインウィンドウのハンドル(メインフレーム上に配置,タブ選択で表示）
     HWND hwnd_msglist;      // 自メインウィンドウのメッセージ表示用リストコントロールへのハンドル
-    HWND hwnd_mon1;         // 自専用作業用ウインドウのハンドル
-    HWND hwnd_mon2;         // 自専用作業用ウインドウのハンドル
     HINSTANCE hInstance;    // アプリケーションのインスタンス
 
     // 操作パネル関連
@@ -125,8 +123,6 @@ typedef struct _tagTHREAD_INFO {
         , hwnd_msgstatics(NULL)
         , hwnd_opepane(NULL)
         , hwnd_msglist(NULL)
-        , hwnd_mon1(NULL)
-        , hwnd_mon2(NULL)
         , hinstance(NULL)
         , panel_msglist_count(0)
         , panel_func_id(0)
@@ -149,6 +145,7 @@ class CBasicControl //基本制御クラス
 public:
     THREAD_INFO inf;
     wostringstream wos;
+    ULONGLONG err;
 
     LPVOID poutput = NULL;     //結果出力メモリ
     DWORD  out_size = 0;        //出力バッファのサイズ

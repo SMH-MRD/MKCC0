@@ -1,38 +1,40 @@
-#include "CScada.h"
+#include "COteEnv.h"
 #include "resource.h"
+#include "CCUILib.h"
 
-ST_SCAD_MON1 CScada::st_mon1;
-ST_SCAD_MON2 CScada::st_mon2;
+ST_ENV_MON1 CEnvironment::st_mon1;
+ST_ENV_MON2 CEnvironment::st_mon2;
 
-ST_CRANE_STAT_CC CScada::st_work;
+CGPad* CEnvironment::pPad;
+ST_CC_CRANE_STAT CEnvironment::st_work;
 
-CScada::CScada() {
-
+CEnvironment::CEnvironment(){
+	
 }
-CScada::~CScada() {
-
+CEnvironment::~CEnvironment() {
+	if (pPad != NULL) delete pPad;
 }
 
-HRESULT CScada::initialize(LPVOID lpParam) {
+HRESULT CEnvironment::initialize(LPVOID lpParam) {
 
 	set_func_pb_txt();
 	set_item_chk_txt();
 	set_panel_tip_txt();
-
+	 
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
-	for (int i = 1; i < 6; i++)
-		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
+	for(int i=1;i<6;i++)
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1+i), BM_SETCHECK, BST_UNCHECKED, 0L);
 	//モード設定0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-	CScada* pEnvObj = (CScada*)lpParam;
+	CEnvironment* pEnvObj = (CEnvironment*)lpParam;
 	int code = 0;
 	return S_OK;
 }
 
-HRESULT CScada::routine_work(void* pObj) {
+HRESULT CEnvironment::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
@@ -41,36 +43,37 @@ HRESULT CScada::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
-int CScada::input() {
+int CEnvironment::input() {
 
 
 	return S_OK;
 }
 
-int CScada::close() {
+int CEnvironment::close() {
 
 	return 0;
 }
+
 
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
 static wostringstream monwos;
 
-LRESULT CALLBACK CScada::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[SCAD_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[SCAD_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[SCAD_ID_MON1_STATIC_GPAD].x, st_mon1.pt[SCAD_ID_MON1_STATIC_GPAD].y,
-			st_mon1.sz[SCAD_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[SCAD_ID_MON1_STATIC_GPAD].cy,
-			hWnd, (HMENU)(SCAD_ID_MON1_CTRL_BASE + SCAD_ID_MON1_STATIC_GPAD), hInst, NULL);
+		st_mon1.hctrl[ENV_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[ENV_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[ENV_ID_MON1_STATIC_GPAD].x, st_mon1.pt[ENV_ID_MON1_STATIC_GPAD].y,
+			st_mon1.sz[ENV_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[ENV_ID_MON1_STATIC_GPAD].cy,
+			hWnd, (HMENU)(ENV_ID_MON1_CTRL_BASE + ENV_ID_MON1_STATIC_GPAD), hInst, NULL);
 
 		//表示更新用タイマー
-		SetTimer(hWnd, SCAD_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
+		SetTimer(hWnd, ENV_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
@@ -85,6 +88,7 @@ LRESULT CALLBACK CScada::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 	}break;
 	case WM_TIMER: {
+		SetWindowText(st_mon1.hctrl[ENV_ID_MON1_STATIC_GPAD], monwos.str().c_str());
 	}break;
 
 	case WM_PAINT: {
@@ -94,7 +98,7 @@ LRESULT CALLBACK CScada::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
-		KillTimer(hWnd, SCAD_ID_MON1_TIMER);
+		KillTimer(hWnd, ENV_ID_MON1_TIMER);
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -102,7 +106,7 @@ LRESULT CALLBACK CScada::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 };
 
-LRESULT CALLBACK CScada::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -138,7 +142,7 @@ LRESULT CALLBACK CScada::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 }
 
-HWND CScada::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CEnvironment::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -156,14 +160,14 @@ HWND CScada::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("SCAD_MON1");
-		wcex.lpszClassName = TEXT("SCAD_MON1");
+		wcex.lpszMenuName = TEXT("ENV_MON1");
+		wcex.lpszClassName = TEXT("ENV_MON1");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = inf.hwnd_mon1 = CreateWindowW(TEXT("SCAD_MON1"), TEXT("SCAD_MON1"), WS_OVERLAPPEDWINDOW,
-			SCAD_MON1_WND_X, SCAD_MON1_WND_Y, SCAD_MON1_WND_W, SCAD_MON1_WND_H,
+		st_mon1.hwnd_mon = CreateWindowW(TEXT("ENV_MON1"), TEXT("ENV_MON1"), WS_OVERLAPPEDWINDOW,
+			ENV_MON1_WND_X, ENV_MON1_WND_Y, ENV_MON1_WND_W, ENV_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
 	}
@@ -177,18 +181,18 @@ HWND CScada::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("SCAD_MON2");
-		wcex.lpszClassName = TEXT("SCAD_MON2");
+		wcex.lpszMenuName = TEXT("ENV_MON2");
+		wcex.lpszClassName = TEXT("ENV_MON2");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon = inf.hwnd_mon2 = CreateWindowW(TEXT("SCAD_MON2"), TEXT("SCAD_MON2"), WS_OVERLAPPEDWINDOW,
-			SCAD_MON2_WND_X, SCAD_MON2_WND_Y, SCAD_MON2_WND_W, SCAD_MON2_WND_H,
+		st_mon2.hwnd_mon = CreateWindowW(TEXT("ENV_MON2"), TEXT("ENV_MON2"), WS_OVERLAPPEDWINDOW,
+			ENV_MON2_WND_X, ENV_MON2_WND_Y, ENV_MON2_WND_W, ENV_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
 		show_monitor_wnd(id);
-		return inf.hwnd_mon2;
+		return st_mon2.hwnd_mon;
 	}
 	else
 	{
@@ -197,31 +201,31 @@ HWND CScada::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CScada::close_monitor_wnd(int id) {
+void CEnvironment::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		DestroyWindow(inf.hwnd_mon1);
+		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
-		DestroyWindow(inf.hwnd_mon2);
+		DestroyWindow(st_mon2.hwnd_mon);
 	else;
 	return;
 }
-void CScada::show_monitor_wnd(int id) {
+void CEnvironment::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
-		ShowWindow(inf.hwnd_mon1, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon1);
+		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon1.hwnd_mon);
 	}
 	else if (id == BC_ID_MON2) {
-		ShowWindow(inf.hwnd_mon2, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon2);
+		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon2.hwnd_mon);
 	}
 	else;
 	return;
 }
-void CScada::hide_monitor_wnd(int id) {
+void CEnvironment::hide_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		ShowWindow(inf.hwnd_mon1, SW_HIDE);
+		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 	else if (id == BC_ID_MON2)
-		ShowWindow(inf.hwnd_mon2, SW_HIDE);
+		ShowWindow(st_mon2.hwnd_mon, SW_HIDE);
 	else;
 	return;
 }
@@ -229,7 +233,7 @@ void CScada::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CScada::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -241,7 +245,7 @@ LRESULT CALLBACK CScada::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 		case IDC_TASK_FUNC_RADIO5:
 		case IDC_TASK_FUNC_RADIO6:
 		{
-			inf.panel_func_id = LOWORD(wp);
+			inf.panel_func_id = LOWORD(wp); 
 			set_panel_tip_txt();
 			set_item_chk_txt();
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -250,7 +254,6 @@ LRESULT CALLBACK CScada::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
 			case IDC_TASK_FUNC_RADIO4:
-				set_item_chk_txt();
 				break;
 			default:break;
 			}
@@ -320,7 +323,7 @@ LRESULT CALLBACK CScada::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CScada::msg2listview(wstring wstr) {
+void CEnvironment::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -345,7 +348,7 @@ void CScada::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CScada::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CEnvironment::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -355,7 +358,7 @@ void CScada::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CScada::set_panel_tip_txt() {
+void CEnvironment::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -396,21 +399,20 @@ void CScada::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CScada::set_func_pb_txt() {
+void CEnvironment::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"GPAD");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO5, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO6, L"-");
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CScada::set_item_chk_txt() {
+void CEnvironment::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
@@ -433,7 +435,5 @@ void CScada::set_item_chk_txt() {
 	}
 	return;
 }
-
-
 
 

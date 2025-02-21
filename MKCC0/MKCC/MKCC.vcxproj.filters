@@ -27,22 +27,22 @@
     <ClInclude Include="MKCC.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CEnvironment.h">
+    <ClInclude Include="CCcEnv.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CScada.h">
+    <ClInclude Include="CCcScad.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CClientService.h">
+    <ClInclude Include="CCcCS.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CAgent.h">
+    <ClInclude Include="CCcAgent.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CPolicy.h">
+    <ClInclude Include="CCcPol.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CSim.h">
+    <ClInclude Include="CCcSim.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,22 +50,22 @@
     <ClCompile Include="MKCC.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CEnvironment.cpp">
+    <ClCompile Include="CCcEnv.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CScada.cpp">
+    <ClCompile Include="CCcScad.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CClientService.cpp">
+    <ClCompile Include="CCcCS.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CAgent.cpp">
+    <ClCompile Include="CCcAgent.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CPolicy.cpp">
+    <ClCompile Include="CCcPol.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CSim.cpp">
+    <ClCompile Include="CCcSim.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\Src\CBasicControl.cpp">

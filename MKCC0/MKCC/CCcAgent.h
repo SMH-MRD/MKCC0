@@ -3,83 +3,69 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 
-#define CS_SEMIAUTO_TG_SEL_DEFAULT      0
-#define CS_SEMIAUTO_TG_SEL_CLEAR		0
-#define CS_SEMIAUTO_TG_SEL_ACTIVE       1
-#define CS_SEMIAUTO_TG_SEL_FIXED        2
-#define CS_SEMIAUTO_TG_MAX				16
+#define AGENT_MON1_WND_X     640
+#define AGENT_MON1_WND_Y     0
+#define AGENT_MON1_WND_W     320
+#define AGENT_MON1_WND_H     240
+#define AGENT_MON1_N_CTRL    32
+#define AGENT_MON1_N_WCHAR   64
 
-#define CS_ID_SEMIAUTO_TOUCH_PT			8
+#define AGENT_ID_MON1_CTRL_BASE   51100
+#define AGENT_ID_MON1_STATIC_GPAD     0
 
-#define CS_ID_NOTCH_POS_HOLD			0
-#define CS_ID_NOTCH_POS_TRIG			1
+#define AGENT_ID_MON2_CTRL_BASE   51140
 
-#define CS_CODE_OTE_REMOTE_ENABLE		0x0001	//PLCへの操作信号有効
-#define CS_CODE_OTE_SOURCE_ENABLE		0x0002	//主幹ON可能
+#define AGENT_ID_MON1_TIMER  51190
+#define AGENT_ID_MON2_TIMER  51191
 
-#define CS_MON1_WND_X     640
-#define CS_MON1_WND_Y     0
-#define CS_MON1_WND_W     320
-#define CS_MON1_WND_H     240
-#define CS_MON1_N_CTRL    32
-#define CS_MON1_N_WCHAR   64
-
-#define CS_ID_MON1_CTRL_BASE   51100
-#define CS_ID_MON1_STATIC_GPAD     0
-
-#define CS_ID_MON2_CTRL_BASE   51140
-
-#define CS_ID_MON1_TIMER  51190
-#define CS_ID_MON2_TIMER  51191
-
-#define CS_PRM_MON1_TIMER_MS  200
-#define CS_PRM_MON2_TIMER_MS  200
+#define AGENT_PRM_MON1_TIMER_MS  200
+#define AGENT_PRM_MON2_TIMER_MS  200
 
 
-typedef struct _ST_CS_MON1 {
-    int timer_ms = CS_PRM_MON1_TIMER_MS;
+typedef struct _ST_AGENT_MON1 {
+    int timer_ms = AGENT_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
-    HWND hctrl[CS_MON1_N_CTRL] = {
+    HWND hctrl[AGENT_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
-    POINT pt[CS_MON1_N_CTRL] = {
+    POINT pt[AGENT_MON1_N_CTRL] = {
         5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    SIZE sz[CS_MON1_N_CTRL] = {
+    SIZE sz[AGENT_MON1_N_CTRL] = {
         295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    WCHAR text[CS_MON1_N_CTRL][CS_MON1_N_WCHAR] = {
+    WCHAR text[AGENT_MON1_N_CTRL][AGENT_MON1_N_WCHAR] = {
         L"GAME_PAD", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
-}ST_CS_MON1, * LPST_CS_MON1;
+}ST_AGENT_MON1, * LPST_AGENT_MON1;
 
-#define CS_MON2_WND_X     CS_MON1_WND_X
-#define CS_MON2_WND_Y     CS_MON1_WND_Y + CS_MON1_WND_H   
-#define CS_MON2_WND_W     320
-#define CS_MON2_WND_H     240
+#define AGENT_MON2_WND_X     AGENT_MON1_WND_X
+#define AGENT_MON2_WND_Y     AGENT_MON1_WND_Y + AGENT_MON1_WND_H   
+#define AGENT_MON2_WND_W     320
+#define AGENT_MON2_WND_H     240
 
-typedef struct _ST_CS_MON2 {
+typedef struct _ST_AGENT_MON2 {
     HWND hwnd_mon;
 
-}ST_CS_MON2, * LPST_CS_MON2;
+}ST_AGENT_MON2, * LPST_AGENT_MON2;
 
-class CClientService : public CBasicControl
+class CAgent : public CBasicControl
 {
 public:
-    CClientService();
-    ~CClientService();
+    CAgent();
+    ~CAgent();
 
     virtual HRESULT initialize(LPVOID lpParam) override;
 
@@ -88,11 +74,11 @@ public:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static ST_CS_MON1 st_mon1;
-    static ST_CS_MON2 st_mon2;
+    static ST_AGENT_MON1 st_mon1;
+    static ST_AGENT_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_CRANE_STAT_CC st_work;
+    static ST_CC_CRANE_STAT st_work;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -135,4 +121,6 @@ private:
     }
     int close();
 };
+
+
 

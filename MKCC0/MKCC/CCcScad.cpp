@@ -1,19 +1,19 @@
-#include "CClientService.h"
+#include "CCcScad.h"
 #include "resource.h"
 
-ST_CS_MON1 CClientService::st_mon1;
-ST_CS_MON2 CClientService::st_mon2;
+ST_SCAD_MON1 CScada::st_mon1;
+ST_SCAD_MON2 CScada::st_mon2;
 
-ST_CRANE_STAT_CC CClientService::st_work;
+ST_CC_CRANE_STAT CScada::st_work;
 
-CClientService::CClientService() {
-
-}
-CClientService::~CClientService() {
+CScada::CScada() {
 
 }
+CScada::~CScada() {
 
-HRESULT CClientService::initialize(LPVOID lpParam) {
+}
+
+HRESULT CScada::initialize(LPVOID lpParam) {
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -27,12 +27,12 @@ HRESULT CClientService::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-	CClientService* pEnvObj = (CClientService*)lpParam;
+	CScada* pEnvObj = (CScada*)lpParam;
 	int code = 0;
 	return S_OK;
 }
 
-HRESULT CClientService::routine_work(void* pObj) {
+HRESULT CScada::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
@@ -41,13 +41,13 @@ HRESULT CClientService::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
-int CClientService::input() {
+int CScada::input() {
 
 
 	return S_OK;
 }
 
-int CClientService::close() {
+int CScada::close() {
 
 	return 0;
 }
@@ -57,20 +57,20 @@ int CClientService::close() {
 /****************************************************************************/
 static wostringstream monwos;
 
-LRESULT CALLBACK CClientService::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CScada::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[CS_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[CS_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[CS_ID_MON1_STATIC_GPAD].x, st_mon1.pt[CS_ID_MON1_STATIC_GPAD].y,
-			st_mon1.sz[CS_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[CS_ID_MON1_STATIC_GPAD].cy,
-			hWnd, (HMENU)(CS_ID_MON1_CTRL_BASE + CS_ID_MON1_STATIC_GPAD), hInst, NULL);
+		st_mon1.hctrl[SCAD_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[SCAD_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[SCAD_ID_MON1_STATIC_GPAD].x, st_mon1.pt[SCAD_ID_MON1_STATIC_GPAD].y,
+			st_mon1.sz[SCAD_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[SCAD_ID_MON1_STATIC_GPAD].cy,
+			hWnd, (HMENU)(SCAD_ID_MON1_CTRL_BASE + SCAD_ID_MON1_STATIC_GPAD), hInst, NULL);
 
 		//表示更新用タイマー
-		SetTimer(hWnd, CS_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
+		SetTimer(hWnd, SCAD_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
@@ -94,7 +94,7 @@ LRESULT CALLBACK CClientService::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM
 	}break;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
-		KillTimer(hWnd, CS_ID_MON1_TIMER);
+		KillTimer(hWnd, SCAD_ID_MON1_TIMER);
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -102,7 +102,7 @@ LRESULT CALLBACK CClientService::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM
 	return S_OK;
 };
 
-LRESULT CALLBACK CClientService::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CScada::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -138,7 +138,7 @@ LRESULT CALLBACK CClientService::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM
 	return S_OK;
 }
 
-HWND CClientService::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CScada::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -156,14 +156,14 @@ HWND CClientService::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("CS_MON1");
-		wcex.lpszClassName = TEXT("CS_MON1");
+		wcex.lpszMenuName = TEXT("SCAD_MON1");
+		wcex.lpszClassName = TEXT("SCAD_MON1");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = inf.hwnd_mon1 = CreateWindowW(TEXT("CS_MON1"), TEXT("CS_MON1"), WS_OVERLAPPEDWINDOW,
-			CS_MON1_WND_X, CS_MON1_WND_Y, CS_MON1_WND_W, CS_MON1_WND_H,
+		st_mon1.hwnd_mon = CreateWindowW(TEXT("SCAD_MON1"), TEXT("SCAD_MON1"), WS_OVERLAPPEDWINDOW,
+			SCAD_MON1_WND_X, SCAD_MON1_WND_Y, SCAD_MON1_WND_W, SCAD_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
 	}
@@ -177,18 +177,18 @@ HWND CClientService::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("CS_MON2");
-		wcex.lpszClassName = TEXT("CS_MON2");
+		wcex.lpszMenuName = TEXT("SCAD_MON2");
+		wcex.lpszClassName = TEXT("SCAD_MON2");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon = inf.hwnd_mon2 = CreateWindowW(TEXT("CS_MON2"), TEXT("CS_MON2"), WS_OVERLAPPEDWINDOW,
-			CS_MON2_WND_X, CS_MON2_WND_Y, CS_MON2_WND_W, CS_MON2_WND_H,
+		st_mon2.hwnd_mon = CreateWindowW(TEXT("SCAD_MON2"), TEXT("SCAD_MON2"), WS_OVERLAPPEDWINDOW,
+			SCAD_MON2_WND_X, SCAD_MON2_WND_Y, SCAD_MON2_WND_W, SCAD_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
 		show_monitor_wnd(id);
-		return inf.hwnd_mon2;
+		return st_mon2.hwnd_mon;
 	}
 	else
 	{
@@ -197,31 +197,31 @@ HWND CClientService::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CClientService::close_monitor_wnd(int id) {
+void CScada::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		DestroyWindow(inf.hwnd_mon1);
+		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
-		DestroyWindow(inf.hwnd_mon2);
+		DestroyWindow(st_mon2.hwnd_mon);
 	else;
 	return;
 }
-void CClientService::show_monitor_wnd(int id) {
+void CScada::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
-		ShowWindow(inf.hwnd_mon1, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon1);
+		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon1.hwnd_mon);
 	}
 	else if (id == BC_ID_MON2) {
-		ShowWindow(inf.hwnd_mon2, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon2);
+		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon2.hwnd_mon);
 	}
 	else;
 	return;
 }
-void CClientService::hide_monitor_wnd(int id) {
+void CScada::hide_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		ShowWindow(inf.hwnd_mon1, SW_HIDE);
+		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 	else if (id == BC_ID_MON2)
-		ShowWindow(inf.hwnd_mon2, SW_HIDE);
+		ShowWindow(st_mon2.hwnd_mon, SW_HIDE);
 	else;
 	return;
 }
@@ -229,7 +229,7 @@ void CClientService::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CClientService::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CScada::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -320,7 +320,7 @@ LRESULT CALLBACK CClientService::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARA
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CClientService::msg2listview(wstring wstr) {
+void CScada::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -345,7 +345,7 @@ void CClientService::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CClientService::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CScada::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -355,7 +355,7 @@ void CClientService::set_PNLparam_value(float p1, float p2, float p3, float p4, 
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CClientService::set_panel_tip_txt() {
+void CScada::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -396,7 +396,7 @@ void CClientService::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CClientService::set_func_pb_txt() {
+void CScada::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -406,7 +406,7 @@ void CClientService::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CClientService::set_item_chk_txt() {
+void CScada::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -433,7 +433,6 @@ void CClientService::set_item_chk_txt() {
 	}
 	return;
 }
-
 
 
 

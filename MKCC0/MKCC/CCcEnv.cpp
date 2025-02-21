@@ -1,19 +1,21 @@
-#include "CPolicy.h"
+#include "CSockLib.H"
+#include "CCcEnv.h"
+
 #include "resource.h"
 
-ST_POL_MON1 CPolicy::st_mon1;
-ST_POL_MON2 CPolicy::st_mon2;
+ST_ENV_MON1 CEnvironment::st_mon1;
+ST_ENV_MON2 CEnvironment::st_mon2;
 
-ST_CRANE_STAT_CC CPolicy::st_work;
+ST_CC_CRANE_STAT CEnvironment::st_work;
 
-CPolicy::CPolicy() {
-
-}
-CPolicy::~CPolicy() {
+CEnvironment::CEnvironment() {
 
 }
+CEnvironment::~CEnvironment() {
 
-HRESULT CPolicy::initialize(LPVOID lpParam) {
+}
+
+HRESULT CEnvironment::initialize(LPVOID lpParam) {
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -27,12 +29,12 @@ HRESULT CPolicy::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-	CPolicy* pEnvObj = (CPolicy*)lpParam;
+	CEnvironment* pEnvObj = (CEnvironment*)lpParam;
 	int code = 0;
 	return S_OK;
 }
 
-HRESULT CPolicy::routine_work(void* pObj) {
+HRESULT CEnvironment::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
@@ -41,13 +43,13 @@ HRESULT CPolicy::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
-int CPolicy::input() {
+int CEnvironment::input() {
 
 
 	return S_OK;
 }
 
-int CPolicy::close() {
+int CEnvironment::close() {
 
 	return 0;
 }
@@ -57,20 +59,20 @@ int CPolicy::close() {
 /****************************************************************************/
 static wostringstream monwos;
 
-LRESULT CALLBACK CPolicy::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[POL_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[POL_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[POL_ID_MON1_STATIC_GPAD].x, st_mon1.pt[POL_ID_MON1_STATIC_GPAD].y,
-			st_mon1.sz[POL_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[POL_ID_MON1_STATIC_GPAD].cy,
-			hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + POL_ID_MON1_STATIC_GPAD), hInst, NULL);
+		st_mon1.hctrl[ENV_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[ENV_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[ENV_ID_MON1_STATIC_GPAD].x, st_mon1.pt[ENV_ID_MON1_STATIC_GPAD].y,
+			st_mon1.sz[ENV_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[ENV_ID_MON1_STATIC_GPAD].cy,
+			hWnd, (HMENU)(ENV_ID_MON1_CTRL_BASE + ENV_ID_MON1_STATIC_GPAD), hInst, NULL);
 
 		//表示更新用タイマー
-		SetTimer(hWnd, POL_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
+		SetTimer(hWnd, ENV_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
@@ -94,7 +96,7 @@ LRESULT CALLBACK CPolicy::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
-		KillTimer(hWnd, POL_ID_MON1_TIMER);
+		KillTimer(hWnd, ENV_ID_MON1_TIMER);
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -102,7 +104,7 @@ LRESULT CALLBACK CPolicy::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 };
 
-LRESULT CALLBACK CPolicy::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -138,7 +140,7 @@ LRESULT CALLBACK CPolicy::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 }
 
-HWND CPolicy::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CEnvironment::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -156,39 +158,40 @@ HWND CPolicy::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("POL_MON1");
-		wcex.lpszClassName = TEXT("POL_MON1");
+		wcex.lpszMenuName = TEXT("ENV_MON1");
+		wcex.lpszClassName = TEXT("ENV_MON1");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = inf.hwnd_mon1 = CreateWindowW(TEXT("POL_MON1"), TEXT("POL_MON1"), WS_OVERLAPPEDWINDOW,
-			POL_MON1_WND_X, POL_MON1_WND_Y, POL_MON1_WND_W, POL_MON1_WND_H,
+		st_mon1.hwnd_mon = CreateWindowW(TEXT("ENV_MON1"), TEXT("ENV_MON1"), WS_OVERLAPPEDWINDOW,
+			ENV_MON1_WND_X, ENV_MON1_WND_Y, ENV_MON1_WND_W, ENV_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
+		return st_mon1.hwnd_mon;
 	}
 	else if (id == BC_ID_MON2) {
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Mon1Proc;
+		wcex.lpfnWndProc = Mon2Proc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInst;
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("POL_MON2");
-		wcex.lpszClassName = TEXT("POL_MON2");
+		wcex.lpszMenuName = TEXT("ENV_MON2");
+		wcex.lpszClassName = TEXT("ENV_MON2");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon = inf.hwnd_mon2 = CreateWindowW(TEXT("POL_MON2"), TEXT("POL_MON2"), WS_OVERLAPPEDWINDOW,
-			POL_MON2_WND_X, POL_MON2_WND_Y, POL_MON2_WND_W, POL_MON2_WND_H,
+		st_mon2.hwnd_mon = CreateWindowW(TEXT("ENV_MON2"), TEXT("ENV_MON2"), WS_OVERLAPPEDWINDOW,
+			ENV_MON2_WND_X, ENV_MON2_WND_Y, ENV_MON2_WND_W, ENV_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
 		show_monitor_wnd(id);
-		return inf.hwnd_mon2;
+		return st_mon2.hwnd_mon;
 	}
 	else
 	{
@@ -197,31 +200,31 @@ HWND CPolicy::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CPolicy::close_monitor_wnd(int id) {
+void CEnvironment::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		DestroyWindow(inf.hwnd_mon1);
+		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
-		DestroyWindow(inf.hwnd_mon2);
+		DestroyWindow(st_mon2.hwnd_mon);
 	else;
 	return;
 }
-void CPolicy::show_monitor_wnd(int id) {
+void CEnvironment::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
-		ShowWindow(inf.hwnd_mon1, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon1);
+		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon1.hwnd_mon);
 	}
 	else if (id == BC_ID_MON2) {
-		ShowWindow(inf.hwnd_mon2, SW_SHOW);
-		UpdateWindow(inf.hwnd_mon2);
+		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
+		UpdateWindow(st_mon2.hwnd_mon);
 	}
 	else;
 	return;
 }
-void CPolicy::hide_monitor_wnd(int id) {
+void CEnvironment::hide_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
-		ShowWindow(inf.hwnd_mon1, SW_HIDE);
+		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 	else if (id == BC_ID_MON2)
-		ShowWindow(inf.hwnd_mon2, SW_HIDE);
+		ShowWindow(st_mon2.hwnd_mon, SW_HIDE);
 	else;
 	return;
 }
@@ -229,7 +232,7 @@ void CPolicy::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CPolicy::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CEnvironment::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -320,7 +323,7 @@ LRESULT CALLBACK CPolicy::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CPolicy::msg2listview(wstring wstr) {
+void CEnvironment::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -345,7 +348,7 @@ void CPolicy::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CPolicy::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CEnvironment::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -355,7 +358,7 @@ void CPolicy::set_PNLparam_value(float p1, float p2, float p3, float p4, float p
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CPolicy::set_panel_tip_txt() {
+void CEnvironment::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -396,7 +399,7 @@ void CPolicy::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CPolicy::set_func_pb_txt() {
+void CEnvironment::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -406,7 +409,7 @@ void CPolicy::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CPolicy::set_item_chk_txt() {
+void CEnvironment::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -433,7 +436,6 @@ void CPolicy::set_item_chk_txt() {
 	}
 	return;
 }
-
 
 
 

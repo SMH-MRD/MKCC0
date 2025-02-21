@@ -1,30 +1,11 @@
 #pragma once
 
-//#include <winsock.h>
+#include <winsock.h>
 
 #include "PLC_DEF.h"
 
 #define ID_OTE0					0xFF
 #define ID_PC0					0x1FF
-
-//IPアドレス
-#define OTE_IF_UNICAST_IP_PC				"192.168.100.100" 		//PCのOTE UNICAST　IF用IP	（受信,送信）
-//#define OTE_IF_UNICAST_IP_PC				"100.87.239.249" 		//PCのOTE UNICAST　IF用IP	（受信,送信）
-#define OTE_IF_UNICAST_IP_OTE0				OTE_IF_UNICAST_IP_PC	//デフォルトOTEのUNICAST用IP（受信,送信）
-
-//#define IP_ADDR_PC_UNI_CAST_OTE		"192.168.1.100"
-//#define IP_ADDR_OTE_UNI_CAST_OTE		"127.0.0.1"
-
-#define OTE_IF_MULTICAST_IP_PC				"239.1.0.2"				//PCマルチキャスト用IP
-#define OTE_IF_MULTICAST_IP_OTE				"239.1.0.1"				//OTEマルチキャスト用IP
-
-#define OTE_IF_UNICAST_PORT_PC				10050					//ユニキャストPC受信ポート
-#define OTE_IF_UNICAST_PORT_OTE				10051					//ユニキャスト端末受信ポート
-
-#define OTE_IF_MULTICAST_PORT_PC2OTE		20080					//PC発信マルチキャストOTE受信ポート
-#define OTE_IF_MULTICAST_PORT_OTE2PC		20081					//OTE発信マルチキャストPC受信ポート;
-#define OTE_IF_MULTICAST_PORT_PC2PC			20082					//PC発信マルチキャストPC受信ポート
-#define OTE_IF_MULTICAST_PORT_OTE2OTE		20083					//OTE発信マルチキャストOTE受信ポート
 
 //操作端末のボタン、ランプ数
 #define N_OTE_PNL_ITEMS			128

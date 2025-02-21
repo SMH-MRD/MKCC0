@@ -115,6 +115,15 @@
 #define CODE_NG            -1      //NG
 #pragma endregion 応答
 
+#pragma region MESSAGE
+// タスクスレッドからの要求イベント
+//wp:要求イベントのハンドル要求種別　lp:パラメータ
+#define WM_USER_TASK_REQ            0x0405          // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD    
+#define WM_USER_WPH_OPEN_IF_WND      0x0001         // wp　code IFウィンドウOPEN   lp ウィンドウのID
+#define WM_USER_WPH_CLOSE_IF_WND     0x0002         // wp　code IFウィンドウCLOSE   lp ウィンドウのID
+
+#pragma endregion ウィンドウメッセージ
+
 ///# マクロ
 #pragma region MACRO_DEF
 
@@ -192,6 +201,24 @@
 #define BIT15       0x8000
 
 #pragma endregion ビット定義
+
+//タスク異常フラグ
+#pragma region ERR_DEF
+
+#define SMEM_NG_OTE_INF			0x0000000000010000
+#define SMEM_NG_CRANE_STAT	    0x0000000000020000
+#define SMEM_NG_CS_INF			0x0000000000040000
+#define SMEM_NG_PLC_IO			0x0000000000080000
+#define SMEM_NG_AGENT_INF		0x0000000000100000
+#define SMEM_NG_SIM_INF		    0x0000000000200000
+#define SMEM_NG_POL_INF			0x0000000000400000
+
+#define SOCK_NG_UNICAST			0x0000000000000100
+#define SOCK_NG_MULTICAST		0x0000000000000200
+                                               
+
+#pragma endregion タスクエラービット定義
+
 
 typedef struct DeviceCode {
     UINT16  crane_id;   //クレーンID
