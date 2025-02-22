@@ -1,24 +1,105 @@
+#include "CMCProtocol.h"
 #include "CCcAgent.h"
 #include "resource.h"
 
+//ソケット
+static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
+
+//クラススタティックメンバ
 ST_AGENT_MON1 CAgent::st_mon1;
 ST_AGENT_MON2 CAgent::st_mon2;
 
-ST_CC_CRANE_STAT CAgent::st_work;
+ST_CC_AGENT_INF CAgent::st_work;
+
+//共有メモリ参照用定義
+
+static CSharedMem* pCraneStatObj;
+static CSharedMem* pPLCioObj;
+static CSharedMem* pCSInfObj;
+static CSharedMem* pAgentInfObj;
+
+static LPST_CC_CRANE_STAT	pCraneStat;
+static LPST_CC_CS_INF		pCS_Inf;
+static LPST_CC_PLC_IO		pPLC_IO;
+static LPST_CC_AGENT_INF	pAgent_Inf;
+
+static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0;
+static LONG rcv_count_pc_w = 0, snd_count_plc_w = 0;
+
 
 CAgent::CAgent() {
-
+	// 共有メモリオブジェクトのインスタンス化
+	pCraneStatObj = new CSharedMem;
+	pPLCioObj = new CSharedMem;
+	pCSInfObj = new CSharedMem;
+	pAgentInfObj = new CSharedMem;
 }
 CAgent::~CAgent() {
-
+	// 共有メモリオブジェクトの解放
+	delete pCraneStatObj;
+	delete pPLCioObj;
+	delete pCSInfObj;
+	delete pAgentInfObj;
 }
 
 HRESULT CAgent::initialize(LPVOID lpParam) {
 
-	set_func_pb_txt();
-	set_item_chk_txt();
-	set_panel_tip_txt();
+	HRESULT hr = S_OK;
+	//### 出力用共有メモリ取得
+	out_size = sizeof(ST_CC_AGENT_INF);
+	if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AGENT_INF_CC_NAME, out_size, MUTEX_AGENT_INF_CC_NAME)) {
+		err |= SMEM_NG_AGENT_INF;
+	}
+	set_outbuf(pAgentInfObj->get_pMap());
 
+	//### 入力用共有メモリ取得
+	if (OK_SHMEM != pCraneStatObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_CRANE_STAT), MUTEX_CRANE_STAT_CC_NAME)) {
+		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
+	}
+	if (OK_SHMEM != pPLCioObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_CC_PLC_IO), MUTEX_PLC_IO_NAME)) {
+		err |= SMEM_NG_PLC_IO; hr = S_FALSE;
+	}
+	if (OK_SHMEM != pCSInfObj->create_smem(SMEM_CS_INF_CC_NAME, sizeof(ST_CC_CS_INF), MUTEX_CS_INF_CC_NAME)) {
+		err |= SMEM_NG_CS_INF; hr = S_FALSE;
+	}
+
+	pCraneStat = (LPST_CC_CRANE_STAT)(pCraneStatObj->get_pMap());
+	pPLC_IO = (LPST_CC_PLC_IO)(pPLCioObj->get_pMap());
+	pCS_Inf = (LPST_CC_CS_INF)pCSInfObj->get_pMap();
+	pAgent_Inf = (LPST_CC_AGENT_INF)pAgentInfObj->get_pMap();
+
+	if ((pCraneStat == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
+		hr = S_FALSE;
+
+	if (hr == S_FALSE) {
+		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
+		return hr;
+	};
+
+	//### IFウィンドウOPEN
+	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+	LPARAM lp = BC_ID_MON2;
+	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+	Sleep(100);
+	//### PLC通信
+	//##インスタンス生成
+
+	//### 初期化
+	wos.str(L"");//初期化
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Initialize : MON NG"; msg2listview(wos.str());
+		return S_FALSE;
+	}
+	else {
+		pMCSock = new CMCProtocol();
+		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_CC) != S_OK) {
+			wos << L"Initialize : MC Init  NG"; msg2listview(wos.str());
+			return S_FALSE;
+		}
+	}
+	
+	//###  オペレーションパネル設定
+	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
 	for (int i = 1; i < 6; i++)
@@ -26,10 +107,21 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	//モード設定0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
+	//モニタウィンドウテキスト	
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"MKCC IF");
+	set_item_chk_txt();
+	set_panel_tip_txt();
+	//モニタ２ CB状態セット	
+	if (st_mon2.hwnd_mon != NULL)
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
+	else
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-	CAgent* pEnvObj = (CAgent*)lpParam;
-	int code = 0;
-	return S_OK;
+	set_func_pb_txt();
+	set_item_chk_txt();
+	set_panel_tip_txt();
+
+	return hr;
 }
 
 HRESULT CAgent::routine_work(void* pObj) {
@@ -64,10 +156,10 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[AGENT_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[AGENT_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[AGENT_ID_MON1_STATIC_GPAD].x, st_mon1.pt[AGENT_ID_MON1_STATIC_GPAD].y,
-			st_mon1.sz[AGENT_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[AGENT_ID_MON1_STATIC_GPAD].cy,
-			hWnd, (HMENU)(AGENT_ID_MON1_CTRL_BASE + AGENT_ID_MON1_STATIC_GPAD), hInst, NULL);
+		st_mon1.hctrl[AGENT_ID_MON1_STATIC_MSG] = CreateWindowW(TEXT("STATIC"), st_mon1.text[AGENT_ID_MON1_STATIC_MSG], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[AGENT_ID_MON1_STATIC_MSG].x, st_mon1.pt[AGENT_ID_MON1_STATIC_MSG].y,
+			st_mon1.sz[AGENT_ID_MON1_STATIC_MSG].cx, st_mon1.sz[AGENT_ID_MON1_STATIC_MSG].cy,
+			hWnd, (HMENU)(AGENT_ID_MON1_CTRL_BASE + AGENT_ID_MON1_STATIC_MSG), hInst, NULL);
 
 		//表示更新用タイマー
 		SetTimer(hWnd, AGENT_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -108,7 +200,22 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+
 		//ウィンドウにコントロール追加
+		//STATIC,LABEL
+		for (int i = AGENT_ID_MON2_STATIC_MSG; i <= AGENT_ID_MON2_STATIC_RCV_B_SEL; i++) {
+			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
+				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+				hWnd, (HMENU)(AGENT_ID_MON2_CTRL_BASE + i), hInst, NULL);
+		}
+		//PB
+		for (int i = AGENT_ID_MON2_PB_RCV_B_SEL; i <= AGENT_ID_MON2_PB_RCV_B_SEL; i++) {
+			st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+				hWnd, (HMENU)(AGENT_ID_MON2_CTRL_BASE + i), hInst, NULL);
+		}
+	
+		UINT rtn = SetTimer(hWnd, AGENT_ID_MON2_TIMER, AGENT_PRM_MON2_TIMER_MS, NULL);
 
 		break;
 
@@ -156,38 +263,50 @@ HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("AGENT_MON1");
-		wcex.lpszClassName = TEXT("AGENT_MON1");
+		wcex.lpszMenuName = TEXT("CC_AG_MON1");
+		wcex.lpszClassName = TEXT("CC_AG_MON1");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = CreateWindowW(TEXT("AGENT_MON1"), TEXT("AGENT_MON1"), WS_OVERLAPPEDWINDOW,
+		st_mon1.hwnd_mon = CreateWindowW(TEXT("CC_AG_MON1"), TEXT("CC_AG_MON1"), WS_OVERLAPPEDWINDOW,
 			AGENT_MON1_WND_X, AGENT_MON1_WND_Y, AGENT_MON1_WND_W, AGENT_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
+
+		wos.str(L"");
+		if (st_mon1.hwnd_mon != NULL) wos << L"Succeed : MON1 open";
+		else                          wos << L"!! Failed : MON1 open";
+		msg2listview(wos.str());
+
+		return st_mon1.hwnd_mon;
 	}
-	else if (id == BC_ID_MON2) {
+	else if (id == BC_ID_MON2) {//通信用ウィンドウ
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Mon1Proc;
+		wcex.lpfnWndProc = Mon2Proc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInst;
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("AGENT_MON2");
-		wcex.lpszClassName = TEXT("AGENT_MON2");
+		wcex.lpszMenuName = TEXT("CC_AG_MON2");
+		wcex.lpszClassName = TEXT("CC_AG_MON2");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon = CreateWindowW(TEXT("AGENT_MON2"), TEXT("AGENT_MON2"), WS_OVERLAPPEDWINDOW,
+		st_mon2.hwnd_mon = CreateWindowW(TEXT("CC_AG_MON2"), TEXT("CC_AG_MON2"), WS_OVERLAPPEDWINDOW,
 			AGENT_MON2_WND_X, AGENT_MON2_WND_Y, AGENT_MON2_WND_W, AGENT_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
-		show_monitor_wnd(id);
+		//show_monitor_wnd(id);MON2はオープン時表示しない
+		wos.str(L"");
+		if (st_mon2.hwnd_mon != NULL) wos << L"Succeed : MON2 open";
+		else                          wos << L"!! Failed : MON2 open";
+		msg2listview(wos.str());
+
 		return st_mon2.hwnd_mon;
 	}
 	else
@@ -198,33 +317,46 @@ HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	return NULL;
 }
 void CAgent::close_monitor_wnd(int id) {
-	if (id == BC_ID_MON1)
+	wos.str(L"");
+	if (id == BC_ID_MON1) {
 		DestroyWindow(st_mon1.hwnd_mon);
-	else if (id == BC_ID_MON2)
+		wos << L"MON1 closed";
+	}
+	else if (id == BC_ID_MON2) {
 		DestroyWindow(st_mon2.hwnd_mon);
+		wos << L"MON2 closed";
+	}
 	else;
+	msg2listview(wos.str());
 	return;
 }
 void CAgent::show_monitor_wnd(int id) {
-	if (id == BC_ID_MON1) {
+	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon1.hwnd_mon);
+		st_mon1.is_monitor_active = true;
 	}
-	else if (id == BC_ID_MON2) {
+	else if ((id == BC_ID_MON2) && (st_mon2.hwnd_mon != NULL)) {
 		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon2.hwnd_mon);
+		st_mon2.is_monitor_active = true;
 	}
 	else;
 	return;
 }
 void CAgent::hide_monitor_wnd(int id) {
-	if (id == BC_ID_MON1)
+	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
-	else if (id == BC_ID_MON2)
+		st_mon1.is_monitor_active = false;
+	}
+	else if ((id == BC_ID_MON2) && (st_mon2.hwnd_mon != NULL)) {
 		ShowWindow(st_mon2.hwnd_mon, SW_HIDE);
+		st_mon2.is_monitor_active = false;
+	}
 	else;
 	return;
 }
+
 
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
@@ -232,6 +364,17 @@ void CAgent::hide_monitor_wnd(int id) {
 LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
+
+	case WM_USER_TASK_REQ: {
+		if (HIWORD(wp) == WM_USER_WPH_OPEN_IF_WND) {
+			wos.str(L"");
+			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, lp);
+			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, lp);
+		}
+		else if (wp == WM_USER_WPH_CLOSE_IF_WND) 	close_monitor_wnd(lp);
+		else;
+	}break;
+
 	case WM_COMMAND:
 		switch (LOWORD(wp)) {
 		case IDC_TASK_FUNC_RADIO1:
@@ -307,11 +450,12 @@ LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 		}break;
 
 		case IDC_TASK_MON_CHECK2: {
+
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK2) == BST_CHECKED) {
-				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON2);
+				show_monitor_wnd(BC_ID_MON2);
 			}
 			else {
-				close_monitor_wnd(BC_ID_MON2);
+				hide_monitor_wnd(BC_ID_MON2);
 			}
 		}break;
 		}

@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "CSockLib.h"
-
 #include <windows.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -154,9 +152,6 @@ HRESULT CSockBase::Close()
 	DeleteCriticalSection(&csSck);
 	return (S_OK);
 }
-
-
-
 
 /******************************************************************************/
 /// <summary>
@@ -310,9 +305,6 @@ int CSockUDP::rcv_msg(char* pbuf, int len) {
 	return nRtn;
 }
 
-
-
-
 //****************************************************************************
 /// <summary>
 /// コンストラクタ
@@ -357,6 +349,7 @@ CSockUDP::CSockUDP()
 
 CSockUDP::~CSockUDP()
 {
+	Close();
 }
 
 

@@ -38,7 +38,7 @@
 typedef struct _ST_CS_MON1 {
     int timer_ms = CS_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
-    bool is_monitor_active = false;
+    bool is_monitor_active = false; //ソケット情報を表示する内容コード
 
     HWND hctrl[CS_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -89,9 +89,9 @@ typedef struct _ST_CS_MON1 {
 typedef struct _ST_CS_MON2 {
     HWND hwnd_mon;
     int timer_ms = CS_PRM_MON2_TIMER_MS;
-	int sock_inf_id = CS_ID_MON2_RADIO_RCV;
+	int sock_inf_id = CS_ID_MON2_RADIO_RCV;//ソケット情報を表示する内容コード
 
-    bool is_monitor_active = false;
+    bool is_monitor_active = false; //モニタ画面表示中フラグ
 
     wostringstream wo_uni, wo_mpc, wo_mote, wo_work;
 
@@ -113,7 +113,7 @@ typedef struct _ST_CS_MON2 {
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    WCHAR text[CS_MON2_N_CTRL][CS_MON1_N_WCHAR] = {
+    WCHAR text[CS_MON2_N_CTRL][CS_MON2_N_WCHAR] = {
         L"-", L"-", L"-", L"UNI:", L"MPC:", L"MOTE:", L"MSG:",L"RCV",
          L"SND",L"INFO",  L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",

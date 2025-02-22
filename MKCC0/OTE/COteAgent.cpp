@@ -115,7 +115,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	//##ソケットソケット生成・設定
 	//##ユニキャスト
 	if (pUSockPC->init_sock(st_mon2.hwnd_mon, pUSockPC->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
-		wos << pUSockPC->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
+		wos << L"OTE U SockErr:" << pUSockPC->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
 	}
 	else wos << L"OTE U Socket init OK";msg2listview(wos.str()); wos.str(L"");
 
@@ -590,8 +590,6 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MUL_PC], st_mon2.wo_mpc.str().c_str());
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MUL_OTE], st_mon2.wo_mote.str().c_str());
 		}
-
-
 
 	}break;
 	case ID_SOCK_EVENT_OTE_UNI: {

@@ -50,9 +50,6 @@
 #define PLC_IF_ID_BH_REST  2
 
 //MCÉvÉçÉgÉRÉã
-#define ID_SOCK_MC_CLIENT   3020
-#define ID_SOCK_MC_SERVER   3010
-
 #define MC_ADDR_D_READ		10400
 #define MC_SIZE_D_READ		100
 #define MC_ADDR_D_WRITE		10200

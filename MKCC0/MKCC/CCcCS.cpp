@@ -133,7 +133,7 @@ HRESULT CClientService::initialize(LPVOID lpParam) {
 	//##ソケットソケット生成・設定
 	//##ユニキャスト
 	if (pUSockOte->init_sock(st_mon2.hwnd_mon, pUSockOte->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
-		wos<< pUSockOte->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
+		wos << L"PC U SockErr:" << pUSockOte->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
 	}
 	else wos << L"OTE U Socket init OK";msg2listview(wos.str()); wos.str(L"");
 	

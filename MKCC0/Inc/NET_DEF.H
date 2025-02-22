@@ -3,21 +3,31 @@
 /**********************************************************************************************************/
 //アドレス定義
 /**********************************************************************************************************/
-//DEFAULT
+
+//@ DEFAULT-----------------------------------------------------------------------------------
 #define DEFAULT_MY_IP1				"127.0.0.1"
 #define DEFAULT_MY_IP2				"127.0.0.2"
 #define DEFAULT_MY_IP3				"127.0.0.3"
 #define DEFAULT_MY_PORT				10050
 
-//PLC IF
+//@ PLC IF-----------------------------------------------------------------------------------
+#define PLC_IF_TYPE_CC				0
+#define PLC_IF_TYPE_OTE				1
+
 #define IP_ADDR_MC_CLIENT			"192.168.100.100"		//PLC IF 制御PC　IPアドレス
 #define IP_ADDR_MC_SERVER			"192.168.100.101"		//PLC IF PLC IPアドレス
-
 #define PORT_MC_CLIENT				3020					//制御PCポート
 #define PORT_MC_SERVER				3010					//CPU本体の時のPLCポート
-//#define PORT_MC_SERVER			1025					//Ethernetユニットの時
 
-//振れセンサ
+#define IP_ADDR_MC_CLIENT_OTE		"192.168.100.100"		//PLC IF 制御PC　IPアドレス
+#define IP_ADDR_MC_SERVER_OTE		"192.168.100.106"		//PLC IF PLC IPアドレス
+#define PORT_MC_CLIENT_OTE			1020					//制御PCポート
+#define PORT_MC_SERVER_OTE			1025					//OTEの時のPLCポート
+
+#define IP_ADDR_MC_CLIENT_DEF		"127.0.0.1"
+#define IP_ADDR_MC_SERVER_DEF		"127.254.254.254"
+
+//@ 振れセンサ-------------------------------------------------------------------------------
 #define IP_ADDR_SWAY_CLIENT	        "192.168.100.100"		//振れセンサ制御PC　
 #define IP_ADDR_SWAY_SERVER			"192.168.100.20"		//振れセンサセンサPC
 #define IP_PORT_SWAY_CLIENT			10080					//振れセンサ用クライアント（制御PC）　IP受信ポート
@@ -26,7 +36,7 @@
 #define IP_ADDR_SWAYCAM_CLIENT		"192.168.150.10"		//振れセンサPCcカメラIF IPアドレス
 #define IP_ADDR_SWAY_CAMERA		    "192.168.150.100"		//振れセンサカメラ      IPアドレス
 
-//OTE
+//@ OTE---------------------------------------------------------------------------------------
 #define OTE_IF_UNI_IP_PC			"192.168.100.100" 		//PCのOTE UNICAST　IF用IP	（受信,送信）
 #define OTE_IF_UNI_IP_PC_WAN		"100.87.239.249" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 #define OTE_IF_UNI_IP_PC_VPN		"192.168.1.9" 			//PCのOTE UNICAST　IF用IP	（受信 VPN回線）

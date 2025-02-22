@@ -91,7 +91,7 @@ typedef struct _ST_OTE_MON1 {
 typedef struct _ST_OTE_MON2 {
     HWND hwnd_mon;
     int timer_ms = OTE_AG_PRM_MON2_TIMER_MS;
-    int sock_inf_id = OTE_AG_ID_MON2_RADIO_RCV;
+    int sock_inf_id = OTE_AG_ID_MON2_RADIO_RCV; //ソケット情報を表示する内容コード
 
     bool is_monitor_active = false;
 
@@ -115,7 +115,7 @@ typedef struct _ST_OTE_MON2 {
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    WCHAR text[OTE_AG_MON2_N_CTRL][OTE_AG_MON1_N_WCHAR] = {
+    WCHAR text[OTE_AG_MON2_N_CTRL][OTE_AG_MON2_N_WCHAR] = {
         L"-", L"-", L"-", L"UNI:", L"MPC:", L"MOTE:",L"MSG:", L"RCV", 
         L"SND",L"INFO",  L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
@@ -169,7 +169,6 @@ public:
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
-
 private:
 
     //オーバーライド
@@ -180,7 +179,6 @@ private:
     void close_monitor_wnd(int id);
     void show_monitor_wnd(int id);
     void hide_monitor_wnd(int id);
-
 
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;

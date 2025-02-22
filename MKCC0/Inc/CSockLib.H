@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-
+#include <windows.h>
 #include "NET_DEF.h"
 
 using namespace std;
