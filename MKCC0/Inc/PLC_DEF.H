@@ -198,6 +198,17 @@ struct ST_PLC_NOTCH_PTN {
     };
 };
 
+
+#define PLC_DEF_N_WCHAR                 64
+
+typedef struct _ST_PLCIO_BLK_PROPATY {
+    WCHAR text[PLC_DEF_N_WCHAR];
+    int index;             //データ配列インデックス
+    int size;              //データ配列インデックス
+    int type;              //10進/16進表示種別
+} ST_PLCIO_BLK_PROPATY, * LPST_PLCIO_BLK_PROPATY;
+
+
 typedef struct st_PLCwrite_tag {//制御PC→PLC
     INT16 helthy;               //PCヘルシー出力信号
     INT16 ctrl_mode;            //自動制御フラグ
@@ -222,6 +233,20 @@ union PLC_WRITE_BUF {
     ST_PLC_WRITE  wbuf;
 };
 
+ #define N_PLCIO_DISP_WBLK       6
+
+typedef struct _ST_PLCIO_WBLK {
+    ST_PLCIO_BLK_PROPATY defDWBlock[N_PLCIO_DISP_WBLK] = {
+        {L"INT16 helthy;ctrl_mode;cab_ai[8];cab_di[6];spare0[8];"   ,0,24,NUM_FORMAT_TYPE_HEX16},
+        {L"UINT32 hcounter[4];absocoder[3];"                        ,24,7,NUM_FORMAT_TYPE_HEX32},
+        {L"INT16 spare1[2]; pc_fault[2];spare2[16];"                ,38,20,NUM_FORMAT_TYPE_HEX16},
+        {L"INT16 erm_unitx[4];erm_x[8];inv_cc_x[6];"                ,58,18,NUM_FORMAT_TYPE_HEX16},
+        {L"INT16 inv_cc_Wr1[6];inv_cc_Wr2[6];"                      ,76,24,NUM_FORMAT_TYPE_DEC16},
+        {L"INT16 spare3[12];"                                       ,100,12,NUM_FORMAT_TYPE_HEX16},
+    };
+}ST_PLCIO__WBLK, * LPST_PLCIO__WBLK;
+
+
 #define ID_MC_ERM_BO_000    0
 #define ID_MC_ERM_BO_010    1
 #define ID_MC_ERM_BO_140    2
@@ -244,8 +269,8 @@ typedef struct st_PLCread_tag {
     INT16 erm_y[4];             //電気室PLC Y出力
     INT16 erm_x[8];             //電気室PLC X入力
     INT16 inv_cc_y[6];          //インバータPLC DO指令
-    INT16 inv_cc_Ww1[6];        //インバータPLC 速度指令　rpm
     INT16 inv_cc_x[6];          //インバータFB書き込み値　ｘデバイス
+    INT16 inv_cc_Ww1[6];        //インバータPLC 速度指令　rpm
     INT16 inv_cc_Wr1[6];        //インバータFB書き込み値　rpm
     INT16 inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
     INT16 spare1[4];            //予備
@@ -255,6 +280,20 @@ union PLC_READ_BUF {
     INT16 D[MC_SIZE_D_READ];
     ST_PLC_READ  rbuf;
 };
+
+#define N_PLCIO_DISP_RBLK     7
+
+typedef struct _ST_PLCIO_RBLK {
+    ST_PLCIO_BLK_PROPATY defDWBlock[N_PLCIO_DISP_RBLK] = {
+        {L"INT16 helthy;plc_ctrl;cab_ai[6];"                ,0,8,NUM_FORMAT_TYPE_DEC16},
+        {L"INT16 cab_bi[5];erm_900;erm_bo[6];"              ,19,11,NUM_FORMAT_TYPE_HEX16},
+        {L"INT32 pos[5];spd_tg[6];"                         ,30,11,NUM_FORMAT_TYPE_DEC32},
+        {L"INT16 plc_fault[18];"                            ,52,18,NUM_FORMAT_TYPE_HEX16},
+        {L"INT16 erm_y[4];erm_x[8];inv_cc_y[6];inv_cc_x[6]" ,70,24,NUM_FORMAT_TYPE_HEX16},
+        {L"INT16 inv_cc_Ww1[6];inv_cc_Wr1[6];inv_cc_Wr2[6];",94,18,NUM_FORMAT_TYPE_DEC32},
+        {L"INT16 spare1[4];"                                ,130,4,NUM_FORMAT_TYPE_HEX16}
+    };
+}ST_PLCIO__RBLK, * LPST_PLCIO__RBLK;
 
 //PLC IOマッピング　point.x WORD INDEX, point.y BIT INDEX
 

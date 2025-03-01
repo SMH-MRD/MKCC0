@@ -2,12 +2,14 @@
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "PLC_DEF.h"
+
 
 //MON1----------------------------------------------------
-#define AGENT_MON1_WND_X            640
+#define AGENT_MON1_WND_X            0
 #define AGENT_MON1_WND_Y            0
 #define AGENT_MON1_WND_W            320
-#define AGENT_MON1_WND_H            240
+#define AGENT_MON1_WND_H            280
 #define AGENT_MON1_N_CTRL           32
 #define AGENT_MON1_N_WCHAR          64
 
@@ -17,12 +19,17 @@
 //MON2---------------------------------------------------
 #define AGENT_ID_MON2_CTRL_BASE         51540
 #define AGENT_ID_MON2_STATIC_MSG        0   //メッセージ表示部
-#define AGENT_ID_MON2_STATIC_RCV_H      1   //受信ヘッダ部
-#define AGENT_ID_MON2_STATIC_SND_H      2   //送信ヘッダ部
-#define AGENT_ID_MON2_STATIC_RCV_B      3   //受信ボディ部
-#define AGENT_ID_MON2_STATIC_SND_B      4   //送信ボディ部
-#define AGENT_ID_MON2_STATIC_RCV_B_SEL  5   //受信表示ブロック選択内容
-#define AGENT_ID_MON2_PB_RCV_B_SEL      6   //受信表示ブロック切替PB
+#define AGENT_ID_MON2_STATIC_INF        1   //接続情報表示部
+#define AGENT_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
+#define AGENT_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
+#define AGENT_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
+#define AGENT_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
+
+
+#define AGENT_ID_MON2_PB_R_BLOCK_SEL    16   //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
+#define AGENT_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
 
 #define AGENT_ID_MON1_TIMER         51590
 #define AGENT_ID_MON2_TIMER         51591
@@ -43,38 +50,48 @@ typedef struct _ST_AGENT_MON1 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[AGENT_MON1_N_CTRL] = {
-        5,5, 5,30, 5,95, 5,50, 5,115,  5,160, 160,160, 0,0,
+        5,5, 5,30, 5,55, 5,50, 5,155, 5,260,0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        560,110, 560,195, 500,5, 555,5, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AGENT_MON1_N_CTRL] = {
-        615,20, 615,20, 615,20, 615,20, 615,20, 150,20, 40,20, 0,0,
+        615,20, 615,20, 565,20, 615,100, 615,100,565,20, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[AGENT_MON1_N_CTRL][AGENT_MON1_N_WCHAR] = {
-        L"MSG:", L"", L"", L"", L"", L"", L"", L"",
+        L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
+        L"次R", L"次W", L"非表示", L"10進", L"", L"", L"", L"",//PB
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_AGENT_MON1, * LPST_AGENT_MON1;
 
 #define AGENT_MON2_WND_X     AGENT_MON1_WND_X
-#define AGENT_MON2_WND_Y     AGENT_MON1_WND_Y + AGENT_MON1_WND_H   
-#define AGENT_MON2_WND_W     320
-#define AGENT_MON2_WND_H     240
+#define AGENT_MON2_WND_Y     620   
+#define AGENT_MON2_WND_W     640
+#define AGENT_MON2_WND_H     360
 #define AGENT_MON2_N_CTRL    32
 #define AGENT_MON2_N_WCHAR   64
+
+#define AGENT_MON2_MSG_DISP_OFF 0
+#define AGENT_MON2_MSG_DISP_HEX 1
+#define AGENT_MON2_MSG_DISP_DEC 2
+
+#define N_AGENT_MON2_MSG_RBLK   8
+#define N_AGENT_MON2_MSG_WBLK   8
 
 typedef struct _ST_AGENT_MON2 {
     HWND hwnd_mon;
     int timer_ms = AGENT_PRM_MON2_TIMER_MS;
     bool is_monitor_active = false;
+    int msg_disp_mode = AGENT_MON2_MSG_DISP_HEX;
+    int read_disp_block = 0;
+    int write_disp_block = 0;
 
-    wostringstream wo_uni, wo_mpc, wo_mote, wo_work;
+    wostringstream wo_req_r, wo_res_r, wo_req_w, wo_res_w;
 
     HWND hctrl[AGENT_MON2_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -83,25 +100,23 @@ typedef struct _ST_AGENT_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[AGENT_MON2_N_CTRL] = {
-        5,5, 5,30, 5,95, 5,50, 5,115,  5,160, 160,160, 0,0,
+        5,5, 5,30, 5,55, 5,80, 5,185, 5,290,0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        570,55, 570,290, 510,5, 565,5, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AGENT_MON2_N_CTRL] = {
-        615,20, 615,20, 615,20, 615,20, 615,20, 150,20, 40,20, 0,0,
+        615,20, 615,20, 565,20, 615,100, 615,100,565,20, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[AGENT_MON2_N_CTRL][AGENT_MON2_N_WCHAR] = {
-        L"-", L"-", L"-", L"UNI:", L"MPC:", L"MOTE:",L"MSG:", L"RCV",
-        L"SND",L"INFO",  L"", L"", L"", L"", L"", L"",
+        L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
+        L"次R", L"次W", L"非表示", L"10進", L"", L"", L"", L"",//PB
         L"", L"", L"", L"", L"", L"", L"", L""
     };
-
-
 }ST_AGENT_MON2, * LPST_AGENT_MON2;
 
 class CAgent : public CBasicControl

@@ -15,14 +15,19 @@ LONGLONG spancount_max_w, spancount_max_r;
 /// <summary>
 /// コンストラクタ
 /// </summary>
-CMCProtocol::CMCProtocol() {
+CMCProtocol::CMCProtocol(INT32 _eventID) {
+	eventID = _eventID;
 	D_no_r = D_no_w = n_D_read = n_D_write = 0;
+	memset(&rcv_buf, 0, sizeof(rcv_buf));
+	memset(&snd_buf, 0, sizeof(snd_buf));
+
 }
 //*********************************************************************************************　
 /// <summary>
 /// デストラクタ
 /// </summary>
 CMCProtocol::~CMCProtocol() {
+	delete pMCSock;
 	close();
 }
 //*********************************************************************************************　
@@ -51,7 +56,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 
 		//クライアントUDPソケット　アドレス設定　インスタンス化　初期化
 
-		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_MC_CLIENT);
+		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, eventID);
 		if (pMCSock->Initialize() != S_OK) {									//受信ソケット生成
 			msg_wos.str() = pMCSock->err_msg.str();
 			return S_FALSE;
@@ -80,7 +85,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 
 		//クライアントUDPソケット　アドレス設定　インスタンス化　初期化
 
-		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_MC_CLIENT);
+		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, eventID);
 		if (pMCSock->Initialize() != S_OK) {									//受信ソケット生成
 			msg_wos.str() = pMCSock->err_msg.str();
 			return S_FALSE;

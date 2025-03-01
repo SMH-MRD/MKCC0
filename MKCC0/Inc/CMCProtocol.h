@@ -5,9 +5,13 @@
 #include <commctrl.h>
 #include <time.h>
 #include <string>
+#include "NET_DEF.H"
 
 #define ID_SOCK_MC_CLIENT   PORT_MC_CLIENT
 #define ID_SOCK_MC_SERVER   PORT_MC_SERVER
+
+#define ID_SOCK_MC_CC_AGENT		PORT_MC_CLIENT
+#define ID_SOCK_MC_OTE_AGENT    PORT_MC_CLIENT
 
 #define CC_MC_ADDR_W_READ	10300
 #define CC_MC_SIZE_W_READ	100
@@ -81,7 +85,7 @@ typedef struct _stXEMsgRes {
 class CMCProtocol
 {
 public:
-	CMCProtocol();		
+	CMCProtocol(INT32 _eventID);
 	~CMCProtocol();	
 	
 	//通信電文送受信内容構築用バッファ 
@@ -115,5 +119,8 @@ public:
 	//デバッグ,シミュレータ用
 	UINT16 snd_responce(ST_XE_REQ st_com, UINT16* pdata);
 	HRESULT parse_snd_buf(UINT8* p8,LPST_XE_REQ pbuf);
+
+private:
+	INT32 eventID;
 
 };

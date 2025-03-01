@@ -2,6 +2,7 @@
 #include "CCcAgent.h"
 #include "resource.h"
 
+
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
 
@@ -23,8 +24,13 @@ static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
 
-static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0;
-static LONG rcv_count_pc_w = 0, snd_count_plc_w = 0;
+static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
+static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
+static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
+static LARGE_INTEGER frequency;				//システム周波数
+static LONGLONG res_delay_max_w,res_delay_max_r;	//PLC応答時間
+static ST_PLCIO__RBLK plcio_rblk;
+static ST_PLCIO__WBLK plcio_wblk;
 
 
 CAgent::CAgent() {
@@ -45,6 +51,10 @@ CAgent::~CAgent() {
 HRESULT CAgent::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
+
+	//システム周波数読み込み
+	QueryPerformanceFrequency(&frequency);
+
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_CC_AGENT_INF);
 	if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AGENT_INF_CC_NAME, out_size, MUTEX_AGENT_INF_CC_NAME)) {
@@ -63,10 +73,10 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		err |= SMEM_NG_CS_INF; hr = S_FALSE;
 	}
 
+	pAgent_Inf = (LPST_CC_AGENT_INF)pAgentInfObj->get_pMap();
 	pCraneStat = (LPST_CC_CRANE_STAT)(pCraneStatObj->get_pMap());
 	pPLC_IO = (LPST_CC_PLC_IO)(pPLCioObj->get_pMap());
 	pCS_Inf = (LPST_CC_CS_INF)pCSInfObj->get_pMap();
-	pAgent_Inf = (LPST_CC_AGENT_INF)pAgentInfObj->get_pMap();
 
 	if ((pCraneStat == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
 		hr = S_FALSE;
@@ -91,10 +101,13 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		return S_FALSE;
 	}
 	else {
-		pMCSock = new CMCProtocol();
+		pMCSock = new CMCProtocol(ID_SOCK_MC_CC_AGENT);
 		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_CC) != S_OK) {
 			wos << L"Initialize : MC Init  NG"; msg2listview(wos.str());
 			return S_FALSE;
+		}
+		else {
+			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
 	}
 	
@@ -149,6 +162,7 @@ int CAgent::close() {
 /****************************************************************************/
 static wostringstream monwos;
 
+
 LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
@@ -194,6 +208,8 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 };
 
+static bool is_write_req_turn = false;//書き込み要求送信の順番でtrue
+
 LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
@@ -203,13 +219,13 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
-		for (int i = AGENT_ID_MON2_STATIC_MSG; i <= AGENT_ID_MON2_STATIC_RCV_B_SEL; i++) {
+		for (int i = AGENT_ID_MON2_STATIC_MSG; i <= AGENT_ID_MON2_STATIC_RES_W; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(AGENT_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 		//PB
-		for (int i = AGENT_ID_MON2_PB_RCV_B_SEL; i <= AGENT_ID_MON2_PB_RCV_B_SEL; i++) {
+		for (int i = AGENT_ID_MON2_PB_R_BLOCK_SEL; i <= AGENT_ID_MON2_PB_DISP_DEC_SEL; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(AGENT_ID_MON2_CTRL_BASE + i), hInst, NULL);
@@ -217,20 +233,270 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	
 		UINT rtn = SetTimer(hWnd, AGENT_ID_MON2_TIMER, AGENT_PRM_MON2_TIMER_MS, NULL);
 
-		break;
+		monwos.str(L""); monwos << L"R:" << st_mon2.read_disp_block + 1 << L"/" << N_PLCIO_DISP_RBLK;
+		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
+		monwos.str(L""); monwos << L"W:" << st_mon2.write_disp_block + 1 << L"/" << N_PLCIO_DISP_WBLK;
+		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
 
-	}
+		st_mon2.msg_disp_mode = AGENT_MON2_MSG_DISP_HEX;
+		monwos.str(L""); monwos << L"表示中" ;
+		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_MSG_DISP_SEL], monwos.str().c_str());
+		monwos.str(L""); monwos << L"16進" ;
+		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_DISP_DEC_SEL], monwos.str().c_str());
+	}break;
+	case WM_TIMER: {
+		if (pMCSock == NULL)break;
+		if (is_write_req_turn) {//書き込み要求送信
+			st_mon2.wo_req_w.str(L"");
+			//3Eフォーマット Dデバイス書き込み要求送信
+			if (pMCSock->send_write_req_D_3E(pMCSock->mc_req_msg_w.req_data) != S_OK) {
+				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
+			}
+			else snd_count_plc_w++;
+
+			if (st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) {
+
+				st_mon2.wo_req_w << L"Sw>>"
+					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
+					<< L"#serial:" << pMCSock->mc_req_msg_w.serial
+					<< L"#NW:" << pMCSock->mc_req_msg_w.nNW
+					<< L"#PC:" << pMCSock->mc_req_msg_w.nPC
+					<< L"#UIO:" << pMCSock->mc_req_msg_w.nUIO
+					<< L"#Ucd:" << pMCSock->mc_req_msg_w.nUcode
+					<< L"#len:" << pMCSock->mc_req_msg_w.len
+					<< L"#tm:" << pMCSock->mc_req_msg_w.timer
+					<< L"#com:" << pMCSock->mc_req_msg_w.com
+					<< L"#scom:" << pMCSock->mc_req_msg_w.scom<< L"\n"
+					<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
+					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
+					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device 
+
+					<< L"[Item]:" << plcio_wblk.defDWBlock[st_mon2.write_disp_block].text << L"\n";
+
+				LPST_PLCIO_BLK_PROPATY pblk = &plcio_wblk.defDWBlock[st_mon2.write_disp_block];
+				for (int i = pblk->index, k = 0; i < pblk->size; i++, k++)
+				{
+					if (pblk->type & NUM_FORMAT_TYPE_HEX) {
+						st_mon2.wo_req_w << hex;
+						if (pblk->type & NUM_FORMAT_TYPE_32) st_mon2.wo_req_r << setw(8);
+						else								 st_mon2.wo_req_r << setw(4);
+						st_mon2.wo_req_w << setfill(L'0');
+					}
+					else {
+						st_mon2.wo_req_w << dec;
+					}
+
+					switch (pblk->type) {
+					case NUM_FORMAT_TYPE_HEX16:
+					case NUM_FORMAT_TYPE_DEC16:
+					{
+						st_mon2.wo_req_w << pMCSock->mc_req_msg_r.req_data[i] << L" ";
+					}break;
+					case NUM_FORMAT_TYPE_HEX32: {
+					case NUM_FORMAT_TYPE_DEC32: {
+						UINT32* p32 = (UINT32*)(&pMCSock->mc_req_msg_r.req_data[i + k * 2]);
+						st_mon2.wo_req_w << *p32 << L" ";
+					}break;
+					}
+					}
+				}
+			}
+			SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
+			QueryPerformanceCounter(&start_count_w);  // 書き込み要求送信時カウント値取り込み
+			is_write_req_turn = false;
+		}
+		else {
+			st_mon2.wo_req_r.str(L"");
+			//読み出し要求送信
+			if (pMCSock->send_read_req_D_3E() != S_OK) {
+				st_mon2.wo_req_r << L"ERROR : send_read_req_D_3E()";
+			}
+			else snd_count_plc_r++;
+
+			if (st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) {
+				st_mon2.wo_req_r << L"Sr>>"
+					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_r.subcode
+					<< L"#serial:" << pMCSock->mc_req_msg_r.serial
+					<< L"#NW:" << pMCSock->mc_req_msg_r.nNW
+					<< L"#PC:" << pMCSock->mc_req_msg_r.nPC
+					<< L"#UIO:" << pMCSock->mc_req_msg_r.nUIO
+					<< L"#Ucd:" << pMCSock->mc_req_msg_r.nUcode
+					<< L"#len:" << pMCSock->mc_req_msg_r.len
+					<< L"#tm:" << pMCSock->mc_req_msg_r.timer
+					<< L"#com:" << pMCSock->mc_req_msg_r.com
+					<< L"#scom:" << pMCSock->mc_req_msg_r.scom
+					<< L"#d_no:" << pMCSock->mc_req_msg_r.d_no
+					<< L"#d_code:" << pMCSock->mc_req_msg_r.d_code
+					<< L"#n_dev:" << pMCSock->mc_req_msg_r.n_device ;
+			}
+			SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
+			QueryPerformanceCounter(&start_count_r);  // 書き込み要求送信時カウント値取り込み
+			is_write_req_turn = true;
+		}
+		//カウンタ表示
+		monwos.str(L""); monwos << L"RCV:R " << rcv_count_plc_r 
+			<< L"  W " << rcv_count_plc_w 
+			<< L"    SND:R " << snd_count_plc_r 
+			<< L"  W " << snd_count_plc_w 
+			<< L"    ERR:R " << rcv_errcount_plc_r 
+			<< L"  W " << rcv_errcount_plc_w
+			<< L"    遅延μs:R " << res_delay_max_r
+			<< L"  W " << res_delay_max_w;
+
+		SetWindowText(hWnd, monwos.str().c_str());
+	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
 		// 選択されたメニューの解析:
-		switch (wmId)
+		switch (wmId- AGENT_ID_MON2_CTRL_BASE)
 		{
-		case 1:break;
+		case AGENT_ID_MON2_PB_R_BLOCK_SEL: { 
+			st_mon2.read_disp_block++; if (st_mon2.read_disp_block == N_PLCIO_DISP_RBLK) st_mon2.read_disp_block = 0;
+			monwos.str(L""); monwos << L"R:"<< st_mon2.read_disp_block+1 << L"/" << N_PLCIO_DISP_RBLK;
+			SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
+		}break;
+		case AGENT_ID_MON2_PB_W_BLOCK_SEL: { 
+			st_mon2.write_disp_block++; if (st_mon2.write_disp_block == N_PLCIO_DISP_WBLK) st_mon2.write_disp_block = 0;
+			monwos.str(L""); monwos << L"W:" << st_mon2.write_disp_block + 1 << L"/" << N_PLCIO_DISP_WBLK;
+			SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
+		}break;
+		case AGENT_ID_MON2_PB_MSG_DISP_SEL: {
+			if (st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) {
+				st_mon2.msg_disp_mode = AGENT_MON2_MSG_DISP_OFF;
+				monwos.str(L""); monwos << L"非表示";
+				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_MSG_DISP_SEL], monwos.str().c_str());
+				monwos.str(L""); monwos << L"-:";
+				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_DISP_DEC_SEL], monwos.str().c_str());
+			}
+			else {
+				st_mon2.msg_disp_mode = AGENT_MON2_MSG_DISP_HEX;
+				monwos.str(L""); monwos << L"表示中";
+				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_MSG_DISP_SEL], monwos.str().c_str());
+				monwos.str(L""); monwos << L"16進";
+				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_DISP_DEC_SEL], monwos.str().c_str());
+			}
+		}break;
+		case AGENT_ID_MON2_PB_DISP_DEC_SEL: {
+			if (st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) {
+				if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX) {
+					st_mon2.msg_disp_mode = AGENT_MON2_MSG_DISP_DEC;
+					monwos.str(L""); monwos << L"10進";
+					SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_DISP_DEC_SEL], monwos.str().c_str());
+				}
+				else {
+					st_mon2.msg_disp_mode = AGENT_MON2_MSG_DISP_HEX;
+					monwos.str(L""); monwos << L"16進";
+					SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_DISP_DEC_SEL], monwos.str().c_str());
+				}
+			}
+		}break;
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
+	case ID_SOCK_MC_CC_AGENT://MCソケット受信イベント
+	{
+		if (pMCSock == NULL)break;
+		int nEvent = WSAGETSELECTEVENT(lp);
+		st_mon2.wo_res_r.str(L"");
+		st_mon2.wo_res_w.str(L"");
+		switch (nEvent) {
+		case FD_READ: {
+			UINT nRtn = pMCSock->rcv_msg_3E();
+			if (nRtn == MC_RES_READ) {//読み出し応答
+				rcv_count_plc_r++;
+				if (st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) {
+					st_mon2.wo_res_r << L"Rr>>"
+						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_r.subcode
+						<< L"#serial:" << pMCSock->mc_res_msg_r.serial
+						<< L"#NW:" << pMCSock->mc_res_msg_r.nNW
+						<< L"#PC:" << pMCSock->mc_res_msg_r.nPC
+						<< L"#UIO:" << pMCSock->mc_res_msg_r.nUIO
+						<< L"#Ucd:" << pMCSock->mc_res_msg_r.nUcode
+						<< L"#len:" << pMCSock->mc_res_msg_r.len
+						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n"
 
+						<< L"[Item]:" << plcio_rblk.defDWBlock[st_mon2.read_disp_block].text << L"\n";
+
+					LPST_PLCIO_BLK_PROPATY pblk = &plcio_rblk.defDWBlock[st_mon2.read_disp_block];
+					for (int i = pblk->index, k = 0; i < pblk->size; i++, k++)
+					{
+						if (pblk->type & NUM_FORMAT_TYPE_HEX) {
+							st_mon2.wo_res_r << hex;
+							if (pblk->type & NUM_FORMAT_TYPE_32) st_mon2.wo_req_r << setw(8);
+							else								 st_mon2.wo_req_r << setw(4);
+							st_mon2.wo_res_r << setfill(L'0');
+						}
+						else {
+							st_mon2.wo_res_r << dec;
+						}
+
+						switch (pblk->type) {
+						case NUM_FORMAT_TYPE_HEX16:
+						case NUM_FORMAT_TYPE_DEC16:
+						{
+							st_mon2.wo_res_r << pMCSock->mc_req_msg_r.req_data[i] << L" ";
+						}break;
+						case NUM_FORMAT_TYPE_HEX32: {
+						case NUM_FORMAT_TYPE_DEC32: {
+							UINT32* p32 = (UINT32*)(&pMCSock->mc_req_msg_r.req_data[i + k * 2]);
+							st_mon2.wo_res_r << *p32 << L" ";
+						}break;
+						}
+						}
+					}
+
+				}
+				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
+
+				QueryPerformanceCounter(&end_count_r);    // 現在のカウント数
+				LONGLONG lspan = (end_count_r.QuadPart - start_count_r.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+				if (res_delay_max_r < lspan) res_delay_max_r = lspan;
+				if (rcv_count_plc_r % 400 == 0) {
+					res_delay_max_r = 0;
+				}
+			}
+			else if (nRtn == MC_RES_WRITE) {
+
+				rcv_count_plc_w++;
+				if (st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) {
+
+					st_mon2.wo_res_w << L"Rw>>"
+						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_w.subcode
+						<< L"#serial:" << pMCSock->mc_res_msg_w.serial
+						<< L"#NW:" << pMCSock->mc_res_msg_w.nNW
+						<< L"#PC:" << pMCSock->mc_res_msg_w.nPC
+						<< L"#UIO:" << pMCSock->mc_res_msg_w.nUIO
+						<< L"#Ucd:" << pMCSock->mc_res_msg_w.nUcode
+						<< L"#len:" << pMCSock->mc_res_msg_w.len
+						<< L"#end:" << pMCSock->mc_res_msg_w.endcode;
+				}
+				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_RES_W], st_mon2.wo_res_w.str().c_str());
+
+				QueryPerformanceCounter(&end_count_w);    // 現在のカウント数
+				LONGLONG lspan = (end_count_w.QuadPart - start_count_w.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+				if (res_delay_max_w < lspan) res_delay_max_w = lspan;
+				if (rcv_count_plc_w % 400 == 0) {
+					res_delay_max_w = 0;
+				}
+			}
+			else {
+				int err_code = WSAGetLastError();
+				if (is_write_req_turn) {
+					st_mon2.wo_res_r << L"PLC READ RES_ERR  CODE:err_code" << err_code;
+					rcv_errcount_plc_r++;
+					SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
+				}
+				else {
+					st_mon2.wo_res_w << L"PLC WRITE RES_ERR  CODE:err_code" << err_code;
+					rcv_errcount_plc_w++;
+					SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_RES_W], st_mon2.wo_res_w.str().c_str());
+				}
+			}
+		}break;
+		default: break;
+		}
+	}break;
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
@@ -274,10 +540,10 @@ HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
 
-		wos.str(L"");
-		if (st_mon1.hwnd_mon != NULL) wos << L"Succeed : MON1 open";
-		else                          wos << L"!! Failed : MON1 open";
-		msg2listview(wos.str());
+		monwos.str(L"");
+		if (st_mon1.hwnd_mon != NULL) monwos << L"Succeed : MON1 open";
+		else                          monwos << L"!! Failed : MON1 open";
+		msg2listview(monwos.str());
 
 		return st_mon1.hwnd_mon;
 	}

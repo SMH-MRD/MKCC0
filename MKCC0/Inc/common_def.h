@@ -88,6 +88,18 @@
 #define OTE_TYPE_REMOTE_ROOM    2   //âìäuëÄçÏé∫
 #define OTE_TYPE_REMOTE_SITE    3   //âìäuÉTÉCÉg
 
+#define NUM_FORMAT_TYPE_DEC     0x0000
+#define NUM_FORMAT_TYPE_HEX     0x0001
+#define NUM_FORMAT_TYPE_16      0x0010
+#define NUM_FORMAT_TYPE_32     0x00020
+
+#define NUM_FORMAT_TYPE_HEX16   0x0011
+#define NUM_FORMAT_TYPE_HEX32   0x0021
+
+#define NUM_FORMAT_TYPE_DEC16   0x0010
+#define NUM_FORMAT_TYPE_DEC32   0x0020
+
+
 #pragma endregion éÌï 
 
 #pragma region ID
