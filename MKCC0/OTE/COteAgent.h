@@ -88,6 +88,9 @@ typedef struct _ST_OTE_MON1 {
 #define OTE_AG_ID_MON2_RADIO_SND       8
 #define OTE_AG_ID_MON2_RADIO_INFO      9
 
+
+
+
 typedef struct _ST_OTE_MON2 {
     HWND hwnd_mon;
     int timer_ms = OTE_AG_PRM_MON2_TIMER_MS;

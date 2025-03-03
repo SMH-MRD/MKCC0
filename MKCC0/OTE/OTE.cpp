@@ -210,7 +210,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     ///##Task2 設定 Client Service
     {
         /// -タスクインスタンス作成->リスト登録
-        pobj = new CClientService;
+        pobj = new COteCS;
         VectCtrlObj.push_back(pobj);
         pobj->inf.index = (int32_t)ENUM_THREAD::CS;
         /// -イベントオブジェクトクリエイト->リスト登録	

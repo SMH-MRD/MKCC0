@@ -19,14 +19,14 @@ ST_OTE_CC_IF CAgent::st_work;
 
 //共有メモリ参照用定義
 static CSharedMem* pOteCcIfObj;
-static CSharedMem* pOteStatObj;
-static CSharedMem* pOtePLCioObj;
+static CSharedMem* pOteEnvObj;
+static CSharedMem* pOteCsInfObj;
 static CSharedMem* pOteUIObj;
 
-static LPST_OTE_STAT	pOteStat;
+static LPST_OTE_ENV		pOteEnv;
 static LPST_OTE_UI		pOteUI;
-static LPST_OTE_CC_IF	pCC_If;
-static LPST_OTE_PLC_IF	pPLC_IO;
+static LPST_OTE_CC_IF	pOteCCIf;
+static LPST_OTE_CS_INF	pOteCsInf;
 
 static LONG rcv_count_pc_u = 0,	 snd_count_ote_u = 0;
 static LONG rcv_count_pc_m = 0,  snd_count_m2pc = 0;
@@ -39,15 +39,15 @@ static wostringstream wos_msg;
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
 	pOteCcIfObj = new CSharedMem;
-	pOteStatObj = new CSharedMem;
-	pOtePLCioObj = new CSharedMem;
-	pOteUIObj = new CSharedMem;
+	pOteEnvObj	= new CSharedMem;
+	pOteCsInfObj= new CSharedMem;
+	pOteUIObj	= new CSharedMem;
 }
 CAgent::~CAgent() {
 	// 共有メモリオブジェクトの解放
 	delete pOteCcIfObj;
-	delete pOteStatObj;
-	delete pOtePLCioObj;
+	delete pOteEnvObj;
+	delete pOteCsInfObj;
 	delete pOteUIObj;
 }
 
@@ -61,22 +61,22 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	set_outbuf(pOteCcIfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pOteStatObj->create_smem(SMEM_OTE_STAT_NAME, sizeof(ST_OTE_STAT), MUTEX_OTE_STAT_NAME)) {
+	if (OK_SHMEM != pOteEnvObj->create_smem(SMEM_OTE_ENV_NAME, sizeof(ST_OTE_ENV), MUTEX_OTE_ENV_NAME)) {
 		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
 	}
-	if (OK_SHMEM != pOtePLCioObj->create_smem(SMEM_OTE_PLC_IF_NAME, sizeof(ST_CC_PLC_IO), MUTEX_OTE_PLC_IF_NAME)) {
+	if (OK_SHMEM != pOteCsInfObj->create_smem(SMEM_OTE_CS_INF_NAME, sizeof(ST_CC_PLC_IO), MUTEX_OTE_CS_INF_NAME)) {
 		err |= SMEM_NG_PLC_IO; hr = S_FALSE;
 	}
 	if (OK_SHMEM != pOteUIObj->create_smem(SMEM_OTE_UI_NAME, sizeof(ST_OTE_UI), MUTEX_OTE_UI_NAME)) {
 		err |= SMEM_NG_CS_INF; hr = S_FALSE;
 	}
 
-	pCC_If = (LPST_OTE_CC_IF)(pOteCcIfObj->get_pMap());
-	pPLC_IO = (LPST_OTE_PLC_IF)(pOtePLCioObj->get_pMap());
+	pOteCCIf = (LPST_OTE_CC_IF)(pOteCcIfObj->get_pMap());
+	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
 	pOteUI = (LPST_OTE_UI)pOteUIObj->get_pMap();
-	pOteStat = (LPST_OTE_STAT)pOteStatObj->get_pMap();
+	pOteEnv = (LPST_OTE_ENV)pOteEnvObj->get_pMap();
 
-	if ((pCC_If == NULL) || (pPLC_IO == NULL) || (pOteUI == NULL) || (pOteStat == NULL))
+	if ((pOteCCIf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteEnv == NULL))
 		hr = S_FALSE;
 
 	if (hr == S_FALSE) {
@@ -134,8 +134,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	else  wos << L"OTE M Socket init OK"; msg2listview(wos.str()); wos.str(L"");
 
 	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
-	pCC_If->st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
-	pCC_If->st_msg_ote_m_snd.head.addr = pMSockOte->addr_in_rcv;
+	pOteCCIf->st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
+	pOteCCIf->st_msg_ote_m_snd.head.addr = pMSockOte->addr_in_rcv;
 		
 	if (hr == S_FALSE) {
 		pUSockPC->Close();				//ソケットクローズ
@@ -348,7 +348,7 @@ HRESULT CAgent::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// OTEユニキャスト電文送信処理 
 /// </summary>
 LPST_OTE_U_MSG CAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
-	return &pCC_If->st_msg_ote_u_snd;
+	return &pOteCCIf->st_msg_ote_u_snd;
 }
 HRESULT CAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 	if (pUSockPC->snd_msg((char*)pbuf, sizeof(ST_PC_U_MSG), *p_addrin_to) == SOCKET_ERROR) {
@@ -367,7 +367,7 @@ HRESULT CAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 /// </summary>
 //マルチキャストメッセージセット
 LPST_OTE_M_MSG CAgent::set_msg_m() {
-	return &pCC_If->st_msg_ote_m_snd;
+	return &pOteCCIf->st_msg_ote_m_snd;
 }
 //PCへ送信
 HRESULT CAgent::snd_mul2pc(LPST_OTE_M_MSG pbuf) {
@@ -496,7 +496,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}
 	case WM_TIMER: {
 		//UniCast送信
-		if(pCC_If->id_ope_active)
+		if(pOteCCIf->id_ope_active)
 			snd_uni2pc(set_msg_u(false, 0, 0), &pUSockPC->addr_in_dst);
 		else 
 			snd_uni2pc(set_msg_u(true, 0, 0), &pUSockPC->addr_in_dst);
@@ -551,33 +551,33 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_mpc.str(L""); st_mon2.wo_mote.str(L"");
 			if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_RCV) {
 
-				LPST_OTE_HEAD	ph0 = &pCC_If->st_msg_pc_u_rcv.head;
-				LPST_PC_U_BODY pb0 = &pCC_If->st_msg_pc_u_rcv.body;
+				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_pc_u_rcv.head;
+				LPST_PC_U_BODY pb0 = &pOteCCIf->st_msg_pc_u_rcv.body;
 				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
 				st_mon2.wo_uni << L"[BODY]" << L"主幹:" << pb0->ctrl_source;
 
-				LPST_OTE_HEAD  ph1 = &pCC_If->st_msg_pc_m_rcv.head;
-				LPST_PC_M_BODY pb1 = &pCC_If->st_msg_pc_m_rcv.body;
+				LPST_OTE_HEAD  ph1 = &pOteCCIf->st_msg_pc_m_rcv.head;
+				LPST_PC_M_BODY pb1 = &pOteCCIf->st_msg_pc_m_rcv.body;
 				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
-				LPST_OTE_HEAD  ph2 = &pCC_If->st_msg_ote_m_rcv.head;
-				LPST_OTE_M_BODY pb2 = &pCC_If->st_msg_ote_m_rcv.body;
+				LPST_OTE_HEAD  ph2 = &pOteCCIf->st_msg_ote_m_rcv.head;
+				LPST_OTE_M_BODY pb2 = &pOteCCIf->st_msg_ote_m_rcv.body;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
 			else if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
 
-				LPST_OTE_HEAD	ph0 = &pCC_If->st_msg_ote_u_snd.head;
-				LPST_OTE_U_BODY  pb0 = &pCC_If->st_msg_ote_u_snd.body;
+				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_ote_u_snd.head;
+				LPST_OTE_U_BODY  pb0 = &pOteCCIf->st_msg_ote_u_snd.body;
 				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
 				st_mon2.wo_uni << L"[BODY]";
 
 				st_mon2.wo_mpc << L"[HEAD] -\n";
 				st_mon2.wo_mpc << L"[BODY] -";
 				
-				LPST_OTE_HEAD  ph1 = &pCC_If->st_msg_ote_m_snd.head;
-				LPST_OTE_M_BODY pb1 = &pCC_If->st_msg_ote_m_snd.body;
+				LPST_OTE_HEAD  ph1 = &pOteCCIf->st_msg_ote_m_snd.head;
+				LPST_OTE_M_BODY pb1 = &pOteCCIf->st_msg_ote_m_snd.body;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
@@ -596,21 +596,21 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_uni_ote(&pCC_If->st_msg_pc_u_rcv);
+			rcv_uni_ote(&pOteCCIf->st_msg_pc_u_rcv);
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
 		}
 		//OTE通信ヘッダに緊急停止要求有
-		if (pCC_If->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
-			pCC_If->stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
+		if (pOteCCIf->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
+			pOteCCIf->stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
 		}
 	}break;
 	case ID_SOCK_EVENT_OTE_MUL: {
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_mul_ote(&pCC_If->st_msg_ote_m_rcv);
+			rcv_mul_ote(&pOteCCIf->st_msg_ote_m_rcv);
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
@@ -621,7 +621,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_mul_pc(&pCC_If->st_msg_pc_m_rcv);
+			rcv_mul_pc(&pOteCCIf->st_msg_pc_m_rcv);
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;

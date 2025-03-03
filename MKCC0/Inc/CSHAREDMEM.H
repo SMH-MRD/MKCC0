@@ -619,29 +619,17 @@ typedef struct _ST_SIM_INF_CC {
 
 /****************************************************************************/
 /*   操作端末信号定義構造体                                  　         　	*/
-/* 　CSがセットする共有メモリ上の情報　　　　　　　          　				*/
+/* 　MKCC CSがセットする共有メモリ上の情報　　　　　　　          　				*/
 /****************************************************************************/
-//#	OTE
-//## OTE_INF
-#define SMEM_OTE_INF_NAME				L"OTE_INF"
-#define MUTEX_OTE_INF_NAME				L"MU_OTE_INF"
-#pragma region OTE_INF
-//OTEの状態
-typedef struct _ST_OTE_ENV {
-	UINT32			target_crane;		//接続対象クレーン
-	UINT32			ote_mode;			//操作端末モード
-	UINT32			ote_id;				//端末ID
-	UINT32			grip_mode;			//グリップスイッチモード
-	UINT32			gpad_mode = L_OFF;	//ゲームパッドモード
-	DIJOYSTATE		pad_data;
-}ST_OTE_ENV, * LPST_OTE_ENV;
 
 #define OTE_STOP_REQ_MODE_OFF			L_OFF
 #define OTE_STOP_REQ_MODE_ESTOP			0x00000001
 #define OTE_STOP_REQ_MODE_CTRL_OFF		0x00000002
-typedef struct _ST_CC_OTE_INF {
 
-	ST_OTE_ENV st_env;
+#define SMEM_OTE_INF_NAME				L"OTE_INF"
+#define MUTEX_OTE_INF_NAME				L"MU_OTE_INF"
+
+typedef struct _ST_CC_OTE_INF {
 
 	ST_OTE_U_MSG    st_msg_ote_u_rcv;
 	ST_PC_M_MSG     st_msg_pc_m_rcv;
@@ -661,16 +649,38 @@ typedef struct _ST_CC_OTE_INF {
 	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
 
 }ST_CC_OTE_INF, * LPST_CC_OTE_INF;
-#pragma endregion OTE_INF
 
 /****************************************************************************/
-/*   操作端末側制御PCIF信号定義構造体                                    　	*/
-/* 　OTE AGENTがセットする共有メモリ上の情報　　　　　　　          　		*/
+/*   操作端末側信号定義構造体                                    　	*/
+/* 　OTEプロセス用共有メモリ上の情報　　　　　　　          　		*/
 /****************************************************************************/
-//## OTE_CC_IF
+//OTEの状態
+#define SMEM_OTE_ENV_NAME			L"OTE_ENV_IF"
+#define MUTEX_OTE_ENV_NAME			L"MU_OTE_ENV_IF"
+typedef struct _ST_OTE_ENV {
+	UINT32			target_crane;		//接続対象クレーン
+	UINT32			ote_mode;			//操作端末モード
+	UINT32			ote_id;				//端末ID
+	UINT32			grip_mode;			//グリップスイッチモード
+	UINT32			gpad_mode = L_OFF;	//ゲームパッドモード
+	DIJOYSTATE		pad_data;
+}ST_OTE_ENV, * LPST_OTE_ENV;
+
+#pragma region OTE_INF
+//## OTE_CS_INF
+#define SMEM_OTE_CS_INF_NAME			L"OTE_CS_IF"
+#define MUTEX_OTE_CS_INF_NAME			L"MU_OTE_CS_IF"
+#pragma region OTE_CS_INF
+typedef struct _ST_OTE_CS_INF {
+	int a;
+	
+}ST_OTE_CS_INF, * LPST_OTE_CS_INF;
+#pragma endregion 操作卓PLCとの通信他
+
+#pragma region OTE_CC_INF
 #define SMEM_OTE_CC_IF_NAME			L"OTE_CC_IF"
 #define MUTEX_OTE_CC_IF_NAME		L"MU_OTE_CC_IF"
-#pragma region OTE_CC_IF
+//## OTE_CC_IF
 typedef struct _ST_OTE_CC_IF {
 
 	ST_PC_U_MSG     st_msg_pc_u_rcv;
@@ -691,17 +701,9 @@ typedef struct _ST_OTE_CC_IF {
 	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
 
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
-#pragma endregion OTE_CC_IF
+#pragma endregion OTEのCCとの通信構造体
 
-//## OTE_PLC_IF
-#define SMEM_OTE_PLC_IF_NAME			L"OTE_PLC_IF"
-#define MUTEX_OTE_PLC_IF_NAME			L"MU_OTE_PLC_IF"
-#pragma region OTE_PLC_IF
-typedef struct _ST_OTE_PLC_IF {
-	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
-}ST_OTE_PLC_IF, * LPST_OTE_PLC_IF;
-#pragma endregion OTE_INF
-
+#if 0
 //## OTE_STATUS
 #define SMEM_OTE_STAT_NAME				L"OTE_STAT"
 #define MUTEX_OTE_STAT_NAME				L"MU_OTE_STAT"
@@ -712,7 +714,7 @@ typedef struct _ST_OTE_STAT {
 	UINT16 notch_pb_stat[N_OTE_PNL_PB];					//PB状態 OFFディレイカウント
 }ST_OTE_STAT, * LPST_OTE_STAT;
 #pragma endregion 操作端末状態構造体
-
+#endif
 //## OTE_UI
 #define SMEM_OTE_UI_NAME				L"OTE_UI"
 #define MUTEX_OTE_UI_NAME				L"MU_OTE_UI"
