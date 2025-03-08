@@ -43,7 +43,7 @@
 
 #define LANIO_N_CH_LA_5AI            5
 
-typedef struct _TILT_SENSOR {
+typedef struct _TILT_AUXEQ {
     hLANIO hlanio[LANIO_N_MAX] = { -1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1} ;
     int laniocount = 0;
     int timeout = LANIO_TMOUT_MS;
@@ -65,7 +65,7 @@ typedef struct _TILT_SENSOR {
         L"",L"",L"",L"",L"",L"",L"",L"",
         L"LA-2R3A",L"LA-2A3P-P",L"LA-2R3A-V2",L"LA-3A2P-P",L"LA-5AI",L"",L"",L""
     };
-}ST_TILT_SENSOR,*LPST_TILT_SENSOR;
+}ST_TILT_AUXEQ,*LPST_TILT_AUXEQ;
 
 #define TILT_MON1_WND_X     640
 #define TILT_MON1_WND_Y     0
@@ -74,13 +74,13 @@ typedef struct _TILT_SENSOR {
 #define TILT_MON1_N_CTRL    32
 #define TILT_MON1_N_WCHAR   64
 
-#define TILT_ID_MON1_CTRL_BASE   11100
+#define TILT_ID_MON1_CTRL_BASE   75100
 #define TILT_ID_MON1_STATIC_INF     0
 
-#define TILT_ID_MON2_CTRL_BASE   11140
+#define TILT_ID_MON2_CTRL_BASE   75140
 
-#define TILT_ID_MON1_TIMER  11190
-#define TILT_ID_MON2_TIMER  11191
+#define TILT_ID_MON1_TIMER  75190
+#define TILT_ID_MON2_TIMER  75191
 
 #define TILT_PRM_MON1_TIMER_MS  200
 #define TILT_PRM_MON2_TIMER_MS  200
@@ -124,11 +124,11 @@ typedef struct _TILT_MON2 {
 
 }ST_TILT_MON2, * LPST_TILT_MON2;
 
-class CTiltSensor :  public CBasicControl
+class CAuxAgent :  public CBasicControl
 {
 public:
-    CTiltSensor() { pst_work = &(st_work); };
-    ~CTiltSensor() {};
+    CAuxAgent() { pst_work = &(st_work); };
+    ~CAuxAgent() {};
     
 
     virtual HRESULT initialize(LPVOID lpParam) override;
@@ -138,12 +138,12 @@ public:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static LPST_TILT_SENSOR pst_work;
+    static LPST_TILT_AUXEQ pst_work;
 
 	static ST_TILT_MON1 st_mon1;
     static ST_TILT_MON2 st_mon2;
 
-    ST_TILT_SENSOR st_work;
+    ST_TILT_AUXEQ st_work;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;

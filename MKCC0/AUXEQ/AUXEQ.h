@@ -1,10 +1,10 @@
 #pragma once
 
 #include "resource.h"
-
-namespace MKCC
+namespace AUXEQ
 {
-#define N_MKCC_TASK                  6
+
+#define N_AUXEQ_TASK                  6
 
     //-各タスクアイコン用イメージリスト設定値
 #define ICON_IMG_W					32		//アイコンイメージ幅
@@ -26,20 +26,21 @@ namespace MKCC
 #define TAB_SIZE_H					35
 #define TAB_SPACE				    20		 
 
-#define MAIN_WND_X                  0
-#define MAIN_WND_Y                  0
-#define MAIN_WND_W                  640
-#define MAIN_WND_H                  460
-#define MAIN_WND_MIN_H              100
+#define AUXEQ_WND_X                0+640+640
+#define AUXEQ_WND_Y                0
+#define AUXEQ_WND_W                640
+#define AUXEQ_WND_H                460
+#define AUXEQ_WND_MIN_H            100
 
-#define ENV_SCAN_MS			    20
-#define CS_SCAN_MS				100
-#define AGENT_SCAN_MS			20
-#define POLICY_SCAN_MS			100
-#define SCADA_SCAN_MS			100
-#define SIM_SCAN_MS			    20
+#define AUX_ENV_SCAN_MS			    100
+#define AUX_CS_SCAN_MS				100
+#define AUX_AGENT_SCAN_MS			100
+#define AUX_POLICY_SCAN_MS			100
+#define AUX_SCADA_SCAN_MS			100
+#define AUX_SIM_SCAN_MS			    100
 
-#define NAME_OF_INIFILE					L"mkcc"			//iniファイルファイル名
+
+#define NAME_OF_INIFILE					L"aux"			//iniファイルファイル名
 #define EXT_OF_INIFILE					L"ini"			//iniファイル拡張子
 #define PATH_OF_INIFILE					pszInifile		//iniファイルパス
 
@@ -49,7 +50,6 @@ namespace MKCC
 #define NETWORK_SECT_OF_INIFILE			L"NW_PARAM"		//Communicatorタスクセクション
 #define SMEM_SECT_OF_INIFILE			L"SMEM"			//共有メモリセクション
 #define SYSTEM_SECT_OF_INIFILE			L"SYSTEM"		//システム設定セクション
-#define SYSTEM_SECT_OF_SIMULATION		L"SIM"		    //シミュレーションセクション
 
 //各セクションの各タスク用の情報を参照するためのキー
 #define MAIN_KEY_OF_INIFILE				L"MAIN"
@@ -60,17 +60,19 @@ namespace MKCC
 #define SCAD_KEY_OF_INIFILE	            L"SCAD"
 #define SIM_KEY_OF_INIFILE	            L"SIM"
 
-     //-ID定義 Mainスレッド用　5100 +α
-#define ID_TASK_SET_TAB				5098
-#define ID_STATUS_BAR				5099
-#define IDC_OBJECT_BASE				5100
+
+    //-ID定義 Mainスレッド用　7100 +α
+#define ID_TASK_SET_TAB				7098
+#define ID_STATUS_BAR				7099
+#define IDC_OBJECT_BASE				7100
 
 
-#define PRM_N_TASK_MSGLIST_ROW      100 //タスクメッセージリスト行数
+#define PRM_N_TASK_MSGLIST_ROW      100 
 
-    typedef struct _ST_MAIN_WND {
-        HWND hWnd_status_bar;
-        HWND hWnd;
-    } ST_MAIN_WND, * LPST_MAIN_WND;
+typedef struct _ST_AUXEQ_WND {
+   HWND hWnd_status_bar;
+   HWND hWnd;
+} ST_AUXEQ_WND, * LPST__AUXEQ_WND;
+
 }
 

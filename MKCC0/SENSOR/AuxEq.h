@@ -2,17 +2,12 @@
 
 #include "resource.h"
 
-namespace SENSOR
+namespace AUXEQ
 {
 
-    // 割り当てスレッドコード
-    enum class ENUM_THREAD : unsigned int {
-        TILT = 0,           // 傾斜計
-        CS,                 // Client Service
-        NUM_OF_THREAD       // スレッド数
-    };
+#define N_AUXEQ_TASK                  6
 
-    //-各タスクアイコン用イメージリスト設定値
+//-各タスクアイコン用イメージリスト設定値
 #define ICON_IMG_W					32		//アイコンイメージ幅
 #define ICON_IMG_H					32		//アイコンイメージ高さ
 
@@ -32,11 +27,11 @@ namespace SENSOR
 #define TAB_SIZE_H					35
 #define TAB_SPACE				    20		 
 
-#define SENSOR_WND_X                0+640+640
-#define SENSOR_WND_Y                0
-#define SENSOR_WND_W                640
-#define SENSOR_WND_H                460
-#define SENSOR_WND_MIN_H            100
+#define AUXEQ_WND_X                0+640+640
+#define AUXEQ_WND_Y                0
+#define AUXEQ_WND_W                640
+#define AUXEQ_WND_H                460
+#define AUXEQ_WND_MIN_H            100
 
 
 #define TILT_SCAN_MS			100
@@ -64,15 +59,7 @@ namespace SENSOR
 #define TILT_KEY_OF_INIFILE	            L"TILT"
 #define CS_KEY_OF_INIFILE	            L"CLIENT"
 
-    typedef struct stKnlManageSetTag {
-        WORD mmt_resolution = TARGET_RESOLUTION;			//マルチメディアタイマーの分解能
-        unsigned int cycle_base = SYSTEM_TICK_ms;			//マルチメディアタイマーの分解能
-        WORD KnlTick_TimerID = 0;							//マルチメディアタイマーのID
-        unsigned int num_of_task = 0;						//アプリケーションで利用するスレッド数
-        unsigned long sys_counter = 0;						//マルチメディア起動タイマカウンタ
-        SYSTEMTIME Knl_Time = { 0,0,0,0,0,0,0,0 };			//アプリケーション開始からの経過時間
-        unsigned int stackSize = INITIAL_TASK_STACK_SIZE;	//タスクの初期スタックサイズ
-    }ST_KNL_MANAGE_SET, * LPST_KNL_MANAGE_SET;
+
 
 
     //-ID定義 Mainスレッド用　2100 +α
@@ -86,7 +73,7 @@ namespace SENSOR
     typedef struct stSensorWnd {
         HWND hWnd_status_bar;
         HWND hWnd;
-    } ST_SENSOR_WND, * LPST__SENSOR_WND;
+    } ST_AUXEQ_WND, * LPST__AUXEQ_WND;
 
 }
 

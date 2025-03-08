@@ -13,11 +13,11 @@
 #define AGENT_MON1_N_CTRL           32
 #define AGENT_MON1_N_WCHAR          64
 
-#define AGENT_ID_MON1_CTRL_BASE     51500
+#define AGENT_ID_MON1_CTRL_BASE     55500
 #define AGENT_ID_MON1_STATIC_MSG    0
 
 //MON2---------------------------------------------------
-#define AGENT_ID_MON2_CTRL_BASE         51540
+#define AGENT_ID_MON2_CTRL_BASE         55540
 #define AGENT_ID_MON2_STATIC_MSG        0   //メッセージ表示部
 #define AGENT_ID_MON2_STATIC_INF        1   //接続情報表示部
 #define AGENT_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
@@ -31,8 +31,8 @@
 #define AGENT_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
 #define AGENT_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
 
-#define AGENT_ID_MON1_TIMER         51590
-#define AGENT_ID_MON2_TIMER         51591
+#define AGENT_ID_MON1_TIMER         55590
+#define AGENT_ID_MON2_TIMER         55591
 
 #define AGENT_PRM_MON1_TIMER_MS     150
 #define AGENT_PRM_MON2_TIMER_MS     30

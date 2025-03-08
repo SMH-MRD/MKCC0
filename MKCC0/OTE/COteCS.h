@@ -13,11 +13,11 @@
 #define OTE_CS_MON1_N_CTRL           32
 #define OTE_CS_MON1_N_WCHAR          64
 
-#define OTE_CS_ID_MON1_CTRL_BASE     51500
+#define OTE_CS_ID_MON1_CTRL_BASE     61500
 #define OTE_CS_ID_MON1_STATIC_MSG    0
 
 //MON2---------------------------------------------------
-#define OTE_CS_ID_MON2_CTRL_BASE         51540
+#define OTE_CS_ID_MON2_CTRL_BASE         61540
 #define OTE_CS_ID_MON2_STATIC_MSG        0   //メッセージ表示部
 #define OTE_CS_ID_MON2_STATIC_INF        1   //接続情報表示部
 #define OTE_CS_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
@@ -31,8 +31,8 @@
 #define OTE_CS_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
 #define OTE_CS_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
 
-#define OTE_CS_ID_MON1_TIMER         51590
-#define OTE_CS_ID_MON2_TIMER         51591
+#define OTE_CS_ID_MON1_TIMER         61590
+#define OTE_CS_ID_MON2_TIMER         61591
 
 #define OTE_CS_PRM_MON1_TIMER_MS     150
 #define OTE_CS_PRM_MON2_TIMER_MS     100

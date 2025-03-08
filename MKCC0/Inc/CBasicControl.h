@@ -43,6 +43,33 @@ using namespace std;
 
 #define BC_TASK_NAME_BUF_SIZE               32
 
+// タスクスレッドID
+struct BC_TASK_ID
+{
+    int ENV;
+    int CS;
+    int SCAD;
+    int POL;
+    int AGENT;
+    int SIM;
+    int NUM_OF_THREAD;
+};
+
+//マルチメディアタイマー管理構造体
+#define TARGET_RESOLUTION			1		//マルチメディアタイマー分解能 msec
+#define SYSTEM_TICK_ms				20		//メインスレッド周期 msec
+#define INITIAL_TASK_STACK_SIZE		16384	//タスクオブジェクトスレッド用スタックサイズ
+
+typedef struct stKnlManageSetTag {
+    WORD mmt_resolution = TARGET_RESOLUTION;			//マルチメディアタイマーの分解能
+    unsigned int cycle_base = SYSTEM_TICK_ms;			//マルチメディアタイマーの分解能
+    WORD KnlTick_TimerID = 0;							//マルチメディアタイマーのID
+    unsigned int num_of_task = 0;						//アプリケーションで利用するスレッド数
+    unsigned long sys_counter = 0;						//マルチメディア起動タイマカウンタ
+    SYSTEMTIME Knl_Time = { 0,0,0,0,0,0,0,0 };			//アプリケーション開始からの経過時間
+    unsigned int stackSize = INITIAL_TASK_STACK_SIZE;	//タスクの初期スタックサイズ
+}ST_KNL_MANAGE_SET, * LPST_KNL_MANAGE_SET;
+
 typedef struct _tagTHREAD_INFO {
     // オブジェクト識別情報
     std::wstring name;  // オブジェクト名

@@ -4,16 +4,7 @@
 
 namespace OTE
 { 
-
-// 割り当てスレッドコード
-enum class ENUM_THREAD : unsigned int {
-    ENV = 0,            // Environment
-    CS,                 // Client Service
-    SCAD,               // Scada
-    POL,                // Policy
-    AGENT,              // Agent
-    NUM_OF_THREAD       // スレッド数
-};
+#define N_OTE_TASK                  6
 
 //-各タスクアイコン用イメージリスト設定値
 #define ICON_IMG_W					32		//アイコンイメージ幅
@@ -48,12 +39,6 @@ enum class ENUM_THREAD : unsigned int {
 #define POLICY_SCAN_MS			100
 #define SCADA_SCAN_MS			100
 
-
-//マルチメディアタイマー管理構造体
-#define TARGET_RESOLUTION			1		//マルチメディアタイマー分解能 msec
-#define SYSTEM_TICK_ms				20		//メインスレッド周期 msec
-#define INITIAL_TASK_STACK_SIZE		16384	//タスクオブジェクトスレッド用スタックサイズ
-
 #define NAME_OF_INIFILE					L"ote"			//iniファイルファイル名
 #define EXT_OF_INIFILE					L"ini"			//iniファイル拡張子
 #define PATH_OF_INIFILE					pszInifile		//iniファイルパス
@@ -73,22 +58,10 @@ enum class ENUM_THREAD : unsigned int {
 #define AGENT_KEY_OF_INIFILE	        L"AGENT"
 #define SCAD_KEY_OF_INIFILE	            L"SCAD"
 
-typedef struct stKnlManageSetTag {
-    WORD mmt_resolution = TARGET_RESOLUTION;			//マルチメディアタイマーの分解能
-    unsigned int cycle_base = SYSTEM_TICK_ms;			//マルチメディアタイマーの分解能
-    WORD KnlTick_TimerID = 0;							//マルチメディアタイマーのID
-    unsigned int num_of_task = 0;						//アプリケーションで利用するスレッド数
-    unsigned long sys_counter = 0;						//マルチメディア起動タイマカウンタ
-    SYSTEMTIME Knl_Time = { 0,0,0,0,0,0,0,0 };			//アプリケーション開始からの経過時間
-    unsigned int stackSize = INITIAL_TASK_STACK_SIZE;	//タスクの初期スタックサイズ
-}ST_KNL_MANAGE_SET, * LPST_KNL_MANAGE_SET;
-
-
 //-ID定義 Mainスレッド用　3100 +α
 #define ID_TASK_SET_TAB				3098
 #define ID_STATUS_BAR				3099
 #define IDC_OBJECT_BASE				3100
-
 
 #define PRM_N_TASK_MSGLIST_ROW      100 
 

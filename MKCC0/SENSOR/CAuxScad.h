@@ -1,86 +1,85 @@
 #pragma once
 
+#pragma once
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
-#include "CCUILib.H"
+
+#define SCAD_MON1_WND_X     640
+#define SCAD_MON1_WND_Y     0
+#define SCAD_MON1_WND_W     320
+#define SCAD_MON1_WND_H     240
+#define SCAD_MON1_N_CTRL    32
+#define SCAD_MON1_N_WCHAR   64
+
+#define SCAD_ID_MON1_CTRL_BASE   73100
+#define SCAD_ID_MON1_STATIC_GPAD     0
+
+#define SCAD_ID_MON2_CTRL_BASE   73140
+
+#define SCAD_ID_MON1_TIMER  73190
+#define SCAD_ID_MON2_TIMER  73191
+
+#define SCAD_PRM_MON1_TIMER_MS  200
+#define SCAD_PRM_MON2_TIMER_MS  200
 
 
-#define ENV_MON1_WND_X     640
-#define ENV_MON1_WND_Y     0
-#define ENV_MON1_WND_W     320
-#define ENV_MON1_WND_H     240
-#define ENV_MON1_N_CTRL    32
-#define ENV_MON1_N_WCHAR   64
-
-#define ENV_ID_MON1_CTRL_BASE   60100
-#define ENV_ID_MON1_STATIC_GPAD     0
-
-#define ENV_ID_MON1_TIMER  60190
-#define ENV_ID_MON2_TIMER  60191
-
-#define ENV_PRM_MON1_TIMER_MS  200
-#define ENV_PRM_MON2_TIMER_MS  200
-
-
-typedef struct _ST_ENV_MON1 {
-    int timer_ms = ENV_PRM_MON1_TIMER_MS;
+typedef struct _ST_SCAD_MON1 {
+    int timer_ms = SCAD_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
-    HWND hctrl[ENV_MON1_N_CTRL] = {
+    HWND hctrl[SCAD_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
-    POINT pt[ENV_MON1_N_CTRL] = {
+    POINT pt[SCAD_MON1_N_CTRL] = {
         5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    SIZE sz[ENV_MON1_N_CTRL] = {
+    SIZE sz[SCAD_MON1_N_CTRL] = {
         295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    WCHAR text[ENV_MON1_N_CTRL][ENV_MON1_N_WCHAR] = {
+    WCHAR text[SCAD_MON1_N_CTRL][SCAD_MON1_N_WCHAR] = {
         L"GAME_PAD", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
-}ST_ENV_MON1, * LPST_ENV_MON1;
+}ST_SCAD_MON1, * LPST_SCAD_MON1;
 
-#define ENV_MON2_WND_X     ENV_MON1_WND_X
-#define ENV_MON2_WND_Y     ENV_MON1_WND_Y + ENV_MON1_WND_H   
-#define ENV_MON2_WND_W     320
-#define ENV_MON2_WND_H     240
+#define SCAD_MON2_WND_X     SCAD_MON1_WND_X
+#define SCAD_MON2_WND_Y     SCAD_MON1_WND_Y + SCAD_MON1_WND_H   
+#define SCAD_MON2_WND_W     320
+#define SCAD_MON2_WND_H     240
 
-#define ENV_ID_MON2_CTRL_BASE   60140
-
-typedef struct _ST_ENV_MON2 {
+typedef struct _ST_SCAD_MON2 {
     HWND hwnd_mon;
 
-}ST_ENV_MON2, * LPST_ENV_MON2;
+}ST_SCAD_MON2, * LPST_SCAD_MON2;
 
-class CEnvironment : public CBasicControl
+class CScada : public CBasicControl
 {
 public:
-    CEnvironment();
-    ~CEnvironment();
+    CScada();
+    ~CScada();
 
-     virtual HRESULT initialize(LPVOID lpParam) override;
+    virtual HRESULT initialize(LPVOID lpParam) override;
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static ST_ENV_MON1 st_mon1;
-    static ST_ENV_MON2 st_mon2;
+    static ST_SCAD_MON1 st_mon1;
+    static ST_SCAD_MON2 st_mon2;
 
-    static CGPad* pPad;
+    //タスク出力用構造体
     static ST_CC_CRANE_STAT st_work;
 
     //タブパネルのStaticテキストを設定
@@ -97,12 +96,10 @@ public:
 
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
-     
-
 
 private:
-     
-     //オーバーライド
+
+    //オーバーライド
 
     virtual HRESULT routine_work(void* pObj) override;
 
@@ -111,8 +108,6 @@ private:
     void show_monitor_wnd(int id);
     void hide_monitor_wnd(int id);
 
-    HRESULT init_gpad();
-    HRESULT close_gpad();
 
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;
@@ -127,5 +122,12 @@ private:
         return STAT_NG;
     }
     int close();
+};
+
+
+
+
+class CAuxScad
+{
 };
 

@@ -3,15 +3,17 @@
 // AUXEQ.rc で使用
 //
 #define IDC_MYICON                      2
-#define IDD_AUXEQ_DIALOG               102
+#define IDD_AUXEQ_DIALOG                102
 #define IDS_APP_TITLE                   103
 #define IDD_ABOUTBOX                    103
 #define IDM_ABOUT                       104
 #define IDM_EXIT                        105
-#define IDI_AUXEQ                      107
+#define IDI_AUXEQ                       107
 #define IDI_SMALL                       108
-#define IDC_AUXEQ                      109
+#define IDC_AUXEQ                       109
 #define IDR_MAINFRAME                   128
+
+
 #define IDC_LIST1                       1000
 #define IDC_TAB_TASKNAME                1001
 #define IDC_STATIC_FUNCTION             1002
@@ -57,7 +59,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1019
+#define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

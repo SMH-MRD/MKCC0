@@ -1,12 +1,12 @@
 
-#include "CTiltSensor.h"
+#include "CAuxAgent.h"
 #include "resource.h"
 
-LPST_TILT_SENSOR CTiltSensor::pst_work;
-ST_TILT_MON1 CTiltSensor::st_mon1;
-ST_TILT_MON2 CTiltSensor::st_mon2;
+LPST_TILT_AUXEQ CAuxAgent::pst_work;
+ST_TILT_MON1 CAuxAgent::st_mon1;
+ST_TILT_MON2 CAuxAgent::st_mon2;
 
-HRESULT CTiltSensor::initialize(LPVOID lpParam){
+HRESULT CAuxAgent::initialize(LPVOID lpParam){
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -21,7 +21,7 @@ HRESULT CTiltSensor::initialize(LPVOID lpParam){
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
 
-	CTiltSensor* pTiltObj = (CTiltSensor*)lpParam;
+	CAuxAgent* pTiltObj = (CAuxAgent*)lpParam;
 	pst_work = &(pTiltObj->st_work);
 
 	int code = 0;
@@ -115,14 +115,14 @@ HRESULT CTiltSensor::initialize(LPVOID lpParam){
 	return S_OK;
 }
 
-HRESULT CTiltSensor::routine_work(void* pObj){
+HRESULT CAuxAgent::routine_work(void* pObj){
 	input();
 	parse();
 	output();
 	return S_OK;
 }
 
-int CTiltSensor::input() {
+int CAuxAgent::input() {
 
 	for (int i = 0; i < st_work.laniocount; i++) {
 		switch (st_work.lanio_model[i]) {
@@ -136,14 +136,14 @@ int CTiltSensor::input() {
 	return S_OK;
 }
 
-int CTiltSensor::close() {
+int CAuxAgent::close() {
 	int error = LALanioEnd();
 	return 0;
 }
 
 static wostringstream monwos;
 
-LRESULT CALLBACK CTiltSensor::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -200,7 +200,7 @@ LRESULT CALLBACK CTiltSensor::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	return S_OK;
 };
 
-LRESULT CALLBACK CTiltSensor::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -236,7 +236,7 @@ LRESULT CALLBACK CTiltSensor::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	return S_OK;
 }
 
-HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -295,7 +295,7 @@ HWND CTiltSensor::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CTiltSensor::close_monitor_wnd(int id) {
+void CAuxAgent::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
 		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
@@ -303,7 +303,7 @@ void CTiltSensor::close_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CTiltSensor::show_monitor_wnd(int id) { 
+void CAuxAgent::show_monitor_wnd(int id) { 
 	if (id == BC_ID_MON1) {
 		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon1.hwnd_mon);
@@ -315,7 +315,7 @@ void CTiltSensor::show_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CTiltSensor::hide_monitor_wnd(int id) { 
+void CAuxAgent::hide_monitor_wnd(int id) { 
 	if (id == BC_ID_MON1)
 		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 	else if (id == BC_ID_MON2)
@@ -327,7 +327,7 @@ void CTiltSensor::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -414,7 +414,7 @@ LRESULT CALLBACK CTiltSensor::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM l
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CTiltSensor::msg2listview(wstring wstr) {
+void CAuxAgent::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -440,7 +440,7 @@ void CTiltSensor::msg2listview(wstring wstr) {
 	return;
 }
 
-void CTiltSensor::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CAuxAgent::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -451,7 +451,7 @@ void CTiltSensor::set_PNLparam_value(float p1, float p2, float p3, float p4, flo
 }
 
 //タブパネルのStaticテキストを設定
-void CTiltSensor::set_panel_tip_txt() {
+void CAuxAgent::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO1:
@@ -479,7 +479,7 @@ void CTiltSensor::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CTiltSensor::set_func_pb_txt() {
+void CAuxAgent::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -489,7 +489,7 @@ void CTiltSensor::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CTiltSensor::set_item_chk_txt() {
+void CAuxAgent::set_item_chk_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");

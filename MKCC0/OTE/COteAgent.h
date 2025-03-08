@@ -18,8 +18,8 @@
 #define OTE_AG_CODE_OTE_REMOTE_ENABLE		0x0001	//PLCÇ÷ÇÃëÄçÏêMçÜóLå¯
 #define OTE_AG_CODE_OTE_SOURCE_ENABLE		0x0002	//éÂä≤ONâ¬î\
 
-#define OTE_AG_ID_MON1_TIMER  51190
-#define OTE_AG_ID_MON2_TIMER  51191
+#define OTE_AG_ID_MON1_TIMER  61190
+#define OTE_AG_ID_MON2_TIMER  61191
 
 #define OTE_AG_PRM_MON1_TIMER_MS  200
 #define OTE_AG_PRM_MON2_TIMER_MS  200
@@ -76,7 +76,7 @@ typedef struct _ST_OTE_MON1 {
 #define OTE_AG_MON2_N_CTRL    32
 #define OTE_AG_MON2_N_WCHAR   64
 
-#define OTE_AG_ID_MON2_CTRL_BASE   51140
+#define OTE_AG_ID_MON2_CTRL_BASE   65140
 #define OTE_AG_ID_MON2_STATIC_UNI      0
 #define OTE_AG_ID_MON2_STATIC_MUL_PC   1
 #define OTE_AG_ID_MON2_STATIC_MUL_OTE  2
@@ -87,9 +87,6 @@ typedef struct _ST_OTE_MON1 {
 #define OTE_AG_ID_MON2_RADIO_RCV       7
 #define OTE_AG_ID_MON2_RADIO_SND       8
 #define OTE_AG_ID_MON2_RADIO_INFO      9
-
-
-
 
 typedef struct _ST_OTE_MON2 {
     HWND hwnd_mon;

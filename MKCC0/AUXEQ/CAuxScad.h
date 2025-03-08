@@ -1,4 +1,6 @@
 #pragma once
+
+#pragma once
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
@@ -10,13 +12,13 @@
 #define SCAD_MON1_N_CTRL    32
 #define SCAD_MON1_N_WCHAR   64
 
-#define SCAD_ID_MON1_CTRL_BASE   53100
+#define SCAD_ID_MON1_CTRL_BASE   73100
 #define SCAD_ID_MON1_STATIC_GPAD     0
 
-#define SCAD_ID_MON2_CTRL_BASE   53140
+#define SCAD_ID_MON2_CTRL_BASE   73140
 
-#define SCAD_ID_MON1_TIMER  53190
-#define SCAD_ID_MON2_TIMER  53191
+#define SCAD_ID_MON1_TIMER  73190
+#define SCAD_ID_MON2_TIMER  73191
 
 #define SCAD_PRM_MON1_TIMER_MS  200
 #define SCAD_PRM_MON2_TIMER_MS  200
@@ -64,15 +66,15 @@ typedef struct _ST_SCAD_MON2 {
 class CScada : public CBasicControl
 {
 public:
-    CScada();
-    ~CScada();
+    CScada() {};
+    ~CScada() {};
 
-    virtual HRESULT initialize(LPVOID lpParam) override;
+    virtual HRESULT initialize(LPVOID lpParam) override { return S_FALSE; };
 
-    LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
+    LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) { return S_FALSE; };
 
-    static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
-    static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
+    static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) { return S_FALSE; };
+    static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) { return S_FALSE; };
 
     static ST_SCAD_MON1 st_mon1;
     static ST_SCAD_MON2 st_mon2;
@@ -81,16 +83,16 @@ public:
     static ST_CC_CRANE_STAT st_work;
 
     //タブパネルのStaticテキストを設定
-    virtual void set_panel_tip_txt() override;
+    virtual void set_panel_tip_txt() override { return; };
     //タブパネルのFunctionボタンのStaticテキストを設定
-    virtual void set_func_pb_txt() override;
+    virtual void set_func_pb_txt() override { return; };
     //タブパネルのItem chkテキストを設定
-    virtual void set_item_chk_txt() override;
+    virtual void set_item_chk_txt() override { return; };
     //タブパネルのListViewにコメント出力
-    virtual void msg2listview(wstring wstr) override;
+    virtual void msg2listview(wstring wstr) override { return; };
 
     //パラメータ初期表示値設定
-    virtual void set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) override;
+    virtual void set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) override { return; };
 
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
@@ -99,19 +101,19 @@ private:
 
     //オーバーライド
 
-    virtual HRESULT routine_work(void* pObj) override;
+    virtual HRESULT routine_work(void* pObj) override { return S_FALSE; };
 
-    HWND open_monitor_wnd(HWND h_parent_wnd, int id);
-    void close_monitor_wnd(int id);
-    void show_monitor_wnd(int id);
-    void hide_monitor_wnd(int id);
+    HWND open_monitor_wnd(HWND h_parent_wnd, int id) { return h_parent_wnd; };
+    void close_monitor_wnd(int id) { return; };
+    void show_monitor_wnd(int id) { return; };
+    void hide_monitor_wnd(int id) { return; };
 
 
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;
     }
 
-    int input();//入力処理
+    int input() { return 0; };//入力処理
 
     int parse() {           //メイン処理
         return STAT_NG;
@@ -119,8 +121,13 @@ private:
     int output() {          //出力処理
         return STAT_NG;
     }
-    int close();
+    int close() { return 0; };
 };
 
 
+
+
+class CAuxScad
+{
+};
 

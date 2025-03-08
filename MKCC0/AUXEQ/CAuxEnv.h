@@ -2,7 +2,7 @@
 
 #include "CBasicControl.h"
 #include <opencv2/opencv.hpp>
-#include "SENSOR_DEF.H"
+#include "AUXEQ_DEF.H"
 
 // 画像情報
 // 画像情報データ
@@ -18,7 +18,7 @@ typedef struct TAG_INFO_IMGBUF {
 // 画像処理情報
 // ターゲット検出データ
 
-#define  SWAY_SENSOR__RANGE_OVER_COUNT_LIMIT    40
+#define  SWAY_AUXEQ__RANGE_OVER_COUNT_LIMIT    40
 
 typedef struct TAG_TARGET_DATA {
     BOOL     valid;                                         // 検出状態
@@ -127,7 +127,10 @@ typedef struct TAG_APP_INFO {
     INFO_SYSTEM system;                                             // システム情報
 } APP_INFO, * PAPP_INFO;
 
-class CSway :   public CBasicControl
+class CAuxEnv :   public CBasicControl
 {
+public:
+    CAuxEnv() {};
+    ~CAuxEnv() {};
 };
 

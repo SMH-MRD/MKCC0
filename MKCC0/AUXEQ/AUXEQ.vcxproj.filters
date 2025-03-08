@@ -24,7 +24,7 @@
     <ClInclude Include="Resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="AuxEq.h">
+    <ClInclude Include="AUXEQ.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="CAuxAgent.h">
@@ -36,41 +36,41 @@
     <ClInclude Include="CAuxEnv.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CAuxScad.h">
+    <ClInclude Include="CAuxPol.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CAuxPol.h">
+    <ClInclude Include="CAuxScad.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AuxEq.cpp">
+    <ClCompile Include="AUXEQ.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="CAuxAgent.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\Src\CBasicControl.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="CAuxCS.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\CSharedMem.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="CAuxEnv.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="CAuxPol.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
     <ClCompile Include="CAuxScad.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CAuxPol.cpp">
+    <ClCompile Include="..\Src\CBasicControl.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Src\CSharedMem.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="AuxEq.rc">
+    <ResourceCompile Include="AUXEQ.rc">
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -81,20 +81,23 @@
     <Image Include="AUXEQ.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="..\Img\tilt.png">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="..\Img\cam.png">
+    <Image Include="..\Img\agent.bmp">
       <Filter>リソース ファイル</Filter>
     </Image>
     <Image Include="..\Img\cs.bmp">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="..\Img\tilt.bmp">
+    <Image Include="..\Img\env.bmp">
       <Filter>リソース ファイル</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sensor.ini" />
+    <Image Include="..\Img\policy.bmp">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="..\Img\scada.bmp">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="..\Img\sim.bmp">
+      <Filter>リソース ファイル</Filter>
+    </Image>
   </ItemGroup>
 </Project>

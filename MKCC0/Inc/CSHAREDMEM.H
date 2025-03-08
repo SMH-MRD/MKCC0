@@ -4,7 +4,7 @@
 #include "COMMON_DEF.h"
 #include "NET_DEF.h"
 #include "SPEC_DEF.h"
-#include "SENSOR_DEF.h"
+#include "AUXEQ_DEF.h"
 #include "OTE_DEF.h"
 #include "PLC_DEF.h"
 #include "CVector3.h"
@@ -57,7 +57,11 @@ protected:
 /* 　SENSORがセットする共有メモリ上の情報　      　　　　　　               */
 /****************************************************************************/
 #define SMEM_SENSOR_INF_NAME			L"SENSOR_INF"
-#define MUTEX_SENSOR_NAME				L"MU_SENSOR_INF"
+#define SMEM_EQUIP_INF_NAME				L"EQUIP_INF"
+
+#define MUTEX_SENSOR_INF_NAME			L"MU_SENSOR_INF"
+#define MUTEX_EQUIP_INF_NAME			L"MU_EQUIP_INF"
+
 #pragma region SENSOR_INF
 #define SENSOR_CAM_MAX				 2//カメラ数
 #define SENSOR_TARGET_MAX            4//検出ターゲット最大数
@@ -82,16 +86,39 @@ typedef struct _ST_SENSOR_INF {
 	double rad_amp2[SID_N_LOAD][MOTION_ID_MAX];				//吊荷振角振幅の2乗		rad2
 	double cam_pix[SID_N_LOAD][MOTION_ID_MAX];				//振れセンサカメラPIX位置
 }ST_SENSOR_INF, * LPST_SENSOR_INF;
+
+typedef struct _ST_EQUIP_INF {
+
+	DWORD helthy_cnt;
+
+}ST_EQUIP_INF, * LPST_EQUIP_INF;
+
 #pragma endregion センサ信号定義構造体
 
+/****************************************************************************/
+/*	クレーンコントローラ（CC）構造体定義									*/	
+/*	CCがセットする共有メモリ上の情報　      　　　　　　					*/			
+/****************************************************************************/
+#define SMEM_CRANE_STAT_CC_NAME			L"CRANE_STAT_CC"
+#define SMEM_PLC_IO_NAME				L"PLC_IO"
+#define SMEM_JOB_IO_NAME				L"JOB_IO"
+#define SMEM_POL_INF_CC_NAME			L"POL_INF_CC"
+#define SMEM_AGENT_INF_CC_NAME			L"AGENT_INF_CC"
+#define SMEM_CS_INF_CC_NAME				L"CS_INF_CC"
+#define SMEM_SIM_INF_CC_NAME			L"SIM_INF_CC"
+#define SMEM_OTE_INF_NAME				L"OTE_INF"
 
-/****************************************************************************/
-/*クレーンコントローラ（CC）構造体定義										*/
-/****************************************************************************/
+#define MUTEX_CRANE_STAT_CC_NAME		L"MU_CRANE_STAT_CC"
+#define MUTEX_PLC_IO_NAME				L"MU_PLC_IO"
+#define MUTEX_JOB_IO_NAME				L"MU_JOB_IO"
+#define MUTEX_POL_INF_CC_NAME			L"MU_POL_INF_CC"
+#define MUTEX_AGENT_INF_CC_NAME			L"MU_AGENT_INF_CC"
+#define MUTEX_CS_INF_CC_NAME			L"MU_CS_INF_CC"
+#define MUTEX_SIM_INF_CC_NAME			L"MU_SIM_INF_CC"
+#define MUTEX_OTE_INF_NAME				L"MU_OTE_INF"
+
 //#	Environment
 //## クレーン状態定義構造体
-#define SMEM_CRANE_STAT_CC_NAME			L"CRANE_STAT_CC"
-#define MUTEX_CRANE_STAT_CC_NAME		L"MU_CRANE_STAT_CC"
 #pragma region CRANE STATUS
 
 #define N_PC_FAULT_WORDS		16			//制御PC検出フォルトbitセットWORD数
@@ -166,8 +193,6 @@ typedef struct _ST_CC_CRANE_STAT {
 #pragma endregion  クレーン状態定義構造体
 
 //## PLC IO定義構造体　PLC通信の情報　
-#define SMEM_PLC_IO_NAME				L"PLC_IO"
-#define MUTEX_PLC_IO_NAME				L"MU_PLC_IO"
 #pragma region PLC IO
 typedef struct _ST_CC_PLC_IO {
 	INT32 mode;
@@ -205,14 +230,10 @@ typedef struct _ST_CC_PLC_IO {
 
 #pragma endregion PLC IO定義構造体
 
-
-//#	Scada
 //## Scada状態定義構造体
+//#	Scada
 
-//#	Policy
 //## Job定義構造体
-#define SMEM_JOB_IO_NAME				L"JOB_IO"
-#define MUTEX_JOB_IO_NAME				L"MU_JOB_IO"
 //### 動作要素　加速、定速、減速等の一連の動作は、この要素の組み合わせで構成します。
 #pragma region MTION STEP
 //レシピ　Type
@@ -441,8 +462,6 @@ typedef struct _ST_JOB_IO {
 #pragma endregion 作業内容（JOB)定義構造体 
 
 //## Policy定義構造体
-#define SMEM_POL_INF_CC_NAME			L"POL_INF_CC"
-#define MUTEX_POL_INF_CC_NAME			L"MU_POL_INF_CC"
 #pragma region POLICY
 #define FAULT_MAP_W_SIZE	64	//フォルトマップサイズ
 typedef struct _ST_POL_INF_CC {
@@ -452,10 +471,7 @@ typedef struct _ST_POL_INF_CC {
 }ST_POL_INF_CC, * LPST_POL_INF_CC;
 #pragma endregion Policy情報定義構造体
 
-//#	Agent
 //## Agent	情報定義構造体
-#define SMEM_AGENT_INF_CC_NAME			L"AGENT_INF_CC"
-#define MUTEX_AGENT_INF_CC_NAME			L"MU_AGENT_INF_CC"
 #pragma region AGENT
 /*** ジョブ,コマンドステータス ***/
 //auto_ongoing用
@@ -506,8 +522,6 @@ typedef struct _ST_CC_AGENT_INF {
 
 //#	ClientService
 //## CS状態定義構造体
-#define SMEM_CS_INF_CC_NAME				L"CS_INF_CC"
-#define MUTEX_CS_INF_CC_NAME			L"MU_CS_INF_CC"
 #pragma region CSInfo_CC
 typedef struct _ST_CC_CS_INF {
 	//自動,遠隔設定（モード）
@@ -561,11 +575,7 @@ typedef struct stClientIO {
 
 #pragma endregion Client Service情報定義構造体
 
-//#	Simulation
-#define SMEM_SIM_INF_CC_NAME		L"SIM_INF_CC"
-#define MUTEX_SIM_INF_CC_NAME		L"MU_SIM_INF_CC"
-/*   シミュレーション信号定義構造体                                  　   　*/
-/* 　SIM PROCがセットする共有メモリ上の情報　　　　　　　          　    　 */
+//## シミュレーション信号定義構造体 
 #pragma region SIMULATOR
 typedef struct _ST_SIM_LOAD {//負荷
 	double m;	//質量
@@ -617,18 +627,12 @@ typedef struct _ST_SIM_INF_CC {
 }ST_SIM_INF_CC, * LPST_SIM_INF_CC;
 #pragma endregion シミュレーション信号定義構造体
 
-/****************************************************************************/
-/*   操作端末信号定義構造体                                  　         　	*/
-/* 　MKCC CSがセットする共有メモリ上の情報　　　　　　　          　				*/
-/****************************************************************************/
-
+//   操作端末信号定義構造体                                  　         　	
 #define OTE_STOP_REQ_MODE_OFF			L_OFF
 #define OTE_STOP_REQ_MODE_ESTOP			0x00000001
 #define OTE_STOP_REQ_MODE_CTRL_OFF		0x00000002
 
-#define SMEM_OTE_INF_NAME				L"OTE_INF"
-#define MUTEX_OTE_INF_NAME				L"MU_OTE_INF"
-
+//## 操作端末状態定義構造体 
 typedef struct _ST_CC_OTE_INF {
 
 	ST_OTE_U_MSG    st_msg_ote_u_rcv;
@@ -651,12 +655,21 @@ typedef struct _ST_CC_OTE_INF {
 }ST_CC_OTE_INF, * LPST_CC_OTE_INF;
 
 /****************************************************************************/
-/*   操作端末側信号定義構造体                                    　	*/
-/* 　OTEプロセス用共有メモリ上の情報　　　　　　　          　		*/
+/*   操作端末側信号定義構造体                                    　			*/
+/* 　OTEプロセス用共有メモリ上の情報　　　　　　　          　				*/
 /****************************************************************************/
 //OTEの状態
 #define SMEM_OTE_ENV_NAME			L"OTE_ENV_IF"
+#define SMEM_OTE_CS_INF_NAME		L"OTE_CS_IF"
+#define SMEM_OTE_UI_NAME			L"OTE_UI"
+#define SMEM_OTE_CC_IF_NAME			L"OTE_CC_IF"
+
 #define MUTEX_OTE_ENV_NAME			L"MU_OTE_ENV_IF"
+#define MUTEX_OTE_CS_INF_NAME		L"MU_OTE_CS_IF"
+#define MUTEX_OTE_UI_NAME			L"MU_OTE_UI"
+#define MUTEX_OTE_CC_IF_NAME		L"MU_OTE_CC_IF"
+
+#pragma region OTE_INF
 typedef struct _ST_OTE_ENV {
 	UINT32			target_crane;		//接続対象クレーン
 	UINT32			ote_mode;			//操作端末モード
@@ -665,22 +678,17 @@ typedef struct _ST_OTE_ENV {
 	UINT32			gpad_mode = L_OFF;	//ゲームパッドモード
 	DIJOYSTATE		pad_data;
 }ST_OTE_ENV, * LPST_OTE_ENV;
+#pragma endregion 操作卓PLCとの通信他
 
-#pragma region OTE_INF
 //## OTE_CS_INF
-#define SMEM_OTE_CS_INF_NAME			L"OTE_CS_IF"
-#define MUTEX_OTE_CS_INF_NAME			L"MU_OTE_CS_IF"
 #pragma region OTE_CS_INF
 typedef struct _ST_OTE_CS_INF {
 	int a;
-	
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他
 
-#pragma region OTE_CC_INF
-#define SMEM_OTE_CC_IF_NAME			L"OTE_CC_IF"
-#define MUTEX_OTE_CC_IF_NAME		L"MU_OTE_CC_IF"
 //## OTE_CC_IF
+#pragma region OTE_CC_INF
 typedef struct _ST_OTE_CC_IF {
 
 	ST_PC_U_MSG     st_msg_pc_u_rcv;
@@ -703,21 +711,7 @@ typedef struct _ST_OTE_CC_IF {
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体
 
-#if 0
-//## OTE_STATUS
-#define SMEM_OTE_STAT_NAME				L"OTE_STAT"
-#define MUTEX_OTE_STAT_NAME				L"MU_OTE_STAT"
-#pragma region OTE_STAT
-typedef struct _ST_OTE_STAT {
-	DWORD notch_pos_gmpad[MOTION_ID_MAX];
-	UINT16 pb_stat[N_OTE_PNL_PB];						//PB状態 OFFディレイカウント
-	UINT16 notch_pb_stat[N_OTE_PNL_PB];					//PB状態 OFFディレイカウント
-}ST_OTE_STAT, * LPST_OTE_STAT;
-#pragma endregion 操作端末状態構造体
-#endif
 //## OTE_UI
-#define SMEM_OTE_UI_NAME				L"OTE_UI"
-#define MUTEX_OTE_UI_NAME				L"MU_OTE_UI"
 #pragma region OTE_UI
 typedef struct _ST_OTE_UI {
 	DWORD notch_pos_gmpad[MOTION_ID_MAX];
@@ -725,6 +719,7 @@ typedef struct _ST_OTE_UI {
 	UINT16 notch_pb_stat[N_OTE_PNL_PB];					//PB状態 OFFディレイカウント
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
+
 
 
 
