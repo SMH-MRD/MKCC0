@@ -27,14 +27,16 @@
 #define IP_ADDR_MC_CLIENT_DEF		"127.0.0.1"
 #define IP_ADDR_MC_SERVER_DEF		"127.254.254.254"
 
-//@ 振れセンサ-------------------------------------------------------------------------------
-#define IP_ADDR_SWAY_CLIENT	        "192.168.100.100"		//振れセンサ制御PC　
-#define IP_ADDR_SWAY_SERVER			"192.168.100.20"		//振れセンサセンサPC
-#define IP_PORT_SWAY_CLIENT			10080					//振れセンサ用クライアント（制御PC）　IP受信ポート
-#define IP_PORT_SWAY_SERVER			10081					//振れセンサ用サーバ（センサPC）　    IP受信ポート
+//@ 補機-------------------------------------------------------------------------------
+#define IP_ADDR_AUX_CLIENT	        "192.168.100.100"		//補機通信クライアント側　
+#define IP_ADDR_AUX_SERVER			"192.168.100.100"		//補機通信サーバ側
+#define IP_PORT_AUX_CS_CLIENT		10070					//補機通信クライアント（制御PC）IP受信ポート
+#define IP_PORT_AUX_CS_SERVER		10071					//補機通信サーバ（センサPC）　   IP受信ポート
 
 #define IP_ADDR_SWAYCAM_CLIENT		"192.168.150.10"		//振れセンサPCcカメラIF IPアドレス
 #define IP_ADDR_SWAY_CAMERA		    "192.168.150.100"		//振れセンサカメラ      IPアドレス
+
+#define ID_SOCK_EVENT_AUXCS_UNI	    10703					//補機プロセスCS受信ソケットイベント
 
 //@ OTE---------------------------------------------------------------------------------------
 #define OTE_IF_UNI_IP_PC			"192.168.100.100" 		//PCのOTE UNICAST　IF用IP	（受信,送信）

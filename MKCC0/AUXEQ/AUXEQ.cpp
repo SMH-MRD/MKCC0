@@ -25,8 +25,9 @@ WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキ�
 WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
 
 //共有メモリオブジェクトポインタ
-CSharedMem* pSensorInfObj;
-CSharedMem* pEquipInfObj;
+CSharedMem* pEnvInfObj;
+CSharedMem* pAgentInfObj;
+CSharedMem* pCsInfObj;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_AUXEQ_WND        st_work_wnd;        //センサーウィンドウ管理用構造体   
@@ -74,8 +75,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // 共有メモリオブジェクトのインスタンス化
-    pSensorInfObj = new CSharedMem;
-    pEquipInfObj = new CSharedMem;
+    pEnvInfObj = new CSharedMem;
+    pAgentInfObj = new CSharedMem;
+    pCsInfObj = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -104,8 +106,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     return (int) msg.wParam;
 }
-
-
 
 //
 //  関数: MyRegisterClass()
@@ -162,8 +162,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    pszInifile = dstpath;
 
    ///-共有メモリ割付&設定##################
-   if (OK_SHMEM != pSensorInfObj->create_smem(SMEM_SENSOR_INF_NAME, sizeof(ST_SENSOR_INF), MUTEX_SENSOR_INF_NAME)) return(FALSE);
-   if (OK_SHMEM != pEquipInfObj->create_smem(SMEM_EQUIP_INF_NAME, sizeof(ST_EQUIP_INF), MUTEX_EQUIP_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AUX_AGENT_INF_NAME, sizeof(ST_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 
    HBITMAP hBmp;
    CBasicControl* pobj;
@@ -400,8 +401,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 VOID CloseApp()
 {
-    delete pSensorInfObj;
-    delete pEquipInfObj;
+    delete pEnvInfObj;
+    delete pAgentInfObj;
+    delete pCsInfObj;
     return;
 }
 
@@ -633,6 +635,15 @@ LRESULT CALLBACK TaskTabDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
     }break;
     case WM_COMMAND: {
         CBasicControl* pObj = VectCtrlObj[VectCtrlObj.size() - TabCtrl_GetCurSel(hTabWnd) - 1];
+
+        //タスクオブジェクト固有の処理
+        pObj->PanelProc(hDlg, msg, wp, lp);
+    }break;
+    case WM_USER_TASK_REQ:
+    {
+        //要求元タスク
+        WORD task_index = LOWORD(wp);
+        CBasicControl* pObj = VectCtrlObj[task_index];
 
         //タスクオブジェクト固有の処理
         pObj->PanelProc(hDlg, msg, wp, lp);

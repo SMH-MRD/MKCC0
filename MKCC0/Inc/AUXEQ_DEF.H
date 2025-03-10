@@ -4,6 +4,41 @@
 #include <time.h>
 #include <windows.h>
 
+#define N_CHAR_AUXEQ_ID             4
+#define N_IPRM_AUXEQ_CLIENT         4
+#define N_IDATA_AUXEQ_SERVER        4
+
+typedef struct _ST_AUX_COM_MSG_HEAD {           //AUXEQメッセージヘッダ部
+    char	id[N_CHAR_AUXEQ_ID];			    //機器個体情報
+    UINT32  code;
+    sockaddr_in sockaddr;                       //送信元IPアドレス
+}ST_AUX_COM_MSG_HEAD, * LPST_AUX_COM_MSG_HEAD;
+
+typedef struct _ST_AUX_COM_CLI_BODY {           //制御メイン送信メッセージボディ部
+    INT32 command;
+    INT32 mode;
+    INT32 freq;                                 //最小受信周期 msec      
+    INT32 d[N_IPRM_AUXEQ_CLIENT];               //要求パラメータ
+}ST_AUX_COM_CLI_BODY, * LPST_AUX_COM_CLI_BODY;
+
+typedef struct _ST_AUX_COM_SERV_BODY {          //補機システム送信メッセージボディ部
+    INT32 command;
+    INT32 mode;
+    INT32 freq;                                 //最小受信周期 msec      
+    INT32 d[N_IDATA_AUXEQ_SERVER];              //補機システム応答データ
+}ST_AUX_COM_SERV_BODY, * LPST_AUX_COM_SERV_BODY;
+
+typedef struct _ST_AUX_COM_CLI_MSG {            //制御メイン送信メッセージ
+    ST_AUX_COM_MSG_HEAD head;
+    ST_AUX_COM_CLI_BODY body;
+}ST_AUX_COM_CLI_MSG, * LPST_AUX_COM_CLI_MSG;
+
+typedef struct _ST_AUX_COM_SERV_MSG {          //補機システム送信メッセージ
+    ST_AUX_COM_MSG_HEAD head;
+    ST_AUX_COM_SERV_BODY body;
+}ST_AUX_COM_SERV_MSG, * LPST_AUX_COM_SERV_MSG;
+
+
 //振れセンサ
 #define SID_TG1                      0//ターゲットID
 #define SID_TG2                      1
@@ -62,7 +97,6 @@
 
 #define SWAY_CAMERA_N_PARAM		10
 
-
 #define	SID_D0  				0		//カメラハウジング軸-吊点距離（主巻）
 #define	SID_row				    1		//カメラのハウジング-吊点角度（主巻）
 #define SID_l0					2		//カメラ中心とハウジング回転軸間距離
@@ -106,9 +140,6 @@ typedef struct StSwySensParam{
         {{CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}, {CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}}
      };
 }ST_SWY_SENS_PRM, *LPST_SWY_SENS_PRM;
-
-
-
 
 #define SWAY_SENSOR_N_CAM       2
 #define SWAY_SENSOR_CAM1        0

@@ -48,7 +48,6 @@ CClientService::CClientService() {
 	pPLCioObj		= new CSharedMem;
 	pCSInfObj		= new CSharedMem;
 	pAgentInfObj	= new CSharedMem;
-
 }
 CClientService::~CClientService() {
 	// 共有メモリオブジェクトの解放
@@ -130,10 +129,16 @@ HRESULT CClientService::initialize(LPVOID lpParam) {
 	if (pMSockOte->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pMSockOte->err_msg.str(); err |= SOCK_NG_MULTICAST; hr = S_FALSE;}
 	if(hr==S_FALSE)msg2listview(wos.str()); wos.str(L"");
 
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Err(MON2 NULL Handle!!):";
+		msg2listview(wos.str()); wos.str(L"");
+		return hr;
+	}
+
 	//##ソケットソケット生成・設定
 	//##ユニキャスト
 	if (pUSockOte->init_sock(st_mon2.hwnd_mon, pUSockOte->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
-		wos << L"PC U SockErr:" << pUSockOte->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
+		wos << L"OTE U SockErr:" << pUSockOte->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
 	}
 	else wos << L"OTE U Socket init OK";msg2listview(wos.str()); wos.str(L"");
 	

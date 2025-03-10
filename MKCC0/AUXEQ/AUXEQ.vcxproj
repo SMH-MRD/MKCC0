@@ -122,7 +122,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\Lib\x64;..\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LELanio.lib;LALANIO.lib;winmm.lib;comctl32.lib;ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;LELanio.lib;LALANIO.lib;winmm.lib;comctl32.lib;ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,7 +141,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\Lib\x64;..\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LELanio.lib;LALANIO.lib;winmm.lib;comctl32.lib;ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;LELanio.lib;LALANIO.lib;winmm.lib;comctl32.lib;ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

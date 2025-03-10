@@ -53,21 +53,29 @@ protected:
 /****************************************************************************/
 
 /****************************************************************************/
-/*   センサ信号定義構造体                                  　         　    */
-/* 　SENSORがセットする共有メモリ上の情報　      　　　　　　               */
+/*   補機信号定義構造体                                  　         　    */
+/* 　AUXEQがセットする共有メモリ上の情報　      　　　　　　               */
 /****************************************************************************/
-#define SMEM_SENSOR_INF_NAME			L"SENSOR_INF"
-#define SMEM_EQUIP_INF_NAME				L"EQUIP_INF"
+#define SMEM_AUX_ENV_INF_NAME			L"AUX_ENV_INF"
+#define SMEM_AUX_AGENT_INF_NAME			L"AUX_AGENT_INF"
+#define SMEM_AUX_CS_INF_NAME			L"AUX_CS_INF"
 
-#define MUTEX_SENSOR_INF_NAME			L"MU_SENSOR_INF"
-#define MUTEX_EQUIP_INF_NAME			L"MU_EQUIP_INF"
+#define MUTEX_AUX_ENV_INF_NAME			L"MU_AUX_ENV_INF"
+#define MUTEX_AUX_AGENT_INF_NAME		L"MU_AUX_AGENT_INF"
+#define MUTEX_AUX_CS_INF_NAME			L"MU_AUX_CS_INF"
 
-#pragma region SENSOR_INF
+typedef struct _ST_AUX_ENV_INF {
+
+	DWORD helthy_cnt;
+
+}ST_AUX_ENV_INF, * LPST_AUX_ENV_INF;
+
 #define SENSOR_CAM_MAX				 2//カメラ数
 #define SENSOR_TARGET_MAX            4//検出ターゲット最大数
 #define TG_LAMP_NUM_MAX              3//ターゲット毎のランプ最大数
 #define SWAY_FAULT_ITEM_MAX			 4//異常検出項目数
-typedef struct _ST_SENSOR_INF {
+
+typedef struct _ST_AUX_AGENT_INF {
 	DWORD proc_mode;
 	DWORD helthy_cnt;
 
@@ -85,15 +93,18 @@ typedef struct _ST_SENSOR_INF {
 	double ph[SID_N_LOAD][MOTION_ID_MAX];					//吊荷位相平面位相	rad
 	double rad_amp2[SID_N_LOAD][MOTION_ID_MAX];				//吊荷振角振幅の2乗		rad2
 	double cam_pix[SID_N_LOAD][MOTION_ID_MAX];				//振れセンサカメラPIX位置
-}ST_SENSOR_INF, * LPST_SENSOR_INF;
+}ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 
-typedef struct _ST_EQUIP_INF {
-
+typedef struct _ST_AUX_CS_INF {
 	DWORD helthy_cnt;
+	ST_AUX_COM_SERV_MSG st_msg_u_snd;
+	ST_AUX_COM_CLI_MSG st_msg_u_rcv;
+	SOCKADDR_IN addrin_snd;
+	SOCKADDR_IN addrin_rcv;
+	SOCKADDR_IN addrin_from;
 
-}ST_EQUIP_INF, * LPST_EQUIP_INF;
+}ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 
-#pragma endregion センサ信号定義構造体
 
 /****************************************************************************/
 /*	クレーンコントローラ（CC）構造体定義									*/	
@@ -589,7 +600,7 @@ typedef struct _ST_SIM_INF_CC {
 	DWORD mode;
 	DWORD helthy_cnt;
 	PLC_WRITE_BUF plc_w;
-	ST_SENSOR_INF sway_io;
+	ST_AUX_ENV_INF sway_io;
 	Vector3 L, vL;											//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）
 	Vector3 L2, vL2;										//ﾛｰﾌﾟﾍﾞｸﾄﾙ(補巻振れ）
 	double a_fb[MOTION_ID_MAX];								//軸座標加速度fb
