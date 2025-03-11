@@ -81,7 +81,7 @@ public:
     static ST_ENV_MON2 st_mon2;
 
     static CGPad* pPad;
-    static ST_CC_CRANE_STAT st_work;
+    static ST_CC_ENV_INF st_work;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;

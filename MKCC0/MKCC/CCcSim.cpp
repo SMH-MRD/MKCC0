@@ -5,7 +5,7 @@
 ST_SIM_MON1 CSim::st_mon1;
 ST_SIM_MON2 CSim::st_mon2;
 
-ST_SIM_INF_CC CSim::st_work;
+ST_CC_SIM_INF CSim::st_work;
 
 CSim::CSim() {
 

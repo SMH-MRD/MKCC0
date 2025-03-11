@@ -80,7 +80,7 @@ public:
     static ST_SIM_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_SIM_INF_CC st_work;
+    static ST_CC_SIM_INF st_work;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;

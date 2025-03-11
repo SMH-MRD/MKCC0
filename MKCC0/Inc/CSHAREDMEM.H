@@ -102,7 +102,6 @@ typedef struct _ST_AUX_CS_INF {
 	SOCKADDR_IN addrin_snd;
 	SOCKADDR_IN addrin_rcv;
 	SOCKADDR_IN addrin_from;
-
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 
 
@@ -137,7 +136,16 @@ typedef struct _ST_AUX_CS_INF {
 #define N_SWAY_DIR				4
 #define N_DRUM_LAYER			10	//ドラ巻取り層数最大値
 
-typedef struct _ST_CC_CRANE_STAT {
+typedef struct _ST_CC_ENV_INF {
+	UINT32	aux_mode = FUNC_DEACTIVE;	
+	
+	DWORD helthy_cnt;
+	ST_AUX_COM_SERV_MSG st_msg_u_rcv;
+	ST_AUX_COM_CLI_MSG st_msg_u_snd;
+	SOCKADDR_IN addrin_snd;
+	SOCKADDR_IN addrin_rcv;
+	SOCKADDR_IN addrin_from;
+
 	//Event Update				:イベント条件で更新
 	bool is_tasks_standby_ok;							//タスクの立ち上がり確認
 	bool is_crane_status_ok = false;						//クレーンステータス初期化完了
@@ -200,7 +208,7 @@ typedef struct _ST_CC_CRANE_STAT {
 	ST_MOVE_SET	lrm;								//主巻ロープ長
 	ST_MOVE_SET	lra;								//補巻ロープ長
 
-}ST_CC_CRANE_STAT, * LPST_CC_CRANE_STAT;
+}ST_CC_ENV_INF, * LPST_CC_ENV_INF;
 #pragma endregion  クレーン状態定義構造体
 
 //## PLC IO定義構造体　PLC通信の情報　
@@ -475,11 +483,11 @@ typedef struct _ST_JOB_IO {
 //## Policy定義構造体
 #pragma region POLICY
 #define FAULT_MAP_W_SIZE	64	//フォルトマップサイズ
-typedef struct _ST_POL_INF_CC {
+typedef struct _ST_CC_POL_INF {
 
 	WORD fault_map[FAULT_MAP_W_SIZE];
 
-}ST_POL_INF_CC, * LPST_POL_INF_CC;
+}ST_CC_POL_INF, * LPST_CC_POL_INF;
 #pragma endregion Policy情報定義構造体
 
 //## Agent	情報定義構造体
@@ -596,7 +604,7 @@ typedef struct _ST_SIM_LOAD {//負荷
 }ST_SIM_LOAD, * LPST_SIM_LOAD;
 
 #define SIM_N_SENSOR			128							//センサ数
-typedef struct _ST_SIM_INF_CC {
+typedef struct _ST_CC_SIM_INF {
 	DWORD mode;
 	DWORD helthy_cnt;
 	PLC_WRITE_BUF plc_w;
@@ -635,7 +643,7 @@ typedef struct _ST_SIM_INF_CC {
 
 	double tht_swx_mh, tht_swy_mh, tht_swx_ah, tht_swy_ah;
 
-}ST_SIM_INF_CC, * LPST_SIM_INF_CC;
+}ST_CC_SIM_INF, * LPST_CC_SIM_INF;
 #pragma endregion シミュレーション信号定義構造体
 
 //   操作端末信号定義構造体                                  　         　	

@@ -63,7 +63,13 @@
 #define NOTCH_4	        4
 #define NOTCH_5	        5
 
+#define FUNC_DEACTIVE   0
+#define FUNC_ACTIVE     1
+#define FUNC_PAUSE      2
+#define FUNC_RESTART    3
+
 #pragma endregion ステータスコード
+
 
 #pragma region TYPE
 #define UNIT_CODE_M             0   //単位のコード m

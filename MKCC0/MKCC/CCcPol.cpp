@@ -4,7 +4,7 @@
 ST_POL_MON1 CPolicy::st_mon1;
 ST_POL_MON2 CPolicy::st_mon2;
 
-ST_CC_CRANE_STAT CPolicy::st_work;
+ST_CC_ENV_INF CPolicy::st_work;
 
 CPolicy::CPolicy() {
 

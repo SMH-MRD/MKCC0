@@ -6,7 +6,7 @@ ST_ENV_MON1 CEnvironment::st_mon1;
 ST_ENV_MON2 CEnvironment::st_mon2;
 
 CGPad* CEnvironment::pPad;
-ST_CC_CRANE_STAT CEnvironment::st_work;
+ST_CC_ENV_INF CEnvironment::st_work;
 
 CEnvironment::CEnvironment(){
 	

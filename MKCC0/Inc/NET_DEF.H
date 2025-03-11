@@ -27,6 +27,8 @@
 #define IP_ADDR_MC_CLIENT_DEF		"127.0.0.1"
 #define IP_ADDR_MC_SERVER_DEF		"127.254.254.254"
 
+#define ID_SOCK_EVENT_CC_ENV_UNI	10503					//CC ENV受信ソケットイベント
+
 //@ 補機-------------------------------------------------------------------------------
 #define IP_ADDR_AUX_CLIENT	        "192.168.100.100"		//補機通信クライアント側　
 #define IP_ADDR_AUX_SERVER			"192.168.100.100"		//補機通信サーバ側

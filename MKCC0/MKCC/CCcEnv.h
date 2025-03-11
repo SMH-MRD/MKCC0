@@ -1,6 +1,5 @@
 #pragma once
 #include "CBasicControl.h"
-
 #include "framework.h"
 #include "CSHAREDMEM.H"
 
@@ -14,15 +13,16 @@
 #define ENV_ID_MON1_CTRL_BASE   50100
 #define ENV_ID_MON1_STATIC_GPAD     0
 
-
 #define ENV_ID_MON1_TIMER  50190
 #define ENV_ID_MON2_TIMER  50191
 
 #define ENV_PRM_MON1_TIMER_MS  200
-#define ENV_PRM_MON2_TIMER_MS  200
+#define ENV_PRM_MON2_TIMER_MS  50
 
 
 typedef struct _ST_ENV_MON1 {
+    bool is_monitor_active = false;
+
     int timer_ms = ENV_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
     HWND hctrl[ENV_MON1_N_CTRL] = {
@@ -85,32 +85,31 @@ typedef struct _ST_ENV_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[ENV_MON2_N_CTRL] = {
-        5,5, 5,30, 5,55, 5,30, 5,95, 5,160, 5,5, 0,0,
-        470,5,520,5, 570,5,  0,0, 0,0, 0,0, 0,0, 0,0, 
+        5,95, 5,50, 5,5, 0,0, 0,0, 0,0, 0,0, 0,0,
+        470,5,520,5,570,5, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[ENV_MON2_N_CTRL] = {
-        100,20, ENV_MON2_WND_W - 25,20, ENV_MON2_WND_W - 25,100,0,0,0,0, 0,0,0,0,0,0, 
-        40,20,40,20,40,20, 0,0, 0,0, 0,0, 0,0, 0,0,
+        ENV_MON2_WND_W - 25,120, ENV_MON2_WND_W - 25,40, ENV_MON2_WND_W - 25,40, 0,0, 0,0, 0,0, 0,0,
+        ENV_MON2_WND_W - 180,20,40,20,40,20, 40,20,  0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[ENV_MON2_N_CTRL][ENV_MON2_N_WCHAR] = {
-        L"SOCKET INFO", L"R:,S:,F:", L"[HEAD]-\n[BODY]", L"", L"", L"",L"", L"",
+        L"UNI:", L"-", L"MSG:", L"-", L"-", L"-", L"-", L"",
         L"RCV", L"SND",L"INFO",  L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 
-
 }ST_ENV_MON2, * LPST_ENV_MON2;
 
-class CEnvironment : public CBasicControl
+class CCcEnv : public CBasicControl
 {
 public:
-    CEnvironment() ;
-    ~CEnvironment();
+    CCcEnv() ;
+    ~CCcEnv();
 
     virtual HRESULT initialize(LPVOID lpParam) override;
 
@@ -122,18 +121,12 @@ public:
     static ST_ENV_MON1 st_mon1;
     static ST_ENV_MON2 st_mon2;
 
-    static HRESULT rcv_uni_sensor(LPST_PC_U_MSG pbuf);
-  
-
-    static LPST_OTE_U_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
-    static HRESULT snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to);
-
-    static LPST_OTE_M_MSG set_msg_m();
-    static HRESULT snd_mul2pc(LPST_OTE_M_MSG pbuf);
-    static HRESULT snd_mul2ote(LPST_OTE_M_MSG pbuf);
-
     //タスク出力用構造体
-    static ST_CC_CRANE_STAT st_work;
+    static ST_CC_ENV_INF st_work;
+
+    static HRESULT rcv_uni_aux(LPST_AUX_COM_SERV_MSG pbuf);
+    static LPST_AUX_COM_CLI_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
+    static HRESULT snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to);
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -151,9 +144,7 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-
     //オーバーライド
-
     virtual HRESULT routine_work(void* pObj) override;
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id);
@@ -167,9 +158,7 @@ private:
 
     int input();//入力処理
 
-    int parse() {           //メイン処理
-        return STAT_NG;
-    }
+    int parse() { return STAT_NG;}
     int output() {          //出力処理
         return STAT_NG;
     }

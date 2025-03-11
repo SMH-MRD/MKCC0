@@ -122,11 +122,11 @@ typedef struct _ST_CS_MON2 {
 
 }ST_CS_MON2, * LPST_CS_MON2;
 
-class CClientService : public CBasicControl
+class CCcCS : public CBasicControl
 {
 public:
-    CClientService();
-    ~CClientService();
+    CCcCS();
+    ~CCcCS();
 
     virtual HRESULT initialize(LPVOID lpParam) override;
 

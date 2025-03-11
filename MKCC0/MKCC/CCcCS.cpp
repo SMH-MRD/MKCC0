@@ -13,10 +13,10 @@ static CSockUDP* pMSockPC;	//マルチキャストPC通信受信用
 static SOCKADDR_IN addrin_pc_m2pc_snd;
 static SOCKADDR_IN addrin_pc_m2ote_snd;
 
-ST_CS_MON1 CClientService::st_mon1;
-ST_CS_MON2 CClientService::st_mon2;
+ST_CS_MON1 CCcCS::st_mon1;
+ST_CS_MON2 CCcCS::st_mon2;
 
-ST_CC_CS_INF CClientService::st_work;
+ST_CC_CS_INF CCcCS::st_work;
 
 //共有メモリ参照用定義
 static CSharedMem* pOteInfObj;
@@ -27,7 +27,7 @@ static CSharedMem* pCSInfObj;
 static CSharedMem* pAgentInfObj;
 static CSharedMem* pSwayIO_Obj;
 
-static LPST_CC_CRANE_STAT	pCraneStat;
+static LPST_CC_ENV_INF	pCraneStat;
 static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
@@ -40,7 +40,7 @@ static LONG rcv_count_ote_m = 0, snd_count_m2ote = 0;
 /****************************************************************************/
 /*   デフォルト関数											                    */
 /****************************************************************************/
-CClientService::CClientService() {
+CCcCS::CCcCS() {
 	// 共有メモリオブジェクトのインスタンス化
 	pOteInfObj		= new CSharedMem;
 	pCraneStatObj	= new CSharedMem;
@@ -49,7 +49,7 @@ CClientService::CClientService() {
 	pCSInfObj		= new CSharedMem;
 	pAgentInfObj	= new CSharedMem;
 }
-CClientService::~CClientService() {
+CCcCS::~CCcCS() {
 	// 共有メモリオブジェクトの解放
 	delete pOteInfObj;
 	delete pCraneStatObj;
@@ -60,7 +60,7 @@ CClientService::~CClientService() {
 	delete pSwayIO_Obj;
 }
 
-HRESULT CClientService::initialize(LPVOID lpParam) {
+HRESULT CCcCS::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_CC_CS_INF);
@@ -70,10 +70,10 @@ HRESULT CClientService::initialize(LPVOID lpParam) {
 	set_outbuf(pCSInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pSimInfObj->create_smem(SMEM_SIM_INF_CC_NAME, sizeof(ST_SIM_INF_CC), MUTEX_SIM_INF_CC_NAME)) {
+	if (OK_SHMEM != pSimInfObj->create_smem(SMEM_SIM_INF_CC_NAME, sizeof(ST_CC_SIM_INF), MUTEX_SIM_INF_CC_NAME)) {
 		err |= SMEM_NG_SIM_INF;	hr = S_FALSE;
 	}
-	if (OK_SHMEM != pCraneStatObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_CRANE_STAT), MUTEX_CRANE_STAT_CC_NAME)) {
+	if (OK_SHMEM != pCraneStatObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) {
 		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
 	}
 	if (OK_SHMEM != pPLCioObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_CC_PLC_IO), MUTEX_PLC_IO_NAME)) {
@@ -86,7 +86,7 @@ HRESULT CClientService::initialize(LPVOID lpParam) {
 		err |= SMEM_NG_AGENT_INF; hr = S_FALSE;
 	}
 
-	pCraneStat	= (LPST_CC_CRANE_STAT)(pCraneStatObj->get_pMap());
+	pCraneStat	= (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
 	pPLC_IO		= (LPST_CC_PLC_IO)(pPLCioObj->get_pMap());
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 	pCS_Inf		= (LPST_CC_CS_INF)pCSInfObj->get_pMap();
@@ -191,25 +191,25 @@ HRESULT CClientService::initialize(LPVOID lpParam) {
 	return hr;
 }
 
-HRESULT CClientService::routine_work(void* pObj) {
+HRESULT CCcCS::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
 	return S_OK;
 }
 
-int CClientService::input() {
+int CCcCS::input() {
 
 
 	return S_OK;
 }
 
-int CClientService::parse() {
+int CCcCS::parse() {
 
 	return S_OK;
 }
 
-int CClientService::close() {
+int CCcCS::close() {
 
 	return 0;
 }
@@ -220,7 +220,7 @@ int CClientService::close() {
 /// <summary>
 /// OTEユニキャスト電文受信処理
 /// </summary>
-HRESULT CClientService::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
+HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 	int nRtn = pUSockOte->rcv_msg((char*)pbuf, sizeof(ST_PC_U_MSG));
 	if (nRtn == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
@@ -236,7 +236,7 @@ HRESULT CClientService::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 /// <summary>
 /// PCマルチキャスト電文受信処理 
 /// </summary>
-HRESULT CClientService::rcv_mul_pc(LPST_PC_M_MSG pbuf) {
+HRESULT CCcCS::rcv_mul_pc(LPST_PC_M_MSG pbuf) {
 	int nRtn = pMSockPC->rcv_msg((char*)pbuf, sizeof(ST_PC_M_MSG));
 	if (nRtn == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
@@ -252,7 +252,7 @@ HRESULT CClientService::rcv_mul_pc(LPST_PC_M_MSG pbuf) {
 /// <summary>
 /// OTEマルチキャスト電文受信処理 
 /// </summary>
-HRESULT CClientService::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
+HRESULT CCcCS::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 	int nRtn = pMSockOte->rcv_msg((char*)pbuf, sizeof(ST_OTE_M_MSG));
 	if (nRtn == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
@@ -268,11 +268,11 @@ HRESULT CClientService::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// <summary>
 /// PCユニキャスト電文送信処理 
 /// </summary>
-LPST_PC_U_MSG CClientService::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
+LPST_PC_U_MSG CCcCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	return &pOTE_Inf->st_msg_pc_u_snd;
 }
 
-HRESULT CClientService::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
+HRESULT CCcCS::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 
 	if (pUSockOte->snd_msg((char*)pbuf, sizeof(ST_PC_U_MSG), *p_addrin_to) == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
@@ -290,12 +290,12 @@ HRESULT CClientService::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to
 /// </summary>
 
 //マルチキャストメッセージセット
-LPST_PC_M_MSG CClientService::set_msg_m(INT32 code, INT32 stat) {	
+LPST_PC_M_MSG CCcCS::set_msg_m(INT32 code, INT32 stat) {	
 	return &pOTE_Inf->st_msg_pc_m_snd;
 }
 
 //PCへ送信
-HRESULT CClientService::snd_mul2pc(LPST_PC_M_MSG pbuf) {
+HRESULT CCcCS::snd_mul2pc(LPST_PC_M_MSG pbuf) {
 	if (pMSockPC->snd_msg((char*)pbuf, sizeof(ST_PC_M_MSG), addrin_pc_m2pc_snd) == SOCKET_ERROR) {
 	
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
@@ -309,7 +309,7 @@ HRESULT CClientService::snd_mul2pc(LPST_PC_M_MSG pbuf) {
 }
 
 //OTEへ送信
-HRESULT CClientService::snd_mul2ote(LPST_PC_M_MSG pbuf) {
+HRESULT CCcCS::snd_mul2ote(LPST_PC_M_MSG pbuf) {
 	if (pMSockOte->snd_msg((char*)pbuf, sizeof(ST_PC_M_MSG), addrin_pc_m2ote_snd) == SOCKET_ERROR) {
 
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
@@ -326,7 +326,7 @@ HRESULT CClientService::snd_mul2ote(LPST_PC_M_MSG pbuf) {
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
 
-LRESULT CALLBACK CClientService::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -372,7 +372,7 @@ LRESULT CALLBACK CClientService::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM
 };
 
 static wostringstream mon2wos;
-LRESULT CALLBACK CClientService::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -587,7 +587,7 @@ LRESULT CALLBACK CClientService::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM
 	return S_OK;
 }
 
-HWND CClientService::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CCcCS::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -660,7 +660,7 @@ HWND CClientService::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CClientService::close_monitor_wnd(int id) {
+void CCcCS::close_monitor_wnd(int id) {
 	wos.str(L"");
 	if (id == BC_ID_MON1) {
 		DestroyWindow(st_mon1.hwnd_mon);
@@ -674,7 +674,7 @@ void CClientService::close_monitor_wnd(int id) {
 	msg2listview(wos.str());
 	return;
 }
-void CClientService::show_monitor_wnd(int id) {
+void CCcCS::show_monitor_wnd(int id) {
 	if ((id == BC_ID_MON1)&&(st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon1.hwnd_mon);
@@ -688,7 +688,7 @@ void CClientService::show_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CClientService::hide_monitor_wnd(int id) {
+void CCcCS::hide_monitor_wnd(int id) {
 	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 		st_mon1.is_monitor_active = false;
@@ -704,7 +704,7 @@ void CClientService::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CClientService::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_USER_TASK_REQ: {
@@ -806,7 +806,7 @@ LRESULT CALLBACK CClientService::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARA
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CClientService::msg2listview(wstring wstr) {
+void CCcCS::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -831,7 +831,7 @@ void CClientService::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CClientService::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CCcCS::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -841,7 +841,7 @@ void CClientService::set_PNLparam_value(float p1, float p2, float p3, float p4, 
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CClientService::set_panel_tip_txt() {
+void CCcCS::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -882,7 +882,7 @@ void CClientService::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CClientService::set_func_pb_txt() {
+void CCcCS::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"OTE IF");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -892,7 +892,7 @@ void CClientService::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CClientService::set_item_chk_txt() {
+void CCcCS::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO1: {

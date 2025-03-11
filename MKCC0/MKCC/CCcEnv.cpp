@@ -1,25 +1,133 @@
 #include "CSockLib.H"
 #include "CCcEnv.h"
-
 #include "resource.h"
+#include "framework.h"
+#include "AUXEQ_DEF.H"
 
-ST_ENV_MON1 CEnvironment::st_mon1;
-ST_ENV_MON2 CEnvironment::st_mon2;
+//ソケット
+static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
 
-ST_CC_CRANE_STAT CEnvironment::st_work;
+ST_ENV_MON1 CCcEnv::st_mon1;
+ST_ENV_MON2 CCcEnv::st_mon2;
 
-CEnvironment::CEnvironment() {
+ST_CC_ENV_INF CCcEnv::st_work;
 
+//共有メモリクラスオブジェクト
+static CSharedMem* pEnvInfObj;
+static CSharedMem* pPlcIoObj;
+static CSharedMem* pJobIoObj;
+static CSharedMem* pPolInfObj;
+static CSharedMem* pAgInfObj;
+static CSharedMem* pCsInfObj;
+static CSharedMem* pSimuStatObj;
+static CSharedMem* pOteIoObj;
+
+static LPST_CC_ENV_INF		pEnvInf;
+static LPST_CC_PLC_IO		pPlcIo;
+static LPST_JOB_IO			pJobIo;
+static LPST_CC_POL_INF		pPolInf;
+static LPST_CC_AGENT_INF	pAgentInf;
+static LPST_CC_CS_INF		pCsInf;
+static LPST_CC_SIM_INF		pSimInf;
+static LPST_CC_OTE_INF		pOteInf;
+
+static LONG rcv_count_u = 0, snd_count_u = 0;
+
+/****************************************************************************/
+/*   デフォルト関数											                */
+/****************************************************************************/
+
+CCcEnv::CCcEnv() {
+	pEnvInfObj = new CSharedMem;
+	pPlcIoObj = new CSharedMem;
+	pJobIoObj = new CSharedMem;
+	pPolInfObj = new CSharedMem;
+	pAgInfObj = new CSharedMem;
+	pCsInfObj = new CSharedMem;
+	pSimuStatObj = new CSharedMem;
+	pOteIoObj = new CSharedMem;
 }
-CEnvironment::~CEnvironment() {
-
+CCcEnv::~CCcEnv() {
+	delete pEnvInfObj;
+	delete pPlcIoObj;
+	delete pJobIoObj;
+	delete pPolInfObj;
+	delete pAgInfObj;
+	delete pCsInfObj;
+	delete pSimuStatObj;
+	delete pOteIoObj;
 }
 
-HRESULT CEnvironment::initialize(LPVOID lpParam) {
+HRESULT CCcEnv::initialize(LPVOID lpParam) {
+	HRESULT hr = S_OK;
 
+	if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) return(FALSE);
+	if (OK_SHMEM != pPlcIoObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_CC_PLC_IO), MUTEX_PLC_IO_NAME)) return(FALSE);
+	if (OK_SHMEM != pJobIoObj->create_smem(SMEM_JOB_IO_NAME, sizeof(ST_JOB_IO), MUTEX_JOB_IO_NAME)) return(FALSE);
+	if (OK_SHMEM != pPolInfObj->create_smem(SMEM_POL_INF_CC_NAME, sizeof(ST_CC_POL_INF), MUTEX_POL_INF_CC_NAME)) return(FALSE);
+	if (OK_SHMEM != pAgInfObj->create_smem(SMEM_AGENT_INF_CC_NAME, sizeof(ST_CC_AGENT_INF), MUTEX_AGENT_INF_CC_NAME)) return(FALSE);
+	if (OK_SHMEM != pCsInfObj->create_smem(SMEM_CS_INF_CC_NAME, sizeof(ST_CC_CS_INF), MUTEX_CS_INF_CC_NAME)) return(FALSE);
+	if (OK_SHMEM != pSimuStatObj->create_smem(SMEM_SIM_INF_CC_NAME, sizeof(ST_CC_SIM_INF), MUTEX_SIM_INF_CC_NAME)) return(FALSE);
+	if (OK_SHMEM != pOteIoObj->create_smem(SMEM_OTE_INF_NAME, sizeof(ST_CC_OTE_INF), MUTEX_OTE_INF_NAME)) return(FALSE);
+
+	pEnvInf		= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+	pPlcIo		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
+	pJobIo		= (LPST_JOB_IO)(pJobIoObj->get_pMap());
+	pPolInf		= (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
+	pAgentInf	= (LPST_CC_AGENT_INF)(pAgInfObj->get_pMap());
+	pCsInf		= (LPST_CC_CS_INF)(pCsInfObj->get_pMap());
+	pSimInf		= (LPST_CC_SIM_INF)(pSimuStatObj->get_pMap());
+	pOteInf		= (LPST_CC_OTE_INF)(pOteIoObj->get_pMap());
+
+	if ((pEnvInf == NULL) || (pPlcIo == NULL) || (pJobIo == NULL) || (pPolInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pSimInf == NULL) || (pOteInf == NULL)) {
+		hr = S_FALSE;
+		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
+		return hr;
+	}
+	//### IFウィンドウOPEN
+	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+	LPARAM lp = BC_ID_MON2;
+	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+
+	//### 通信ソケットアドレスセット
+	//##インスタンス生成
+	pUSockCcEnv = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_CC_ENV_UNI);//#OTEユニキャスト受信
+	//受信アドレス
+	pUSockCcEnv->set_sock_addr(&pUSockCcEnv->addr_in_rcv, IP_ADDR_AUX_CLIENT, IP_PORT_AUX_CS_CLIENT);
+	//送信先アドレス
+	pUSockCcEnv->set_sock_addr(&(pUSockCcEnv->addr_in_dst), IP_ADDR_AUX_SERVER, IP_PORT_AUX_CS_SERVER);
+
+	Sleep(1000);
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Err(MON2 NULL Handle!!):";
+		msg2listview(wos.str()); wos.str(L"");
+		return S_FALSE;
+	}
+	//### 通信ソケット生成/初期化
+	//##WSA初期化
+	wos.str(L"");
+	if (pUSockCcEnv->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pUSockCcEnv->err_msg.str(); err |= SOCK_NG_UNICAST;   hr = S_FALSE; }
+
+	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
+
+	//##ソケットソケット生成・設定
+	//##ユニキャスト
+	if (pUSockCcEnv->init_sock(st_mon2.hwnd_mon, pUSockCcEnv->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
+		wos << L"CS U SockErr:" << pUSockCcEnv->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
+	}
+	else wos << L"CS U Socket init OK"; msg2listview(wos.str()); wos.str(L"");
+
+	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
+	pEnvInf->st_msg_u_snd.head.sockaddr = pUSockCcEnv->addr_in_rcv;
+	if (hr == S_FALSE) {
+		pUSockCcEnv->Close();				//ソケットクローズ
+		close_monitor_wnd(BC_ID_MON2);		//通信モニタクローズ
+		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
+		return hr;
+	};
+
+	//###  オペレーションパネル設定
 	set_func_pb_txt();
-	set_item_chk_txt();
-	set_panel_tip_txt();
 
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
@@ -28,13 +136,26 @@ HRESULT CEnvironment::initialize(LPVOID lpParam) {
 	//モード設定0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
+	//モニタウィンドウテキスト	
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"AUX IF");
+	set_item_chk_txt();
+	set_panel_tip_txt();
+	
+	//モニタ2 CB状態セット	
+	if (st_mon2.hwnd_mon != NULL)
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
+	else
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-	CEnvironment* pEnvObj = (CEnvironment*)lpParam;
+	CCcEnv* pEnvObj = (CCcEnv*)lpParam;
 	int code = 0;
+
+	pEnvInf->aux_mode = FUNC_ACTIVE;
+
 	return S_OK;
 }
 
-HRESULT CEnvironment::routine_work(void* pObj) {
+HRESULT CCcEnv::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
@@ -43,23 +164,61 @@ HRESULT CEnvironment::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
-int CEnvironment::input() {
-
-
+int CCcEnv::input() {
 	return S_OK;
 }
 
-int CEnvironment::close() {
-
+int CCcEnv::close() {
 	return 0;
 }
+
+/****************************************************************************/
+/*   通信関数											                    */
+/****************************************************************************/
+/// <summary>
+/// AUXEQユニキャスト電文受信処理
+/// </summary>
+HRESULT CCcEnv::rcv_uni_aux(LPST_AUX_COM_SERV_MSG pbuf) {
+	int nRtn = pUSockCcEnv->rcv_msg((char*)pbuf, sizeof(ST_AUX_COM_SERV_MSG));
+	if (nRtn == SOCKET_ERROR) {
+		if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_RCV) {
+			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR rcv:" << pUSockCcEnv->err_msg.str();
+			SetWindowText(st_mon2.hctrl[ENV_ID_MON2_STATIC_MSG], st_mon2.wo_uni.str().c_str());
+			return S_FALSE;
+		}
+	}
+	rcv_count_u++;
+	return S_OK;
+}
+
+/****************************************************************************/
+/// <summary>
+/// PCユニキャスト電文送信処理 
+/// </summary>
+LPST_AUX_COM_CLI_MSG CCcEnv::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
+	return &pEnvInf->st_msg_u_snd;
+}
+
+HRESULT CCcEnv::snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
+
+	if (pUSockCcEnv->snd_msg((char*)pbuf, sizeof(ST_AUX_COM_CLI_MSG), *p_addrin_to) == SOCKET_ERROR) {
+		if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_SND) {
+			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockCcEnv->err_msg.str();
+			SetWindowText(st_mon2.hctrl[ENV_ID_MON2_STATIC_MSG], st_mon2.wo_uni.str().c_str());
+		}
+		return S_FALSE;
+	}
+	snd_count_u++;
+	return S_OK;
+}
+
 
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
 static wostringstream monwos;
 
-LRESULT CALLBACK CEnvironment::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -104,17 +263,99 @@ LRESULT CALLBACK CEnvironment::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 	return S_OK;
 };
 
-LRESULT CALLBACK CEnvironment::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcEnv::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
+		//STATIC,LABEL
+		for (int i = ENV_ID_MON2_LABEL_SOCK; i <= ENV_ID_MON2_STATIC_MSG; i++) {
+			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
+				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+				hWnd, (HMENU)(ENV_ID_MON2_CTRL_BASE + i), hInst, NULL);
+		}
+		//RADIO PB
+		for (int i = ENV_ID_MON2_RADIO_RCV; i <= ENV_ID_MON2_RADIO_INFO; i++) {
+			if (i == ENV_ID_MON2_RADIO_RCV) {
+				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
+					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+					hWnd, (HMENU)(ENV_ID_MON2_CTRL_BASE + i), hInst, NULL);
 
+				st_mon2.sock_inf_id = ENV_ID_MON2_RADIO_RCV;
+				SendMessage(st_mon2.hctrl[i], BM_SETCHECK, BST_CHECKED, 0L);
+			}
+			else
+				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
+					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+					hWnd, (HMENU)(ENV_ID_MON2_CTRL_BASE + i), hInst, NULL);
+		}
+
+		UINT rtn = SetTimer(hWnd, ENV_ID_MON2_TIMER, ENV_PRM_MON2_TIMER_MS, NULL);
 		break;
 
 	}
+
+	case WM_TIMER: {
+		//UniCast送信
+		if ((pEnvInf->aux_mode != FUNC_DEACTIVE) && (pEnvInf->aux_mode != FUNC_PAUSE)) {
+			snd_uni2aux(set_msg_u(false, 0, 0), &pUSockCcEnv->addr_in_dst);
+		}
+
+		//通信カウントをタイトルバーに表示
+		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"AUX_IF% PC_U (R:" << rcv_count_u << L" S:" << snd_count_u << L")" ;
+		SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
+
+		//モニター表示
+		if (st_mon2.is_monitor_active) {
+			SOCKADDR_IN	addr;
+			if (pUSockCcEnv != NULL) {
+				addr = pUSockCcEnv->addr_in_rcv; st_mon2.wo_work.str(L"");
+				st_mon2.wo_work << L"UNI>>IP R:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
+					<< htons(addr.sin_port) << L" ";
+				addr = pUSockCcEnv->addr_in_dst;
+				st_mon2.wo_work << L" S:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
+					<< htons(addr.sin_port) << L" ";
+				addr = pUSockCcEnv->addr_in_from; ;
+				st_mon2.wo_work << L" F:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
+					<< htons(addr.sin_port) << L" ";
+				SetWindowText(st_mon2.hctrl[ENV_ID_MON2_STATIC_SOCK], st_mon2.wo_work.str().c_str());
+			}
+
+			st_mon2.wo_uni.str(L"");
+			if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_RCV) {
+				LPST_AUX_COM_MSG_HEAD	ph0 = &pEnvInf->st_msg_u_rcv.head;
+				LPST_AUX_COM_SERV_BODY  pb0 = &pEnvInf->st_msg_u_rcv.body;
+				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
+				st_mon2.wo_uni << L"[BODY]" ;
+			}
+			else if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_SND) {
+
+				LPST_AUX_COM_MSG_HEAD	ph0 = &pEnvInf->st_msg_u_snd.head;
+				LPST_AUX_COM_CLI_BODY  pb0 = &pEnvInf->st_msg_u_snd.body;
+				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
+				st_mon2.wo_uni << L"[BODY]";
+			}
+			else {
+				st_mon2.wo_uni << L"No Message";
+			}
+			SetWindowText(st_mon2.hctrl[ENV_ID_MON2_LABEL_SOCK], st_mon2.wo_uni.str().c_str());
+		}
+	}break;
+
+	case ID_SOCK_EVENT_CC_ENV_UNI: {
+		int nEvent = WSAGETSELECTEVENT(lp);
+		switch (nEvent) {
+		case FD_READ: {
+			//補機プロセスからのユニキャストメッセージ受信
+			rcv_uni_aux(&pEnvInf->st_msg_u_rcv);
+		}break;
+		case FD_WRITE: break;
+		case FD_CLOSE: break;
+		}
+	}break;
+
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
 		// 選択されたメニューの解析:
@@ -131,16 +372,18 @@ LRESULT CALLBACK CEnvironment::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		HDC hdc = BeginPaint(hWnd, &ps);
 		EndPaint(hWnd, &ps);
 	}break;
+
 	case WM_DESTROY: {
 		st_mon2.hwnd_mon = NULL;
 	}break;
+
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
 	}
 	return S_OK;
 }
 
-HWND CEnvironment::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CCcEnv::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -190,7 +433,7 @@ HWND CEnvironment::open_monitor_wnd(HWND h_parent_wnd, int id) {
 			ENV_MON2_WND_X, ENV_MON2_WND_Y, ENV_MON2_WND_W, ENV_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
-		show_monitor_wnd(id);
+		//show_monitor_wnd(id);
 		return st_mon2.hwnd_mon;
 	}
 	else
@@ -200,7 +443,7 @@ HWND CEnvironment::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CEnvironment::close_monitor_wnd(int id) {
+void CCcEnv::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
 		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
@@ -208,23 +451,30 @@ void CEnvironment::close_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CEnvironment::show_monitor_wnd(int id) {
-	if (id == BC_ID_MON1) {
+void CCcEnv::show_monitor_wnd(int id) {
+	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon1.hwnd_mon);
+		st_mon1.is_monitor_active = true;
 	}
-	else if (id == BC_ID_MON2) {
+	else if ((id == BC_ID_MON2) && (st_mon2.hwnd_mon != NULL)) {
 		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon2.hwnd_mon);
+		st_mon2.is_monitor_active = true;
 	}
 	else;
 	return;
+	return;
 }
-void CEnvironment::hide_monitor_wnd(int id) {
-	if (id == BC_ID_MON1)
+void CCcEnv::hide_monitor_wnd(int id) {
+	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
-	else if (id == BC_ID_MON2)
+		st_mon1.is_monitor_active = false;
+	}
+	else if ((id == BC_ID_MON2) && (st_mon2.hwnd_mon != NULL)) {
 		ShowWindow(st_mon2.hwnd_mon, SW_HIDE);
+		st_mon2.is_monitor_active = false;
+	}
 	else;
 	return;
 }
@@ -232,7 +482,7 @@ void CEnvironment::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CEnvironment::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -311,19 +561,29 @@ LRESULT CALLBACK CEnvironment::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM 
 
 		case IDC_TASK_MON_CHECK2: {
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK2) == BST_CHECKED) {
-				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON2);
+				show_monitor_wnd(BC_ID_MON2);
 			}
 			else {
-				close_monitor_wnd(BC_ID_MON2);
+				hide_monitor_wnd(BC_ID_MON2);
 			}
 		}break;
 		}
+
+	case WM_USER_TASK_REQ: {
+		if (HIWORD(wp) == WM_USER_WPH_OPEN_IF_WND) {
+			wos.str(L"");
+			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, lp);
+			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, lp);
+		}
+		else if (wp == WM_USER_WPH_CLOSE_IF_WND) 	close_monitor_wnd(lp);
+		else;
+	}break;
 	}
 	return 0;
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CEnvironment::msg2listview(wstring wstr) {
+void CCcEnv::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -348,7 +608,7 @@ void CEnvironment::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CEnvironment::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CCcEnv::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -358,7 +618,7 @@ void CEnvironment::set_PNLparam_value(float p1, float p2, float p3, float p4, fl
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CEnvironment::set_panel_tip_txt() {
+void CCcEnv::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -399,7 +659,7 @@ void CEnvironment::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CEnvironment::set_func_pb_txt() {
+void CCcEnv::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -409,7 +669,7 @@ void CEnvironment::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CEnvironment::set_item_chk_txt() {
+void CCcEnv::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {

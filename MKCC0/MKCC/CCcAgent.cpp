@@ -19,7 +19,7 @@ static CSharedMem* pPLCioObj;
 static CSharedMem* pCSInfObj;
 static CSharedMem* pAgentInfObj;
 
-static LPST_CC_CRANE_STAT	pCraneStat;
+static LPST_CC_ENV_INF	pCraneStat;
 static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
@@ -63,7 +63,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	set_outbuf(pAgentInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pCraneStatObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_CRANE_STAT), MUTEX_CRANE_STAT_CC_NAME)) {
+	if (OK_SHMEM != pCraneStatObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) {
 		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
 	}
 	if (OK_SHMEM != pPLCioObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_CC_PLC_IO), MUTEX_PLC_IO_NAME)) {
@@ -74,7 +74,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}
 
 	pAgent_Inf = (LPST_CC_AGENT_INF)pAgentInfObj->get_pMap();
-	pCraneStat = (LPST_CC_CRANE_STAT)(pCraneStatObj->get_pMap());
+	pCraneStat = (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
 	pPLC_IO = (LPST_CC_PLC_IO)(pPLCioObj->get_pMap());
 	pCS_Inf = (LPST_CC_CS_INF)pCSInfObj->get_pMap();
 
@@ -90,7 +90,12 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 	LPARAM lp = BC_ID_MON2;
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
-	Sleep(100);
+	Sleep(1000);
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Err(MON2 NULL Handle!!):";
+		msg2listview(wos.str()); wos.str(L"");
+		return S_FALSE;
+	}
 	//### PLC通信
 	//##インスタンス生成
 
@@ -103,7 +108,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	else {
 		pMCSock = new CMCProtocol(ID_SOCK_MC_CC_AGENT);
 		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_CC) != S_OK) {
-			wos << L"Initialize : MC Init  NG"; msg2listview(wos.str());
+			wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
+			wos << L"Err :"<<pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
 			return S_FALSE;
 		}
 		else {

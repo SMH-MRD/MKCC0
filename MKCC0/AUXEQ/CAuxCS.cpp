@@ -74,13 +74,6 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 	LPARAM lp = BC_ID_MON2;
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 
-	Sleep(1000);
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Err(MON2 NULL Handle!!):";
-		msg2listview(wos.str()); wos.str(L"");
-		return S_FALSE;
-	}
-
 	//### 通信ソケットアドレスセット
 	//##インスタンス生成
 	pUSockAuxCs = new CSockUDP(ACCESS_TYPE_SERVER, ID_SOCK_EVENT_AUXCS_UNI);//#OTEユニキャスト受信
@@ -89,6 +82,12 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 	//送信先アドレス
 	pUSockAuxCs->set_sock_addr(&(pUSockAuxCs->addr_in_dst), IP_ADDR_AUX_CLIENT, IP_PORT_AUX_CS_CLIENT);
 
+	Sleep(1000);
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Err(MON2 NULL Handle!!):";
+		msg2listview(wos.str()); wos.str(L"");
+		return S_FALSE;
+	}
 	//### 通信ソケット生成/初期化
 	//##WSA初期化
 	wos.str(L"");
@@ -158,7 +157,7 @@ int CAuxCS::close() {
 /*   通信関数											                    */
 /****************************************************************************/
 /// <summary>
-/// OTEユニキャスト電文受信処理
+/// MKCCユニキャスト電文受信処理
 /// </summary>
 HRESULT CAuxCS::rcv_uni_main(LPST_AUX_COM_CLI_MSG pbuf) {
 	int nRtn = pUSockAuxCs->rcv_msg((char*)pbuf, sizeof(ST_PC_U_MSG));
@@ -175,7 +174,7 @@ HRESULT CAuxCS::rcv_uni_main(LPST_AUX_COM_CLI_MSG pbuf) {
 
 /****************************************************************************/
 /// <summary>
-/// PCユニキャスト電文送信処理 
+/// AUXEQユニキャスト電文送信処理 
 /// </summary>
 LPST_AUX_COM_SERV_MSG CAuxCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	return &pCsInf->st_msg_u_snd;
@@ -183,7 +182,7 @@ LPST_AUX_COM_SERV_MSG CAuxCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 
 
 HRESULT CAuxCS::snd_uni2main(LPST_AUX_COM_SERV_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 
-	if (pUSockAuxCs->snd_msg((char*)pbuf, sizeof(ST_PC_U_MSG), *p_addrin_to) == SOCKET_ERROR) {
+	if (pUSockAuxCs->snd_msg((char*)pbuf, sizeof(ST_AUX_COM_SERV_MSG), *p_addrin_to) == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockAuxCs->err_msg.str();
 			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
@@ -299,8 +298,7 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_TIMER: {
 		//UniCast送信
-			//折り返し送信
-
+		//折り返し送信
 		//通信カウントをタイトルバーに表示
 		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"MKCC_IF% PC_U (R:" << rcv_count_u << L" S:" << snd_count_u  << L")";
 		SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
@@ -339,7 +337,6 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
 		}
-
 	}break;
 
 	case ID_SOCK_EVENT_AUXCS_UNI: {
@@ -351,11 +348,10 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				//折り返しアンサバック 送信元へ返送
 				pCsInf->addrin_from = pUSockAuxCs->addr_in_from;
 				pUSockAuxCs->addr_in_dst.sin_family = AF_INET;
-				pUSockAuxCs->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
+				pUSockAuxCs->addr_in_dst.sin_port = htons(IP_PORT_AUX_CS_CLIENT);
 				pUSockAuxCs->addr_in_dst.sin_addr = pUSockAuxCs->addr_in_from.sin_addr;
 
-				snd_uni2main(set_msg_u(true, 0, 0), &pUSockAuxCs->addr_in_dst);
-
+				snd_uni2main(set_msg_u(true, 0, 0), &pUSockAuxCs->addr_in_dst)==S_OK;
 			}
 		}break;
 		case FD_WRITE: break;

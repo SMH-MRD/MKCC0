@@ -112,6 +112,13 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	if (pMSockOte->Initialize() != S_OK) {wos << L"Err(IniWSA):" << pMSockOte->err_msg.str(); err |= SOCK_NG_MULTICAST; hr = S_FALSE;}
 	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
 
+	Sleep(1000);
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Err(MON2 NULL Handle!!):";
+		msg2listview(wos.str()); wos.str(L"");
+		return S_FALSE;
+	}
+
 	//##ソケットソケット生成・設定
 	//##ユニキャスト
 	if (pUSockPC->init_sock(st_mon2.hwnd_mon, pUSockPC->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
@@ -176,7 +183,6 @@ HRESULT CAgent::routine_work(void* pObj) {
 }
 
 int CAgent::input() {
-
 
 	return S_OK;
 }
@@ -396,7 +402,6 @@ HRESULT CAgent::snd_mul2ote(LPST_OTE_M_MSG pbuf) {
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
-
 LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{

@@ -4,7 +4,7 @@
 ST_SCAD_MON1 CScada::st_mon1;
 ST_SCAD_MON2 CScada::st_mon2;
 
-ST_CC_CRANE_STAT CScada::st_work;
+ST_CC_ENV_INF CScada::st_work;
 
 CScada::CScada() {
 

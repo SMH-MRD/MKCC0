@@ -7,6 +7,10 @@
 #include <string>
 #include "NET_DEF.H"
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
 #define ID_SOCK_MC_CLIENT   PORT_MC_CLIENT
 #define ID_SOCK_MC_SERVER   PORT_MC_SERVER
 
@@ -95,6 +99,8 @@ public:
 
 	UINT8 rcv_buf[MAX_MC_DATA * 2];
 	UINT8 snd_buf[MAX_MC_DATA * 2];
+
+	std::wostringstream msg_wos;
 
 	//通信メッセージバッファ
 	ST_XE_REQ mc_req_msg_r, mc_req_msg_w;

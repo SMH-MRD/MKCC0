@@ -78,7 +78,7 @@ public:
     static ST_SCAD_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_CC_CRANE_STAT st_work;
+    static ST_CC_ENV_INF st_work;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;

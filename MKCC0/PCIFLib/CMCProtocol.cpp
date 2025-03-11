@@ -4,7 +4,7 @@
 #include "CSockLib.h"
 
 static CSockUDP* pMCSock;
-static wostringstream msg_wos;
+//static wostringstream msg_wos;
 
 //グローバル
 LARGE_INTEGER frequency;                //システムの周波数
