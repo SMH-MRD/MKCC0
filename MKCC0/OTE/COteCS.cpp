@@ -257,7 +257,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 			else snd_count_plc_w++;
 
-			if (st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) {
+			if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 
 				st_mon2.wo_req_w << L"Sw>>"
 					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
@@ -303,8 +303,9 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					}
 					}
 				}
+				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
-			SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
+
 			QueryPerformanceCounter(&start_count_w);  // 書き込み要求送信時カウント値取り込み
 			is_write_req_turn = false;
 		}
@@ -316,7 +317,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 			else snd_count_plc_r++;
 
-			if (st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) {
+			if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 				st_mon2.wo_req_r << L"Sr>>"
 					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_r.subcode
 					<< L"#serial:" << pMCSock->mc_req_msg_r.serial
@@ -331,22 +332,44 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#d_no:" << pMCSock->mc_req_msg_r.d_no
 					<< L"#d_code:" << pMCSock->mc_req_msg_r.d_code
 					<< L"#n_dev:" << pMCSock->mc_req_msg_r.n_device;
+				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
 			}
-			SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
+
 			QueryPerformanceCounter(&start_count_r);  // 書き込み要求送信時カウント値取り込み
 			is_write_req_turn = true;
 		}
-		//カウンタ表示
-		monwos.str(L""); monwos << L"RCV:R " << rcv_count_plc_r
-			<< L"  W " << rcv_count_plc_w
-			<< L"    SND:R " << snd_count_plc_r
-			<< L"  W " << snd_count_plc_w
-			<< L"    ERR:R " << rcv_errcount_plc_r
-			<< L"  W " << rcv_errcount_plc_w
-			<< L"    遅延μs:R " << res_delay_max_r
-			<< L"  W " << res_delay_max_w;
 
-		SetWindowText(hWnd, monwos.str().c_str());
+
+		//共通表示
+		if (st_mon2.is_monitor_active) {
+			//カウンタ表示
+			monwos.str(L""); monwos << L"RCV:R " << rcv_count_plc_r
+				<< L"  W " << rcv_count_plc_w
+				<< L"    SND:R " << snd_count_plc_r
+				<< L"  W " << snd_count_plc_w
+				<< L"    ERR:R " << rcv_errcount_plc_r
+				<< L"  W " << rcv_errcount_plc_w
+				<< L"    遅延μs:R " << res_delay_max_r
+				<< L"  W " << res_delay_max_w;
+
+			SetWindowText(hWnd, monwos.str().c_str());
+
+			SOCKADDR_IN	addr;
+			if (pMCSock != NULL) {
+				addr = pMCSock->get_addrin_rcv(); monwos.str(L"");
+				monwos << L"UNI>>IP R:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
+					<< htons(addr.sin_port) << L" ";
+				addr = pMCSock->get_addrin_snd();
+				monwos << L" S:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
+					<< htons(addr.sin_port) << L" ";
+				addr = pMCSock->get_addrin_from();
+				monwos << L" F:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
+					<< htons(addr.sin_port) << L" ";
+				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_INF], monwos.str().c_str());
+			}
+		}
+
+
 	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
@@ -408,7 +431,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			UINT nRtn = pMCSock->rcv_msg_3E();
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
-				if (st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) {
+				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 					st_mon2.wo_res_r << L"Rr>>"
 						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_r.subcode
 						<< L"#serial:" << pMCSock->mc_res_msg_r.serial
@@ -462,7 +485,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			else if (nRtn == MC_RES_WRITE) {
 
 				rcv_count_plc_w++;
-				if (st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) {
+				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 
 					st_mon2.wo_res_w << L"Rw>>"
 						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_w.subcode

@@ -6,7 +6,7 @@
 
 
 //MON1----------------------------------------------------
-#define OTE_CS_MON1_WND_X            0
+#define OTE_CS_MON1_WND_X            640
 #define OTE_CS_MON1_WND_Y            0
 #define OTE_CS_MON1_WND_W            320
 #define OTE_CS_MON1_WND_H            280

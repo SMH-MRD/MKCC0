@@ -69,7 +69,7 @@ public:
     CScada() {};
     ~CScada() {};
 
-    virtual HRESULT initialize(LPVOID lpParam) override { return S_FALSE; };
+    virtual HRESULT initialize(LPVOID lpParam) override { return S_OK; };
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) { return S_FALSE; };
 
@@ -101,7 +101,7 @@ private:
 
     //オーバーライド
 
-    virtual HRESULT routine_work(void* pObj) override { return S_FALSE; };
+    virtual HRESULT routine_work(void* pObj) override { return S_OK; };
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id) { return h_parent_wnd; };
     void close_monitor_wnd(int id) { return; };

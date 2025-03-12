@@ -32,6 +32,10 @@ static LONG rcv_count_pc_u = 0,	 snd_count_ote_u = 0;
 static LONG rcv_count_pc_m = 0,  snd_count_m2pc = 0;
 static LONG rcv_count_ote_m = 0, snd_count_m2ote = 0;
 
+static LARGE_INTEGER start_count_s, end_count_r;			//システムカウント
+static LARGE_INTEGER frequency;								//システム周波数
+static LONGLONG res_delay_max, res_delay_min = 10000000;	//C応答時間
+
 static wostringstream wos_msg;
 /****************************************************************************/
 /*   デフォルト関数											                    */
@@ -52,6 +56,10 @@ CAgent::~CAgent() {
 }
 
 HRESULT CAgent::initialize(LPVOID lpParam) {
+
+	//システム周波数読み込み
+	QueryPerformanceFrequency(&frequency);
+
 	HRESULT hr = S_OK;	
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_OTE_CC_IF);
@@ -505,13 +513,12 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			snd_uni2pc(set_msg_u(false, 0, 0), &pUSockPC->addr_in_dst);
 		else 
 			snd_uni2pc(set_msg_u(true, 0, 0), &pUSockPC->addr_in_dst);
+
+		QueryPerformanceCounter(&start_count_s);  // 送信時カウント値取り込み
+
 		//MultiCast送信
 		snd_mul2pc(set_msg_m()); 	//PCへ送信
 		snd_mul2ote(set_msg_m());	//OTEへ送信
-
-		//通信カウントをタイトルバーに表示
-		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"MKCC_IF% PC_U (R:" << rcv_count_pc_u << L" S:" << snd_count_ote_u << L")  PC_M (R:" << rcv_count_pc_m << L")  OTE_M (R:" << rcv_count_ote_m << L" S PC:" << snd_count_m2pc << L"  S OTE:" << snd_count_m2ote << L")";
-		SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
 
 		//モニター表示
 		if (st_mon2.is_monitor_active) {
@@ -594,6 +601,14 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MUL_PC], st_mon2.wo_mpc.str().c_str());
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MUL_OTE], st_mon2.wo_mote.str().c_str());
+
+			//通信カウントをタイトルバーに表示
+			st_mon2.wo_work.str(L""); st_mon2.wo_work << L"MKCC_IF% PC_U (R:" << rcv_count_pc_u << L" S:" << snd_count_ote_u << L")  PC_M (R:" << rcv_count_pc_m << L")  OTE_M (R:" << rcv_count_ote_m << L" S PC:" << snd_count_m2pc << L"  S OTE:" << snd_count_m2ote << L")";
+			SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
+
+			//応答遅延時間をMSGに表示
+			st_mon2.wo_work.str(L""); st_mon2.wo_work << L"応答遅延(μsec) MAX:" << res_delay_max << L" MIN:" << res_delay_min;
+			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MSG], st_mon2.wo_work.str().c_str());
 		}
 
 	}break;
@@ -602,6 +617,16 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (nEvent) {
 		case FD_READ: {
 			rcv_uni_ote(&pOteCCIf->st_msg_pc_u_rcv);
+
+			QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
+			LONGLONG lspan = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+			if (res_delay_max < lspan) res_delay_max = lspan;
+			if (res_delay_min > lspan) res_delay_min = lspan;
+			if (rcv_count_pc_u % 50 == 0) {
+				res_delay_max = 0;
+				res_delay_min = 10000000;
+			}
+
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
@@ -610,6 +635,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		if (pOteCCIf->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
 			pOteCCIf->stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
 		}
+
 	}break;
 	case ID_SOCK_EVENT_OTE_MUL: {
 		int nEvent = WSAGETSELECTEVENT(lp);

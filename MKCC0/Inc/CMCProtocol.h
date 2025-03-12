@@ -127,6 +127,10 @@ public:
 	UINT16 snd_responce(ST_XE_REQ st_com, UINT16* pdata);
 	HRESULT parse_snd_buf(UINT8* p8,LPST_XE_REQ pbuf);
 
+	SOCKADDR_IN get_addrin_rcv();
+	SOCKADDR_IN get_addrin_snd();
+	SOCKADDR_IN get_addrin_from();
+
 private:
 	INT32 eventID;
 

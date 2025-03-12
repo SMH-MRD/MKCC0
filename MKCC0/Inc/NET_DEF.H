@@ -20,9 +20,10 @@
 #define PORT_MC_SERVER				3010					//CPU本体の時のPLCポート
 
 #define IP_ADDR_MC_CLIENT_OTE		"192.168.100.100"		//PLC IF 制御PC　IPアドレス
-#define IP_ADDR_MC_SERVER_OTE		"192.168.100.106"		//PLC IF PLC IPアドレス
-#define PORT_MC_CLIENT_OTE			1020					//制御PCポート
-#define PORT_MC_SERVER_OTE			1025					//OTEの時のPLCポート
+#define IP_ADDR_MC_SERVER_OTE		"192.168.100.102"		//PLC IF PLC IPアドレス
+#define PORT_MC_CLIENT_OTE			3021					//制御PCポート
+#define PORT_MC_SERVER_OTE			5000//1025					//OTEの時のPLCポート
+//#define PORT_MC_SERVER_OTE			3010					//OTEの時のPLCポート
 
 #define IP_ADDR_MC_CLIENT_DEF		"127.0.0.1"
 #define IP_ADDR_MC_SERVER_DEF		"127.254.254.254"

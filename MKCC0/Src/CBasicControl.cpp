@@ -17,6 +17,7 @@ unsigned WINAPI CBasicControl::run(LPVOID lpParam)
 	CBasicControl* pobj = (CBasicControl*)lpParam;
 
 	LARGE_INTEGER start_count;  // 現在のカウント数
+	LONGLONG disp_count = 50/inf.cycle_count; //表示周期
 
 	
 	QueryPerformanceFrequency(&inf.sys_freq);  // システムの周波数
@@ -31,8 +32,10 @@ unsigned WINAPI CBasicControl::run(LPVOID lpParam)
 		pobj->inf.act_time = ((start_count.QuadPart - inf.sys_count.QuadPart) * 1000000L) / inf.sys_freq.QuadPart;
 		QueryPerformanceCounter(&inf.sys_count); // パフォーマンスカウンター現在値
 
-		wos.str(L""); wos << inf.status << L":"  << std::setfill(L'0') << std::setw(4)<< pobj->inf.act_time;
-		msg2host(wos.str());
+		if (inf.total_act % disp_count == 0) {
+			wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << pobj->inf.act_time;
+			msg2host(wos.str());
+		}
 
 		//処理周期確認用
 

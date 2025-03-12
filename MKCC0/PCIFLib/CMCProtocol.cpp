@@ -4,7 +4,6 @@
 #include "CSockLib.h"
 
 static CSockUDP* pMCSock;
-//static wostringstream msg_wos;
 
 //グローバル
 LARGE_INTEGER frequency;                //システムの周波数
@@ -70,7 +69,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		}
 
 		//送信先アドレスセット
-		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER, PORT_MC_SERVER);
+		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER_OTE, PORT_MC_SERVER_OTE);
 	}break;
 	case PLC_IF_TYPE_CC: //CC IF
 	default:
@@ -435,4 +434,15 @@ UINT16 CMCProtocol::snd_responce(ST_XE_REQ st_com, UINT16* pdata) {
 	}
 
 	return st_com.com;
+}
+
+//*********************************************************************************************
+SOCKADDR_IN CMCProtocol::get_addrin_rcv() {
+	return pMCSock->addr_in_rcv;
+}
+SOCKADDR_IN CMCProtocol::get_addrin_snd() {
+	return pMCSock->addr_in_dst;
+}
+SOCKADDR_IN CMCProtocol::get_addrin_from() {
+	return pMCSock->addr_in_from;
 }
