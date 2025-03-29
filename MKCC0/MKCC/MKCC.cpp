@@ -180,6 +180,18 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pSimuStatObj->create_smem(   SMEM_SIM_INF_CC_NAME,   sizeof(ST_CC_SIM_INF),  MUTEX_SIM_INF_CC_NAME)) return(FALSE);
    if (OK_SHMEM != pOteIoObj->create_smem(      SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),  MUTEX_OTE_INF_NAME)) return(FALSE);
   
+   //デバイスコードセット
+   LPST_CC_ENV_INF pCraneStat = (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
+ 
+   pCraneStat->device_code = {
+	CRANE_TYPE_JC1,      //クレーン種別ID
+	CRANE_ID_H6R602,   //製番コード
+	'C',                //PC TYPE
+	0,                  //PCシリアル番号
+	0,0
+   };
+   
+    
    HBITMAP hBmp;
    CBasicControl* pobj;
    int task_index = 0;

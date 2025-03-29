@@ -6,6 +6,7 @@
 #include <time.h>
 #include <string>
 #include "NET_DEF.H"
+#include "PLC_DEF.H"
 
 #include <iostream>
 #include <iomanip>
@@ -18,15 +19,7 @@
 #define ID_SOCK_MC_OTE_AGENT    PORT_MC_CLIENT
 #define ID_SOCK_MC_OTE_CS		PORT_MC_CLIENT
 
-#define CC_MC_ADDR_W_READ	10300
-#define CC_MC_SIZE_W_READ	100
-#define CC_MC_ADDR_W_WRITE	10200
-#define CC_MC_SIZE_W_WRITE	100
 
-#define OTE_MC_ADDR_W_READ	10300
-#define OTE_MC_SIZE_W_READ	100
-#define OTE_MC_ADDR_W_WRITE	10200
-#define OTE_MC_SIZE_W_WRITE	100
 
 #define CODE_3E_FORMAT		0x50
 #define CODE_4E_FORMAT		0x54

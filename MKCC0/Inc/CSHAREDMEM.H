@@ -66,6 +66,7 @@ protected:
 
 typedef struct _ST_AUX_ENV_INF {
 
+	ST_DEVICE_CODE device_code;
 	DWORD helthy_cnt;
 
 }ST_AUX_ENV_INF, * LPST_AUX_ENV_INF;
@@ -137,6 +138,10 @@ typedef struct _ST_AUX_CS_INF {
 #define N_DRUM_LAYER			10	//ドラ巻取り層数最大値
 
 typedef struct _ST_CC_ENV_INF {
+
+	ST_DEVICE_CODE device_code;
+	ST_SPEC spec;
+
 	UINT32	aux_mode = FUNC_DEACTIVE;	
 	
 	DWORD helthy_cnt;
@@ -149,7 +154,7 @@ typedef struct _ST_CC_ENV_INF {
 	//Event Update				:イベント条件で更新
 	bool is_tasks_standby_ok;							//タスクの立ち上がり確認
 	bool is_crane_status_ok = false;						//クレーンステータス初期化完了
-	ST_SPEC spec;										//クレーン仕様
+
 
 	//Periodical Update			：定周期更新
 	DWORD env_act_count = 0;								//ヘルシー信号
@@ -238,8 +243,8 @@ typedef struct _ST_CC_PLC_IO {
 
 	INT32 ctrl_source;								//主幹
 
-	PLC_READ_BUF		input;						//PLCからの読み取り信号生値
-	PLC_WRITE_BUF		output;						//PLCへの書き込み信号生値
+	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLCからの読み取り信号生値
+	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLCへの書き込み信号生値
 
 	INT32 mh_spd_mode;
 	INT32 ah_spd_mode;
@@ -516,7 +521,7 @@ typedef struct _ST_CC_POL_INF {
 #define AG_AXIS_STAT_ANTISWAY_ENABLE	0x200000000	 //振れ止め可
 
 typedef struct _ST_CC_AGENT_INF {
-
+	ST_PLC_IO_MAP plc_io_map;
 	ST_COMMAND_SET st_as_comset;					//振れ止め用コマンドセット
 	ST_POS_TARGETS auto_pos_target;					//自動目標位置
 	double dist_for_target[MOTION_ID_MAX];			//目標までの距離
@@ -607,7 +612,7 @@ typedef struct _ST_SIM_LOAD {//負荷
 typedef struct _ST_CC_SIM_INF {
 	DWORD mode;
 	DWORD helthy_cnt;
-	PLC_WRITE_BUF plc_w;
+	INT16 plc_w[CC_MC_SIZE_W_WRITE];
 	ST_AUX_ENV_INF sway_io;
 	Vector3 L, vL;											//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）
 	Vector3 L2, vL2;										//ﾛｰﾌﾟﾍﾞｸﾄﾙ(補巻振れ）
@@ -690,6 +695,8 @@ typedef struct _ST_CC_OTE_INF {
 
 #pragma region OTE_INF
 typedef struct _ST_OTE_ENV {
+	ST_DEVICE_CODE device_code;
+
 	UINT32			target_crane;		//接続対象クレーン
 	UINT32			ote_mode;			//操作端末モード
 	UINT32			ote_id;				//端末ID

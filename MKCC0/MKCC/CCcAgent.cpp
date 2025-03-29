@@ -1,6 +1,7 @@
 #include "CMCProtocol.h"
 #include "CCcAgent.h"
 #include "resource.h"
+#include "CCraneLib.h"
 
 
 //ソケット
@@ -85,6 +86,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return hr;
 	};
+
 
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス

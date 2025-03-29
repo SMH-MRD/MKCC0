@@ -36,50 +36,60 @@
 #pragma endregion 物理定数＿係数
 
 ///# コード
+#pragma region ID
+//クレーン種別 ID  配列INDEX
+#define CRANE_TYPE_MAX          16  //開発
+#define CRANE_TYPE_JC0          0   //ジブクレーン 主巻のみ
+#define CRANE_TYPE_JC1          1   //ジブクレーン 補巻あり
+#define CRANE_TYPE_GC           2   //ゴライアスクレーン
+
+//クレーン製番 ID  配列INDEX
+#define CRANE_ID_MAX            32  //開発
+#define CRANE_ID_H6R602         0   //みらい
+#define CARNE_ID_HHGH29         1   //今造西多度津70t　102号  
+#define CARNE_ID_HHGQ18         2   //今造西多度津300t 10号
+#define CARNE_ID_HHFR22         1   //今造丸亀1200t 1号
+#pragma endregion 識別ID
+
 #pragma region STATUS
-#define ID_UP           0   //上側
-#define ID_DOWN         1   //下側
-#define ID_FWD          0   //前進
-#define ID_REV          1   //後進
-#define ID_RIGHT        0   //右側
-#define ID_LEFT         1   //左側
-#define ID_ACC          0   //加速
-#define ID_DEC          1   //減速
+#define ID_UP                   0   //上側
+#define ID_DOWN                 1   //下側
+#define ID_FWD                  0   //前進
+#define ID_REV                  1   //後進
+#define ID_RIGHT                0   //右側
+#define ID_LEFT                 1   //左側
+#define ID_ACC                  0   //加速
+#define ID_DEC                  1   //減速
 
-#define ID_STOP         -1  //停止
-#define ID_SELECT       2   //選択
+#define ID_STOP                 -1  //停止
+#define ID_SELECT               2   //選択
 
-#define ID_X           0   // X方向
-#define ID_Y           1   // Y方向
-#define ID_Z           2   // Z方向
+#define ID_X                    0   // X方向
+#define ID_Y                    1   // Y方向
+#define ID_Z                    2   // Z方向
 
-#define ID_T           0   // 接線方向
-#define ID_R		   1   // 半径方向
+#define ID_T                    0   // 接線方向
+#define ID_R		            1   // 半径方向
 
-#define NOTCH_0	        0
-#define NOTCH_1	        1
-#define NOTCH_2	        2
-#define NOTCH_3	        3
-#define NOTCH_4	        4
-#define NOTCH_5	        5
+#define NOTCH_0	                0
+#define NOTCH_1	                1
+#define NOTCH_2	                2
+#define NOTCH_3	                3
+#define NOTCH_4	                4
+#define NOTCH_5	                5
 
-#define FUNC_DEACTIVE   0
-#define FUNC_ACTIVE     1
-#define FUNC_PAUSE      2
-#define FUNC_RESTART    3
+#define FUNC_DEACTIVE           0
+#define FUNC_ACTIVE             1
+#define FUNC_PAUSE              2
+#define FUNC_RESTART            3
 
 #pragma endregion ステータスコード
-
 
 #pragma region TYPE
 #define UNIT_CODE_M             0   //単位のコード m
 #define UNIT_CODE_RAD           1   //単位のコード rad
 #define UNIT_CODE_MM            2   //単位のコード mm
 #define UNIT_CODE_DEG           3   //単位のコード deg
-
-#define CRANE_TYPE_JC0          0   //ジブクレーン 主巻のみ
-#define CRANE_TYPE_JC1          1   //ジブクレーン 補巻あり
-#define CRANE_TYPE_GC           2   //ゴライアスクレーン
 
 //PC TYPE CODE
 #define ID_PC_TYPE_DEFAULT      0
@@ -108,15 +118,6 @@
 
 #pragma endregion 種別
 
-#pragma region ID
-
-#define CRANE_ID_DEVELOP    0       //開発
-#define CRANE_ID_H6R602     6020    //みらい
-#define CARNE_ID_HHGH29     29      //今造西多度津70t　102号  
-#define CARNE_ID_HHGQ18     18      //今造西多度津300t 10号
-#define CARNE_ID_HHFR22     22      //今造丸亀1200t 1号
-
-#pragma endregion 識別ID
 
 #pragma region RESPONCE
 #define L_ON            0x01    // ON
@@ -136,9 +137,9 @@
 #pragma region MESSAGE
 // タスクスレッドからの要求イベント
 //wp:要求イベントのハンドル要求種別　lp:パラメータ
-#define WM_USER_TASK_REQ            0x0405          // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD    
-#define WM_USER_WPH_OPEN_IF_WND      0x0001         // wp　code IFウィンドウOPEN   lp ウィンドウのID
-#define WM_USER_WPH_CLOSE_IF_WND     0x0002         // wp　code IFウィンドウCLOSE   lp ウィンドウのID
+#define WM_USER_TASK_REQ         0x0405          // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD    
+#define WM_USER_WPH_OPEN_IF_WND  0x0001         // wp　code IFウィンドウOPEN   lp ウィンドウのID
+#define WM_USER_WPH_CLOSE_IF_WND 0x0002         // wp　code IFウィンドウCLOSE   lp ウィンドウのID
 
 #pragma endregion ウィンドウメッセージ
 
@@ -172,53 +173,31 @@
 
 #define MOTION_ID_MAX   8  //制御軸最大数
 
-#define ID_HOIST        0   //巻 　       ID
-#define ID_GANTRY       1   //走行        ID
-#define ID_TROLLY       2   //横行        ID
-#define ID_BHMH         2   //引込主巻    ID
-#define ID_BOOM_H       3   //引込        ID
-#define ID_SLEW         4   //旋回        ID
-#define ID_AHOIST       5   //補巻　      ID
-#define ID_OP_ROOM      6   //運転室移動　ID
-#define ID_H_ASSY       7   //吊具等      ID
+#define ID_HOIST                0   //巻 　       ID
+#define ID_GANTRY               1   //走行        ID
+#define ID_TROLLY               2   //横行        ID
+#define ID_BHMH                 2   //引込主巻    ID
+#define ID_BOOM_H               3   //引込        ID
+#define ID_SLEW                 4   //旋回        ID
+#define ID_AHOIST               5   //補巻　      ID
+#define ID_OP_ROOM              6   //運転室移動　ID
+#define ID_H_ASSY               7   //吊具等      ID
 
-#define BIT_SEL_HST         0x00000001
-#define BIT_SEL_GNT         0x00000002
-#define BIT_SEL_TRY         0x00000004
-#define BIT_SEL_BHMH        0x00000004
-#define BIT_SEL_BH          0x00000008
-#define BIT_SEL_SLW         0x00000010
-#define BIT_SEL_AH          0x00000020  //JC
-#define BIT_SEL_OPR         0x00000040
-#define BIT_SEL_ASSY        0x00000080
-#define BIT_SEL_ALL_0NOTCH  0x10000000
-#define BIT_SEL_MOTION      BIT_SEL_HST|BIT_SEL_GNT|BIT_SEL_BH|BIT_SEL_SLW|BIT_SEL_AH
-#define BIT_SEL_STATUS      0xFFFF0000
+#define BIT_SEL_HST             0x00000001
+#define BIT_SEL_GNT             0x00000002
+#define BIT_SEL_TRY             0x00000004
+#define BIT_SEL_BHMH            0x00000004
+#define BIT_SEL_BH              0x00000008
+#define BIT_SEL_SLW             0x00000010
+#define BIT_SEL_AH              0x00000020  //JC
+#define BIT_SEL_OPR             0x00000040
+#define BIT_SEL_ASSY            0x00000080
+#define BIT_SEL_ALL_0NOTCH      0x10000000
+#define BIT_SEL_MOTION          BIT_SEL_HST|BIT_SEL_GNT|BIT_SEL_BH|BIT_SEL_SLW|BIT_SEL_AH
+#define BIT_SEL_STATUS          0xFFFF0000
 
 #pragma endregion 動作インデックス
 
-///#ビット定義 
-#pragma region BIT_DEF
-
-#define BITS_WORD   0xFFFF //WORDデータ
-#define BIT0        0x0001
-#define BIT1        0x0002
-#define BIT2        0x0004
-#define BIT3        0x0008
-#define BIT4        0x0010
-#define BIT5        0x0020
-#define BIT6        0x0040
-#define BIT7        0x0080
-#define BIT8        0x0100
-#define BIT9        0x0200
-#define BIT10       0x0400
-#define BIT11       0x0800
-#define BIT12       0x1000
-#define BIT13       0x2000
-#define BIT14       0x4000
-#define BIT15       0x8000
-
-#pragma endregion ビット定義
 
 //タスク異常フラグ
 #pragma region ERR_DEF
@@ -241,11 +220,12 @@
 #pragma endregion タスクエラービット定義
 
 
-typedef struct DeviceCode {
-    UINT16  crane_id;   //クレーンID
-    UINT16  pc_type;    //PC TYPE
-    UINT16  pc_serial;  //PCシリアル番号
-    UINT16  option;
+typedef struct _ST_DEVICE_CODE {
+    char  crane_type; //クレーン種別ID
+	char  crane_id;   //製番コード
+    char  pc_type;    //PC TYPE
+    char  pc_serial;  //PCシリアル番号
+    UINT16  option[2];
  }ST_DEVICE_CODE, * LPST_DEVICE_CODE;
 
 typedef struct _ST_MOVE_SET {
@@ -253,4 +233,25 @@ typedef struct _ST_MOVE_SET {
     double v;	//速度
     double a;	//加速度
 }ST_MOVE_SET, * LPST_MOVE_SET;
+
+///#ビット定義 
+#pragma region BIT_DEF
+#define BITS_WORD   0xFFFF //WORDデータ
+#define BIT0        0x0001
+#define BIT1        0x0002
+#define BIT2        0x0004
+#define BIT3        0x0008
+#define BIT4        0x0010
+#define BIT5        0x0020
+#define BIT6        0x0040
+#define BIT7        0x0080
+#define BIT8        0x0100
+#define BIT9        0x0200
+#define BIT10       0x0400
+#define BIT11       0x0800
+#define BIT12       0x1000
+#define BIT13       0x2000
+#define BIT14       0x4000
+#define BIT15       0x8000
+#pragma endregion ビット定義
 

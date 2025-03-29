@@ -3,6 +3,7 @@
 #include "resource.h"
 #include "framework.h"
 #include "AUXEQ_DEF.H"
+#include "CCraneLib.H"
 
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
@@ -84,6 +85,8 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return hr;
 	}
+
+
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 	LPARAM lp = BC_ID_MON2;
