@@ -429,6 +429,8 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			UINT nRtn = pMCSock->rcv_msg_3E();
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
+				
+				//モニタWindow表示中ならば、モニタ表示出力処理
 				if ((st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 					st_mon2.wo_res_r << L"Rr>>"
 						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_r.subcode
@@ -472,12 +474,12 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 				}
 
+				/**************** 読み込み応答時間計測(400回の最大値）*************************************/
 				QueryPerformanceCounter(&end_count_r);    // 現在のカウント数
 				LONGLONG lspan = (end_count_r.QuadPart - start_count_r.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
 				if (res_delay_max_r < lspan) res_delay_max_r = lspan;
-				if (rcv_count_plc_r % 400 == 0) {
-					res_delay_max_r = 0;
-				}
+				if (rcv_count_plc_r % 400 == 0) res_delay_max_r = 0;
+				/******************************************************************************************/
 			}
 			else if (nRtn == MC_RES_WRITE) {
 

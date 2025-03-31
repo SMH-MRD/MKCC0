@@ -307,7 +307,7 @@ UINT CMCProtocol::rcv_msg_3E() {
 	
 	//受信データ分析
 	ST_XE_RES res;
-	UINT8* p8 = rcv_buf;
+	UINT8* p8 = rcv_buf;	//rcv_buf=クラスの受信バッファメンバ
 
 	int size, len = 0;
 
@@ -319,9 +319,10 @@ UINT CMCProtocol::rcv_msg_3E() {
 	memcpy(&res.nUcode, p8, size = sizeof(res.nUcode));		len += size; p8 += size;
 	memcpy(&res.len, p8, size = sizeof(res.len));			len += size; p8 += size;
 	memcpy(&res.endcode, p8, size = sizeof(res.endcode));	len += size; p8 += size;
+	//ここまででヘッダ部をローカルバッファに読み込み
 
-	if (res.endcode) {//エラー有
-		memcpy(res.res_data, p8, size = res.len);	len += size;
+	if (res.endcode) {	//エラー有
+		memcpy(res.res_data, p8, size = res.len);	len += size;	//データ部読み込み　res.len:データ長
 		memcpy(&mc_res_msg_err, &res, len);
 		return MC_RES_ERR;
 	}
@@ -331,8 +332,8 @@ UINT CMCProtocol::rcv_msg_3E() {
 			return MC_RES_WRITE;
 		}
 		else {
-			memcpy(res.res_data, p8, size = res.len);	len += size;
-			memcpy(&mc_res_msg_r, &res, len);
+			memcpy(res.res_data, p8, size = res.len);	len += size;	//データ部をクラスメンバーに読み込み　res.len:データ長
+			memcpy(&mc_res_msg_r, &res, len);							//クラスのメッセージバッファにコピー
 			return MC_RES_READ;
 		}
 	}
