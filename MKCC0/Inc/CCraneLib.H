@@ -9,73 +9,55 @@
 using namespace std;
 
 typedef struct _ST_CRANE_OBJ {
-	LIST_ID_W_WRITE		id_list_w;
-	LIST_ID_W_READ		id_list_r;
+
+	CNotchIO* notch[MOTION_ID_MAX];
 
 	//B220-B26F
-	CBitIO* ctrl_source_on_pb;
-	CBitIO* ctrl_source_off_pb;
-	CModeIO* mh_spd_low_cs; 
-	CModeIO* bh_normal_cs; 
-	CBitIO* mh_high_spd;
-	CBitIO* ah_multi;
-	CBitIO* ah_single;
-	CNotchIO* notch[MOTION_ID_MAX]; 
+	CBitIO* pb_ctrl_source_on;
+	CBitIO* pb_ctrl_source_off;
+	CModeIO* cs3_mh_spd; 
+	CModeIO* cs4_bh_R;
+	
+	CBitIO* pb_alarm_stop;
+	CBitIO* pb_fault_reset;
+	CBitIO* pb_il_bypass;
 
-	CBitIO* load_swayless;
-	CModeIO* gt_spd_cs;
-	CBitIO* cab_estp_pb;
-	CBitIO* whip_5t_ng;
-	CBitIO* mlim_acc_low;
-	CBitIO* mlim_3times;
-	CBitIO* mlim_load_90;
-	CBitIO* mlim_load_100;
-	CBitIO* mlim_high_load;
-	CBitIO* mlim_normal;
-	CBitIO* wind_spd16;
-	CBitIO* bz_stop;
-	CBitIO* fault_reset;
-	CBitIO* il_bypass;
-	CBitIO* mhbrk_opn_normal;
-	CBitIO* mhbrk_opn_abnormal;
-	CBitIO* mh_emr_open;
-	CBitIO* ah_emr_lower;
-	CBitIO* trace;
-	CModeIO* ah_spd_cs;
-	CBitIO* foot_brk;
-	CBitIO* siren;
-	CBitIO* camera_ghange;
-	CBitIO* slew_fix;
-	CBitIO* camera_sel_east;
-	CBitIO* camera_sel_conj;
-	CBitIO* camera_sel_west;
-	CBitIO* high_pow_ON;
-	CBitIO* high_pow_OFF;
-	CBitIO* slew_notch5;
-	CModeIO* jib_approch_cs;
-	CModeIO* gt_warm_shock_cs;
-	CBitIO* ah_high_pos_load;
+	CBitIO* sw_mlim_pre_warning;
+	CBitIO* sw_mlim_warning;
+	CBitIO* sw_mlim_error;
+	CBitIO* sw_mlim_hhoist_enable;
+	CBitIO* sw_wind_over16;
+	CBitIO* pb_cab_estop;
+
+	CBitIO* sw_slw_brk;
 }ST_CRANE_OBJ, * LPST_CRANE_OBJ;
 
 class CCraneBase {
 
 private:
+	static int _crane_id;
 	static ST_SPEC _spec;
-	static ST_CRANE_OBJ _cran_obj;
+	static PINT16 _buf_if_r, _buf_if_w;
+	static INT16 dummy_if_wbuf[CC_MC_SIZE_W_WRITE];
+	static INT16 dummy_if_rbuf[CC_MC_SIZE_W_READ];
 
 public:
-	CCraneBase() {};
+	CCraneBase(int crane_id,PINT16 buf_if_r,PINT16 buf_if_w) 
+	{ 
+		_crane_id = crane_id;
+		if (buf_if_r == NULL) _buf_if_r = dummy_if_rbuf;
+		else _buf_if_r = buf_if_r; 
+		if (buf_if_w == NULL) _buf_if_w = dummy_if_rbuf;
+		else _buf_if_w = buf_if_w;
+		setup_crane(crane_id);
+	};
 	virtual ~CCraneBase(void) {};
 
-	static ST_SPEC get_spec();
-	static void set_spec_H6R602();
-	static void set_spec_HHGH29();
-	static void set_spec_HHGQ18();
-	static void set_spec_HHFR22();
-	
-	static void setup_plc_io_H6R602();
-	static void setup_plc_io_HHGH29();
-	static void setup_plc_io_HHGQ18();
-	static void setup_plc_io_HHFR22();
+	static ST_CRANE_OBJ objs;
+
+	int get_id() { return _crane_id; }
+	ST_SPEC get_spec() { return _spec; }
+
+	HRESULT setup_crane(int crane_id);
 
 };

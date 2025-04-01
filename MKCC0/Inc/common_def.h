@@ -48,7 +48,7 @@
 #define CRANE_ID_H6R602         0   //Ç›ÇÁÇ¢
 #define CARNE_ID_HHGH29         1   //ç°ë¢êºëΩìxí√70tÅ@102çÜ  
 #define CARNE_ID_HHGQ18         2   //ç°ë¢êºëΩìxí√300t 10çÜ
-#define CARNE_ID_HHFR22         1   //ç°ë¢ä€ãT1200t 1çÜ
+#define CARNE_ID_HHFR22         3   //ç°ë¢ä€ãT1200t 1çÜ
 #pragma endregion éØï ID
 
 #pragma region STATUS

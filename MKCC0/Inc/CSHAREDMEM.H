@@ -521,7 +521,6 @@ typedef struct _ST_CC_POL_INF {
 #define AG_AXIS_STAT_ANTISWAY_ENABLE	0x200000000	 //振れ止め可
 
 typedef struct _ST_CC_AGENT_INF {
-	ST_PLC_IO_MAP plc_io_map;
 	ST_COMMAND_SET st_as_comset;					//振れ止め用コマンドセット
 	ST_POS_TARGETS auto_pos_target;					//自動目標位置
 	double dist_for_target[MOTION_ID_MAX];			//目標までの距離
