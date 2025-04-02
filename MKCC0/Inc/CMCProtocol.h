@@ -107,12 +107,12 @@ public:
 	HRESULT close();
 
 	HRESULT set_sndbuf_read_D_3E();				//3E　Dデバイス読み込み要求送信フォーマットセット
-	HRESULT send_read_req_D_3E();				//3Eフォーマット Wデバイス読み出し要求送信
+	HRESULT send_read_req_D_3E();	//3Eフォーマット Wデバイス読み出し要求送信
 
 	HRESULT set_sndbuf_write_D_3E();			//3E　Dデバイス書き込み要求送信フォーマットセット
 	HRESULT send_write_req_D_3E(void* p_data);	//3Eフォーマット Wデバイス書き込み要求送信
 		
-	UINT rcv_msg_3E();
+	UINT rcv_msg_3E(PINT16 pdst);
 	
 	//デバッグ,シミュレータ用
 	UINT16 snd_responce(ST_XE_REQ st_com, UINT16* pdata);

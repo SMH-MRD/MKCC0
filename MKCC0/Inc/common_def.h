@@ -43,7 +43,7 @@
 #define CRANE_TYPE_JC1          1   //ジブクレーン 補巻あり
 #define CRANE_TYPE_GC           2   //ゴライアスクレーン
 
-//クレーン製番 ID  配列INDEX
+//クレーン製番 ID INDEX
 #define CRANE_ID_MAX            32  //開発
 #define CRANE_ID_H6R602         0   //みらい
 #define CARNE_ID_HHGH29         1   //今造西多度津70t　102号  

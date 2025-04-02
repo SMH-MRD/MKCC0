@@ -40,21 +40,19 @@ public:
 #define PLCIO_N_NOTCH_INDEX     11
 #define PLCIO_0_NOTCH_INDEX     5
 class CNotchIO : public CPlcIO<INT16> {
+private:
+	INT16 bit_mask_w = 0, bit_mask_r = 0;
 public:
 	INT16 o_ptn[PLCIO_N_NOTCH_INDEX]	    // ノッチ指令パターン　0 Notch:index5  4 Notch:index9  -4 Notch:index1
 		= { PTN_NOTCH_0, PTN_NOTCH_R4, PTN_NOTCH_R3, PTN_NOTCH_R2, PTN_NOTCH_R1, PTN_NOTCH_0, PTN_NOTCH_F1, PTN_NOTCH_F2,PTN_NOTCH_F3, PTN_NOTCH_F4, PTN_NOTCH_0 };
-		INT16 i_ptn[PLCIO_N_NOTCH_INDEX]	// ノッチFBパターン　　0 Notch:index5  4 Notch:index9  -4 Notch:index1
+	INT16 i_ptn[PLCIO_N_NOTCH_INDEX]	// ノッチFBパターン　　0 Notch:index5  4 Notch:index9  -4 Notch:index1
 		= { PTN_NOTCH_0, PTN_NOTCH_R4, PTN_NOTCH_R3, PTN_NOTCH_R2, PTN_NOTCH_R1, PTN_NOTCH_0, PTN_NOTCH_F1, PTN_NOTCH_F2,PTN_NOTCH_F3, PTN_NOTCH_F4, PTN_NOTCH_0 };
 public:
 	CNotchIO(PINT16 prbuf, PINT16 pwbuf, PINT16 pwprm, PINT16 prprm){
 		_prbuf = prbuf;	_pwbuf = pwbuf;
 		_pwprm = pwprm; _prprm = prprm;
-		if ((pwprm != NULL) && (prprm != NULL)) {
-			for (int i = 0; i < PLCIO_N_NOTCH_INDEX; i++) {
-				o_ptn[i] = *(pwprm + i);
-				i_ptn[i] = *(prprm + i);
-			}
-		}
+		if(pwprm != NULL)bit_mask_w = *pwprm;
+		if (prprm != NULL)bit_mask_r = *prprm;
 	}
     ~CNotchIO() {}
 

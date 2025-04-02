@@ -5,6 +5,7 @@
 
 #include "CBasicControl.h"
 #include "CSharedMem.h"	    //共有メモリクラス
+#include "CCraneLib.h"	    //クレーンオブジェクトクラス
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "CCcEnv.h"
@@ -32,6 +33,8 @@ CSharedMem* pAgInfObj;
 CSharedMem* pCsInfObj;
 CSharedMem* pSimuStatObj;
 CSharedMem* pOteIoObj;
+
+CCraneBase* pCraneBase;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_MAIN_WND          st_work_wnd;        //センサーウィンドウ管理用構造体  
@@ -180,6 +183,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pSimuStatObj->create_smem(   SMEM_SIM_INF_CC_NAME,   sizeof(ST_CC_SIM_INF),  MUTEX_SIM_INF_CC_NAME)) return(FALSE);
    if (OK_SHMEM != pOteIoObj->create_smem(      SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),  MUTEX_OTE_INF_NAME)) return(FALSE);
   
+   //  クレーンオブジェクトセットアップ
+   LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
+   pCraneBase = new CCraneBase(CARNE_ID_HHGH29, pPlcIo->buf_io_read, pPlcIo->buf_io_write);
+
+
    //デバイスコードセット
    LPST_CC_ENV_INF pCraneStat = (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
  

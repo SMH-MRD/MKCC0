@@ -5,13 +5,20 @@
 HRESULT CNotchIO::write_io(INT16 val) {
 	if (_pwbuf == NULL) return S_FALSE;
 	set_w(val);	
-	*_pwbuf = _wval_plc; return S_OK;
+	INT16 i = _wval_plc + PLCIO_0_NOTCH_INDEX;
+	if ((i >= 0) && (_wval_plc < PLCIO_N_NOTCH_INDEX)) {
+		*_pwbuf &= ~bit_mask_w;
+		*_pwbuf |= o_ptn[i];
+		return S_OK;	
+	}
+	else return S_FALSE;
 }
 INT16 CNotchIO::read_io() {		//dispの内容をIOバッファから読み出し
 	if (_prbuf == NULL) return S_FALSE;
 
+	INT16 notch_read = *_prbuf & bit_mask_r;
 	for (int i = 0; i < PLCIO_N_NOTCH_INDEX; i++) {
-		if (*_prbuf == i_ptn[i]) {
+		if (notch_read == i_ptn[i]) {
 			_rval_plc = i - PLCIO_0_NOTCH_INDEX;
 			return _rval_plc;
 		}

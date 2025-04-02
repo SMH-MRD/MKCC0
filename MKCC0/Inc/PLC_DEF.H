@@ -17,46 +17,6 @@
 #define OTE_MC_ADDR_W_WRITE	    10550
 #define OTE_MC_SIZE_W_WRITE	    50
 
-/******************************************************************************************/
-#define PLC_DEF_N_WCHAR                 64
-/// <summary>
-/// モニタウインドウへの表示用
-/// </summary>
-/******************************************************************************************/
-typedef struct _ST_PLCIO_BLK_PROPATY {
-    WCHAR text[PLC_DEF_N_WCHAR];
-    int index;             //データ配列インデックス
-    int size;              //データ配列サイズ
-    int type;              //10進/16進表示種別
-} ST_PLCIO_BLK_PROPATY, * LPST_PLCIO_BLK_PROPATY;
-
-#define N_PLCIO_DISP_WBLK       6
-typedef struct _ST_PLCIO_WBLK {
-    ST_PLCIO_BLK_PROPATY defDWBlock[N_PLCIO_DISP_WBLK] = {
-        {L"INT16 helthy;ctrl_mode;cab_ai[8];cab_di[6];spare0[8];"   ,0,24,NUM_FORMAT_TYPE_HEX16},
-        {L"UINT32 hcounter[4];absocoder[3];"                        ,24,7,NUM_FORMAT_TYPE_HEX32},
-        {L"INT16 spare1[2]; pc_fault[2];spare2[16];"                ,38,20,NUM_FORMAT_TYPE_HEX16},
-        {L"INT16 erm_unitx[4];erm_x[8];inv_cc_x[6];"                ,58,18,NUM_FORMAT_TYPE_HEX16},
-        {L"INT16 inv_cc_Wr1[6];inv_cc_Wr2[6];"                      ,76,24,NUM_FORMAT_TYPE_DEC16},
-        {L"INT16 spare3[12];"                                       ,100,12,NUM_FORMAT_TYPE_HEX16},
-    };
-}ST_PLCIO__WBLK, * LPST_PLCIO__WBLK;
-
-#define N_PLCIO_DISP_RBLK     7
-typedef struct _ST_PLCIO_RBLK {
-    ST_PLCIO_BLK_PROPATY defDWBlock[N_PLCIO_DISP_RBLK] = {
-        {L"INT16 helthy;plc_ctrl;cab_ai[6];"                ,0,8,NUM_FORMAT_TYPE_DEC16},
-        {L"INT16 cab_bi[5];erm_900;erm_bo[6];"              ,19,11,NUM_FORMAT_TYPE_HEX16},
-        {L"INT32 pos[5];spd_tg[6];"                         ,30,11,NUM_FORMAT_TYPE_DEC32},
-        {L"INT16 plc_fault[18];"                            ,52,18,NUM_FORMAT_TYPE_HEX16},
-        {L"INT16 erm_y[4];erm_x[8];inv_cc_y[6];inv_cc_x[6]" ,70,24,NUM_FORMAT_TYPE_HEX16},
-        {L"INT16 inv_cc_Ww1[6];inv_cc_Wr1[6];inv_cc_Wr2[6];",94,18,NUM_FORMAT_TYPE_DEC32},
-        {L"INT16 spare1[4];"                                ,130,4,NUM_FORMAT_TYPE_HEX16}
-    };
-}ST_PLCIO__RBLK, * LPST_PLCIO__RBLK;
-
-
-/******************************************************************************************/
 #define PLC_IF_REMOTE_OFF_MODE		    0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）
 #define PLC_IF_RMT_MODE_0			    0x00000001		//遠隔運転モード（PCからの出力有効　通常運用モード）
 #define PLC_IF_SIM_MODE_1			    0x00000003		//操作端末からの操作入力有効通常運用モード

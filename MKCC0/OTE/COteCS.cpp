@@ -31,8 +31,6 @@ static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
 static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
-static ST_PLCIO__RBLK plcio_rblk;
-static ST_PLCIO__WBLK plcio_wblk;
 
 COteCS::COteCS() {
 	// 共有メモリオブジェクトのインスタンス化
@@ -150,13 +148,10 @@ HRESULT COteCS::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int COteCS::input() {
-
-
 	return S_OK;
 }
 
 int COteCS::close() {
-
 	return 0;
 }
 
@@ -195,7 +190,6 @@ LRESULT CALLBACK COteCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_TIMER: {
 	}break;
-
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
@@ -236,9 +230,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, OTE_CS_PRM_MON2_TIMER_MS, NULL);
 
-		monwos.str(L""); monwos << L"R:" << st_mon2.read_disp_block + 1 << L"/" << N_PLCIO_DISP_RBLK;
 		SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
-		monwos.str(L""); monwos << L"W:" << st_mon2.write_disp_block + 1 << L"/" << N_PLCIO_DISP_WBLK;
 		SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
 
 		st_mon2.msg_disp_mode = OTE_CS_MON2_MSG_DISP_HEX;
@@ -252,7 +244,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		if (is_write_req_turn) {//書き込み要求送信
 			st_mon2.wo_req_w.str(L"");
 			//3Eフォーマット Dデバイス書き込み要求送信
-			if (pMCSock->send_write_req_D_3E(pMCSock->mc_req_msg_w.req_data) != S_OK) {
+			if (pMCSock->send_write_req_D_3E(pOteCsInf->buf_io_write) != S_OK) {
 				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
 			}
 			else snd_count_plc_w++;
@@ -272,38 +264,9 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#scom:" << pMCSock->mc_req_msg_w.scom << L"\n"
 					<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
 					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
-					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device
+					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device;
 
-					<< L"[Item]:" << plcio_wblk.defDWBlock[st_mon2.write_disp_block].text << L"\n";
-
-				LPST_PLCIO_BLK_PROPATY pblk = &plcio_wblk.defDWBlock[st_mon2.write_disp_block];
-				for (int i = pblk->index, k = 0; i < pblk->size; i++, k++)
-				{
-					if (pblk->type & NUM_FORMAT_TYPE_HEX) {
-						st_mon2.wo_req_w << hex;
-						if (pblk->type & NUM_FORMAT_TYPE_32) st_mon2.wo_req_r << setw(8);
-						else								 st_mon2.wo_req_r << setw(4);
-						st_mon2.wo_req_w << setfill(L'0');
-					}
-					else {
-						st_mon2.wo_req_w << dec;
-					}
-
-					switch (pblk->type) {
-					case NUM_FORMAT_TYPE_HEX16:
-					case NUM_FORMAT_TYPE_DEC16:
-					{
-						st_mon2.wo_req_w << pMCSock->mc_req_msg_r.req_data[i] << L" ";
-					}break;
-					case NUM_FORMAT_TYPE_HEX32: {
-					case NUM_FORMAT_TYPE_DEC32: {
-						UINT32* p32 = (UINT32*)(&pMCSock->mc_req_msg_r.req_data[i + k * 2]);
-						st_mon2.wo_req_w << *p32 << L" ";
-					}break;
-					}
-					}
-				}
-				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
+					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
 
 			QueryPerformanceCounter(&start_count_w);  // 書き込み要求送信時カウント値取り込み
@@ -339,7 +302,6 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			is_write_req_turn = true;
 		}
 
-
 		//共通表示
 		if (st_mon2.is_monitor_active) {
 			//カウンタ表示
@@ -368,8 +330,6 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_INF], monwos.str().c_str());
 			}
 		}
-
-
 	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
@@ -377,13 +337,11 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (wmId - OTE_CS_ID_MON2_CTRL_BASE)
 		{
 		case OTE_CS_ID_MON2_PB_R_BLOCK_SEL: {
-			st_mon2.read_disp_block++; if (st_mon2.read_disp_block == N_PLCIO_DISP_RBLK) st_mon2.read_disp_block = 0;
-			monwos.str(L""); monwos << L"R:" << st_mon2.read_disp_block + 1 << L"/" << N_PLCIO_DISP_RBLK;
+
 			SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
 		}break;
 		case OTE_CS_ID_MON2_PB_W_BLOCK_SEL: {
-			st_mon2.write_disp_block++; if (st_mon2.write_disp_block == N_PLCIO_DISP_WBLK) st_mon2.write_disp_block = 0;
-			monwos.str(L""); monwos << L"W:" << st_mon2.write_disp_block + 1 << L"/" << N_PLCIO_DISP_WBLK;
+
 			SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
 		}break;
 		case OTE_CS_ID_MON2_PB_MSG_DISP_SEL: {
@@ -428,7 +386,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon2.wo_res_w.str(L"");
 		switch (nEvent) {
 		case FD_READ: {
-			UINT nRtn = pMCSock->rcv_msg_3E();
+			UINT nRtn = pMCSock->rcv_msg_3E(pOteCsInf->buf_io_read);
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
 				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
@@ -440,46 +398,17 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 						<< L"#UIO:" << pMCSock->mc_res_msg_r.nUIO
 						<< L"#Ucd:" << pMCSock->mc_res_msg_r.nUcode
 						<< L"#len:" << pMCSock->mc_res_msg_r.len
-						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n"
+						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n";
 
-						<< L"[Item]:" << plcio_rblk.defDWBlock[st_mon2.read_disp_block].text << L"\n";
 
-					LPST_PLCIO_BLK_PROPATY pblk = &plcio_rblk.defDWBlock[st_mon2.read_disp_block];
-					for (int i = pblk->index, k = 0; i < pblk->size; i++, k++)
-					{
-						if (pblk->type & NUM_FORMAT_TYPE_HEX) {
-							st_mon2.wo_res_r << hex;
-							if (pblk->type & NUM_FORMAT_TYPE_32) st_mon2.wo_req_r << setw(8);
-							else								 st_mon2.wo_req_r << setw(4);
-							st_mon2.wo_res_r << setfill(L'0');
-						}
-						else {
-							st_mon2.wo_res_r << dec;
-						}
+					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 
-						switch (pblk->type) {
-						case NUM_FORMAT_TYPE_HEX16:
-						case NUM_FORMAT_TYPE_DEC16:
-						{
-							st_mon2.wo_res_r << pMCSock->mc_req_msg_r.req_data[i] << L" ";
-						}break;
-						case NUM_FORMAT_TYPE_HEX32: {
-						case NUM_FORMAT_TYPE_DEC32: {
-							UINT32* p32 = (UINT32*)(&pMCSock->mc_req_msg_r.req_data[i + k * 2]);
-							st_mon2.wo_res_r << *p32 << L" ";
-						}break;
-						}
-						}
+					QueryPerformanceCounter(&end_count_r);    // 現在のカウント数
+					LONGLONG lspan = (end_count_r.QuadPart - start_count_r.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+					if (res_delay_max_r < lspan) res_delay_max_r = lspan;
+					if (rcv_count_plc_r % 40 == 0) {
+						res_delay_max_r = 0;
 					}
-
-				}
-				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
-
-				QueryPerformanceCounter(&end_count_r);    // 現在のカウント数
-				LONGLONG lspan = (end_count_r.QuadPart - start_count_r.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
-				if (res_delay_max_r < lspan) res_delay_max_r = lspan;
-				if (rcv_count_plc_r % 400 == 0) {
-					res_delay_max_r = 0;
 				}
 			}
 			else if (nRtn == MC_RES_WRITE) {
@@ -502,7 +431,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				QueryPerformanceCounter(&end_count_w);    // 現在のカウント数
 				LONGLONG lspan = (end_count_w.QuadPart - start_count_w.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
 				if (res_delay_max_w < lspan) res_delay_max_w = lspan;
-				if (rcv_count_plc_w % 400 == 0) {
+				if (rcv_count_plc_w % 40 == 0) {
 					res_delay_max_w = 0;
 				}
 			}

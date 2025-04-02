@@ -318,40 +318,37 @@ typedef struct _ST_PLC_READ {
 
 //西多度津70tJC102号の定義
 typedef struct _ST_PLC_WRITE_HHGH29 {//制御PC→PLC
-	INT16   helthy;               //PCヘルシー出力信号
-	INT16   ctrl_mode;            //自動制御フラグ
-	UINT16  cab_ai[8];            //運転室PLC AI信号【将来用】
-	INT16   cab_bi[6];            //運転室PLC→電気室PLC b出力
-	INT16   spare0[8];            //運転室PLC→電気室PLC b出力
-	UINT32  hcounter[4];          //高速カウンタユニット 
-	UINT32  absocoder[3];         //アブソコーダ 
-	INT16   spare1[2];            //予備
+	INT16   helthy;               //D10200:PCヘルシー出力信号
+	INT16   ctrl_mode;            //D10201:自動制御フラグ
+	UINT16  cab_ai[8];            //D10202:運転室PLC AI信号【モーメントリミッタ】
+	INT16   cab_bi[4];            //D10210:運転室PLC→電気室PLC b出力
+	UINT32  hcounter[4];          //D10214:高速カウンタユニット 
+	UINT32  absocoder[3];         //D10222アブソコーダ 
 	INT16   pc_fault[2];          //PC検出異常マップ
-	INT16   spare2[16];           //予備
 	INT16   erm_unitx[6];         //電気室ユニットX 020-03F：カウンタユニット　040-04F：ABSユニット
 	INT16   erm_x[7];             //電気室X 080-0EF
-	INT16   spare3[9];
 	INT16   inv_cc_x[6];          //インバータFB書き込み値　ｘデバイス
 	INT16   inv_cc_Wr1[6];        //インバータFB書き込み値　rpm
 	INT16   inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
 	INT16   spare4[30];
 }ST_PLC_WRITE_HHGH29, * LPST_PLC_WRITE_HHGH29;
 typedef struct _ST_PLC_READ_HHGH29 {
-	INT16   helthy;               //PLCヘルシーカウンタ
-	INT16   plc_ctrl;             // PLC運転モード
-	UINT16  cab_ai[6];            //運転室PLC→電気室PLC W出力
-	INT16   cab_bi[5];            //運転室PLC→電気室PLC b出力
-	INT16   erm_900;
-	INT16   erm_bo[8];            //電気室PLC b出力
-	INT32   pos[5];               //各軸位置信号
-	INT16   spd_tg[6];            //各軸指令速度目標
-	INT16   plc_fault[17];        //各軸速度信号
-	INT16   erm_y[5];             //電気室PLC Y出力
-	INT16   erm_x[7];             //電気室PLC X入力
-	INT16   inv_cc_y[6];          //インバータPLC DO指令
-	INT16   inv_cc_x[6];          //インバータFB書き込み値　ｘデバイス
-	INT16   inv_cc_Ww1[6];        //インバータPLC 速度指令　rpm
-	INT16   inv_cc_Wr1[6];        //インバータFB書き込み値　rpm
-	INT16   inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
-	INT16   spare1[3];            //予備
+	INT16   helthy;             // D10400:PLCヘルシーカウンタ
+	INT16   plc_ctrl;           // D10401: PLC運転モード
+	UINT16  cab_ai[4];          // D10402:運転室PLC→電気室PLC W出力
+	INT16   cab_bi[4];          // D10406:運転室PLC→電気室PLC b出力
+	INT16   cab_bxi[4];         // D10410:運転室PLC→電気室PLC b出力
+	INT16   erm_900;			// D10414:
+	INT16   erm_bo[8];          // D10415:電気室PLC b出力
+	INT32   pos[4];             // D10423:各軸位置信号
+	INT16   spd_tg[6];          // D10431:各軸指令速度目標
+	INT16   plc_fault[17];      // D10437:故障信号
+	INT16   erm_y[5];           // D10454:電気室PLC Y出力
+	INT16   erm_x[7];           // D10459:電気室PLC X入力
+	INT16   inv_cc_y[6];        //インバータPLC DO指令
+	INT16   inv_cc_x[6];        //インバータFB書き込み値　ｘデバイス
+	INT16   inv_cc_Ww1[6];      //インバータPLC 速度指令　rpm
+	INT16   inv_cc_Wr1[6];      //インバータFB書き込み値　rpm
+	INT16   inv_cc_Wr2[6];      //インバータFB書き込み値　トルク0.1%
+	INT16   spare1[3];          //予備
 }ST_PLC_READ_HHGH29, * LPST_PLC_READ_HHGH29;

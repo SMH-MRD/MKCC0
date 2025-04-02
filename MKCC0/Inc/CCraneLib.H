@@ -22,8 +22,10 @@ typedef struct _ST_CRANE_OBJ {
 	CBitIO* pb_fault_reset;
 	CBitIO* pb_il_bypass;
 
-	CBitIO* sw_mlim_pre_warning;
-	CBitIO* sw_mlim_warning;
+	CBitIO* sw_mlim_50t_lower;
+	CBitIO* sw_mlim_x3_enable;
+	CBitIO* sw_mlim_90_warning;
+	CBitIO* sw_mlim_100_warning;
 	CBitIO* sw_mlim_error;
 	CBitIO* sw_mlim_hhoist_enable;
 	CBitIO* sw_wind_over16;
@@ -38,20 +40,14 @@ private:
 	static int _crane_id;
 	static ST_SPEC _spec;
 	static PINT16 _buf_if_r, _buf_if_w;
-	static INT16 dummy_if_wbuf[CC_MC_SIZE_W_WRITE];
-	static INT16 dummy_if_rbuf[CC_MC_SIZE_W_READ];
 
 public:
-	CCraneBase(int crane_id,PINT16 buf_if_r,PINT16 buf_if_w) 
-	{ 
-		_crane_id = crane_id;
-		if (buf_if_r == NULL) _buf_if_r = dummy_if_rbuf;
-		else _buf_if_r = buf_if_r; 
-		if (buf_if_w == NULL) _buf_if_w = dummy_if_rbuf;
-		else _buf_if_w = buf_if_w;
-		setup_crane(crane_id);
-	};
-	virtual ~CCraneBase(void) {};
+	static INT16 dummy_if_wbuf[CC_MC_SIZE_W_WRITE];
+	static INT16 dummy_if_rbuf[CC_MC_SIZE_W_READ];
+	static CCraneBase* pCrane;
+	CCraneBase(int crane_id);
+	CCraneBase(int crane_id, PINT16 buf_if_r, PINT16 buf_if_w);
+	virtual ~CCraneBase(void);
 
 	static ST_CRANE_OBJ objs;
 

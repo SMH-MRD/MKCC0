@@ -8,9 +8,30 @@
 int CCraneBase::_crane_id;
 ST_SPEC CCraneBase::_spec;
 ST_CRANE_OBJ CCraneBase::objs;
+CCraneBase* CCraneBase::pCrane;
+PINT16 CCraneBase::_buf_if_r, CCraneBase::_buf_if_w;
 
 INT16 CCraneBase::dummy_if_wbuf[CC_MC_SIZE_W_WRITE];
 INT16 CCraneBase::dummy_if_rbuf[CC_MC_SIZE_W_READ];
+
+CCraneBase::CCraneBase(int crane_id)
+{
+	_crane_id = crane_id;
+	_buf_if_r = dummy_if_rbuf, _buf_if_w = dummy_if_wbuf;
+	pCrane = this;
+	setup_crane(crane_id);
+};
+CCraneBase::CCraneBase(int crane_id, PINT16 buf_if_r, PINT16 buf_if_w)
+{
+	_crane_id = crane_id;
+	_buf_if_r = buf_if_r, _buf_if_w = buf_if_w;
+	pCrane = this;
+	setup_crane(crane_id);
+};
+CCraneBase::~CCraneBase(void) 
+{
+	delete& objs;
+};
 
 HRESULT CCraneBase::setup_crane(int crane_id) {
 
@@ -493,74 +514,80 @@ HRESULT CCraneBase::setup_crane(int crane_id) {
 			prmw16 = prmr16 = BIT1;		//PB主幹切
 			objs.pb_ctrl_source_off = new CBitIO(pr16, pw16, &prmw16, &prmr16);
 
-			prmw16 = prmr16 = 0x001c;	//CS主巻速度
+			prmw16 = prmr16 = 0x000c;	//CS主巻速度
 			objs.cs3_mh_spd			= new CModeIO(pr16, pw16, &prmw16, &prmr16);
 
-			prmw16 = prmr16 = 0x01e0;	//CS引込モード
+			prmw16 = prmr16 = 0x0070;	//CS引込モード
 			objs.cs4_bh_R			= new CModeIO(pr16, pw16, &prmw16, &prmr16);
 		}
 		//B230
 		pw16 = pw016 + 1;	pr16 = pr016 + 1;
 		{
-			prmw16 = prmr16 = BIT13;	//PB警報停止
-			objs.pb_alarm_stop		= new CBitIO(pr16, pw16, &prmw16, &prmr16);
-
-			prmw16 = prmr16 = BIT14;	//PB故障リセット
-			objs.pb_fault_reset		= new CBitIO(pr16, pw16, &prmw16, &prmr16);
-
-			prmw16 = prmr16 = BIT15;	//PBバイパス
-			objs.pb_il_bypass		= new CBitIO(pr16, pw16, &prmw16, &prmr16);
+			prmw16 = prmr16 = BIT15;	//運転室非常停止
+			objs.pb_cab_estop = new CBitIO(pr16, NULL, &prmw16, &prmr16);
 		}
 		//B240
 		pw16 = pw016 + 2;	pr16 = pr016 + 2;
 		{
-			prmw16 = prmr16 = BIT0;		//モーメントリミッタ予備警報
-			objs.sw_mlim_pre_warning	= new CBitIO(pr16, NULL, &prmw16, &prmr16);
+			prmw16 = prmr16 = BIT1;		//モーメントリミッタ旋回加速切替50t以下
+			objs.sw_mlim_50t_lower = new CBitIO(pr16, NULL, &prmw16, &prmr16);
 
-			prmw16 = prmr16 = BIT1;		//モーメントリミッタ警報
-			objs.sw_mlim_warning		= new CBitIO(pr16, NULL, &prmw16, &prmr16);
+			prmw16 = prmr16 = BIT2;		//モーメントリミッタ3倍速許可荷重以下
+			objs.sw_mlim_x3_enable = new CBitIO(pr16, NULL, &prmw16, &prmr16);
 
-			prmw16 = prmr16 = BIT2;		//モーメントリミッタエラー
-			objs.sw_mlim_error			= new CBitIO(pr16, NULL, &prmw16, &prmr16);
+			prmw16 = prmr16 = BIT3;		//モーメントリミッタ予備警報
+			objs.sw_mlim_90_warning	= new CBitIO(pr16, NULL, &prmw16, &prmr16);
 
-			prmw16 = prmr16 = BIT3;		//モーメントリミッタ高巻可
+			prmw16 = prmr16 = BIT4;		//モーメントリミッタ警報
+			objs.sw_mlim_100_warning		= new CBitIO(pr16, NULL, &prmw16, &prmr16);
+
+			prmw16 = prmr16 = BIT5;		//モーメントリミッタ高巻可
 			objs.sw_mlim_hhoist_enable = new CBitIO(pr16, NULL, &prmw16, &prmr16);
 
-			prmw16 = prmr16 = BIT14;	//風速16m/s以上
+			prmw16 = prmr16 = BIT6;		//モーメントリミッタエラー
+			objs.sw_mlim_error			= new CBitIO(pr16, NULL, &prmw16, &prmr16);
+
+			prmw16 = prmr16 = BIT7;	//風速16m/s以上
 			objs.sw_wind_over16			= new CBitIO(pr16, NULL, &prmw16, &prmr16);
 
-			prmw16 = prmr16 = BIT15;	//運転室非常停止
-			objs.pb_cab_estop			= new CBitIO(pr16, NULL, &prmw16, &prmr16);
+			prmw16 = prmr16 = BIT8;	//PB警報停止
+			objs.pb_alarm_stop = new CBitIO(pr16, pw16, &prmw16, &prmr16);
+
+			prmw16 = prmr16 = BIT9;	//PB故障リセット
+			objs.pb_fault_reset = new CBitIO(pr16, pw16, &prmw16, &prmr16);
+
+			prmw16 = prmr16 = BIT10;	//PBバイパス
+			objs.pb_il_bypass = new CBitIO(pr16, pw16, &prmw16, &prmr16);
 		}
+
 		//B250
 		pw16 = pw016 + 3;	pr16 = pr016 + 3;
 		{
 			prmw16 = prmr16 = BIT15;		//旋回油圧圧力SW
-			objs.sw_mlim_pre_warning = new CBitIO(pr16, pw16, &prmw16, &prmr16);
+			objs.sw_slw_brk = new CBitIO(pr16, pw16, &prmw16, &prmr16);
 		}
 
 		//* 運転室 ノッチ　**********************************************
 		{
-			pw016 = pwbuf->cab_bi;	pr016 = prbuf->cab_bi;
+			pw016 = pwbuf->cab_bi;	pr016 = prbuf->cab_bi;	//B220-B22F
+			//主巻
+			pw16 = pw016 + 1;	pr16 = pr016 + 1;			//B230-B23F
+			prmw16 = prmr16 = 0x003f;
+			objs.notch[ID_HOIST] = new CNotchIO(pr16, pw16, &prmw16, &prmr16);
+
 			//走行
-			pw16 = pw016 + 0;	pr16 = pr016 + 0;
-			prmw16 = prmr16 = 0xfc00;
+			prmw16 = prmr16 = 0x7e00;
 			objs.notch[ID_GANTRY] = new CNotchIO(pr16, pw16, &prmw16, &prmr16);
 			for (int i = 0; i < PLCIO_N_NOTCH_INDEX; i++) {
 				objs.notch[ID_GANTRY]->o_ptn[i] <<= 10;
 				objs.notch[ID_GANTRY]->i_ptn[i] <<= 10;
 			}
-			//主巻
-			pw16 = pw016 + 1;	pr16 = pr016 + 1;
-			prmw16 = prmr16 = 0x003f;
-			objs.notch[ID_HOIST] = new CNotchIO(pr16, pw16, &prmw16, &prmr16);
 			//引込
-			pw16 = pw016 + 3;	pr16 = pr016 + 3;
+			pw16 = pw016 + 3;	pr16 = pr016 + 3;//B250-B25F
 			prmw16 = prmr16 = 0x003f;
 			objs.notch[ID_BOOM_H] = new CNotchIO(pr16, pw16, &prmw16, &prmr16);
 			//旋回
-			pw16 = pw016 + 3;	pr16 = pr016 + 3;
-			prmw16 = prmr16 = 0x0fc0;
+			prmw16 = prmr16 = 0x7e00;
 			objs.notch[ID_SLEW] = new CNotchIO(pr16, pw16, &prmw16, &prmr16);
 			for (int i = 0; i < PLCIO_N_NOTCH_INDEX; i++) {
 				objs.notch[ID_SLEW]->o_ptn[i] <<= 6;

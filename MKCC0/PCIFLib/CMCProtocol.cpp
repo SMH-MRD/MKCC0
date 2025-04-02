@@ -296,7 +296,7 @@ HRESULT CMCProtocol::send_read_req_D_3E() {
 /// ソケット受信イベント受信データ分析
 /// </summary>
 /// <returns></returns>
-UINT CMCProtocol::rcv_msg_3E() {
+UINT CMCProtocol::rcv_msg_3E(PINT16 pdst) {
 
 	//ソケット受信処理
 	int nRtn = pMCSock->rcv_msg((char*)rcv_buf, sizeof(ST_XE_RES));
@@ -327,13 +327,13 @@ UINT CMCProtocol::rcv_msg_3E() {
 		return MC_RES_ERR;
 	}
 	else {
-		if (res.len == 2) {
+		if (res.len == 2) {//書き込み応答
 			memcpy(&mc_res_msg_w, &res, len);
 			return MC_RES_WRITE;
 		}
 		else {
-			memcpy(res.res_data, p8, size = res.len);	len += size;	//データ部をクラスメンバーに読み込み　res.len:データ長
-			memcpy(&mc_res_msg_r, &res, len);							//クラスのメッセージバッファにコピー
+			memcpy(&mc_res_msg_r, &res, len);					//クラスのメッセージバッファにヘッダ部までコピー
+			memcpy(pdst, p8, size = res.len);	len += size;	//データ部を指定バッファに読み込み
 			return MC_RES_READ;
 		}
 	}

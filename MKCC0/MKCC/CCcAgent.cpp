@@ -30,9 +30,9 @@ static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
 static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w,res_delay_max_r;	//PLC応答時間
-static ST_PLCIO__RBLK plcio_rblk;
-static ST_PLCIO__WBLK plcio_wblk;
 
+
+static CCraneBase* pCrane;
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
@@ -52,6 +52,11 @@ CAgent::~CAgent() {
 HRESULT CAgent::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
+
+	//クレーンオブジェクトセット
+	pCrane = CCraneBase::pCrane;
+
+	INT16 notch=CCraneBase::objs.notch[ID_HOIST]->get_w();
 
 	//システム周波数読み込み
 	QueryPerformanceFrequency(&frequency);
@@ -154,7 +159,36 @@ HRESULT CAgent::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
 int CAgent::input() {
+	return S_OK;
+}
+
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
+int CAgent::parse() {//メイン処理
+	return S_OK;
+}
+
+/// <summary>
+/// 出力関数
+/// </summary>
+/// <returns></returns>
+static INT16 healthy_count = 0;
+int CAgent::output() {
+	pPLC_IO->buf_io_write[0] = healthy_count++;
+
+	//ノッチ指令出力
+	CCraneBase::objs.notch[ID_HOIST]->write_io(st_work.notch_ref[ID_HOIST]);
+	CCraneBase::objs.notch[ID_GANTRY]->write_io(st_work.notch_ref[ID_GANTRY]);
+	CCraneBase::objs.notch[ID_BOOM_H]->write_io(st_work.notch_ref[ID_BOOM_H]);
+	CCraneBase::objs.notch[ID_SLEW]->write_io(st_work.notch_ref[ID_SLEW]);
+
 
 
 	return S_OK;
@@ -217,6 +251,8 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 };
 
 static bool is_write_req_turn = false;//書き込み要求送信の順番でtrue
+static int n_page_w = 5, i_page_w = 0, i_ref_w = 0;
+static int n_page_r = 5, i_page_r = 0, i_ref_r = 0;
 
 LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
@@ -241,14 +277,22 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	
 		UINT rtn = SetTimer(hWnd, AGENT_ID_MON2_TIMER, AGENT_PRM_MON2_TIMER_MS, NULL);
 
-		monwos.str(L""); monwos << L"R:" << st_mon2.read_disp_block + 1 << L"/" << N_PLCIO_DISP_RBLK;
+		//IFデータ表示ページ数計算
+		n_page_w = CC_MC_SIZE_W_WRITE / (AGENT_MON2_MSG_DISP_N__DATAROW * AGENT_MON2_MSG_DISP_N_DATA_COLUMN);
+		if (CC_MC_SIZE_W_WRITE % (AGENT_MON2_MSG_DISP_N__DATAROW * AGENT_MON2_MSG_DISP_N_DATA_COLUMN)) n_page_w++;
+		n_page_r = CC_MC_SIZE_W_READ / (AGENT_MON2_MSG_DISP_N__DATAROW * AGENT_MON2_MSG_DISP_N_DATA_COLUMN);
+		if (CC_MC_SIZE_W_READ % (AGENT_MON2_MSG_DISP_N__DATAROW * AGENT_MON2_MSG_DISP_N_DATA_COLUMN)) n_page_r++;
+		
+		monwos.str(L""); monwos << L"R:" << i_page_r + 1 << L"/" << n_page_r;
 		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
-		monwos.str(L""); monwos << L"W:" << st_mon2.write_disp_block + 1 << L"/" << N_PLCIO_DISP_WBLK;
+
+
+		monwos.str(L""); monwos << L"W:" << i_page_w + 1 << L"/" << n_page_w;
 		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
 
-		st_mon2.msg_disp_mode = AGENT_MON2_MSG_DISP_HEX;
 		monwos.str(L""); monwos << L"表示中" ;
 		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_MSG_DISP_SEL], monwos.str().c_str());
+		st_mon2.msg_disp_mode = AGENT_MON2_MSG_DISP_HEX;
 		monwos.str(L""); monwos << L"16進" ;
 		SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_DISP_DEC_SEL], monwos.str().c_str());
 	}break;
@@ -257,54 +301,36 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		if (is_write_req_turn) {//書き込み要求送信
 			st_mon2.wo_req_w.str(L"");
 			//3Eフォーマット Dデバイス書き込み要求送信
-			if (pMCSock->send_write_req_D_3E(pMCSock->mc_req_msg_w.req_data) != S_OK) {
+			if (pMCSock->send_write_req_D_3E(pPLC_IO->buf_io_write) != S_OK) {
 				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
 			}
 			else snd_count_plc_w++;
 			if ((st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 				st_mon2.wo_req_w << L"Sw>>"
-					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
-					<< L"#serial:" << pMCSock->mc_req_msg_w.serial
-					<< L"#NW:" << pMCSock->mc_req_msg_w.nNW
-					<< L"#PC:" << pMCSock->mc_req_msg_w.nPC
-					<< L"#UIO:" << pMCSock->mc_req_msg_w.nUIO
-					<< L"#Ucd:" << pMCSock->mc_req_msg_w.nUcode
-					<< L"#len:" << pMCSock->mc_req_msg_w.len
-					<< L"#tm:" << pMCSock->mc_req_msg_w.timer
-					<< L"#com:" << pMCSock->mc_req_msg_w.com
-					<< L"#scom:" << pMCSock->mc_req_msg_w.scom<< L"\n"
-					<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
-					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
-					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device 
+					<< L"#sub:"		<< std::hex << pMCSock->mc_req_msg_w.subcode
+					<< L"#serial:"	<< pMCSock->mc_req_msg_w.serial
+					<< L"#NW:"		<< pMCSock->mc_req_msg_w.nNW
+					<< L"#PC:"		<< pMCSock->mc_req_msg_w.nPC
+					<< L"#UIO:"		<< pMCSock->mc_req_msg_w.nUIO
+					<< L"#Ucd:"		<< pMCSock->mc_req_msg_w.nUcode
+					<< L"#len:"		<< pMCSock->mc_req_msg_w.len
+					<< L"#tm:"		<< pMCSock->mc_req_msg_w.timer
+					<< L"#com:"		<< pMCSock->mc_req_msg_w.com
+					<< L"#scom:"	<< pMCSock->mc_req_msg_w.scom<< L"\n"
+					<< L"#d_no:"	<< pMCSock->mc_req_msg_w.d_no
+					<< L"#d_code:"	<< pMCSock->mc_req_msg_w.d_code
+					<< L"#n_dev:"	<< pMCSock->mc_req_msg_w.n_device << L"\n";
 
-					<< L"[Item]:" << plcio_wblk.defDWBlock[st_mon2.write_disp_block].text << L"\n";
+				if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
+				else													st_mon2.wo_req_w << dec;
 
-				LPST_PLCIO_BLK_PROPATY pblk = &plcio_wblk.defDWBlock[st_mon2.write_disp_block];
-				for (int i = pblk->index, k = 0; i < pblk->size; i++, k++)
-				{
-					if (pblk->type & NUM_FORMAT_TYPE_HEX) {
-						st_mon2.wo_req_w << hex;
-						if (pblk->type & NUM_FORMAT_TYPE_32) st_mon2.wo_req_r << setw(8);
-						else								 st_mon2.wo_req_r << setw(4);
-						st_mon2.wo_req_w << setfill(L'0');
+				for (int i = 0; i < AGENT_MON2_MSG_DISP_N__DATAROW; i++) {
+					int no = CC_MC_ADDR_W_READ + i_page_w * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
+					st_mon2.wo_req_w << L"D"<< no << L" |";
+					for (int j = 0; j < AGENT_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
+						st_mon2.wo_req_w << pPLC_IO->buf_io_write[i_ref_w + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
 					}
-					else {
-						st_mon2.wo_req_w << dec;
-					}
-
-					switch (pblk->type) {
-					case NUM_FORMAT_TYPE_HEX16:
-					case NUM_FORMAT_TYPE_DEC16:
-					{
-						st_mon2.wo_req_w << pMCSock->mc_req_msg_r.req_data[i] << L" ";
-					}break;
-					case NUM_FORMAT_TYPE_HEX32: {
-					case NUM_FORMAT_TYPE_DEC32: {
-						UINT32* p32 = (UINT32*)(&pMCSock->mc_req_msg_r.req_data[i + k * 2]);
-						st_mon2.wo_req_w << *p32 << L" ";
-					}break;
-					}
-					}
+					st_mon2.wo_req_w << L"\n";
 				}
 				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
@@ -322,26 +348,26 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 			if ((st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 				st_mon2.wo_req_r << L"Sr>>"
-					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_r.subcode
-					<< L"#serial:" << pMCSock->mc_req_msg_r.serial
-					<< L"#NW:" << pMCSock->mc_req_msg_r.nNW
-					<< L"#PC:" << pMCSock->mc_req_msg_r.nPC
-					<< L"#UIO:" << pMCSock->mc_req_msg_r.nUIO
-					<< L"#Ucd:" << pMCSock->mc_req_msg_r.nUcode
-					<< L"#len:" << pMCSock->mc_req_msg_r.len
-					<< L"#tm:" << pMCSock->mc_req_msg_r.timer
-					<< L"#com:" << pMCSock->mc_req_msg_r.com
-					<< L"#scom:" << pMCSock->mc_req_msg_r.scom
-					<< L"#d_no:" << pMCSock->mc_req_msg_r.d_no
-					<< L"#d_code:" << pMCSock->mc_req_msg_r.d_code
-					<< L"#n_dev:" << pMCSock->mc_req_msg_r.n_device ;
+					<< L"#sub:"		<< std::hex << pMCSock->mc_req_msg_r.subcode
+					<< L"#serial:"	<< pMCSock->mc_req_msg_r.serial
+					<< L"#NW:"		<< pMCSock->mc_req_msg_r.nNW
+					<< L"#PC:"		<< pMCSock->mc_req_msg_r.nPC
+					<< L"#UIO:"		<< pMCSock->mc_req_msg_r.nUIO
+					<< L"#Ucd:"		<< pMCSock->mc_req_msg_r.nUcode
+					<< L"#len:"		<< pMCSock->mc_req_msg_r.len
+					<< L"#tm:"		<< pMCSock->mc_req_msg_r.timer
+					<< L"#com:"		<< pMCSock->mc_req_msg_r.com
+					<< L"#scom:"	<< pMCSock->mc_req_msg_r.scom << L"\n"
+					<< L"#d_no:"	<< pMCSock->mc_req_msg_r.d_no
+					<< L"#d_code:"	<< pMCSock->mc_req_msg_r.d_code
+					<< L"#n_dev:"	<< pMCSock->mc_req_msg_r.n_device ;
 				SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
 			}
 			
 			QueryPerformanceCounter(&start_count_r);  // 書き込み要求送信時カウント値取り込み
 			is_write_req_turn = true;
 		}
-		//共通表示
+		//共通表示 (送受信カウント,遅延時間,IP情報）
 		if (st_mon2.is_monitor_active) {
 			monwos.str(L""); monwos << L"RCV:R " << rcv_count_plc_r
 				<< L"  W " << rcv_count_plc_w
@@ -375,14 +401,16 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (wmId- AGENT_ID_MON2_CTRL_BASE)
 		{
 		case AGENT_ID_MON2_PB_R_BLOCK_SEL: { 
-			st_mon2.read_disp_block++; if (st_mon2.read_disp_block == N_PLCIO_DISP_RBLK) st_mon2.read_disp_block = 0;
-			monwos.str(L""); monwos << L"R:"<< st_mon2.read_disp_block+1 << L"/" << N_PLCIO_DISP_RBLK;
+			if (++i_page_r >= n_page_r)i_page_r = 0;
+			monwos.str(L""); monwos << L"R:" << i_page_r + 1 << L"/" << n_page_r;
 			SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
+			i_ref_r = i_page_r * AGENT_MON2_MSG_DISP_N__DATAROW * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
 		}break;
 		case AGENT_ID_MON2_PB_W_BLOCK_SEL: { 
-			st_mon2.write_disp_block++; if (st_mon2.write_disp_block == N_PLCIO_DISP_WBLK) st_mon2.write_disp_block = 0;
-			monwos.str(L""); monwos << L"W:" << st_mon2.write_disp_block + 1 << L"/" << N_PLCIO_DISP_WBLK;
+			if (++i_page_w >= n_page_w)i_page_w = 0;
+			monwos.str(L""); monwos << L"W:" << i_page_w + 1 << L"/" << n_page_w;
 			SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
+			i_ref_w = i_page_w * AGENT_MON2_MSG_DISP_N__DATAROW * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
 		}break;
 		case AGENT_ID_MON2_PB_MSG_DISP_SEL: {
 			if (st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) {
@@ -426,7 +454,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon2.wo_res_w.str(L"");
 		switch (nEvent) {
 		case FD_READ: {
-			UINT nRtn = pMCSock->rcv_msg_3E();
+			UINT nRtn = pMCSock->rcv_msg_3E(pPLC_IO->buf_io_read);
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
 				
@@ -440,36 +468,18 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 						<< L"#UIO:" << pMCSock->mc_res_msg_r.nUIO
 						<< L"#Ucd:" << pMCSock->mc_res_msg_r.nUcode
 						<< L"#len:" << pMCSock->mc_res_msg_r.len
-						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n"
+						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n";
 
-						<< L"[Item]:" << plcio_rblk.defDWBlock[st_mon2.read_disp_block].text << L"\n";
+					if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)	st_mon2.wo_res_r << hex;
+					else													st_mon2.wo_res_r << dec;
 
-					LPST_PLCIO_BLK_PROPATY pblk = &plcio_rblk.defDWBlock[st_mon2.read_disp_block];
-					for (int i = pblk->index, k = 0; i < pblk->size; i++, k++)
-					{
-						if (pblk->type & NUM_FORMAT_TYPE_HEX) {
-							st_mon2.wo_res_r << hex;
-							if (pblk->type & NUM_FORMAT_TYPE_32) st_mon2.wo_req_r << setw(8);
-							else								 st_mon2.wo_req_r << setw(4);
-							st_mon2.wo_res_r << setfill(L'0');
+					for (int i = 0; i < AGENT_MON2_MSG_DISP_N__DATAROW; i++) {
+						int no = CC_MC_ADDR_W_WRITE + i_page_r * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
+						st_mon2.wo_res_r << L"D" << no << L" |";
+						for (int j = 0; j < AGENT_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
+							st_mon2.wo_res_r << pPLC_IO->buf_io_read[i_ref_r + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
 						}
-						else {
-							st_mon2.wo_res_r << dec;
-						}
-
-						switch (pblk->type) {
-						case NUM_FORMAT_TYPE_HEX16:
-						case NUM_FORMAT_TYPE_DEC16:
-						{
-							st_mon2.wo_res_r << pMCSock->mc_req_msg_r.req_data[i] << L" ";
-						}break;
-						case NUM_FORMAT_TYPE_HEX32: {
-						case NUM_FORMAT_TYPE_DEC32: {
-							UINT32* p32 = (UINT32*)(&pMCSock->mc_req_msg_r.req_data[i + k * 2]);
-							st_mon2.wo_res_r << *p32 << L" ";
-						}break;
-						}
-						}
+						st_mon2.wo_res_r << L"\n";
 					}
 					SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 				}

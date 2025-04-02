@@ -4,7 +4,6 @@
 #include "CSHAREDMEM.H"
 #include "PLC_DEF.h"
 
-
 //MON1----------------------------------------------------
 #define AGENT_MON1_WND_X            0
 #define AGENT_MON1_WND_Y            0
@@ -56,7 +55,7 @@ typedef struct _ST_AGENT_MON1 {
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AGENT_MON1_N_CTRL] = {
-        615,20, 615,20, 565,20, 615,100, 615,100,565,20, 0,0, 0,0,//Static
+        615,20, 615,20, 565,40, 615,120, 615,100,565,20, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
@@ -72,7 +71,7 @@ typedef struct _ST_AGENT_MON1 {
 #define AGENT_MON2_WND_X     AGENT_MON1_WND_X
 #define AGENT_MON2_WND_Y     620   
 #define AGENT_MON2_WND_W     640
-#define AGENT_MON2_WND_H     360
+#define AGENT_MON2_WND_H     400
 #define AGENT_MON2_N_CTRL    32
 #define AGENT_MON2_N_WCHAR   64
 
@@ -80,16 +79,14 @@ typedef struct _ST_AGENT_MON1 {
 #define AGENT_MON2_MSG_DISP_HEX 1
 #define AGENT_MON2_MSG_DISP_DEC 2
 
-#define N_AGENT_MON2_MSG_RBLK   8
-#define N_AGENT_MON2_MSG_WBLK   8
+#define AGENT_MON2_MSG_DISP_N__DATAROW      4
+#define AGENT_MON2_MSG_DISP_N_DATA_COLUMN   10
 
 typedef struct _ST_AGENT_MON2 {
     HWND hwnd_mon;
     int timer_ms = AGENT_PRM_MON2_TIMER_MS;
     bool is_monitor_active = false;
     int msg_disp_mode = AGENT_MON2_MSG_DISP_HEX;
-    int read_disp_block = 0;
-    int write_disp_block = 0;
 
     wostringstream wo_req_r, wo_res_r, wo_req_w, wo_res_w;
 
@@ -100,13 +97,13 @@ typedef struct _ST_AGENT_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[AGENT_MON2_N_CTRL] = {
-        5,5, 5,30, 5,55, 5,80, 5,185, 5,290,0,0, 0,0,//Static
+        5,5, 5,30, 5,55, 5,100, 5,205, 5,330,0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        570,55, 570,290, 510,5, 565,5, 0,0, 0,0, 0,0, 0,0,//PB
+        570,75, 570,330, 510,5, 565,5, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AGENT_MON2_N_CTRL] = {
-        615,20, 615,20, 565,20, 615,100, 615,100,565,20, 0,0, 0,0,//Static
+        615,20, 615,20, 565,40, 615,100, 615,120,565,20, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
@@ -181,14 +178,8 @@ private:
     }
 
     int input();//ì¸óÕèàóù
-
-    int parse() {           //ÉÅÉCÉìèàóù
-        return STAT_NG;
-    }
-
-    int output() {          //èoóÕèàóù
-        return STAT_NG;
-    }
+    int parse();            //ÉÅÉCÉìèàóù
+    int output(); 
     int close();
 };
 

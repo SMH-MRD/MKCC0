@@ -530,7 +530,9 @@ typedef struct _ST_CC_AGENT_INF {
 	int auto_active[MOTION_ID_MAX];					//自動実行中フラグ(軸毎)
 	int axis_status[MOTION_ID_MAX];					//各軸の状態（fb0,異常等）
 
+	INT16 notch_ref[MOTION_ID_MAX] = { 0,0,0,0,0,0,0,0 };	//ノッチ指令値
 	double v_ref[MOTION_ID_MAX];					//速度指令出力値
+
 	ST_COMMAND_SET st_active_com_inf;				//実行中コマンドセット情報
 
 	int as_count[MOTION_ID_MAX];					//振れ止めレシピ作成呼び出し回数
@@ -696,19 +698,20 @@ typedef struct _ST_CC_OTE_INF {
 typedef struct _ST_OTE_ENV {
 	ST_DEVICE_CODE device_code;
 
-	UINT32			target_crane;		//接続対象クレーン
-	UINT32			ote_mode;			//操作端末モード
-	UINT32			ote_id;				//端末ID
-	UINT32			grip_mode;			//グリップスイッチモード
-	UINT32			gpad_mode = L_OFF;	//ゲームパッドモード
+	UINT32			target_crane;			//接続対象クレーン
+	UINT32			ote_mode;				//操作端末モード
+	UINT32			ote_id;					//端末ID
+	UINT32			grip_mode;				//グリップスイッチモード
+	UINT32			gpad_mode = L_OFF;		//ゲームパッドモード
 	DIJOYSTATE		pad_data;
 }ST_OTE_ENV, * LPST_OTE_ENV;
-#pragma endregion 操作卓PLCとの通信他
+#pragma endregion 
 
 //## OTE_CS_INF
 #pragma region OTE_CS_INF
 typedef struct _ST_OTE_CS_INF {
-	int a;
+	INT16 buf_io_read[CC_MC_SIZE_W_READ];	//PLCからの読み取り信号生値
+	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他
 
