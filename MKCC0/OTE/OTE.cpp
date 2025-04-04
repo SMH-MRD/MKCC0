@@ -23,7 +23,7 @@ WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキ�
 WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
 
 //共有メモリオブジェクト
-CSharedMem* pOteEnvObj;
+CSharedMem* pOteEnvInfObj;
 CSharedMem* pOteCsInfObj;
 CSharedMem* pOteCcInfObj;
 CSharedMem* pOteUiObj;
@@ -76,7 +76,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // 共有メモリオブジェクトのインスタンス化
-    pOteEnvObj      = new CSharedMem;
+    pOteEnvInfObj   = new CSharedMem;
     pOteCsInfObj    = new CSharedMem;
     pOteCcInfObj    = new CSharedMem;
     pOteUiObj       = new CSharedMem;
@@ -163,11 +163,25 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     pszInifile = dstpath;
 
     ///-共有メモリ割付&設定##################
-    if (OK_SHMEM != pOteEnvObj->create_smem(    SMEM_OTE_ENV_NAME	 , sizeof(ST_OTE_ENV), MUTEX_OTE_ENV_NAME)) return(FALSE);
+    if (OK_SHMEM != pOteEnvInfObj->create_smem(    SMEM_OTE_ENV_NAME , sizeof(ST_OTE_ENV_INF), MUTEX_OTE_ENV_NAME)) return(FALSE);
     if (OK_SHMEM != pOteCsInfObj->create_smem(  SMEM_OTE_CS_INF_NAME , sizeof(ST_OTE_CS_INF), MUTEX_OTE_CS_INF_NAME)) return(FALSE);
     if (OK_SHMEM != pOteCcInfObj->create_smem(  SMEM_OTE_UI_NAME	 , sizeof(ST_OTE_CC_IF), MUTEX_OTE_UI_NAME)) return(FALSE);
     if (OK_SHMEM != pOteUiObj->create_smem(     SMEM_OTE_CC_IF_NAME	 , sizeof(ST_OTE_UI), MUTEX_OTE_CC_IF_NAME)) return(FALSE);
     
+    //デバイスコードセット
+    LPST_OTE_ENV_INF pEnvStat = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
+   
+    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
+    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
+
+    WCHAR wbuf[16];
+    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+    swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.serial_no));
+
+    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
+    swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));
+
+
     HBITMAP hBmp;
     CBasicControl* pobj;
     int task_index = 0;
@@ -403,7 +417,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 VOID CloseApp()
 {
-    delete pOteEnvObj;
+    delete pOteEnvInfObj;
     delete pOteCsInfObj;
     delete pOteCcInfObj;
     delete pOteUiObj;

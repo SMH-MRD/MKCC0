@@ -50,6 +50,12 @@ namespace OTE
 #define SMEM_SECT_OF_INIFILE			L"SMEM"			//共有メモリセクション
 #define SYSTEM_SECT_OF_INIFILE			L"SYSTEM"		//システム設定セクション
 
+ //システム関連キー
+#define ODER_CODE_KEY_OF_INIFILE        L"ORDER_CODE"
+#define PC_TYPE_KEY_OF_INIFILE          L"PC_TYPE"
+#define PC_SERIAL_KEY_OF_INIFILE        L"PC_SERIAL"
+#define PC_OPTION_KEY_OF_INIFILE        L"PC_OPTION"
+
 //各セクションの各タスク用の情報を参照するためのキー
 #define MAIN_KEY_OF_INIFILE				L"MAIN"
 #define ENV_KEY_OF_INIFILE	            L"ENV"

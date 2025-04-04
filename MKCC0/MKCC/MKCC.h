@@ -51,6 +51,12 @@ namespace MKCC
 #define SYSTEM_SECT_OF_INIFILE			L"SYSTEM"		//システム設定セクション
 #define SYSTEM_SECT_OF_SIMULATION		L"SIM"		    //シミュレーションセクション
 
+//システム関連キー
+#define ODER_CODE_KEY_OF_INIFILE        L"ORDER_CODE"
+#define PC_TYPE_KEY_OF_INIFILE          L"PC_TYPE"
+#define PC_SERIAL_KEY_OF_INIFILE        L"PC_SERIAL"
+#define PC_OPTION_KEY_OF_INIFILE        L"PC_OPTION"
+
 //各セクションの各タスク用の情報を参照するためのキー
 #define MAIN_KEY_OF_INIFILE				L"MAIN"
 #define ENV_KEY_OF_INIFILE	            L"ENV"
@@ -65,10 +71,13 @@ namespace MKCC
 #define ID_STATUS_BAR				5099
 #define IDC_OBJECT_BASE				5100
 
-
 #define PRM_N_TASK_MSGLIST_ROW      100 //タスクメッセージリスト行数
+#define PRM_N_MCC_COLOR_BRUSH       8   //タスクメッセージリスト行数
 
     typedef struct _ST_MAIN_WND {
+        DWORD com_static_set     = 0;//タスクメッセージ表示スタティックの設定コマンド
+        DWORD com_prm_set_color  = 0;
+        HBRUSH hbrush[PRM_N_MCC_COLOR_BRUSH];
         HWND hWnd_status_bar;
         HWND hWnd;
     } ST_MAIN_WND, * LPST_MAIN_WND;

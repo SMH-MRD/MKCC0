@@ -4,14 +4,16 @@
 
 #include "PLC_DEF.h"
 
-#define ID_OTE0					0xFF
-#define ID_PC0					0x1FF
+//操作端末ID
+#define ID_OTE0					0xFFFF	//制御PC内端末
+#define ID_RMT01				0x0001	//制御PC内端末
+#define ID_RMT02				0x0002	//制御PC内端末
 
-//操作端末のボタン、ランプ数
+//操作端末のテキスト,ボタン、ランプ数
 #define N_OTE_PNL_ITEMS			128
 #define N_OTE_PNL_STATIC		128
-#define N_OTE_PNL_NOTCH			128
-#define N_OTE_PNL_PB			128
+#define N_OTE_PNL_NOTCH			8	
+#define N_OTE_PNL_PBL			128
 
 //**************************************************************************************
 //通信電文フォーマット
@@ -32,11 +34,11 @@
 
 /******* 共通メッセージヘッダ部 ***********/
 typedef struct OteComHead {
-	INT32       myid;		//装置ID
-	INT32       code;		//要求内容コード
-	SOCKADDR_IN addr;		//送信元受信アドレス
-	INT32       status;		//状態
-	INT32       tgid;		//接続中機器ID
+	ST_DEVICE_CODE	myid;		//装置ID
+	SOCKADDR_IN		addr;		//送信元受信アドレス
+	INT32			code;		//要求内容コード
+	INT32			status;		//状態
+	INT32			tgid;		//接続中機器ID
 }ST_OTE_HEAD, * LPST_OTE_HEAD;
 /******* PCマルチキャストメッセージ ***********/
 typedef struct PcMBody {
@@ -93,12 +95,6 @@ typedef struct OteLampCom {
 	UINT8 color;
 }ST_OTE_LAMP_COM, * LPST_OTE_LAMP_COM;
 
-typedef struct OteXYZ {
-	double x;
-	double y;
-	double z;
-}ST_OTE_XYZ, * LPST_OTE_XYZ;
-
 
 #define OTE_N_LOAD					2	//吊荷数
 #define OTE_N_PC_MSG_WCHAR			128	//PCからのメッセージテキスト数
@@ -109,24 +105,24 @@ typedef struct OteXYZ {
 #define OTE_ID_SWY_AXIS_Y			ID_BOOM_H
 
 typedef struct PcUBody {
-	ST_OTE_LAMP_COM		pb_lamp[N_OTE_PNL_PB];
+	ST_OTE_LAMP_COM		pb_lamp[N_OTE_PNL_PBL];
 	ST_OTE_LAMP_COM		notch_lamp[N_OTE_PNL_NOTCH];
-	ST_PLC_READ			plc_in;//PLC IFデータ
+	INT16				buf_io_read[CC_MC_SIZE_W_READ];			//PLC READデータ
 	double				pos[MOTION_ID_MAX];						//位置FBm
 	double				v_fb[MOTION_ID_MAX];					//速度FB
 	double				nv_ref[MOTION_ID_MAX];					//速度指令(モータ回転数）
 	double				mhl;									//主巻ロープ長
 	double				ahl;									//補巻ロープ長
-	ST_OTE_XYZ			mhld_pos;								//主巻吊荷位置FB（吊点相対位置）
-	ST_OTE_XYZ			ahld_pos;								//補巻吊荷位置FB（吊点相対位置）
-	INT32				brk[MOTION_ID_MAX];						//ブレーキ状態
 	double				auro_tg_pos[MOTION_ID_MAX];				//現在目標位置座標
+//	ST_DXYZ				mhld_pos;								//主巻吊荷位置FB（吊点相対位置）
+//	ST_DXYZ				ahld_pos;								//補巻吊荷位置FB（吊点相対位置）
+	INT32				brk[MOTION_ID_MAX];						//ブレーキ状態
 	INT32				auto_status[MOTION_ID_MAX];				//自動運転状態
 	INT32				swy_cam_pix[OTE_N_LOAD][MOTION_ID_MAX];	//振れセンサカメラ検出位置
 	INT32				message_count;							//メッセージを更新する毎にカウントアップ
 	INT32				message_id;								//固定メッセージのID
 	WCHAR				message[OTE_N_PC_MSG_WCHAR];			//メッセージIDが‐の時に表示するテキスト
-	INT32				ctrl_source;
+	INT32				ctrl_source;							//主幹（ログイン	
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 typedef struct PcUMsg {
 	ST_OTE_HEAD     head;
@@ -145,8 +141,8 @@ typedef struct PcUMsg {
 
 
 typedef struct OteUBody {
-	UINT16		pb_ope[128];					//操作卓PB入力
-	UINT16		pb_notch[128];					//操作卓ノッチ入力
+	INT16		pb_ope[128];					//操作卓PB入力
+	INT16		pb_notch[128];					//操作卓ノッチ入力
 	INT16		notch_pos[2][MOTION_ID_MAX];	//ノッチ入力位置
 	double		auto_tg_pos[MOTION_ID_MAX];		//自動目標位置
 	INT32		auto_sel[MOTION_ID_MAX];		//自動動作対象軸

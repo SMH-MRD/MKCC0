@@ -19,11 +19,11 @@ ST_OTE_CC_IF CAgent::st_work;
 
 //共有メモリ参照用定義
 static CSharedMem* pOteCcIfObj;
-static CSharedMem* pOteEnvObj;
+static CSharedMem* pOteEnvInfObj;
 static CSharedMem* pOteCsInfObj;
 static CSharedMem* pOteUIObj;
 
-static LPST_OTE_ENV		pOteEnv;
+static LPST_OTE_ENV_INF	pOteEnvInf;
 static LPST_OTE_UI		pOteUI;
 static LPST_OTE_CC_IF	pOteCCIf;
 static LPST_OTE_CS_INF	pOteCsInf;
@@ -43,14 +43,14 @@ static wostringstream wos_msg;
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
 	pOteCcIfObj = new CSharedMem;
-	pOteEnvObj	= new CSharedMem;
+	pOteEnvInfObj	= new CSharedMem;
 	pOteCsInfObj= new CSharedMem;
 	pOteUIObj	= new CSharedMem;
 }
 CAgent::~CAgent() {
 	// 共有メモリオブジェクトの解放
 	delete pOteCcIfObj;
-	delete pOteEnvObj;
+	delete pOteEnvInfObj;
 	delete pOteCsInfObj;
 	delete pOteUIObj;
 }
@@ -69,7 +69,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	set_outbuf(pOteCcIfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pOteEnvObj->create_smem(SMEM_OTE_ENV_NAME, sizeof(ST_OTE_ENV), MUTEX_OTE_ENV_NAME)) {
+	if (OK_SHMEM != pOteEnvInfObj->create_smem(SMEM_OTE_ENV_NAME, sizeof(ST_OTE_ENV_INF), MUTEX_OTE_ENV_NAME)) {
 		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
 	}
 	if (OK_SHMEM != pOteCsInfObj->create_smem(SMEM_OTE_CS_INF_NAME, sizeof(ST_CC_PLC_IO), MUTEX_OTE_CS_INF_NAME)) {
@@ -82,9 +82,9 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pOteCCIf = (LPST_OTE_CC_IF)(pOteCcIfObj->get_pMap());
 	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
 	pOteUI = (LPST_OTE_UI)pOteUIObj->get_pMap();
-	pOteEnv = (LPST_OTE_ENV)pOteEnvObj->get_pMap();
+	pOteEnvInf = (LPST_OTE_ENV_INF)pOteEnvInfObj->get_pMap();
 
-	if ((pOteCCIf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteEnv == NULL))
+	if ((pOteCCIf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteEnvInf == NULL))
 		hr = S_FALSE;
 
 	if (hr == S_FALSE) {
@@ -362,6 +362,13 @@ HRESULT CAgent::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// OTEユニキャスト電文送信処理 
 /// </summary>
 LPST_OTE_U_MSG CAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
+
+	pOteCCIf->st_msg_ote_u_snd.head.myid = pOteEnvInf->device_code;
+	pOteCCIf->st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
+	pOteCCIf->st_msg_ote_u_snd.head.code = code;
+	pOteCCIf->st_msg_ote_u_snd.head.status = stat;
+	pOteCCIf->st_msg_ote_u_snd.head.tgid = 0;
+
 	return &pOteCCIf->st_msg_ote_u_snd;
 }
 HRESULT CAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {

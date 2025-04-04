@@ -269,6 +269,13 @@ HRESULT CCcCS::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// PCユニキャスト電文送信処理 
 /// </summary>
 LPST_PC_U_MSG CCcCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
+	
+	pOTE_Inf->st_msg_pc_u_snd.head.myid = pCraneStat->device_code;
+	pOTE_Inf->st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
+	pOTE_Inf->st_msg_pc_u_snd.head.code = code;
+	pOTE_Inf->st_msg_pc_u_snd.head.status = stat;
+	pOTE_Inf->st_msg_pc_u_snd.head.tgid = 0;
+
 	return &pOTE_Inf->st_msg_pc_u_snd;
 }
 

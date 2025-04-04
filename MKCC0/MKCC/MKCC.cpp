@@ -186,19 +186,18 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //  クレーンオブジェクトセットアップ
    LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
    pCraneBase = new CCraneBase(CARNE_ID_HHGH29, pPlcIo->buf_io_read, pPlcIo->buf_io_write);
-
-
+ 
    //デバイスコードセット
    LPST_CC_ENV_INF pCraneStat = (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
- 
-   pCraneStat->device_code = {
-	CRANE_TYPE_JC1,      //クレーン種別ID
-	CRANE_ID_H6R602,   //製番コード
-	'C',                //PC TYPE
-	0,                  //PCシリアル番号
-	0,0
-   };
+   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", pCraneStat->device_code.crane_id, _countof(pCraneStat->device_code.crane_id), PATH_OF_INIFILE);
+        	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", pCraneStat->device_code.pc_type, _countof(pCraneStat->device_code.pc_type), PATH_OF_INIFILE);
    
+   WCHAR wbuf[16];
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf,L"%d", & (pCraneStat->device_code.serial_no));
+ 
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(pCraneStat->device_code.option));
     
    HBITMAP hBmp;
    CBasicControl* pobj;
@@ -416,7 +415,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        // -ツイートメッセージ用Static window作成->リスト登録	
        pobj->inf.hwnd_msgstatics = CreateWindow(L"STATIC", L"...", WS_CHILD | WS_VISIBLE, MSG_WND_ORG_X, MSG_WND_ORG_Y + MSG_WND_H * i + i * MSG_WND_Y_SPACE, MSG_WND_W, MSG_WND_H, st_work_wnd.hWnd, (HMENU)(IDC_OBJECT_BASE + i), hInst, NULL);
        VectTweetHandle.push_back(pobj->inf.hwnd_msgstatics);
-
+ 
        //その他設定
        pobj->inf.psys_counter = &knl_manage_set.sys_counter;
        pobj->inf.act_count = 0;//起動チェック用カウンタリセット
@@ -494,7 +493,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         st_work_wnd.hWnd_status_bar = CreateStatusbarMain(hWnd);
         SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, 0, (LPARAM)L"-");
 
+        //ブラシ作成
+        MKCC_COLOR_PALLET c;
+        int r = RGBA_ID_RED, g = RGBA_ID_GREEN, b = RGBA_ID_BLUE, color;
+        color = COLOR_ID_DGRAY; st_work_wnd.hbrush[BC_BK_COLOR_DEFAULT]
+            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
+        color = COLOR_ID_WGREEN; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_GREEN]
+            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
+        color = COLOR_ID_WYELLOW; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_YELLOW]
+            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
+        color = COLOR_ID_WBLUE; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_BLUE]
+            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
+        color = COLOR_ID_WRED; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_RED]
+            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
+        color = COLOR_ID_WORANGE; st_work_wnd.hbrush[5] = st_work_wnd.hbrush[6] = st_work_wnd.hbrush[7]
+            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
+
     } break;
+
+    case WM_CTLCOLORSTATIC: {//lParam:対象STATICのハンドル,wParam：対象スタティックのDC
+        if (st_work_wnd.com_static_set) {//コマンドはタスクID
+            HWND _hwnd = VectTweetHandle[st_work_wnd.com_static_set];
+            if ((HWND)lParam == _hwnd){
+                HDC hdcStatic = (HDC)wParam;
+                SetBkMode(hdcStatic, TRANSPARENT);
+ //               st_work_wnd.com_static_set = 0;//コマンドクリア
+                return (LRESULT)st_work_wnd.hbrush[st_work_wnd.com_prm_set_color];
+            }
+        }
+        return NULL;
+    }break;
     case WM_COMMAND:
     {
         int wmId = LOWORD(wParam);
@@ -517,7 +545,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //ステータスバーにサイズ変更を通知
         SendMessage(st_work_wnd.hWnd_status_bar, WM_SIZE, wParam, lParam);
     }break;
-    case WM_NOTIFY://コモンコントロールでイベントが起こった場合、およびコモンコントロールが情報を親ウィンドウに要求する場合に、コモンコントロールの親ウィンドウに送信されます。
+    case WM_USER_SET_BK_COLOR_REQ: {//要求元タスク
+        st_work_wnd.com_prm_set_color   = lParam;
+        st_work_wnd.com_static_set      = wParam;
+    }break;
+     case WM_NOTIFY://コモンコントロールでイベントが起こった場合、およびコモンコントロールが情報を親ウィンドウに要求する場合に、コモンコントロールの親ウィンドウに送信されます。
     {
         int tab_index = TabCtrl_GetCurSel(((NMHDR*)lParam)->hwndFrom);//タブコントロールの選択タブID取得
 
@@ -547,7 +579,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         EndPaint(hWnd, &ps);
     }
     break;
-    case WM_DESTROY:
+    case WM_DESTROY: {
         timeKillEvent(knl_manage_set.KnlTick_TimerID);//マルチメディアタイマ停止
         ///-タスクスレッド終了##################
         for (unsigned i = 0; i < VectCtrlObj.size(); i++) {
@@ -557,10 +589,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         Sleep(1000);//スレッド終了待機
 
+        for (int i = 0; i < PRM_N_MCC_COLOR_BRUSH; i++) {
+            DeleteObject(st_work_wnd.hbrush[i]);
+        }
+
         CloseApp();
 
         PostQuitMessage(0);
-        break;
+    } break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

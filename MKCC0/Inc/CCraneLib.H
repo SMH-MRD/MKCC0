@@ -9,10 +9,17 @@
 using namespace std;
 
 typedef struct _ST_CRANE_OBJ {
+	//Healthy
+	CWordIO* healthy;
 
+	//CRANE CONTROL
+	CBitIO* flg_pc_ctrl;
+	CBitIO* sw_remote_mode;
+	CBitIO* flg_panel_sim_mode;
+	
+	//B220-B26F
 	CNotchIO* notch[MOTION_ID_MAX];
 
-	//B220-B26F
 	CBitIO* pb_ctrl_source_on;
 	CBitIO* pb_ctrl_source_off;
 	CModeIO* cs3_mh_spd; 

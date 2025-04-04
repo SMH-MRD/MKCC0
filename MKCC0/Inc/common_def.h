@@ -118,7 +118,6 @@
 
 #pragma endregion 種別
 
-
 #pragma region RESPONCE
 #define L_ON            0x01    // ON
 #define L_OFF           0x00    // OFF
@@ -137,7 +136,8 @@
 #pragma region MESSAGE
 // タスクスレッドからの要求イベント
 //wp:要求イベントのハンドル要求種別　lp:パラメータ
-#define WM_USER_TASK_REQ         0x0405          // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD    
+#define WM_USER_TASK_REQ         0x0405         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
+#define WM_USER_SET_BK_COLOR_REQ 0x0406         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
 #define WM_USER_WPH_OPEN_IF_WND  0x0001         // wp　code IFウィンドウOPEN   lp ウィンドウのID
 #define WM_USER_WPH_CLOSE_IF_WND 0x0002         // wp　code IFウィンドウCLOSE   lp ウィンドウのID
 
@@ -219,20 +219,26 @@
 
 #pragma endregion タスクエラービット定義
 
-
+//デバイスコード
 typedef struct _ST_DEVICE_CODE {
-    char  crane_type; //クレーン種別ID
-	char  crane_id;   //製番コード
-    char  pc_type;    //PC TYPE
-    char  pc_serial;  //PCシリアル番号
-    UINT16  option[2];
+	WCHAR crane_id[7];   //製番コード
+    WCHAR pc_type[7];    //PC TYPE
+    INT32 serial_no;
+    INT32 option;
  }ST_DEVICE_CODE, * LPST_DEVICE_CODE;
-
+//基本構造体
 typedef struct _ST_MOVE_SET {
     double p;	//位置
     double v;	//速度
     double a;	//加速度
 }ST_MOVE_SET, * LPST_MOVE_SET;
+
+typedef struct _ST_XYZ {
+    double x;
+    double y;
+    double z;
+}ST_XYZ, * LPST_XYZ;
+
 
 ///#ビット定義 
 #pragma region BIT_DEF
@@ -255,3 +261,50 @@ typedef struct _ST_MOVE_SET {
 #define BIT15       0x8000
 #pragma endregion ビット定義
 
+///# カラーパレット
+#pragma region COLOR
+
+#define COLOR_ID_BLACK      0
+#define COLOR_ID_DGRAY      1
+#define COLOR_ID_LGRAY      2
+#define COLOR_ID_WHITE      3
+#define COLOR_ID_SRED       4   //STRONG
+#define COLOR_ID_DRED       5   //DARK
+#define COLOR_ID_LRED       6   //LIGHT
+#define COLOR_ID_WRED       7   //WEAK
+#define COLOR_ID_SGREEN     8   //STRONG
+#define COLOR_ID_DGREEN     9   //DARK
+#define COLOR_ID_LGREEN     10  //LIGHT
+#define COLOR_ID_WGREEN     11  //WEAK
+#define COLOR_ID_SBLUE      12  //STRONG
+#define COLOR_ID_DBLUE      13  //DARK
+#define COLOR_ID_LBLUE      14  //LIGHT
+#define COLOR_ID_WBLUE      15  //WEAK
+#define COLOR_ID_SYELLOW    16  //STRONG
+#define COLOR_ID_DYELLOW    17  //DARK
+#define COLOR_ID_LYELLOW    18  //LIGHT
+#define COLOR_ID_WYELLOW    19  //WEAK
+#define COLOR_ID_SORANGE    20  //STRONG
+#define COLOR_ID_DORANGE    21  //DARK
+#define COLOR_ID_LORANGE    22  //LIGHT
+#define COLOR_ID_WORANGE    23  //WEAK
+
+#define RGBA_ID_RED         0
+#define RGBA_ID_GREEN       1
+#define RGBA_ID_BLUE        2
+#define RGBA_ID_ALPHA       3
+
+typedef struct _MKCC_COLOR_PALLET {
+    BYTE rgba[32][4] = {
+        //GRAY                                                      RED     
+        {0,0,0,0},{192,192,192,0},{240,240,240,0},{255,255,255,0},  {128,0,0,0},{64,0,0,0},{32,0,0,0},{255, 201, 252, 0},
+        //GREEN                                                     BLUE     
+        {0,255,0,0},{0,255,0,0},{211, 255, 222},{211, 255, 222},    {0,0,255,0},{0,0,255,0},{153, 255, 249, 0},{153, 255, 249, 0},
+        //YELLOW                                                    ORANGE       
+        {255,255,0,0},{255,255,0,0},{255, 248, 51},{255, 248, 51},  {255,106,0,0},{255,106,0,0},{255,221,198,0},{255,221,198,0},
+        //-                                                         -       
+        {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},                    {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}
+    };
+}MKCC_COLOR_PALLET, * LPMKCC_COLOR_PALLET;
+
+#pragma endregion

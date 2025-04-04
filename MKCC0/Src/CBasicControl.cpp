@@ -94,12 +94,19 @@ LRESULT CALLBACK CBasicControl::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM
 	return 0;
 };
 
-///###	メインパネルの
+///###	メインパネルのスタティックテキストへ出力
 void CBasicControl::msg2host(wstring wstr) {
 
 	if(inf.hwnd_msgstatics != NULL) SetWindowTextW(inf.hwnd_msgstatics, wstr.c_str());
 	return;
 }
+void CBasicControl::set_color_of_hostmsg(int txtr, int txtg, int txtb, int bkr, int bkg, int bkb) {
+	HBRUSH hbrush = CreateSolidBrush(RGB(bkr, bkg, bkb));
+
+	//SetTextColor(inf.hwnd_msgstatics,)
+	return;
+}
+
 
 ///###	タブパネルのListViewにメッセージを出力
 void CBasicControl::msg2listview(wstring wstr) {

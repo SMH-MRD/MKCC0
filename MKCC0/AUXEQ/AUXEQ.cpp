@@ -166,6 +166,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AUX_AGENT_INF_NAME, sizeof(ST_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 
+   //デバイスコードセット
+   LPST_AUX_ENV_INF pEnvStat = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
+
+   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
+
+   WCHAR wbuf[16];
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.serial_no));
+
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));
+
    HBITMAP hBmp;
    CBasicControl* pobj;
    int task_index = 0;

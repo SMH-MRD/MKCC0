@@ -560,7 +560,7 @@ typedef struct _ST_CC_CS_INF {
 	double ote_camera_height_m;											//操作端末VIEWのカメラ設置高さ
 
 	//UI関連
-	ST_OTE_LAMP_COM ote_pb_lamp[N_OTE_PNL_PB];							//端末ランプ表示指令
+	ST_OTE_LAMP_COM ote_pb_lamp[N_OTE_PNL_PBL];							//端末ランプ表示指令
 	ST_OTE_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH];					//端末ランプ表示指令
 
 	INT16	notch_pos[2][MOTION_ID_MAX];								//ノッチ指定値
@@ -695,7 +695,7 @@ typedef struct _ST_CC_OTE_INF {
 #define MUTEX_OTE_CC_IF_NAME		L"MU_OTE_CC_IF"
 
 #pragma region OTE_INF
-typedef struct _ST_OTE_ENV {
+typedef struct _ST_OTE_ENV_INF {
 	ST_DEVICE_CODE device_code;
 
 	UINT32			target_crane;			//接続対象クレーン
@@ -704,7 +704,7 @@ typedef struct _ST_OTE_ENV {
 	UINT32			grip_mode;				//グリップスイッチモード
 	UINT32			gpad_mode = L_OFF;		//ゲームパッドモード
 	DIJOYSTATE		pad_data;
-}ST_OTE_ENV, * LPST_OTE_ENV;
+}ST_OTE_ENV_INF, * LPST_OTE_ENV_INF;
 #pragma endregion 
 
 //## OTE_CS_INF
@@ -743,8 +743,8 @@ typedef struct _ST_OTE_CC_IF {
 #pragma region OTE_UI
 typedef struct _ST_OTE_UI {
 	DWORD notch_pos_gmpad[MOTION_ID_MAX];
-	UINT16 pb_stat[N_OTE_PNL_PB];						//PB状態 OFFディレイカウント
-	UINT16 notch_pb_stat[N_OTE_PNL_PB];					//PB状態 OFFディレイカウント
+	UINT16 pb_stat[N_OTE_PNL_PBL];						//PB状態 OFFディレイカウント
+	UINT16 notch_pb_stat[N_OTE_PNL_PBL];					//PB状態 OFFディレイカウント
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 

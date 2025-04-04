@@ -501,7 +501,23 @@ HRESULT CCraneBase::setup_crane(int crane_id) {
 
 		LPST_PLC_WRITE_HHGH29 pwbuf = (LPST_PLC_WRITE_HHGH29)_buf_if_w;
 		LPST_PLC_READ_HHGH29  prbuf = (LPST_PLC_READ_HHGH29 )_buf_if_r;
-		
+	
+		//* 制御信号　**********************************************
+		//Healthy
+		pw16 = &(pwbuf->helthy); pr16 = &(prbuf->helthy);
+		objs.healthy = new CWordIO(pr16,pw16,NULL,NULL);
+
+		//CRANE CONTROL
+		pw16 = &(pwbuf->ctrl_mode); pr16 = &(prbuf->plc_ctrl);
+		prmw16 = prmr16 = BIT0;
+		objs.flg_pc_ctrl = new CBitIO(pr16, pw16, &prmw16, &prmr16);
+
+		prmw16 = prmr16 = BIT1;
+		objs.sw_remote_mode = new CBitIO(pr16, pw16, &prmw16, &prmr16);
+
+		prmw16 = prmr16 = BIT2;
+		objs.flg_panel_sim_mode = new CBitIO(pr16, pw16, &prmw16, &prmr16);
+
 		//* 運転室 bレジスタ　**********************************************
 		pw016 = pwbuf->cab_bi;	pr016 = prbuf->cab_bi;
 		//B220

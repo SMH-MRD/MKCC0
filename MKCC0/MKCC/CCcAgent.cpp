@@ -181,15 +181,19 @@ int CAgent::parse() {//メイン処理
 /// <returns></returns>
 static INT16 healthy_count = 0;
 int CAgent::output() {
-	pPLC_IO->buf_io_write[0] = healthy_count++;
+	//ヘルシー出力
+	CCraneBase::objs.healthy->write_io(healthy_count++);
+
+	//制御指令出力
+	CCraneBase::objs.flg_pc_ctrl->write_io(L_ON);
+	CCraneBase::objs.sw_remote_mode->write_io(L_ON);
+	CCraneBase::objs.flg_panel_sim_mode->write_io(L_ON);
 
 	//ノッチ指令出力
 	CCraneBase::objs.notch[ID_HOIST]->write_io(st_work.notch_ref[ID_HOIST]);
 	CCraneBase::objs.notch[ID_GANTRY]->write_io(st_work.notch_ref[ID_GANTRY]);
 	CCraneBase::objs.notch[ID_BOOM_H]->write_io(st_work.notch_ref[ID_BOOM_H]);
 	CCraneBase::objs.notch[ID_SLEW]->write_io(st_work.notch_ref[ID_SLEW]);
-
-
 
 	return S_OK;
 }
@@ -204,7 +208,9 @@ int CAgent::close() {
 /****************************************************************************/
 static wostringstream monwos;
 
-
+/// <summary>
+/// MON1 コールバック関数
+/// </summary>
 LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
@@ -250,10 +256,12 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 };
 
+/// <summary>
+/// Mon2 コールバック関数
+/// </summary>
 static bool is_write_req_turn = false;//書き込み要求送信の順番でtrue
 static int n_page_w = 5, i_page_w = 0, i_ref_w = 0;
 static int n_page_r = 5, i_page_r = 0, i_ref_r = 0;
-
 LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
@@ -321,14 +329,15 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#d_code:"	<< pMCSock->mc_req_msg_w.d_code
 					<< L"#n_dev:"	<< pMCSock->mc_req_msg_w.n_device << L"\n";
 
-				if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
-				else													st_mon2.wo_req_w << dec;
-
 				for (int i = 0; i < AGENT_MON2_MSG_DISP_N__DATAROW; i++) {
-					int no = CC_MC_ADDR_W_READ + i_page_w * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
-					st_mon2.wo_req_w << L"D"<< no << L" |";
+					int no = CC_MC_ADDR_W_WRITE + i_page_w * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
+					st_mon2.wo_req_w << L"D"<< dec << no << L" |";
+					if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
 					for (int j = 0; j < AGENT_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
-						st_mon2.wo_req_w << pPLC_IO->buf_io_write[i_ref_w + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+						if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)
+							st_mon2.wo_req_w << std::setw(4) << std::setfill(L'0') << pPLC_IO->buf_io_write[i_ref_w + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+						else
+							st_mon2.wo_req_w << std::setw(6) << std::setfill(L' ') << pPLC_IO->buf_io_write[i_ref_w + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
 					}
 					st_mon2.wo_req_w << L"\n";
 				}
@@ -470,14 +479,15 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 						<< L"#len:" << pMCSock->mc_res_msg_r.len
 						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n";
 
-					if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)	st_mon2.wo_res_r << hex;
-					else													st_mon2.wo_res_r << dec;
-
-					for (int i = 0; i < AGENT_MON2_MSG_DISP_N__DATAROW; i++) {
-						int no = CC_MC_ADDR_W_WRITE + i_page_r * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
-						st_mon2.wo_res_r << L"D" << no << L" |";
+						for (int i = 0; i < AGENT_MON2_MSG_DISP_N__DATAROW; i++) {
+						int no = CC_MC_ADDR_W_READ + i_page_r * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
+						st_mon2.wo_res_r << L"D" << dec << no << L" |";
+						if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)	st_mon2.wo_res_r << hex;
 						for (int j = 0; j < AGENT_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
-							st_mon2.wo_res_r << pPLC_IO->buf_io_read[i_ref_r + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+							if (st_mon2.msg_disp_mode == AGENT_MON2_MSG_DISP_HEX)
+							st_mon2.wo_res_r << std::setw(4) << std::setfill(L'0') << pPLC_IO->buf_io_read[i_ref_r + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+						else
+							st_mon2.wo_res_r << std::setw(6) << std::setfill(L' ') << pPLC_IO->buf_io_read[i_ref_r + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
 						}
 						st_mon2.wo_res_r << L"\n";
 					}
@@ -545,6 +555,9 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 }
 
+/// <summary>
+/// モニタ関連関数
+/// </summary>
 HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
@@ -692,12 +705,16 @@ LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
-			case IDC_TASK_FUNC_RADIO4:
+			case IDC_TASK_FUNC_RADIO1: {
+				WPARAM wp = inf.index;
+				LPARAM lp = BC_BK_COLOR_LIGHT_GREEN;
+				SendMessage(inf.hwnd_parent, WM_USER_SET_BK_COLOR_REQ, wp, lp);
+			}break;
+			case IDC_TASK_FUNC_RADIO4: {
 				set_item_chk_txt();
-				break;
+			}break;
 			default:break;
 			}
-
 		}break;
 		case IDC_TASK_ITEM_CHECK2:
 		case IDC_TASK_ITEM_CHECK3:

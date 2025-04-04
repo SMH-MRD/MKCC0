@@ -19,7 +19,7 @@ static CSharedMem* pOteEnvObj;
 static CSharedMem* pOteCsInfObj;
 static CSharedMem* pOteUIObj;
 
-static LPST_OTE_ENV		pOteEnv;
+static LPST_OTE_ENV_INF	pOteEnvInf;
 static LPST_OTE_UI		pOteUI;
 static LPST_OTE_CC_IF	pOteCCIf;
 static LPST_OTE_CS_INF	pOteCsInf;
@@ -63,7 +63,7 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	set_outbuf(pOteCsInfObj->get_pMap());
 
 	//### “ü—Í—p‹¤—Lƒƒ‚ƒŠŽæ“¾
-	if (OK_SHMEM != pOteEnvObj->create_smem(SMEM_OTE_ENV_NAME, sizeof(ST_OTE_ENV), MUTEX_CRANE_STAT_CC_NAME)) {
+	if (OK_SHMEM != pOteEnvObj->create_smem(SMEM_OTE_ENV_NAME, sizeof(ST_OTE_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) {
 		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
 	}
 	if (OK_SHMEM != pOteUIObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_OTE_UI), MUTEX_OTE_UI_NAME)) {
@@ -74,11 +74,11 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	}
 
 	pOteCCIf = (LPST_OTE_CC_IF)pOteCcIfObj->get_pMap();
-	pOteEnv = (LPST_OTE_ENV)(pOteEnvObj->get_pMap());
+	pOteEnvInf = (LPST_OTE_ENV_INF)(pOteEnvObj->get_pMap());
 	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
 	pOteUI = (LPST_OTE_UI)pOteUIObj->get_pMap();
 
-	if ((pOteEnv == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteCCIf == NULL))
+	if ((pOteEnvInf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteCCIf == NULL))
 		hr = S_FALSE;
 
 	if (hr == S_FALSE) {

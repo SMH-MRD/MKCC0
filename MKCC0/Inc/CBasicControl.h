@@ -43,6 +43,14 @@ using namespace std;
 
 #define BC_TASK_NAME_BUF_SIZE               32
 
+#define BC_BK_COLOR_DEFAULT                 0
+#define BC_BK_COLOR_LIGHT_GREEN             1
+#define BC_BK_COLOR_LIGHT_YELLOW            2
+#define BC_BK_COLOR_LIGHT_BLUE              3
+#define BC_BK_COLOR_LIGHT_RED               4
+
+#define BC_EVENT_REC_SET_BBK_COLOR          0x00000001
+
 // タスクスレッドID
 struct BC_TASK_ID
 {
@@ -195,6 +203,8 @@ public:
     virtual void set_item_chk_txt();
     //メインパネルのStaticWindowにコメント出力
     virtual void msg2host(wstring wstr);
+    virtual void set_color_of_hostmsg(int txtr, int txtg, int txtb, int bkr, int bkg, int bkb);
+
     //タブパネルのListViewにコメント出力
     virtual void msg2listview(wstring wstr);
 
