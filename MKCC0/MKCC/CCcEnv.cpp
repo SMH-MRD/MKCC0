@@ -5,6 +5,15 @@
 #include "AUXEQ_DEF.H"
 #include "CCraneLib.H"
 
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pPlcIoObj;
+extern CSharedMem* pJobIoObj;
+extern CSharedMem* pPolInfObj;
+extern CSharedMem* pAgInfObj;
+extern CSharedMem* pCsInfObj;
+extern CSharedMem* pSimuStatObj;
+extern CSharedMem* pOteInfObj;
+
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
 
@@ -13,16 +22,7 @@ ST_ENV_MON2 CCcEnv::st_mon2;
 
 ST_CC_ENV_INF CCcEnv::st_work;
 
-//共有メモリクラスオブジェクト
-static CSharedMem* pEnvInfObj;
-static CSharedMem* pPlcIoObj;
-static CSharedMem* pJobIoObj;
-static CSharedMem* pPolInfObj;
-static CSharedMem* pAgInfObj;
-static CSharedMem* pCsInfObj;
-static CSharedMem* pSimuStatObj;
-static CSharedMem* pOteIoObj;
-
+//共有メモリ
 static LPST_CC_ENV_INF		pEnvInf;
 static LPST_CC_PLC_IO		pPlcIo;
 static LPST_JOB_IO			pJobIo;
@@ -39,37 +39,12 @@ static LONG rcv_count_u = 0, snd_count_u = 0;
 /****************************************************************************/
 
 CCcEnv::CCcEnv() {
-	pEnvInfObj = new CSharedMem;
-	pPlcIoObj = new CSharedMem;
-	pJobIoObj = new CSharedMem;
-	pPolInfObj = new CSharedMem;
-	pAgInfObj = new CSharedMem;
-	pCsInfObj = new CSharedMem;
-	pSimuStatObj = new CSharedMem;
-	pOteIoObj = new CSharedMem;
 }
 CCcEnv::~CCcEnv() {
-	delete pEnvInfObj;
-	delete pPlcIoObj;
-	delete pJobIoObj;
-	delete pPolInfObj;
-	delete pAgInfObj;
-	delete pCsInfObj;
-	delete pSimuStatObj;
-	delete pOteIoObj;
 }
 
 HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
-
-	if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) return(FALSE);
-	if (OK_SHMEM != pPlcIoObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_CC_PLC_IO), MUTEX_PLC_IO_NAME)) return(FALSE);
-	if (OK_SHMEM != pJobIoObj->create_smem(SMEM_JOB_IO_NAME, sizeof(ST_JOB_IO), MUTEX_JOB_IO_NAME)) return(FALSE);
-	if (OK_SHMEM != pPolInfObj->create_smem(SMEM_POL_INF_CC_NAME, sizeof(ST_CC_POL_INF), MUTEX_POL_INF_CC_NAME)) return(FALSE);
-	if (OK_SHMEM != pAgInfObj->create_smem(SMEM_AGENT_INF_CC_NAME, sizeof(ST_CC_AGENT_INF), MUTEX_AGENT_INF_CC_NAME)) return(FALSE);
-	if (OK_SHMEM != pCsInfObj->create_smem(SMEM_CS_INF_CC_NAME, sizeof(ST_CC_CS_INF), MUTEX_CS_INF_CC_NAME)) return(FALSE);
-	if (OK_SHMEM != pSimuStatObj->create_smem(SMEM_SIM_INF_CC_NAME, sizeof(ST_CC_SIM_INF), MUTEX_SIM_INF_CC_NAME)) return(FALSE);
-	if (OK_SHMEM != pOteIoObj->create_smem(SMEM_OTE_INF_NAME, sizeof(ST_CC_OTE_INF), MUTEX_OTE_INF_NAME)) return(FALSE);
 
 	pEnvInf		= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPlcIo		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
@@ -78,7 +53,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	pAgentInf	= (LPST_CC_AGENT_INF)(pAgInfObj->get_pMap());
 	pCsInf		= (LPST_CC_CS_INF)(pCsInfObj->get_pMap());
 	pSimInf		= (LPST_CC_SIM_INF)(pSimuStatObj->get_pMap());
-	pOteInf		= (LPST_CC_OTE_INF)(pOteIoObj->get_pMap());
+	pOteInf		= (LPST_CC_OTE_INF)(pOteInfObj->get_pMap());
 
 	if ((pEnvInf == NULL) || (pPlcIo == NULL) || (pJobIo == NULL) || (pPolInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pSimInf == NULL) || (pOteInf == NULL)) {
 		hr = S_FALSE;

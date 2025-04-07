@@ -2,6 +2,11 @@
 #include "COteCS.h"
 #include "resource.h"
 
+extern CSharedMem* pOteEnvInfObj;
+extern CSharedMem* pOteCsInfObj;
+extern CSharedMem* pOteCcInfObj;
+extern CSharedMem* pOteUiObj;
+
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
 
@@ -13,18 +18,11 @@ ST_OTE_CS_INF COteCS::st_work;
 
 //共有メモリ参照用定義
 
-//共有メモリ参照用定義
-static CSharedMem* pOteCcIfObj;
-static CSharedMem* pOteEnvObj;
-static CSharedMem* pOteCsInfObj;
-static CSharedMem* pOteUIObj;
-
+//共有メモリ
 static LPST_OTE_ENV_INF	pOteEnvInf;
-static LPST_OTE_UI		pOteUI;
-static LPST_OTE_CC_IF	pOteCCIf;
+static LPST_OTE_UI		pOteUi;
+static LPST_OTE_CC_IF	pOteCCInf;
 static LPST_OTE_CS_INF	pOteCsInf;
-
-
 
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
@@ -33,19 +31,8 @@ static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 
 COteCS::COteCS() {
-	// 共有メモリオブジェクトのインスタンス化
-	pOteCcIfObj = new CSharedMem;
-	pOteEnvObj = new CSharedMem;
-	pOteCsInfObj = new CSharedMem;
-	pOteUIObj = new CSharedMem;
-
 }
 COteCS::~COteCS() {
-	// 共有メモリオブジェクトの解放
-	delete pOteCcIfObj;
-	delete pOteEnvObj;
-	delete pOteCsInfObj;
-	delete pOteUIObj;
 }
 
 HRESULT COteCS::initialize(LPVOID lpParam) {
@@ -63,22 +50,12 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	set_outbuf(pOteCsInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pOteEnvObj->create_smem(SMEM_OTE_ENV_NAME, sizeof(ST_OTE_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) {
-		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pOteUIObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_OTE_UI), MUTEX_OTE_UI_NAME)) {
-		err |= SMEM_NG_PLC_IO; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pOteCcIfObj->create_smem(SMEM_OTE_CC_IF_NAME, sizeof(ST_CC_CS_INF), MUTEX_OTE_CC_IF_NAME)) {
-		err |= SMEM_NG_CS_INF; hr = S_FALSE;
-	}
-
-	pOteCCIf = (LPST_OTE_CC_IF)pOteCcIfObj->get_pMap();
-	pOteEnvInf = (LPST_OTE_ENV_INF)(pOteEnvObj->get_pMap());
+	pOteCCInf = (LPST_OTE_CC_IF)pOteCcInfObj->get_pMap();
+	pOteEnvInf = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
 	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
-	pOteUI = (LPST_OTE_UI)pOteUIObj->get_pMap();
+	pOteUi = (LPST_OTE_UI)pOteUiObj->get_pMap();
 
-	if ((pOteEnvInf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteCCIf == NULL))
+	if ((pOteEnvInf == NULL) || (pOteCsInf == NULL) || (pOteUi == NULL) || (pOteCCInf == NULL))
 		hr = S_FALSE;
 
 	if (hr == S_FALSE) {

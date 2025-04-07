@@ -1,6 +1,15 @@
 #include "CCcPol.h"
 #include "resource.h"
 
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pPlcIoObj;
+extern CSharedMem* pJobIoObj;
+extern CSharedMem* pPolInfObj;
+extern CSharedMem* pAgInfObj;
+extern CSharedMem* pCsInfObj;
+extern CSharedMem* pSimuStatObj;
+extern CSharedMem* pOteInfObj;
+
 ST_POL_MON1 CPolicy::st_mon1;
 ST_POL_MON2 CPolicy::st_mon2;
 

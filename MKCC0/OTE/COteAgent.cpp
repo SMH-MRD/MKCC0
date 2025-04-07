@@ -4,10 +4,15 @@
 #include "framework.h"
 #include "OTE_DEF.H"
 
+extern CSharedMem* pOteEnvInfObj;
+extern CSharedMem* pOteCsInfObj;
+extern CSharedMem* pOteCcInfObj;
+extern CSharedMem* pOteUiObj;
+
 //ソケット
-static CSockUDP* pUSockPC;		//ユニキャストPC通信受信用
-static CSockUDP* pMSockOte;		//マルチキャストOTE通信受信用
-static CSockUDP* pMSockPC;		//マルチキャストPC通信受信用
+static CSockUDP* pUSockPC;					//ユニキャストPC通信受信用
+static CSockUDP* pMSockOte;					//マルチキャストOTE通信受信用
+static CSockUDP* pMSockPC;					//マルチキャストPC通信受信用
 
 static SOCKADDR_IN addrin_ote_m2pc_snd;		//OTE->PC OTEマルチキャスト送信先アドレス（PC受信用)
 static SOCKADDR_IN addrin_ote_m2ote_snd;	//PC->OTE OTEマルチキャスト送信先アドレス（OTE受信用)
@@ -17,11 +22,7 @@ ST_OTE_MON2 CAgent::st_mon2;
 
 ST_OTE_CC_IF CAgent::st_work;
 
-//共有メモリ参照用定義
-static CSharedMem* pOteCcIfObj;
-static CSharedMem* pOteEnvInfObj;
-static CSharedMem* pOteCsInfObj;
-static CSharedMem* pOteUIObj;
+//共有メモリ
 
 static LPST_OTE_ENV_INF	pOteEnvInf;
 static LPST_OTE_UI		pOteUI;
@@ -41,18 +42,8 @@ static wostringstream wos_msg;
 /*   デフォルト関数											                    */
 /****************************************************************************/
 CAgent::CAgent() {
-	// 共有メモリオブジェクトのインスタンス化
-	pOteCcIfObj = new CSharedMem;
-	pOteEnvInfObj	= new CSharedMem;
-	pOteCsInfObj= new CSharedMem;
-	pOteUIObj	= new CSharedMem;
 }
 CAgent::~CAgent() {
-	// 共有メモリオブジェクトの解放
-	delete pOteCcIfObj;
-	delete pOteEnvInfObj;
-	delete pOteCsInfObj;
-	delete pOteUIObj;
 }
 
 HRESULT CAgent::initialize(LPVOID lpParam) {
@@ -63,25 +54,15 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;	
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_OTE_CC_IF);
-	if (OK_SHMEM != pOteCcIfObj->create_smem(SMEM_OTE_CC_IF_NAME, out_size, MUTEX_OTE_CC_IF_NAME)) {
+	if (OK_SHMEM != pOteCcInfObj->create_smem(SMEM_OTE_CC_IF_NAME, out_size, MUTEX_OTE_CC_IF_NAME)) {
 		err |= SMEM_NG_CS_INF; hr = S_FALSE;
 	}
-	set_outbuf(pOteCcIfObj->get_pMap());
+	set_outbuf(pOteCcInfObj->get_pMap());
 
-	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pOteEnvInfObj->create_smem(SMEM_OTE_ENV_NAME, sizeof(ST_OTE_ENV_INF), MUTEX_OTE_ENV_NAME)) {
-		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pOteCsInfObj->create_smem(SMEM_OTE_CS_INF_NAME, sizeof(ST_CC_PLC_IO), MUTEX_OTE_CS_INF_NAME)) {
-		err |= SMEM_NG_PLC_IO; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pOteUIObj->create_smem(SMEM_OTE_UI_NAME, sizeof(ST_OTE_UI), MUTEX_OTE_UI_NAME)) {
-		err |= SMEM_NG_CS_INF; hr = S_FALSE;
-	}
-
-	pOteCCIf = (LPST_OTE_CC_IF)(pOteCcIfObj->get_pMap());
+	//### 共有メモリ取得
+	pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
 	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
-	pOteUI = (LPST_OTE_UI)pOteUIObj->get_pMap();
+	pOteUI = (LPST_OTE_UI)pOteUiObj->get_pMap();
 	pOteEnvInf = (LPST_OTE_ENV_INF)pOteEnvInfObj->get_pMap();
 
 	if ((pOteCCIf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteEnvInf == NULL))
@@ -572,15 +553,16 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_pc_u_rcv.head;
 				LPST_PC_U_BODY pb0 = &pOteCCIf->st_msg_pc_u_rcv.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
+				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option << L"\n"
+								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port) << L"\n";
 				st_mon2.wo_uni << L"[BODY]" << L"主幹:" << pb0->ctrl_source;
 
 				LPST_OTE_HEAD  ph1 = &pOteCCIf->st_msg_pc_m_rcv.head;
 				LPST_PC_M_BODY pb1 = &pOteCCIf->st_msg_pc_m_rcv.body;
-				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
+				st_mon2.wo_mpc << L"[HEAD]" << L" CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
-				LPST_OTE_HEAD  ph2 = &pOteCCIf->st_msg_ote_m_rcv.head;
+				LPST_OTE_HEAD  ph2	= &pOteCCIf->st_msg_ote_m_rcv.head;
 				LPST_OTE_M_BODY pb2 = &pOteCCIf->st_msg_ote_m_rcv.body;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
@@ -589,7 +571,9 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_ote_u_snd.head;
 				LPST_OTE_U_BODY  pb0 = &pOteCCIf->st_msg_ote_u_snd.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
+				st_mon2.wo_uni << L"[HEAD]" << L" ID:" << ph0->myid.crane_id << L"PC:" << ph0->myid.pc_type << L"Seral:" << ph0->myid.serial_no << L"Opt:" << ph0->myid.option
+								<< L"       IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port)
+								<< L" CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 				st_mon2.wo_uni << L"[BODY]";
 
 				st_mon2.wo_mpc << L"[HEAD] -\n";

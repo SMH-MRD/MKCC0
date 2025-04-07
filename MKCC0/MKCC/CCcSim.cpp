@@ -2,6 +2,15 @@
 
 #include "resource.h"
 
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pPlcIoObj;
+extern CSharedMem* pJobIoObj;
+extern CSharedMem* pPolInfObj;
+extern CSharedMem* pAgInfObj;
+extern CSharedMem* pCsInfObj;
+extern CSharedMem* pSimuStatObj;
+extern CSharedMem* pOteInfObj;
+
 ST_SIM_MON1 CSim::st_mon1;
 ST_SIM_MON2 CSim::st_mon2;
 

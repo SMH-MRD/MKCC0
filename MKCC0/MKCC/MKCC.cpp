@@ -19,20 +19,21 @@
 
 using namespace MKCC;
 
+
 // グローバル変数:
 HINSTANCE hInst;                                // 現在のインターフェイス
 WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキスト
 WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
 
 //共有メモリクラスオブジェクト
-CSharedMem* pCraneStatObj;
+CSharedMem* pEnvInfObj;
 CSharedMem* pPlcIoObj;
 CSharedMem* pJobIoObj;
 CSharedMem* pPolInfObj;
 CSharedMem* pAgInfObj;
 CSharedMem* pCsInfObj;
 CSharedMem* pSimuStatObj;
-CSharedMem* pOteIoObj;
+CSharedMem* pOteInfObj;
 
 CCraneBase* pCraneBase;
 
@@ -82,14 +83,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // 共有メモリオブジェクトのインスタンス化
-    pCraneStatObj   = new CSharedMem;
+    pEnvInfObj   = new CSharedMem;
     pPlcIoObj       = new CSharedMem;
     pJobIoObj       = new CSharedMem;
     pPolInfObj      = new CSharedMem;
     pAgInfObj       = new CSharedMem;
     pCsInfObj       = new CSharedMem;
     pSimuStatObj    = new CSharedMem;
-    pOteIoObj       = new CSharedMem;
+    pOteInfObj       = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -174,23 +175,23 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    pszInifile = dstpath;
 
    ///-共有メモリ割付&設定##################
-   if (OK_SHMEM != pCraneStatObj->create_smem(  SMEM_CRANE_STAT_CC_NAME,sizeof(ST_CC_ENV_INF),  MUTEX_CRANE_STAT_CC_NAME)) return(FALSE);
+   if (OK_SHMEM != pEnvInfObj->create_smem(  SMEM_CRANE_STAT_CC_NAME,sizeof(ST_CC_ENV_INF),  MUTEX_CRANE_STAT_CC_NAME)) return(FALSE);
    if (OK_SHMEM != pPlcIoObj->create_smem(      SMEM_PLC_IO_NAME,       sizeof(ST_CC_PLC_IO),  MUTEX_PLC_IO_NAME)) return(FALSE);
    if (OK_SHMEM != pJobIoObj->create_smem(      SMEM_JOB_IO_NAME,       sizeof(ST_JOB_IO),  MUTEX_JOB_IO_NAME)) return(FALSE);
    if (OK_SHMEM != pPolInfObj->create_smem(     SMEM_POL_INF_CC_NAME,   sizeof(ST_CC_POL_INF),  MUTEX_POL_INF_CC_NAME)) return(FALSE);
    if (OK_SHMEM != pAgInfObj->create_smem(      SMEM_AGENT_INF_CC_NAME, sizeof(ST_CC_AGENT_INF),  MUTEX_AGENT_INF_CC_NAME)) return(FALSE);
    if (OK_SHMEM != pCsInfObj->create_smem(      SMEM_CS_INF_CC_NAME,    sizeof(ST_CC_CS_INF),  MUTEX_CS_INF_CC_NAME)) return(FALSE);
    if (OK_SHMEM != pSimuStatObj->create_smem(   SMEM_SIM_INF_CC_NAME,   sizeof(ST_CC_SIM_INF),  MUTEX_SIM_INF_CC_NAME)) return(FALSE);
-   if (OK_SHMEM != pOteIoObj->create_smem(      SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),  MUTEX_OTE_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pOteInfObj->create_smem(      SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),  MUTEX_OTE_INF_NAME)) return(FALSE);
   
    //  クレーンオブジェクトセットアップ
    LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
    pCraneBase = new CCraneBase(CARNE_ID_HHGH29, pPlcIo->buf_io_read, pPlcIo->buf_io_write);
  
    //デバイスコードセット
-   LPST_CC_ENV_INF pCraneStat = (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
-   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", pCraneStat->device_code.crane_id, _countof(pCraneStat->device_code.crane_id), PATH_OF_INIFILE);
-        	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", pCraneStat->device_code.pc_type, _countof(pCraneStat->device_code.pc_type), PATH_OF_INIFILE);
+   LPST_CC_ENV_INF pCraneStat = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX", pCraneStat->device_code.crane_id, _countof(pCraneStat->device_code.crane_id), PATH_OF_INIFILE);
+        	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"??????", pCraneStat->device_code.pc_type, _countof(pCraneStat->device_code.pc_type), PATH_OF_INIFILE);
    
    WCHAR wbuf[16];
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
@@ -462,14 +463,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 VOID CloseApp()
 {
-    delete pCraneStatObj;
+    delete pEnvInfObj;
     delete pPlcIoObj;
     delete pJobIoObj;
     delete pPolInfObj;
     delete pAgInfObj;
     delete pCsInfObj;
     delete pSimuStatObj;
-    delete pOteIoObj;
+    delete pOteInfObj;
     return;
 }
 

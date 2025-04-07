@@ -31,7 +31,6 @@
 #define OTE_CODE_REQ_OPE_ACTIVE		2	//操作有効化要求
 #define OTE_CODE_REQ_MON_ACTIVE		3	//操作無効化要求
 
-
 /******* 共通メッセージヘッダ部 ***********/
 typedef struct OteComHead {
 	ST_DEVICE_CODE	myid;		//装置ID
@@ -44,7 +43,6 @@ typedef struct OteComHead {
 typedef struct PcMBody {
 	INT32 pos[MOTION_ID_MAX];
 }ST_PC_M_BODY, * LPST_PC_M_BODY;
-
 typedef struct PcMMsg {
 	ST_OTE_HEAD         head;
 	ST_PC_M_BODY		body;
@@ -89,12 +87,10 @@ typedef struct OteMMsg {
 #define OTE_LAMP_FLICK_COUNT			0x0008
 #define OTE_STATIC_UPDATE_COUNT			0x0004
 
-
 typedef struct OteLampCom {
 	UINT8 com;
 	UINT8 color;
 }ST_OTE_LAMP_COM, * LPST_OTE_LAMP_COM;
-
 
 #define OTE_N_LOAD					2	//吊荷数
 #define OTE_N_PC_MSG_WCHAR			128	//PCからのメッセージテキスト数
@@ -114,8 +110,8 @@ typedef struct PcUBody {
 	double				mhl;									//主巻ロープ長
 	double				ahl;									//補巻ロープ長
 	double				auro_tg_pos[MOTION_ID_MAX];				//現在目標位置座標
-//	ST_DXYZ				mhld_pos;								//主巻吊荷位置FB（吊点相対位置）
-//	ST_DXYZ				ahld_pos;								//補巻吊荷位置FB（吊点相対位置）
+	ST_XYZ				mhld_pos;								//主巻吊荷位置FB（吊点相対位置）
+	ST_XYZ				ahld_pos;								//補巻吊荷位置FB（吊点相対位置）
 	INT32				brk[MOTION_ID_MAX];						//ブレーキ状態
 	INT32				auto_status[MOTION_ID_MAX];				//自動運転状態
 	INT32				swy_cam_pix[OTE_N_LOAD][MOTION_ID_MAX];	//振れセンサカメラ検出位置
@@ -138,7 +134,6 @@ typedef struct PcUMsg {
 #define OTE_GRIP_ENABLE		0x08
 #define OTE_GRIP_ACTIVE		0X14
 #define OTE_GRIP_DBG_ENABLE 0x80
-
 
 typedef struct OteUBody {
 	INT16		pb_ope[128];					//操作卓PB入力

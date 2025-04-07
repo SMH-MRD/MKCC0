@@ -221,8 +221,8 @@
 
 //デバイスコード
 typedef struct _ST_DEVICE_CODE {
-	WCHAR crane_id[7];   //製番コード
-    WCHAR pc_type[7];    //PC TYPE
+	WCHAR crane_id[7]=L"XXXXXX";   //製番コード
+    WCHAR pc_type[7]=L"??????";    //PC TYPE
     INT32 serial_no;
     INT32 option;
  }ST_DEVICE_CODE, * LPST_DEVICE_CODE;

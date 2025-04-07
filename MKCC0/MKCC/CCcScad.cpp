@@ -1,6 +1,15 @@
 #include "CCcScad.h"
 #include "resource.h"
 
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pPlcIoObj;
+extern CSharedMem* pJobIoObj;
+extern CSharedMem* pPolInfObj;
+extern CSharedMem* pAgInfObj;
+extern CSharedMem* pCsInfObj;
+extern CSharedMem* pSimuStatObj;
+extern CSharedMem* pOteInfObj;
+
 ST_SCAD_MON1 CScada::st_mon1;
 ST_SCAD_MON2 CScada::st_mon2;
 

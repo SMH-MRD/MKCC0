@@ -5,6 +5,15 @@
 #include "framework.h"
 #include "OTE_DEF.H"
 
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pPlcIoObj;
+extern CSharedMem* pJobIoObj;
+extern CSharedMem* pPolInfObj;
+extern CSharedMem* pAgInfObj;
+extern CSharedMem* pCsInfObj;
+extern CSharedMem* pSimuStatObj;
+extern CSharedMem* pOteInfObj;
+
 //ソケット
 static CSockUDP* pUSockOte;	//ユニキャストOTE通信受信用
 static CSockUDP* pMSockOte;	//マルチキャストOTE通信受信用
@@ -18,16 +27,8 @@ ST_CS_MON2 CCcCS::st_mon2;
 
 ST_CC_CS_INF CCcCS::st_work;
 
-//共有メモリ参照用定義
-static CSharedMem* pOteInfObj;
-static CSharedMem* pCraneStatObj;
-static CSharedMem* pSimInfObj;
-static CSharedMem* pPLCioObj;
-static CSharedMem* pCSInfObj;
-static CSharedMem* pAgentInfObj;
-static CSharedMem* pSwayIO_Obj;
-
-static LPST_CC_ENV_INF	pCraneStat;
+//共有メモリ
+static LPST_CC_ENV_INF		pCraneStat;
 static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
@@ -41,56 +42,25 @@ static LONG rcv_count_ote_m = 0, snd_count_m2ote = 0;
 /*   デフォルト関数											                    */
 /****************************************************************************/
 CCcCS::CCcCS() {
-	// 共有メモリオブジェクトのインスタンス化
-	pOteInfObj		= new CSharedMem;
-	pCraneStatObj	= new CSharedMem;
-	pSimInfObj		= new CSharedMem;
-	pPLCioObj		= new CSharedMem;
-	pCSInfObj		= new CSharedMem;
-	pAgentInfObj	= new CSharedMem;
+
 }
 CCcCS::~CCcCS() {
-	// 共有メモリオブジェクトの解放
-	delete pOteInfObj;
-	delete pCraneStatObj;
-	delete pSimInfObj;
-	delete pPLCioObj;
-	delete pCSInfObj ;
-	delete pAgentInfObj;
-	delete pSwayIO_Obj;
+
 }
 
 HRESULT CCcCS::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_CC_CS_INF);
-	if (OK_SHMEM != pOteInfObj->create_smem(SMEM_CS_INF_CC_NAME, out_size, MUTEX_CS_INF_CC_NAME)) {
-		err |= SMEM_NG_CS_INF;
-	}
-	set_outbuf(pCSInfObj->get_pMap());
 
-	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pSimInfObj->create_smem(SMEM_SIM_INF_CC_NAME, sizeof(ST_CC_SIM_INF), MUTEX_SIM_INF_CC_NAME)) {
-		err |= SMEM_NG_SIM_INF;	hr = S_FALSE;
-	}
-	if (OK_SHMEM != pCraneStatObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) {
-		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pPLCioObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_CC_PLC_IO), MUTEX_PLC_IO_NAME)) {
-		err |= SMEM_NG_PLC_IO; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pCSInfObj->create_smem(SMEM_CS_INF_CC_NAME, sizeof(ST_CC_CS_INF), MUTEX_CS_INF_CC_NAME)) {
-		err |= SMEM_NG_CS_INF; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AGENT_INF_CC_NAME, sizeof(ST_CC_AGENT_INF), MUTEX_AGENT_INF_CC_NAME)) {
-		err |= SMEM_NG_AGENT_INF; hr = S_FALSE;
-	}
+	set_outbuf(pCsInfObj->get_pMap());
 
-	pCraneStat	= (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
-	pPLC_IO		= (LPST_CC_PLC_IO)(pPLCioObj->get_pMap());
+	//### 共有メモリ
+	pCraneStat	= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+	pPLC_IO		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
-	pCS_Inf		= (LPST_CC_CS_INF)pCSInfObj->get_pMap();
-	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgentInfObj->get_pMap();
+	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
+	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
 
 	if((pCraneStat == NULL) || (pPLC_IO == NULL) || (pOTE_Inf == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
 		hr = S_FALSE;
@@ -488,7 +458,9 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 				LPST_OTE_HEAD	ph0 = &pOTE_Inf->st_msg_ote_u_rcv.head;
 				LPST_OTE_U_BODY pb0 = &pOTE_Inf->st_msg_ote_u_rcv.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:"<<ph0->code << L"\n";
+				st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option << L"\n"
+								<< L"         IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port)
+								<< L" CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
 				st_mon2.wo_uni << L"[BODY]" << L"OPEMODE:"<<pb0->ope_mode;
 
 				LPST_OTE_HEAD  ph1 = &pOTE_Inf->st_msg_pc_m_rcv.head;
@@ -505,7 +477,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 				LPST_OTE_HEAD	ph0 = &pOTE_Inf->st_msg_pc_u_snd.head;
 				LPST_PC_U_BODY  pb0 = &pOTE_Inf->st_msg_pc_u_snd.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
+				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L"PC:" << ph0->myid.pc_type << L"Seral:" << ph0->myid.serial_no << L"Opt:" << ph0->myid.option << L"\n";
 				st_mon2.wo_uni << L"[BODY]";
 
 				LPST_OTE_HEAD  ph1 = &pOTE_Inf->st_msg_pc_m_snd.head;
@@ -557,7 +529,6 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 
 	}break;
-
 	case ID_SOCK_EVENT_OTE_MUL: {
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {

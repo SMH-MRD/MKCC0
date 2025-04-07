@@ -69,7 +69,7 @@ typedef struct _ST_CS_MON1 {
 #define CS_MON2_WND_X     CS_MON1_WND_X
 #define CS_MON2_WND_Y     620   
 #define CS_MON2_WND_W     640
-#define CS_MON2_WND_H     265
+#define CS_MON2_WND_H     345
 
 #define CS_MON2_N_CTRL    32
 #define CS_MON2_N_WCHAR   64
@@ -102,13 +102,13 @@ typedef struct _ST_CS_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[CS_MON2_N_CTRL] = {
-        5,50, 5,115, 5,180, 5,30, 5,95, 5,160, 5,5,470,5, 
+        5,50, 5,135, 5,220, 5,30, 5,115, 5,200, 5,5,470,5, 
         520,5,570,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[CS_MON2_N_CTRL] = {
-        CS_MON2_WND_W- 25,40, CS_MON2_WND_W- 25,40, CS_MON2_WND_W- 25,40, CS_MON2_WND_W - 25,20, CS_MON2_WND_W - 25,20, CS_MON2_WND_W - 25,20, CS_MON2_WND_W - 180,20,40,20,
+        CS_MON2_WND_W- 25,60, CS_MON2_WND_W- 25,60, CS_MON2_WND_W- 25,60, CS_MON2_WND_W - 25,20, CS_MON2_WND_W - 25,20, CS_MON2_WND_W - 25,20, CS_MON2_WND_W - 180,20,40,20,
         40,20, 40,20,  0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0

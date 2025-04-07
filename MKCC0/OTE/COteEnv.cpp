@@ -2,6 +2,11 @@
 #include "resource.h"
 #include "CCUILib.h"
 
+extern CSharedMem* pOteEnvInfObj;
+extern CSharedMem* pOteCsInfObj;
+extern CSharedMem* pOteCcInfObj;
+extern CSharedMem* pOteUiObj;
+
 ST_ENV_MON1 CEnvironment::st_mon1;
 ST_ENV_MON2 CEnvironment::st_mon2;
 

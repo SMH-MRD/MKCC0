@@ -3,6 +3,15 @@
 #include "resource.h"
 #include "CCraneLib.h"
 
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pPlcIoObj;
+extern CSharedMem* pJobIoObj;
+extern CSharedMem* pPolInfObj;
+extern CSharedMem* pAgInfObj;
+extern CSharedMem* pCsInfObj;
+extern CSharedMem* pSimuStatObj;
+extern CSharedMem* pOteInfObj;
+
 
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
@@ -13,14 +22,8 @@ ST_AGENT_MON2 CAgent::st_mon2;
 
 ST_CC_AGENT_INF CAgent::st_work;
 
-//共有メモリ参照用定義
-
-static CSharedMem* pCraneStatObj;
-static CSharedMem* pPLCioObj;
-static CSharedMem* pCSInfObj;
-static CSharedMem* pAgentInfObj;
-
-static LPST_CC_ENV_INF	pCraneStat;
+//共有メモリ
+static LPST_CC_ENV_INF		pEnv_Inf;
 static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
@@ -36,17 +39,9 @@ static CCraneBase* pCrane;
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
-	pCraneStatObj = new CSharedMem;
-	pPLCioObj = new CSharedMem;
-	pCSInfObj = new CSharedMem;
-	pAgentInfObj = new CSharedMem;
 }
 CAgent::~CAgent() {
-	// 共有メモリオブジェクトの解放
-	delete pCraneStatObj;
-	delete pPLCioObj;
-	delete pCSInfObj;
-	delete pAgentInfObj;
+
 }
 
 HRESULT CAgent::initialize(LPVOID lpParam) {
@@ -63,28 +58,16 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_CC_AGENT_INF);
-	if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AGENT_INF_CC_NAME, out_size, MUTEX_AGENT_INF_CC_NAME)) {
-		err |= SMEM_NG_AGENT_INF;
-	}
-	set_outbuf(pAgentInfObj->get_pMap());
+	set_outbuf(pAgInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	if (OK_SHMEM != pCraneStatObj->create_smem(SMEM_CRANE_STAT_CC_NAME, sizeof(ST_CC_ENV_INF), MUTEX_CRANE_STAT_CC_NAME)) {
-		err |= SMEM_NG_CRANE_STAT; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pPLCioObj->create_smem(SMEM_PLC_IO_NAME, sizeof(ST_CC_PLC_IO), MUTEX_PLC_IO_NAME)) {
-		err |= SMEM_NG_PLC_IO; hr = S_FALSE;
-	}
-	if (OK_SHMEM != pCSInfObj->create_smem(SMEM_CS_INF_CC_NAME, sizeof(ST_CC_CS_INF), MUTEX_CS_INF_CC_NAME)) {
-		err |= SMEM_NG_CS_INF; hr = S_FALSE;
-	}
 
-	pAgent_Inf = (LPST_CC_AGENT_INF)pAgentInfObj->get_pMap();
-	pCraneStat = (LPST_CC_ENV_INF)(pCraneStatObj->get_pMap());
-	pPLC_IO = (LPST_CC_PLC_IO)(pPLCioObj->get_pMap());
-	pCS_Inf = (LPST_CC_CS_INF)pCSInfObj->get_pMap();
+	pAgent_Inf = (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
+	pEnv_Inf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+	pPLC_IO = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
+	pCS_Inf = (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 
-	if ((pCraneStat == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
+	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
 		hr = S_FALSE;
 
 	if (hr == S_FALSE) {
