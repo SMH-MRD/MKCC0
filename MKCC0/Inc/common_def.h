@@ -1,6 +1,10 @@
 #pragma once
 #include <windows.h>
 
+//@ GDI+
+#include <objbase.h>//gdiplus.hのコンパイルを通すために必要
+#include <gdiplus.h>
+
 //#define _DVELOPMENT_MODE                //開発環境を有効にする
 
 ///# 物理定数、変換係数
@@ -306,5 +310,22 @@ typedef struct _MKCC_COLOR_PALLET {
         {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},                    {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}
     };
 }MKCC_COLOR_PALLET, * LPMKCC_COLOR_PALLET;
+
+using namespace Gdiplus;
+
+typedef struct _PANEL_COLOR_PALLET {
+
+    Gdiplus::Color color[32] = {
+
+        //GRAY                                                                                      RED     
+        Color(0,0,0,0),     Color(192,192,192,0),   Color(240, 240, 240, 0),Color(255, 255, 255, 0),Color(128, 0, 0, 0),Color(64, 0, 0, 0), Color(32, 0, 0, 0),     Color(255, 201, 252, 0),
+        //GREEN                                                                                     BLUE     
+        Color(0,255,0,0),   Color(0,255,0,0),       Color(211, 255, 222,0), Color(211, 255, 222,0), Color(0,0,255,0),   Color(0, 0, 255, 0),Color(0,0,255,0),       Color(0, 0, 255, 0),
+        //YELLOW                                                                                    ORANGE       
+        Color(255,255,0,0), Color(255,255,0,0),     Color(255, 248, 51,0),  Color(255, 248, 51,0),  Color(255,106,0,0), Color(255,106,0,0), Color(255,221,198,0),   Color(255,221,198,0),
+        //-                                                         -       
+        Color(0,0,0,0),     Color(0, 0, 0, 0),      Color(0, 0, 0, 0),      Color(0, 0, 0, 0),      Color(0, 0, 0, 0),  Color(0, 0, 0, 0),  Color(0, 0, 0, 0),      Color(0, 0, 0, 0) 
+    };
+}PANEL_COLOR_PALLET, * LPPANEL_COLOR_PALLET;
 
 #pragma endregion

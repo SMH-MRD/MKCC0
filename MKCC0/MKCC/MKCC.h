@@ -11,26 +11,26 @@ namespace MKCC
 #define ICON_IMG_H					32		//アイコンイメージ高さ
 
 //-Tweet Message表示用Static Windowのサイズ設定値
-#define MSG_WND_H					20		//Height of tweet window
-#define MSG_WND_W					590		//Width of  tweet window
-#define MSG_WND_ORG_X				35		//Origin X of tweet window position 
-#define MSG_WND_ORG_Y				10		//Origin Y of tweet window position 
-#define MSG_WND_Y_SPACE				12		//Space between tweet windows Y direction 
-#define TWEET_IMG_ORG_X				5		//Origin X of bitmap tweet icon position
+#define MSG_WND_H				20		//Height of tweet window
+#define MSG_WND_W				590		//Width of  tweet window
+#define MSG_WND_ORG_X			35		//Origin X of tweet window position 
+#define MSG_WND_ORG_Y			10		//Origin Y of tweet window position 
+#define MSG_WND_Y_SPACE			12		//Space between tweet windows Y direction 
+#define TWEET_IMG_ORG_X			5		//Origin X of bitmap tweet icon position
 
 //-タスク設定タブ配置設定
-#define TAB_DIALOG_W				610
-#define TAB_DIALOG_H				320
-#define TAB_POS_X					5
-#define TAB_POS_Y					10
-#define TAB_SIZE_H					35
-#define TAB_SPACE				    20		 
+#define TAB_DIALOG_W			610
+#define TAB_DIALOG_H			320
+#define TAB_POS_X				5
+#define TAB_POS_Y				10
+#define TAB_SIZE_H				35
+#define TAB_SPACE			    20		 
 
-#define MAIN_WND_X                  0
-#define MAIN_WND_Y                  0
-#define MAIN_WND_W                  640
-#define MAIN_WND_H                  460
-#define MAIN_WND_MIN_H              100
+#define MAIN_WND_X              0
+#define MAIN_WND_Y              0
+#define MAIN_WND_W              640
+#define MAIN_WND_H              460
+#define MAIN_WND_MIN_H          100
 
 #define ENV_SCAN_MS			    20
 #define CS_SCAN_MS				100
