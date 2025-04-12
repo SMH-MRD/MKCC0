@@ -743,8 +743,8 @@ typedef struct _ST_OTE_CC_IF {
 #pragma region OTE_UI
 typedef struct _ST_OTE_UI {
 	DWORD notch_pos_gmpad[MOTION_ID_MAX];
-	UINT16 pb_stat[N_OTE_PNL_PBL];						//PB状態 OFFディレイカウント
-	UINT16 notch_pb_stat[N_OTE_PNL_PBL];					//PB状態 OFFディレイカウント
+	UINT16 pb_stat[N_OTE_PNL_PBL];			//PB状態 OFFディレイカウント
+	UINT16 notch_pb_stat[N_OTE_PNL_PBL];	//PB状態 OFFディレイカウント
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 

@@ -4,73 +4,62 @@
 #include "COMMON_DEF.h"
 #include "PLC_DEF.h"
 #include "CPanelIo.h"
+#include "CPanelGr.h"
 
 using namespace std;
 
-#define ID_PANEL_COLOR_BLACK	0
-#define ID_PANEL_COLOR_GRAY		1
-#define ID_PANEL_COLOR_WHITE	2
-#define ID_PANEL_COLOR_RED		3
-#define ID_PANEL_COLOR_GREEN	4
-#define ID_PANEL_COLOR_BLUE		5
-#define ID_PANEL_COLOR_YELLOW	6
-#define ID_PANEL_COLOR_ORANGE	7
+typedef struct _ST_VALUE_OBJ {
 
-#define ID_PANEL_FONT_8			0
-#define ID_PANEL_FONT_10		1
-#define ID_PANEL_FONT_12		2
-#define ID_PANEL_FONT_14		3
-#define ID_PANEL_FONT_18		4
-#define ID_PANEL_FONT_24		5
-#define ID_PANEL_FONT_36		6
-#define ID_PANEL_FONT_48		7
+	CI32Val* healthy;
 
-#define N_PANEL_COLOR_PEN		8
-#define N_PANEL_COLOR_BRUSH		8
-#define N_PANEL_COLOR_FONT		8
+	CPbVal* remote_active;
+	CI16Val* ope_device;
 
-typedef struct _ST_DRAWING_ITEMS {
-	Pen*		ppen[N_PANEL_COLOR_PEN];
-	SolidBrush* pbrush[N_PANEL_COLOR_BRUSH];
-	HFONT		hfont[N_PANEL_COLOR_FONT];
-}ST_DRAWING_ITEMS,LPST_DRAWING_ITEMS;
+	CPblEntity* ctrl_source;
+	CPblEntity* estop;
 
-typedef struct _ST_PANEL_OBJ {
-	//Healthy
-	CPblVal* healthy;
+	CI16Val* cs3_mh_spd;
+	CI16Val* cs4_bh_R;
 
-	//CRANONTROL
-	CPblVal* flg_pc_ctrl;
-	CPblVal* sw_remote_mode;
-	CPblVal* flg_panel_sim_mode;
+	CPbVal* pb_alarm_stop;
+	CPbVal* pb_fault_reset;
+	CPbVal* pb_il_bypass;
 
-	CPblVal* pb_ctrl_source_on;
-	CPblVal* pb_ctrl_source_off;
-	CPblVal* cs3_mh_spd;
-	CPblVal* cs4_bh_R;
+}ST_VALUE_OBJ, * LPST_VALUE_OBJ;
 
-	CPblVal* pb_alarm_stop;
-	CPblVal* pb_fault_reset;
-	CPblVal* pb_il_bypass;
+typedef struct _ST_GRAPHIC_OBJ {
+	//DC
+	CMemDC* dc_mem0;
+	CMemDC* dc_mem_back;
+	CMemDC* dc_mem_info;
+	CMemDC* dc_mem_graphic;
 
-	CPblVal* pb_cab_estop;
+	//Img
+	CImgObj* img_backgraund;
+	CImgObj* img_boom_top;
+	CImgObj* img_boom_side;
+	CImgObj* img_boom_top_auto;
+	CImgObj* img_boom_side_auto;
+	CImgObj* img_slw_body;
+	CImgObj* img_hook_top;
+	CImgObj* img_hook_side;
 
-	CPblVal* sw_slw_brk;
-}ST_PANEL_OBJ, * LPST_PANEL_OBJ;
+}ST_GRAPHIC_OBJ, * LPST_GRAPHIC_OBJ;
 
 class CPanelBase {
 
 private:
 	static int _panel_id;
 	static int _crane_id;
-	static ST_DRAWING_ITEMS drawing_items;
+	static ST_DRAWING_BASE drawing_items;
 
 public:
 	static CPanelBase* pPanel;
+
 	CPanelBase(int crane_id, int panel_id);
 	virtual ~CPanelBase(void);
 
-	static ST_PANEL_OBJ objs;
+	static ST_VALUE_OBJ objs;
 
 	HRESULT set_crane_id(int crane_id) {  _crane_id = crane_id; S_OK; }
 	HRESULT set_panel_id(int panel_id) {  _panel_id = panel_id; S_OK; }
@@ -78,6 +67,10 @@ public:
 	int get_panel_id() { return _panel_id; }
 
 	HRESULT setup_drawing_base();
+	void	close_drawing_base();
+	HRESULT setup_graphic(int crane_id, int panel_id);
+	void	close_graphic();
 	HRESULT setup_panel(int crane_id, int panel_id);
+	void	close_panel();
 
 };

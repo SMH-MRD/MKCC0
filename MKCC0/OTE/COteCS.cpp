@@ -1,6 +1,7 @@
 #include "CMCProtocol.h"
 #include "COteCS.h"
 #include "resource.h"
+#include "CCUILib.H"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;

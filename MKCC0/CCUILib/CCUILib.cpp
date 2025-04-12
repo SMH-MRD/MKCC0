@@ -7,7 +7,6 @@
 
 #include <dinput.h>
 
-
 LPDIRECTINPUT8			CGPad::pDI;
 LPDIRECTINPUTDEVICE8	CGPad::pGamePad;
 DIJOYSTATE				CGPad::pad_data;
@@ -20,8 +19,6 @@ DICONSTANTFORCE			CGPad::diConstantForce;
 						
 UINT32					CGPad::pad_mode;
 UINT32					CGPad::pad_enable;
-
-
 
 HRESULT CGPad::Initialize(HWND hWnd) {
 	HRESULT hr;

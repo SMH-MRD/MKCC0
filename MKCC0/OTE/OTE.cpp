@@ -37,7 +37,6 @@ static vector<HANDLE>	    VectHevent;		    //マルチスレッド用イベン�
 static vector<HWND>	        VectTweetHandle;	//メインウィンドウのスレッドツイートメッセージ表示Staticハンドル
 static HIMAGELIST	        hImgListTaskIcon;	//タスクアイコン用イメージリスト
 
-
 LPWSTR              pszInifile;					// iniファイルのパス
 
 static HWND         hTabWnd;                    //操作パネル用タブコントロールウィンドウのハンドル
@@ -163,7 +162,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     pszInifile = dstpath;
 
     ///-共有メモリ割付&設定##################
-    if (OK_SHMEM != pOteEnvInfObj->create_smem(    SMEM_OTE_ENV_NAME , sizeof(ST_OTE_ENV_INF), MUTEX_OTE_ENV_NAME)) return(FALSE);
+    if (OK_SHMEM != pOteEnvInfObj->create_smem( SMEM_OTE_ENV_NAME , sizeof(ST_OTE_ENV_INF), MUTEX_OTE_ENV_NAME)) return(FALSE);
     if (OK_SHMEM != pOteCsInfObj->create_smem(  SMEM_OTE_CS_INF_NAME , sizeof(ST_OTE_CS_INF), MUTEX_OTE_CS_INF_NAME)) return(FALSE);
     if (OK_SHMEM != pOteCcInfObj->create_smem(  SMEM_OTE_UI_NAME	 , sizeof(ST_OTE_CC_IF), MUTEX_OTE_UI_NAME)) return(FALSE);
     if (OK_SHMEM != pOteUiObj->create_smem(     SMEM_OTE_CC_IF_NAME	 , sizeof(ST_OTE_UI), MUTEX_OTE_CC_IF_NAME)) return(FALSE);

@@ -292,6 +292,14 @@ typedef struct _ST_XYZ {
 #define COLOR_ID_DORANGE    21  //DARK
 #define COLOR_ID_LORANGE    22  //LIGHT
 #define COLOR_ID_WORANGE    23  //WEAK
+#define COLOR_ID_SMAZENDA   24  //STRONG
+#define COLOR_ID_DMAZENDA   25  //DARK
+#define COLOR_ID_LMAZENDA   26  //LIGHT
+#define COLOR_ID_WMAZENDA   27  //WEAK
+#define COLOR_ID_SBROWN     28  //STRONG
+#define COLOR_ID_DBROWN     29  //DARK
+#define COLOR_ID_LBROWN     30  //LIGHT
+#define COLOR_ID_WBROWN     31  //WEAK
 
 #define RGBA_ID_RED         0
 #define RGBA_ID_GREEN       1
@@ -301,13 +309,13 @@ typedef struct _ST_XYZ {
 typedef struct _MKCC_COLOR_PALLET {
     BYTE rgba[32][4] = {
         //GRAY                                                      RED     
-        {0,0,0,0},{192,192,192,0},{240,240,240,0},{255,255,255,0},  {128,0,0,0},{64,0,0,0},{32,0,0,0},{255, 201, 252, 0},
+        {0,0,0,0},{192,192,192,0},{240,240,240,0},{255,255,255,0},  {255,0,0,0},{128,0,0,0},{64,0,0,0},{255, 201, 252, 0},
         //GREEN                                                     BLUE     
-        {0,255,0,0},{0,255,0,0},{211, 255, 222},{211, 255, 222},    {0,0,255,0},{0,0,255,0},{153, 255, 249, 0},{153, 255, 249, 0},
+        {0,255,0,0},{0,255,0,0},{211, 255, 222},{211, 255, 222},    {0,0,255,0},{0,0,128,0},{153, 255, 249, 0},{153, 255, 249, 0},
         //YELLOW                                                    ORANGE       
         {255,255,0,0},{255,255,0,0},{255, 248, 51},{255, 248, 51},  {255,106,0,0},{255,106,0,0},{255,221,198,0},{255,221,198,0},
-        //-                                                         -       
-        {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},                    {0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}
+        //MAZENDA                                                    BROWN       
+        {255,0,200,0},{255,85,200,0},{255,150,20,0},{255,220,20,0}, {155,30,0,0},{155,50,30,0},{155,120,120,0},{155,130,125,0}
     };
 }MKCC_COLOR_PALLET, * LPMKCC_COLOR_PALLET;
 
