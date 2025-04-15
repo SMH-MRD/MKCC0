@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>PCIFLib.lib;CCUILib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CraneLib.lib;PCIFLib.lib;CCUILib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -134,7 +134,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>PCIFLib.lib;CCUILib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CraneLib.lib;PCIFLib.lib;CCUILib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

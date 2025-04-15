@@ -426,6 +426,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        //ステータスを初期化要求にセット
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+
+       //最後に初期化関数呼び出し
+       //スレッド処理に移行　pobj->initialize(pobj);
    }
 
    InvalidateRect(st_work_wnd.hWnd, NULL, FALSE);            //WM_PAINTを発生させてアイコンを描画させる
@@ -547,8 +550,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SendMessage(st_work_wnd.hWnd_status_bar, WM_SIZE, wParam, lParam);
     }break;
     case WM_USER_SET_BK_COLOR_REQ: {//要求元タスク
-        st_work_wnd.com_prm_set_color   = lParam;
-        st_work_wnd.com_static_set      = wParam;
+        st_work_wnd.com_prm_set_color   = (DWORD)lParam;
+        st_work_wnd.com_static_set      = (DWORD)wParam;
     }break;
      case WM_NOTIFY://コモンコントロールでイベントが起こった場合、およびコモンコントロールが情報を親ウィンドウに要求する場合に、コモンコントロールの親ウィンドウに送信されます。
     {

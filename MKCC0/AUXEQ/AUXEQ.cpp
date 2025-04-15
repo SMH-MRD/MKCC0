@@ -339,8 +339,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
    }
 
-
-
    st_work_wnd.hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX,
        AUXEQ_WND_X,
        AUXEQ_WND_Y,
@@ -377,6 +375,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        //ステータスを初期化要求にセット
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+
+       //最後に初期化関数呼び出し
+       //スレッド処理に移行　pobj->initialize(pobj);
    }
 
    InvalidateRect(st_work_wnd.hWnd, NULL, FALSE);            //WM_PAINTを発生させてアイコンを描画させる

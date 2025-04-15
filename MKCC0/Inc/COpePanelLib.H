@@ -8,7 +8,7 @@
 
 using namespace std;
 
-typedef struct _ST_VALUE_OBJ {
+typedef struct _ST_PANEL_OBJ {
 
 	CI32Val* healthy;
 
@@ -25,7 +25,7 @@ typedef struct _ST_VALUE_OBJ {
 	CPbVal* pb_fault_reset;
 	CPbVal* pb_il_bypass;
 
-}ST_VALUE_OBJ, * LPST_VALUE_OBJ;
+}ST_PANEL_OBJ, * LPST_PANEL_OBJ;
 
 typedef struct _ST_GRAPHIC_OBJ {
 	//DC
@@ -51,15 +51,16 @@ class CPanelBase {
 private:
 	static int _panel_id;
 	static int _crane_id;
-	static ST_DRAWING_BASE drawing_items;
 
 public:
 	static CPanelBase* pPanel;
+	static ST_DRAWING_BASE drawing_items;
+	static ST_GRAPHIC_OBJ* pGraphics;
 
 	CPanelBase(int crane_id, int panel_id);
 	virtual ~CPanelBase(void);
 
-	static ST_VALUE_OBJ objs;
+	static ST_PANEL_OBJ objs;
 
 	HRESULT set_crane_id(int crane_id) {  _crane_id = crane_id; S_OK; }
 	HRESULT set_panel_id(int panel_id) {  _panel_id = panel_id; S_OK; }

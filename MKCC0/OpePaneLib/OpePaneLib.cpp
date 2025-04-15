@@ -3,13 +3,12 @@
 
 #include "pch.h"
 #include "framework.h"
-#include "CPanelLib .H"
-
+#include "COpePanelLib.h"
 using namespace Gdiplus;
 
 int CPanelBase::_crane_id;
 ST_DRAWING_BASE CPanelBase::drawing_items;
-ST_VALUE_OBJ	CPanelBase::objs;
+ST_PANEL_OBJ	CPanelBase::objs;
 CPanelBase*		CPanelBase::pPanel;
 
 HRESULT CPanelBase::setup_drawing_base() {

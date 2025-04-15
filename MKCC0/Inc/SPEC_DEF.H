@@ -1,5 +1,4 @@
 #pragma once
-
 #include "common_def.h"
 
 /*** 仕様定義構造体 ***/
@@ -59,7 +58,6 @@
 #define DRUM_ITEM_WIRE_DIR			5	//ワイヤ径
 #define DRUM_ITEM_DIR_ADD			6	//ドラム径層加算値
 #define SIZE_ITEM_WIRE_LEN0			7	//基準ワイヤ長
-
 
 //クレーン構造定義構造体
 typedef struct _ST_STRUCTURE
@@ -249,7 +247,7 @@ double delay_time[NUM_OF_AS_AXIS][NUM_OF_DELAY_PTN] = {		// 加減速時のFB一時遅れ
 	{ 0.3,0.3,0.3,0.3,0.3 },									//[ID_BOOM_H]
 	{ 0.3,0.3,0.3,0.3,0.3 },									//[ID_SLEW]
 	};
-//# 半自動目標位置
+//# 半自動目標位置(デフォルト)
 double semi_target[SEMI_AUTO_TARGET_MAX][MOTION_ID_MAX]{//半自動デフォルト目標位置
 	//	HST,	GNT,	TRY,	BH,		SLW,	OPR,	ASSY,	COM
 		{63.4,	0.0,	0.0,	56.4,	0.0,	63.5,	0.0,	0.0},//配列0は最終設定値

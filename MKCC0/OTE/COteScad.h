@@ -3,6 +3,7 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 
+
 #define OTE_SCAD_ID_MON1_TIMER          63190
 #define OTE_SCAD_ID_MON2_TIMER          63191
 
@@ -22,11 +23,11 @@
 #define OTE_SCAD_ID_MON1_STATIC_UID     1
 
 #define OTE_SCAD_ID_MON1_PB_ESTP        16
-#define OTE_SCAD_ID_MON1_STATIC_TYPE    0
-#define OTE_SCAD_ID_MON1_STATIC_TYPE    0
+#define OTE_SCAD_ID_MON1_PB_CTRL_SOURCE 17
 
 
-typedef struct _ST_OTE_MON1 {
+
+typedef struct _ST_OTE_SCAD_MON1 {
     int timer_ms = OTE_SCAD_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
 
@@ -72,7 +73,7 @@ typedef struct _ST_OTE_MON1 {
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
-}ST_OTE_MON1, * LPST_OTE_MON1;
+}ST_OTE_SCAD_MON1, * LPST_OTE_SCAD_MON1;
 
 #define OTE_SCAD_MON2_WND_X     OTE_SCAD_MON1_WND_X
 #define OTE_SCAD_MON2_WND_Y     620   
@@ -94,7 +95,7 @@ typedef struct _ST_OTE_MON1 {
 #define OTE_SCAD_ID_MON2_RADIO_SND       8
 #define OTE_SCAD_ID_MON2_RADIO_INFO      9
 
-typedef struct _ST_OTE_MON2 {
+typedef struct _ST_OTE_SCAD_MON2 {
     HWND hwnd_mon;
     int timer_ms = OTE_SCAD_PRM_MON2_TIMER_MS;
     int sock_inf_id = OTE_SCAD_ID_MON2_RADIO_RCV; //ソケット情報を表示する内容コード
@@ -128,13 +129,13 @@ typedef struct _ST_OTE_MON2 {
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 
-}ST_OTE_MON2, * LPST_OTE_MON2;
+}ST_OTE_SCAD_MON2, * LPST_OTE_SCAD_MON2;
 
-class CScada : public CBasicControl
+class COteScad : public CBasicControl
 {
 public:
-    CScada();
-    ~CScada();
+    COteScad();
+    ~COteScad();
     virtual HRESULT initialize(LPVOID lpParam) override;
 
     virtual LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) override;
@@ -142,8 +143,10 @@ public:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static ST_OTE_MON1 st_mon1;
-    static ST_OTE_MON2 st_mon2;
+    static ST_OTE_SCAD_MON1 st_mon1;
+    static ST_OTE_SCAD_MON2 st_mon2;
+
+	HRESULT open_ope_window();
 
     //タスク出力用構造体
   

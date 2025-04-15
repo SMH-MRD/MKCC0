@@ -13,6 +13,8 @@
 #include "COtePol.h"
 #include "COteAgent.h"
 
+#include "CCraneLib.h"
+
 using namespace OTE;
 
 #define MAX_LOADSTRING 100
@@ -27,6 +29,9 @@ CSharedMem* pOteEnvInfObj;
 CSharedMem* pOteCsInfObj;
 CSharedMem* pOteCcInfObj;
 CSharedMem* pOteUiObj;
+
+//共有クラス
+CCraneBase* pCraneObj;	//クレーン制御クラスポインタ
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_OTE_WND           st_work_wnd;        //センサーウィンドウ管理用構造体   
@@ -162,11 +167,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     pszInifile = dstpath;
 
     ///-共有メモリ割付&設定##################
-    if (OK_SHMEM != pOteEnvInfObj->create_smem( SMEM_OTE_ENV_NAME , sizeof(ST_OTE_ENV_INF), MUTEX_OTE_ENV_NAME)) return(FALSE);
-    if (OK_SHMEM != pOteCsInfObj->create_smem(  SMEM_OTE_CS_INF_NAME , sizeof(ST_OTE_CS_INF), MUTEX_OTE_CS_INF_NAME)) return(FALSE);
-    if (OK_SHMEM != pOteCcInfObj->create_smem(  SMEM_OTE_UI_NAME	 , sizeof(ST_OTE_CC_IF), MUTEX_OTE_UI_NAME)) return(FALSE);
-    if (OK_SHMEM != pOteUiObj->create_smem(     SMEM_OTE_CC_IF_NAME	 , sizeof(ST_OTE_UI), MUTEX_OTE_CC_IF_NAME)) return(FALSE);
+    if (OK_SHMEM != pOteEnvInfObj->create_smem( SMEM_OTE_ENV_NAME   , sizeof(ST_OTE_ENV_INF), MUTEX_OTE_ENV_NAME))      return(FALSE);
+    if (OK_SHMEM != pOteCsInfObj->create_smem(  SMEM_OTE_CS_INF_NAME, sizeof(ST_OTE_CS_INF) , MUTEX_OTE_CS_INF_NAME))   return(FALSE);
+    if (OK_SHMEM != pOteUiObj->create_smem(     SMEM_OTE_UI_NAME	, sizeof(ST_OTE_UI)     , MUTEX_OTE_UI_NAME))       return(FALSE);
+    if (OK_SHMEM != pOteCcInfObj->create_smem(  SMEM_OTE_CC_IF_NAME	, sizeof(ST_OTE_CC_IF)  , MUTEX_OTE_CC_IF_NAME))    return(FALSE);
     
+	LPST_OTE_CC_IF pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
+    //クレーンオブジェクト生成
+    pCraneObj = new CCraneBase(CRANE_ID_NULL);	//クレーンIDはNULLで初期化
+
     //デバイスコードセット
     LPST_OTE_ENV_INF pEnvStat = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
    
@@ -180,7 +189,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
     swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));
 
-
     HBITMAP hBmp;
     CBasicControl* pobj;
     int task_index = 0;
@@ -192,7 +200,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       ///##Task1 設定 Environment
     {
         /// -タスクインスタンス作成->リスト登録
-        pobj = new CEnvironment;
+        pobj = new COteEnv;
         VectCtrlObj.push_back(pobj);
 
         st_task_id.ENV = pobj->inf.index = knl_manage_set.num_of_task;
@@ -254,7 +262,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     ///##Task3 設定 SCADA
     {
         /// -タスクインスタンス作成->リスト登録
-        pobj = new CScada;
+        pobj = new COteScad;
         VectCtrlObj.push_back(pobj);
 
         st_task_id.SCAD = pobj->inf.index = knl_manage_set.num_of_task;
@@ -315,7 +323,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     ///##Task5 設定 Agent
     {
         /// -タスクインスタンス作成->リスト登録
-        pobj = new CAgent;
+        pobj = new COteAgent;
         VectCtrlObj.push_back(pobj);
 
         st_task_id.AGENT = pobj->inf.index = knl_manage_set.num_of_task;
@@ -379,6 +387,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
         //ステータスを初期化要求にセット
         pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+
+        //最後に初期化関数呼び出し
+        //スレッド処理に移行　pobj->initialize(pobj);
     }
 
     InvalidateRect(st_work_wnd.hWnd, NULL, FALSE);            //WM_PAINTを発生させてアイコンを描画させる
@@ -655,7 +666,8 @@ LRESULT CALLBACK TaskTabDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 
         return TRUE;
     }break;
-    case WM_COMMAND: {
+    case WM_COMMAND: 
+    {
         CBasicControl* pObj = VectCtrlObj[VectCtrlObj.size() - TabCtrl_GetCurSel(hTabWnd) - 1];
 
         //タスクオブジェクト固有の処理

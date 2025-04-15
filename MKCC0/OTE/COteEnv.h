@@ -5,70 +5,86 @@
 #include "CSHAREDMEM.H"
 #include "CCUILib.H"
 
+#define OTE_ENV_MON1_WND_X              1920
+#define OTE_ENV_MON1_WND_Y              0
+#define OTE_ENV_MON1_WND_W              640
+#define OTE_ENV_MON1_WND_H              480
+#define OTE_ENV_MON1_N_CTRL             32
+#define OTE_ENV_MON1_N_WCHAR            64
 
-#define ENV_MON1_WND_X     640
-#define ENV_MON1_WND_Y     0
-#define ENV_MON1_WND_W     320
-#define ENV_MON1_WND_H     240
-#define ENV_MON1_N_CTRL    32
-#define ENV_MON1_N_WCHAR   64
+#define OTE_ENV_ID_MON1_CTRL_BASE       60100
+#define OTE_ENV_ID_MON1_STATIC_TITLE    0
+#define OTE_ENV_ID_MON1_STATIC_JC       1
+#define OTE_ENV_ID_MON1_STATIC_GC       2
+#define OTE_ENV_ID_MON1_STATIC_TEST     3
+#define OTE_ENV_ID_MON1_STATIC_SELECTED 4
 
-#define ENV_ID_MON1_CTRL_BASE   60100
-#define ENV_ID_MON1_STATIC_GPAD     0
+#define OTE_ENV_ID_MON1_RADIO_CRANE01   16
+#define OTE_ENV_ID_MON1_RADIO_CRANE02   17
+#define OTE_ENV_ID_MON1_RADIO_CRANE03   18
+#define OTE_ENV_ID_MON1_RADIO_CRANE04   19
+#define OTE_ENV_ID_MON1_RADIO_CRANE05   20
+#define OTE_ENV_ID_MON1_RADIO_CRANE06   21
+#define OTE_ENV_ID_MON1_RADIO_CRANE07   22
+#define OTE_ENV_ID_MON1_RADIO_CRANE08   23
+#define OTE_ENV_ID_MON1_RADIO_CRANE09   24
 
-#define ENV_ID_MON1_TIMER  60190
-#define ENV_ID_MON2_TIMER  60191
-
-#define ENV_PRM_MON1_TIMER_MS  200
-#define ENV_PRM_MON2_TIMER_MS  200
+#define OTE_ENV_ID_MON1_PB_START        31
 
 
-typedef struct _ST_ENV_MON1 {
-    int timer_ms = ENV_PRM_MON1_TIMER_MS;
+#define OTE_ENV_ID_MON1_TIMER           60190
+#define OTE_ENV_ID_MON2_TIMER           60191
+
+#define OTE_ENV_PRM_MON1_TIMER_MS       200
+#define OTE_ENV_PRM_MON2_TIMER_MS       200
+
+
+typedef struct _ST_OTE_ENV_MON1 {
+    int timer_ms = OTE_ENV_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
-    HWND hctrl[ENV_MON1_N_CTRL] = {
+    HWND hctrl[OTE_ENV_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
-    POINT pt[ENV_MON1_N_CTRL] = {
-        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+    POINT pt[OTE_ENV_MON1_N_CTRL] = {
+        20,20, 20,140, 20,240, 20,340, 480,330, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
+        80,110, 180,110, 280,110, 380,110, 480,110, 80,210, 180,210, 280,210,
+        80,310, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 480,380
     };
-    SIZE sz[ENV_MON1_N_CTRL] = {
-        295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+    SIZE sz[OTE_ENV_MON1_N_CTRL] = {
+        600,20, 80,20, 80,20, 80,20, 160,50, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
+        80,80, 80,80, 80,80, 80,80, 80,80, 80,80, 80,80, 80,80,
+        80,80, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 80,40
     };
-    WCHAR text[ENV_MON1_N_CTRL][ENV_MON1_N_WCHAR] = {
-        L"GAME_PAD", L"", L"", L"", L"", L"", L"", L"",
+    WCHAR text[OTE_ENV_MON1_N_CTRL][OTE_ENV_MON1_N_WCHAR] = {
+        L"今治造船/SHIMH　クレーン遠隔システム", L"JC", L"GC", L"TEST", L"クレーン\n未選択", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L""
+        L"西多度津\n102", L"-", L"-", L"-", L"-", L"-", L"-", L"-",
+        L"新居浜\nみらい", L"", L"", L"", L"", L"", L"", L"START"
     };
-}ST_ENV_MON1, * LPST_ENV_MON1;
+}ST_OTE_ENV_MON1, * LPST_OTE_ENV_MON1;
 
-#define ENV_MON2_WND_X     ENV_MON1_WND_X
-#define ENV_MON2_WND_Y     ENV_MON1_WND_Y + ENV_MON1_WND_H   
-#define ENV_MON2_WND_W     320
-#define ENV_MON2_WND_H     240
+#define OTE_ENV_MON2_WND_X     OTE_ENV_MON1_WND_X
+#define OTE_ENV_MON2_WND_Y     OTE_ENV_MON1_WND_Y + OTE_ENV_MON1_WND_H   
+#define OTE_ENV_MON2_WND_W     320
+#define OTE_ENV_MON2_WND_H     240
 
-#define ENV_ID_MON2_CTRL_BASE   60140
+#define OTE_ENV_ID_MON2_CTRL_BASE   60140
 
-typedef struct _ST_ENV_MON2 {
+typedef struct _ST_OTE_ENV_MON2 {
     HWND hwnd_mon;
 
-}ST_ENV_MON2, * LPST_ENV_MON2;
+}ST_OTE_ENV_MON2, * LPST_OTE_ENV_MON2;
 
-class CEnvironment : public CBasicControl
+class COteEnv : public CBasicControl
 {
 public:
-    CEnvironment();
-    ~CEnvironment();
+    COteEnv();
+    ~COteEnv();
 
      virtual HRESULT initialize(LPVOID lpParam) override;
 
@@ -77,11 +93,12 @@ public:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static ST_ENV_MON1 st_mon1;
-    static ST_ENV_MON2 st_mon2;
+    static ST_OTE_ENV_MON1 st_mon1;
+    static ST_OTE_ENV_MON2 st_mon2;
 
-    static CGPad* pPad;
-    static ST_CC_ENV_INF st_work;
+    static ST_OTE_ENV_INF st_work;
+
+    HRESULT open_opening_window();
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -99,21 +116,19 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
      
 
-
 private:
-     
+	bool is_opening_end = false;
+
      //オーバーライド
 
     virtual HRESULT routine_work(void* pObj) override;
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id);
-    void close_monitor_wnd(int id);
-    void show_monitor_wnd(int id);
-    void hide_monitor_wnd(int id);
+   static void close_monitor_wnd(int id);
+   static void show_monitor_wnd(int id);
+   static void hide_monitor_wnd(int id);
 
-    HRESULT init_gpad();
-    HRESULT close_gpad();
-
+ 
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;
     }

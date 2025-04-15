@@ -49,10 +49,11 @@
 
 //クレーン製番 ID INDEX
 #define CRANE_ID_MAX            32  //開発
-#define CRANE_ID_H6R602         0   //みらい
-#define CARNE_ID_HHGH29         1   //今造西多度津70t　102号  
-#define CARNE_ID_HHGQ18         2   //今造西多度津300t 10号
-#define CARNE_ID_HHFR22         3   //今造丸亀1200t 1号
+#define CRANE_ID_NULL           0   //未定
+#define CRANE_ID_H6R602         1   //みらい
+#define CARNE_ID_HHGH29         2   //今造西多度津70t　102号  
+#define CARNE_ID_HHGQ18         3   //今造西多度津300t 10号
+#define CARNE_ID_HHFR22         4   //今造丸亀1200t 1号
 #pragma endregion 識別ID
 
 #pragma region STATUS

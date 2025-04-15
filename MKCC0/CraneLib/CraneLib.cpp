@@ -5,21 +5,21 @@
 #include "framework.h"
 #include "CCraneLib.h"
 
-int CCraneBase::_crane_id;
+int CCraneBase::_crane_id = CRANE_ID_NULL;
 ST_SPEC CCraneBase::_spec;
 ST_CRANE_OBJ CCraneBase::objs;
 CCraneBase* CCraneBase::pCrane;
 PINT16 CCraneBase::_buf_if_r, CCraneBase::_buf_if_w;
+bool CCraneBase::is_setup_ok = false;
 
 INT16 CCraneBase::dummy_if_wbuf[CC_MC_SIZE_W_WRITE];
 INT16 CCraneBase::dummy_if_rbuf[CC_MC_SIZE_W_READ];
 
-CCraneBase::CCraneBase(int crane_id)
+SOCKADDR_IN CCraneBase::addr_pc;
+SOCKADDR_IN CCraneBase::addr_camera[N_REMOTE_CAMERA];
+
+CCraneBase::CCraneBase(int crane_id):CCraneBase(crane_id, dummy_if_rbuf, dummy_if_wbuf)
 {
-	_crane_id = crane_id;
-	_buf_if_r = dummy_if_rbuf, _buf_if_w = dummy_if_wbuf;
-	pCrane = this;
-	setup_crane(crane_id);
 };
 CCraneBase::CCraneBase(int crane_id, PINT16 buf_if_r, PINT16 buf_if_w)
 {
@@ -35,12 +35,16 @@ CCraneBase::~CCraneBase(void)
 
 HRESULT CCraneBase::setup_crane(int crane_id) {
 
+	//オブジェクト設定用バッファ
 	PINT16 pw016, pr016, pw16, pr16;
 	INT16 prmw16, prmr16;
 	PINT32 pw032, pr032;
 	INT32 prmw32, prmr32;
 	
-	switch (crane_id) {
+	//クレーンIDセット
+	set_id(crane_id);
+
+	switch (_crane_id) {
 	case CRANE_ID_H6R602: {//みらい
 		_spec = {
 			//ノッチ速度物理量

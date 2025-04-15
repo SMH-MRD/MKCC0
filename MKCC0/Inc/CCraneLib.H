@@ -1,5 +1,8 @@
 #pragma once
 
+#include <winsock.h>
+#include <windows.h>
+
 #include "SPEC_DEF.h"
 #include "COMMON_DEF.h"
 #include "NET_DEF.h"
@@ -41,7 +44,10 @@ typedef struct _ST_CRANE_OBJ {
 	CBitIO* sw_slw_brk;
 }ST_CRANE_OBJ, * LPST_CRANE_OBJ;
 
-class CCraneBase {
+
+#define N_REMOTE_CAMERA		16
+
+class  CCraneBase {
 
 private:
 	static int _crane_id;
@@ -49,6 +55,7 @@ private:
 	static PINT16 _buf_if_r, _buf_if_w;
 
 public:
+	static bool is_setup_ok;
 	static INT16 dummy_if_wbuf[CC_MC_SIZE_W_WRITE];
 	static INT16 dummy_if_rbuf[CC_MC_SIZE_W_READ];
 	static CCraneBase* pCrane;
@@ -57,10 +64,13 @@ public:
 	virtual ~CCraneBase(void);
 
 	static ST_CRANE_OBJ objs;
+	static SOCKADDR_IN addr_pc;
+	static SOCKADDR_IN addr_camera[N_REMOTE_CAMERA];
 
-	int get_id() { return _crane_id; }
-	ST_SPEC get_spec() { return _spec; }
+	static int get_id() { return _crane_id; }
+	static int set_id(int crane_id) { _crane_id = crane_id; return _crane_id; }
+	static ST_SPEC get_spec() { return _spec; }
 
-	HRESULT setup_crane(int crane_id);
+	static HRESULT setup_crane(int crane_id);
 
 };

@@ -2,7 +2,6 @@
 
 #include "COMMON_DEF.h"
 
-
 using namespace std;
 
 #define ID_PANEL_COLOR_BLACK	0

@@ -3,22 +3,22 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 
-#define SCAD_MON1_WND_X     640
+#define SCAD_MON1_WND_X     1920
 #define SCAD_MON1_WND_Y     0
-#define SCAD_MON1_WND_W     320
-#define SCAD_MON1_WND_H     240
-#define SCAD_MON1_N_CTRL    32
+#define SCAD_MON1_WND_W     1920
+#define SCAD_MON1_WND_H     1080
+#define SCAD_MON1_N_CTRL    64
 #define SCAD_MON1_N_WCHAR   64
 
-#define SCAD_ID_MON1_CTRL_BASE   53100
+#define SCAD_ID_MON1_CTRL_BASE   63100
 #define SCAD_ID_MON1_STATIC_GPAD     0
 
-#define SCAD_ID_MON2_CTRL_BASE   53140
+#define SCAD_ID_MON2_CTRL_BASE   63140
 
-#define SCAD_ID_MON1_TIMER  53190
-#define SCAD_ID_MON2_TIMER  53191
+#define SCAD_ID_MON1_TIMER      63190
+#define SCAD_ID_MON2_TIMER      63191
 
-#define SCAD_PRM_MON1_TIMER_MS  200
+#define SCAD_PRM_MON1_TIMER_MS  100
 #define SCAD_PRM_MON2_TIMER_MS  200
 
 

@@ -36,7 +36,7 @@
 #define OTE_AG_ID_MON1_STATIC_1      0
 
 
-typedef struct _ST_OTE_MON1 {
+typedef struct _ST_OTE_AG_MON1 {
     int timer_ms = OTE_AG_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
 
@@ -66,7 +66,7 @@ typedef struct _ST_OTE_MON1 {
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
-}ST_OTE_MON1, * LPST_OTE_MON1;
+}ST_OTE_AG_MON1, * LPST_OTE_AG_MON1;
 
 #define OTE_AG_MON2_WND_X     OTE_AG_MON1_WND_X
 #define OTE_AG_MON2_WND_Y     620   
@@ -88,7 +88,7 @@ typedef struct _ST_OTE_MON1 {
 #define OTE_AG_ID_MON2_RADIO_SND       8
 #define OTE_AG_ID_MON2_RADIO_INFO      9
 
-typedef struct _ST_OTE_MON2 {
+typedef struct _ST_OTE_AG_MON2 {
     HWND hwnd_mon;
     int timer_ms = OTE_AG_PRM_MON2_TIMER_MS;
     int sock_inf_id = OTE_AG_ID_MON2_RADIO_RCV; //ソケット情報を表示する内容コード
@@ -122,13 +122,13 @@ typedef struct _ST_OTE_MON2 {
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 
-}ST_OTE_MON2, * LPST_OTE_MON2;
+}ST_OTE_AG_MON2, * LPST_OTE_AG_MON2;
 
-class CAgent : public CBasicControl
+class COteAgent : public CBasicControl
 {
 public:
-	CAgent();
-	~CAgent();
+	COteAgent();
+	~COteAgent();
     virtual HRESULT initialize(LPVOID lpParam) override;
 
     virtual LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) override;
@@ -136,8 +136,8 @@ public:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static ST_OTE_MON1 st_mon1;
-    static ST_OTE_MON2 st_mon2;
+    static ST_OTE_AG_MON1 st_mon1;
+    static ST_OTE_AG_MON2 st_mon2;
 
     //タスク出力用構造体
     static ST_OTE_CC_IF st_work;

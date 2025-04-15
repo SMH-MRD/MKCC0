@@ -12,6 +12,8 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
+extern CCraneBase* pCraneObj;
+
 
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
@@ -47,11 +49,6 @@ CAgent::~CAgent() {
 HRESULT CAgent::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
-
-	//クレーンオブジェクトセット
-	pCrane = CCraneBase::pCrane;
-
-	INT16 notch=CCraneBase::objs.notch[ID_HOIST]->get_w();
 
 	//システム周波数読み込み
 	QueryPerformanceFrequency(&frequency);

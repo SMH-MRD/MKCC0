@@ -17,10 +17,10 @@ static CSockUDP* pMSockPC;					//マルチキャストPC通信受信用
 static SOCKADDR_IN addrin_ote_m2pc_snd;		//OTE->PC OTEマルチキャスト送信先アドレス（PC受信用)
 static SOCKADDR_IN addrin_ote_m2ote_snd;	//PC->OTE OTEマルチキャスト送信先アドレス（OTE受信用)
 
-ST_OTE_MON1 CAgent::st_mon1;
-ST_OTE_MON2 CAgent::st_mon2;
+ST_OTE_AG_MON1 COteAgent::st_mon1;
+ST_OTE_AG_MON2 COteAgent::st_mon2;
 
-ST_OTE_CC_IF CAgent::st_work;
+ST_OTE_CC_IF COteAgent::st_work;
 
 //共有メモリ
 
@@ -41,12 +41,12 @@ static wostringstream wos_msg;
 /****************************************************************************/
 /*   デフォルト関数											                    */
 /****************************************************************************/
-CAgent::CAgent() {
+COteAgent::COteAgent() {
 }
-CAgent::~CAgent() {
+COteAgent::~COteAgent() {
 }
 
-HRESULT CAgent::initialize(LPVOID lpParam) {
+HRESULT COteAgent::initialize(LPVOID lpParam) {
 
 	//システム周波数読み込み
 	QueryPerformanceFrequency(&frequency);
@@ -155,7 +155,9 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"MKCC IF");
 	set_item_chk_txt();
 	set_panel_tip_txt();
-	//モニタ２CB状態セット	
+
+
+	//モニタ2CB状態セット	
 	if (st_mon2.hwnd_mon != NULL)
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
 	else
@@ -164,24 +166,24 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	return hr;
 }
 
-HRESULT CAgent::routine_work(void* pObj) {
+HRESULT COteAgent::routine_work(void* pObj) {
 	input();
 	parse();
 	output();
 	return S_OK;
 }
 
-int CAgent::input() {
+int COteAgent::input() {
 
 	return S_OK;
 }
 
-int CAgent::parse() {
+int COteAgent::parse() {
 
 	return S_OK;
 }
 
-int CAgent::close() {
+int COteAgent::close() {
 
 	return 0;
 }
@@ -189,7 +191,7 @@ int CAgent::close() {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK COteAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_USER_TASK_REQ: {
@@ -294,7 +296,7 @@ LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 /// <summary>
 /// OTEユニキャスト電文受信処理
 /// </summary>
-HRESULT CAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
+HRESULT COteAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 	int nRtn = pUSockPC->rcv_msg((char*)pbuf, sizeof(ST_PC_U_MSG));
 	if (nRtn == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_RCV) {
@@ -310,7 +312,7 @@ HRESULT CAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 /// <summary>
 /// PCマルチキャスト電文受信処理 
 /// </summary>
-HRESULT CAgent::rcv_mul_pc(LPST_PC_M_MSG pbuf) {
+HRESULT COteAgent::rcv_mul_pc(LPST_PC_M_MSG pbuf) {
 	int nRtn = pMSockPC->rcv_msg((char*)pbuf, sizeof(ST_PC_M_MSG));
 	if (nRtn == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_RCV) {
@@ -326,7 +328,7 @@ HRESULT CAgent::rcv_mul_pc(LPST_PC_M_MSG pbuf) {
 /// <summary>
 /// OTEマルチキャスト電文受信処理 
 /// </summary>
-HRESULT CAgent::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
+HRESULT COteAgent::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 	int nRtn = pMSockOte->rcv_msg((char*)pbuf, sizeof(ST_OTE_M_MSG));
 	if (nRtn == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_RCV) {
@@ -342,7 +344,7 @@ HRESULT CAgent::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// <summary>
 /// OTEユニキャスト電文送信処理 
 /// </summary>
-LPST_OTE_U_MSG CAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
+LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 
 	pOteCCIf->st_msg_ote_u_snd.head.myid = pOteEnvInf->device_code;
 	pOteCCIf->st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
@@ -352,7 +354,7 @@ LPST_OTE_U_MSG CAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 
 	return &pOteCCIf->st_msg_ote_u_snd;
 }
-HRESULT CAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
+HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 	if (pUSockPC->snd_msg((char*)pbuf, sizeof(ST_PC_U_MSG), *p_addrin_to) == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockPC->err_msg.str();
@@ -368,11 +370,11 @@ HRESULT CAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 /// OTEマルチキャスト電文送信処理 
 /// </summary>
 //マルチキャストメッセージセット
-LPST_OTE_M_MSG CAgent::set_msg_m() {
+LPST_OTE_M_MSG COteAgent::set_msg_m() {
 	return &pOteCCIf->st_msg_ote_m_snd;
 }
 //PCへ送信
-HRESULT CAgent::snd_mul2pc(LPST_OTE_M_MSG pbuf) {
+HRESULT COteAgent::snd_mul2pc(LPST_OTE_M_MSG pbuf) {
 	if (pMSockPC->snd_msg((char*)pbuf, sizeof(ST_OTE_M_MSG), addrin_ote_m2pc_snd) == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
 			st_mon2.wo_mpc.str(L""); st_mon2.wo_mpc << L"ERR snd:" << pMSockPC->err_msg.str();
@@ -384,7 +386,7 @@ HRESULT CAgent::snd_mul2pc(LPST_OTE_M_MSG pbuf) {
 	return S_OK;
 }
 //OTEへ送信
-HRESULT CAgent::snd_mul2ote(LPST_OTE_M_MSG pbuf) {
+HRESULT COteAgent::snd_mul2ote(LPST_OTE_M_MSG pbuf) {
 	if (pMSockOte->snd_msg((char*)pbuf, sizeof(ST_OTE_M_MSG), addrin_ote_m2ote_snd) == SOCKET_ERROR) {
 		st_mon2.wo_mote.str(L""); st_mon2.wo_mote << L"ERR snd:" << pMSockOte->err_msg.str();
 		SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MUL_PC], st_mon2.wo_mpc.str().c_str());
@@ -398,7 +400,7 @@ HRESULT CAgent::snd_mul2ote(LPST_OTE_M_MSG pbuf) {
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
-LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK COteAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -444,7 +446,7 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 };
 
 //static wostringstream mon2wos;
-LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -666,7 +668,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 }
 
-HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND COteAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -739,7 +741,7 @@ HWND CAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CAgent::close_monitor_wnd(int id) {
+void COteAgent::close_monitor_wnd(int id) {
 	wos.str(L"");
 	if (id == BC_ID_MON1) {
 		DestroyWindow(st_mon1.hwnd_mon);
@@ -753,7 +755,7 @@ void CAgent::close_monitor_wnd(int id) {
 	msg2listview(wos.str());
 	return;
 }
-void CAgent::show_monitor_wnd(int id) {
+void COteAgent::show_monitor_wnd(int id) {
 	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon1.hwnd_mon);
@@ -767,7 +769,7 @@ void CAgent::show_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CAgent::hide_monitor_wnd(int id) {
+void COteAgent::hide_monitor_wnd(int id) {
 	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 		st_mon1.is_monitor_active = false;
@@ -781,7 +783,7 @@ void CAgent::hide_monitor_wnd(int id) {
 }
 
 ///###	タブパネルのListViewにメッセージを出力
-void CAgent::msg2listview(wstring wstr) {
+void COteAgent::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -806,7 +808,7 @@ void CAgent::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CAgent::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void COteAgent::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -816,7 +818,7 @@ void CAgent::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CAgent::set_panel_tip_txt() {
+void COteAgent::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -857,7 +859,7 @@ void CAgent::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CAgent::set_func_pb_txt() {
+void COteAgent::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"MKCC IF");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -867,7 +869,7 @@ void CAgent::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CAgent::set_item_chk_txt() {
+void COteAgent::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO1: {

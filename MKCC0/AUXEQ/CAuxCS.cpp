@@ -351,7 +351,7 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				pUSockAuxCs->addr_in_dst.sin_port = htons(IP_PORT_AUX_CS_CLIENT);
 				pUSockAuxCs->addr_in_dst.sin_addr = pUSockAuxCs->addr_in_from.sin_addr;
 
-				snd_uni2main(set_msg_u(true, 0, 0), &pUSockAuxCs->addr_in_dst)==S_OK;
+				snd_uni2main(set_msg_u(true, 0, 0), &pUSockAuxCs->addr_in_dst);
 			}
 		}break;
 		case FD_WRITE: break;
