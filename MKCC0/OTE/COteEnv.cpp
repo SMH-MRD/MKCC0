@@ -115,7 +115,6 @@ static HBRUSH hBrush;
 
 LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	
-
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -173,7 +172,7 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			if (crane_id_selected != CRANE_ID_NULL) {
 				if (S_OK == pCraneObj->setup_crane(crane_id_selected)) {
 					close_monitor_wnd(BC_ID_MON1);
-					Sleep(1000);
+					Sleep(500);
 					pScadObj->open_ope_window();
 					crane_id_selected = CRANE_ID_NULL;
 				}

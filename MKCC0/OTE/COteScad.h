@@ -19,13 +19,41 @@
 #define OTE_SCAD_MON1_N_WCHAR           64
 
 #define OTE_SCAD_ID_MON1_CTRL_BASE      63100
-#define OTE_SCAD_ID_MON1_STATIC_TYPE    0
-#define OTE_SCAD_ID_MON1_STATIC_UID     1
+#define OTE_SCAD_ID_MON1_STATIC_UID     0
+#define OTE_SCAD_ID_MON1_STATIC_TYPE    1
+#define OTE_SCAD_ID_MON1_LABEL_PCR      2
+#define OTE_SCAD_ID_MON1_LABEL_PLCR     3
+#define OTE_SCAD_ID_MON1_LABEL_PCS      4
+#define OTE_SCAD_ID_MON1_LABEL_PLCS     5
+#define OTE_SCAD_ID_MON1_STATIC_CRANE   6
 
-#define OTE_SCAD_ID_MON1_PB_ESTP        16
+#define OTE_SCAD_ID_MON1_CB_ESTP        16
 #define OTE_SCAD_ID_MON1_PB_CTRL_SOURCE 17
+#define OTE_SCAD_ID_MON1_PB_REMOTE      18
+#define OTE_SCAD_ID_MON1_PB_MODE1       19
+#define OTE_SCAD_ID_MON1_PB_MODE2       20
+#define OTE_SCAD_ID_MON1_PB_AUTHENT     21
+#define OTE_SCAD_ID_MON1_PB_TYPE_SET    22
+#define OTE_SCAD_ID_MON1_PB_CONTROLER   23
+#define OTE_SCAD_ID_MON1_PB_PAD         24
+#define OTE_SCAD_ID_MON1_PB_ASSIST      25
+#define OTE_SCAD_ID_MON1_PB_CONNECT     26
 
+#define OTE_SCAD_ID_MON1_RADIO_FAULT    32
+#define OTE_SCAD_ID_MON1_RADIO_SETTING  33
+#define OTE_SCAD_ID_MON1_RADIO_COM      34
+#define OTE_SCAD_ID_MON1_RADIO_CAMERA   35
+#define OTE_SCAD_ID_MON1_RADIO_STAT     36
+#define OTE_SCAD_ID_MON1_RADIO_CLEAR    37
 
+#define OTE_SCAD_PB_W                   100
+#define OTE_SCAD_PB_H1                  40
+#define OTE_SCAD_PB_H2                  100
+
+#define OTE_SCAD_PB_X1                  20
+#define OTE_SCAD_PB_X2                  1780
+#define OTE_SCAD_TEXT_X1                20
+#define OTE_SCAD_TEXT_X2                1780
 
 typedef struct _ST_OTE_SCAD_MON1 {
     int timer_ms = OTE_SCAD_PRM_MON1_TIMER_MS;
@@ -44,31 +72,31 @@ typedef struct _ST_OTE_SCAD_MON1 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[OTE_SCAD_MON1_N_CTRL] = {
-        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        OTE_SCAD_TEXT_X1,270, OTE_SCAD_TEXT_X2,615, OTE_SCAD_TEXT_X1,900, OTE_SCAD_TEXT_X1,930, 80,900, 80,930, OTE_SCAD_TEXT_X2,715, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        OTE_SCAD_PB_X2,30, OTE_SCAD_PB_X2,160, OTE_SCAD_PB_X1,30, OTE_SCAD_PB_X1,150, OTE_SCAD_PB_X1,195, OTE_SCAD_PB_X1,300, OTE_SCAD_PB_X2,645, OTE_SCAD_PB_X2,300,
+        OTE_SCAD_PB_X2,345, OTE_SCAD_PB_X2,390, OTE_SCAD_PB_X2,760, 0,0, 0,0, 0,0, 0,0, 0,0,
+        OTE_SCAD_PB_X1,500, OTE_SCAD_PB_X1,545, OTE_SCAD_PB_X1,590, OTE_SCAD_PB_X1,635, OTE_SCAD_PB_X1,680, OTE_SCAD_PB_X1,725, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[OTE_SCAD_MON1_N_CTRL] = {
-        295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        100,20, 100,20, 40,20, 40,20, 10,20, 10,20, 100,50, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        OTE_SCAD_PB_W,OTE_SCAD_PB_H2, OTE_SCAD_PB_W,OTE_SCAD_PB_H2 , OTE_SCAD_PB_W,OTE_SCAD_PB_H2, OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 ,
+        OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , 0,0, 0,0, 0,0, 0,0, 0,0,
+        OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , OTE_SCAD_PB_W,OTE_SCAD_PB_H1 , 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[OTE_SCAD_MON1_N_CTRL][OTE_SCAD_MON1_N_WCHAR] = {
-        L"タブレット", L"SHIMH000", L"", L"", L"", L"", L"", L"",
+        L"SHIMH000", L"タブレット", L"PC  R", L"PLC R", L"S", L"S", L"未設定\nXXXXXXX", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
+        L"緊急停止", L"主幹", L"遠隔", L"MODE1", L"MODE2", L"認証", L"端末設定", L"操作器",
+        L"PAD", L"アシスト", L"接続", L"", L"", L"", L"", L"",
+        L"故障", L"設定", L"通信", L"カメラ", L"状態", L"クリア", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""

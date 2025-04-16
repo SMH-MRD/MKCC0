@@ -245,10 +245,39 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		hBrush = CreateSolidBrush(RGB(64, 64, 64)); // ダークグレー
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[OTE_SCAD_ID_MON1_STATIC_TYPE] = CreateWindowW(TEXT("STATIC"), st_mon1.text[OTE_SCAD_ID_MON1_STATIC_TYPE], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[OTE_SCAD_ID_MON1_STATIC_TYPE].x, st_mon1.pt[OTE_SCAD_ID_MON1_STATIC_TYPE].y,
-			st_mon1.sz[OTE_SCAD_ID_MON1_STATIC_TYPE].cx, st_mon1.sz[OTE_SCAD_ID_MON1_STATIC_TYPE].cy,
-			hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + OTE_SCAD_ID_MON1_STATIC_TYPE), hInst, NULL);
+
+		int i;
+		//STATIC,LABEL
+		for (i = OTE_SCAD_ID_MON1_STATIC_UID; i <= OTE_SCAD_ID_MON1_STATIC_CRANE; i++) {
+			st_mon1.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
+				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+				hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		}
+		//CB
+		i = OTE_SCAD_ID_MON1_CB_ESTP;
+		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE ,
+			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+			hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		//PB
+		for (i = OTE_SCAD_ID_MON1_PB_CTRL_SOURCE; i <= OTE_SCAD_ID_MON1_PB_CONNECT; i++) {
+			st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+				hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		}
+
+		//RADIO BUTTON
+		for (i = OTE_SCAD_ID_MON1_RADIO_FAULT; i <= OTE_SCAD_ID_MON1_RADIO_CLEAR; i++) {
+			if (i == OTE_SCAD_ID_MON1_RADIO_FAULT) {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+			else {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+		}
 
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_SCAD_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
