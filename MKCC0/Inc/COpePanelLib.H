@@ -9,22 +9,7 @@
 using namespace std;
 
 typedef struct _ST_PANEL_OBJ {
-
-	CI32Val* healthy;
-
-	CPbVal* remote_active;
-	CI16Val* ope_device;
-
-	CPblEntity* ctrl_source;
-	CPblEntity* estop;
-
-	CI16Val* cs3_mh_spd;
-	CI16Val* cs4_bh_R;
-
-	CPbVal* pb_alarm_stop;
-	CPbVal* pb_fault_reset;
-	CPbVal* pb_il_bypass;
-
+	CPblCtrl* estop;
 }ST_PANEL_OBJ, * LPST_PANEL_OBJ;
 
 typedef struct _ST_GRAPHIC_OBJ {

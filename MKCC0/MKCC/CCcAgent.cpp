@@ -162,18 +162,9 @@ int CAgent::parse() {//メイン処理
 static INT16 healthy_count = 0;
 int CAgent::output() {
 	//ヘルシー出力
-	CCraneBase::objs.healthy->write_io(healthy_count++);
 
 	//制御指令出力
-	CCraneBase::objs.flg_pc_ctrl->write_io(L_ON);
-	CCraneBase::objs.sw_remote_mode->write_io(L_ON);
-	CCraneBase::objs.flg_panel_sim_mode->write_io(L_ON);
 
-	//ノッチ指令出力
-	CCraneBase::objs.notch[ID_HOIST]->write_io(st_work.notch_ref[ID_HOIST]);
-	CCraneBase::objs.notch[ID_GANTRY]->write_io(st_work.notch_ref[ID_GANTRY]);
-	CCraneBase::objs.notch[ID_BOOM_H]->write_io(st_work.notch_ref[ID_BOOM_H]);
-	CCraneBase::objs.notch[ID_SLEW]->write_io(st_work.notch_ref[ID_SLEW]);
 
 	return S_OK;
 }

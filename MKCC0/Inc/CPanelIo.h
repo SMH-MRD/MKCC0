@@ -21,10 +21,10 @@ using namespace Gdiplus;
 #define ID_VALUE_POINT_SRC0	1
 #define ID_VALUE_POINT_SRC1	2
 
-template <class T> class CValue {
+template <class T> class CCtrl {
 public:
-	CValue() { value = value_hold = 0; }
-	virtual ~CValue() {}
+	CCtrl() { value = value_hold = 0; }
+	virtual ~CCtrl() {}
 
 protected:
     T value;	    //現在値
@@ -77,10 +77,10 @@ public:
 /// value：0=OFF, 0以外=ON
 /// ボタンのトリガでカウントをセット→updateメソッドを定周期呼び出しでカウントダウン
 /// </summary>
-class CPbVal : public CValue<INT16> {	//ボタン
+class CPbCtrl : public CCtrl<INT16> {	//ボタン
 
 public:
-	CPbVal(
+	CPbCtrl(
 		INT16 pb_type, HWND _hwnd, INT16 _count_val,
 		POINT** ppt, SIZE** psz, LPWSTR ptext) 
 	{ 
@@ -103,21 +103,21 @@ public:
 		return get(); 
 	}
 
-	HRESULT cler() { 
+	HRESULT clear() { 
 		value = value_hold = 0; 
 		if (type != ID_VALUE_TYPE_PB) SendMessage(hwnd, BM_SETCHECK, BST_UNCHECKED, 0L);
 		return S_OK; 
 	}	//クリア	
-	virtual ~CPbVal() {}
+	virtual ~CPbCtrl() {}
 };
 
 /// <summary>
 /// CECK BOX Value
 /// </summary>
-class CCbVal : public CValue<INT16> {	//ボタン
+class CCbCtrl : public CCtrl<INT16> {	//ボタン
 
 public:
-	CCbVal(
+	CCbCtrl(
 		HWND _hwnd,	INT16 _val_on, POINT** ppt, SIZE** psz, LPWSTR ptext)
 	{
 		set_base(*ppt, *psz, ptext);
@@ -135,7 +135,7 @@ public:
 	
 		return get();
 	}
-	virtual ~CCbVal() {}
+	virtual ~CCbCtrl() {}
 };
 
 
@@ -153,10 +153,10 @@ public:
 /// グラフィックタイプは元のデバイスコンテキストから画像をコピー
 /// その他は書き込みデバイスコンテキストに描画
 /// </summary>
-class CLampVal : public CValue<INT16> {	//ランプ
+class CLampCtrl : public CCtrl<INT16> {	//ランプ
 
 public:
-	CLampVal(INT16 lamp_type, INT16 cnt_freq, HDC _hdc_dst, HDC _hdc_src,
+	CLampCtrl(INT16 lamp_type, INT16 cnt_freq, HDC _hdc_dst, HDC _hdc_src,
 		POINT** ppt, SIZE** psz, LPWSTR ptext, 
 		Pen** _pppen, SolidBrush** _ppbrush, HFONT _hfont)
 	{
@@ -215,12 +215,12 @@ public:
 		}
 	}
 
-	virtual ~CLampVal() {}
+	virtual ~CLampCtrl() {}
 };
 
-class CI16Val : public CValue<INT16> {
+class CI16Ctrl : public CCtrl<INT16> {
 public:
-	CI16Val(
+	CI16Ctrl(
 		POINT* ppt, SIZE* psz, LPWSTR ptext, PLONG _pcount,
 		Pen** _pppen, SolidBrush** _ppbrush, HFONT _hfont)
 	{
@@ -228,12 +228,12 @@ public:
 		set_graphic(_pppen, _ppbrush, _hfont);
 	}
 
-	virtual ~CI16Val() {}
+	virtual ~CI16Ctrl() {}
 };
 
-class CI32Val : public CValue<INT32> {
+class CI32Ctrl : public CCtrl<INT32> {
 public:
-	CI32Val(
+	CI32Ctrl(
 		POINT* ppt, SIZE* psz, LPWSTR ptext, PLONG _pcount,
 		Pen** _pppen, SolidBrush** _ppbrush, HFONT _hfont)
 	{
@@ -241,12 +241,12 @@ public:
 		set_graphic(_pppen, _ppbrush, _hfont);
 	}
 
-	virtual ~CI32Val() {}
+	virtual ~CI32Ctrl() {}
 };
 
-class CDblVal : public CValue<double> {
+class CDblCtrl : public CCtrl<double> {
 public:
-	CDblVal(
+	CDblCtrl(
 		POINT* ppt, SIZE* psz, LPWSTR ptext, PLONG _pcount,
 		Pen** _pppen, SolidBrush** _ppbrush, HFONT _hfont)
 	{
@@ -254,21 +254,17 @@ public:
 		set_graphic(_pppen, _ppbrush, _hfont);
 	}
 
-	virtual ~CDblVal() {}
+	virtual ~CDblCtrl() {}
 };
 
-
-//######################################################################
-// Entity
-//#####################################################################
-class CPblEntity {	//ボタン
+class CPblCtrl {	//ボタン
 public:
-	CPblEntity(CPbVal* _pb, CLampVal* _lamp) {
+	CPblCtrl(CPbCtrl* _pb, CLampCtrl* _lamp) {
 		pb = _pb;
 		lamp = _lamp;
 	}
-	virtual ~CPblEntity() {}
+	virtual ~CPblCtrl() {}
 
-	CPbVal* pb = NULL;	//ボタンの値
-	CLampVal* lamp = NULL;	//ランプの値
+	CPbCtrl* pb = NULL;	//ボタンの値
+	CLampCtrl* lamp = NULL;	//ランプの値
 };

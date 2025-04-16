@@ -186,7 +186,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
   
    //  クレーンオブジェクトセットアップ
    LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
-   pCraneBase = new CCraneBase(CARNE_ID_HHGH29, pPlcIo->buf_io_read, pPlcIo->buf_io_write);
+   pCraneBase = new CCraneBase(CARNE_ID_HHGH29);
  
    //デバイスコードセット
    LPST_CC_ENV_INF pCraneStat = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
