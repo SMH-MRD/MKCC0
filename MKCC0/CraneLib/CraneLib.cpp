@@ -10,9 +10,6 @@ ST_SPEC CCraneBase::_spec;
 ST_CRANE_OBJ CCraneBase::objs;
 CCraneBase* CCraneBase::pCrane;
 
-ST_OTE_U_MSG CCraneBase::dummy_if_wbuf;
-ST_PC_U_MSG CCraneBase::dummy_if_rbuf;
-
 LPST_PC_U_MSG CCraneBase::pbuf_r;
 LPST_OTE_U_MSG CCraneBase::pbuf_w;
 
@@ -21,10 +18,7 @@ bool CCraneBase::is_setup_ok = false;
 SOCKADDR_IN CCraneBase::addr_pc;
 SOCKADDR_IN CCraneBase::addr_camera[N_REMOTE_CAMERA];
 
-CCraneBase::CCraneBase(int crane_id):CCraneBase(crane_id, &dummy_if_rbuf, &dummy_if_wbuf)
-{
-};
-CCraneBase::CCraneBase(int crane_id, LPST_PC_U_MSG pbuf_r, LPST_OTE_U_MSG pbuf_w)
+CCraneBase::CCraneBase(int crane_id)
 {
 	_crane_id = crane_id;
 	pbuf_r = pbuf_r, pbuf_w = pbuf_w;

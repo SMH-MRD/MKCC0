@@ -688,11 +688,45 @@ typedef struct _ST_CC_OTE_INF {
 #define SMEM_OTE_CS_INF_NAME		L"OTE_CS_IF"
 #define SMEM_OTE_UI_NAME			L"OTE_UI"
 #define SMEM_OTE_CC_IF_NAME			L"OTE_CC_IF"
+#define SMEM_OTE_PANEL_NAME			L"OTE_PANEL"
 
 #define MUTEX_OTE_ENV_NAME			L"MU_OTE_ENV_IF"
 #define MUTEX_OTE_CS_INF_NAME		L"MU_OTE_CS_IF"
 #define MUTEX_OTE_UI_NAME			L"MU_OTE_UI"
 #define MUTEX_OTE_CC_IF_NAME		L"MU_OTE_CC_IF"
+
+#define N_PANEL_COLOR_PEN		16
+#define N_PANEL_COLOR_BRUSH		16
+#define N_PANEL_FONT			16
+
+#define ID_PANEL_COLOR_BLACK	0
+#define ID_PANEL_COLOR_GRAY		1
+#define ID_PANEL_COLOR_WHITE	2
+#define ID_PANEL_COLOR_RED		3
+#define ID_PANEL_COLOR_GREEN	4
+#define ID_PANEL_COLOR_BLUE		5
+#define ID_PANEL_COLOR_YELLOW	6
+#define ID_PANEL_COLOR_ORANGE	7
+#define ID_PANEL_COLOR_MAZENDA	8
+#define ID_PANEL_COLOR_BROWN	9
+
+#define ID_PANEL_FONT_6			0
+#define ID_PANEL_FONT_8			1
+#define ID_PANEL_FONT_10		2
+#define ID_PANEL_FONT_12		3
+#define ID_PANEL_FONT_14		4
+#define ID_PANEL_FONT_20		5
+#define ID_PANEL_FONT_24		6
+#define ID_PANEL_FONT_32		7
+#define ID_PANEL_FONT_48		8
+
+typedef struct _ST_DRAWING_BASE {
+	Pen* ppen[N_PANEL_COLOR_PEN];
+	SolidBrush* pbrush[N_PANEL_COLOR_BRUSH];
+	FontFamily* pfamily[N_PANEL_FONT];
+	Font*		pfont[N_PANEL_FONT];
+}ST_DRAWING_BASE, LPST_DRAWING_BASE;
+
 
 #pragma region OTE_INF
 typedef struct _ST_OTE_ENV_INF {
@@ -745,6 +779,7 @@ typedef struct _ST_OTE_UI {
 	DWORD notch_pos_gmpad[MOTION_ID_MAX];
 	UINT16 pb_stat[N_OTE_PNL_PBL];			//PB状態 OFFディレイカウント
 	UINT16 notch_pb_stat[N_OTE_PNL_PBL];	//PB状態 OFFディレイカウント
+
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 

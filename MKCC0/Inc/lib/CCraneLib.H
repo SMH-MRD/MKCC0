@@ -3,12 +3,13 @@
 #include <winsock.h>
 #include <windows.h>
 
-#include "SPEC_DEF.h"
+#include ".\spec\SPEC_DEF.h"
 #include "COMMON_DEF.h"
 #include "NET_DEF.h"
 #include "PLC_DEF.h"
 #include "OTE_DEF.h"
 #include "CPlcIo.h"
+#include "CCraneValue.h"
 
 using namespace std;
 
@@ -47,33 +48,6 @@ typedef struct _ST_CRANE_OBJ {
 
 
 #define N_REMOTE_CAMERA		16
-
-template <class T> class CValue {
-public:
-	CValue() { value = value_hold = 0; }
-	virtual ~CValue() {}
-
-protected:
-	T value;	    //Œ»Ý’l
-	T value_hold;
-
-public:
-	T get() { return value; }
-	HRESULT set(T _value, bool flg_update_hold) { if (flg_update_hold)value_hold = value;   value = _value;  return S_OK; }
-	HRESULT set(T _value) { value = _value;  return S_OK; }
-
-	BOOL chk_trig()		{ set(value, true); if (value != value_hold)return true;return false; }
-	BOOL chk_trig_on()	{ set(value, true); if (value >  value_hold)return true;return false; }
-	BOOL chk_trig_off() { set(value, true); if (value <  value_hold)return true;return false; }
-
-	BOOL operator == (const CValue<T>& other) const {
-		return this->value == other.value;
-	}
-	BOOL operator != (const CValue<T>& other) const {
-		return this->value != other.value;
-	}
-};
-
 
 class  CCraneBase {
 

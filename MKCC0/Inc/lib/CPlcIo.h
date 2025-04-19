@@ -2,62 +2,73 @@
 #include <Windows.h>
 #include "COMMON_DEF.H"
 #include "PLC_DEF.H"
-
+/// <summary>
+/// PLCとのIO信号取り扱いクラス
+/// wval:PCが上書きする値　rval:PLCが制御に使う値（上書がある時は上書き後の結果）
+/// wprm,rprmはWレジスタ(INT16）から信号を取り出すときのマスク等　
+/// </summary>
+/// <typeparam name="T"></typeparam>
 template <class T> class CPlcIO {
 public:
 	CPlcIO() {}
 	virtual ~CPlcIO() {}
 
 protected:
-    T _wval_plc = 0;	    //PLCへの出力値
+    T _wval_plc = 0;		//PLCへの出力値
     T _rval_plc = 0;		//PLCからの入力値
 
 	T*		_pwbuf = NULL;	//IO WRITE	バッファへのポインタ
 	T*		_prbuf = NULL;	//IO READ	バッファへのポインタ
-    PINT16		_pwprm = NULL;	//パラメータへのポインタ
-	PINT16		_prprm = NULL;	//パラメータへのポインタ
+    PINT16	_pwprm = NULL;	//パラメータへのポインタ
+	PINT16	_prprm = NULL;	//パラメータへのポインタ
 	T dummy_buf = 0;
 
 public:
 	virtual HRESULT set_w(T val) { _wval_plc = val; return S_OK;};
+
 	T get_w() { return _wval_plc; }
 	T get_r() { return _rval_plc; }
 
-	HRESULT set_wbuf(PINT16 p) { 
+	HRESULT set_wbuf(PINT16 p) {				//PLCへの書き込みバッファの書き込み先ポインタセット
 		if (p == NULL)	{ return S_FALSE; }
 		else			{ _pwbuf = p; return S_OK; }
 	}
-	HRESULT set_rbuf(PINT16 p) { 
+	HRESULT set_rbuf(PINT16 p) {				//PLCからの読み込みバッファの読み込み先ポインタセット
 		if (p == NULL) { return S_FALSE; }
 		else { _prbuf = p; return S_OK; }
 	}
 
-	virtual HRESULT write_io(T val)		= 0;    //_wval_plcの内容をセットしてIOバッファに出力
-    virtual T read_io()					= 0;	// dispの内容をIOバッファから読み出し
+	virtual HRESULT write_io(T val)		= 0;    //_wval_plcの内容をセットしてPLCへの書き込みバッファに出力
+    virtual T read_io()					= 0;	// PLC読み込みバッファから読み出し_rval_plcにセット
 };
 
 //*CNotchIO *****************************************************************
 #define PLCIO_N_NOTCH_INDEX     11
 #define PLCIO_0_NOTCH_INDEX     5
+#define PLCIO_N_PTN_BIT         6	//パターン設定　ビット数
+
 class CNotchIO : public CPlcIO<INT16> {
 private:
 	INT16 bit_mask_w = 0, bit_mask_r = 0;
 public:
 	INT16 o_ptn[PLCIO_N_NOTCH_INDEX]	    // ノッチ指令パターン　0 Notch:index5  4 Notch:index9  -4 Notch:index1
-		= { PTN_NOTCH_0, PTN_NOTCH_R4, PTN_NOTCH_R3, PTN_NOTCH_R2, PTN_NOTCH_R1, PTN_NOTCH_0, PTN_NOTCH_F1, PTN_NOTCH_F2,PTN_NOTCH_F3, PTN_NOTCH_F4, PTN_NOTCH_0 };
-	INT16 i_ptn[PLCIO_N_NOTCH_INDEX]	// ノッチFBパターン　　0 Notch:index5  4 Notch:index9  -4 Notch:index1
-		= { PTN_NOTCH_0, PTN_NOTCH_R4, PTN_NOTCH_R3, PTN_NOTCH_R2, PTN_NOTCH_R1, PTN_NOTCH_0, PTN_NOTCH_F1, PTN_NOTCH_F2,PTN_NOTCH_F3, PTN_NOTCH_F4, PTN_NOTCH_0 };
+		= { PTN_NOTCH_R4, PTN_NOTCH_R4, PTN_NOTCH_R3, PTN_NOTCH_R2, PTN_NOTCH_R1, PTN_NOTCH_0, PTN_NOTCH_F1, PTN_NOTCH_F2,PTN_NOTCH_F3, PTN_NOTCH_F4, PTN_NOTCH_F4 };
+	INT16 i_ptn[PLCIO_N_NOTCH_INDEX]		// ノッチFBパターン　　0 Notch:index5  4 Notch:index9  -4 Notch:index1
+		= { PTN_NOTCH_R4, PTN_NOTCH_R4, PTN_NOTCH_R3, PTN_NOTCH_R2, PTN_NOTCH_R1, PTN_NOTCH_0, PTN_NOTCH_F1, PTN_NOTCH_F2,PTN_NOTCH_F3, PTN_NOTCH_F4, PTN_NOTCH_F4 };
 public:
 	CNotchIO(PINT16 prbuf, PINT16 pwbuf, PINT16 pwprm, PINT16 prprm){
-		_prbuf = prbuf;	_pwbuf = pwbuf;
-		_pwprm = pwprm; _prprm = prprm;
+		_prbuf = prbuf;	_pwbuf = pwbuf;	//PLC IOバッファ
+		_pwprm = pwprm; _prprm = prprm;	//パラメータはビットマスク
 		if(pwprm != NULL)bit_mask_w = *pwprm;
-		if (prprm != NULL)bit_mask_r = *prprm;
+		if(prprm != NULL)bit_mask_r = *prprm;
+		setup_notch_ptn();
 	}
     ~CNotchIO() {}
 
 	virtual HRESULT write_io(INT16 val);
 	virtual INT16 read_io();
+
+	HRESULT setup_notch_ptn();	//ノッチパターンをセットアップ実機IO割付に応じてシフト
 };
 
 //*CBitIO *****************************************************************

@@ -5,7 +5,7 @@
 
 #include "CBasicControl.h"
 #include "CSharedMem.h"	    //共有メモリクラス
-#include "CCraneLib.h"	    //クレーンオブジェクトクラス
+#include ".\lib\CCraneLib.h"	    //クレーンオブジェクトクラス
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "CCcEnv.h"
@@ -498,21 +498,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, 0, (LPARAM)L"-");
 
         //ブラシ作成
-        MKCC_COLOR_PALLET c;
-        int r = RGBA_ID_RED, g = RGBA_ID_GREEN, b = RGBA_ID_BLUE, color;
-        color = COLOR_ID_DGRAY; st_work_wnd.hbrush[BC_BK_COLOR_DEFAULT]
-            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
-        color = COLOR_ID_WGREEN; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_GREEN]
-            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
-        color = COLOR_ID_WYELLOW; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_YELLOW]
-            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
-        color = COLOR_ID_WBLUE; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_BLUE]
-            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
-        color = COLOR_ID_WRED; st_work_wnd.hbrush[BC_BK_COLOR_LIGHT_RED]
-            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
-        color = COLOR_ID_WORANGE; st_work_wnd.hbrush[5] = st_work_wnd.hbrush[6] = st_work_wnd.hbrush[7]
-            = CreateSolidBrush(RGB(c.rgba[color][r], c.rgba[color][g], c.rgba[color][b]));
-
+  
     } break;
 
     case WM_CTLCOLORSTATIC: {//lParam:対象STATICのハンドル,wParam：対象スタティックのDC

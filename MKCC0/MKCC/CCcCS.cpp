@@ -1,5 +1,5 @@
 
-#include "CSockLib.H"
+#include ".\lib\CSockLib.H"
 #include "CCcCS.h"
 #include "resource.h"
 #include "framework.h"

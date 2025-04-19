@@ -9,7 +9,8 @@
 using namespace std;
 
 typedef struct _ST_PANEL_OBJ {
-	CPblCtrl* estop;
+	CPbCtrl* cb_estop;
+	CPbCtrl* pb_ctrl_source;
 }ST_PANEL_OBJ, * LPST_PANEL_OBJ;
 
 typedef struct _ST_GRAPHIC_OBJ {
@@ -39,12 +40,14 @@ private:
 
 public:
 	static CPanelBase* pPanel;
-	static ST_DRAWING_BASE drawing_items;
 	static ST_GRAPHIC_OBJ* pGraphics;
 
-	CPanelBase(int crane_id, int panel_id);
-	virtual ~CPanelBase(void);
-
+	CPanelBase(int crane_id, int panel_id) {
+		setup_drawing_base();
+	}
+	virtual ~CPanelBase(void) {
+		close_drawing_base();
+	}
 	static ST_PANEL_OBJ objs;
 
 	HRESULT set_crane_id(int crane_id) {  _crane_id = crane_id; S_OK; }

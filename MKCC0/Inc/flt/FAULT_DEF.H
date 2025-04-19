@@ -2,19 +2,18 @@
 
 
 //**************************************************************************************
-//通信電文フォーマット
+//故障情報管理構造体
 //**************************************************************************************
 #define PLC_IF_N_FAULT_WBUF			18
 #define PLC_IF_N_FAULT				16
 #define PLC_IF_N_MSG_CHAR			48
 
-#define PLC_IF_N_FLT_TYPE			4
+#define PLC_IF_N_FLT_TYPE			5
 #define PLC_IF_FLT_TYPE_ALL			0
 #define PLC_IF_FLT_TYPE_HEAVY		1
 #define PLC_IF_FLT_TYPE_IL			2
 #define PLC_IF_FLT_TYPE_LIGHT		3
-
-#define PLC_IF_FLT_DISP_MAX			10
+#define PLC_IF_FLT_TYPE_REMOTE		4
 
 typedef struct stPLCifFlt {
 	bool is_fault_exist[PLC_IF_N_FLT_TYPE];
@@ -29,6 +28,8 @@ typedef struct stPLCifFlt {
 			0x2000,0x8000,0x1A0,0x6084,0x550,0x1126,0x800,0x10,0x690,0x10,0x8,0x0,0x0,0x0,0x0,0x0,0x0,0x2A},
 		{ //軽故障
 			0x4700,0x1CCA,0x0,0x1,0x0,0x8000,0x0,0x80,0x0,0x48,0x10,0x10,0x0,0x0,0x0,0x7C00,0x0,0x0},
+		{ //遠隔
+			0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0},
 	};
 
 	WCHAR flt_msg[PLC_IF_N_FAULT_WBUF][PLC_IF_N_FAULT][PLC_IF_N_MSG_CHAR] =
@@ -342,90 +343,3 @@ L"288:ー",
 };
 } ST_PLCIF_FLT, * LPST_PLCIF_FLT;
 
-#if 0
-typedef struct stPLCifFlt {
-	INT16	flt_mask[PLC_IF_N_FLT_TYPE][PLC_IF_N_FAULT_WBUF] =
-	{
-		{0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff},//ALL
-		{0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff},//HEAVY
-		{0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff},//IL
-		{0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff,	0xffff,0xffff,0xffff,0xffff} //LIGHT
-	};
-
-	WCHAR flt_msg[PLC_IF_N_FAULT_WBUF][PLC_IF_N_FAULT][PLC_IF_N_MSG_CHAR] =
-	{
-		//0
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//1
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//2
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//3
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//4		
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//5
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//6
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//7
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//8
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//9
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//10
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//11
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//12
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//13
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//14		
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//15
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//16
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		},
-		//17
-		{
-			L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L"",L""
-		}
-	};
-	} ST_PLCIF_FLT, * LPST_PLCIF_FLT;
-#endif

@@ -4,6 +4,7 @@
 //@ GDI+
 #include <objbase.h>//gdiplus.hのコンパイルを通すために必要
 #include <gdiplus.h>
+using namespace Gdiplus;
 
 //#define _DVELOPMENT_MODE                //開発環境を有効にする
 
@@ -75,6 +76,12 @@
 
 #define ID_T                    0   // 接線方向
 #define ID_R		            1   // 半径方向
+
+#define N_NOTCH_MAX	            8 //0～7ノッチ 最大ノッチ以上はオーバースピード
+#define N_NOTCH_MODE            3
+#define NOTCH_MODE_BASE         0
+#define NOTCH_MODE_1            1
+#define NOTCH_MODE_2            2
 
 #define NOTCH_0	                0
 #define NOTCH_1	                1
@@ -244,6 +251,14 @@ typedef struct _ST_XYZ {
     double z;
 }ST_XYZ, * LPST_XYZ;
 
+typedef struct _ST_CRANE_V_SPEC {
+    double v100;                                    //100%速度
+    double rps100;                                  //100%モータ回転速度
+    double gear_retio;                              //モータ回転減速比
+    double norm_notch[N_NOTCH_MODE][N_NOTCH_MAX];	//正規化ノッチ速度
+	double plc_norm100;                             //PLC100%速度正規化値
+}ST_CRANE_V_SPEC, * LPST_CRANE_V_SPEC;
+
 
 ///#ビット定義 
 #pragma region BIT_DEF
@@ -307,6 +322,7 @@ typedef struct _ST_XYZ {
 #define RGBA_ID_BLUE        2
 #define RGBA_ID_ALPHA       3
 
+#if 0
 typedef struct _MKCC_COLOR_PALLET {
     BYTE rgba[32][4] = {
         //GRAY                                                      RED     
@@ -320,6 +336,7 @@ typedef struct _MKCC_COLOR_PALLET {
     };
 }MKCC_COLOR_PALLET, * LPMKCC_COLOR_PALLET;
 
+#endif
 using namespace Gdiplus;
 
 typedef struct _PANEL_COLOR_PALLET {
@@ -336,5 +353,6 @@ typedef struct _PANEL_COLOR_PALLET {
         Color(0,0,0,0),     Color(0, 0, 0, 0),      Color(0, 0, 0, 0),      Color(0, 0, 0, 0),      Color(0, 0, 0, 0),  Color(0, 0, 0, 0),  Color(0, 0, 0, 0),      Color(0, 0, 0, 0) 
     };
 }PANEL_COLOR_PALLET, * LPPANEL_COLOR_PALLET;
+
 
 #pragma endregion
