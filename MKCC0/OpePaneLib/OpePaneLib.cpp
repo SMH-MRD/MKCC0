@@ -7,16 +7,16 @@
 
 using namespace Gdiplus;
 
-//#GLOBAL #############################
-GdiplusStartupInput gdiplusStartupInput;
-ULONG_PTR gdiplusToken;
-ST_DRAWING_BASE drawing_items;
-//#####################################
+//###   GLOBAL  #################################################
+GdiplusStartupInput gdiplusStartupInput;//Gdi+初期化用
+ULONG_PTR			gdiplusToken;		//Gdi+初期化,終了処理用
+ST_DRAWING_BASE		drawing_items;		//描画用素材登録構造体
+//###############################################################
 
 int CPanelBase::_crane_id;
-
-ST_PANEL_OBJ	CPanelBase::objs;
+int CPanelBase::_panel_id;
 CPanelBase*		CPanelBase::pPanel;
+CMainPanelObj* CPanelBase::pobj;
 
 HRESULT CPanelBase::setup_drawing_base() {
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);

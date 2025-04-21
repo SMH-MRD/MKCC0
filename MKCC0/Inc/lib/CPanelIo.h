@@ -8,18 +8,11 @@
 // Value
 //######################################################################
 
-#define CODE_VALUE_ACTION_NON  0
-
-#define ID_VALUE_OBJ_MAIN	0
-#define ID_VALUE_OBJ_SUB	1
+#define CODE_VALUE_ACTION_NON	0
 
 #define ID_VALUE_POINT_DST		0
 #define ID_VALUE_POINT_SRC_ON	1
 #define ID_VALUE_POINT_SRC_OFF	2
-
-#define ID_SOURCE_LAMP_ON		0
-#define ID_SOURCE_LAMP_OFF		1
-
 
 #define VAL_PB_OFF_DELAY_COUNT	0x0002	//ボタンOFFディレイカウント値
 
@@ -31,7 +24,7 @@
 
 template <class T> class CPnlParts {
 public:
-	CPnlParts() { value = 0;}
+	CPnlParts() {}
 	virtual ~CPnlParts() {}
 
 public:
@@ -70,7 +63,6 @@ public:
 
 /// <summary>
 /// STATIC コントロール
-/// ボタンのトリガでカウントをセット→updateメソッドを定周期呼び出しでカウントダウン
 /// </summary>
 class CStaticCtrl : public CPnlParts<INT16> {	//スタティック
 
@@ -346,6 +338,7 @@ public:
 /// ImageLamp
 /// 指定画像を切替表示
 /// Imaggeを読み込んでグラフィックに書き込み
+/// 登録1番目の画像をOFF、2番目の画像をONで予約
 /// </summary>
 #define N_IMG_SWITCH_MAX			8
 #define CODE_IMG_SWITCH_OFF			0
@@ -409,6 +402,46 @@ public:
 
 		pgraphic->DrawImage(pimg_disp, pt.X, pt.Y);
 
+		return S_OK;
+	}
+};
+
+/// <summary>
+/// StringGdi
+/// Gdi+でテキスト出力
+/// ptは文字列の表示位置,Sizeは背景矩形のサイズ、ptextは、初期value値
+/// 登録1番目の画像をOFF、2番目の画像をONで予約
+/// </summary>
+#define N_IMG_SWITCH_MAX			8
+#define CODE_IMG_SWITCH_OFF			0
+#define CODE_IMG_SWITCH_ON			1
+
+class CStringGdi : public CPnlParts<std::wstring> {
+public:
+	CStringGdi(
+		INT32 _id, Point* ppt, Size* psz, LPWSTR ptext, Graphics* _pgraphic,Rect _rc_bk
+	)
+	{
+		set_id(_id);
+		set_base(ppt, psz, ptext);
+		pgraphic = _pgraphic;
+		PointF	pointf(pt.X, pt.Y);	ptf = pointf;
+		RectF rc_bk_f(_rc_bk.X,_rc_bk.Y,_rc_bk.Width,_rc_bk.Height);
+				
+		value = txt;	
+	}
+	virtual ~CStringGdi() {}
+
+	Graphics* pgraphic;
+	PointF ptf = { 0,0 };	//表示位置
+	RectF rc_bk = { 0,0,0,0 };	//表示矩形
+
+	virtual HRESULT update(Font* pfont, SolidBrush* pbrush) {
+		pgraphic->DrawString(txt.c_str(), txt.length(), pfont, ptf, NULL, pbrush);
+		return S_OK;
+	}
+	virtual HRESULT update_bk(SolidBrush* pbrush) {
+		pgraphic->FillRectangle(pbrush, rc_bk.X, rc_bk.Y, rc_bk.Width, rc_bk.Height);
 		return S_OK;
 	}
 };
