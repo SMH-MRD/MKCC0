@@ -194,13 +194,13 @@ LRESULT CALLBACK CFaultPanel::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 		CCbCtrl* pcb = st_obj.radio_fault_type->pradio[0];
 		pcb->set_wnd(
 			CreateWindow(L"BUTTON",	pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
-				pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height,hWnd, (HMENU)(pcb->get_id()), hInst, NULL)
+				pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height,hWnd, (HMENU)((LONGLONG)pcb->get_id()), hInst, NULL)
 		);
 		for (int i = 1, k = ID_OTE_FLT_PANEL_RADIO_HEAVY; k < ID_OTE_FLT_PANEL_RADIO_REMOTE; i++, k++) {
 			pcb = st_obj.radio_fault_type->pradio[i];
 			pcb->set_wnd(
 				CreateWindow(L"BUTTON", pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
-					pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->get_id()), hInst, NULL)
+					pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)((LONGLONG)pcb->get_id()), hInst, NULL)
 			);
 		}
 		//ラジオボタンの初期化
@@ -210,14 +210,14 @@ LRESULT CALLBACK CFaultPanel::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 		CPbCtrl* ppb = st_obj.pb_reset;
 		ppb->set_wnd(
 			CreateWindow(L"BUTTON", ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-				ppb->pt.X, ppb->pt.Y, pcb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->get_id()), hInst, NULL)
+				ppb->pt.X, ppb->pt.Y, pcb->sz.Width, ppb->sz.Height, hWnd, (HMENU)((LONGLONG)ppb->get_id()), hInst, NULL)
 		);
 
 		//バイパスCB
 		pcb = st_obj.cb_il_bypass;
 		pcb->set_wnd(
 			CreateWindow(L"BUTTON", pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE,
-				pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->get_id()), hInst, NULL)
+				pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)((LONGLONG)pcb->get_id()), hInst, NULL)
 		);
 
 
@@ -226,7 +226,7 @@ LRESULT CALLBACK CFaultPanel::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 
 		pst->set_wnd(
 			CreateWindow(L"BUTTON", pst->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE,
-				pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->get_id()), hInst, NULL)
+				pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)((LONGLONG)pst->get_id()), hInst, NULL)
 		);
 
 		SetTimer(hWnd, ID_OTE_FLT_PANEL_TIMER, OTE_FLT_PANEL_DISP_MS, NULL);

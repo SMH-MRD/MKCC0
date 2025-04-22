@@ -188,6 +188,13 @@ int COteAgent::close() {
 	return 0;
 }
 
+int COteAgent::output() {          //出力処理
+	//共有メモリ出力処理
+	memcpy_s(pOteCCIf, sizeof(ST_OTE_CC_IF), &st_work, sizeof(ST_OTE_CC_IF));
+	
+	return STAT_OK;
+}
+
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
@@ -499,7 +506,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	}
 	case WM_TIMER: {
 		//UniCast送信
-		if(pOteCCIf->id_ope_active)
+		if(pOteCCIf->id_ote_ope_active)
 			snd_uni2pc(set_msg_u(false, 0, 0), &pUSockPC->addr_in_dst);
 		else 
 			snd_uni2pc(set_msg_u(true, 0, 0), &pUSockPC->addr_in_dst);

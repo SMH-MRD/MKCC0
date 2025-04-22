@@ -91,13 +91,22 @@ static UINT32	gpad_mode_last = L_OFF;
 
 int COteEnv::input() {
 
-
 	return S_OK;
+}
+
+int COteEnv::parse() {
+
+	return STAT_OK;
 }
 
 int COteEnv::close() {
 
 	return 0;
+}
+
+int COteEnv::output() {
+	memcpy_s(pOteEnvInf, sizeof(ST_OTE_ENV_INF), &st_work, sizeof(ST_OTE_ENV_INF));
+	return STAT_OK;
 }
 
 HRESULT COteEnv::open_opening_window() {

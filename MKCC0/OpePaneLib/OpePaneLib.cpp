@@ -16,7 +16,7 @@ ST_DRAWING_BASE		drawing_items;		//描画用素材登録構造体
 int CPanelBase::_crane_id;
 int CPanelBase::_panel_id;
 CPanelBase*		CPanelBase::pPanel;
-CMainPanelObj* CPanelBase::pobj;
+CMainPanelObj* CPanelBase::pobjs;
 
 HRESULT CPanelBase::setup_drawing_base() {
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
@@ -103,6 +103,9 @@ void CPanelBase::close_drawing_base() {
 }
 
 HRESULT CPanelBase::setup_panel(int crane_id, int panel_id) {
+	set_crane_id(crane_id);
+	set_panel_id(panel_id);
+	pPanel = this;
 	return S_OK;
 }
 void CPanelBase::close_panel() {

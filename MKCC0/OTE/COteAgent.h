@@ -187,9 +187,7 @@ private:
     int input();//“ü—Íˆ—
 
     int parse();
-    int output() {          //o—Íˆ—
-        return STAT_NG;
-    }
+    int output();           //o—Íˆ—
     int close();
 };
 

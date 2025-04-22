@@ -153,11 +153,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CSubPanel.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPanelObj.cpp" />
     <ClCompile Include="CSubPanel.cpp" />
     <ClCompile Include="OpePaneLib.cpp" />
     <ClCompile Include="pch.cpp">

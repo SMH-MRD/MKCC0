@@ -45,7 +45,7 @@ public:
 
 
 	virtual T get() { return value; }
-	HRESULT set(T _value) { value = _value;  return S_OK; }
+	virtual HRESULT set(T _value) { value = _value;  return S_OK; }
 
 	HRESULT set_wnd(HWND _hWnd) { if (_hWnd == NULL) return S_FALSE;  hWnd = _hWnd; return S_OK; }
 	
@@ -84,7 +84,7 @@ public:
 class CPbCtrl : public CPnlParts<INT16> {	//ボタン
 
 public:
-	CPbCtrl( INT32 _id, Point* ppt, Size* psz, LPWSTR ptext) { 
+	CPbCtrl( INT32 _id, Point* ppt, Size* psz, LPCWSTR ptext) { 
 		set_id(_id) ;
 		set_base(ppt, psz, ptext);
 	}
@@ -120,7 +120,7 @@ public:
 	}
 	virtual ~CCbCtrl() {}
 
-	virtual INT16 get() { value = SendMessage(hWnd, BM_GETCHECK, 0, 0); return value; }
+	virtual INT16 get() { value = (INT16)SendMessage(hWnd, BM_GETCHECK, 0, 0); return value; }
 	
 	virtual HRESULT set(INT16 val) { 
 		if (val)	SendMessage(hWnd, BM_SETCHECK, BST_CHECKED, 0); 
@@ -364,7 +364,11 @@ public:
 
 		value = CODE_IMG_SWITCH_OFF;
 	}
-	virtual ~CSwitchImg() {}
+	virtual ~CSwitchImg() {
+		for (int i = 0; i < N_IMG_SWITCH_MAX; i++) {
+			delete pimg[i];
+		}
+	}
 
 	Graphics* pgraphic;
 	Image* pimg[N_IMG_SWITCH_MAX];
@@ -373,12 +377,17 @@ public:
 
 	INT32 count			= 0;	//点滅タイミング用
 	INT32 fcount		= 3;	//表示カウント１イメージ分
-	INT32 id_disp		= 0;	//表示イメージID	
+	INT32 id_disp		= 0;	//表示イメージID
+	INT32 list_flick_id[N_IMG_SWITCH_MAX] = { 0,1,0,0,0,0,0,0 };
 
 
-	HRESULT setup_flick(INT32 _n_flick, INT32 _fcount) {
+	HRESULT setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid) {
 		fcount = _fcount;
 		n_flick = _n_flick;
+		for (int i = 0; i < n_flick; i++) {
+			if (i < N_IMG_SWITCH_MAX) list_flick_id[i] = pid[i];
+		}
+		value = CODE_VALUE_LAMP_FLICK;
 		return S_OK;
 	}
 
@@ -387,16 +396,16 @@ public:
 		Image* pimg_disp = pimg[CODE_IMG_SWITCH_OFF];
 		value = code;
 
-		if (code == CODE_VALUE_LAMP_FLICK) {
+		if (code == CODE_VALUE_LAMP_FLICK) {//フリッカ　list_flick_idに登録した順で順次切り替え
 			count++; if (count > fcount) {
 				count = 0;
 				id_disp++; if (id_disp >= n_flick) id_disp = 0;
 			}
-			pimg_disp = pimg[id_disp];
+			pimg_disp = pimg[list_flick_id[id_disp]];
 		}
-		else if ((code < n_switch) && (code >= 0)) {
+		else if ((code < n_switch) && (code >= 0)) {//指定したイメージを表示
 			id_disp = code;
-			pimg_disp = pimg[CODE_IMG_SWITCH_ON];
+			pimg_disp = pimg[id_disp];
 		}
 		else  return S_FALSE;
 
@@ -410,11 +419,7 @@ public:
 /// StringGdi
 /// Gdi+でテキスト出力
 /// ptは文字列の表示位置,Sizeは背景矩形のサイズ、ptextは、初期value値
-/// 登録1番目の画像をOFF、2番目の画像をONで予約
 /// </summary>
-#define N_IMG_SWITCH_MAX			8
-#define CODE_IMG_SWITCH_OFF			0
-#define CODE_IMG_SWITCH_ON			1
 
 class CStringGdi : public CPnlParts<std::wstring> {
 public:
@@ -425,8 +430,8 @@ public:
 		set_id(_id);
 		set_base(ppt, psz, ptext);
 		pgraphic = _pgraphic;
-		PointF	pointf(pt.X, pt.Y);	ptf = pointf;
-		RectF rc_bk_f(_rc_bk.X,_rc_bk.Y,_rc_bk.Width,_rc_bk.Height);
+		PointF	pointf((REAL)pt.X, (REAL)pt.Y);	ptf = pointf;
+		RectF rc_bk_f((REAL)_rc_bk.X, (REAL)_rc_bk.Y, (REAL)_rc_bk.Width, (REAL)_rc_bk.Height);
 				
 		value = txt;	
 	}
@@ -437,7 +442,7 @@ public:
 	RectF rc_bk = { 0,0,0,0 };	//表示矩形
 
 	virtual HRESULT update(Font* pfont, SolidBrush* pbrush) {
-		pgraphic->DrawString(txt.c_str(), txt.length(), pfont, ptf, NULL, pbrush);
+		pgraphic->DrawString(txt.c_str(), (INT)txt.length(), pfont, ptf, NULL, pbrush);
 		return S_OK;
 	}
 	virtual HRESULT update_bk(SolidBrush* pbrush) {

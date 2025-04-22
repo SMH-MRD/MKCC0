@@ -178,13 +178,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
     //デバイスコードセット
     LPST_OTE_ENV_INF pEnvStat = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
-   
-    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
-    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"????", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
+    DWORD	str_num;
+    
+    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
+    
+    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"??????", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
 
-    WCHAR wbuf[16];
+    WCHAR wbuf[32];
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
-    swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.serial_no));
+    swscanf_s(wbuf, L"%x", &(pEnvStat->device_code.serial_no));
 
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
     swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));

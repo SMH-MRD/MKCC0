@@ -4,6 +4,7 @@
 #include "CCraneLib.H"
 #include "CCUILib.h"
 #include "COteEnv.h"
+#include "COpePanelLib.h"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -15,6 +16,8 @@ extern CSharedMem* pOteUiObj;
 
 ST_OTE_SCAD_MON1 COteScad::st_mon1;
 ST_OTE_SCAD_MON2 COteScad::st_mon2;
+
+CPanelBase* pPanelBase;
 
 
 //共有メモリ
@@ -243,6 +246,8 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
+		pPanelBase = new CPanelBase(pOteEnvInf->selected_crane, pOteEnvInf->device_code.serial_no, hWnd);
+
 		hBrush = CreateSolidBrush(RGB(64, 64, 64)); // ダークグレー
 		//ウィンドウにコントロール追加
 
@@ -255,7 +260,10 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 		//CB
 		i = OTE_SCAD_ID_MON1_CB_ESTP;
-		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE ,
+		//st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE ,
+		//	st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+		//	hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), pPanelBase->pobjs->cb_estop->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
 			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 			hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
 		//PB
@@ -317,7 +325,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		KillTimer(hWnd, OTE_SCAD_ID_MON1_TIMER);
 		DeleteObject(hBrush);
 
-		//### SCADAクラスインスタンスのポインタ取得
+		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
 
 	}break;

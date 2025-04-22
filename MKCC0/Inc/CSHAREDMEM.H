@@ -738,6 +738,9 @@ typedef struct _ST_OTE_ENV_INF {
 	UINT32			grip_mode;				//グリップスイッチモード
 	UINT32			gpad_mode = L_OFF;		//ゲームパッドモード
 	DIJOYSTATE		pad_data;
+
+	INT32			selected_crane;
+
 }ST_OTE_ENV_INF, * LPST_OTE_ENV_INF;
 #pragma endregion 
 
@@ -751,6 +754,12 @@ typedef struct _ST_OTE_CS_INF {
 
 //## OTE_CC_IF
 #pragma region OTE_CC_INF
+
+#define CODE_OTE_PC_COM_STAT_SOCK_NG	-1	//ソケット初期化エラー
+#define CODE_OTE_PC_COM_STAT_SOCK_ERR	0	//ソケットエラー応答
+#define CODE_OTE_PC_COM_STAT_SOCK_OK	1	//ソケット初期化OK　通信無し
+#define CODE_OTE_PC_COM_STAT_LINK_OK	2	//通信中
+
 typedef struct _ST_OTE_CC_IF {
 
 	ST_PC_U_MSG     st_msg_pc_u_rcv;
@@ -760,7 +769,11 @@ typedef struct _ST_OTE_CC_IF {
 	ST_OTE_U_MSG    st_msg_ote_u_snd;
 	ST_OTE_M_MSG    st_msg_ote_m_snd;
 
-	UINT32			id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
+	INT32			id_ote_ope_active = OTE_NON_OPEMODE_ACTIVE;			//ノッチ操作が有効な接続端末ID
+	INT32			id_conected_crane = CRANE_ID_NULL;					//接続中クレーンID
+	INT32			com_status_cc_rcv = CODE_OTE_PC_COM_STAT_SOCK_NG;
+	INT32			com_status_cc_snd = CODE_OTE_PC_COM_STAT_SOCK_NG;
+
 	SOCKADDR_IN		addr_in_to_oteu;
 	SOCKADDR_IN		addr_in_from_oteu;
 	SOCKADDR_IN		addr_in_from_pcm;

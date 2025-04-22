@@ -48,13 +48,14 @@ using namespace Gdiplus;
 #define CRANE_TYPE_JC1          1   //ジブクレーン 補巻あり
 #define CRANE_TYPE_GC           2   //ゴライアスクレーン
 
-//クレーン製番 ID INDEX
-#define CRANE_ID_MAX            32  //開発
-#define CRANE_ID_NULL           0   //未定
-#define CRANE_ID_H6R602         1   //みらい
-#define CARNE_ID_HHGH29         2   //今造西多度津70t　102号  
-#define CARNE_ID_HHGQ18         3   //今造西多度津300t 10号
-#define CARNE_ID_HHFR22         4   //今造丸亀1200t 1号
+//クレーン製番 コード
+#define CRANE_ID_CODE_MASK      0x0000FF00           
+#define CRANE_ID_MAX            255          //
+#define CRANE_ID_NULL           0x0000      //未定
+#define CRANE_ID_H6R602         0x0100      //みらい
+#define CARNE_ID_HHGH29         0x0200      //今造西多度津70t　102号  
+#define CARNE_ID_HHGQ18         0x0300      //今造西多度津300t 10号
+#define CARNE_ID_HHFR22         0x0400      //今造丸亀1200t 1号
 #pragma endregion 識別ID
 
 #pragma region STATUS
@@ -233,8 +234,8 @@ using namespace Gdiplus;
 
 //デバイスコード
 typedef struct _ST_DEVICE_CODE {
-	WCHAR crane_id[7]=L"XXXXXX";   //製番コード
-    WCHAR pc_type[7]=L"??????";    //PC TYPE
+	WCHAR crane_id[8]=L"XXXXXX";   //製番コード
+    WCHAR pc_type[8]=L"??????";    //PC TYPE
     INT32 serial_no;
     INT32 option;
  }ST_DEVICE_CODE, * LPST_DEVICE_CODE;

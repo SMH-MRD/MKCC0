@@ -52,7 +52,7 @@ namespace OTE
 
  //システム関連キー
 #define ODER_CODE_KEY_OF_INIFILE        L"ORDER_CODE"
-#define PC_TYPE_KEY_OF_INIFILE          L"PC_TYPE"
+#define PC_TYPE_KEY_OF_INIFILE          L"PC_TYPE"      
 #define PC_SERIAL_KEY_OF_INIFILE        L"PC_SERIAL"
 #define PC_OPTION_KEY_OF_INIFILE        L"PC_OPTION"
 
