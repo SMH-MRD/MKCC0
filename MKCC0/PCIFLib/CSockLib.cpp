@@ -283,7 +283,6 @@ HRESULT CSockUDP::add_multi_to_sock(SOCKADDR_IN addr_in_m) {
 /// <returns></returns>
 int CSockUDP::snd_msg(const char* pbuf, int len, SOCKADDR_IN addr) {
 	addr_in_dst = addr;
-	int nRtn = sendto(s, pbuf, len, 0, (LPSOCKADDR)&addr_in_dst, sizeof(addr_in_dst));
 	if (nRtn == SOCKET_ERROR) SetSockErr(WSAGetLastError());
 	return nRtn;
 }

@@ -380,6 +380,19 @@ public:
 	INT32 id_disp		= 0;	//表示イメージID
 	INT32 list_flick_id[N_IMG_SWITCH_MAX] = { 0,1,0,0,0,0,0,0 };
 
+	DRAWITEMSTRUCT dis = { 0 };
+
+	HRESULT set_dis(CPnlParts* pPB) {
+		if (pPB == NULL)return S_FALSE;
+		if (pPB->hWnd == NULL) return S_FALSE;
+		
+		dis.CtlType		= ODT_BUTTON;
+		dis.CtlID		= pPB->id;
+		dis.hwndItem	= pPB->hWnd;
+		dis.hDC			= GetDC(pPB->hWnd);
+		
+		return S_OK;
+	}
 
 	HRESULT setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid) {
 		fcount = _fcount;

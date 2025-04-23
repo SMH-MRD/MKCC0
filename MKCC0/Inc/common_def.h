@@ -357,3 +357,14 @@ typedef struct _PANEL_COLOR_PALLET {
 
 
 #pragma endregion
+
+///#êMçÜï\é¶ÉâÉìÉv
+#pragma region SIGNAL LAMPCOLOR
+
+#define ID_SIGNAL_LAMP_OFF	0	//SOCK NG
+#define ID_SIGNAL_LAMP_G	1	//LINK OK
+#define ID_SIGNAL_LAMP_R	2	//SOCK ERR
+#define ID_SIGNAL_LAMP_B	3	//SOCK OK
+#define ID_SIGNAL_LAMP_Y	4
+
+#pragma endregion

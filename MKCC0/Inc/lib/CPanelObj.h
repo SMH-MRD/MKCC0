@@ -126,7 +126,7 @@ public:
 	virtual void delete_obj() = 0;
 };
 
-class CMainPanelObj :CPanelObjBase
+class CMainPanelObj :public CPanelObjBase
 {
 public:
 	CMainPanelObj(HWND _hwnd) : CPanelObjBase(_hwnd) {

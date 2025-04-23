@@ -10,19 +10,19 @@ using namespace Gdiplus;
 static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_STR_MESSAGE		,Point(0,0)		,Size(500,30)	,L"メッセージなし"	},
 		{ID_MAIN_PNL_OBJ_PB_REMOTE			,Point(0,30)	,Size(100,30)	,L"遠隔"			},
-		{ID_MAIN_PNL_OBJ_LMP_REMOTE			,Point(100,30)	,Size(30,30)	,L"遠隔"			},
+		{ID_MAIN_PNL_OBJ_LMP_REMOTE			,Point(100,30)	,Size(100,100)	,L"遠隔"			},
 		{ID_MAIN_PNL_OBJ_TXT_UID			,Point(0,60)	,Size(100,30)	,L"UID"				},
-		{ID_MAIN_PNL_OBJ_PB_AUTH			,Point(0,90)	,Size(100,30)	,L"認証"			},
+		{ID_MAIN_PNL_OBJ_PB_AUTH			,Point(20,90)	,Size(100,40)	,L"認証"			},
 		{ID_MAIN_PNL_OBJ_LAB_PC_COM_STAT	,Point(0,120)	,Size(100,30)	,L"PC通信"			},
 		{ID_MAIN_PNL_OBJ_LAB_PLC_COM_STAT	,Point(0,120)	,Size(100,30)	,L"PLC通信"			},
-		{ID_MAIN_PNL_OBJ_LMP_PCR			,Point(0,120)	,Size(100,30)	,L"PC受信"			},
-		{ID_MAIN_PNL_OBJ_LMP_PCS			,Point(0,120)	,Size(100,30)	,L"PC送信"			},
-		{ID_MAIN_PNL_OBJ_LMP_PLCR			,Point(0,120)	,Size(100,30)	,L"PLC受信"			},
-		{ID_MAIN_PNL_OBJ_LMP_PLCS			,Point(0,120)	,Size(100,30)	,L"PLC送信"			},
-		{ID_MAIN_PNL_OBJ_CB_ESTOP			,Point(0,120)	,Size(100,30)	,L"緊停止"		},
-		{ID_MAIN_PNL_OBJ_LMP_ESTOP			,Point(0,120)	,Size(100,30)	,L"緊急停止"		},
-		{ID_MAIN_PNL_OBJ_PB_CSOURCE			,Point(0,120)	,Size(100,30)	,L"主幹"			},
-		{ID_MAIN_PNL_OBJ_LMP_CSOURCE		,Point(0,120)	,Size(100,30)	,L"主幹"			},
+		{ID_MAIN_PNL_OBJ_LMP_PCR			,Point(100,120)	,Size(100,30)	,L"PC受信"			},
+		{ID_MAIN_PNL_OBJ_LMP_PCS			,Point(100,120)	,Size(100,30)	,L"PC送信"			},
+		{ID_MAIN_PNL_OBJ_LMP_PLCR			,Point(100,120)	,Size(100,30)	,L"PLC受信"			},
+		{ID_MAIN_PNL_OBJ_LMP_PLCS			,Point(100,120)	,Size(100,30)	,L"PLC送信"			},
+		{ID_MAIN_PNL_OBJ_CB_ESTOP			,Point(100,120)	,Size(100,30)	,L"緊急停止"		},
+		{ID_MAIN_PNL_OBJ_LMP_ESTOP			,Point(100,120)	,Size(100,30)	,L"緊急停止"		},
+		{ID_MAIN_PNL_OBJ_PB_CSOURCE			,Point(100,120)	,Size(100,30)	,L"主幹"			},
+		{ID_MAIN_PNL_OBJ_LMP_CSOURCE		,Point(100,120)	,Size(100,30)	,L"主幹"			},
 		{ID_MAIN_PNL_OBJ_CB_PNL_NOTCH		,Point(0,120)	,Size(100,30)	,L"操作器"			},
 		{ID_MAIN_PNL_OBJ_PB_PAD_MODE		,Point(0,120)	,Size(100,30)	,L"PAD MODE"		},
 		{ID_MAIN_PNL_OBJ_LMP_PAD_MODE		,Point(0,120)	,Size(100,30)	,L"PAD MODE"		},
@@ -32,29 +32,29 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		,Point(0,120)	,Size(100,30)	,L"未接続"			},
 		{ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND	,Point(0,120)	,Size(100,30)	,L"クレーン選択"	},
 
-		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		,Point(0,120)	,Size(100,30)	,L"MODE1"			},
-		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		,Point(0,120)	,Size(100,30)	,L"MODE2"			},
-		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE		,Point(0,120)	,Size(100,30)	,L"表示モード"		},
+		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		,Point(20,150)	,Size(100,30)	,L"MODE1"			},
+		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		,Point(20,195)	,Size(100,30)	,L"MODE2"			},
+		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE		,Point(20,150)	,Size(100,30)	,L"表示モード"		},
 		
-		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT	,Point(0,120)	,Size(100,30)	,L"故障"			},
-		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET	,Point(0,120)	,Size(100,30)	,L"設定"			},
-		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM	,Point(0,120)	,Size(100,30)	,L"通信"			},
-		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM	,Point(0,120)	,Size(100,30)	,L"カメラ"			},
-		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT	,Point(0,120)	,Size(100,30)	,L"状態"			},
-		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR	,Point(0,120)	,Size(100,30)	,L"クリア"			},
-		{ID_MAIN_PNL_OBJ_RDO_OPT_WND		,Point(0,120)	,Size(100,30)	,L"オプション"		},
+		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT	,Point(20,500)	,Size(100,40)	,L"故障"			},
+		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET	,Point(20,545)	,Size(100,40)	,L"設定"			},
+		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM	,Point(20,590)	,Size(100,40)	,L"通信"			},
+		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM	,Point(20,635)	,Size(100,40)	,L"カメラ"			},
+		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT	,Point(20,680)	,Size(100,40)	,L"状態"			},
+		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR	,Point(20,725)	,Size(100,40)	,L"クリア"			},
+		{ID_MAIN_PNL_OBJ_RDO_OPT_WND		,Point(20,500)	,Size(100,40)	,L"オプション"		},
 };
 
 HRESULT CMainPanelObj::setup_obj() { 
 	
 	int i = 0;
-	Image* pimg[N_IMG_SWITCH_MAX];
+	Image* pimg[32];//画像ポインタ配列
 	//0 メッセージ
 		str_message			= new CStringGdi(ID_MAIN_PNL_OBJ_STR_MESSAGE, &main_props[i].pt, &main_props[i].sz,  main_props[i].txt,pgraph_bk, Rect(main_props[i].pt.X, main_props[i].pt.Y, main_props[i].sz.Width, main_props[i].sz.Height));
 	
 	//1-2 リモートPBL
 	i++;pb_remote			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_REMOTE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	static Image img0(L"..\Img\HHGH29\sw_of_o.png"), img1(L"..\Img\HHGH29\sw_of_o.png");pimg[0] = &img0; pimg[1] = &img1;
+	static Image img0(L"../Img/HHGH29/sw80_of_o.png"), img1(L"../Img/HHGH29/sw80_of_o.png");pimg[0] = &img0; pimg[1] = &img1;
 	i++; lmp_remote			= new CSwitchImg(ID_MAIN_PNL_OBJ_PB_REMOTE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, pimg, 2, 3);
 	
 	//3-4 認証表示TXT/PB
@@ -64,14 +64,19 @@ HRESULT CMainPanelObj::setup_obj() {
 	//5-10 通信状態ラベル/ランプ
 	i++;lab_pc_com_stat		;
 	i++;lab_plc_com_stat	;
-	i++;lmp_pcr				;
-	i++;lmp_pcs				;
-	i++;lmp_plcr			;
-	i++;lmp_plcs			;
+
+	static Image img2(L"../Img/HHGH29/lmp1_b_of.png"), img3(L"../Img/HHGH29/lmp1_b_of.png"), img4(L"../Img/HHGH29/lmp1_g_on.png"), img5(L"../Img/HHGH29/lmp1_r_on.png"), img6(L"../Img/HHGH29/lmp1_b_on.png"), img7(L"../Img/HHGH29/lmp1_y_on.png");
+	pimg[2] = &img2, pimg[3] = &img3, pimg[4] = &img4, pimg[5] = &img5, pimg[6] = &img6, pimg[7] = &img7;
+	i++;lmp_pcr				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[2], 5, 3);
+	i++;lmp_pcs				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[2], 5, 3);
+	i++;lmp_plcr			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[2], 5, 3);
+	i++;lmp_plcs			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[2], 5, 3);
 
 	//11-12 緊急停止PBL
 	i++;cb_estop			= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++;lamp_estop			;
+	static Image img8(L"../Img/HHGH29/estop_of.png"), img9(L"../Img/HHGH29/estop_on.png");
+	pimg[8] = &img8, pimg[9] = &img9;
+	i++;lamp_estop = new CSwitchImg(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[8], 2, 3);
 
 	//13-14 主幹PBL
 	i++;pb_csource			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_CSOURCE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);

@@ -260,12 +260,10 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 		//CB
 		i = OTE_SCAD_ID_MON1_CB_ESTP;
-		//st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE ,
-		//	st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-		//	hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
-		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), pPanelBase->pobjs->cb_estop->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE |BS_OWNERDRAW,
 			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 			hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
+
 		//PB
 		for (i = OTE_SCAD_ID_MON1_PB_CTRL_SOURCE; i <= OTE_SCAD_ID_MON1_PB_CONNECT; i++) {
 			st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
@@ -297,7 +295,9 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		// 選択されたメニューの解析:
 		switch (wmId)
 		{
-		case 1:break;
+		case (OTE_SCAD_ID_MON1_CTRL_BASE + OTE_SCAD_ID_MON1_CB_ESTP): {
+			int a = 0;
+		}break;
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
@@ -313,13 +313,40 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		return 1; // 背景を処理したことを示す
 	}
 	case WM_TIMER: {
+
+
+
 	}break;
 
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
+
+		PatBlt(hdc, 0, 0, OTE_SCAD_MON1_WND_W, OTE_SCAD_MON1_WND_H, RGB(64, 64, 64));
+		//Graphics graphics(hdc);
+
+		//Image* image = new Image(L"../Img/HHGH29/estop_on.png");
+		//Image* image = pPanelBase->pobjs->lamp_estop->pimg[0];
+		//if (image) {
+		//	graphics.DrawImage(image, 1800, 30, image->GetWidth(), image->GetHeight());
+		//}
+		//SolidBrush redBrush(Color(255, 255, 0, 0)); // ARGB (255:完全不透明, 255:赤, 0:緑, 0:青)
+		//graphics.FillEllipse(&redBrush, 100, 100, 200, 200); // (X, Y, 幅, 高さ)
+
 		EndPaint(hWnd, &ps);
 	}break;
+	case WM_DRAWITEM: {
+		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lp;
+
+		Graphics gra(pDIS->hDC); 
+		Rect rc(pDIS->rcItem.left, pDIS->rcItem.top, pDIS->rcItem.right - pDIS->rcItem.left, pDIS->rcItem.bottom - pDIS->rcItem.top);
+		SolidBrush br(Color(255, 64, 64, 64)); // ARGB (255:完全不透明, 255:赤, 0:緑, 0:青)
+		gra.FillRectangle(&br, rc);
+		Image* image = pPanelBase->pobjs->lamp_estop->pimg[1];
+		if (image) {
+			gra.DrawImage(image, rc);
+		}
+	}return true;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
 		KillTimer(hWnd, OTE_SCAD_ID_MON1_TIMER);
@@ -433,6 +460,9 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		st_mon1.hwnd_mon = CreateWindowW(TEXT("OTE_SCAD_MON1"), TEXT("Operation Panel"), WS_OVERLAPPEDWINDOW,
 			OTE_SCAD_MON1_WND_X, OTE_SCAD_MON1_WND_Y, OTE_SCAD_MON1_WND_W, OTE_SCAD_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
+		
+		SetLayeredWindowAttributes(st_mon1.hwnd_mon, 0, 200, LWA_ALPHA);
+		
 		show_monitor_wnd(id);
 
 		wos.str(L"");
