@@ -16,14 +16,14 @@ ST_DRAWING_BASE		drawing_items;		//描画用素材登録構造体
 int CPanelBase::_crane_id;
 int CPanelBase::_panel_id;
 CPanelBase*		CPanelBase::pPanel;
-CMainPanelObj* CPanelBase::pobjs;
+CMainPanelObj*	CPanelBase::pobjs;
 
 HRESULT CPanelBase::setup_drawing_base() {
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	PANEL_COLOR_PALLET pallet;
 	drawing_items.ppen[ID_PANEL_COLOR_BLACK]		= new Pen(pallet.color[COLOR_ID_BLACK]		, 2.0);
-	drawing_items.ppen[ID_PANEL_COLOR_GRAY]			= new Pen(pallet.color[COLOR_ID_LGRAY]		, 2.0);
+	drawing_items.ppen[ID_PANEL_COLOR_GRAY]			= new Pen(pallet.color[COLOR_ID_DGRAY]		, 2.0);
 	drawing_items.ppen[ID_PANEL_COLOR_WHITE]		= new Pen(pallet.color[COLOR_ID_WHITE]		, 2.0);
 	drawing_items.ppen[ID_PANEL_COLOR_RED]			= new Pen(pallet.color[COLOR_ID_SRED]		, 2.0);
 	drawing_items.ppen[ID_PANEL_COLOR_GREEN]		= new Pen(pallet.color[COLOR_ID_SGREEN]		, 2.0);
@@ -38,8 +38,8 @@ HRESULT CPanelBase::setup_drawing_base() {
 	}
 
 	drawing_items.pbrush[ID_PANEL_COLOR_BLACK]		= new SolidBrush(pallet.color[COLOR_ID_BLACK]);
-	drawing_items.pbrush[ID_PANEL_COLOR_WHITE]		= new SolidBrush(pallet.color[COLOR_ID_LGRAY]);
-	drawing_items.pbrush[ID_PANEL_COLOR_GRAY]		= new SolidBrush(pallet.color[COLOR_ID_WHITE]);
+	drawing_items.pbrush[ID_PANEL_COLOR_GRAY]		= new SolidBrush(pallet.color[COLOR_ID_DGRAY]);
+	drawing_items.pbrush[ID_PANEL_COLOR_WHITE]		= new SolidBrush(pallet.color[COLOR_ID_WHITE]);
 	drawing_items.pbrush[ID_PANEL_COLOR_RED]		= new SolidBrush(pallet.color[COLOR_ID_SRED]);
 	drawing_items.pbrush[ID_PANEL_COLOR_BLUE]		= new SolidBrush(pallet.color[COLOR_ID_SGREEN]);
 	drawing_items.pbrush[ID_PANEL_COLOR_GREEN]		= new SolidBrush(pallet.color[COLOR_ID_SBLUE]);
@@ -83,6 +83,11 @@ HRESULT CPanelBase::setup_drawing_base() {
 		drawing_items.pfont[i] = NULL;
 		drawing_items.pfamily[i] = NULL;
 	}
+
+	drawing_items.pstrformat[ID_STR_FORMAT_CENTER] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetAlignment(StringAlignmentCenter);
+	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetLineAlignment(StringAlignmentCenter);
+
 
 	return S_OK;
 }

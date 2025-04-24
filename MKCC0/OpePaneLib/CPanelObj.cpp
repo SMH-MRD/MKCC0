@@ -5,6 +5,8 @@
 
 using namespace Gdiplus;
 
+extern ST_DRAWING_BASE		drawing_items;
+
 #define N_MAIN_PNL_OBJ		64
 
 static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
@@ -19,10 +21,10 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_LMP_PCS			,Point(100,120)	,Size(100,30)	,L"PCëóêM"			},
 		{ID_MAIN_PNL_OBJ_LMP_PLCR			,Point(100,120)	,Size(100,30)	,L"PLCéÛêM"			},
 		{ID_MAIN_PNL_OBJ_LMP_PLCS			,Point(100,120)	,Size(100,30)	,L"PLCëóêM"			},
-		{ID_MAIN_PNL_OBJ_CB_ESTOP			,Point(100,120)	,Size(100,30)	,L"ãŸã}í‚é~"		},
-		{ID_MAIN_PNL_OBJ_LMP_ESTOP			,Point(100,120)	,Size(100,30)	,L"ãŸã}í‚é~"		},
-		{ID_MAIN_PNL_OBJ_PB_CSOURCE			,Point(100,120)	,Size(100,30)	,L"éÂä≤"			},
-		{ID_MAIN_PNL_OBJ_LMP_CSOURCE		,Point(100,120)	,Size(100,30)	,L"éÂä≤"			},
+		{ID_MAIN_PNL_OBJ_CB_ESTOP			,Point(1780,30)	,Size(100,100)	,L"ãŸã}í‚é~"		},
+		{ID_MAIN_PNL_OBJ_LMP_ESTOP			,Point(1780,30)	,Size(100,100)	,L"ãŸã}í‚é~"		},
+		{ID_MAIN_PNL_OBJ_PB_CSOURCE			,Point(1780,160),Size(100,100)	,L"éÂ ä≤"			},
+		{ID_MAIN_PNL_OBJ_LMP_CSOURCE		,Point(1780,160),Size(100,100)	,L"éÂ ä≤"			},
 		{ID_MAIN_PNL_OBJ_CB_PNL_NOTCH		,Point(0,120)	,Size(100,30)	,L"ëÄçÏäÌ"			},
 		{ID_MAIN_PNL_OBJ_PB_PAD_MODE		,Point(0,120)	,Size(100,30)	,L"PAD MODE"		},
 		{ID_MAIN_PNL_OBJ_LMP_PAD_MODE		,Point(0,120)	,Size(100,30)	,L"PAD MODE"		},
@@ -76,11 +78,16 @@ HRESULT CMainPanelObj::setup_obj() {
 	i++;cb_estop			= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
 	static Image img8(L"../Img/HHGH29/estop_of.png"), img9(L"../Img/HHGH29/estop_on.png");
 	pimg[8] = &img8, pimg[9] = &img9;
-	i++;lamp_estop = new CSwitchImg(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[8], 2, 3);
+	i++;lmp_estop = new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[8], 2, 3);
+	lmp_estop->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20],drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_GRAY]);
 
 	//13-14 éÂä≤PBL
 	i++;pb_csource			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_CSOURCE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++;lmp_csource			;
+	
+	static Image img10(L"../Img/HHGH29/sw80_of_b.png"), img11(L"../Img/HHGH29/sw80_on_g.png"), img12(L"../Img/HHGH29/sw80_on_r.png");
+	pimg[10] = &img10, pimg[11] = &img11, pimg[12] = &img12;
+	i++;lmp_csource = new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_CSOURCE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraph_mem, &pimg[10], 3, 3);
+	lmp_csource->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_GRAY]);
 
 	//15-18 ëÄçÏèåèê›íËPBóﬁ
 	i++;cb_pnl_notch		;
@@ -127,7 +134,7 @@ void CMainPanelObj::delete_obj() {
 	delete lmp_plcr;		
 	delete lmp_plcs;		
 	delete cb_estop;		
-	delete lamp_estop;		
+	delete lmp_estop;		
 	delete pb_csource;		
 	delete lmp_csource;		
 	delete cb_pnl_notch;	

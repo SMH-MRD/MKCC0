@@ -120,15 +120,14 @@ public:
 	}
 	virtual ~CCbCtrl() {}
 
-	virtual INT16 get() { value = (INT16)SendMessage(hWnd, BM_GETCHECK, 0, 0); return value; }
-	
-	virtual HRESULT set(INT16 val) { 
+	//コントロールの状態でget,set
+	INT16 get_ctrl() { value = (INT16)SendMessage(hWnd, BM_GETCHECK, 0, 0); return value; }
+	HRESULT set_ctrl(INT16 val) { 
 		if (val)	SendMessage(hWnd, BM_SETCHECK, BST_CHECKED, 0); 
 		else		SendMessage(hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		value = val;
 		return S_OK; 
 	};
-
 };
 
 /// <summary>
@@ -169,10 +168,28 @@ public:
 		return value = val;
 	}
 
+	INT16 check_ctrl() {
+		INT16 val = -1;
+		for (int i = 0; i < n_radio; i++) {
+			if (pradio[i]->get_ctrl() == L_ON) {
+				value = val = i;
+				break;
+			}
+		}
+	}
+
 	virtual HRESULT set(INT16 val) {
 		if ((val < 0) || (val >= n_radio)) return S_FALSE;
 
-		pradio[val]->set(L_ON);	//チェックボタンのセット
+		pradio[val]->set(L_ON);	//Valueのセット
+		value = val;
+		return S_OK;
+	};
+
+	virtual HRESULT set_ctrl(INT16 val) {
+		if ((val < 0) || (val >= n_radio)) return S_FALSE;
+
+		pradio[val]->set_ctrl(L_ON);	//チェックボタンのセット
 		value = val;
 		return S_OK;
 	};
@@ -362,6 +379,9 @@ public:
 		n_switch = _n_switch;
 		fcount = _fcount;
 
+		Rect _rc(0, 0, sz.Width, sz.Height); rc = _rc;
+		RectF _frc(0, 0, sz.Width, sz.Height); frc = _frc;
+
 		value = CODE_IMG_SWITCH_OFF;
 	}
 	virtual ~CSwitchImg() {
@@ -380,8 +400,19 @@ public:
 	INT32 id_disp		= 0;	//表示イメージID
 	INT32 list_flick_id[N_IMG_SWITCH_MAX] = { 0,1,0,0,0,0,0,0 };
 
-	DRAWITEMSTRUCT dis = { 0 };
+	StringFormat* pStrFormat;
+	SolidBrush* pTxtBrush;
+	Font* pFont;
+	Rect rc;
+	RectF frc;
+	
+	HRESULT set_txt_items(Font* pfont, StringFormat* pformat, SolidBrush* pbrush) {
+		pFont = pfont; pStrFormat = pformat; pTxtBrush = pbrush;
+		return S_OK;
+	}
 
+	//
+	DRAWITEMSTRUCT dis = { 0 };
 	HRESULT set_dis(CPnlParts* pPB) {
 		if (pPB == NULL)return S_FALSE;
 		if (pPB->hWnd == NULL) return S_FALSE;
@@ -390,6 +421,9 @@ public:
 		dis.CtlID		= pPB->id;
 		dis.hwndItem	= pPB->hWnd;
 		dis.hDC			= GetDC(pPB->hWnd);
+
+		Rect _rc(0, 0, sz.Width, sz.Height); rc = _rc;
+		RectF _frc(0, 0, sz.Width, sz.Height); frc = _frc;
 		
 		return S_OK;
 	}

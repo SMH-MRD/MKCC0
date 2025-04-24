@@ -698,6 +698,7 @@ typedef struct _ST_CC_OTE_INF {
 #define N_PANEL_COLOR_PEN		16
 #define N_PANEL_COLOR_BRUSH		16
 #define N_PANEL_FONT			16
+#define N_STRING_FORMAT			8
 
 #define ID_PANEL_COLOR_BLACK	0
 #define ID_PANEL_COLOR_GRAY		1
@@ -720,11 +721,14 @@ typedef struct _ST_CC_OTE_INF {
 #define ID_PANEL_FONT_32		7
 #define ID_PANEL_FONT_48		8
 
+#define ID_STR_FORMAT_CENTER	0
+
 typedef struct _ST_DRAWING_BASE {
 	Pen* ppen[N_PANEL_COLOR_PEN];
 	SolidBrush* pbrush[N_PANEL_COLOR_BRUSH];
 	FontFamily* pfamily[N_PANEL_FONT];
 	Font*		pfont[N_PANEL_FONT];
+	StringFormat* pstrformat[N_STRING_FORMAT];
 }ST_DRAWING_BASE, LPST_DRAWING_BASE;
 
 

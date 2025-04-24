@@ -344,14 +344,14 @@ typedef struct _PANEL_COLOR_PALLET {
 
     Gdiplus::Color color[32] = {
 
-        //GRAY                                                                                      RED     
-        Color(0,0,0,0),     Color(192,192,192,0),   Color(240, 240, 240, 0),Color(255, 255, 255, 0),Color(128, 0, 0, 0),Color(64, 0, 0, 0), Color(32, 0, 0, 0),     Color(255, 201, 252, 0),
-        //GREEN                                                                                     BLUE     
-        Color(0,255,0,0),   Color(0,255,0,0),       Color(211, 255, 222,0), Color(211, 255, 222,0), Color(0,0,255,0),   Color(0, 0, 255, 0),Color(0,0,255,0),       Color(0, 0, 255, 0),
-        //YELLOW                                                                                    ORANGE       
-        Color(255,255,0,0), Color(255,255,0,0),     Color(255, 248, 51,0),  Color(255, 248, 51,0),  Color(255,106,0,0), Color(255,106,0,0), Color(255,221,198,0),   Color(255,221,198,0),
+        //GRAY                                                                                              RED     
+        Color(255,0,0,0),     Color(255,64,64,64),  Color(255,240, 240, 240),   Color(255,255, 255, 255),   Color(255,128, 0, 0),   Color(255,64, 0, 0),    Color(255,32, 0, 0),    Color(255,255, 201, 252),
+        //GREEN                                                                                             BLUE     
+        Color(255,0,255,0),   Color(255,0,255,0),   Color(255,211, 255, 222),   Color(255,211, 255, 222),   Color(255,0,0,255),     Color(255,0, 0, 255),   Color(255,0,0,255),     Color(255,0, 0, 255),
+        //YELLOW                                                                                            ORANGE       
+        Color(255,255,255,0), Color(255,255,255,0), Color(255,255, 248, 51),    Color(255,255, 248, 51),    Color(255,255,106,0),   Color(255,255,106,0),   Color(255,255,221,198), Color(255,255,221,198),
         //-                                                         -       
-        Color(0,0,0,0),     Color(0, 0, 0, 0),      Color(0, 0, 0, 0),      Color(0, 0, 0, 0),      Color(0, 0, 0, 0),  Color(0, 0, 0, 0),  Color(0, 0, 0, 0),      Color(0, 0, 0, 0) 
+        Color(255,0,0,0),     Color(255,0, 0, 0),   Color(255,0, 0, 0),         Color(255,0, 0, 0),         Color(255,0, 0, 0),     Color(255,0, 0, 0),     Color(255,0, 0, 0),     Color(255,0, 0, 0)
     };
 }PANEL_COLOR_PALLET, * LPPANEL_COLOR_PALLET;
 
