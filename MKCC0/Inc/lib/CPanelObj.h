@@ -53,56 +53,9 @@ struct ST_OBJ_PROPERTY {
 class CPanelObjBase {
 public:
 
-	CPanelObjBase(HWND _hwnd)
-	{
-		hWnd = _hwnd;
-		RECT rect;
-		GetClientRect(hWnd, &rect);
-		rc_panel.X = rect.left; rc_panel.Y = rect.top; rc_panel.Width = rect.right - rect.left; rc_panel.Height = rect.bottom - rect.top;
-		hdc = GetDC(hWnd);
+	CPanelObjBase(HWND _hwnd);
 
-		hBmp_mem = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-		hBmp_bk = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-		hBmp_inf = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-		if (hBmp_mem == NULL || hBmp_bk == NULL || hBmp_inf == NULL) {
-			hr = E_FAIL;
-			return;
-		}
-
-		hdc_mem = CreateCompatibleDC(hdc);
-		hdc_bk = CreateCompatibleDC(hdc);
-		hdc_inf = CreateCompatibleDC(hdc);
-		if (hdc_mem == NULL || hdc_bk == NULL || hdc_inf == NULL) {
-			hr = E_FAIL;
-			return;
-		}
-		SelectObject(hdc_mem, hBmp_mem);
-		SelectObject(hdc_bk, hBmp_bk);
-		SelectObject(hdc_inf, hBmp_inf);
-
-		pgraph_mem = new Graphics(hdc_mem);
-		pgraph_bk = new Graphics(hdc_bk);
-		pgraph_inf = new Graphics(hdc_inf);
-		if (pgraph_mem == NULL || pgraph_bk == NULL || pgraph_inf == NULL) {
-			hr = E_FAIL;
-			return;
-		}
-		pgraph_mem->SetSmoothingMode(SmoothingModeAntiAlias);
-		pgraph_bk->SetSmoothingMode(SmoothingModeAntiAlias);
-		pgraph_inf->SetSmoothingMode(SmoothingModeAntiAlias);
-	}
-	virtual ~CPanelObjBase() {
-		delete pgraph_mem;
-		delete pgraph_bk;
-		delete pgraph_inf;
-		DeleteDC(hdc_mem);
-		DeleteDC(hdc_bk);
-		DeleteDC(hdc_inf);
-		DeleteObject(hBmp_mem);
-		DeleteObject(hBmp_bk);
-		DeleteObject(hBmp_inf);
-		ReleaseDC(hWnd, hdc);
-	}
+	virtual ~CPanelObjBase(); 
 
 	HRESULT hr = S_OK;
 
@@ -118,9 +71,14 @@ public:
 	HDC hdc_bk;			//背景用DC
 	HDC hdc_inf;		//情報表示用DC
 
-	Graphics* pgraph_mem;	//描画用グラフィックス
-	Graphics* pgraph_bk;	//背景用グラフィックス
-	Graphics* pgraph_inf;	//情報表示用グラフィックス
+	Graphics* pgraphic;		//描画用グラフィックス
+	Graphics* pgraphic_mem;	//描画用グラフィックス
+	Graphics* pgraphic_bk;	//背景用グラフィックス
+	Graphics* pgraphic_inf;	//情報表示用グラフィックス
+
+	SolidBrush* pBrushBk;	//背景塗りつぶし用ブラシ
+
+	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
 
 	virtual HRESULT setup_obj() = 0;
 	virtual void delete_obj() = 0;

@@ -4,6 +4,7 @@
 #include "COMMON_DEF.h"
 #include "PLC_DEF.h"
 #include "CPanelObj.H"
+#include "CSHAREDMEM.H"
 
 class CPanelBase {
 
@@ -14,6 +15,7 @@ private:
 public:
 	static CPanelBase* pPanel;
 	static CMainPanelObj* pobjs;
+	static LPST_DRAWING_BASE pdrawing_items;
 	
 	CPanelBase(int crane_id, int panel_id,HWND hwnd_parent) {
 		setup_drawing_base();

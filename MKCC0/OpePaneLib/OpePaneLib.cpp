@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "framework.h"
 #include "COpePanelLib.h"
-#include "CSHAREDMEM.H"
+
 
 using namespace Gdiplus;
 
@@ -17,13 +17,14 @@ int CPanelBase::_crane_id;
 int CPanelBase::_panel_id;
 CPanelBase*		CPanelBase::pPanel;
 CMainPanelObj*	CPanelBase::pobjs;
+LPST_DRAWING_BASE CPanelBase::pdrawing_items;
 
 HRESULT CPanelBase::setup_drawing_base() {
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	PANEL_COLOR_PALLET pallet;
 	drawing_items.ppen[ID_PANEL_COLOR_BLACK]		= new Pen(pallet.color[COLOR_ID_BLACK]		, 2.0);
-	drawing_items.ppen[ID_PANEL_COLOR_GRAY]			= new Pen(pallet.color[COLOR_ID_DGRAY]		, 2.0);
+	drawing_items.ppen[ID_PANEL_COLOR_DGRAY]		= new Pen(pallet.color[COLOR_ID_DGRAY]		, 2.0);
 	drawing_items.ppen[ID_PANEL_COLOR_WHITE]		= new Pen(pallet.color[COLOR_ID_WHITE]		, 2.0);
 	drawing_items.ppen[ID_PANEL_COLOR_RED]			= new Pen(pallet.color[COLOR_ID_SRED]		, 2.0);
 	drawing_items.ppen[ID_PANEL_COLOR_GREEN]		= new Pen(pallet.color[COLOR_ID_SGREEN]		, 2.0);
@@ -38,15 +39,16 @@ HRESULT CPanelBase::setup_drawing_base() {
 	}
 
 	drawing_items.pbrush[ID_PANEL_COLOR_BLACK]		= new SolidBrush(pallet.color[COLOR_ID_BLACK]);
-	drawing_items.pbrush[ID_PANEL_COLOR_GRAY]		= new SolidBrush(pallet.color[COLOR_ID_DGRAY]);
+	drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]		= new SolidBrush(pallet.color[COLOR_ID_DGRAY]);
 	drawing_items.pbrush[ID_PANEL_COLOR_WHITE]		= new SolidBrush(pallet.color[COLOR_ID_WHITE]);
 	drawing_items.pbrush[ID_PANEL_COLOR_RED]		= new SolidBrush(pallet.color[COLOR_ID_SRED]);
-	drawing_items.pbrush[ID_PANEL_COLOR_BLUE]		= new SolidBrush(pallet.color[COLOR_ID_SGREEN]);
-	drawing_items.pbrush[ID_PANEL_COLOR_GREEN]		= new SolidBrush(pallet.color[COLOR_ID_SBLUE]);
+	drawing_items.pbrush[ID_PANEL_COLOR_BLUE]		= new SolidBrush(pallet.color[COLOR_ID_SBLUE]);
+	drawing_items.pbrush[ID_PANEL_COLOR_GREEN]		= new SolidBrush(pallet.color[COLOR_ID_SGREEN]);
 	drawing_items.pbrush[ID_PANEL_COLOR_YELLOW]		= new SolidBrush(pallet.color[COLOR_ID_SYELLOW]);
 	drawing_items.pbrush[ID_PANEL_COLOR_ORANGE]		= new SolidBrush(pallet.color[COLOR_ID_SORANGE]);
 	drawing_items.pbrush[ID_PANEL_COLOR_MAZENDA]	= new SolidBrush(pallet.color[COLOR_ID_SMAZENDA]);
 	drawing_items.pbrush[ID_PANEL_COLOR_BROWN]		= new SolidBrush(pallet.color[COLOR_ID_SBROWN]);
+	drawing_items.pbrush[ID_PANEL_COLOR_LGRAY]		= new SolidBrush(pallet.color[COLOR_ID_LGRAY]);
 
 	for (int i = ID_PANEL_COLOR_BROWN + 1; i < N_PANEL_COLOR_BRUSH; i++) {
 		drawing_items.pbrush[i] = NULL;
@@ -88,6 +90,8 @@ HRESULT CPanelBase::setup_drawing_base() {
 	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetAlignment(StringAlignmentCenter);
 	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetLineAlignment(StringAlignmentCenter);
 
+
+	pdrawing_items = &drawing_items;
 
 	return S_OK;
 }

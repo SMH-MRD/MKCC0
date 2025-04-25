@@ -57,61 +57,61 @@ HRESULT CFaultPanel::move_window(POINT pt) {
 
 HRESULT CFaultPanel::setup_obj() {
 	//スタティック　フォルトリスト
-	st_obj.faultlist = new CStaticCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_STATIC_FLTS,
-		&st_work.pt[ID_OTE_FLT_PANEL_STATIC_FLTS],
-		&st_work.sz[ID_OTE_FLT_PANEL_STATIC_FLTS],
-		st_work.text[ID_OTE_FLT_PANEL_STATIC_FLTS]
-	);
+	//st_obj.faultlist = new CStaticCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_STATIC_FLTS,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_STATIC_FLTS],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_STATIC_FLTS],
+	//	st_work.text[ID_OTE_FLT_PANEL_STATIC_FLTS]
+	//);
 
-	//ラジオボタン　故障種別
-	st_obj.radio_fault_type = new CRadioCtrl(5);
-	st_obj.radio_fault_type->pradio[0] = new CCbCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_ALL,
-		&st_work.pt[ID_OTE_FLT_PANEL_RADIO_ALL],
-		&st_work.sz[ID_OTE_FLT_PANEL_RADIO_ALL],
-		st_work.text[ID_OTE_FLT_PANEL_RADIO_ALL]
-	);
-	st_obj.radio_fault_type->pradio[1] = new CCbCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_HEAVY,
-		&st_work.pt[ID_OTE_FLT_PANEL_RADIO_HEAVY],
-		&st_work.sz[ID_OTE_FLT_PANEL_RADIO_HEAVY],
-		st_work.text[ID_OTE_FLT_PANEL_RADIO_HEAVY]
-	);
-	st_obj.radio_fault_type->pradio[2] = new CCbCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_LIGHT,
-		&st_work.pt[ID_OTE_FLT_PANEL_RADIO_LIGHT],
-		&st_work.sz[ID_OTE_FLT_PANEL_RADIO_LIGHT],
-		st_work.text[ID_OTE_FLT_PANEL_RADIO_LIGHT]
-	);
-	st_obj.radio_fault_type->pradio[3] = new CCbCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_IL,
-		&st_work.pt[ID_OTE_FLT_PANEL_RADIO_IL],
-		&st_work.sz[ID_OTE_FLT_PANEL_RADIO_IL],
-		st_work.text[ID_OTE_FLT_PANEL_RADIO_IL]
-	);
-	st_obj.radio_fault_type->pradio[4] = new CCbCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_REMOTE,
-		&st_work.pt[ID_OTE_FLT_PANEL_RADIO_REMOTE],
-		&st_work.sz[ID_OTE_FLT_PANEL_RADIO_REMOTE],
-		st_work.text[ID_OTE_FLT_PANEL_RADIO_REMOTE]
-	);
+	////ラジオボタン　故障種別
+	//st_obj.radio_fault_type = new CRadioCtrl(5);
+	//st_obj.radio_fault_type->pradio[0] = new CCbCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_ALL,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_RADIO_ALL],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_RADIO_ALL],
+	//	st_work.text[ID_OTE_FLT_PANEL_RADIO_ALL]
+	//);
+	//st_obj.radio_fault_type->pradio[1] = new CCbCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_HEAVY,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_RADIO_HEAVY],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_RADIO_HEAVY],
+	//	st_work.text[ID_OTE_FLT_PANEL_RADIO_HEAVY]
+	//);
+	//st_obj.radio_fault_type->pradio[2] = new CCbCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_LIGHT,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_RADIO_LIGHT],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_RADIO_LIGHT],
+	//	st_work.text[ID_OTE_FLT_PANEL_RADIO_LIGHT]
+	//);
+	//st_obj.radio_fault_type->pradio[3] = new CCbCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_IL,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_RADIO_IL],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_RADIO_IL],
+	//	st_work.text[ID_OTE_FLT_PANEL_RADIO_IL]
+	//);
+	//st_obj.radio_fault_type->pradio[4] = new CCbCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_RADIO_REMOTE,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_RADIO_REMOTE],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_RADIO_REMOTE],
+	//	st_work.text[ID_OTE_FLT_PANEL_RADIO_REMOTE]
+	//);
 
-	//故障リセットボタン
-	st_obj.pb_reset = new CPbCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_PB_FLT_RESET,
-		&st_work.pt[ID_OTE_FLT_PANEL_PB_FLT_RESET],
-		&st_work.sz[ID_OTE_FLT_PANEL_PB_FLT_RESET],
-		st_work.text[ID_OTE_FLT_PANEL_PB_FLT_RESET]
-	);
+	////故障リセットボタン
+	//st_obj.pb_reset = new CPbCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_PB_FLT_RESET,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_PB_FLT_RESET],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_PB_FLT_RESET],
+	//	st_work.text[ID_OTE_FLT_PANEL_PB_FLT_RESET]
+	//);
 
-	//インターロックバイパス　チェックボックス
-	st_obj.cb_il_bypass = new CCbCtrl(
-		ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_CB_IL_BYPASS,
-		&st_work.pt[ID_OTE_FLT_PANEL_CB_IL_BYPASS],
-		&st_work.sz[ID_OTE_FLT_PANEL_CB_IL_BYPASS],
-		st_work.text[ID_OTE_FLT_PANEL_CB_IL_BYPASS]
-	);
+	////インターロックバイパス　チェックボックス
+	//st_obj.cb_il_bypass = new CCbCtrl(
+	//	ID_OTE_FLT_PANEL_BASE + ID_OTE_FLT_PANEL_CB_IL_BYPASS,
+	//	&st_work.pt[ID_OTE_FLT_PANEL_CB_IL_BYPASS],
+	//	&st_work.sz[ID_OTE_FLT_PANEL_CB_IL_BYPASS],
+	//	st_work.text[ID_OTE_FLT_PANEL_CB_IL_BYPASS]
+	//);
 	return S_OK;
 }
 

@@ -238,8 +238,6 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
-static HBRUSH hBrush;
-static SolidBrush* pBrush_bk;
 static int ichk;
 
 LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
@@ -251,49 +249,112 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
 		pPanelBase = new CPanelBase(pOteEnvInf->selected_crane, pOteEnvInf->device_code.serial_no, hWnd);
-		pBrush_bk = drawing_items.pbrush[ID_PANEL_COLOR_GRAY];
-		hBrush = CreateSolidBrush(RGB(64, 64, 64)); // ダークグレー
 
 		//ウィンドウにコントロール追加
 
 		int i;
 		//STATIC,LABEL
-		for (i = OTE_SCAD_ID_MON1_STATIC_UID; i <= OTE_SCAD_ID_MON1_STATIC_CRANE; i++) {
-			st_mon1.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
-				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-				hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
-		}
-		//CB
-		i = OTE_SCAD_ID_MON1_CB_ESTP;
-		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE|BS_OWNERDRAW,
-			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-			hWnd, (HMENU)(pPanelBase->pobjs->cb_estop->id), hInst, NULL);
+		CStaticCtrl* pst = pPanelBase->pobjs->txt_uid;
+		HWND hwnd = CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL);
+		pst = pPanelBase->pobjs->txt_ote_type;
+		hwnd = CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL);
+		pst = pPanelBase->pobjs->txt_link_crane;
+		hwnd = CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL);
 
-		//PB
-		HWND hwnd = CreateWindowW(TEXT("BUTTON"), pPanelBase->pobjs->pb_csource->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE| BS_OWNERDRAW,
-			pPanelBase->pobjs->pb_csource->pt.X, pPanelBase->pobjs->pb_csource->pt.Y, pPanelBase->pobjs->pb_csource->sz.Width, pPanelBase->pobjs->pb_csource->sz.Height,
-			hWnd, (HMENU)(ID_MAIN_PNL_OBJ_PB_CSOURCE), hInst, NULL);
-
-
-		//for (i = OTE_SCAD_ID_MON1_PB_CTRL_SOURCE; i <= OTE_SCAD_ID_MON1_PB_CONNECT; i++) {
-		//	st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE|BS_OWNERDRAW,
+		//for (i = OTE_SCAD_ID_MON1_STATIC_UID; i <= OTE_SCAD_ID_MON1_STATIC_CRANE; i++) {
+		//	st_mon1.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
 		//		st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 		//		hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
 		//}
+		 
+		//CB
+		CCbCtrl* pcb = pPanelBase->pobjs->cb_estop;
+		i = OTE_SCAD_ID_MON1_CB_ESTP;
+		hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE | BS_OWNERDRAW,
+					pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height,hWnd, (HMENU)(pcb->id), hInst, NULL);
+		pcb->set_wnd(hwnd);//ランプにボタンのウィンドウハンドルをセット
+
+		//操作器
+		pcb = pPanelBase->pobjs->cb_pnl_notch;
+		hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+
+
+		//# PBL !!OWNER DRAW
+		//主幹
+		CPbCtrl* ppb = pPanelBase->pobjs->pb_csource;
+		hwnd = CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE| BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL);
+		pPanelBase->pobjs->lmp_csource->set_wnd(hwnd);//ランプにボタンのウィンドウハンドルをセット
+		//Remote
+		ppb = pPanelBase->pobjs->pb_remote;
+		hwnd = CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL);
+		pPanelBase->pobjs->lmp_remote->set_wnd(hwnd);//ランプにボタンのウィンドウハンドルをセット
+		
+		//PAD MODE
+		ppb = pPanelBase->pobjs->pb_pad_mode;
+		hwnd = CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL);
+		pPanelBase->pobjs->lmp_pad_mode->set_wnd(hwnd);//ランプにボタンのウィンドウハンドルをセット
+
+		//PB
+		//認証
+		ppb = pPanelBase->pobjs->pb_auth;
+		hwnd = CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE ,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL);
+		//端末設定
+		ppb = pPanelBase->pobjs->pb_ote_type_wnd;
+		hwnd = CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE ,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL);
+		//アシスト
+		ppb = pPanelBase->pobjs->pb_assist_func;
+		hwnd = CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE ,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL);
+		//クレーン選択
+		ppb = pPanelBase->pobjs->pb_crane_sel_wnd;
+		hwnd = CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL);
 
 		//RADIO BUTTON
-		for (i = OTE_SCAD_ID_MON1_RADIO_FAULT; i <= OTE_SCAD_ID_MON1_RADIO_CLEAR; i++) {
-			if (i == OTE_SCAD_ID_MON1_RADIO_FAULT) {
-				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
-					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-					hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
-			}
-			else {
-				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
-					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-					hWnd, (HMENU)(OTE_SCAD_ID_MON1_CTRL_BASE + i), hInst, NULL);
-			}
-		}
+		pcb = pPanelBase->pobjs->cb_disp_mode1;
+		hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+		pcb = pPanelBase->pobjs->cb_disp_mode2;
+		hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE, 
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+
+		pcb = pPanelBase->pobjs->cb_opt_flt;
+		 hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE |WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+		pcb = pPanelBase->pobjs->cb_opt_set;
+		 hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+		pcb = pPanelBase->pobjs->cb_opt_com;
+		 hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+		pcb = pPanelBase->pobjs->cb_opt_cam;
+		 hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+		pcb = pPanelBase->pobjs->cb_opt_stat;
+		 hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+		pcb = pPanelBase->pobjs->cb_opt_clr;
+		 hwnd = CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL);
+
+		 //String
+		 CStringGdi* pstr = pPanelBase->pobjs->str_message;
+		 Graphics gra(GetDC(hWnd));
+		 gra.DrawString(L"TEST", -1, pstr->pFont, pstr->frc, pstr->pStrFormat, pstr->pTxtBrush);
+
+		 //Lamp
+
+
+
 
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_SCAD_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -312,6 +373,8 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				ichk = L_OFF;
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_CSOURCE: {
+
+
 			if (ichk == L_OFF)
 				ichk = L_ON;
 			else
@@ -321,14 +384,15 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
-	case WM_CTLCOLORSTATIC:
+
+	case WM_CTLCOLORSTATIC://スタティックテキストの色セット
 		SetTextColor((HDC)wp, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wp, TRANSPARENT);
-		return (LRESULT)hBrush; // 背景色に合わせる
+	return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
+
 	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
-		RECT rect;
-		GetClientRect(hWnd, &rect);
-		FillRect((HDC)wp, &rect, hBrush);
+		pPanelBase->pobjs->pgraphic->FillRectangle(pPanelBase->pobjs->pBrushBk,pPanelBase->pobjs->rc_panel);
+
 		return 1; // 背景を処理したことを示す
 	}
 	case WM_TIMER: {
@@ -341,7 +405,12 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 
-		PatBlt(hdc, 0, 0, OTE_SCAD_MON1_WND_W, OTE_SCAD_MON1_WND_H, RGB(64, 64, 64));
+		//PatBlt(hdc, 0, 0, OTE_SCAD_MON1_WND_W, OTE_SCAD_MON1_WND_H, RGB(64, 64, 64));
+
+		//String
+		CStringGdi* pstr = pPanelBase->pobjs->str_message;
+		Graphics gra(hdc);
+		pstr->update(pPanelBase->pdrawing_items->pbrush[ID_PANEL_COLOR_RED]);
 
 		EndPaint(hWnd, &ps);
 	}break;
@@ -350,35 +419,28 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		Image* image;
 		Graphics gra(pDIS->hDC); 
 		Rect rc(pDIS->rcItem.left, pDIS->rcItem.top, pDIS->rcItem.right - pDIS->rcItem.left, pDIS->rcItem.bottom - pDIS->rcItem.top);
-//		SolidBrush br(Color(255, 64, 64, 64)); // ARGB (255:完全不透明, 255:赤, 0:緑, 0:青)
-		gra.FillRectangle(pBrush_bk, rc);
+		CMainPanelObj* pos= pPanelBase->pobjs;
+		
+		gra.FillRectangle(pPanelBase->pobjs->pBrushBk, rc);//背景色セット
 
-		if (pDIS->CtlID == pPanelBase->pobjs->cb_estop->id) {
-			
-			//			if(BST_CHECKED == SendMessage(pDIS->hwndItem,BM_GETCHECK,0,0))
-			if(ichk == L_ON)
-				image = pPanelBase->pobjs->lmp_estop->pimg[1];
-			else
-				image = pPanelBase->pobjs->lmp_estop->pimg[0];
-
+		if (pDIS->CtlID == pos->cb_estop->id) {
+			image = pos->lmp_estop->pimg[pos->lmp_estop->get()];
 			if (image) gra.DrawImage(image, rc);
 		}
-		else if (ID_MAIN_PNL_OBJ_PB_CSOURCE) {
-			image = pPanelBase->pobjs->lmp_csource->pimg[pPanelBase->pobjs->lmp_csource->get()];
-			if(ichk)
-			image = pPanelBase->pobjs->lmp_csource->pimg[1];
-			else
-				image = pPanelBase->pobjs->lmp_csource->pimg[2];
-
+		else if (pDIS->CtlID == pos->pb_remote->id) {//リモートランプ
+			image = pos->lmp_remote->pimg[pos->lmp_remote->get()];
 			if (image) gra.DrawImage(image, rc);
-			gra.DrawString(
-				pPanelBase->pobjs->lmp_csource->txt.c_str(),
-				-1,
-				pPanelBase->pobjs->lmp_csource->pFont,
-				pPanelBase->pobjs->lmp_csource->frc,
-				pPanelBase->pobjs->lmp_csource->pStrFormat,
-				pPanelBase->pobjs->lmp_csource->pTxtBrush
-				);
+			gra.DrawString(pos->lmp_remote->txt.c_str(), -1, pos->lmp_remote->pFont, pos->lmp_remote->frc, pos->lmp_remote->pStrFormat, pos->lmp_remote->pTxtBrush);
+		}
+		else if (pDIS->CtlID == pos->pb_csource->id) {//主幹ランプ
+			image = pos->lmp_csource->pimg[pos->lmp_csource->get()];
+			if (image) gra.DrawImage(image, rc);
+				gra.DrawString(pos->lmp_csource->txt.c_str(),-1,pos->lmp_csource->pFont,pos->lmp_csource->frc,pos->lmp_csource->pStrFormat,	pos->lmp_csource->pTxtBrush	);
+		}
+		else if (pDIS->CtlID == pos->pb_pad_mode->id) {//PADランプ
+			image = pos->lmp_pad_mode->pimg[pos->lmp_pad_mode->get()];
+			if (image) gra.DrawImage(image, rc);
+			gra.DrawString(pos->lmp_pad_mode->txt.c_str(), -1, pos->lmp_pad_mode->pFont, pos->lmp_pad_mode->frc, pos->lmp_pad_mode->pStrFormat, pos->lmp_pad_mode->pTxtBrush);
 		}
 		else;
 
@@ -386,8 +448,6 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
 		KillTimer(hWnd, OTE_SCAD_ID_MON1_TIMER);
-		DeleteObject(hBrush);
-
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
 
