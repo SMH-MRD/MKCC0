@@ -723,7 +723,7 @@ typedef struct _ST_CC_OTE_INF {
 #define ID_PANEL_FONT_48		8
 
 #define ID_STR_FORMAT_CENTER	0
-#define ID_STR_FORMAT_LEFT		1
+#define ID_STR_FORMAT_NEAR		1
 
 typedef struct _ST_DRAWING_BASE {
 	Pen* ppen[N_PANEL_COLOR_PEN];

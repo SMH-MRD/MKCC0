@@ -61,25 +61,25 @@ HRESULT CPanelBase::setup_drawing_base() {
 	drawing_items.pfont[ID_PANEL_FONT_8] = new Font(drawing_items.pfamily[ID_PANEL_FONT_8], 8, FontStyleBold, UnitPixel);
 	
 	drawing_items.pfamily[ID_PANEL_FONT_10] = new FontFamily(L"Arial");
-	drawing_items.pfont[ID_PANEL_FONT_10] = new Font(drawing_items.pfamily[ID_PANEL_FONT_10], 10, FontStyleBold, UnitPixel);
+	drawing_items.pfont[ID_PANEL_FONT_10] = new Font(drawing_items.pfamily[ID_PANEL_FONT_10], 10, FontStyleRegular, UnitPixel);
 
 	drawing_items.pfamily[ID_PANEL_FONT_12] = new FontFamily(L"Arial");
-	drawing_items.pfont[ID_PANEL_FONT_12] = new Font(drawing_items.pfamily[ID_PANEL_FONT_12], 12, FontStyleBold, UnitPixel);
+	drawing_items.pfont[ID_PANEL_FONT_12] = new Font(drawing_items.pfamily[ID_PANEL_FONT_12], 12, FontStyleRegular, UnitPixel);
 
 	drawing_items.pfamily[ID_PANEL_FONT_14] = new FontFamily(L"Arial");
-	drawing_items.pfont[ID_PANEL_FONT_14] = new Font(drawing_items.pfamily[ID_PANEL_FONT_14], 14, FontStyleBold, UnitPixel);
+	drawing_items.pfont[ID_PANEL_FONT_14] = new Font(drawing_items.pfamily[ID_PANEL_FONT_14], 14, FontStyleRegular, UnitPixel);
 
 	drawing_items.pfamily[ID_PANEL_FONT_20] = new FontFamily(L"Arial");
-	drawing_items.pfont[ID_PANEL_FONT_20] = new Font(drawing_items.pfamily[ID_PANEL_FONT_20], 20, FontStyleBold, UnitPixel);
+	drawing_items.pfont[ID_PANEL_FONT_20] = new Font(drawing_items.pfamily[ID_PANEL_FONT_20], 20, FontStyleRegular, UnitPixel);
 
 	drawing_items.pfamily[ID_PANEL_FONT_24] = new FontFamily(L"Arial");
-	drawing_items.pfont[ID_PANEL_FONT_24] = new Font(drawing_items.pfamily[ID_PANEL_FONT_24], 24, FontStyleBold, UnitPixel);
+	drawing_items.pfont[ID_PANEL_FONT_24] = new Font(drawing_items.pfamily[ID_PANEL_FONT_24], 24, FontStyleRegular, UnitPixel);
 
 	drawing_items.pfamily[ID_PANEL_FONT_32] = new FontFamily(L"Arial");
-	drawing_items.pfont[ID_PANEL_FONT_32] = new Font(drawing_items.pfamily[ID_PANEL_FONT_32], 32, FontStyleBold, UnitPixel);
+	drawing_items.pfont[ID_PANEL_FONT_32] = new Font(drawing_items.pfamily[ID_PANEL_FONT_32], 32, FontStyleRegular, UnitPixel);
 
 	drawing_items.pfamily[ID_PANEL_FONT_48] = new FontFamily(L"Arial");
-	drawing_items.pfont[ID_PANEL_FONT_48] = new Font(drawing_items.pfamily[ID_PANEL_FONT_48], 48, FontStyleBold, UnitPixel);
+	drawing_items.pfont[ID_PANEL_FONT_48] = new Font(drawing_items.pfamily[ID_PANEL_FONT_48], 48, FontStyleRegular, UnitPixel);
 
 	for (int i = ID_PANEL_FONT_48 + 1; i < N_PANEL_FONT; i++) {
 		drawing_items.pfont[i] = NULL;
@@ -89,6 +89,10 @@ HRESULT CPanelBase::setup_drawing_base() {
 	drawing_items.pstrformat[ID_STR_FORMAT_CENTER] = new StringFormat();
 	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetAlignment(StringAlignmentCenter);
 	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetLineAlignment(StringAlignmentCenter);
+
+	drawing_items.pstrformat[ID_STR_FORMAT_NEAR] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_NEAR]->SetAlignment(StringAlignmentNear);
+	drawing_items.pstrformat[ID_STR_FORMAT_NEAR]->SetLineAlignment(StringAlignmentCenter);
 
 
 	pdrawing_items = &drawing_items;

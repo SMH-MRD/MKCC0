@@ -10,8 +10,8 @@ using namespace std;
 #define ID_MAIN_PNL_OBJ_LMP_REMOTE			60002
 #define ID_MAIN_PNL_OBJ_TXT_UID				60003
 #define ID_MAIN_PNL_OBJ_PB_AUTH				60004
-#define ID_MAIN_PNL_OBJ_LAB_PC_COM_STAT		60006
-#define ID_MAIN_PNL_OBJ_LAB_PLC_COM_STAT	60007
+#define ID_MAIN_PNL_OBJ_STR_PC_COM_STAT		60006
+#define ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT	60007
 #define ID_MAIN_PNL_OBJ_LMP_PCR				60008
 #define ID_MAIN_PNL_OBJ_LMP_PCS				60009
 #define ID_MAIN_PNL_OBJ_LMP_PLCR			60010
@@ -96,23 +96,23 @@ public:
 
 	CStringGdi	* str_message;
 	CPbCtrl		* pb_remote;
-	CSwitchImg	* lmp_remote;
+	CLampCtrl	* lmp_remote;		//遠隔設定ランプ
 	CStaticCtrl	* txt_uid;
 	CPbCtrl		* pb_auth;			//認証PB
-	CStringGdi	* lab_pc_com_stat;	//PC通信インジケータ用ラベル
-	CStringGdi	* lab_plc_com_stat;	//PLC通信インジケータ用ラベル
+	CStringGdi	* str_pc_com_stat;	//PC通信インジケータ用ラベル
+	CStringGdi	* str_plc_com_stat;	//PLC通信インジケータ用ラベル
 	CSwitchImg	* lmp_pcr;			//PC通信インジケータ
 	CSwitchImg	* lmp_pcs;			//PC通信インジケータ
 	CSwitchImg	* lmp_plcr;			//PLC通信インジケータ
 	CSwitchImg	* lmp_plcs;			//PLC通信インジケータ
 
 	CCbCtrl		* cb_estop;			//緊急停止チェックボックス
-	CSwitchImg	* lmp_estop;		//緊急停止ランプ
+	CLampCtrl	* lmp_estop;		//緊急停止ランプ
 	CPbCtrl		* pb_csource;		//主幹PB
-	CSwitchImg	* lmp_csource;		//主幹ランプ
+	CLampCtrl* lmp_csource;		//主幹ランプ
 	CCbCtrl		* cb_pnl_notch;		//パネルノッチPB
 	CPbCtrl		* pb_pad_mode;		//ジョイパッドモードPB
-	CSwitchImg	* lmp_pad_mode;		//ジョイパッドモードランプ
+	CLampCtrl* lmp_pad_mode;		//ジョイパッドモードランプ
 	CPbCtrl		* pb_assist_func;	//アシスト機能設定
 	CStaticCtrl	* txt_ote_type;		//端末タイプ表示テキスト
 	CPbCtrl		* pb_ote_type_wnd;	//端末タイプ設定ウィンドウ

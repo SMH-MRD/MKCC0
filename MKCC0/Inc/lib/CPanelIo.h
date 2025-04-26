@@ -14,9 +14,11 @@
 #define ID_PANEL_POINT_SRC_ON	1
 #define ID_PANEL_POINT_SRC_OFF	2
 
-#define VAL_PB_OFF_DELAY_COUNT	0x0002	//ボタンOFFディレイカウント値
+#define VAL_PB_OFF_DELAY_COUNT	0x0005	//ボタンOFFディレイカウント値
 
 #define VAL_TRIGGER_NON			0		//トリガ無し
+#define VAL_TRIGGER_VALUE		3		//数値変更トリガ
+#define VAL_TRIGGER_FLICK		2		//フリッカ
 #define VAL_TRIGGER_ON			1		//ONトリガ
 #define VAL_TRIGGER_OFF			-1		//OFFトリガ
 
@@ -37,6 +39,9 @@ public:
 	HWND hWnd			= NULL;	//ウィンドウハンドル
 	INT32 id			= 0;	//メニューID
 
+	Rect rc;
+	RectF frc;
+
 public:
 
 	HRESULT set_base(Point* ppt, Size* psz, LPCWSTR ptext) {
@@ -47,12 +52,12 @@ public:
 	virtual T get() { return value; }
 	virtual HRESULT set(T _value) { value = _value;  return S_OK; }
 
-	HRESULT set_wnd(HWND _hWnd) { if (_hWnd == NULL) return S_FALSE;  hWnd = _hWnd; return S_OK; }
+	virtual HRESULT set_wnd(HWND _hWnd) { if (_hWnd == NULL) return S_FALSE;  hWnd = _hWnd; return S_OK; }
 	
 	INT32 get_id() { return id; }
 	HRESULT set_id(INT32 _id) { id = _id; return S_OK; }
 
-	int chk_trig(T _value) {
+	virtual int chk_trig(T _value) {
 		int chk = VAL_TRIGGER_NON;
 		if (_value > value)	chk = VAL_TRIGGER_ON;	//ONトリガ
 		if (_value < value)	chk = VAL_TRIGGER_OFF;	//OFFトリガ
@@ -84,18 +89,38 @@ public:
 class CPbCtrl : public CPnlParts<INT16> {	//ボタン
 
 public:
-	CPbCtrl( INT32 _id, Point* ppt, Size* psz, LPCWSTR ptext) { 
+	CPbCtrl( INT32 _id, Point* ppt, Size* psz, LPCWSTR ptext,Graphics* _pgraphics,Pen* ppenON,Pen* ppenOFF) { 
 		set_id(_id) ;
 		set_base(ppt, psz, ptext);
+		rc = { pt.X,pt.Y,sz.Width,sz.Height };
+		frc = { (REAL)rc.X,(REAL)rc.X,(REAL)rc.Width,(REAL)rc.Height };
+		pPenOn = ppenON; pPenOff = ppenOFF;
+		pgraphics = _pgraphics;
 	}
 	virtual ~CPbCtrl() {}
+
+	Pen* pPenOn, *pPenOff;
+	INT16 status = 0;
+	Graphics* pgraphics;
 
 	INT16 count_off_set_val = VAL_PB_OFF_DELAY_COUNT;	//オフディレイカウント値
 	INT16 update(bool is_trigger) {				//更新 
 		if (is_trigger) set(count_off_set_val); //トリガーONでディレイカウント値セット
 		else if (value > 0) value--;			//トリガー無しでカウントダウン
 		else;
+
+		disp_status();
+
 		return get(); //戻り値はカウント値
+	}
+
+	virtual int chk_trig(INT16 val) {
+		if (value != status) {
+			if ((value == 0) || (status == 0)) {
+				status = value; return L_ON;
+			}
+		}
+		return L_OFF;
 	}
 
 	void set_off_delay(INT16 val_delay) { count_off_set_val = val_delay; return; }
@@ -103,6 +128,15 @@ public:
 	bool is_on() { //ON状態か？
 		if (value > 0) return true;	
 		else return false;
+	}
+
+	HRESULT disp_status() {
+		if (chk_trig(value)) {
+			Pen* ppen = pPenOff;
+			if (value != 0) ppen = pPenOn;
+			pgraphics->DrawRectangle(ppen, rc);
+		}
+		return S_OK;
 	}
 
 };
@@ -117,6 +151,7 @@ public:
 	{
 		set_id(_id); 
 		set_base(ppt, psz, ptext);
+		value = BST_UNCHECKED;
 	}
 	virtual ~CCbCtrl() {}
 
@@ -216,13 +251,106 @@ class CSwitchImg : public CPnlParts<INT16> {
 public:
 	CSwitchImg(
 		INT32 _id, Point* ppt, Size* psz, LPWSTR ptext,
-		Graphics* _pgraphic, Image** _ppimg, INT32 _n_switch,
+		Image** _ppimg, INT32 _n_switch,INT32 _fcount,Graphics* _pgraphic
+	)
+	{
+		set_id(_id);
+		set_base(ppt, psz, ptext);
+		for (int i = 0; i < N_IMG_SWITCH_MAX; i++) {
+			if (i < _n_switch) pimg[i] = _ppimg[i];
+			else pimg[i] = NULL;
+		}
+		n_switch = _n_switch;
+		fcount = _fcount;
+
+		Rect _rc(pt.X, pt.Y, sz.Width, sz.Height); rc = _rc;
+		RectF _frc((REAL)pt.X, (REAL)pt.Y, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
+
+		pgraphic = _pgraphic;
+		value = ID_PANEL_LAMP_OFF;
+	}
+	virtual ~CSwitchImg() {
+		for (int i = 0; i < N_IMG_SWITCH_MAX; i++) {
+			delete pimg[i];
+		}
+	}
+
+	Image* pimg[N_IMG_SWITCH_MAX];
+	INT32 n_switch = 2;	//スイッチ数
+	INT32 n_flick = 2;	//フリッカさせるスイッチ数
+
+	INT32 count = 0;	//点滅タイミング用
+	INT32 fcount = 3;	//表示カウント１イメージ分
+	INT16 id_disp = 0;	//表示イメージID
+	INT32 list_flick_id[N_IMG_SWITCH_MAX] = { 0,1,0,0,0,0,0,0 };
+
+	StringFormat* pStrFormat;
+	Font* pFont;
+	Rect rc;
+	RectF frc;
+	Graphics* pgraphic;
+
+	Image* pimg_disp;
+
+	HRESULT setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid) {
+		fcount = _fcount;
+		n_flick = _n_flick;
+		for (int i = 0; i < n_flick; i++) {//フリッカさせる画像の順序取り込み
+			if (i < N_IMG_SWITCH_MAX) list_flick_id[i] = pid[i];
+		}
+		return S_OK;
+	}
+
+	virtual int chk_trig(INT16 id) {//トリガは表示イメージのid
+		if (id_disp != id) {
+			id_disp = id; return VAL_TRIGGER_VALUE;
+		}
+		return VAL_TRIGGER_NON;
+	}
+
+	virtual INT16 get() {
+		return id_disp;
+	}
+
+	HRESULT update() {
+		INT16 id = 0;
+		pgraphic->DrawImage(pimg[id_disp], rc);
+	//	InvalidateRect(hWnd, NULL, TRUE);
+		if (value != ID_PANEL_LAMP_FLICK) {
+			id = value;	
+			if (chk_trig(id)) {
+				pgraphic->DrawImage(pimg[id_disp], rc);
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+			return S_OK;
+		}
+		else {
+			count++; if (count > fcount) {
+				count = 0;
+				id_disp++; if (id_disp >= n_flick) id_disp = 0;
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+			return S_OK;
+		}
+		return S_FALSE;
+	}
+
+};
+
+/// <summary>
+/// LampCtrl
+/// Common Controlへの描画（OWNER DRAW）
+/// </summary>
+class CLampCtrl : public CPnlParts<INT16> {
+public:
+	CLampCtrl(
+		INT32 _id, Point* ppt, Size* psz, LPWSTR ptext,
+		Image** _ppimg, INT32 _n_switch,
 		INT32 _fcount
 	)
 	{
 		set_id(_id);
 		set_base(ppt, psz, ptext);
-		pgraphic = _pgraphic;
 		for (int i = 0; i < N_IMG_SWITCH_MAX; i++) {
 			if (i < _n_switch) pimg[i] = _ppimg[i];
 			else pimg[i] = NULL;
@@ -235,20 +363,19 @@ public:
 
 		value = ID_PANEL_LAMP_OFF;
 	}
-	virtual ~CSwitchImg() {
+	virtual ~CLampCtrl() {
 		for (int i = 0; i < N_IMG_SWITCH_MAX; i++) {
 			delete pimg[i];
 		}
 	}
 
-	Graphics* pgraphic;
 	Image* pimg[N_IMG_SWITCH_MAX];
 	INT32 n_switch = 2;	//スイッチ数
 	INT32 n_flick = 2;	//フリッカさせるスイッチ数
 
 	INT32 count = 0;	//点滅タイミング用
 	INT32 fcount = 3;	//表示カウント１イメージ分
-	INT32 id_disp = 0;	//表示イメージID
+	INT16 id_disp = 0;	//表示イメージID
 	INT32 list_flick_id[N_IMG_SWITCH_MAX] = { 0,1,0,0,0,0,0,0 };
 
 	StringFormat* pStrFormat;
@@ -257,143 +384,55 @@ public:
 	Rect rc;
 	RectF frc;
 
+	Image* pimg_disp;
+
 	HRESULT set_txt_items(Font* pfont, StringFormat* pformat, SolidBrush* pbrush) {
 		pFont = pfont; pStrFormat = pformat; pTxtBrush = pbrush;
 		return S_OK;
 	}
-
-	//
-	DRAWITEMSTRUCT dis = { 0 };
-	HRESULT set_dis(CPnlParts* pPB) {
-		if (pPB == NULL)return S_FALSE;
-		if (pPB->hWnd == NULL) return S_FALSE;
-
-		dis.CtlType = ODT_BUTTON;
-		dis.CtlID = pPB->id;
-		dis.hwndItem = pPB->hWnd;
-		dis.hDC = GetDC(pPB->hWnd);
-
-		Rect _rc(0, 0, sz.Width, sz.Height); rc = _rc;
-		RectF _frc(0, 0, sz.Width, sz.Height); frc = _frc;
-
+	HRESULT set_ctrl(CPnlParts* pCtrl) {
+		if (pCtrl == NULL)return S_FALSE;
+		hWnd = pCtrl->hWnd;
+		rc = { 0,0,pCtrl->sz.Width, pCtrl->sz.Height };
+		frc = { 0.0,0.0,(REAL)rc.Width,(REAL)rc.Height };
 		return S_OK;
 	}
 
 	HRESULT setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid) {
 		fcount = _fcount;
 		n_flick = _n_flick;
-		for (int i = 0; i < n_flick; i++) {
+		for (int i = 0; i < n_flick; i++) {//フリッカさせる画像の順序取り込み
 			if (i < N_IMG_SWITCH_MAX) list_flick_id[i] = pid[i];
 		}
-		value = ID_PANEL_LAMP_FLICK;
 		return S_OK;
 	}
 
-	virtual HRESULT set(INT16 code) {
+	virtual int chk_trig(INT16 id) {//トリガは表示イメージのid
+		if (id_disp != id) {
+			id_disp = id; return VAL_TRIGGER_VALUE;
+		}
+		return VAL_TRIGGER_NON;
+	}
 
-		Image* pimg_disp = pimg[ID_PANEL_LAMP_OFF];
-		value = code;
-
-		if (code == ID_PANEL_LAMP_FLICK) {//フリッカ　list_flick_idに登録した順で順次切り替え
+	virtual INT16 get() {
+		return id_disp;
+	}
+	
+	HRESULT update() {
+		INT16 id = 0;
+		if (value != ID_PANEL_LAMP_FLICK) {
+			id = value;	if (chk_trig(id)) InvalidateRect(hWnd, NULL, TRUE);
+			return S_OK;
+		}
+		else {
 			count++; if (count > fcount) {
 				count = 0;
 				id_disp++; if (id_disp >= n_flick) id_disp = 0;
+				InvalidateRect(hWnd, NULL, TRUE);
 			}
-			pimg_disp = pimg[list_flick_id[id_disp]];
+			return S_OK;
 		}
-		else if ((code < n_switch) && (code >= 0)) {//指定したイメージを表示
-			id_disp = code;
-			pimg_disp = pimg[id_disp];
-		}
-		else  return S_FALSE;
-
-		pgraphic->DrawImage(pimg_disp, pt.X, pt.Y);
-
-		return S_OK;
-	}
-};
-
-#define CODE_TYPE_LAMP_ELLI			0
-#define CODE_TYPE_LAMP_RECT			1
-
-/// <summary>
-/// DrawLamp
-/// ON/OFFでブラシを切替
-/// デバイスコンテキストに矩形または円形の塗りつぶし
-/// </summary>
-class CLampDraw : public CPnlParts<INT16> {
-public:
-	CLampDraw(
-		INT32 _id, Point* ppt, Size* psz, LPWSTR ptext,
-		Graphics* _pgraphic, SolidBrush* _pbrush_on, SolidBrush* _pbrush_off, Font* _pfont,
-		INT32 _fcount
-	) 
-	{
-		set_id(_id);
-		set_base(ppt, psz, ptext);
-		pgraphic = _pgraphic;
-		pbrush_on = _pbrush_on;
-		pbrush_off = _pbrush_off;
-		pfont = _pfont;
-		fcount = _fcount;
-			
-		value = ID_PANEL_LAMP_OFF;
-	}
-
-	virtual ~CLampDraw() {}
-
-	SolidBrush* pbrush_on	= NULL;
-	SolidBrush* pbrush_off	= NULL;
-	Font* pfont = NULL;
-
-	Graphics* pgraphic = NULL;	//描画用グラフィックオブジェクト
-
-	INT32 count = 0;	//点滅タイミング用
-
-	INT16 type		= CODE_TYPE_LAMP_ELLI;	//ランプのタイプ
-	INT32 fcount	= 6;					//点滅カウント一周期分
-	INT32 fcount_on = 3;					//点滅カウントON
-	bool is_text_draw = false;				//文字表示するか？
-
-	HRESULT set_txt_mode(bool _is_text_draw) {
-		is_text_draw = _is_text_draw;
-		return S_OK;
-	}
-
-	virtual HRESULT set(INT16 code) {
-
-		SolidBrush* pbrush = NULL;
-		if (code == ID_PANEL_LAMP_OFF) {
-			value = ID_PANEL_LAMP_OFF;
-			pbrush = pbrush_off;
-			count = 0;
-		}
-		else if (code == ID_PANEL_LAMP_ON) {
-			value = ID_PANEL_LAMP_ON;
-			pbrush = pbrush_on;
-			count = 0;
-		}
-		else if (code == ID_PANEL_LAMP_FLICK) {
-			count++; if (count >= fcount) count = 0;
-			if (count > fcount_on) {
-				value = ID_PANEL_LAMP_OFF;
-				pbrush = pbrush_off;
-			}
-			else {
-				value = ID_PANEL_LAMP_ON;
-				pbrush = pbrush_on;
-			}
-		}
-		else return S_FALSE;
-
-		if (type == CODE_TYPE_LAMP_ELLI) {
-			pgraphic->FillEllipse(pbrush, pt.X, pt.Y, sz.Width, sz.Height);;
-		}
-		else {
-			pgraphic->FillRectangle(pbrush, pt.X, pt.Y, sz.Width, sz.Height);
-		}
-
-		return S_OK;
+		return S_FALSE;
 	}
 };
 
@@ -507,25 +546,33 @@ public:
 		return S_OK;
 	}
 
-	HRESULT update(const LPCWSTR pstr) {
+	HRESULT update(Graphics* _pgraphic) {//描画先DC変更
+		update(pgraphic, value.c_str());
+		return S_OK;
+	}
+
+	HRESULT update() {//再描画
+		update(pgraphic, value.c_str());
+		return S_OK;
+	}
+
+	HRESULT update(const LPCWSTR pstr) {//テキスト変更
 		update(pgraphic, pstr);
 		return S_OK;
 	}
-	HRESULT update(Graphics* _pgraphic) {
-		update(pgraphic, value.c_str());
-		return S_OK;
-	}
 
-	HRESULT update() {
-		update(pgraphic, value.c_str());
-		return S_OK;
-	}
-
-	HRESULT update(SolidBrush* pbr_bk) {
+	HRESULT update(SolidBrush* pbr_bk) {//背景のみ変更
 		pgraphic->FillRectangle(pbr_bk, rc);
 		update(pgraphic, value.c_str());
 		return S_OK;
 	}
+
+	HRESULT update(const LPCWSTR pstr,SolidBrush* pbr_bk) {//テキストと背景変更
+		pgraphic->FillRectangle(pbr_bk, rc);
+		update(pstr);
+		return S_OK;
+	}
+
 };
 
 
