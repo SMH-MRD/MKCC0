@@ -3,6 +3,7 @@
 #include "resource.h"
 #include "framework.h"
 #include "OTE_DEF.H"
+#include "CPanelObj.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
@@ -561,25 +562,25 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_RCV) {
 
 				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_pc_u_rcv.head;
-				LPST_PC_U_BODY pb0 = &pOteCCIf->st_msg_pc_u_rcv.body;
+				LPST_PC_U_BODY pb0 = &pOteCCIf->st_msg_pc_u_rcv.body.st;
 				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option << L"\n"
 								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port) << L"\n";
 				st_mon2.wo_uni << L"[BODY]" << L"主幹:" << pb0->ctrl_source;
 
 				LPST_OTE_HEAD  ph1 = &pOteCCIf->st_msg_pc_m_rcv.head;
-				LPST_PC_M_BODY pb1 = &pOteCCIf->st_msg_pc_m_rcv.body;
+				LPST_PC_M_BODY pb1 = &pOteCCIf->st_msg_pc_m_rcv.body.st;
 				st_mon2.wo_mpc << L"[HEAD]" << L" CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
 				LPST_OTE_HEAD  ph2	= &pOteCCIf->st_msg_ote_m_rcv.head;
-				LPST_OTE_M_BODY pb2 = &pOteCCIf->st_msg_ote_m_rcv.body;
+				LPST_OTE_M_BODY pb2 = &pOteCCIf->st_msg_ote_m_rcv.body.st;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
 			else if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
 
 				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_ote_u_snd.head;
-				LPST_OTE_U_BODY  pb0 = &pOteCCIf->st_msg_ote_u_snd.body;
+				LPST_OTE_U_BODY  pb0 = &pOteCCIf->st_msg_ote_u_snd.body.st;
 				st_mon2.wo_uni << L"[HEAD]" << L" ID:" << ph0->myid.crane_id << L"PC:" << ph0->myid.pc_type << L"Seral:" << ph0->myid.serial_no << L"Opt:" << ph0->myid.option
 								<< L"       IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port)
 								<< L" CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
@@ -589,7 +590,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				st_mon2.wo_mpc << L"[BODY] -";
 				
 				LPST_OTE_HEAD  ph1 = &pOteCCIf->st_msg_ote_m_snd.head;
-				LPST_OTE_M_BODY pb1 = &pOteCCIf->st_msg_ote_m_snd.body;
+				LPST_OTE_M_BODY pb1 = &pOteCCIf->st_msg_ote_m_snd.body.st;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
@@ -610,6 +611,9 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			st_mon2.wo_work.str(L""); st_mon2.wo_work << L"応答遅延(μsec) MAX:" << res_delay_max << L" MIN:" << res_delay_min;
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MSG], st_mon2.wo_work.str().c_str());
 		}
+
+		//通信ステータス
+		update_sock_stat();
 
 	}break;
 	case ID_SOCK_EVENT_OTE_UNI: {
@@ -675,6 +679,31 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	return S_OK;
 }
 
+void COteAgent::update_sock_stat() {
+	INT32 sock_stat = pUSockPC->status;
+	if (sock_stat & CSOCK_STAT_STANDBY) {
+		st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_STANDBY;
+		st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_STANDBY;
+
+		if (sock_stat & CSOCK_STAT_ACT_RCV) 
+			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_ACT_RCV;
+		else if (sock_stat & CSOCK_STAT_RCV_ERR) 
+			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_RCV_ERR;
+		else;
+
+		if (sock_stat & CSOCK_STAT_ACT_SND) 
+			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_ACT_RCV;
+		else if (sock_stat & CSOCK_STAT_SND_ERR) 
+			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_RCV_ERR;
+		else;
+	}
+	else if (sock_stat == CSOCK_STAT_CLOSED)			st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_CLOSED;
+	else if (sock_stat == CSOCK_STAT_INIT)		st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_INIT;
+	else if (sock_stat == CSOCK_STAT_INIT_ERROR)st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_INIT_ERROR;
+	else; 
+
+	return;
+}
 HWND COteAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化

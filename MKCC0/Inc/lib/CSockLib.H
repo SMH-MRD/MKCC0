@@ -25,14 +25,18 @@ using namespace std;
 #define MAX_N_MULTICAST				4
 #define DEFAULT_SOCK_EVENT		10600
 
-#define CSOCK_N_STAT				16 //初期状態
-#define CSOCK_STAT_NA				0 //初期状態
-#define CSOCK_STAT_NON_VALID_IP		1 //有効なIP無し
-#define CSOCK_STAT_ERR_WINSOCK		2 //WINSOCK設定でエラー
-#define CSOCK_STAT_ERR_BIND			3 //バインドエラー
-#define CSOCK_STAT_ACTIVE			8//ソケット準備完了
-#define CSOCK_STAT_RCV_ERR			9//受信エラー
-#define CSOCK_STAT_SND_ERR			10//送信エラー
+#define CSOCK_N_STAT				16				//状態数
+#define CSOCK_STAT_CLOSED			0x00000000		//初期化前,ソケットクローズ
+#define CSOCK_STAT_INIT				0x00000001		//初期化中			青
+#define CSOCK_STAT_INIT_ERROR		0x00000002		//ソケット準備完了　橙
+#define CSOCK_STAT_STANDBY			0x00000004		//ソケット準備完了	黄
+#define CSOCK_STAT_ACT_RCV			0x00000010		//受信中			緑
+#define CSOCK_STAT_ACT_SND			0x00000020		//送信中			緑
+#define CSOCK_STAT_NON_VALID_IP		0x00000100		//IPアドレス不適
+#define CSOCK_STAT_ERR_WINSOCK		0x00000200		//WINSOCK設定でエラー
+#define CSOCK_STAT_ERR_BIND			0x00000400		//バインドエラー
+#define CSOCK_STAT_RCV_ERR			0x00001000		//受信エラー　　　　赤
+#define CSOCK_STAT_SND_ERR			0x00002000		//送信エラー　　　　赤
 
 struct ERRMSG_CSOCK {
 	WCHAR err_msg_wch[CSOCK_N_STAT][128] = {
@@ -59,9 +63,10 @@ public:
 
 	CRITICAL_SECTION csSck;																//受信排他用クリティカルセクション
 
+	INT32 status = CSOCK_STAT_CLOSED;
 	wostringstream err_msg;
 	wstring wstr_sock_err;
-	INT32 status = 0;
+	
 	
 	//メンバ関数
 	void set_sock_addr(SOCKADDR_IN* paddr, PCSTR ip, USHORT port) {//アドレスセット

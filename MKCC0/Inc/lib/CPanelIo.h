@@ -147,22 +147,59 @@ public:
 class CCbCtrl : public CPnlParts<INT16> {	//ボタン
 
 public:
-	CCbCtrl(INT32 _id,Point* ppt, Size* psz, LPWSTR ptext)
+	CCbCtrl(INT32 _id,Point* ppt, Size* psz, LPWSTR ptext, Graphics* _pgraphics, Pen* ppenON, Pen* ppenOFF)
 	{
 		set_id(_id); 
 		set_base(ppt, psz, ptext);
 		value = BST_UNCHECKED;
+		rc = { pt.X,pt.Y,sz.Width,sz.Height };
+		frc = { (REAL)rc.X,(REAL)rc.X,(REAL)rc.Width,(REAL)rc.Height };
+		pPenOn = ppenON; pPenOff = ppenOFF;
+		//オーナードローの時、グラフィックスのポインタはNULL
+		if (_pgraphics == NULL) {
+			is_owner_draw = true;
+		}
+		else {
+			pgraphics = _pgraphics;
+		}
 	}
 	virtual ~CCbCtrl() {}
 
+	Pen* pPenOn, * pPenOff;
+	INT16 status = 0;
+	Graphics* pgraphics;
+	BOOL is_owner_draw = false;
+
 	//コントロールの状態でget,set
-	INT16 get_ctrl() { value = (INT16)SendMessage(hWnd, BM_GETCHECK, 0, 0); return value; }
-	HRESULT set_ctrl(INT16 val) { 
-		if (val)	SendMessage(hWnd, BM_SETCHECK, BST_CHECKED, 0); 
-		else		SendMessage(hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-		value = val;
+	virtual INT16 get() { 
+		if (!is_owner_draw) {
+			if (BST_CHECKED == SendMessage(hWnd, BM_GETCHECK, 0, 0)) {
+				value = BST_CHECKED;
+			}
+			else {
+				value = BST_UNCHECKED;
+			}
+		}
+		return value;
+	}
+
+	virtual HRESULT set(INT16 val) { 
+		if (is_owner_draw)			value = val;
+		else if (val==BST_CHECKED)	SendMessage(hWnd, BM_SETCHECK, BST_CHECKED, 0); 
+		else						SendMessage(hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+		get();
 		return S_OK; 
 	};
+
+	INT16 update() {				//更新 
+		if (!is_owner_draw) {//オーナードロータイプでなければON/OFF枠表示
+			Pen* ppen = pPenOff;
+			if (value != 0) ppen = pPenOn;
+			pgraphics->DrawRectangle(ppen, rc);
+		}
+		return get(); //戻り値はカウント値
+	}
+
 };
 
 /// <summary>
@@ -180,7 +217,8 @@ public:
 		if (n_radio > N_VAL_RADIO_MAX) n_radio = N_VAL_RADIO_MAX;
 		else if (_n_radio < 0)			n_radio = 0;
 		else							n_radio = _n_radio;
-		set_radio(_n_radio, ppcb);
+		if(S_OK == set_radio(ppcb, n_radio))
+			pradio[0]->set(BST_CHECKED);
 	}
 	virtual ~CRadioCtrl() {}
 
@@ -188,56 +226,50 @@ public:
 		NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
 	};
 
-	void set_radio(int _n_radio, CCbCtrl** _pradio) {
-		if (_n_radio >= n_radio) return;
-		for (int i = 0; i < _n_radio; i++) {
-			pradio[_n_radio] = _pradio[i];
+	HRESULT set_radio(CCbCtrl** ppcb, int n_radio) {
+		if ((n_radio > 0) && (n_radio < N_VAL_RADIO_MAX)) {
+			for (int i = 0; i < n_radio; i++) {
+				pradio[i] = ppcb[i];
+			}
 		}
+		else {
+			return S_FALSE;
+		}
+
+		return S_OK;
+	}
+
+	INT16 update(bool is_non_owner_draw) {				//更新 
+		INT16 val = check();
+		if (is_non_owner_draw) {//オーナードロータイプでなければON/OFF枠表示
+			for (int i = 0; i < n_radio; i++) {
+				pradio[i]->update();
+			}
+		}
+		return val; //戻り値はID値
 	}
 
 	INT16 check() { 
-		INT16 val = -1;
 		for (int i = 0; i < n_radio; i++) {
-			if (pradio[i]->get() == L_ON) {
-				value = val = i;
-				break;
+			if (pradio[i]->get() == BST_CHECKED) {
+				value = i;
 			}
 		}
-		return value = val;
-	}
-
-	INT16 check_ctrl() {
-		INT16 val = -1;
-		for (int i = 0; i < n_radio; i++) {
-			if (pradio[i]->get_ctrl() == L_ON) {
-				value = val = i;
-				break;
-			}
-		}
+		return -1;
 	}
 
 	virtual HRESULT set(INT16 val) {
 		if ((val < 0) || (val >= n_radio)) return S_FALSE;
-
 		pradio[val]->set(L_ON);	//Valueのセット
 		value = val;
 		return S_OK;
 	};
 
-	virtual HRESULT set_ctrl(INT16 val) {
-		if ((val < 0) || (val >= n_radio)) return S_FALSE;
-
-		pradio[val]->set_ctrl(L_ON);	//チェックボタンのセット
-		value = val;
-		return S_OK;
-	};
-
-	
 };
 
 #define ID_PANEL_LAMP_OFF			0x00
 #define ID_PANEL_LAMP_ON			0x01
-#define ID_PANEL_LAMP_FLICK		0xFF
+#define ID_PANEL_LAMP_FLICK			0xFF
 
 /// <summary>
 /// ImageLamp
@@ -266,6 +298,8 @@ public:
 		Rect _rc(pt.X, pt.Y, sz.Width, sz.Height); rc = _rc;
 		RectF _frc((REAL)pt.X, (REAL)pt.Y, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
 
+		rect = { pt.X,pt.Y,pt.X + sz.Width,pt.Y + sz.Height };
+
 		pgraphic = _pgraphic;
 		value = ID_PANEL_LAMP_OFF;
 	}
@@ -287,6 +321,7 @@ public:
 	StringFormat* pStrFormat;
 	Font* pFont;
 	Rect rc;
+	RECT rect;
 	RectF frc;
 	Graphics* pgraphic;
 
@@ -314,21 +349,18 @@ public:
 
 	HRESULT update() {
 		INT16 id = 0;
-		pgraphic->DrawImage(pimg[id_disp], rc);
-	//	InvalidateRect(hWnd, NULL, TRUE);
 		if (value != ID_PANEL_LAMP_FLICK) {
-			id = value;	
-			if (chk_trig(id)) {
-				pgraphic->DrawImage(pimg[id_disp], rc);
-				InvalidateRect(hWnd, NULL, TRUE);
-			}
+			id_disp = value;
+			pgraphic->DrawImage(pimg[id_disp], rc);
+			InvalidateRect(hWnd, &rect, FALSE);
 			return S_OK;
 		}
 		else {
 			count++; if (count > fcount) {
 				count = 0;
 				id_disp++; if (id_disp >= n_flick) id_disp = 0;
-				InvalidateRect(hWnd, NULL, TRUE);
+				pgraphic->DrawImage(pimg[list_flick_id[id_disp]], rc);
+				InvalidateRect(hWnd, &rect, FALSE);
 			}
 			return S_OK;
 		}

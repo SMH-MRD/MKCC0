@@ -170,6 +170,7 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
+    static void update_sock_stat();
 
     //オーバーライド
 

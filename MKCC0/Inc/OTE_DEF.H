@@ -39,30 +39,17 @@ typedef struct OteComHead {
 	INT32			status;		//状態
 	INT32			tgid;		//接続中機器ID
 }ST_OTE_HEAD, * LPST_OTE_HEAD;
-/******* PCマルチキャストメッセージ ***********/
-typedef struct PcMBody {
-	INT32 pos[MOTION_ID_MAX];
-}ST_PC_M_BODY, * LPST_PC_M_BODY;
-typedef struct PcMMsg {
-	ST_OTE_HEAD         head;
-	ST_PC_M_BODY		body;
-}ST_PC_M_MSG, * LPST_PC_M_MSG;
-/******* OTEマルチキャストメッセージ構造体 ***********/
-#define N_CRANE_PC_MAX      32
-typedef struct OteMBody {
-	UCHAR       pc_enable[N_CRANE_PC_MAX];		//接続可能端末フラグ
-	INT32	    n_remote_wait;					//接続待ち遠隔操作卓台数
-	INT32	    onbord_seqno;					//機側接続シーケンス番号
-	INT32	    remote_seqno;					//遠隔卓接続シーケンス番号
-	INT32	    my_seqno;						//自身の接続シーケンス番号
-}ST_OTE_M_BODY, * LPST_OTE_M_BODY;
-typedef struct OteMMsg {
-	ST_OTE_HEAD      head;
-	ST_OTE_M_BODY    body;
-}ST_OTE_M_MSG, * LPST_OTE_M_MSG;
-/******* PCユニキャストメッセージ構造体 ***********/
-#define PLC_IO_MONT_WORD_NUM		100
 
+/******* 共通メッセージ定義 **************/
+#define PLC_IO_MONT_WORD_NUM			100
+#define N_CRANE_PC_MAX					32
+
+#define OTE_N_LOAD						2	//吊荷数
+#define OTE_N_PC_MSG_WCHAR				128	//PCからのメッセージテキスト数
+#define OTE_ID_LOAD_MH					0
+#define OTE_ID_LOAD_AH					1
+
+//吊荷状態　INDEX（OTEアニメーション表示用）
 #define ID_PUC_BODY_LD_MHX				0
 #define ID_PUC_BODY_LD_MHY				1
 #define ID_PUC_BODY_LD_MHZ				2
@@ -72,6 +59,7 @@ typedef struct OteMMsg {
 #define ID_PUC_BODY_LD_AHZ				2
 #define ID_PUC_BODY_LD_AHTH				3
 
+//半自動目標設定INDEX
 #define ID_PUC_BODY_TG_MAIN				0
 #define ID_PUC_BODY_TG_S1				1
 #define ID_PUC_BODY_TG_S2				2
@@ -80,26 +68,48 @@ typedef struct OteMMsg {
 #define ID_PUC_BODY_TG_L2				5
 #define ID_PUC_BODY_TG_L3				6
 
+#define OTE_N_SWY_AXIS					4
+#define OTE_ID_SWY_AXIS_X				ID_SLEW
+#define OTE_ID_SWY_AXIS_Y				ID_BOOM_H
+
+//ノッチ状態バッファ参照用インデックス
+#define ID_OTE_NOTCH_POS_HOLD			0 //現在値保持
+#define ID_OTE_NOTCH_POS_TRIG			1 //トリガ状態
+#define ID_OTE_NOTCH_POS_CNT			2 //状態保持カウント値
+
+//グリップスイッチ
+#define OTE_GRIP_ESTP					0x03
+#define OTE_GRIP_ENABLE					0x08
+#define OTE_GRIP_ACTIVE					0X14
+#define OTE_GRIP_DBG_ENABLE				0x80
+
+//ランプ表示コマンド構造体（PC→OTE）
 #define OTE_LAMP_COM_OFF				0
 #define OTE_LAMP_COM_ON					1
 #define OTE_LAMP_COM_FLICK				2
-
 #define OTE_LAMP_FLICK_COUNT			0x0008
 #define OTE_STATIC_UPDATE_COUNT			0x0004
-
 typedef struct OteLampCom {
 	UINT8 com;
 	UINT8 color;
 }ST_OTE_LAMP_COM, * LPST_OTE_LAMP_COM;
 
-#define OTE_N_LOAD					2	//吊荷数
-#define OTE_N_PC_MSG_WCHAR			128	//PCからのメッセージテキスト数
-#define OTE_ID_LOAD_MH				0
-#define OTE_ID_LOAD_AH				1
-#define OTE_N_SWY_AXIS				4
-#define OTE_ID_SWY_AXIS_X			ID_SLEW
-#define OTE_ID_SWY_AXIS_Y			ID_BOOM_H
+/******* PCマルチキャストBody構造体 ***********/
+typedef struct PcMBody {
+	INT32 pos[MOTION_ID_MAX];
+}ST_PC_M_BODY, * LPST_PC_M_BODY;
 
+/******* OTEマルチキャストBody構造体 ***********/
+#define N_CRANE_PC_MAX      32
+typedef struct OteMBody {
+	UCHAR       pc_enable[N_CRANE_PC_MAX];		//接続可能端末フラグ
+	INT32	    n_remote_wait;					//接続待ち遠隔操作卓台数
+	INT32	    onbord_seqno;					//機側接続シーケンス番号
+	INT32	    remote_seqno;					//遠隔卓接続シーケンス番号
+	INT32	    my_seqno;						//自身の接続シーケンス番号
+}ST_OTE_M_BODY, * LPST_OTE_M_BODY;
+
+/******* PCユニキャストBody構造体 ***********/
 typedef struct PcUBody {
 	ST_OTE_LAMP_COM		pb_lamp[N_OTE_PNL_PBL];
 	ST_OTE_LAMP_COM		notch_lamp[N_OTE_PNL_NOTCH];
@@ -120,21 +130,9 @@ typedef struct PcUBody {
 	WCHAR				message[OTE_N_PC_MSG_WCHAR];			//メッセージIDが‐の時に表示するテキスト
 	INT32				ctrl_source;							//主幹（ログイン	
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
-typedef struct PcUMsg {
-	ST_OTE_HEAD     head;
-	ST_PC_U_BODY    body;
-}ST_PC_U_MSG, * LPST_PC_U_MSG;
-/******* OTEユニキャスト通信メッセージ構造体 ***********/
 
-#define ID_OTE_NOTCH_POS_HOLD	0
-#define ID_OTE_NOTCH_POS_TRIG	1
-#define ID_OTE_NOTCH_POS_CNT	2
-
-#define OTE_GRIP_ESTP		0x03
-#define OTE_GRIP_ENABLE		0x08
-#define OTE_GRIP_ACTIVE		0X14
-#define OTE_GRIP_DBG_ENABLE 0x80
-
+/******* OTEユニキャスト通信BODY構造体 ***********/
+//デフォルト
 typedef struct OteUBody {
 	INT16		pb_ope[128];					//操作卓PB入力
 	INT16		pb_notch[128];					//操作卓ノッチ入力
@@ -146,9 +144,50 @@ typedef struct OteUBody {
 	INT32		grip_status;
 	UINT32		target_seq_no;
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
+
+//########################################################
+//			ボディ部UNION定義　
+// BODY部の構造体はクレーンタイプに応じて定義して追加　
+//########################################################
+union UN_PC_M_BODY {
+	INT16			val[500];
+	ST_PC_M_BODY	st;
+};
+union UN_OTE_M_BODY {
+	INT16			val[500];
+	ST_OTE_M_BODY	st;
+};
+union UN_PC_U_BODY {
+	INT16			val[500];
+	ST_PC_U_BODY	st;
+};
+union UN_OTE_U_BODY {
+	INT16			val[500];
+	ST_OTE_U_BODY	st;
+};
+
+//#################################################
+//			メッセージ構造体定義　
+//#################################################
+/******* PCマルチキャストメッセージ ***********/
+typedef struct PcMMsg {
+	ST_OTE_HEAD		head;
+	UN_PC_M_BODY	body;
+}ST_PC_M_MSG, * LPST_PC_M_MSG;
+/******* OTEマルチキャストメッセージ構造体 ***********/
+typedef struct OteMMsg {
+	ST_OTE_HEAD     head;
+	UN_OTE_M_BODY   body;
+}ST_OTE_M_MSG, * LPST_OTE_M_MSG;
+/******* PCユニキャストメッセージ構造体 ***********/
+typedef struct PcUMsg {
+	ST_OTE_HEAD     head;
+	UN_PC_U_BODY    body;
+}ST_PC_U_MSG, * LPST_PC_U_MSG;
+/******* OTEユニキャスト通信メッセージ構造体 ***********/
 typedef struct OteUMsg {
-	ST_OTE_HEAD         head;
-	ST_OTE_U_BODY    body;
+	ST_OTE_HEAD     head;
+	UN_OTE_U_BODY   body;
 }ST_OTE_U_MSG, * LPST_OTE_U_MSG;
 
 

@@ -15,12 +15,12 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_LMP_REMOTE			,Point(20,50)	,Size(100,100)	,L"遠隔"			},
 		{ID_MAIN_PNL_OBJ_TXT_UID			,Point(20,290)	,Size(100,30)	,L"UID"				},
 		{ID_MAIN_PNL_OBJ_PB_AUTH			,Point(20,320)	,Size(100,40)	,L"認証"			},
-		{ID_MAIN_PNL_OBJ_STR_PC_COM_STAT	,Point(20,900)	,Size(200,30)	,L"PC   R   S"		},
-		{ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT	,Point(20,930)	,Size(200,30)	,L"PLC  R   S"		},
-		{ID_MAIN_PNL_OBJ_LMP_PCR			,Point(50,900)	,Size(16,16)	,L"PC受信"			},
-		{ID_MAIN_PNL_OBJ_LMP_PCS			,Point(80,900)	,Size(16,16)	,L"PC送信"			},
-		{ID_MAIN_PNL_OBJ_LMP_PLCR			,Point(50,930)	,Size(16,16)	,L"PLC受信"			},
-		{ID_MAIN_PNL_OBJ_LMP_PLCS			,Point(80,930)	,Size(16,16)	,L"PLC送信"			},
+		{ID_MAIN_PNL_OBJ_STR_PC_COM_STAT	,Point(10,900)	,Size(200,30)	,L"PC    R       S"		},
+		{ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT	,Point(10,930)	,Size(200,30)	,L"PLC  R       S"		},
+		{ID_MAIN_PNL_OBJ_LMP_PCR			,Point(62,905)	,Size(16,16)	,L"PC受信"			},
+		{ID_MAIN_PNL_OBJ_LMP_PCS			,Point(100,905)	,Size(16,16)	,L"PC送信"			},
+		{ID_MAIN_PNL_OBJ_LMP_PLCR			,Point(62,935)	,Size(16,16)	,L"PLC受信"			},
+		{ID_MAIN_PNL_OBJ_LMP_PLCS			,Point(100,935)	,Size(16,16)	,L"PLC送信"			},
 		{ID_MAIN_PNL_OBJ_CB_ESTOP			,Point(1780,50)	,Size(100,100)	,L"緊急停止"		},
 		{ID_MAIN_PNL_OBJ_LMP_ESTOP			,Point(1780,50)	,Size(100,100)	,L"緊急停止"		},
 		{ID_MAIN_PNL_OBJ_PB_CSOURCE			,Point(1780,180),Size(100,100)	,L"主 幹"			},
@@ -129,15 +129,15 @@ HRESULT CMainPanelObj::setup_obj() {
 	i++;str_plc_com_stat	= new CStringGdi(ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, 
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_NEAR], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
 
-	static Image img2(L"../Img/HHGH29/lmp1_b_of.png"), img3(L"../Img/HHGH29/lmp1_b_of.png"), img4(L"../Img/HHGH29/lmp1_g_on.png"), img5(L"../Img/HHGH29/lmp1_r_on.png"), img6(L"../Img/HHGH29/lmp1_b_on.png"), img7(L"../Img/HHGH29/lmp1_y_on.png");
+	static Image img2(L"../Img/HHGH29/lmp1_b_of.png"), img3(L"../Img/HHGH29/lmp1_b_on.png"), img4(L"../Img/HHGH29/lmp1_o_on.png"), img5(L"../Img/HHGH29/lmp1_y_on.png"), img6(L"../Img/HHGH29/lmp1_g_on.png"), img7(L"../Img/HHGH29/lmp1_r_on.png");
 	pimg[2] = &img2, pimg[3] = &img3, pimg[4] = &img4, pimg[5] = &img5, pimg[6] = &img6, pimg[7] = &img7;
-	i++;lmp_pcr				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[2], 5, 3, pgraphic);
-	i++;lmp_pcs				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[2], 5, 3, pgraphic);
-	i++;lmp_plcr			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,&pimg[2], 5, 3, pgraphic);
-	i++;lmp_plcs			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,&pimg[2], 5, 3, pgraphic);
+	i++;lmp_pcr				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[2], 6, 3, pgraphic);
+	i++;lmp_pcs				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[2], 6, 3, pgraphic);
+	i++;lmp_plcr			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,&pimg[2], 6, 3, pgraphic);
+	i++;lmp_plcs			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,&pimg[2], 6, 3, pgraphic);
 
 //11-12 緊急停止PBL
-	i++;cb_estop			= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
+	i++;cb_estop			= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,NULL, NULL, NULL);
 	static Image img8(L"../Img/HHGH29/estop_of.png"), img9(L"../Img/HHGH29/estop_on.png");
 	pimg[8] = &img8, pimg[9] = &img9;
 	i++;lmp_estop			= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[8], 2, 3);
@@ -152,7 +152,7 @@ HRESULT CMainPanelObj::setup_obj() {
 
 //15-18 操作条件設定PB類
 //操作器表示
-	i++;cb_pnl_notch		= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_PNL_NOTCH, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
+	i++;cb_pnl_notch		= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_PNL_NOTCH, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 //PAD MODE
 	i++;pb_pad_mode			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_PAD_MODE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	static Image img13(L"../Img/HHGH29/sw80_of_w.png"), img14(L"../Img/HHGH29/sw80_on_o.png");
@@ -173,18 +173,18 @@ HRESULT CMainPanelObj::setup_obj() {
 	i++;pb_crane_sel_wnd	= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 
 	//23-25モード設定ラジオボタン
-	i++; cb_disp_mode1		= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_DISP_MODE1, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++; cb_disp_mode2		= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_DISP_MODE2, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
+	i++; cb_disp_mode1		= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_DISP_MODE1, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_disp_mode2		= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_DISP_MODE2, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	CCbCtrl* pcb_mode[2]	= { cb_disp_mode1 ,cb_disp_mode2 };
 	i++; rdo_disp_mode		= new CRadioCtrl(2,pcb_mode);
 
 	//26-33オプションウィンドウ設定ラジオボタン
-	i++; cb_opt_flt			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++; cb_opt_set			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++; cb_opt_com			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++; cb_opt_cam			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++; cb_opt_stat		= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++; cb_opt_clr			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
+	i++; cb_opt_flt			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_opt_set			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_opt_com			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_opt_cam			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_opt_stat		= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_opt_clr			= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	CCbCtrl* pcb_opt[8]		= { cb_opt_flt,cb_opt_set,cb_opt_com,cb_opt_cam,	cb_opt_stat,cb_opt_clr };
 	i++; rdo_opt_wnd		= new CRadioCtrl(6, pcb_opt);
 

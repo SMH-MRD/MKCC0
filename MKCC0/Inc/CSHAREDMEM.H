@@ -733,7 +733,6 @@ typedef struct _ST_DRAWING_BASE {
 	StringFormat* pstrformat[N_STRING_FORMAT];
 }ST_DRAWING_BASE, *LPST_DRAWING_BASE;
 
-
 #pragma region OTE_INF
 typedef struct _ST_OTE_ENV_INF {
 	ST_DEVICE_CODE device_code;
@@ -767,6 +766,8 @@ typedef struct _ST_OTE_CS_INF {
 #define CODE_OTE_PC_COM_STAT_LINK_OK	2	//通信中
 
 typedef struct _ST_OTE_CC_IF {
+	INT32			cc_com_stat_r;	//制御PCとの通信状態（受信）
+	INT32			cc_com_stat_s;  //制御PCとの通信状態（送信）
 
 	ST_PC_U_MSG     st_msg_pc_u_rcv;
 	ST_PC_M_MSG     st_msg_pc_m_rcv;

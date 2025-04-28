@@ -40,6 +40,9 @@ HRESULT CSockBase::Initialize()
 	}	// ver1.01
 	DeleteCriticalSection(&csSck);
 	InitializeCriticalSection(&csSck);
+
+	status = CSOCK_STAT_INIT;
+
 	return hr;
 }
 
@@ -150,6 +153,8 @@ HRESULT CSockBase::Close()
 	closesocket(s);
 	s = NULL;
 	DeleteCriticalSection(&csSck);
+
+	status = CSOCK_STAT_CLOSED;
 	return (S_OK);
 }
 
@@ -187,7 +192,8 @@ HRESULT CSockUDP::init_sock(HWND hwnd, SOCKADDR_IN addr_in) {
 		WSACleanup();
 		return E_FAIL;
 	}
-
+	
+	status = CSOCK_STAT_STANDBY;
 	return S_OK;
 }
 /******************************************************************************/
@@ -203,6 +209,7 @@ HRESULT CSockUDP::init_sock(HWND hwnd, SOCKADDR_IN addr_in, SOCKADDR_IN addr_in_
 	s = socket(AF_INET, protocol, 0);
 	if (s < 0) {
 		SetSockErr(WSAGetLastError());
+		status = CSOCK_STAT_INIT_ERROR;
 		return E_FAIL;
 	}
 
@@ -214,6 +221,7 @@ HRESULT CSockUDP::init_sock(HWND hwnd, SOCKADDR_IN addr_in, SOCKADDR_IN addr_in_
 		SetSockErr(WSAGetLastError());
 		closesocket(s);
 		WSACleanup();
+		status = CSOCK_STAT_INIT_ERROR;
 		return E_FAIL;
 	}
 
@@ -223,6 +231,7 @@ HRESULT CSockUDP::init_sock(HWND hwnd, SOCKADDR_IN addr_in, SOCKADDR_IN addr_in_
 		SetSockErr(WSAGetLastError());
 		closesocket(s);
 		WSACleanup();
+		status = CSOCK_STAT_INIT_ERROR;
 		return E_FAIL;
 	}
 
@@ -232,20 +241,24 @@ HRESULT CSockUDP::init_sock(HWND hwnd, SOCKADDR_IN addr_in, SOCKADDR_IN addr_in_
 		SetSockErr(WSAGetLastError());
 		closesocket(s);
 		WSACleanup();
+		status = CSOCK_STAT_INIT_ERROR;
 		return E_FAIL;
 	}
 
-	addr_in_multi[0] = addr_in_m;						//マルチキャスト送信先アドレス設定
+	addr_in_multi[0] = addr_in_m;					//マルチキャスト送信先アドレス設定
 	static struct ip_mreq mreq;                     //マルチキャスト受信設定用構造体
 	//マルチキャストグループ参加登録
 	memset(&mreq, 0, sizeof(mreq));
-	mreq.imr_interface.S_un.S_addr = addr_in_rcv.sin_addr.S_un.S_addr;       //利用ネットワーク
+	mreq.imr_interface.S_un.S_addr = addr_in_rcv.sin_addr.S_un.S_addr;			//利用ネットワーク
 	mreq.imr_multiaddr.S_un.S_addr = addr_in_multi[0].sin_addr.S_un.S_addr; 	//マルチキャストIPアドレス
 	if (setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) != 0) {
 		perror("setopt受信設定失敗\n");
+		status = CSOCK_STAT_INIT_ERROR;
 		return E_FAIL;
 	}
 	n_multicast++;
+
+	status = CSOCK_STAT_STANDBY;
 	return S_OK;
 }
 
@@ -268,9 +281,11 @@ HRESULT CSockUDP::add_multi_to_sock(SOCKADDR_IN addr_in_m) {
 	mreq.imr_multiaddr.S_un.S_addr = addr_in_multi[n_multicast].sin_addr.S_un.S_addr; 	//マルチキャストIPアドレス
 	if (setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) != 0) {
 		perror("setopt受信設定失敗\n");
+		status = CSOCK_STAT_INIT_ERROR;
 		return E_FAIL;
 	}
 	n_multicast++;
+	status = CSOCK_STAT_STANDBY;
 	return S_OK;
 }
 /******************************************************************************/
@@ -283,7 +298,18 @@ HRESULT CSockUDP::add_multi_to_sock(SOCKADDR_IN addr_in_m) {
 /// <returns></returns>
 int CSockUDP::snd_msg(const char* pbuf, int len, SOCKADDR_IN addr) {
 	addr_in_dst = addr;
-	if (nRtn == SOCKET_ERROR) SetSockErr(WSAGetLastError());
+	int nRtn = sendto(s, pbuf, len, 0, (LPSOCKADDR)&addr_in_dst, sizeof(addr_in_dst));
+	
+	if (nRtn == SOCKET_ERROR) {
+		SetSockErr(WSAGetLastError());
+		status &= ~CSOCK_STAT_ACT_SND;
+		status |= CSOCK_STAT_SND_ERR;
+	}
+	else {
+		status &= ~CSOCK_STAT_SND_ERR;
+		status |= CSOCK_STAT_ACT_SND;
+	}
+	
 	return nRtn;
 }
 
@@ -300,7 +326,15 @@ int CSockUDP::rcv_msg(char* pbuf, int len) {
 	int from_addr_size = (int)sizeof(from_addr);    //送信元アドレスサイズバッファ
 
 	int nRtn = recvfrom(s, pbuf, len, 0, (SOCKADDR*)&addr_in_from, &from_addr_size);
-	if (nRtn == SOCKET_ERROR) SetSockErr(WSAGetLastError());
+	if (nRtn == SOCKET_ERROR) {
+		SetSockErr(WSAGetLastError());
+		status &= ~CSOCK_STAT_ACT_RCV;
+		status |= CSOCK_STAT_RCV_ERR;
+	}
+	else {
+		status &= ~CSOCK_STAT_RCV_ERR;
+		status |= CSOCK_STAT_ACT_RCV;
+	}
 	return nRtn;
 }
 

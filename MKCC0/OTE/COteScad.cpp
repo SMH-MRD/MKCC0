@@ -276,9 +276,8 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		//操作器
 		pcb = pPanelBase->pobjs->cb_pnl_notch;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX| BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
-
 
 		//# PBL !!OWNER DRAW
 		//主幹
@@ -346,12 +345,12 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		 //String 初回書き込みフラグをセットしてTIMERイベントで書き込み
 		 is_initial_draw_mon1 = true;
 
-		 //Lamp ウィンドウハンドルセット
-		 pPanelBase->pobjs->lmp_pcr->set_wnd(hWnd);
-		 pPanelBase->pobjs->lmp_pcs->set_wnd(hWnd);
-		 pPanelBase->pobjs->lmp_plcr->set_wnd(hWnd);
-		 pPanelBase->pobjs->lmp_plcs->set_wnd(hWnd);
-
+		 //Lamp ウィンドウハンドルセット,フリッカ設定
+		 INT32 id_list[2] = { 4,0 };//2種フリッカ　緑/暗青
+		 pPanelBase->pobjs->lmp_pcr->set_wnd(hWnd);		pPanelBase->pobjs->lmp_pcr->setup_flick(2, 3, id_list);
+		 pPanelBase->pobjs->lmp_pcs->set_wnd(hWnd);		pPanelBase->pobjs->lmp_pcs->setup_flick(2, 3, id_list);
+		 pPanelBase->pobjs->lmp_plcr->set_wnd(hWnd);	pPanelBase->pobjs->lmp_plcr->setup_flick(2, 3, id_list);
+		 pPanelBase->pobjs->lmp_plcs->set_wnd(hWnd);	pPanelBase->pobjs->lmp_plcs->setup_flick(2, 3, id_list);
 
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_SCAD_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -363,8 +362,14 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (wmId)
 		{
 		case ID_MAIN_PNL_OBJ_CB_ESTOP: {
-			if (pPanelBase->pobjs->cb_estop->get())pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
-			else pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
+			if (pPanelBase->pobjs->cb_estop->get() == BST_CHECKED) {
+				pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
+				pPanelBase->pobjs->lmp_estop->set(L_OFF);
+			}
+			else{ 
+				pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
+				pPanelBase->pobjs->lmp_estop->set(L_ON);
+			}
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_CSOURCE: {
 			pPanelBase->pobjs->pb_csource->update(true);
@@ -397,7 +402,26 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case ID_MAIN_PNL_OBJ_PB_AUTH: {
 			pPanelBase->pobjs->pb_auth->update(true);
 		}break;
+		case ID_MAIN_PNL_OBJ_CB_PNL_NOTCH: {
+			pPanelBase->pobjs->cb_pnl_notch->update();
+		}break;
 
+		case ID_MAIN_PNL_OBJ_RDO_DISP_MODE1:
+		case ID_MAIN_PNL_OBJ_RDO_DISP_MODE2:
+		{
+			pPanelBase->pobjs->rdo_disp_mode->update(true);
+		}break;
+
+
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT :
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET :
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM :
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM :
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT:
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR :
+		{
+			pPanelBase->pobjs->rdo_opt_wnd->update(true);
+		}break;
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
@@ -414,20 +438,23 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}return 1; // 背景を処理したことを示す
 
 	case WM_TIMER: {
-		//初期描画
-		if (is_initial_draw_mon1) {
-			pPanelBase->pobjs->str_message->update();
-			pPanelBase->pobjs->str_pc_com_stat->update();
-			pPanelBase->pobjs->str_plc_com_stat->update();
-		}
 		//LAMP(CTRL)更新
+		pPanelBase->pobjs->lmp_estop->update();
 		pPanelBase->pobjs->lmp_csource->update();
 		pPanelBase->pobjs->lmp_remote->update();
 		pPanelBase->pobjs->lmp_pad_mode->update();
 
-		pPanelBase->pobjs->lmp_pcr->set(L_ON);
+		//SwitchImg更新
+		if(pOteCCIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV) 
+			pPanelBase->pobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pobjs->lmp_pcr->set(pOteCCIf->cc_com_stat_r);
 		pPanelBase->pobjs->lmp_pcr->update();
+
+		if (pOteCCIf->cc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
+			pPanelBase->pobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pobjs->lmp_pcs->set(pOteCCIf->cc_com_stat_s);
 		pPanelBase->pobjs->lmp_pcs->update();
+
 		pPanelBase->pobjs->lmp_plcr->update();
 		pPanelBase->pobjs->lmp_plcs->update();
 		
@@ -441,12 +468,13 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pPanelBase->pobjs->pb_pad_mode->update(false);
 
 		//String更新
-
-
-
-		//SwitchImg更新
-
-
+		if (is_initial_draw_mon1) {
+			pPanelBase->pobjs->str_message->update();
+			pPanelBase->pobjs->str_pc_com_stat->update();
+			pPanelBase->pobjs->str_plc_com_stat->update();
+		//	is_initial_draw_mon1 = false;
+		}
+		
 
 	}break;
 

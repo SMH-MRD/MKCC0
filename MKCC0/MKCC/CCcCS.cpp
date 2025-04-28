@@ -457,31 +457,31 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
 
 				LPST_OTE_HEAD	ph0 = &pOTE_Inf->st_msg_ote_u_rcv.head;
-				LPST_OTE_U_BODY pb0 = &pOTE_Inf->st_msg_ote_u_rcv.body;
+				LPST_OTE_U_BODY pb0 = &pOTE_Inf->st_msg_ote_u_rcv.body.st;
 				st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option << L"\n"
 								<< L"         IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port)
 								<< L" CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
 				st_mon2.wo_uni << L"[BODY]" << L"OPEMODE:"<<pb0->ope_mode;
 
 				LPST_OTE_HEAD  ph1 = &pOTE_Inf->st_msg_pc_m_rcv.head;
-				LPST_PC_M_BODY pb1 = &pOTE_Inf->st_msg_pc_m_rcv.body;
+				LPST_PC_M_BODY pb1 = &pOTE_Inf->st_msg_pc_m_rcv.body.st;
 				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
 				LPST_OTE_HEAD  ph2 = &pOTE_Inf->st_msg_ote_m_rcv.head;
-				LPST_OTE_M_BODY pb2 = &pOTE_Inf->st_msg_ote_m_rcv.body;
+				LPST_OTE_M_BODY pb2 = &pOTE_Inf->st_msg_ote_m_rcv.body.st;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
 			else if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
 
 				LPST_OTE_HEAD	ph0 = &pOTE_Inf->st_msg_pc_u_snd.head;
-				LPST_PC_U_BODY  pb0 = &pOTE_Inf->st_msg_pc_u_snd.body;
+				LPST_PC_U_BODY  pb0 = &pOTE_Inf->st_msg_pc_u_snd.body.st;
 				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L"PC:" << ph0->myid.pc_type << L"Seral:" << ph0->myid.serial_no << L"Opt:" << ph0->myid.option << L"\n";
 				st_mon2.wo_uni << L"[BODY]";
 
 				LPST_OTE_HEAD  ph1 = &pOTE_Inf->st_msg_pc_m_snd.head;
-				LPST_PC_M_BODY pb1 = &pOTE_Inf->st_msg_pc_m_snd.body;
+				LPST_PC_M_BODY pb1 = &pOTE_Inf->st_msg_pc_m_snd.body.st;
 				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
