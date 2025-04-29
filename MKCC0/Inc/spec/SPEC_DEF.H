@@ -2,12 +2,11 @@
 #include "common_def.h"
 
 /*** 仕様定義構造体 ***/
-#define DIRECTION_MAX 2
-#define ACCDEC_MAX 2
-#define NUM_OF_AS_AXIS				5	//自動の制御軸数　走行、横行、旋回、スキュー
-#define NUM_OF_SWAY_LEVEL			3	//完了,トリガ,制限
-#define NUM_OF_POSITION_LEVEL		3	//完了,トリガ,制限
-#define NOTCH_MAX					6	//ノッチ数最大
+#define DIRECTION_MAX				2
+#define ACCDEC_MAX					2
+#define N_AS_AXIS					5	//自動の制御軸数　走行、横行、旋回、スキュー
+#define N_SWAY_LEVEL				3	//完了,トリガ,制限
+#define N_POSITION_LEVEL			3	//完了,トリガ,制限
 #define N_NOTCH_RATIO				4	//ノッチ倍率設定数
 
 //軸動作定格
@@ -99,7 +98,7 @@ typedef struct _ST_STRUCTURE
 
 typedef struct _ST_SPEC {
 //ノッチ速度物理量
-	double notch_spd_f[MOTION_ID_MAX][NOTCH_MAX] = {			//# ノッチ指令速度（機上）1倍速時
+	double notch_spd_f[MOTION_ID_MAX][N_NOTCH_MAX] = {		//# ノッチ指令速度（機上）1倍速時
 	{ 0.0,	0.012,	0.035,	0.07,	0.117,	0.117 },			//[ID_HOIST]	m/s
 	{ 0.0,	0.04,	0.125,	0.25,	0.416,	0.416 },			//[ID_GANTRY]	m/s
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_TROLLY]	m/s
@@ -109,7 +108,7 @@ typedef struct _ST_SPEC {
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_H_ASSY];
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_MOTION1];
 	};
-	double notch_spd_r[MOTION_ID_MAX][NOTCH_MAX] = {			//# ノッチ指令速度（機上）1倍速時
+	double notch_spd_r[MOTION_ID_MAX][N_NOTCH_MAX] = {			//# ノッチ指令速度（機上）1倍速時
 	{ 0.0,	-0.012,	-0.35,	-0.07,	-0.117,	-0.117 },			//[ID_HOIST]	m/s
 	{ 0.0,	-0.04,	-0.125,	-0.25,	-0.416,	-0.416 },			//[ID_GANTRY]	m/s
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_TROLLY]	m/s
@@ -120,7 +119,7 @@ typedef struct _ST_SPEC {
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_MOTION1];
 	};
 //ノッチ速度％
-	double notch_spd_nrm_f[MOTION_ID_MAX][NOTCH_MAX] = {		//# ノッチ指令速度（正規化）%
+	double notch_spd_nrm_f[MOTION_ID_MAX][N_NOTCH_MAX] = {		//# ノッチ指令速度（正規化）%
 	{ 0.0,	0.1,	0.3,	0.6,	1.0,	1.0 },				//[ID_HOIST]	%
 	{ 0.0,	0.1,	0.3,	0.6,	1.0,	1.0 },				//[ID_GANTRY]	%
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_TROLLY]	%
@@ -130,7 +129,7 @@ typedef struct _ST_SPEC {
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_H_ASSY];
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_MOTION1];
 	};
-	double notch_spd_nrm_r[MOTION_ID_MAX][NOTCH_MAX] = {			//# ノッチ指令速度（正規化）%
+	double notch_spd_nrm_r[MOTION_ID_MAX][N_NOTCH_MAX] = {			//# ノッチ指令速度（正規化）%
 	{ 0.0,	-0.1,	-0.3,	-0.6,	-1.0,	-1.0 },				//[ID_HOIST]	%
 	{ 0.0,	-0.1,	-0.3,	-0.6,	-1.0,	-1.0},				//[ID_GANTRY]	%
 	{ 0.0,	0.0,	0.0,	0.0,	0.0,	0.0 },				//[ID_TROLLY]	%
@@ -189,7 +188,7 @@ typedef struct _ST_SPEC {
 	ST_STRUCTURE st_structure;
 //制御パラメータ
 //# 振れ止め判定　振れ角レベル(rad)
-	double as_rad_level[NUM_OF_AS_AXIS][NUM_OF_SWAY_LEVEL] = {	
+	double as_rad_level[N_AS_AXIS][N_SWAY_LEVEL] = {	
 	{ 0.0,	0.0, 0.0},											//[ID_HOIST]
 	{ 0.005, 0.01, 0.020 },									//[ID_GANTRY]
 	{ 0.005, 0.01, 0.020 },									//[ID_TROLLY]
@@ -197,7 +196,7 @@ typedef struct _ST_SPEC {
 	{ 0.005, 0.01, 0.020 },									//[ID_SLEW]	
 	};
 //# 振れ止め判定　振れ角レベル(rad^2)
-	double as_rad2_level[NUM_OF_AS_AXIS][NUM_OF_SWAY_LEVEL] = {	
+	double as_rad2_level[N_AS_AXIS][N_SWAY_LEVEL] = {	
 	{ 0.0,	0.0, 0.0},											//[ID_HOIST]
 	{ 0.000025, 0.0001, 0.0004 },								//[ID_GANTRY]
 	{ 0.000025, 0.0001, 0.0004 },								//[ID_TROLLY]
@@ -205,7 +204,7 @@ typedef struct _ST_SPEC {
 	{ 0.000025, 0.0001, 0.0004 },								//[ID_SLEW]
 	};
 //# 振れ止め判定　振れ幅レベル(m)
-	double as_m_level[NUM_OF_AS_AXIS][NUM_OF_SWAY_LEVEL] = {	
+	double as_m_level[N_AS_AXIS][N_SWAY_LEVEL] = {	
 	{ 0.0,	0.0, 0.0},											//[ID_HOIST]
 	{ 0.1, 0.2, 2.00 },											//[ID_GANTRY]
 	{ 0.1, 0.2, 2.00 },											//[ID_TROLLY]
@@ -213,7 +212,7 @@ typedef struct _ST_SPEC {
 	{ 0.1, 0.2, 2.00 },											//[ID_SLEW]	
 	};
 //# 振れ止め判定　振れ幅レベル(m^2)
-	double as_m2_level[NUM_OF_AS_AXIS][NUM_OF_SWAY_LEVEL] = {
+	double as_m2_level[N_AS_AXIS][N_SWAY_LEVEL] = {
 	{ 0.0,	0.0, 0.0},											//[ID_HOIST]
 	{ 0.01, 0.04, 4.0 },										//[ID_GANTRY]
 	{ 0.01, 0.04, 4.0 },										//[ID_TROLLY]
@@ -221,7 +220,7 @@ typedef struct _ST_SPEC {
 	{ 0.01, 0.04, 4.0 },										//[ID_SLEW]
 	};
 //# 位置決め制御判定　位置ずれレベル(m,rad)
-	double as_pos_level[NUM_OF_AS_AXIS][NUM_OF_POSITION_LEVEL] = { 
+	double as_pos_level[N_AS_AXIS][N_POSITION_LEVEL] = { 
 	{ 0.03, 0.06, 0.50 },										//m[ID_HOIST]
 	{ 0.03, 0.06, 0.50 },										//m[ID_GANTRY]
 	{ 0.03, 0.06, 0.50 },										//m[ID_TROLLY]
@@ -229,7 +228,7 @@ typedef struct _ST_SPEC {
 	{ 0.005, 0.01, 0.1 }										//rad[ID_SLEW]
 	};
 //# 位置到達判定範囲(m,rad) 
-double pos_check_limit[MOTION_ID_MAX][NUM_OF_POSITION_LEVEL] = {	
+double pos_check_limit[MOTION_ID_MAX][N_POSITION_LEVEL] = {	
 	{ 0.1, 0.2, 0.5 },											//m[ID_HOIST]
 	{ 0.1, 0.2, 0.5 },											//m[ID_GANTRY]
 	{ 0.1, 0.2, 0.5 },											//m[ID_TROLLY]
@@ -240,7 +239,7 @@ double pos_check_limit[MOTION_ID_MAX][NUM_OF_POSITION_LEVEL] = {
 	{ 0.0, 0.0, 0.0 },											//
 	};
 //# 遅れ時間,無駄時間定義
-double delay_time[NUM_OF_AS_AXIS][NUM_OF_DELAY_PTN] = {		// 加減速時のFB一時遅れ時定数
+double delay_time[N_AS_AXIS][NUM_OF_DELAY_PTN] = {		// 加減速時のFB一時遅れ時定数
 	{ 0.3,0.3,0.3,0.3,0.3},										//[ID_HOIST]
 	{ 0.3,0.3,0.3,0.3,0.3 },									//[ID_GANTRY]
 	{ 0.3,0.3,0.3,0.3,0.3 },									//[ID_TROLLY]

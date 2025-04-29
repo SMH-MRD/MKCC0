@@ -78,7 +78,7 @@ using namespace Gdiplus;
 #define ID_T                    0   // 接線方向
 #define ID_R		            1   // 半径方向
 
-#define N_NOTCH_MAX	            8 //0～7ノッチ 最大ノッチ以上はオーバースピード
+#define N_NOTCH_MAX	            6 //ノッチ最大数　0ノッチを含む
 #define N_NOTCH_MODE            3
 #define NOTCH_MODE_BASE         0
 #define NOTCH_MODE_1            1
@@ -323,21 +323,6 @@ typedef struct _ST_CRANE_V_SPEC {
 #define RGBA_ID_BLUE        2
 #define RGBA_ID_ALPHA       3
 
-#if 0
-typedef struct _MKCC_COLOR_PALLET {
-    BYTE rgba[32][4] = {
-        //GRAY                                                      RED     
-        {0,0,0,0},{192,192,192,0},{240,240,240,0},{255,255,255,0},  {255,0,0,0},{128,0,0,0},{64,0,0,0},{255, 201, 252, 0},
-        //GREEN                                                     BLUE     
-        {0,255,0,0},{0,255,0,0},{211, 255, 222},{211, 255, 222},    {0,0,255,0},{0,0,128,0},{153, 255, 249, 0},{153, 255, 249, 0},
-        //YELLOW                                                    ORANGE       
-        {255,255,0,0},{255,255,0,0},{255, 248, 51},{255, 248, 51},  {255,106,0,0},{255,106,0,0},{255,221,198,0},{255,221,198,0},
-        //MAZENDA                                                    BROWN       
-        {255,0,200,0},{255,85,200,0},{255,150,20,0},{255,220,20,0}, {155,30,0,0},{155,50,30,0},{155,120,120,0},{155,130,125,0}
-    };
-}MKCC_COLOR_PALLET, * LPMKCC_COLOR_PALLET;
-
-#endif
 using namespace Gdiplus;
 
 typedef struct _PANEL_COLOR_PALLET {

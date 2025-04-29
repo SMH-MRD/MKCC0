@@ -1,19 +1,15 @@
 #pragma once
 
 #include <winsock.h>
-
 #include "PLC_DEF.h"
+#include "COMMON_DEF.h"
 
-//操作端末ID
-#define ID_OTE0					0xFFFF	//制御PC内端末
-#define ID_RMT01				0x0001	//制御PC内端末
-#define ID_RMT02				0x0002	//制御PC内端末
 
 //操作端末のテキスト,ボタン、ランプ数
-#define N_OTE_PNL_ITEMS			128
-#define N_OTE_PNL_STATIC		128
-#define N_OTE_PNL_NOTCH			8	
-#define N_OTE_PNL_PBL			128
+#define N_OTE_PNL_CTRL				64
+#define N_OTE_PC_MSG_WCHAR			64
+#define N_OTE_PNL_NOTCH_DEVICE		5
+#define N_OTE_PNL_NOTCH_PBL			N_NOTCH_MAX * 2
 
 //**************************************************************************************
 //通信電文フォーマット
@@ -41,9 +37,11 @@ typedef struct OteComHead {
 }ST_OTE_HEAD, * LPST_OTE_HEAD;
 
 /******* 共通メッセージ定義 **************/
-#define PLC_IO_MONT_WORD_NUM			100
+#pragma region  構造体用define
+
 #define N_CRANE_PC_MAX					32
 
+#if 0
 #define OTE_N_LOAD						2	//吊荷数
 #define OTE_N_PC_MSG_WCHAR				128	//PCからのメッセージテキスト数
 #define OTE_ID_LOAD_MH					0
@@ -68,10 +66,6 @@ typedef struct OteComHead {
 #define ID_PUC_BODY_TG_L2				5
 #define ID_PUC_BODY_TG_L3				6
 
-#define OTE_N_SWY_AXIS					4
-#define OTE_ID_SWY_AXIS_X				ID_SLEW
-#define OTE_ID_SWY_AXIS_Y				ID_BOOM_H
-
 //ノッチ状態バッファ参照用インデックス
 #define ID_OTE_NOTCH_POS_HOLD			0 //現在値保持
 #define ID_OTE_NOTCH_POS_TRIG			1 //トリガ状態
@@ -83,12 +77,17 @@ typedef struct OteComHead {
 #define OTE_GRIP_ACTIVE					0X14
 #define OTE_GRIP_DBG_ENABLE				0x80
 
+#endif
+
+#pragma endregion
+
 //ランプ表示コマンド構造体（PC→OTE）
 #define OTE_LAMP_COM_OFF				0
 #define OTE_LAMP_COM_ON					1
 #define OTE_LAMP_COM_FLICK				2
 #define OTE_LAMP_FLICK_COUNT			0x0008
 #define OTE_STATIC_UPDATE_COUNT			0x0004
+
 typedef struct OteLampCom {
 	UINT8 com;
 	UINT8 color;
@@ -110,59 +109,69 @@ typedef struct OteMBody {
 }ST_OTE_M_BODY, * LPST_OTE_M_BODY;
 
 /******* PCユニキャストBody構造体 ***********/
+//デフォルト
+typedef struct _ST_OTE_MOTION_STAT {
+	double pos_fb;
+	double pos_tg;
+	double v_fb;
+	double nv_ref;
+	INT16 brake;
+	INT16 auto_stat;
+}ST_OTE_MOTION_STAT,*LPST_OTE_MOTION_STAT;
+#define N_OTE_LOAD_TYPE		2
+#define ID_OTE_LOAD_MHOIST	0
+#define ID_OTE_LOAD_AHOIST	1
+typedef struct _ST_OTE_LOAD_STAT {
+	ST_XYZ pos;		//吊点からの相対位置
+	double l;		//ロープ長
+}ST_OTE_LOAD_STAT, * LPST_OTE_LOAD_STAT;
+typedef struct _ST_OTE_PC_MSG {
+	INT16 counter;						//メッセージを更新する毎にカウントアップ
+	INT16 id;							//固定メッセージのID
+	WCHAR wch[N_OTE_PC_MSG_WCHAR];
+}ST_OTE_PC_MSG, * LPST_OTE_PC_MSG;
 typedef struct PcUBody {
-	ST_OTE_LAMP_COM		pb_lamp[N_OTE_PNL_PBL];
-	ST_OTE_LAMP_COM		notch_lamp[N_OTE_PNL_NOTCH];
-	INT16				buf_io_read[CC_MC_SIZE_W_READ];			//PLC READデータ
-	double				pos[MOTION_ID_MAX];						//位置FBm
-	double				v_fb[MOTION_ID_MAX];					//速度FB
-	double				nv_ref[MOTION_ID_MAX];					//速度指令(モータ回転数）
-	double				mhl;									//主巻ロープ長
-	double				ahl;									//補巻ロープ長
-	double				auro_tg_pos[MOTION_ID_MAX];				//現在目標位置座標
-	ST_XYZ				mhld_pos;								//主巻吊荷位置FB（吊点相対位置）
-	ST_XYZ				ahld_pos;								//補巻吊荷位置FB（吊点相対位置）
-	INT32				brk[MOTION_ID_MAX];						//ブレーキ状態
-	INT32				auto_status[MOTION_ID_MAX];				//自動運転状態
-	INT32				swy_cam_pix[OTE_N_LOAD][MOTION_ID_MAX];	//振れセンサカメラ検出位置
-	INT32				message_count;							//メッセージを更新する毎にカウントアップ
-	INT32				message_id;								//固定メッセージのID
-	WCHAR				message[OTE_N_PC_MSG_WCHAR];			//メッセージIDが‐の時に表示するテキスト
-	INT32				ctrl_source;							//主幹（ログイン	
+	ST_OTE_LAMP_COM		lamp[N_OTE_PNL_CTRL];									//OTEパネルコントローラ表示指示データ
+	ST_OTE_LAMP_COM		notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//ノッチランプ
+	INT16				buf_io_read[CC_MC_SIZE_W_READ];							//PLC READデータ
+	ST_OTE_MOTION_STAT	st_motion_stat[MOTION_ID_MAX];							//動作状態モニタ値
+	ST_OTE_LOAD_STAT	st_load_stat[N_OTE_LOAD_TYPE];							//吊荷状態
+	ST_OTE_PC_MSG		pc_msg;													//メッセージを更新する毎にカウントアップ
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/
 //デフォルト
 typedef struct OteUBody {
-	INT16		pb_ope[128];					//操作卓PB入力
-	INT16		pb_notch[128];					//操作卓ノッチ入力
-	INT16		notch_pos[2][MOTION_ID_MAX];	//ノッチ入力位置
-	double		auto_tg_pos[MOTION_ID_MAX];		//自動目標位置
-	INT32		auto_sel[MOTION_ID_MAX];		//自動動作対象軸
-	INT32		ope_mode;
-	INT32		pad_mode;
-	INT32		grip_status;
-	UINT32		target_seq_no;
+	INT32		ope_mode;														//操作モード（自動/手動/ビギナー）
+	INT32		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）
+	INT32		opt_device_status;												//オプションデバイスモード
+	INT16		pb_ope[N_OTE_PNL_CTRL];											//操作卓PB入力
+	INT16		pb_notch[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];			//操作卓ノッチ入力
+	INT16		notch_pos[2][MOTION_ID_MAX];									//ノッチ入力位置
+	UINT32		target_seq_no;													//自動目標位置のシーケンス番号（トリガ検出用）
+	INT32		auto_sel[MOTION_ID_MAX];										//自動動作対象軸
+	double		auto_tg_pos[MOTION_ID_MAX];										//自動目標設定位置
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
 
 //########################################################
 //			ボディ部UNION定義　
 // BODY部の構造体はクレーンタイプに応じて定義して追加　
 //########################################################
+#define OTE_PRM_SIZE_OF_BODY_I16			600
 union UN_PC_M_BODY {
-	INT16			val[500];
+	INT16			val[OTE_PRM_SIZE_OF_BODY_I16];
 	ST_PC_M_BODY	st;
 };
 union UN_OTE_M_BODY {
-	INT16			val[500];
+	INT16			val[OTE_PRM_SIZE_OF_BODY_I16];
 	ST_OTE_M_BODY	st;
 };
 union UN_PC_U_BODY {
-	INT16			val[500];
+	INT16			val[OTE_PRM_SIZE_OF_BODY_I16];
 	ST_PC_U_BODY	st;
 };
 union UN_OTE_U_BODY {
-	INT16			val[500];
+	INT16			val[OTE_PRM_SIZE_OF_BODY_I16];
 	ST_OTE_U_BODY	st;
 };
 

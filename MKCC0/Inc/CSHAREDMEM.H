@@ -221,21 +221,21 @@ typedef struct _ST_CC_ENV_INF {
 typedef struct _ST_CC_PLC_IO {
 	INT32 mode;
 	INT32 healthy_cnt;
-	double v_fb[MOTION_ID_MAX];						//速度FB
-	double v_fb_rpm[MOTION_ID_MAX];					//速度FB rpm
-	INT16 v_fb_notch[MOTION_ID_MAX];				//速度FB ノッチ表現
-	INT16 v_com_notch[MOTION_ID_MAX];				//速度指令 ノッチ表現
-	double v_com_pc[MOTION_ID_MAX];					//PLCへの速度指令生値
-	double nv_ref[MOTION_ID_MAX];					//PLCのINVへの速度指令出力
-	double nv_tg[MOTION_ID_MAX];					//PLC目標速度
-	double trq_fb_01per[MOTION_ID_MAX];				//トルクFB
-	double pos[MOTION_ID_MAX];						//位置FB
-	double weight;									//主巻荷重FB
-	double weight_ah;								//補巻荷重FB
-	double th_bh;									//起伏角 acos(R/Lm)
-	double dth_bh;									//起伏角速度
-	double lmh;										//主巻ロープ長
-	double lah;										//補巻ロープ長
+	double	v_fb[MOTION_ID_MAX];					//速度FB
+	double	v_fb_rpm[MOTION_ID_MAX];				//速度FB rpm
+	INT16	v_fb_notch[MOTION_ID_MAX];				//速度FB ノッチ表現
+	INT16	v_com_notch[MOTION_ID_MAX];				//速度指令 ノッチ表現
+	double	v_com_pc[MOTION_ID_MAX];				//PLCへの速度指令生値
+	double	nv_ref[MOTION_ID_MAX];					//PLCのINVへの速度指令出力
+	double	nv_tg[MOTION_ID_MAX];					//PLC目標速度
+	double	trq_fb_01per[MOTION_ID_MAX];			//トルクFB
+	double	pos[MOTION_ID_MAX];						//位置FB
+	double	weight;									//主巻荷重FB
+	double	weight_ah;								//補巻荷重FB
+	double	th_bh;									//起伏角 acos(R/Lm)
+	double	dth_bh;									//起伏角速度
+	double	lmh;									//主巻ロープ長
+	double	lah;									//補巻ロープ長
 
 	INT16 brk[MOTION_ID_MAX];						//ブレーキ状態FB 0閉
 	INT16 notch_auto[MOTION_ID_MAX];				//AGENT指令のノッチ位置
@@ -550,18 +550,18 @@ typedef struct _ST_CC_AGENT_INF {
 #pragma region CSInfo_CC
 typedef struct _ST_CC_CS_INF {
 	//自動,遠隔設定（モード）
-	INT32		auto_mode;												//自動モード
-	INT32		antisway_mode;											//振れ止めモード
+	INT32		auto_mode;														//自動モード
+	INT32		antisway_mode;													//振れ止めモード
 	INT32		auto_status[MOTION_ID_MAX];
-	INT32		ote_remote_status;										//操作端末の状態　0bit：端末信号有効
+	INT32		ote_remote_status;												//操作端末の状態　0bit：端末信号有効
 
-	ST_POS_TARGETS semi_auto_selected_target;							//半自動選択目標位置(振れ止め含む）
+	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
 
-	double ote_camera_height_m;											//操作端末VIEWのカメラ設置高さ
+	double ote_camera_height_m;													//操作端末VIEWのカメラ設置高さ
 
 	//UI関連
-	ST_OTE_LAMP_COM ote_pb_lamp[N_OTE_PNL_PBL];							//端末ランプ表示指令
-	ST_OTE_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH];					//端末ランプ表示指令
+	ST_OTE_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];								//端末ランプ表示指令
+	ST_OTE_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//端末ノッチランプ表示指令
 
 	INT16	notch_pos[2][MOTION_ID_MAX];								//ノッチ指定値
 
@@ -796,9 +796,8 @@ typedef struct _ST_OTE_CC_IF {
 //## OTE_UI
 #pragma region OTE_UI
 typedef struct _ST_OTE_UI {
-	DWORD notch_pos_gmpad[MOTION_ID_MAX];
-	UINT16 pb_stat[N_OTE_PNL_PBL];			//PB状態 OFFディレイカウント
-	UINT16 notch_pb_stat[N_OTE_PNL_PBL];	//PB状態 OFFディレイカウント
+	UINT16 pb_stat[N_OTE_PNL_CTRL];			
+	UINT16 notch_pb[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];
 
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体

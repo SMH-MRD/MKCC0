@@ -178,3 +178,52 @@ public:
 	virtual HRESULT write_io(INT16 val);
 	virtual INT16 read_io();
 };
+
+typedef struct _ST_PLC_RBUF {
+	INT16 helthy;               //PLCヘルシーカウンタ
+	INT16 plc_ctrl;             // PLC運転モード
+	UINT16 cab_ai[6];            //運転室PLC→電気室PLC W出力
+	INT16 cab_bi[5];            //運転室PLC→電気室PLC b出力
+	INT16 erm_900;
+	INT16 erm_bo[6];            //電気室PLC b出力
+	INT32 pos[5];               //各軸位置信号
+	INT16 spd_tg[6];            //各軸指令速度目標
+	INT16 plc_fault[18];        //各軸速度信号
+	INT16 erm_y[4];             //電気室PLC Y出力
+	INT16 erm_x[8];             //電気室PLC X入力
+	INT16 inv_cc_y[6];          //インバータPLC DO指令
+	INT16 inv_cc_Ww1[6];        //インバータPLC 速度指令　rpm
+	INT16 inv_cc_x[6];          //インバータFB書き込み値　ｘデバイス
+	INT16 inv_cc_Wr1[6];        //インバータFB書き込み値　rpm
+	INT16 inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
+	INT16 spare1[4];            //予備
+}ST_PLC_RBUF, * LPST_PLC_RBUF;
+
+union UN_PLC_RBUF {
+	INT16 rbuf[CC_MC_SIZE_W_READ];
+	ST_PLC_RBUF st;
+};
+
+typedef struct _ST_PLC_WBUF {
+	INT16 helthy;               //PCヘルシー出力信号
+	INT16 ctrl_mode;            //自動制御フラグ
+	UINT16 cab_ai[8];            //運転室PLC AI信号【将来用】
+	INT16 cab_di[6];            //運転室PLC→電気室PLC b出力
+	INT16 spare0[8];            //運転室PLC→電気室PLC b出力
+	UINT32 hcounter[4];          //高速カウンタユニット 
+	UINT32 absocoder[3];         //アブソコーダ 
+	INT16 spare1[2];            //予備
+	INT16 pc_fault[2];          //PC検出異常マップ
+	INT16 spare2[16];           //予備
+	INT16 erm_unitx[4];         //電気室ユニットX 020-03F：カウンタユニット　040-04F　120-12F：ABSユニット
+	INT16 erm_x[8];             //電気室X 060-0CF
+	INT16 inv_cc_x[6];          //インバータFB書き込み値　ｘデバイス
+	INT16 inv_cc_Wr1[6];        //インバータFB書き込み値　rpm
+	INT16 inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
+	INT16 spare3[12];
+}ST_PLC_WBUF, * LPST_PLC_WBUF;
+
+union UN_PLC_WBUF {
+	INT16 rbuf[CC_MC_SIZE_W_WRITE];
+	ST_PLC_WBUF st;
+};
