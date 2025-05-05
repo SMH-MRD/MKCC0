@@ -56,7 +56,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		//クライアントUDPソケット　アドレス設定　インスタンス化　初期化
 
 		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, eventID);
-		if (pMCSock->Initialize() != S_OK) {									//受信ソケット生成
+		if (pMCSock->Initialize() != S_OK) {							//受信ソケット生成
 			msg_wos.str() = pMCSock->err_msg.str();
 			return S_FALSE;
 		}

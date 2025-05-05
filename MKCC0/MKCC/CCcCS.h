@@ -139,7 +139,8 @@ public:
     static ST_CS_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_CC_CS_INF st_work;
+    static ST_CC_CS_INF st_cs_work;
+    static ST_CC_OTE_INF st_ote_work;
     
     static HRESULT rcv_uni_ote(LPST_OTE_U_MSG pbuf);
 	static HRESULT rcv_mul_pc(LPST_PC_M_MSG pbuf);
@@ -187,9 +188,7 @@ private:
     int input();//入力処理
 
     int parse();
-    int output() {          //出力処理
-        return STAT_NG;
-    }
+    int output();
     int close();
 };
 

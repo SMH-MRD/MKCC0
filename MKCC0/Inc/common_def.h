@@ -56,6 +56,7 @@ using namespace Gdiplus;
 #define CARNE_ID_HHGH29         0x0200      //今造西多度津70t　102号  
 #define CARNE_ID_HHGQ18         0x0300      //今造西多度津300t 10号
 #define CARNE_ID_HHFR22         0x0400      //今造丸亀1200t 1号
+#define CARNE_ID_PC0            0xFF00      //PC単体
 #pragma endregion 識別ID
 
 #pragma region STATUS
@@ -149,10 +150,11 @@ using namespace Gdiplus;
 #pragma region MESSAGE
 // タスクスレッドからの要求イベント
 //wp:要求イベントのハンドル要求種別　lp:パラメータ
-#define WM_USER_TASK_REQ         0x0405         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
-#define WM_USER_SET_BK_COLOR_REQ 0x0406         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
-#define WM_USER_WPH_OPEN_IF_WND  0x0001         // wp　code IFウィンドウOPEN   lp ウィンドウのID
-#define WM_USER_WPH_CLOSE_IF_WND 0x0002         // wp　code IFウィンドウCLOSE   lp ウィンドウのID
+#define WM_USER_TASK_REQ         0x0405         // ibennwp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
+#define WM_USER_SET_BK_COLOR_REQ 0x0406         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD 
+
+#define WM_USER_WPH_OPEN_IF_WND  0x0001         // wp HWORD　code IFウィンドウOPEN 
+#define WM_USER_WPH_CLOSE_IF_WND 0x0002         // wp HWORD  code IFウィンドウCLOSE
 
 #pragma endregion ウィンドウメッセージ
 

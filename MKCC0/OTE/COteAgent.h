@@ -2,6 +2,7 @@
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "CPanelIo.h"
 
 
 #define OTE_AG_SEMIAUTO_TG_SEL_DEFAULT      0
@@ -30,15 +31,19 @@
 #define OTE_AG_MON1_WND_H     240
 
 #define OTE_AG_MON1_N_CTRL    32
-#define OTE_AG_MON1_N_WCHAR   64
+#define OTE_AG_MON1_N_WCHAR   128
 
 #define OTE_AG_ID_MON1_CTRL_BASE   65100
 #define OTE_AG_ID_MON1_STATIC_1      0
+#define OTE_AG_ID_MON1_GDI_STR_1     1
 
 
 typedef struct _ST_OTE_AG_MON1 {
     int timer_ms = OTE_AG_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
+    HDC hdc;
+    Graphics *pgraphic;
+    CStringGdi* str_message;
 
     bool is_monitor_active = false;
 
@@ -49,19 +54,19 @@ typedef struct _ST_OTE_AG_MON1 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[OTE_AG_MON1_N_CTRL] = {
-        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        5,5, 5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[OTE_AG_MON1_N_CTRL] = {
-        295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        295,190, 295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[OTE_AG_MON1_N_CTRL][OTE_AG_MON1_N_WCHAR] = {
-        L"MON1", L"", L"", L"", L"", L"", L"", L"",
+        L"MON1", L"String", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
@@ -152,6 +157,9 @@ public:
     static LPST_OTE_M_MSG set_msg_m();
     static HRESULT snd_mul2pc(LPST_OTE_M_MSG pbuf);
     static HRESULT snd_mul2ote(LPST_OTE_M_MSG pbuf);
+    
+    int setup_crane_if(int crane_id);
+    static int close_crane_if();
 
 
     //タブパネルのStaticテキストを設定

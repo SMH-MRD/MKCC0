@@ -90,9 +90,29 @@ HRESULT CPanelBase::setup_drawing_base() {
 	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetAlignment(StringAlignmentCenter);
 	drawing_items.pstrformat[ID_STR_FORMAT_CENTER]->SetLineAlignment(StringAlignmentCenter);
 
-	drawing_items.pstrformat[ID_STR_FORMAT_NEAR] = new StringFormat();
-	drawing_items.pstrformat[ID_STR_FORMAT_NEAR]->SetAlignment(StringAlignmentNear);
-	drawing_items.pstrformat[ID_STR_FORMAT_NEAR]->SetLineAlignment(StringAlignmentCenter);
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER]->SetAlignment(StringAlignmentNear);
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER]->SetLineAlignment(StringAlignmentCenter);
+
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_TOP] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_TOP]->SetAlignment(StringAlignmentNear);
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_TOP]->SetLineAlignment(StringAlignmentNear);
+
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_BOTTOM] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_BOTTOM]->SetAlignment(StringAlignmentNear);
+	drawing_items.pstrformat[ID_STR_FORMAT_LEFT_BOTTOM]->SetLineAlignment(StringAlignmentCenter);
+
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_CENTER] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_CENTER]->SetAlignment(StringAlignmentFar);
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_CENTER]->SetLineAlignment(StringAlignmentCenter);
+
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_TOP] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_TOP]->SetAlignment(StringAlignmentFar);
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_TOP]->SetLineAlignment(StringAlignmentNear);
+
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_BOTTOM] = new StringFormat();
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_BOTTOM]->SetAlignment(StringAlignmentFar);
+	drawing_items.pstrformat[ID_STR_FORMAT_RIGHT_BOTTOM]->SetLineAlignment(StringAlignmentCenter);
 
 
 	pdrawing_items = &drawing_items;
@@ -109,6 +129,10 @@ void CPanelBase::close_drawing_base() {
 	}
 	for (int i = 0; i < N_PANEL_FONT; i++) {
 		DeleteObject(drawing_items.pfont[i]);
+	}
+
+	for (int i = 0; i < N_STRING_FORMAT; i++) {
+		DeleteObject(drawing_items.pstrformat[i]);
 	}
 
 	GdiplusShutdown(gdiplusToken);

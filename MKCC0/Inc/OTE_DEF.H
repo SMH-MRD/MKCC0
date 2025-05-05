@@ -109,7 +109,6 @@ typedef struct OteMBody {
 }ST_OTE_M_BODY, * LPST_OTE_M_BODY;
 
 /******* PCユニキャストBody構造体 ***********/
-//デフォルト
 typedef struct _ST_OTE_MOTION_STAT {
 	double pos_fb;
 	double pos_tg;
@@ -130,7 +129,10 @@ typedef struct _ST_OTE_PC_MSG {
 	INT16 id;							//固定メッセージのID
 	WCHAR wch[N_OTE_PC_MSG_WCHAR];
 }ST_OTE_PC_MSG, * LPST_OTE_PC_MSG;
-typedef struct PcUBody {
+
+//デフォルト
+/******* PCユニキャスト通信BODY構造体 ***********/
+typedef struct PcUBody {//デフォルト
 	ST_OTE_LAMP_COM		lamp[N_OTE_PNL_CTRL];									//OTEパネルコントローラ表示指示データ
 	ST_OTE_LAMP_COM		notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//ノッチランプ
 	INT16				buf_io_read[CC_MC_SIZE_W_READ];							//PLC READデータ
@@ -140,7 +142,6 @@ typedef struct PcUBody {
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/
-//デフォルト
 typedef struct OteUBody {
 	INT32		ope_mode;														//操作モード（自動/手動/ビギナー）
 	INT32		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）

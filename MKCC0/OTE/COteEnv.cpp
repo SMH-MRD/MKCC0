@@ -3,6 +3,7 @@
 #include "CCUILib.h"
 #include "CCraneLib.h"
 #include "COteScad.h"
+#include "COteAgent.h"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -13,6 +14,7 @@ extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 
 extern CCraneBase* pCraneObj;
+extern ST_DEVICE_CODE g_my_code;
 
 ST_OTE_ENV_MON1 COteEnv::st_mon1;
 ST_OTE_ENV_MON2 COteEnv::st_mon2;
@@ -24,6 +26,7 @@ static LPST_OTE_UI		pOteUI;
 static LPST_OTE_CC_IF	pOteCCIf;
 static LPST_OTE_CS_INF	pOteCsInf;
 static COteScad* pScadObj;
+static COteAgent* pAgentObj;
 
 static LARGE_INTEGER start_count_s, end_count_r;			//システムカウント
 static LARGE_INTEGER frequency;								//システム周波数
@@ -43,6 +46,8 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 
 	//### SCADAクラスインスタンスのポインタ取得
 	pScadObj = (COteScad*)VectCtrlObj[st_task_id.SCAD];
+	//### AGENTクラスインスタンスのポインタ取得
+	pAgentObj = (COteAgent*)VectCtrlObj[st_task_id.AGENT];
 
 	//### 共有メモリ取得
 	pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
@@ -76,6 +81,8 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 
 	COteEnv* pEnvObj = (COteEnv*)lpParam;
 	int code = 0;
+
+	st_work.device_code = g_my_code;
 
 	return S_OK;
 }
@@ -139,7 +146,7 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 
 		//RADIO BUTTON
-		for (i = OTE_ENV_ID_MON1_RADIO_CRANE01; i <= OTE_ENV_ID_MON1_RADIO_CRANE09; i++) {
+		for (i = OTE_ENV_ID_MON1_RADIO_CRANE01; i <= OTE_ENV_ID_MON1_RADIO_CRANE10; i++) {
 			if (i == OTE_ENV_ID_MON1_RADIO_CRANE01) {
 				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
 					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
@@ -176,16 +183,20 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			crane_id_selected = CRANE_ID_H6R602;
 			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_RADIO_CRANE09]);
 		}break;
+		case OTE_ENV_ID_MON1_RADIO_CRANE10: {
+			crane_id_selected = CARNE_ID_PC0;
+			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_RADIO_CRANE10]);
+		}break;
 
 		case OTE_ENV_ID_MON1_PB_START: {
 			if (crane_id_selected != CRANE_ID_NULL) {
 				if (S_OK == pCraneObj->setup_crane(crane_id_selected)) {
 					close_monitor_wnd(BC_ID_MON1);
-					Sleep(500);
+					Sleep(200);
+					pAgentObj->setup_crane_if(crane_id_selected);
 					pScadObj->open_ope_window();
 					crane_id_selected = CRANE_ID_NULL;
 				}
-
 			}
 			else {
 				MessageBox(hWnd, TEXT("クレーンを選択して下さい！"), TEXT("Error"), MB_OK | MB_ICONERROR);

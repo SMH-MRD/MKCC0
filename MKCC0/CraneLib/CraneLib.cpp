@@ -36,7 +36,10 @@ HRESULT CCraneBase::setup_crane(int crane_id) {
 	set_id(crane_id);
 
 	switch (_crane_id) {
-	case CRANE_ID_H6R602: {//みらい
+	
+	case CARNE_ID_PC0:
+	case CRANE_ID_H6R602: 
+	{//みらい
 		_spec = {
 			//ノッチ速度物理量
 			//double notch_spd_f[MOTION_ID_MAX][NOTCH_MAX] = {	//# ノッチ指令速度（機上）1倍速時

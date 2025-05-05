@@ -1,5 +1,7 @@
 #pragma once
 
+#define _DEBUG_PC0
+
 /**********************************************************************************************************/
 //アドレス定義
 /**********************************************************************************************************/
@@ -10,8 +12,18 @@
 #define DEFAULT_MY_IP3				"127.0.0.3"
 #define DEFAULT_MY_PORT				10050
 
+//@ CRANE-------------------------------------------------------------------------------------
+#define OTE_IF_CRANE_IP_PC0			"192.168.2.106"		//PC単体デバッグ用
+#define OTE_IF_CRANE_IP_H6R602		"192.168.100.100"	//みらい（デフォルト）
+#define OTE_IF_CRANE_IP_HHGH29		"192.168.100.110"	//今造多度津JC70t(102号)
+#define OTE_IF_CRANE_IP_HHGQ18		"192.168.100.111"	//今造多度津JC300t(10号)
+#define OTE_IF_CRANE_IP_HHFR22		"192.168.100.112"	//今造丸亀GC1300t(1号)
 //@ OTE---------------------------------------------------------------------------------------
-#define OTE_IF_UNI_IP_PC			"192.168.100.100" 		//PCのOTE UNICAST　IF用IP	（受信,送信）
+#ifndef _DEBUG_PC0
+#define OTE_IF_UNI_IP_PC			OTE_IF_CRANE_IP_H6R602 	//PCのOTE UNICAST　IF用IP	（受信,送信）
+#else
+#define OTE_IF_UNI_IP_PC			OTE_IF_CRANE_IP_PC0 	//PCのOTE UNICAST　IF用IP	（受信,送信）
+#endif
 #define OTE_IF_UNI_IP_PC_WAN		"100.87.239.249" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 #define OTE_IF_UNI_IP_PC_VPN		"192.168.1.9" 			//PCのOTE UNICAST　IF用IP	（受信 VPN回線）
 #define OTE_IF_UNI_IP_OTE0			OTE_IF_UNI_IP_PC		//デフォルトOTEのUNICAST用IP（受信,送信）
@@ -35,13 +47,12 @@
 //@ PLC IF-----------------------------------------------------------------------------------
 #define PLC_IF_TYPE_CC				0
 #define PLC_IF_TYPE_OTE				1
-
-#define IP_ADDR_MC_CLIENT			"192.168.100.100"		//PLC IF 制御PC　IPアドレス
+#define IP_ADDR_MC_CLIENT			OTE_IF_UNI_IP_PC		//PLC IF 制御PC　IPアドレス
 #define IP_ADDR_MC_SERVER			"192.168.100.101"		//PLC IF PLC IPアドレス
 #define PORT_MC_CLIENT				3020					//制御PCポート
 #define PORT_MC_SERVER				3010					//CPU本体の時のPLCポート
 
-#define IP_ADDR_MC_CLIENT_OTE		"192.168.100.100"		//OTE IF 遠隔PC　IPアドレス
+#define IP_ADDR_MC_CLIENT_OTE		OTE_IF_UNI_IP_PC		//OTE IF 遠隔PC　IPアドレス
 #define IP_ADDR_MC_SERVER_OTE		"192.168.100.102"		//PLC IF 遠隔PC	 IPアドレス
 #define PORT_MC_CLIENT_OTE			3021					//遠隔PCポート
 #define PORT_MC_SERVER_OTE			5000//1025				//OTEの時のPLCポート
@@ -53,8 +64,9 @@
 #define ID_SOCK_EVENT_CC_ENV_UNI	10503					//CC ENV受信ソケットイベント
 
 //@ 補機-------------------------------------------------------------------------------
-#define IP_ADDR_AUX_CLIENT	        "192.168.100.100"		//補機通信クライアント側　
-#define IP_ADDR_AUX_SERVER			"192.168.100.100"		//補機通信サーバ側
+
+#define IP_ADDR_AUX_CLIENT	        OTE_IF_UNI_IP_PC		//補機通信クライアント側　
+#define IP_ADDR_AUX_SERVER			OTE_IF_UNI_IP_PC		//補機通信サーバ側
 #define IP_PORT_AUX_CS_CLIENT		10070					//補機通信クライアント（制御PC）IP受信ポート
 #define IP_PORT_AUX_CS_SERVER		10071					//補機通信サーバ（センサPC）　   IP受信ポート
 

@@ -16,6 +16,7 @@ extern CSharedMem* pOteInfObj;
 
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
+extern ST_DEVICE_CODE g_my_code;
 
 ST_ENV_MON1 CCcEnv::st_mon1;
 ST_ENV_MON2 CCcEnv::st_mon2;
@@ -127,8 +128,10 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 
 	CCcEnv* pEnvObj = (CCcEnv*)lpParam;
 	int code = 0;
+		
+	st_work.aux_mode = FUNC_ACTIVE;
 
-	pEnvInf->aux_mode = FUNC_ACTIVE;
+	st_work.device_code = g_my_code;
 
 	return S_OK;
 }
@@ -144,6 +147,12 @@ static UINT32	gpad_mode_last = L_OFF;
 
 int CCcEnv::input() {
 	return S_OK;
+}
+
+int CCcEnv::parse() { return STAT_OK; }
+int CCcEnv::output() {          //出力処理
+	memcpy_s(pEnvInf, sizeof(ST_CC_ENV_INF), &st_work, sizeof(ST_CC_ENV_INF));
+	return STAT_OK;
 }
 
 int CCcEnv::close() {

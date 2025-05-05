@@ -32,6 +32,7 @@ CSharedMem* pOteUiObj;
 
 //共有クラス
 CCraneBase* pCraneObj;	//クレーン制御クラスポインタ
+ST_DEVICE_CODE g_my_code; //端末コード
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_OTE_WND           st_work_wnd;        //センサーウィンドウ管理用構造体   
@@ -177,19 +178,33 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     pCraneObj = new CCraneBase(CRANE_ID_NULL);	//クレーンIDはNULLで初期化
 
     //デバイスコードセット
-    LPST_OTE_ENV_INF pEnvStat = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
+
     DWORD	str_num;
     
-    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
+    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
     
-    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"??????", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
+    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"??????", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
 
     WCHAR wbuf[32];
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
-    swscanf_s(wbuf, L"%x", &(pEnvStat->device_code.serial_no));
+    swscanf_s(wbuf, L"%x", &(g_my_code.serial_no));
 
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
-    swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));
+    swscanf_s(wbuf, L"%d", &(g_my_code.option));
+  
+    //LPST_OTE_ENV_INF pEnvStat = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
+   // DWORD	str_num;
+   // 
+   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
+   // 
+   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"??????", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
+
+   // WCHAR wbuf[32];
+   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   // swscanf_s(wbuf, L"%x", &(pEnvStat->device_code.serial_no));
+
+   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
+   // swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));
 
     HBITMAP hBmp;
     CBasicControl* pobj;

@@ -125,9 +125,9 @@ HRESULT CMainPanelObj::setup_obj() {
 
 //5-10 í êMèÛë‘ÉâÉxÉã/ÉâÉìÉv
 	i++;str_pc_com_stat		= new CStringGdi(ID_MAIN_PNL_OBJ_STR_PC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, 
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_NEAR], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
 	i++;str_plc_com_stat	= new CStringGdi(ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, 
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_NEAR], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
 
 	static Image img2(L"../Img/HHGH29/lmp1_b_of.png"), img3(L"../Img/HHGH29/lmp1_b_on.png"), img4(L"../Img/HHGH29/lmp1_o_on.png"), img5(L"../Img/HHGH29/lmp1_y_on.png"), img6(L"../Img/HHGH29/lmp1_g_on.png"), img7(L"../Img/HHGH29/lmp1_r_on.png");
 	pimg[2] = &img2, pimg[3] = &img3, pimg[4] = &img4, pimg[5] = &img5, pimg[6] = &img6, pimg[7] = &img7;

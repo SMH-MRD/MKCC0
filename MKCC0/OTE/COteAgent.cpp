@@ -10,6 +10,8 @@ extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 
+extern ST_DRAWING_BASE		drawing_items;
+
 //ソケット
 static CSockUDP* pUSockPC;					//ユニキャストPC通信受信用
 static CSockUDP* pMSockOte;					//マルチキャストOTE通信受信用
@@ -22,6 +24,8 @@ ST_OTE_AG_MON1 COteAgent::st_mon1;
 ST_OTE_AG_MON2 COteAgent::st_mon2;
 
 ST_OTE_CC_IF COteAgent::st_work;
+
+
 
 //共有メモリ
 
@@ -45,6 +49,108 @@ static wostringstream wos_msg;
 COteAgent::COteAgent() {
 }
 COteAgent::~COteAgent() {
+}
+
+int COteAgent::setup_crane_if(int crane_id) {
+
+	HRESULT hr = S_OK;
+
+	//### IFウィンドウOPEN
+	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);	//HWORD:コマンドコード, LWORD:送信元タスクインデックス
+	LPARAM lp = BC_ID_MON2;										//LWORD:オープン対象のウィンドウのコード
+	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+
+	//### 通信ソケットアドレスセット
+	// //##インスタンス生成
+	if (pUSockPC != NULL)pUSockPC->Close();
+	pUSockPC = new CSockUDP(ACCESS_TYPE_SERVER, ID_SOCK_EVENT_OTE_UNI);
+	if (pMSockPC != NULL)pMSockPC->Close();
+	pMSockPC = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_PC_MUL);
+	if (pMSockOte != NULL)pMSockOte->Close();
+	pMSockOte = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_OTE_MUL);
+
+	switch (crane_id) {
+	case CRANE_ID_H6R602: {
+		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
+		pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_OTE);
+		pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
+		pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
+
+		//送信先アドレス
+		pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		pMSockPC->set_sock_addr(&addrin_ote_m2pc_snd, OTE_IF_MULTI_IP_OTE, OTE_IF_MULTI_PORT_OTE2PC); //送信先アドレス
+		pMSockPC->set_sock_addr(&addrin_ote_m2ote_snd, OTE_IF_MULTI_IP_OTE, OTE_IF_MULTI_PORT_OTE2OTE);//送信先アドレス
+	}break;
+	case CARNE_ID_PC0: 
+	case CARNE_ID_HHGH29: 
+	case CARNE_ID_HHGQ18: 
+	case CARNE_ID_HHFR22: 
+	default: {
+		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
+		pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_CRANE_IP_PC0, OTE_IF_UNI_PORT_OTE);
+		pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_CRANE_IP_PC0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
+		pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_CRANE_IP_PC0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
+
+		//送信先アドレス
+		pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_PC0, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		pMSockPC->set_sock_addr(&addrin_ote_m2pc_snd, OTE_IF_MULTI_IP_OTE, OTE_IF_MULTI_PORT_OTE2PC); //送信先アドレス
+		pMSockPC->set_sock_addr(&addrin_ote_m2ote_snd, OTE_IF_MULTI_IP_OTE, OTE_IF_MULTI_PORT_OTE2OTE);//送信先アドレス
+	}break;
+	}
+
+	//### WSA初期化
+	wos.str(L"");//初期化
+	if (pUSockPC->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pUSockPC->err_msg.str();  err |= SOCK_NG_UNICAST; hr = S_FALSE; }
+	if (pMSockPC->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pMSockPC->err_msg.str();  err |= SOCK_NG_MULTICAST; hr = S_FALSE; }
+	if (pMSockOte->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pMSockOte->err_msg.str(); err |= SOCK_NG_MULTICAST; hr = S_FALSE; }
+	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
+
+	Sleep(1000);
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Err(MON2 NULL Handle!!):";
+		msg2listview(wos.str()); wos.str(L"");
+		return -1;
+	}
+
+	//##ソケットソケット生成・設定
+	//##ユニキャスト
+	if (pUSockPC->init_sock(st_mon2.hwnd_mon, pUSockPC->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
+		wos << L"OTE U SockErr:" << pUSockPC->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
+	}
+	else wos << L"OTE U Socket init OK"; msg2listview(wos.str()); wos.str(L"");
+
+	//##マルチキャスト
+	SOCKADDR_IN addr_buf;
+	pMSockPC->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_PC, NULL);//PCマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
+	if (pMSockPC->init_sock(st_mon2.hwnd_mon, pMSockPC->addr_in_rcv, addr_buf) != S_OK) {//init_sock_m():bind()まで実施 + マルチキャストグループへ登録
+		wos << L"PC M SockErr:" << pMSockPC->err_msg.str(); hr = S_FALSE;
+	}
+	else wos << L"PC M Socket init OK"; msg2listview(wos.str()); wos.str(L"");
+
+	pMSockOte->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_OTE, NULL);//OTEマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
+	if (pMSockOte->init_sock(st_mon2.hwnd_mon, pMSockOte->addr_in_rcv, addr_buf) != S_OK) {
+		wos << L"OTE M SockErr:" << pMSockOte->err_msg.str(); hr = S_FALSE;;
+	}
+	else  wos << L"OTE M Socket init OK"; msg2listview(wos.str()); wos.str(L"");
+
+	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
+	st_work.st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
+	st_work.st_msg_ote_m_snd.head.addr = pMSockOte->addr_in_rcv;
+
+	if (hr == S_FALSE) {
+		close_crane_if();
+		close_monitor_wnd(BC_ID_MON2);	//通信モニタクローズ
+		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
+		return -1;
+	};
+	return STAT_OK;
+}
+
+int COteAgent::close_crane_if() {
+	pUSockPC->Close();				//ソケットクローズ
+	pMSockPC->Close();				//ソケットクローズ
+	pMSockOte->Close();				//ソケットクローズ
+	return STAT_OK;
 }
 
 HRESULT COteAgent::initialize(LPVOID lpParam) {
@@ -74,75 +180,6 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
-	//### IFウィンドウOPEN
-	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
-	LPARAM lp = BC_ID_MON2;
-	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
-
-	//### 通信ソケットアドレスセット
-	// //##インスタンス生成
-	pUSockPC = new CSockUDP(ACCESS_TYPE_SERVER, ID_SOCK_EVENT_OTE_UNI);
-	pMSockPC = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_PC_MUL);
-	pMSockOte = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_OTE_MUL);
-
-	//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
-	pUSockPC->set_sock_addr( &pUSockPC->addr_in_rcv,  OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_OTE);
-	pMSockPC->set_sock_addr( &pMSockPC->addr_in_rcv,  OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
-	pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
-	
-	//送信先アドレス
-	pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_PC);//送信先アドレス
-	pMSockPC->set_sock_addr(&addrin_ote_m2pc_snd,  OTE_IF_MULTI_IP_OTE,  OTE_IF_MULTI_PORT_OTE2PC); //送信先アドレス
-	pMSockPC->set_sock_addr(&addrin_ote_m2ote_snd, OTE_IF_MULTI_IP_OTE,  OTE_IF_MULTI_PORT_OTE2OTE);//送信先アドレス
-
-	//### WSA初期化
-	wos.str(L"");//初期化
-	if (pUSockPC->Initialize()  != S_OK) {wos << L"Err(IniWSA):" << pUSockPC->err_msg.str();  err |= SOCK_NG_UNICAST; hr = S_FALSE;}
-	if (pMSockPC->Initialize()  != S_OK) {wos << L"Err(IniWSA):" << pMSockPC->err_msg.str();  err |= SOCK_NG_MULTICAST; hr = S_FALSE;}
-	if (pMSockOte->Initialize() != S_OK) {wos << L"Err(IniWSA):" << pMSockOte->err_msg.str(); err |= SOCK_NG_MULTICAST; hr = S_FALSE;}
-	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
-
-	Sleep(1000);
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Err(MON2 NULL Handle!!):";
-		msg2listview(wos.str()); wos.str(L"");
-		return S_FALSE;
-	}
-
-	//##ソケットソケット生成・設定
-	//##ユニキャスト
-	if (pUSockPC->init_sock(st_mon2.hwnd_mon, pUSockPC->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
-		wos << L"OTE U SockErr:" << pUSockPC->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
-	}
-	else wos << L"OTE U Socket init OK";msg2listview(wos.str()); wos.str(L"");
-
-	//##マルチキャスト
-	SOCKADDR_IN addr_buf;
-	pMSockPC->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_PC, NULL);//PCマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
-	if (pMSockPC->init_sock(st_mon2.hwnd_mon, pMSockPC->addr_in_rcv, addr_buf) != S_OK) {//init_sock_m():bind()まで実施 + マルチキャストグループへ登録
-		wos << L"PC M SockErr:" << pMSockPC->err_msg.str(); hr = S_FALSE;
-	}
-	else wos << L"PC M Socket init OK"; msg2listview(wos.str());wos.str(L"");
-	
-	pMSockOte->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_OTE, NULL);//OTEマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
-	if (pMSockOte->init_sock(st_mon2.hwnd_mon, pMSockOte->addr_in_rcv, addr_buf) != S_OK) {
-		wos << L"OTE M SockErr:" << pMSockOte->err_msg.str(); hr = S_FALSE;;
-	}
-	else  wos << L"OTE M Socket init OK"; msg2listview(wos.str()); wos.str(L"");
-
-	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
-	pOteCCIf->st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
-	pOteCCIf->st_msg_ote_m_snd.head.addr = pMSockOte->addr_in_rcv;
-		
-	if (hr == S_FALSE) {
-		pUSockPC->Close();				//ソケットクローズ
-		pMSockPC->Close();				//ソケットクローズ
-		pMSockOte->Close();				//ソケットクローズ
-		close_monitor_wnd(BC_ID_MON2);	//通信モニタクローズ
-		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
-		return hr;
-	};
-
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -156,7 +193,6 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"MKCC IF");
 	set_item_chk_txt();
 	set_panel_tip_txt();
-
 
 	//モニタ2CB状態セット	
 	if (st_mon2.hwnd_mon != NULL)
@@ -354,13 +390,13 @@ HRESULT COteAgent::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// </summary>
 LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 
-	pOteCCIf->st_msg_ote_u_snd.head.myid = pOteEnvInf->device_code;
-	pOteCCIf->st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
-	pOteCCIf->st_msg_ote_u_snd.head.code = code;
-	pOteCCIf->st_msg_ote_u_snd.head.status = stat;
-	pOteCCIf->st_msg_ote_u_snd.head.tgid = 0;
+	st_work.st_msg_ote_u_snd.head.myid = pOteEnvInf->device_code;
+	st_work.st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
+	st_work.st_msg_ote_u_snd.head.code = code;
+	st_work.st_msg_ote_u_snd.head.status = stat;
+	st_work.st_msg_ote_u_snd.head.tgid = 0;
 
-	return &pOteCCIf->st_msg_ote_u_snd;
+	return &st_work.st_msg_ote_u_snd;
 }
 HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 	if (pUSockPC->snd_msg((char*)pbuf, sizeof(ST_PC_U_MSG), *p_addrin_to) == SOCKET_ERROR) {
@@ -379,7 +415,7 @@ HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 /// </summary>
 //マルチキャストメッセージセット
 LPST_OTE_M_MSG COteAgent::set_msg_m() {
-	return &pOteCCIf->st_msg_ote_m_snd;
+	return &st_work.st_msg_ote_m_snd;
 }
 //PCへ送信
 HRESULT COteAgent::snd_mul2pc(LPST_OTE_M_MSG pbuf) {
@@ -408,17 +444,33 @@ HRESULT COteAgent::snd_mul2ote(LPST_OTE_M_MSG pbuf) {
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
+static ULONG_PTR gdiToken;
+
 LRESULT CALLBACK COteAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+		GdiplusStartupInput gdiplusStartupInput;
+		GdiplusStartup(&gdiToken, &gdiplusStartupInput, nullptr);
+
+
+		Point pt = Point(st_mon1.pt[OTE_AG_ID_MON1_GDI_STR_1].x, st_mon1.pt[OTE_AG_ID_MON1_GDI_STR_1].y);
+		Size sz = Size(st_mon1.sz[OTE_AG_ID_MON1_GDI_STR_1].cx, st_mon1.sz[OTE_AG_ID_MON1_GDI_STR_1].cy);
+		st_mon1.str_message = new CStringGdi(
+			(OTE_AG_ID_MON1_CTRL_BASE+OTE_AG_ID_MON1_GDI_STR_1),
+			&pt,&sz,st_mon1.text[OTE_AG_ID_MON1_GDI_STR_1],st_mon1.pgraphic, 
+			drawing_items.pstrformat[ID_STR_FORMAT_LEFT_TOP], 
+			drawing_items.pbrush[ID_PANEL_COLOR_BLACK], 
+			drawing_items.pfont[ID_PANEL_FONT_10]
+		);
+
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[OTE_AG_ID_MON1_STATIC_1] = CreateWindowW(TEXT("STATIC"), st_mon1.text[OTE_AG_ID_MON1_STATIC_1], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[OTE_AG_ID_MON1_STATIC_1].x, st_mon1.pt[OTE_AG_ID_MON1_STATIC_1].y,
-			st_mon1.sz[OTE_AG_ID_MON1_STATIC_1].cx, st_mon1.sz[OTE_AG_ID_MON1_STATIC_1].cy,
-			hWnd, (HMENU)(OTE_AG_ID_MON1_CTRL_BASE + OTE_AG_ID_MON1_STATIC_1), hInst, NULL);
+		//st_mon1.hctrl[OTE_AG_ID_MON1_STATIC_1] = CreateWindowW(TEXT("STATIC"), st_mon1.text[OTE_AG_ID_MON1_STATIC_1], WS_CHILD | WS_VISIBLE | SS_LEFT,
+		//	st_mon1.pt[OTE_AG_ID_MON1_STATIC_1].x, st_mon1.pt[OTE_AG_ID_MON1_STATIC_1].y,
+		//	st_mon1.sz[OTE_AG_ID_MON1_STATIC_1].cx, st_mon1.sz[OTE_AG_ID_MON1_STATIC_1].cy,
+		//	hWnd, (HMENU)(OTE_AG_ID_MON1_CTRL_BASE + OTE_AG_ID_MON1_STATIC_1), hInst, NULL);
 
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_AG_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -436,6 +488,12 @@ LRESULT CALLBACK COteAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 	}break;
 	case WM_TIMER: {
+		if (st_mon1.pgraphic == NULL) {
+			st_mon1.hdc = GetDC(st_mon1.hwnd_mon);
+			st_mon1.pgraphic = new Graphics(st_mon1.hdc);
+		}
+		st_mon1.str_message->update(st_mon1.pgraphic,L"表示サンプルチェック");
+
 	}break;
 
 	case WM_PAINT: {
@@ -446,6 +504,10 @@ LRESULT CALLBACK COteAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
 		KillTimer(hWnd, OTE_AG_ID_MON1_TIMER);
+		delete st_mon1.pgraphic;
+		st_mon1.pgraphic = NULL;
+		GdiplusShutdown(gdiToken);
+
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -507,7 +569,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	}
 	case WM_TIMER: {
 		//UniCast送信
-		if(pOteCCIf->id_ote_ope_active)
+		if(st_work.id_ote_ope_active)
 			snd_uni2pc(set_msg_u(false, 0, 0), &pUSockPC->addr_in_dst);
 		else 
 			snd_uni2pc(set_msg_u(true, 0, 0), &pUSockPC->addr_in_dst);
@@ -561,36 +623,36 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			st_mon2.wo_uni.str(L""); st_mon2.wo_mpc.str(L""); st_mon2.wo_mote.str(L"");
 			if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_RCV) {
 
-				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_pc_u_rcv.head;
-				LPST_PC_U_BODY pb0 = &pOteCCIf->st_msg_pc_u_rcv.body.st;
-				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option << L"\n"
-								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port) << L"\n";
+				LPST_OTE_HEAD  ph0 = &st_work.st_msg_pc_u_rcv.head;
+				LPST_PC_U_BODY pb0 = &st_work.st_msg_pc_u_rcv.body.st;
+				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
+								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
+				st_mon2.wo_uni << L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 
-
-				LPST_OTE_HEAD  ph1 = &pOteCCIf->st_msg_pc_m_rcv.head;
-				LPST_PC_M_BODY pb1 = &pOteCCIf->st_msg_pc_m_rcv.body.st;
+				LPST_OTE_HEAD  ph1 = &st_work.st_msg_pc_m_rcv.head;
+				LPST_PC_M_BODY pb1 = &st_work.st_msg_pc_m_rcv.body.st;
 				st_mon2.wo_mpc << L"[HEAD]" << L" CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
-				LPST_OTE_HEAD  ph2	= &pOteCCIf->st_msg_ote_m_rcv.head;
-				LPST_OTE_M_BODY pb2 = &pOteCCIf->st_msg_ote_m_rcv.body.st;
+				LPST_OTE_HEAD  ph2	= &st_work.st_msg_ote_m_rcv.head;
+				LPST_OTE_M_BODY pb2 = &st_work.st_msg_ote_m_rcv.body.st;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
 			else if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
 
-				LPST_OTE_HEAD	ph0 = &pOteCCIf->st_msg_ote_u_snd.head;
-				LPST_OTE_U_BODY  pb0 = &pOteCCIf->st_msg_ote_u_snd.body.st;
-				st_mon2.wo_uni << L"[HEAD]" << L" ID:" << ph0->myid.crane_id << L"PC:" << ph0->myid.pc_type << L"Seral:" << ph0->myid.serial_no << L"Opt:" << ph0->myid.option
-								<< L"       IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port)
-								<< L" CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
+				LPST_OTE_HEAD	ph0 = &st_work.st_msg_ote_u_snd.head;
+				LPST_OTE_U_BODY pb0 = &st_work.st_msg_ote_u_snd.body.st;
+				st_mon2.wo_uni << L"[HEAD]" << L" ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
+								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port)<<"\n"
+								<< L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 				st_mon2.wo_uni << L"[BODY]";
 
 				st_mon2.wo_mpc << L"[HEAD] -\n";
 				st_mon2.wo_mpc << L"[BODY] -";
 				
-				LPST_OTE_HEAD  ph1 = &pOteCCIf->st_msg_ote_m_snd.head;
-				LPST_OTE_M_BODY pb1 = &pOteCCIf->st_msg_ote_m_snd.body.st;
+				LPST_OTE_HEAD  ph1  = &st_work.st_msg_ote_m_snd.head;
+				LPST_OTE_M_BODY pb1 = &st_work.st_msg_ote_m_snd.body.st;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
@@ -620,7 +682,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_uni_ote(&pOteCCIf->st_msg_pc_u_rcv);
+			rcv_uni_ote(&st_work.st_msg_pc_u_rcv);
 
 			QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
 			LONGLONG lspan = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
@@ -636,8 +698,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		case FD_CLOSE: break;
 		}
 		//OTE通信ヘッダに緊急停止要求有
-		if (pOteCCIf->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
-			pOteCCIf->stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
+		if (st_work.st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
+			st_work.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
 		}
 
 	}break;
@@ -645,7 +707,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_mul_ote(&pOteCCIf->st_msg_ote_m_rcv);
+			rcv_mul_ote(&st_work.st_msg_ote_m_rcv);
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
@@ -656,7 +718,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_mul_pc(&pOteCCIf->st_msg_pc_m_rcv);
+			rcv_mul_pc(&st_work.st_msg_pc_m_rcv);
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;

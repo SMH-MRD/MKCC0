@@ -25,7 +25,8 @@ static SOCKADDR_IN addrin_pc_m2ote_snd;
 ST_CS_MON1 CCcCS::st_mon1;
 ST_CS_MON2 CCcCS::st_mon2;
 
-ST_CC_CS_INF CCcCS::st_work;
+ST_CC_CS_INF CCcCS::st_cs_work;
+ST_CC_OTE_INF CCcCS::st_ote_work;
 
 //共有メモリ
 static LPST_CC_ENV_INF		pCraneStat;
@@ -127,8 +128,8 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	else  wos << L"OTE M Socket init OK"; msg2listview(wos.str()); wos.str(L"");
 
 	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
-	pOTE_Inf->st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
-	pOTE_Inf->st_msg_pc_m_snd.head.addr = pMSockOte->addr_in_rcv;
+	st_ote_work.st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
+	st_ote_work.st_msg_pc_m_snd.head.addr = pMSockOte->addr_in_rcv;
 
 	if (hr == S_FALSE) {
 		pUSockOte->Close();				//ソケットクローズ
@@ -177,6 +178,13 @@ int CCcCS::input() {
 int CCcCS::parse() {
 
 	return S_OK;
+}
+int CCcCS::output() {          //出力処理
+	//共有メモリ出力処理
+	memcpy_s(pCS_Inf, sizeof(ST_CC_CS_INF), &st_cs_work, sizeof(ST_CC_CS_INF));
+	//memcpy_s(pOTE_Inf, sizeof(ST_CC_OTE_INF), &st_ote_work, sizeof(ST_CC_OTE_INF));
+
+	return STAT_OK;
 }
 
 int CCcCS::close() {
@@ -240,13 +248,13 @@ HRESULT CCcCS::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// </summary>
 LPST_PC_U_MSG CCcCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	
-	pOTE_Inf->st_msg_pc_u_snd.head.myid = pCraneStat->device_code;
-	pOTE_Inf->st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
-	pOTE_Inf->st_msg_pc_u_snd.head.code = code;
-	pOTE_Inf->st_msg_pc_u_snd.head.status = stat;
-	pOTE_Inf->st_msg_pc_u_snd.head.tgid = 0;
+	st_ote_work.st_msg_pc_u_snd.head.myid = pCraneStat->device_code;
+	st_ote_work.st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
+	st_ote_work.st_msg_pc_u_snd.head.code = code;
+	st_ote_work.st_msg_pc_u_snd.head.status = stat;
+	st_ote_work.st_msg_pc_u_snd.head.tgid = 0;
 
-	return &pOTE_Inf->st_msg_pc_u_snd;
+	return &st_ote_work.st_msg_pc_u_snd;
 }
 
 HRESULT CCcCS::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
@@ -268,7 +276,7 @@ HRESULT CCcCS::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 
 //マルチキャストメッセージセット
 LPST_PC_M_MSG CCcCS::set_msg_m(INT32 code, INT32 stat) {	
-	return &pOTE_Inf->st_msg_pc_m_snd;
+	return &st_ote_work.st_msg_pc_m_snd;
 }
 
 //PCへ送信
@@ -456,32 +464,34 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_mpc.str(L""); st_mon2.wo_mote.str(L"");
 			if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
 
-				LPST_OTE_HEAD	ph0 = &pOTE_Inf->st_msg_ote_u_rcv.head;
-				LPST_OTE_U_BODY pb0 = &pOTE_Inf->st_msg_ote_u_rcv.body.st;
-				st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option << L"\n"
-								<< L"         IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(addr.sin_port)
-								<< L" CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
+				LPST_OTE_HEAD	ph0 = &st_ote_work.st_msg_ote_u_rcv.head;
+				LPST_OTE_U_BODY pb0 = &st_ote_work.st_msg_ote_u_rcv.body.st;
+				st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option 
+								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port)<<L"\n"
+								<< L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
 				st_mon2.wo_uni << L"[BODY]" << L"OPEMODE:"<<pb0->ope_mode;
 
-				LPST_OTE_HEAD  ph1 = &pOTE_Inf->st_msg_pc_m_rcv.head;
-				LPST_PC_M_BODY pb1 = &pOTE_Inf->st_msg_pc_m_rcv.body.st;
+				LPST_OTE_HEAD  ph1 = &st_ote_work.st_msg_pc_m_rcv.head;
+				LPST_PC_M_BODY pb1 = &st_ote_work.st_msg_pc_m_rcv.body.st;
 				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
-				LPST_OTE_HEAD  ph2 = &pOTE_Inf->st_msg_ote_m_rcv.head;
-				LPST_OTE_M_BODY pb2 = &pOTE_Inf->st_msg_ote_m_rcv.body.st;
+				LPST_OTE_HEAD  ph2 =  &st_ote_work.st_msg_ote_m_rcv.head;
+				LPST_OTE_M_BODY pb2 = &st_ote_work.st_msg_ote_m_rcv.body.st;
 				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				st_mon2.wo_mote << L"[BODY]";
 			}
 			else if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
 
-				LPST_OTE_HEAD	ph0 = &pOTE_Inf->st_msg_pc_u_snd.head;
-				LPST_PC_U_BODY  pb0 = &pOTE_Inf->st_msg_pc_u_snd.body.st;
-				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L"PC:" << ph0->myid.pc_type << L"Seral:" << ph0->myid.serial_no << L"Opt:" << ph0->myid.option << L"\n";
+				LPST_OTE_HEAD	ph0 = &st_ote_work.st_msg_pc_u_snd.head;
+				LPST_PC_U_BODY  pb0 = &st_ote_work.st_msg_pc_u_snd.body.st;
+				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option ;
+				st_mon2.wo_uni << L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
+				st_mon2.wo_uni << L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 				st_mon2.wo_uni << L"[BODY]";
 
-				LPST_OTE_HEAD  ph1 = &pOTE_Inf->st_msg_pc_m_snd.head;
-				LPST_PC_M_BODY pb1 = &pOTE_Inf->st_msg_pc_m_snd.body.st;
+				LPST_OTE_HEAD  ph1 = &st_ote_work.st_msg_pc_m_snd.head;
+				LPST_PC_M_BODY pb1 = &st_ote_work.st_msg_pc_m_snd.body.st;
 				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				st_mon2.wo_mpc << L"[BODY]";
 
@@ -505,17 +515,17 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (nEvent) {
 		case FD_READ: {
 			//OTEからのユニキャストメッセージ受信
-			if(rcv_uni_ote(&pOTE_Inf->st_msg_ote_u_rcv) == S_OK){
+			if(rcv_uni_ote(&st_ote_work.st_msg_ote_u_rcv) == S_OK){
 				//折り返しアンサバック 送信元へ返送
-				pOTE_Inf->addr_in_from_oteu = pUSockOte->addr_in_from;
+				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
 				pUSockOte->addr_in_dst.sin_family = AF_INET;
 				pUSockOte->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
 				pUSockOte->addr_in_dst.sin_addr = pUSockOte->addr_in_from.sin_addr;
 
-				if (pOTE_Inf->id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
-					snd_uni2ote(set_msg_u(true, 0, pOTE_Inf->id_ope_active), &pUSockOte->addr_in_dst);
+				if (st_ote_work.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
+					snd_uni2ote(set_msg_u(true, 0, st_ote_work.id_ope_active), &pUSockOte->addr_in_dst);
 				else 
-					snd_uni2ote(set_msg_u(false, 0, pOTE_Inf->id_ope_active), &pUSockOte->addr_in_dst);
+					snd_uni2ote(set_msg_u(false, 0, st_ote_work.id_ope_active), &pUSockOte->addr_in_dst);
 			}
 
 		}break;
@@ -524,8 +534,8 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 
 		//OTE通信ヘッダに緊急停止要求有
-		if (pOTE_Inf->st_msg_ote_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
-			pOTE_Inf->stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
+		if (st_ote_work.st_msg_ote_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
+			st_ote_work.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
 		}
 
 	}break;
@@ -533,7 +543,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_mul_ote(&pOTE_Inf->st_msg_ote_m_rcv);
+			rcv_mul_ote(&st_ote_work.st_msg_ote_m_rcv);
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
@@ -543,7 +553,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_mul_pc(&pOTE_Inf->st_msg_pc_m_rcv);
+			rcv_mul_pc(&st_ote_work.st_msg_pc_m_rcv);
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;

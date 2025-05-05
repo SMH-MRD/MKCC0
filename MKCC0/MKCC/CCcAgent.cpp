@@ -1,7 +1,8 @@
-#include ".\lib\CMCProtocol.h"
+#include "CMCProtocol.h"
 #include "CCcAgent.h"
 #include "resource.h"
-#include ".\lib\CCraneLib.h"
+#include "CCraneLib.h"
+#include "COpePanelLib.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;

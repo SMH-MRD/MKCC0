@@ -346,6 +346,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		 is_initial_draw_mon1 = true;
 
 		 //Lamp ウィンドウハンドルセット,フリッカ設定
+		 //CCとの通信状態表示
 		 INT32 id_list[2] = { 4,0 };//2種フリッカ　緑/暗青
 		 pPanelBase->pobjs->lmp_pcr->set_wnd(hWnd);		pPanelBase->pobjs->lmp_pcr->setup_flick(2, 3, id_list);
 		 pPanelBase->pobjs->lmp_pcs->set_wnd(hWnd);		pPanelBase->pobjs->lmp_pcs->setup_flick(2, 3, id_list);
@@ -474,8 +475,6 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			pPanelBase->pobjs->str_plc_com_stat->update();
 		//	is_initial_draw_mon1 = false;
 		}
-		
-
 	}break;
 
 	case WM_PAINT: {
