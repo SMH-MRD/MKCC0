@@ -89,18 +89,31 @@ typedef struct _ST_OTE_AG_MON1 {
 #define OTE_AG_ID_MON2_LABEL_MUL_PC    4
 #define OTE_AG_ID_MON2_LABEL_MUL_OTE   5
 #define OTE_AG_ID_MON2_STATIC_MSG      6
-#define OTE_AG_ID_MON2_RADIO_RCV       7
-#define OTE_AG_ID_MON2_RADIO_SND       8
-#define OTE_AG_ID_MON2_RADIO_INFO      9
+
+#define OTE_AG_ID_MON2_RADIO_RCV       16
+#define OTE_AG_ID_MON2_RADIO_SND       17
+#define OTE_AG_ID_MON2_RADIO_INFO      18
+
+#define OTE_AG_ID_MON2_CB_BODY         19
+#define OTE_AG_ID_MON2_PB_PAGE_UP_UNI  20
+#define OTE_AG_ID_MON2_PB_PAGE_UP_MPC  21
+#define OTE_AG_ID_MON2_PB_PAGE_UP_MOT  22
+
+#define OTE_AG_ID_MON2_N_PAGE_UP_UNI   4
+#define OTE_AG_ID_MON2_N_PAGE_UP_MPC   2
+#define OTE_AG_ID_MON2_N_PAGE_UP_MOT   2
 
 typedef struct _ST_OTE_AG_MON2 {
     HWND hwnd_mon;
     int timer_ms = OTE_AG_PRM_MON2_TIMER_MS;
     int sock_inf_id = OTE_AG_ID_MON2_RADIO_RCV; //ソケット情報を表示する内容コード
 
-    bool is_monitor_active = false;
+   int ipage_uni = 0, ipage_mpc = 0, ipage_mot = 0;
 
-	wostringstream wo_uni,wo_mpc,wo_mote,wo_work;
+    bool is_monitor_active = false; //モニタ画面表示中フラグ
+    bool is_body_disp_mode = false; // 電文表示モードBODY
+
+  	wostringstream wo_uni,wo_mpc,wo_mote,wo_work;
 
     HWND hctrl[OTE_AG_MON2_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -109,22 +122,22 @@ typedef struct _ST_OTE_AG_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[OTE_AG_MON2_N_CTRL] = {
-        5,50, 5,135, 5,220, 5,30, 5,115, 5,200, 5,5, 470,5, 
-        520,5, 570,5,  0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        5,50, 5,135, 5,220, 5,30, 5,115, 5,200, 5,5,0,0,  
+        0,0, 0,0,  0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+         470,5,520,5,570,5, 380,285, 455,285, 510,285, 565,285, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[OTE_AG_MON2_N_CTRL] = {
-        OTE_AG_MON2_WND_W - 25,60, OTE_AG_MON2_WND_W - 25,60, OTE_AG_MON2_WND_W - 25,60, OTE_AG_MON2_WND_W - 25,20, OTE_AG_MON2_WND_W - 25,20, OTE_AG_MON2_WND_W - 25,20, OTE_AG_MON2_WND_W - 180,20, 40,20,
-        40,20, 40,20,  0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        OTE_AG_MON2_WND_W - 25,60, OTE_AG_MON2_WND_W - 25,60, OTE_AG_MON2_WND_W - 25,60, OTE_AG_MON2_WND_W - 25,20, OTE_AG_MON2_WND_W - 25,20, OTE_AG_MON2_WND_W - 25,20, OTE_AG_MON2_WND_W - 180,20, 0,0,
+        0,0, 0,0,  0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        40,20, 40,20, 40,20, 65,20, 45,20, 45,20, 45,20, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[OTE_AG_MON2_N_CTRL][OTE_AG_MON2_N_WCHAR] = {
-        L"-", L"-", L"-", L"UNI:", L"MPC:", L"MOTE:",L"MSG:", L"RCV", 
-        L"SND",L"INFO",  L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L""
+       L"-", L"-", L"-", L"UNI:", L"MPC:", L"MOTE:",L"MSG:",L"", 
+       L"", L"",  L"", L"", L"", L"", L"", L"",
+       L"RCV",  L"SND",L"INFO", L"BODY", L"UNI+", L"MPC+", L"MOT+", L"",
+       L"", L"", L"", L"", L"", L"", L"", L""
     };
 
 }ST_OTE_AG_MON2, * LPST_OTE_AG_MON2;

@@ -130,6 +130,12 @@ typedef struct _ST_OTE_PC_MSG {
 	WCHAR wch[N_OTE_PC_MSG_WCHAR];
 }ST_OTE_PC_MSG, * LPST_OTE_PC_MSG;
 
+enum OTE_PNL_CTRLS{
+	estop=0,
+	ctrl_src,
+	remote_mode
+};
+
 //デフォルト
 /******* PCユニキャスト通信BODY構造体 ***********/
 typedef struct PcUBody {//デフォルト
@@ -146,7 +152,7 @@ typedef struct OteUBody {
 	INT32		ope_mode;														//操作モード（自動/手動/ビギナー）
 	INT32		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）
 	INT32		opt_device_status;												//オプションデバイスモード
-	INT16		pb_ope[N_OTE_PNL_CTRL];											//操作卓PB入力
+	INT16		ctrl_ope[N_OTE_PNL_CTRL];											//操作卓PB入力
 	INT16		pb_notch[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];			//操作卓ノッチ入力
 	INT16		notch_pos[2][MOTION_ID_MAX];									//ノッチ入力位置
 	UINT32		target_seq_no;													//自動目標位置のシーケンス番号（トリガ検出用）

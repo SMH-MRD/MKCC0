@@ -365,13 +365,14 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
-		for (int i = CS_ID_MON2_STATIC_UNI; i <= CS_ID_MON2_STATIC_MSG; i++){
+		int i;
+		for ( i = CS_ID_MON2_STATIC_UNI; i <= CS_ID_MON2_STATIC_MSG; i++){
 		st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
 			st_mon2.pt[i].x, st_mon2.pt[i].y,st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 			hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 		//RADIO PB
-		for (int i = CS_ID_MON2_RADIO_RCV; i <= CS_ID_MON2_RADIO_INFO; i++) {
+		for (i = CS_ID_MON2_RADIO_RCV; i <= CS_ID_MON2_RADIO_INFO; i++) {
 			if (i == CS_ID_MON2_RADIO_RCV) {
 				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
 					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
@@ -382,6 +383,20 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 			else
 				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
+					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+					hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
+		}
+
+		//CHECK BOX
+		i = CS_ID_MON2_CB_BODY;
+
+		st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX ,
+			st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+			hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
+
+		//PB
+		for (i = CS_ID_MON2_PB_PAGE_UP_UNI; i <= CS_ID_MON2_PB_PAGE_UP_MOT; i++) {
+				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 					hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
@@ -406,6 +421,22 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case CS_ID_MON2_RADIO_INFO: {
 			st_mon2.sock_inf_id = CS_ID_MON2_RADIO_INFO;
 		}break;
+
+		case CS_ID_MON2_CB_BODY       :{
+			if (BST_CHECKED == SendMessage(st_mon2.hctrl[CS_ID_MON2_CB_BODY], BM_GETCHECK, 0, 0))
+				st_mon2.is_body_disp_mode = true;
+			else
+				st_mon2.is_body_disp_mode = false;
+		}break;
+		case CS_ID_MON2_PB_PAGE_UP_UNI:{
+			if(++st_mon2.ipage_uni >= CS_ID_MON2_N_PAGE_UP_UNI)st_mon2.ipage_uni=0;
+		}break;
+		case CS_ID_MON2_PB_PAGE_UP_MPC:{
+			if (++st_mon2.ipage_mpc >= CS_ID_MON2_N_PAGE_UP_MPC)st_mon2.ipage_mpc = 0;
+		}break;
+		case CS_ID_MON2_PB_PAGE_UP_MOT:{
+			if (++st_mon2.ipage_mot >= CS_ID_MON2_N_PAGE_UP_MOT)st_mon2.ipage_mot = 0;
+		}break;
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
@@ -424,6 +455,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		//モニター表示
 		if (st_mon2.is_monitor_active) {
 			SOCKADDR_IN	addr;
+			//ラベルにIP情報出力
 			if (pUSockOte != NULL) {
 				addr = pUSockOte->addr_in_rcv; st_mon2.wo_work.str(L"");
 				st_mon2.wo_work <<L"UNI>>IP R:"<<addr.sin_addr.S_un.S_un_b.s_b1<< L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
@@ -460,43 +492,74 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< htons(addr.sin_port) << L" ";
 				SetWindowText(st_mon2.hctrl[CS_ID_MON2_LABEL_MUL_OTE], st_mon2.wo_work.str().c_str());
 			}
-			
+
+			//電文内容表示出力
 			st_mon2.wo_uni.str(L""); st_mon2.wo_mpc.str(L""); st_mon2.wo_mote.str(L"");
 			if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
+				if (st_mon2.is_body_disp_mode) {
+					LPST_OTE_U_BODY pb0 = &st_ote_work.st_msg_ote_u_rcv.body.st;
+					LPST_PC_M_BODY	pb1 = &st_ote_work.st_msg_pc_m_rcv.body.st;
+					LPST_OTE_M_BODY pb2 = &st_ote_work.st_msg_ote_m_rcv.body.st;
 
-				LPST_OTE_HEAD	ph0 = &st_ote_work.st_msg_ote_u_rcv.head;
-				LPST_OTE_U_BODY pb0 = &st_ote_work.st_msg_ote_u_rcv.body.st;
-				st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option 
+					st_mon2.wo_uni << L"[BODY P"<< st_mon2.ipage_uni <<L"]" ;
+
+					if (st_mon2.ipage_uni == 0) {
+						st_mon2.wo_uni << L"@ESTOP:" << pb0->ctrl_ope[OTE_PNL_CTRLS::estop]
+							<< L"@CSRC:" << pb0->ctrl_ope[OTE_PNL_CTRLS::ctrl_src]
+							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote_mode];
+					}
+					else if (st_mon2.ipage_uni == 1) {
+
+					}
+					else if (st_mon2.ipage_uni == 2) {
+
+					}
+					else {
+
+					}
+
+					st_mon2.wo_mpc << L"[BODY P" << st_mon2.ipage_mpc << L"]" << L"\n";
+					st_mon2.wo_mote << L"[BODY P" << st_mon2.ipage_mot << L"]" << L"\n";
+
+
+
+
+
+
+
+					st_mon2.wo_mpc << L"[BODY P"<< st_mon2.ipage_mpc <<L"]" << L"\n";
+					st_mon2.wo_mote<< L"[BODY P"<< st_mon2.ipage_mot <<L"]" << L"\n";
+				}
+				else {
+					LPST_OTE_HEAD ph0 = &st_ote_work.st_msg_ote_u_rcv.head;
+					LPST_OTE_HEAD ph1 = &st_ote_work.st_msg_pc_m_rcv.head;
+					LPST_OTE_HEAD ph2 = &st_ote_work.st_msg_ote_m_rcv.head;
+					st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option 
 								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port)<<L"\n"
 								<< L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
-				st_mon2.wo_uni << L"[BODY]" << L"OPEMODE:"<<pb0->ope_mode;
-
-				LPST_OTE_HEAD  ph1 = &st_ote_work.st_msg_pc_m_rcv.head;
-				LPST_PC_M_BODY pb1 = &st_ote_work.st_msg_pc_m_rcv.body.st;
-				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
-				st_mon2.wo_mpc << L"[BODY]";
-
-				LPST_OTE_HEAD  ph2 =  &st_ote_work.st_msg_ote_m_rcv.head;
-				LPST_OTE_M_BODY pb2 = &st_ote_work.st_msg_ote_m_rcv.body.st;
-				st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
-				st_mon2.wo_mote << L"[BODY]";
+					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
+					st_mon2.wo_mote<< L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
+				}
 			}
 			else if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
+				if (st_mon2.is_body_disp_mode) {
+					LPST_PC_U_BODY pb0 = &st_ote_work.st_msg_pc_u_snd.body.st;
+					LPST_PC_M_BODY pb1 = &st_ote_work.st_msg_pc_m_snd.body.st;
 
-				LPST_OTE_HEAD	ph0 = &st_ote_work.st_msg_pc_u_snd.head;
-				LPST_PC_U_BODY  pb0 = &st_ote_work.st_msg_pc_u_snd.body.st;
-				st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option ;
-				st_mon2.wo_uni << L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
-				st_mon2.wo_uni << L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
-				st_mon2.wo_uni << L"[BODY]";
+					st_mon2.wo_uni << L"[BODY P"<< st_mon2.ipage_uni <<L"]" << L"\n";
+					st_mon2.wo_mpc << L"[BODY P"<< st_mon2.ipage_mpc <<L"]" << L"\n";
+					st_mon2.wo_mote<< L"[BODY P"<< st_mon2.ipage_mot <<L"]" << L"\n";
+				}
+				else {
+					LPST_OTE_HEAD ph0 = &st_ote_work.st_msg_pc_u_snd.head;
+					LPST_OTE_HEAD ph1 = &st_ote_work.st_msg_pc_m_snd.head;
+					st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option;
+					st_mon2.wo_uni << L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
+					st_mon2.wo_uni << L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 
-				LPST_OTE_HEAD  ph1 = &st_ote_work.st_msg_pc_m_snd.head;
-				LPST_PC_M_BODY pb1 = &st_ote_work.st_msg_pc_m_snd.body.st;
-				st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
-				st_mon2.wo_mpc << L"[BODY]";
-
-				st_mon2.wo_mote << L"[HEAD] -\n";
-				st_mon2.wo_mote << L"[BODY] -";
+					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
+					st_mon2.wo_mote << L"[HEAD] -\n";
+				}
 			}
 			else {
 				st_mon2.wo_uni  << L"No Message"; 

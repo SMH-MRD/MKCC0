@@ -738,7 +738,7 @@ typedef struct _ST_DRAWING_BASE {
 	StringFormat* pstrformat[N_STRING_FORMAT];
 }ST_DRAWING_BASE, *LPST_DRAWING_BASE;
 
-#pragma region OTE_INF
+#pragma region OTE_INF ENV
 typedef struct _ST_OTE_ENV_INF {
 	ST_DEVICE_CODE device_code;
 
@@ -754,7 +754,7 @@ typedef struct _ST_OTE_ENV_INF {
 }ST_OTE_ENV_INF, * LPST_OTE_ENV_INF;
 #pragma endregion 
 
-//## OTE_CS_INF
+//## OTE_CS_INF @CS
 #pragma region OTE_CS_INF
 typedef struct _ST_OTE_CS_INF {
 	INT16 buf_io_read[CC_MC_SIZE_W_READ];	//PLCからの読み取り信号生値
@@ -762,7 +762,7 @@ typedef struct _ST_OTE_CS_INF {
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他
 
-//## OTE_CC_IF
+//## OTE_CC_IF @AGENT
 #pragma region OTE_CC_INF
 
 #define CODE_OTE_PC_COM_STAT_SOCK_NG	-1	//ソケット初期化エラー
@@ -798,10 +798,10 @@ typedef struct _ST_OTE_CC_IF {
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体
 
-//## OTE_UI
+//## OTE_UI @SCADA or VIEW Proc
 #pragma region OTE_UI
 typedef struct _ST_OTE_UI {
-	UINT16 pb_stat[N_OTE_PNL_CTRL];			
+	UINT16 ctrl_stat[N_OTE_PNL_CTRL];			
 	UINT16 notch_pb[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];
 
 }ST_OTE_UI, * LPST_OTE_UI;

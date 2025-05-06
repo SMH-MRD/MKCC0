@@ -174,6 +174,10 @@ public:
     static ST_OTE_SCAD_MON1 st_mon1;
     static ST_OTE_SCAD_MON2 st_mon2;
 
+    static ST_OTE_UI st_work;
+
+    void set_panel_io();
+
 	HRESULT open_ope_window();
 
     //タスク出力用構造体
@@ -211,9 +215,7 @@ private:
     int input();//入力処理
 
     int parse();
-    int output() {          //出力処理
-        return STAT_NG;
-    }
+    int output();
     int close();
 };
 

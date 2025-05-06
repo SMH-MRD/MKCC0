@@ -17,6 +17,8 @@ extern CSharedMem* pOteUiObj;
 ST_OTE_SCAD_MON1 COteScad::st_mon1;
 ST_OTE_SCAD_MON2 COteScad::st_mon2;
 
+ST_OTE_UI COteScad::st_work;
+
 CPanelBase* pPanelBase;
 
 extern ST_DRAWING_BASE		drawing_items;
@@ -74,12 +76,6 @@ HRESULT COteScad::initialize(LPVOID lpParam) {
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 
-	//### IFウィンドウOPEN
-	//WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
-	//LPARAM lp = BC_ID_MON2;
-	//SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
-
-	
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -115,8 +111,13 @@ int COteScad::input() {
 }
 
 int COteScad::parse() {
-
+	set_panel_io();
 	return S_OK;
+}
+
+int COteScad::output() {          //出力処理
+	memcpy_s(pOteUI, sizeof(ST_OTE_UI), &st_work, sizeof(ST_OTE_UI));
+	return STAT_OK;
 }
 
 int COteScad::close() {
@@ -132,6 +133,18 @@ HRESULT COteScad::open_ope_window() {
 
 	return S_OK;
 }
+
+void COteScad::set_panel_io() {
+	if (pPanelBase != NULL) {
+		st_work.ctrl_stat[OTE_PNL_CTRLS::estop] = pPanelBase->pobjs->cb_estop->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::ctrl_src] = pPanelBase->pobjs->pb_csource->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::remote_mode] = pPanelBase->pobjs->pb_remote->get();
+	}
+
+
+	return;
+}
+
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
@@ -375,21 +388,21 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case ID_MAIN_PNL_OBJ_PB_CSOURCE: {
 			pPanelBase->pobjs->pb_csource->update(true);
 
-			pPanelBase->pobjs->lmp_remote->set(L_ON);
-			pPanelBase->pobjs->lmp_pad_mode->set(L_OFF);
+			//pPanelBase->pobjs->lmp_remote->set(L_ON);
+			//pPanelBase->pobjs->lmp_pad_mode->set(L_OFF);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_REMOTE: {
 			pPanelBase->pobjs->pb_remote->update(true);
 
-			pPanelBase->pobjs->lmp_csource->set(ID_PANEL_LAMP_FLICK);
-			pPanelBase->pobjs->lmp_pad_mode->set(L_ON);
+			//pPanelBase->pobjs->lmp_csource->set(ID_PANEL_LAMP_FLICK);
+			//pPanelBase->pobjs->lmp_pad_mode->set(L_ON);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_PAD_MODE: {
 
 			pPanelBase->pobjs->pb_pad_mode->update(true);
 
-			pPanelBase->pobjs->lmp_remote->set(L_OFF);
-			pPanelBase->pobjs->lmp_csource->set(2);
+			//pPanelBase->pobjs->lmp_remote->set(L_OFF);
+			//pPanelBase->pobjs->lmp_csource->set(2);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC: {
 			pPanelBase->pobjs->pb_assist_func->update(true);
