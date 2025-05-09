@@ -134,6 +134,7 @@ public:
 
     //タスク出力用構造体
     static ST_CC_AGENT_INF st_work;
+    static ST_CC_PLC_IO st_work_plcio;
 
     //PLC IF関連
     static HRESULT rcv_uni_ote(LPST_PC_U_MSG pbuf);

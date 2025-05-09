@@ -59,7 +59,7 @@
 #define SIZE_ITEM_WIRE_LEN0			7	//基準ワイヤ長
 
 //クレーン構造定義構造体
-typedef struct _ST_STRUCTURE
+typedef struct _ST_STRUCTURE_
 {
 	double wheel_span = 20.0;	// ホイルスパン
 	double leg_span = 15.0;		// 脚間スパン
@@ -94,7 +94,7 @@ typedef struct _ST_STRUCTURE
 	double Nbh_drum = 67.974;	//引込ドラム回転数の和（引込＋主巻）
 	double Load0_mh = 11000.0;	//主巻吊具荷重
 	double Load0_ah = 1900.0;	//補巻吊具荷重
-}ST_STRUCTURE, *LPST_STRUCTURE;
+}ST_STRUCTURE_, *LPST_STRUCTURE_;
 
 typedef struct _ST_SPEC {
 //ノッチ速度物理量
@@ -185,7 +185,7 @@ typedef struct _ST_SPEC {
 	{{ 0.0,0.0,0.0,0.0},	{ 0.0,0.0,0.0,0.0}},				//[ID_MOTION1]
 	};
 //構造寸法
-	ST_STRUCTURE st_structure;
+	ST_STRUCTURE_ st_structure;
 //制御パラメータ
 //# 振れ止め判定　振れ角レベル(rad)
 	double as_rad_level[N_AS_AXIS][N_SWAY_LEVEL] = {	
@@ -273,6 +273,7 @@ double prm_nw[WIRE_ITEM_NUM][MOTION_ID_MAX]{
 
 }ST_SPEC, * LPST_SPEC;
 
+#if 0
 /*** PLC IFバッファ構造体定義 ***/
 //デフォルト（みらい）の定義
 typedef struct _ST_PLC_WRITE {//制御PC→PLC
@@ -349,3 +350,4 @@ typedef struct _ST_PLC_READ_HHGH29 {
 	INT16   inv_cc_Wr2[6];      //インバータFB書き込み値　トルク0.1%
 	INT16   spare1[3];          //予備
 }ST_PLC_READ_HHGH29, * LPST_PLC_READ_HHGH29;
+#endif

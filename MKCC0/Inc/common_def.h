@@ -79,12 +79,8 @@ using namespace Gdiplus;
 #define ID_T                    0   // 接線方向
 #define ID_R		            1   // 半径方向
 
-#define N_NOTCH_MAX	            6 //ノッチ最大数　0ノッチを含む
-#define N_NOTCH_MODE            3
-#define NOTCH_MODE_BASE         0
-#define NOTCH_MODE_1            1
-#define NOTCH_MODE_2            2
 
+#define N_NOTCH_MAX	            6	//ノッチ最大数　0ノッチを含む
 #define NOTCH_0	                0
 #define NOTCH_1	                1
 #define NOTCH_2	                2
@@ -181,6 +177,18 @@ using namespace Gdiplus;
 #  define dABS(a)  (a < 0.0 ? -a : a)
 #endif
 
+#ifndef Bitcheck
+#define Bitcheck(a,b)	(a >> b) & 1
+#endif
+
+#ifndef Bitset
+#define Bitset(a,b)		a |= (1<<b)
+#endif
+
+#ifndef Bitclear
+#define Bitclear(a,b)	a &= ~(1<<b)
+#endif
+
 #pragma endregion マクロ
 
 ///# 配列参照用　動作インデックス
@@ -198,21 +206,7 @@ using namespace Gdiplus;
 #define ID_OP_ROOM              6   //運転室移動　ID
 #define ID_H_ASSY               7   //吊具等      ID
 
-#define BIT_SEL_HST             0x00000001
-#define BIT_SEL_GNT             0x00000002
-#define BIT_SEL_TRY             0x00000004
-#define BIT_SEL_BHMH            0x00000004
-#define BIT_SEL_BH              0x00000008
-#define BIT_SEL_SLW             0x00000010
-#define BIT_SEL_AH              0x00000020  //JC
-#define BIT_SEL_OPR             0x00000040
-#define BIT_SEL_ASSY            0x00000080
-#define BIT_SEL_ALL_0NOTCH      0x10000000
-#define BIT_SEL_MOTION          BIT_SEL_HST|BIT_SEL_GNT|BIT_SEL_BH|BIT_SEL_SLW|BIT_SEL_AH
-#define BIT_SEL_STATUS          0xFFFF0000
-
 #pragma endregion 動作インデックス
-
 
 //タスク異常フラグ
 #pragma region ERR_DEF
@@ -254,14 +248,6 @@ typedef struct _ST_XYZ {
     double z;
 }ST_XYZ, * LPST_XYZ;
 
-typedef struct _ST_CRANE_V_SPEC {
-    double v100;                                    //100%速度
-    double rps100;                                  //100%モータ回転速度
-    double gear_retio;                              //モータ回転減速比
-    double norm_notch[N_NOTCH_MODE][N_NOTCH_MAX];	//正規化ノッチ速度
-	double plc_norm100;                             //PLC100%速度正規化値
-}ST_CRANE_V_SPEC, * LPST_CRANE_V_SPEC;
-
 
 ///#ビット定義 
 #pragma region BIT_DEF
@@ -283,6 +269,14 @@ typedef struct _ST_CRANE_V_SPEC {
 #define BIT14       0x4000
 #define BIT15       0x8000
 #pragma endregion ビット定義
+
+#pragma region AXIS_MASK
+#define SET_MASK_MH 0x0000000F //WORDデータ
+#define SET_MASK_BH 0x000000F0 //WORDデータ
+#define SET_MASK_SL 0x00000F00 //WORDデータ
+#define SET_MASK_GT 0x0000F000 //WORDデータ
+#define SET_MASK_AH 0x000F0000 //WORDデータ
+#pragma endregion 軸状態セットマスク
 
 ///# カラーパレット
 #pragma region COLOR
@@ -328,7 +322,6 @@ typedef struct _ST_CRANE_V_SPEC {
 using namespace Gdiplus;
 
 typedef struct _PANEL_COLOR_PALLET {
-
     Gdiplus::Color color[32] = {
 
         //GRAY                                                                                              RED     
@@ -341,7 +334,6 @@ typedef struct _PANEL_COLOR_PALLET {
         Color(255,0,0,0),     Color(255,0, 0, 0),   Color(255,0, 0, 0),         Color(255,0, 0, 0),         Color(255,0, 0, 0),     Color(255,0, 0, 0),     Color(255,0, 0, 0),     Color(255,0, 0, 0)
     };
 }PANEL_COLOR_PALLET, * LPPANEL_COLOR_PALLET;
-
 
 #pragma endregion
 

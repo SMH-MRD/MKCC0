@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Value">
+      <UniqueIdentifier>{4867969e-b1a1-4b36-97c0-df8e4cf30df7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Entity">
+      <UniqueIdentifier>{ca33075c-1405-49a1-86d7-ff2859ac40e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -45,6 +51,18 @@
     <ClInclude Include="CCcSim.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="CSpec.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="CPlc.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="CCrane.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="CFaults.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MKCC.cpp">
@@ -73,6 +91,18 @@
     </ClCompile>
     <ClCompile Include="..\Src\CSharedMem.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="CSpec.cpp">
+      <Filter>Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="CPlc.cpp">
+      <Filter>Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="CCrane.cpp">
+      <Filter>Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="CFaults.cpp">
+      <Filter>Entity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

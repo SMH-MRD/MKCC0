@@ -3,6 +3,7 @@
 #include "resource.h"
 #include "CCraneLib.h"
 #include "COpePanelLib.h"
+#include "CSpec.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -13,8 +14,7 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
-extern CCraneBase* pCraneObj;
-
+extern CCraneBase* pCrane;
 
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
@@ -24,6 +24,7 @@ ST_AGENT_MON1 CAgent::st_mon1;
 ST_AGENT_MON2 CAgent::st_mon2;
 
 ST_CC_AGENT_INF CAgent::st_work;
+ST_CC_PLC_IO CAgent::st_work_plcio;
 
 //共有メモリ
 static LPST_CC_ENV_INF		pEnv_Inf;
@@ -50,7 +51,6 @@ CAgent::~CAgent() {
 HRESULT CAgent::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
-
 	//システム周波数読み込み
 	QueryPerformanceFrequency(&frequency);
 
@@ -115,7 +115,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 	//モニタウィンドウテキスト	
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"MKCC IF");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"PLC IF");
 	set_item_chk_txt();
 	set_panel_tip_txt();
 	//モニタ２ CB状態セット	
@@ -165,7 +165,9 @@ int CAgent::output() {
 	//ヘルシー出力
 
 	//制御指令出力
-
+	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
+	//PLC IO送信データ出力
+	memcpy_s(pPLC_IO->buf_io_write,sizeof(pPLC_IO->buf_io_write),&st_work_plcio.buf_io_write, sizeof(pPLC_IO->buf_io_write));
 
 	return S_OK;
 }
@@ -285,7 +287,10 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
 			}
 			else snd_count_plc_w++;
+
+			//電文内容表示出力
 			if ((st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
+				//ヘッダ部分
 				st_mon2.wo_req_w << L"Sw>>"
 					<< L"#sub:"		<< std::hex << pMCSock->mc_req_msg_w.subcode
 					<< L"#serial:"	<< pMCSock->mc_req_msg_w.serial
@@ -300,7 +305,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#d_no:"	<< pMCSock->mc_req_msg_w.d_no
 					<< L"#d_code:"	<< pMCSock->mc_req_msg_w.d_code
 					<< L"#n_dev:"	<< pMCSock->mc_req_msg_w.n_device << L"\n";
-
+				//データ部分1ページ10WORD　4行で切替表示
 				for (int i = 0; i < AGENT_MON2_MSG_DISP_N__DATAROW; i++) {
 					int no = CC_MC_ADDR_W_WRITE + i_page_w * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;
 					st_mon2.wo_req_w << L"D"<< dec << no << L" |";
@@ -435,7 +440,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon2.wo_res_w.str(L"");
 		switch (nEvent) {
 		case FD_READ: {
-			UINT nRtn = pMCSock->rcv_msg_3E(pPLC_IO->buf_io_read);
+			UINT nRtn = pMCSock->rcv_msg_3E(pPLC_IO->buf_io_read);//読み出し応答の時はデータ部のみ指定バッファにコピー
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
 				
@@ -474,7 +479,6 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				/******************************************************************************************/
 			}
 			else if (nRtn == MC_RES_WRITE) {
-
 				rcv_count_plc_w++;
 				if ((st_mon2.msg_disp_mode != AGENT_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 					st_mon2.wo_res_w << L"Rw>>"

@@ -35,7 +35,7 @@ CSharedMem* pCsInfObj;
 CSharedMem* pSimuStatObj;
 CSharedMem* pOteInfObj;
 
-CCraneBase* pCraneBase;
+CCraneBase* pCrane;
 ST_DEVICE_CODE g_my_code;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
@@ -187,21 +187,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
   
    //  クレーンオブジェクトセットアップ
    LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
-   pCraneBase = new CCraneBase(CARNE_ID_HHGH29);
+   pCrane = new CCraneBase(CARNE_ID_HHGH29);
  
    //デバイスコードセット
-   //LPST_CC_ENV_INF pCraneStat = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
-   //DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", pCraneStat->device_code.crane_id, _countof(pCraneStat->device_code.crane_id), PATH_OF_INIFILE);
-   //     	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"???????", pCraneStat->device_code.pc_type, _countof(pCraneStat->device_code.pc_type), PATH_OF_INIFILE);
-   //
-   //WCHAR wbuf[32];
-   //str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
-   //swscanf_s(wbuf,L"%x", & (pCraneStat->device_code.serial_no));
- 
-   //str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
-   //swscanf_s(wbuf, L"%d", &(pCraneStat->device_code.option));
-
- //  LPST_CC_ENV_INF g_my_code = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"???????", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
 

@@ -174,7 +174,6 @@ public:
     int setup_crane_if(int crane_id);
     static int close_crane_if();
 
-
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
     //タブパネルのFunctionボタンのStaticテキストを設定

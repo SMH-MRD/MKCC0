@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -170,6 +170,11 @@
     <Image Include="..\Img\scada.bmp" />
     <Image Include="OTE.ico" />
     <Image Include="small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MKCC\MKCC.vcxproj">
+      <Project>{c29d3778-9c15-439c-bf02-c675ec93f1d1}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

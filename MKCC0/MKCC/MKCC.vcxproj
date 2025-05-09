@@ -145,6 +145,10 @@
     <ClInclude Include="CCcPol.h" />
     <ClInclude Include="CCcScad.h" />
     <ClInclude Include="CCcSim.h" />
+    <ClInclude Include="CCrane.h" />
+    <ClInclude Include="CFaults.h" />
+    <ClInclude Include="CPlc.h" />
+    <ClInclude Include="CSpec.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MKCC.h" />
     <ClInclude Include="Resource.h" />
@@ -159,6 +163,10 @@
     <ClCompile Include="CCcPol.cpp" />
     <ClCompile Include="CCcScad.cpp" />
     <ClCompile Include="CCcSim.cpp" />
+    <ClCompile Include="CCrane.cpp" />
+    <ClCompile Include="CFaults.cpp" />
+    <ClCompile Include="CPlc.cpp" />
+    <ClCompile Include="CSpec.cpp" />
     <ClCompile Include="MKCC.cpp" />
   </ItemGroup>
   <ItemGroup>

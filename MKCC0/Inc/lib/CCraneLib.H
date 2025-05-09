@@ -14,36 +14,13 @@
 using namespace std;
 
 typedef struct _ST_CRANE_OBJ {
-	//Healthy
-	CWordIO* healthy;
+	CBitSignal* estop;
+	CBitSignal* estop_req;
+	CBitSignal* csource;
+	CBitSignal* csource_req;
+	CBitSignal* remote_mode;
+	CBitSignal* remote_mode_req;
 
-	//CRANE CONTROL
-	CBitIO* flg_pc_ctrl;
-	CBitIO* sw_remote_mode;
-	CBitIO* flg_panel_sim_mode;
-	
-	//B220-B26F
-	CNotchIO* notch[MOTION_ID_MAX];
-
-	CBitIO* pb_ctrl_source_on;
-	CBitIO* pb_ctrl_source_off;
-	CModeIO* cs3_mh_spd; 
-	CModeIO* cs4_bh_R;
-	
-	CBitIO* pb_alarm_stop;
-	CBitIO* pb_fault_reset;
-	CBitIO* pb_il_bypass;
-
-	CBitIO* sw_mlim_50t_lower;
-	CBitIO* sw_mlim_x3_enable;
-	CBitIO* sw_mlim_90_warning;
-	CBitIO* sw_mlim_100_warning;
-	CBitIO* sw_mlim_error;
-	CBitIO* sw_mlim_hhoist_enable;
-	CBitIO* sw_wind_over16;
-	CBitIO* pb_cab_estop;
-
-	CBitIO* sw_slw_brk;
 }ST_CRANE_OBJ, * LPST_CRANE_OBJ;
 
 
@@ -61,9 +38,7 @@ private:
 public:
 	static bool is_setup_ok;
 
-	static CCraneBase* pCrane;
 	CCraneBase(int crane_id);
-
 	virtual ~CCraneBase(void);
 
 	static ST_CRANE_OBJ objs;

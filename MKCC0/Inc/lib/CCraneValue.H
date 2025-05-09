@@ -5,6 +5,11 @@
 
 using namespace std;
 
+#define CODE_TRIG_NON		0
+#define CODE_TRIG_ON		1
+#define CODE_TRIG_OFF		-1
+
+
 template <class T> class CCraneValue {
 public:
 	CCraneValue() { value = value_hold = 0; }
@@ -13,15 +18,15 @@ public:
 protected:
 	T value;	    //現在値
 	T value_hold;
-
 public:
 	T get() { return value; }
-	HRESULT set(T _value, bool flg_update_hold) { if (flg_update_hold)value_hold = value;   value = _value;  return S_OK; }
-	HRESULT set(T _value) { value = _value;  return S_OK; }
+	T set(T _value) { value_hold = value;   value = _value;  return value; }
 
-	BOOL chk_trig()		{ set(value, true); if (value != value_hold)return true;return false; }
-	BOOL chk_trig_on()	{ set(value, true); if (value >  value_hold)return true;return false; }
-	BOOL chk_trig_off() { set(value, true); if (value <  value_hold)return true;return false; }
+	INT16 chk_trig()	{ 
+		if (value >  value_hold)return CODE_TRIG_ON; 
+		if (value <  value_hold)return CODE_TRIG_OFF;
+		return CODE_TRIG_NON;
+	}
 
 	BOOL operator == (const CCraneValue<T>& other) const {
 		return this->value == other.value;
@@ -32,32 +37,52 @@ public:
 };
 
 // 軸速度Value
-class CSignal : public CCraneValue<INT16> {
+class CBitSignal : public CCraneValue<INT16> {
+private:
+	INT16 ibuf;		//バッファのインデックス
+	INT16 bit_mask;	//ビット位置マスク
+
 public:
-	CSignal() {}
-	virtual ~CSignal() {}
+	CBitSignal() {
+		ibuf = 0; bit_mask = 0x0000;
+	}
+	virtual ~CBitSignal() {}
+
+	void out_bit(INT16* pwbufi16) {   
+		if (value)	*(pwbufi16 + ibuf) |= bit_mask;
+		else		*(pwbufi16 + ibuf) &= ~bit_mask;
+		return; 
+	};
+
+	INT16 read_bit(INT16* prbufi16) {
+		INT16 val = *(prbufi16 + ibuf) &= bit_mask;
+		if (val) set(L_ON); 
+		else     set(L_OFF);
+		return value;
+	}
+
+	HRESULT set_bit_addr(INT16 _ibuf, INT16 _bit_mask) {
+		ibuf=_ibuf;	bit_mask = _bit_mask;
+		return S_OK;
+	}
 };
 
 class CCraneV : public CCraneValue<double> {
 private:
-	ST_CRANE_V_SPEC st_spec;
 	INT16 n_notch;							//ノッチ数
 	double tbl_notch_v_ref[N_NOTCH_MAX];	//指令出力時のノッチ速度
 	double tbl_notch_v_fb[N_NOTCH_MAX];		//FBノッチ換算時の速度
 
 public:
 	INT16 notch_mode;//ノッチモード
-	CCraneV(LPST_CRANE_V_SPEC pst_spec, INT16 _n_notch) {
-		st_spec = *pst_spec;
+	CCraneV(INT16 _n_notch) {
 		n_notch = _n_notch;
 	}
 	virtual ~CCraneV() {}
 	HRESULT set_notch_mode(INT16 mode) {
 		notch_mode = mode;
 		for (int i = 0; i < N_NOTCH_MAX; i++) {
-			tbl_notch_v_ref[i] = st_spec.v100 * st_spec.norm_notch[mode][i];
-			//ノッチ判定値は、上ノッチ指令との平均;
-			tbl_notch_v_fb[i] = 0.5 * st_spec.v100 * (st_spec.norm_notch[mode][i] + st_spec.norm_notch[mode][i+1]);
+
 		}
 		return S_OK;
 	}

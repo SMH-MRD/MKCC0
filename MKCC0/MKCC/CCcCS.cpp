@@ -14,6 +14,8 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
+extern CCraneBase* pCrane;
+
 //ソケット
 static CSockUDP* pUSockOte;	//ユニキャストOTE通信受信用
 static CSockUDP* pMSockOte;	//マルチキャストOTE通信受信用
@@ -520,12 +522,6 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 					st_mon2.wo_mpc << L"[BODY P" << st_mon2.ipage_mpc << L"]" << L"\n";
 					st_mon2.wo_mote << L"[BODY P" << st_mon2.ipage_mot << L"]" << L"\n";
-
-
-
-
-
-
 
 					st_mon2.wo_mpc << L"[BODY P"<< st_mon2.ipage_mpc <<L"]" << L"\n";
 					st_mon2.wo_mote<< L"[BODY P"<< st_mon2.ipage_mot <<L"]" << L"\n";

@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "AUXEQ_DEF.H"
 #include "CCraneLib.H"
+#include "CFaults.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -17,6 +18,7 @@ extern CSharedMem* pOteInfObj;
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
 extern ST_DEVICE_CODE g_my_code;
+extern CCraneBase* pCrane;
 
 ST_ENV_MON1 CCcEnv::st_mon1;
 ST_ENV_MON2 CCcEnv::st_mon2;
@@ -61,7 +63,6 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return hr;
 	}
-
 
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -120,7 +121,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	set_item_chk_txt();
 	set_panel_tip_txt();
 	
-	//モニタ2 CB状態セット	
+	//モニタ2選択CB状態セット	
 	if (st_mon2.hwnd_mon != NULL)
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
 	else

@@ -1,6 +1,6 @@
 #pragma once
 
-#define _DEBUG_PC0
+//#define _DEBUG_PC0
 
 /**********************************************************************************************************/
 //アドレス定義
@@ -13,11 +13,11 @@
 #define DEFAULT_MY_PORT				10050
 
 //@ CRANE-------------------------------------------------------------------------------------
-#define OTE_IF_CRANE_IP_PC0			"192.168.2.106"		//PC単体デバッグ用
+#define OTE_IF_CRANE_IP_PC0			"192.168.100.111"	//PC単体デバッグ用
 #define OTE_IF_CRANE_IP_H6R602		"192.168.100.100"	//みらい（デフォルト）
-#define OTE_IF_CRANE_IP_HHGH29		"192.168.100.110"	//今造多度津JC70t(102号)
-#define OTE_IF_CRANE_IP_HHGQ18		"192.168.100.111"	//今造多度津JC300t(10号)
-#define OTE_IF_CRANE_IP_HHFR22		"192.168.100.112"	//今造丸亀GC1300t(1号)
+#define OTE_IF_CRANE_IP_HHGH29		"192.168.100.100"	//今造多度津JC70t(102号)
+#define OTE_IF_CRANE_IP_HHGQ18		"192.168.100.121"	//今造多度津JC300t(10号)
+#define OTE_IF_CRANE_IP_HHFR22		"192.168.100.122"	//今造丸亀GC1300t(1号)
 //@ OTE---------------------------------------------------------------------------------------
 #ifndef _DEBUG_PC0
 #define OTE_IF_UNI_IP_PC			OTE_IF_CRANE_IP_H6R602 	//PCのOTE UNICAST　IF用IP	（受信,送信）

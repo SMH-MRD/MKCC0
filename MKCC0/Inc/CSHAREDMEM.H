@@ -9,6 +9,7 @@
 #include "PLC_DEF.h"
 #include "CVector3.h"
 #include <dinput.h>
+#include "CCraneLib.h"
 
 using namespace std;
 
@@ -218,30 +219,37 @@ typedef struct _ST_CC_ENV_INF {
 
 //## PLC IO定義構造体　PLC通信の情報　
 #pragma region PLC IO
+
+typedef struct _ST_CC_AXIS_STAT {
+	double	v_fb;					//速度FB
+	double	v_fb_rpm;				//速度FB rpm
+	INT16	v_fb_notch;				//速度FB ノッチ表現
+	INT16	v_com_notch;			//速度指令 ノッチ表現
+	double	v_com_pc;				//PLCへの速度指令生値
+	double	nv_ref;					//PLCのINVへの速度指令出力
+	double	nv_tg;					//PLC目標速度
+	double	trq_fb_01per;			//トルクFB
+	double	pos;					//位置FB
+	double  load;					//負荷,荷重
+	INT16	brk;					//ブレーキ状態FB 0閉
+	INT16	notch_auto;				//AGENT指令のノッチ位置
+	INT32 endlim;					//極限センサ状態
+} ST_CC_AXIS_STAT, * LPST_CC_AXIS_STAT;
+
 typedef struct _ST_CC_PLC_IO {
-	INT32 mode;
+	INT32 mode;					//リモートモード
 	INT32 healthy_cnt;
-	double	v_fb[MOTION_ID_MAX];					//速度FB
-	double	v_fb_rpm[MOTION_ID_MAX];				//速度FB rpm
-	INT16	v_fb_notch[MOTION_ID_MAX];				//速度FB ノッチ表現
-	INT16	v_com_notch[MOTION_ID_MAX];				//速度指令 ノッチ表現
-	double	v_com_pc[MOTION_ID_MAX];				//PLCへの速度指令生値
-	double	nv_ref[MOTION_ID_MAX];					//PLCのINVへの速度指令出力
-	double	nv_tg[MOTION_ID_MAX];					//PLC目標速度
-	double	trq_fb_01per[MOTION_ID_MAX];			//トルクFB
-	double	pos[MOTION_ID_MAX];						//位置FB
+	INT32 ctrl_source;			//主幹状態
+	ST_CC_AXIS_STAT stat_mh;
+	ST_CC_AXIS_STAT stat_bh;
+	ST_CC_AXIS_STAT stat_sl;
+	ST_CC_AXIS_STAT stat_gt;
+	ST_CC_AXIS_STAT stat_ah;
+
 	double	weight;									//主巻荷重FB
 	double	weight_ah;								//補巻荷重FB
 	double	th_bh;									//起伏角 acos(R/Lm)
 	double	dth_bh;									//起伏角速度
-	double	lmh;									//主巻ロープ長
-	double	lah;									//補巻ロープ長
-
-	INT16 brk[MOTION_ID_MAX];						//ブレーキ状態FB 0閉
-	INT16 notch_auto[MOTION_ID_MAX];				//AGENT指令のノッチ位置
-	INT32 endlim[MOTION_ID_MAX];					//極限センサ状態
-
-	INT32 ctrl_source;								//主幹
 
 	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLCからの読み取り信号生値
 	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLCへの書き込み信号生値
@@ -421,7 +429,9 @@ typedef struct _ST_COMMAND_SET {
 	SYSTEMTIME time_end;
 
 }ST_COMMAND_SET, * LPST_COMMAND_SET;
-#pragma endregion 動作内容定義構造体/****************************************************************************/
+#pragma endregion 動作内容定義構造体
+
+/****************************************************************************/
 //### 運転内容 動作内容の組み合わせで運転内容を実現します
 //		! JOB:From-Toの搬送作業
 #pragma region JOB
@@ -520,24 +530,29 @@ typedef struct _ST_CC_POL_INF {
 #define AG_AXIS_STAT_AUTO_ENABLE		0x100000000	 //自動可
 #define AG_AXIS_STAT_ANTISWAY_ENABLE	0x200000000	 //振れ止め可
 
+typedef struct _ST_CC_AXIS_CTRL {
+	double dist_for_target;
+	int auto_active;
+	int status;
+	int notch_ref;
+	double v_ref;
+}ST_CC_AXIS_CTRL, * LPST_CC_AXIS_CTRL;
+
 typedef struct _ST_CC_AGENT_INF {
-	ST_COMMAND_SET st_as_comset;					//振れ止め用コマンドセット
-	ST_POS_TARGETS auto_pos_target;					//自動目標位置
-	double dist_for_target[MOTION_ID_MAX];			//目標までの距離
+	//プロセス外から参照可能
+	int pc_ctrl_mode;								//PCからの指令で動作させる軸の指定
+	ST_CC_AXIS_CTRL st_mh_ctrl;
+	ST_CC_AXIS_CTRL st_bh_ctrl;
+	ST_CC_AXIS_CTRL st_sl_ctrl;
+	ST_CC_AXIS_CTRL st_gt_ctrl;
+	ST_CC_AXIS_CTRL st_ah_ctrl;
+
+	//プロセス内参照用
+	int command_count;								//コマンドレシピ作成呼び出し回数
 	int auto_on_going;								//実行中の自動種別
 	int antisway_on_going;							//実行中振れ止め
-	int pc_ctrl_mode;								//PCからの指令で動作させる軸の指定
-	int auto_active[MOTION_ID_MAX];					//自動実行中フラグ(軸毎)
-	int axis_status[MOTION_ID_MAX];					//各軸の状態（fb0,異常等）
-
-	INT16 notch_ref[MOTION_ID_MAX] = { 0,0,0,0,0,0,0,0 };	//ノッチ指令値
-	double v_ref[MOTION_ID_MAX];					//速度指令出力値
-
-	ST_COMMAND_SET st_active_com_inf;				//実行中コマンドセット情報
-
-	int as_count[MOTION_ID_MAX];					//振れ止めレシピ作成呼び出し回数
-	int command_count;								//コマンドレシピ作成呼び出し回数
-
+	LPST_COMMAND_SET	st_active_com_inf;			//実行中コマンドセット情報
+	LPST_POS_TARGETS	auto_pos_target;			//自動目標位置
 	LPST_COMMAND_SET    pCom_hot;					//実行中コマンドセット
 	LPST_JOB_SET		pJob_hot;
 
@@ -783,13 +798,13 @@ typedef struct _ST_OTE_CC_IF {
 
 	INT32			id_ote_ope_active = OTE_NON_OPEMODE_ACTIVE;			//ノッチ操作が有効な接続端末ID
 	INT32			id_conected_crane = CRANE_ID_NULL;					//接続中クレーンID
-	INT32			com_status_cc_rcv = CODE_OTE_PC_COM_STAT_SOCK_NG;
-	INT32			com_status_cc_snd = CODE_OTE_PC_COM_STAT_SOCK_NG;
+	INT32			com_status_cc_rcv = CODE_OTE_PC_COM_STAT_SOCK_NG;	//受信ソケット状態
+	INT32			com_status_cc_snd = CODE_OTE_PC_COM_STAT_SOCK_NG;	//受信ソケット状態
 
-	SOCKADDR_IN		addr_in_to_oteu;
-	SOCKADDR_IN		addr_in_from_oteu;
-	SOCKADDR_IN		addr_in_from_pcm;
-	SOCKADDR_IN		addr_in_from_otem;
+	//SOCKADDR_IN		addr_in_to_oteu;
+	//SOCKADDR_IN		addr_in_from_oteu;
+	//SOCKADDR_IN		addr_in_from_pcm;
+	//SOCKADDR_IN		addr_in_from_otem;
 
 	UINT32			ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
 	UINT32			mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
@@ -802,8 +817,11 @@ typedef struct _ST_OTE_CC_IF {
 #pragma region OTE_UI
 typedef struct _ST_OTE_UI {
 	UINT16 ctrl_stat[N_OTE_PNL_CTRL];			
-	UINT16 notch_pb[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];
-
+	UINT16 notch_pb_mh[N_OTE_PNL_NOTCH_PBL];
+	UINT16 notch_pb_bh[N_OTE_PNL_NOTCH_PBL];
+	UINT16 notch_pb_sl[N_OTE_PNL_NOTCH_PBL];
+	UINT16 notch_pb_gt[N_OTE_PNL_NOTCH_PBL];
+	UINT16 notch_pb_ah[N_OTE_PNL_NOTCH_PBL];
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 

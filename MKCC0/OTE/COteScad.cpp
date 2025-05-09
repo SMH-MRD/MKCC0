@@ -140,8 +140,6 @@ void COteScad::set_panel_io() {
 		st_work.ctrl_stat[OTE_PNL_CTRLS::ctrl_src] = pPanelBase->pobjs->pb_csource->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::remote_mode] = pPanelBase->pobjs->pb_remote->get();
 	}
-
-
 	return;
 }
 

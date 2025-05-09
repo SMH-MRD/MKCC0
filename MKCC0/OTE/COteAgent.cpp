@@ -228,7 +228,9 @@ int COteAgent::close() {
 
 int COteAgent::output() {          //出力処理
 	//共有メモリ出力処理
-	memcpy_s(pOteCCIf, sizeof(ST_OTE_CC_IF), &st_work, sizeof(ST_OTE_CC_IF));
+	//CC通信送信バッファセット
+	memcpy_s(&(pOteCCIf->st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG), &(st_work.st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG));
+	memcpy_s(&(pOteCCIf->st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG), &(st_work.st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG));
 	
 	return STAT_OK;
 }

@@ -7,15 +7,15 @@
 /// </summary>
 /******************************************************************************************/
 
-#define CC_MC_ADDR_W_READ	    10400
-#define CC_MC_SIZE_W_READ	    128
-#define CC_MC_ADDR_W_WRITE	    10200
-#define CC_MC_SIZE_W_WRITE	    128
+#define CC_MC_ADDR_W_READ				10400
+#define CC_MC_SIZE_W_READ				128
+#define CC_MC_ADDR_W_WRITE				10200
+#define CC_MC_SIZE_W_WRITE				128
 
-#define OTE_MC_ADDR_W_READ	    10350
-#define OTE_MC_SIZE_W_READ	    50
-#define OTE_MC_ADDR_W_WRITE	    10550
-#define OTE_MC_SIZE_W_WRITE	    50
+#define OTE_MC_ADDR_W_READ				10350
+#define OTE_MC_SIZE_W_READ				50
+#define OTE_MC_ADDR_W_WRITE				10550
+#define OTE_MC_SIZE_W_WRITE				50
 
 #define PLC_IF_REMOTE_OFF_MODE		    0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）
 #define PLC_IF_RMT_MODE_0			    0x00000001		//遠隔運転モード（PCからの出力有効　通常運用モード）
@@ -119,13 +119,3 @@
 #define PLC_IF_CCID_MH1             4
 #define PLC_IF_CCID_MH2             5
 
-//ノッチビットパターン
-#define PTN_NOTCH_0			0x0001
-#define PTN_NOTCH_F1		0x0002
-#define PTN_NOTCH_F2		0x000A
-#define PTN_NOTCH_F3		0x001A
-#define PTN_NOTCH_F4		0x003A
-#define PTN_NOTCH_R1		0x0004
-#define PTN_NOTCH_R2		0x000C
-#define PTN_NOTCH_R3		0x001C
-#define PTN_NOTCH_R4		0x003C
