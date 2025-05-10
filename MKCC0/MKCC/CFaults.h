@@ -48,9 +48,15 @@ class CFaults
 private:
 	INT16* pbuf;	//情報が含まれているバッファのアドレス
 	int crane_id;
+	INT16* prbuf;		//PLCからの読み取りバッファアドレス
+	INT16* pwbuf;		//PLCへの書き込みバッファアドレス
+	INT16* prfltbuf;	//PLCからの故障ビットバッファアドレス
+	INT16* pwfltbuf;	//PLCへの故障ビットバッファアドレス
 public:
-	CFaults(int _crane_id) {
+	CFaults(int _crane_id,INT16* _prbuf,INT16* _pwbuf) {
 		crane_id = _crane_id;
+		prbuf = _prbuf;
+		pwbuf = _pwbuf;
 		setup(crane_id);
 	}
 	virtual ~CFaults() {
@@ -63,23 +69,23 @@ public:
 	void set_faults_bits_buf(INT16* pbufi16) {
 		pbuf = pbufi16; return;
 	}
-	INT16* get_pfault() { return pbuf; }
+	UINT16* get_pfault() { return (UINT16*)pbuf; }
 
 	int get_id() { return crane_id; };
 	int setup(int crane_id); 
 
-	INT16 fault_bits[N_ALL_FAULT_BUF];				//検出中フォルトビット列
-	INT16 faults_trig_on[N_ALL_FAULT_BUF];			//発生フォルトビット列
-	INT16 faults_trig_off[N_ALL_FAULT_BUF];			//解消フォルトビット列
+	UINT16 fault_bits[N_ALL_FAULT_BUF];				//検出中フォルトビット列
+	UINT16 faults_trig_on[N_ALL_FAULT_BUF];			//発生フォルトビット列   
+	UINT16 faults_trig_off[N_ALL_FAULT_BUF];			//解消フォルトビット列
 
-	INT16 faults_disp[N_ALL_FAULT_BUF];				//
+	UINT16 faults_disp[N_ALL_FAULT_BUF];				//
 
 	int chk_flt_trig();
 
-	INT16 is_heavy_detect();//戻り値は、最初に検出されたフォルトのコード
-	INT16 is_light_detect();//戻り値は、最初に検出されたフォルトのコード
-	INT16 is_remote_detect();//戻り値は、最初に検出されたフォルトのコード
-	INT16 is_auto_detect();//戻り値は、最初に検出されたフォルトのコード
+	UINT16 is_heavy_detect();//戻り値は、最初に検出されたフォルトのコード
+	UINT16 is_light_detect();//戻り値は、最初に検出されたフォルトのコード
+	UINT16 is_remote_detect();//戻り値は、最初に検出されたフォルトのコード
+	UINT16 is_auto_detect();//戻り値は、最初に検出されたフォルトのコード
 
 };
 

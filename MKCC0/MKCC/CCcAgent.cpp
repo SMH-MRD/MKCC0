@@ -1,7 +1,7 @@
 #include "CMCProtocol.h"
 #include "CCcAgent.h"
 #include "resource.h"
-#include "CCraneLib.h"
+#include "CCrane.h"
 #include "COpePanelLib.h"
 #include "CSpec.h"
 
@@ -14,7 +14,7 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
-extern CCraneBase* pCrane;
+extern CCrane* pCrane;
 
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
@@ -38,8 +38,6 @@ static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w,res_delay_max_r;	//PLC応答時間
 
-
-static CCraneBase* pCrane;
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化

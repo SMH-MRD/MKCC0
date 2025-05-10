@@ -1,9 +1,10 @@
 
-#include ".\lib\CSockLib.H"
+#include "CSockLib.H"
 #include "CCcCS.h"
 #include "resource.h"
 #include "framework.h"
 #include "OTE_DEF.H"
+#include "CCrane.H"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -14,7 +15,7 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
-extern CCraneBase* pCrane;
+extern CCrane* pCrane;
 
 //ソケット
 static CSockUDP* pUSockOte;	//ユニキャストOTE通信受信用
@@ -183,7 +184,7 @@ int CCcCS::parse() {
 }
 int CCcCS::output() {          //出力処理
 	//共有メモリ出力処理
-	memcpy_s(pCS_Inf, sizeof(ST_CC_CS_INF), &st_cs_work, sizeof(ST_CC_CS_INF));
+	memcpy_s(&(pCS_Inf->cs_ctrl), sizeof(ST_CC_CS_CTRL), &st_cs_work.cs_ctrl, sizeof(ST_CC_CS_CTRL));
 	//memcpy_s(pOTE_Inf, sizeof(ST_CC_OTE_INF), &st_ote_work, sizeof(ST_CC_OTE_INF));
 
 	return STAT_OK;
@@ -499,9 +500,9 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_mpc.str(L""); st_mon2.wo_mote.str(L"");
 			if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
 				if (st_mon2.is_body_disp_mode) {
-					LPST_OTE_U_BODY pb0 = &st_ote_work.st_msg_ote_u_rcv.body.st;
-					LPST_PC_M_BODY	pb1 = &st_ote_work.st_msg_pc_m_rcv.body.st;
-					LPST_OTE_M_BODY pb2 = &st_ote_work.st_msg_ote_m_rcv.body.st;
+					LPST_OTE_U_BODY pb0 = &pOTE_Inf->st_msg_ote_u_rcv.body.st;
+					LPST_PC_M_BODY	pb1 = &pOTE_Inf->st_msg_pc_m_rcv.body.st;
+					LPST_OTE_M_BODY pb2 = &pOTE_Inf->st_msg_ote_m_rcv.body.st;
 
 					st_mon2.wo_uni << L"[BODY P"<< st_mon2.ipage_uni <<L"]" ;
 
@@ -527,9 +528,9 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					st_mon2.wo_mote<< L"[BODY P"<< st_mon2.ipage_mot <<L"]" << L"\n";
 				}
 				else {
-					LPST_OTE_HEAD ph0 = &st_ote_work.st_msg_ote_u_rcv.head;
-					LPST_OTE_HEAD ph1 = &st_ote_work.st_msg_pc_m_rcv.head;
-					LPST_OTE_HEAD ph2 = &st_ote_work.st_msg_ote_m_rcv.head;
+					LPST_OTE_HEAD ph0 = &pOTE_Inf->st_msg_ote_u_rcv.head;
+					LPST_OTE_HEAD ph1 = &pOTE_Inf->st_msg_pc_m_rcv.head;
+					LPST_OTE_HEAD ph2 = &pOTE_Inf->st_msg_ote_m_rcv.head;
 					st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option 
 								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port)<<L"\n"
 								<< L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
@@ -574,7 +575,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (nEvent) {
 		case FD_READ: {
 			//OTEからのユニキャストメッセージ受信
-			if(rcv_uni_ote(&st_ote_work.st_msg_ote_u_rcv) == S_OK){
+			if(rcv_uni_ote(&pOTE_Inf->st_msg_ote_u_rcv) == S_OK){
 				//折り返しアンサバック 送信元へ返送
 				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
 				pUSockOte->addr_in_dst.sin_family = AF_INET;

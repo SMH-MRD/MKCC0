@@ -67,7 +67,7 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   erm_bo[8];          // D10415:電気室PLC b出力
 	INT32   pos[4];             // D10423:各軸位置信号
 	INT16   spd_tg[6];          // D10431:各軸指令速度目標
-	INT16   plc_fault[17];      // D10437:故障信号
+	INT16   plc_fault[18];      // D10437:故障信号
 	INT16   erm_y[5];           // D10454:電気室PLC Y出力
 	INT16   erm_x[7];           // D10459:電気室PLC X入力
 	INT16   inv_cc_y[6];        //インバータPLC DO指令
@@ -75,7 +75,6 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   inv_cc_Ww1[6];      //インバータPLC 速度指令　rpm
 	INT16   inv_cc_Wr1[6];      //インバータFB書き込み値　rpm
 	INT16   inv_cc_Wr2[6];      //インバータFB書き込み値　トルク0.1%
-	INT16   spare1[3];          //予備
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
 union UN_PLC_RBUF {
@@ -105,44 +104,84 @@ union UN_PLC_WBUF {
 #define CODE_PLCIO_WORD		0
 #define CODE_PLCIO_BIT		1
 #define CODE_PLCIO_DWORD	2
-#define CODE_PLCIO_UNIT		3 //NOTCH CS等
-#define CODE_PLCIO_FAULT	4 //故障
+#define CODE_PLCIO_FLOAT	3 
+#define CODE_PLCIO_DOUBLE	4 
+#define CODE_PLCIO_BITS		5 //NOTCH CS等
+
+union UN_IF_VALUE {
+	INT16 i16;
+	INT32 i32;
+	double d;
+	float f;
+};
 
 typedef struct _ST_PLC_IO_DEF {
-	INT16   i;		//情報が含まれているバッファのインデックス
-	INT16	mask;
-	INT16	type;
-	INT16	prm;	//ノッチ,CS：ビットシフト数,　Fault：バッファサイズ
+	INT16*	pi16;	//信号が入っているバッファのアドレス
+	INT16	mask;	//信号抽出用マスク;
+	INT16	type;	//
+	INT16	lp;		//パラメータLow		:ノッチ,CS：ビットシフト数,　Fault：バッファサイズ
+	INT16   hp;		//パラメータHIGH	:
 }ST_PLC_IO_DEF, * LPST_PLC_IO_DEF;
 
-typedef struct _ST_PLC_IO_RDEF {
+typedef struct _ST_PLC_IO_RIF {
+	ST_PLC_IO_DEF syukan_on;
+	ST_PLC_IO_DEF syukan_off;
+	ST_PLC_IO_DEF mh_spd_cs;
+	ST_PLC_IO_DEF bh_mode_cs;
+	ST_PLC_IO_DEF gt_notch;
+	ST_PLC_IO_DEF mh_notch;
+	ST_PLC_IO_DEF alarm_stp_pb;
+	ST_PLC_IO_DEF fault_reset_pb;
+	ST_PLC_IO_DEF bypass_pb;
+	ST_PLC_IO_DEF mlim_warn_1;//90%以上予報
+	ST_PLC_IO_DEF mlim_warn_2;//100%以以下警報
+	ST_PLC_IO_DEF mlim_warn_err;
+	ST_PLC_IO_DEF mlim_high_enable;
+	ST_PLC_IO_DEF wind_over16;
 	ST_PLC_IO_DEF estop;
-	ST_PLC_IO_DEF csource;
-	ST_PLC_IO_DEF faults;
-}ST_PLC_IO_RDEF, * LPST_PLC_IO_RDEF;
+	ST_PLC_IO_DEF bh_notch;
+	ST_PLC_IO_DEF sl_notch;
+	ST_PLC_IO_DEF sl_brake;
+}ST_PLC_IO_RIF, * LPST_PLC_IO_RIF;
 
-typedef struct _ST_PLC_IO_WDEF {
+typedef struct _ST_PLC_IO_WIF {
+	ST_PLC_IO_DEF syukan_on;
+	ST_PLC_IO_DEF syukan_off;
+	ST_PLC_IO_DEF mh_spd_cs;
+	ST_PLC_IO_DEF bh_mode_cs;
+	ST_PLC_IO_DEF gt_notch;
+	ST_PLC_IO_DEF mh_notch;
+	ST_PLC_IO_DEF alarm_stp_pb;
+	ST_PLC_IO_DEF fault_reset_pb;
+	ST_PLC_IO_DEF bypass_pb;
 	ST_PLC_IO_DEF estop;
-	ST_PLC_IO_DEF csource;
-	ST_PLC_IO_DEF faults;
-}ST_PLC_IO_WDEF, * LPST_PLC_IO_WDEF;
+	ST_PLC_IO_DEF bh_notch;
+	ST_PLC_IO_DEF sl_notch;
+}ST_PLC_IO_WIF, * LPST_PLC_IO_WIF;
 
 class CPlc
 {
-	private:
+private:
 	int crane_id;
+	INT16* pbuf_r;
+	INT16* pbuf_w;
 
 public:
-	CPlc(int _crane_id) {
+	CPlc(int _crane_id, INT16* _pbuf_r, INT16* _pbuf_w) {
 		crane_id = _crane_id;
+		pbuf_r = _pbuf_r;
+		pbuf_w = _pbuf_w;
 		setup(crane_id);
 	};
 	virtual ~CPlc() {};
 
-	static ST_PLC_IO_RDEF plc_io_rdef;
-	static ST_PLC_IO_WDEF plc_io_wdef;
+	static ST_PLC_IO_RIF plc_io_rif;
+	static ST_PLC_IO_WIF plc_io_wif;
 
 	int setup(int cran_id);
+
+	UN_IF_VALUE rval(ST_PLC_IO_DEF st_r_def);
+	HRESULT wval(ST_PLC_IO_DEF st_w_def, UN_IF_VALUE val);
 
 };
 

@@ -563,23 +563,25 @@ typedef struct _ST_CC_AGENT_INF {
 //#	ClientService
 //## CS状態定義構造体
 #pragma region CSInfo_CC
-typedef struct _ST_CC_CS_INF {
-	//自動,遠隔設定（モード）
+
+typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_mode;														//自動モード
 	INT32		antisway_mode;													//振れ止めモード
 	INT32		auto_status[MOTION_ID_MAX];
 	INT32		ote_remote_status;												//操作端末の状態　0bit：端末信号有効
-
 	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
+}ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
 
+typedef struct _ST_CC_CS_INF {
+	//自動,遠隔設定（モード）
+	ST_CC_CS_CTRL cs_ctrl;												
+	//OTE関連
 	double ote_camera_height_m;													//操作端末VIEWのカメラ設置高さ
-
-	//UI関連
 	ST_OTE_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];								//端末ランプ表示指令
 	ST_OTE_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//端末ノッチランプ表示指令
+	INT16	notch_pos[2][MOTION_ID_MAX];										//ノッチ指定値
 
-	INT16	notch_pos[2][MOTION_ID_MAX];								//ノッチ指定値
-
+	//JOB関連
 	int command_type;													//PARK,PICK,GRND
 	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
 	//int target_set_z = CS_SEMIAUTO_TG_SEL_FIXED, target_set_xy = CS_SEMIAUTO_TG_SEL_FIXED;		//Z座標目標位置確定

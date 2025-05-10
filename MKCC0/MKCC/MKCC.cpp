@@ -5,7 +5,7 @@
 
 #include "CBasicControl.h"
 #include "CSharedMem.h"	    //共有メモリクラス
-#include ".\lib\CCraneLib.h"	    //クレーンオブジェクトクラス
+#include "CCrane.h"	        //クレーンオブジェクトクラス
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "CCcEnv.h"
@@ -14,6 +14,7 @@
 #include "CCcPol.h"
 #include "CCcAgent.h"
 #include "CCcSim.h"
+
 
 #define MAX_LOADSTRING 100
 
@@ -35,7 +36,7 @@ CSharedMem* pCsInfObj;
 CSharedMem* pSimuStatObj;
 CSharedMem* pOteInfObj;
 
-CCraneBase* pCrane;
+CCrane* pCrane;
 ST_DEVICE_CODE g_my_code;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
@@ -186,8 +187,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pOteInfObj->create_smem(      SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),  MUTEX_OTE_INF_NAME)) return(FALSE);
   
    //  クレーンオブジェクトセットアップ
+
    LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
-   pCrane = new CCraneBase(CARNE_ID_HHGH29);
+   pCrane = new CCrane(CARNE_ID_HHGH29,pPlcIo->buf_io_read,pPlcIo->buf_io_write);
+   LPST_PLC_IO_RIF pbuf = pCrane->get_plc_rif();
  
    //デバイスコードセット
    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);

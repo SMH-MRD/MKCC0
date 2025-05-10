@@ -70,7 +70,9 @@ int COteAgent::setup_crane_if(int crane_id) {
 	pMSockOte = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_OTE_MUL);
 
 	switch (crane_id) {
-	case CRANE_ID_H6R602: {
+	case CARNE_ID_HHGH29:
+	case CRANE_ID_H6R602: 
+	{
 		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
 		pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_OTE);
 		pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
@@ -82,7 +84,6 @@ int COteAgent::setup_crane_if(int crane_id) {
 		pMSockPC->set_sock_addr(&addrin_ote_m2ote_snd, OTE_IF_MULTI_IP_OTE, OTE_IF_MULTI_PORT_OTE2OTE);//送信先アドレス
 	}break;
 	case CARNE_ID_PC0: 
-	case CARNE_ID_HHGH29: 
 	case CARNE_ID_HHGQ18: 
 	case CARNE_ID_HHFR22: 
 	default: {
@@ -392,7 +393,7 @@ HRESULT COteAgent::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// OTEユニキャスト電文送信処理 
 /// </summary>
 LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
-
+		
 	st_work.st_msg_ote_u_snd.head.myid = pOteEnvInf->device_code;
 	st_work.st_msg_ote_u_snd.head.addr = pUSockPC->addr_in_rcv;
 	st_work.st_msg_ote_u_snd.head.code = code;
@@ -823,7 +824,7 @@ void COteAgent::update_sock_stat() {
 			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_RCV_ERR;
 		else;
 	}
-	else if (sock_stat == CSOCK_STAT_CLOSED)			st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_CLOSED;
+	else if (sock_stat == CSOCK_STAT_CLOSED)	st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_CLOSED;
 	else if (sock_stat == CSOCK_STAT_INIT)		st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_INIT;
 	else if (sock_stat == CSOCK_STAT_INIT_ERROR)st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_INIT_ERROR;
 	else; 

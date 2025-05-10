@@ -3,7 +3,7 @@
 #include "resource.h"
 #include "framework.h"
 #include "AUXEQ_DEF.H"
-#include "CCraneLib.H"
+#include "CCrane.H"
 #include "CFaults.h"
 
 extern CSharedMem* pEnvInfObj;
@@ -18,7 +18,7 @@ extern CSharedMem* pOteInfObj;
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
 extern ST_DEVICE_CODE g_my_code;
-extern CCraneBase* pCrane;
+extern CCrane* pCrane;
 
 ST_ENV_MON1 CCcEnv::st_mon1;
 ST_ENV_MON2 CCcEnv::st_mon2;
@@ -280,7 +280,7 @@ LRESULT CALLBACK CCcEnv::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					hWnd, (HMENU)(ENV_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 
-		UINT rtn = SetTimer(hWnd, ENV_ID_MON2_TIMER, ENV_PRM_MON2_TIMER_MS, NULL);
+		UINT_PTR rtn = SetTimer(hWnd, ENV_ID_MON2_TIMER, ENV_PRM_MON2_TIMER_MS, NULL);
 		break;
 
 	}
