@@ -169,8 +169,8 @@ private:
 public:
 	CPlc(int _crane_id, INT16* _pbuf_r, INT16* _pbuf_w) {
 		crane_id = _crane_id;
-		pbuf_r = _pbuf_r;
-		pbuf_w = _pbuf_w;
+		set_rbuf(_pbuf_r);
+		set_wbuf(_pbuf_w);
 		setup(crane_id);
 	};
 	virtual ~CPlc() {};
@@ -178,10 +178,20 @@ public:
 	static ST_PLC_IO_RIF plc_io_rif;
 	static ST_PLC_IO_WIF plc_io_wif;
 
+	void set_rbuf(INT16* _pbuf_r) {
+		pbuf_r = _pbuf_r;
+	};
+	void set_wbuf(INT16* _pbuf_w) {
+		pbuf_w = _pbuf_w;
+	};
+
 	int setup(int cran_id);
 
 	UN_IF_VALUE rval(ST_PLC_IO_DEF st_r_def);
-	HRESULT wval(ST_PLC_IO_DEF st_w_def, UN_IF_VALUE val);
+	HRESULT wval(ST_PLC_IO_DEF st_w_def, INT16 val);
+	HRESULT wval(ST_PLC_IO_DEF st_w_def, double val);
+	HRESULT wval(ST_PLC_IO_DEF st_w_def, float val);
+	HRESULT wval(ST_PLC_IO_DEF st_w_def, INT32 val);
 
 };
 

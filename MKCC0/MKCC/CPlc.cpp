@@ -65,6 +65,8 @@ int CPlc::setup(int crane_id) {
 		plc_io_rif.bh_notch.pi16=plc_io_rif.sl_notch.pi16=plc_io_rif.sl_brake.pi16=p+i;
 
 		//WRITE
+
+		plc_io_wif = plc_io_wdef0;
 		p = pbuf_w;
 		i = 6;
 		plc_io_wif.syukan_on.pi16 = plc_io_wif.syukan_off.pi16 = plc_io_wif.mh_spd_cs.pi16 = plc_io_wif.bh_mode_cs.pi16 = plc_io_wif.gt_notch.pi16 = p + i;
@@ -135,34 +137,128 @@ UN_IF_VALUE CPlc::rval(ST_PLC_IO_DEF st_r_def) {
 /// <param name="st_w_def"></param>
 /// <param name="val"></param>
 /// <returns></returns>
-HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, UN_IF_VALUE uval) {
+HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, INT16 val) {
 
 	INT16 type = st_w_def.type;
 
 	switch (type) {
 	case CODE_PLCIO_BIT: {
-		if (uval.i16) *(st_w_def.pi16) |= st_w_def.mask;
-		else		  *(st_w_def.pi16) &= ~st_w_def.mask;
+		if (val) *(st_w_def.pi16) |= st_w_def.mask;
+		else	 *(st_w_def.pi16) &= ~st_w_def.mask;
 	}break;
 	case CODE_PLCIO_WORD: {
-		*(st_w_def.pi16) = uval.i16;
+		*(st_w_def.pi16) = val;
 	}break;
 	case CODE_PLCIO_DWORD: {
-		*((INT32*)(st_w_def.pi16)) = uval.i32;
+		*((INT32*)(st_w_def.pi16)) = val;
 	}break;
 	case CODE_PLCIO_BITS: {
-		INT16 val16 = uval.i16;
+		INT16 val16 = val;
 		val16 = val16 << st_w_def.lp;
 		*(st_w_def.pi16) &= ~st_w_def.mask;		
 		*(st_w_def.pi16) |= val16;
 	}break;
 	case CODE_PLCIO_FLOAT: {
-		*((float*)st_w_def.pi16) = uval.f ;
+		*((float*)st_w_def.pi16) = (float)val ;
 	}break;
 	case CODE_PLCIO_DOUBLE: {
-		*((double*)(st_w_def.pi16)) = uval.d ;
+		*((double*)(st_w_def.pi16)) = (double)val;
 	}break;
-	default:uval.i32 = 0; break;
+	default:*(st_w_def.pi16) = 0; break;
+	}
+	return S_OK;
+}
+
+HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, INT32 val) {
+
+	INT16 type = st_w_def.type;
+
+	switch (type) {
+	case CODE_PLCIO_BIT: {
+		if (val) *(st_w_def.pi16) |= st_w_def.mask;
+		else	 *(st_w_def.pi16) &= ~st_w_def.mask;
+	}break;
+	case CODE_PLCIO_WORD: {
+		*(st_w_def.pi16) = (INT16)val;
+	}break;
+	case CODE_PLCIO_DWORD: {
+		*((INT32*)(st_w_def.pi16)) = val;
+	}break;
+	case CODE_PLCIO_BITS: {
+		INT16 val16 = (INT16)val;
+		val16 = val16 << st_w_def.lp;
+		*(st_w_def.pi16) &= ~st_w_def.mask;
+		*(st_w_def.pi16) |= val16;
+	}break;
+	case CODE_PLCIO_FLOAT: {
+		*((float*)st_w_def.pi16) = (float)val;
+	}break;
+	case CODE_PLCIO_DOUBLE: {
+		*((double*)(st_w_def.pi16)) = (double)val;
+	}break;
+	default: *((INT32*)(st_w_def.pi16)) = 0; break;
+	}
+	return S_OK;
+}
+
+HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, float val) {
+
+	INT16 type = st_w_def.type;
+
+	switch (type) {
+	case CODE_PLCIO_BIT: {
+		if (val) *(st_w_def.pi16) |= st_w_def.mask;
+		else	 *(st_w_def.pi16) &= ~st_w_def.mask;
+	}break;
+	case CODE_PLCIO_WORD: {
+		*(st_w_def.pi16) = (INT16)val;
+	}break;
+	case CODE_PLCIO_DWORD: {
+		*((INT32*)(st_w_def.pi16)) = (INT32)val;
+	}break;
+	case CODE_PLCIO_BITS: {
+		INT16 val16 = (INT16)val;
+		val16 = val16 << st_w_def.lp;
+		*(st_w_def.pi16) &= ~st_w_def.mask;
+		*(st_w_def.pi16) |= val16;
+	}break;
+	case CODE_PLCIO_FLOAT: {
+		*((float*)st_w_def.pi16) = val;
+	}break;
+	case CODE_PLCIO_DOUBLE: {
+		*((double*)(st_w_def.pi16)) = (double)val;
+	}break;
+	default: *((float*)(st_w_def.pi16)) = 0.0; break;
+	}
+	return S_OK;
+}
+
+HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, double val) {
+	INT16 type = st_w_def.type;
+	switch (type) {
+	case CODE_PLCIO_BIT: {
+		if (val) *(st_w_def.pi16) |= st_w_def.mask;
+		else	 *(st_w_def.pi16) &= ~st_w_def.mask;
+	}break;
+	case CODE_PLCIO_WORD: {
+		*(st_w_def.pi16) = (INT16)val;
+	}break;
+	case CODE_PLCIO_DWORD: {
+		*((INT32*)(st_w_def.pi16)) = (INT32)val;
+	}break;
+	case CODE_PLCIO_BITS: {
+		INT16 val16 = (INT16)val;
+		val16 = val16 << st_w_def.lp;
+		*(st_w_def.pi16) &= ~st_w_def.mask;
+		*(st_w_def.pi16) |= val16;
+	}break;
+	case CODE_PLCIO_FLOAT: {
+		*((float*)st_w_def.pi16) = (float)val;
+	}break;
+	case CODE_PLCIO_DOUBLE: {
+		*((double*)(st_w_def.pi16)) = val;
+	}break;
+	default: *((double*)(st_w_def.pi16)) = 0.0; break;
 	}
 	return S_OK;
 }

@@ -456,7 +456,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pPanelBase->pobjs->lmp_remote->update();
 		pPanelBase->pobjs->lmp_pad_mode->update();
 
-		//SwitchImg更新
+		//SwitchImg更新(ランプ）
 		if(pOteCCIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV) 
 			pPanelBase->pobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
 		else pPanelBase->pobjs->lmp_pcr->set(pOteCCIf->cc_com_stat_r);

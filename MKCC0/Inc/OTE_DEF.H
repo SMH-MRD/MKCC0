@@ -136,6 +136,12 @@ enum OTE_PNL_CTRLS{
 	remote_mode
 };
 
+enum OTE_PNL_NOTCH {
+	R5 = 0,
+	R4, R3, R2, R1, N0, F1, F2, F3, F4, F5,
+	NOTCH_MAX
+};
+
 //デフォルト
 /******* PCユニキャスト通信BODY構造体 ***********/
 typedef struct PcUBody {//デフォルト
@@ -152,7 +158,7 @@ typedef struct OteUBody {
 	INT32		ope_mode;														//操作モード（自動/手動/ビギナー）
 	INT32		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）
 	INT32		opt_device_status;												//オプションデバイスモード
-	INT16		ctrl_ope[N_OTE_PNL_CTRL];											//操作卓PB入力
+	INT16		ctrl_ope[N_OTE_PNL_CTRL];										//操作卓PB入力
 	INT16		pb_notch[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];			//操作卓ノッチ入力
 	INT16		notch_pos[2][MOTION_ID_MAX];									//ノッチ入力位置
 	UINT32		target_seq_no;													//自動目標位置のシーケンス番号（トリガ検出用）
@@ -164,7 +170,7 @@ typedef struct OteUBody {
 //			ボディ部UNION定義　
 // BODY部の構造体はクレーンタイプに応じて定義して追加　
 //########################################################
-#define OTE_PRM_SIZE_OF_BODY_I16			600
+#define OTE_PRM_SIZE_OF_BODY_I16			600//1200 byte
 union UN_PC_M_BODY {
 	INT16			val[OTE_PRM_SIZE_OF_BODY_I16];
 	ST_PC_M_BODY	st;

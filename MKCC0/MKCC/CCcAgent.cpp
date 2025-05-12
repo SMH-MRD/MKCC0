@@ -2,6 +2,7 @@
 #include "CCcAgent.h"
 #include "resource.h"
 #include "CCrane.h"
+#include "CPlc.h"
 #include "COpePanelLib.h"
 #include "CSpec.h"
 
@@ -31,6 +32,7 @@ static LPST_CC_ENV_INF		pEnv_Inf;
 static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
+static LPST_CC_OTE_INF		pOTE_Inf;
 
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
@@ -62,6 +64,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pEnv_Inf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPLC_IO = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pCS_Inf = (LPST_CC_CS_INF)pCsInfObj->get_pMap();
+	pOTE_Inf = (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 
 	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
 		hr = S_FALSE;
@@ -82,8 +85,6 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		msg2listview(wos.str()); wos.str(L"");
 		return S_FALSE;
 	}
-	//### PLC通信
-	//##インスタンス生成
 
 	//### 初期化
 	wos.str(L"");//初期化
@@ -150,7 +151,22 @@ int CAgent::input() {
 /// 
 /// </summary>
 /// <returns></returns>
+/// 
+
+static PINT16 pOteCtrl = NULL;
+static ST_PLC_IO_WIF* pPlcWIf = NULL;
+
 int CAgent::parse() {//メイン処理
+	if ((pOTE_Inf == NULL)||(pCrane == NULL))
+		return S_FALSE;
+	if (pOteCtrl == NULL || (pPlcWIf == NULL)) {
+		pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.ctrl_ope;
+		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
+	}
+
+	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::ctrl_src]);
+	pCrane->pPlc->wval(pPlcWIf->estop, pOteCtrl[OTE_PNL_CTRLS::estop]);
+
 	return S_OK;
 }
 
@@ -165,7 +181,8 @@ int CAgent::output() {
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
 	//PLC IO送信データ出力
-	memcpy_s(pPLC_IO->buf_io_write,sizeof(pPLC_IO->buf_io_write),&st_work_plcio.buf_io_write, sizeof(pPLC_IO->buf_io_write));
+	//!!! 共有メモリに設定後、送信バッファにコピー
+	memcpy_s(&st_work_plcio.buf_io_write,sizeof(pPLC_IO->buf_io_write),pPLC_IO->buf_io_write, sizeof(pPLC_IO->buf_io_write));
 
 	return S_OK;
 }
