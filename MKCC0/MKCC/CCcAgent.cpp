@@ -155,14 +155,21 @@ int CAgent::input() {
 
 static PINT16 pOteCtrl = NULL;
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
+static INT16 pc_healthy=0;
+static INT16 plc_healthy = 0;
 
 int CAgent::parse() {//ƒƒCƒ“ˆ—
-	if ((pOTE_Inf == NULL)||(pCrane == NULL))
+
+	pc_healthy++;
+
+	if ((pOTE_Inf == NULL)||(pCrane== NULL))
 		return S_FALSE;
 	if (pOteCtrl == NULL || (pPlcWIf == NULL)) {
 		pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.ctrl_ope;
 		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
 	}
+
+	pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);
 
 	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::ctrl_src]);
 	pCrane->pPlc->wval(pPlcWIf->estop, pOteCtrl[OTE_PNL_CTRLS::estop]);

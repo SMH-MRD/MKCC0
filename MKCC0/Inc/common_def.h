@@ -268,6 +268,7 @@ typedef struct _ST_XYZ {
 #define BIT13       0x2000
 #define BIT14       0x4000
 #define BIT15       0x8000
+#define BITFF       0xFFFF
 #pragma endregion ビット定義
 
 #pragma region AXIS_MASK

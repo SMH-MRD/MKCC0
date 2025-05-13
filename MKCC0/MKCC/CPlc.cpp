@@ -28,6 +28,10 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 
 	//{pi16,mask,type,lp,hp}
+	// PLC制御
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},/* pc_healthy*/
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},/* pc_ctrl_mode*/
+	//運転室
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},/* syukan_on*/
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},/* syukan_off*/
 	{NULL,BIT2|BIT3,			CODE_PLCIO_BITS,	2,0},/* mh_spd_cs*/
@@ -52,31 +56,40 @@ int CPlc::setup(int crane_id) {
 	}break;
 	case CARNE_ID_HHGH29: {
 		//READ B220 D10408
-		plc_io_rif = plc_io_rdef0;
-		p = pbuf_r;
-		i = 6;
-		plc_io_rif.syukan_on.pi16 = plc_io_rif.syukan_off.pi16 = plc_io_rif.mh_spd_cs.pi16 = plc_io_rif.bh_mode_cs.pi16 = plc_io_rif.gt_notch.pi16 = p + i;
-		i = 7;
-		plc_io_rif.mh_notch.pi16=plc_io_rif.alarm_stp_pb.pi16=plc_io_rif.fault_reset_pb.pi16=plc_io_rif.bypass_pb.pi16=p+i;
-		i = 8;
-		plc_io_rif.mlim_warn_1.pi16 = plc_io_rif.mlim_warn_2.pi16 = plc_io_rif.mlim_warn_err.pi16 = plc_io_rif.mlim_high_enable.pi16 = p + i;
-		plc_io_rif.wind_over16.pi16=plc_io_rif.estop.pi16=p+i;
-		i = 9;
-		plc_io_rif.bh_notch.pi16=plc_io_rif.sl_notch.pi16=plc_io_rif.sl_brake.pi16=p+i;
-
+		{
+			plc_io_rif = plc_io_rdef0;
+			p = pbuf_r;
+			//PLC制御
+			i = 0; plc_io_rif.plc_healthy.pi16 = p+i;
+			i = 1; plc_io_rif.pc_ctrl_fb.pi16 = p+i;
+			//運転室
+			i = 6;
+			plc_io_rif.syukan_on.pi16 = plc_io_rif.syukan_off.pi16 = plc_io_rif.mh_spd_cs.pi16 = plc_io_rif.bh_mode_cs.pi16 = plc_io_rif.gt_notch.pi16 = p + i;
+			i = 7;
+			plc_io_rif.mh_notch.pi16 = plc_io_rif.alarm_stp_pb.pi16 = plc_io_rif.fault_reset_pb.pi16 = plc_io_rif.bypass_pb.pi16 = p + i;
+			i = 8;
+			plc_io_rif.mlim_warn_1.pi16 = plc_io_rif.mlim_warn_2.pi16 = plc_io_rif.mlim_warn_err.pi16 = plc_io_rif.mlim_high_enable.pi16 = p + i;
+			plc_io_rif.wind_over16.pi16 = plc_io_rif.estop.pi16 = p + i;
+			i = 9;
+			plc_io_rif.bh_notch.pi16 = plc_io_rif.sl_notch.pi16 = plc_io_rif.sl_brake.pi16 = p + i;
+		}
 		//WRITE
-
-		plc_io_wif = plc_io_wdef0;
-		p = pbuf_w;
-		i = 6;
-		plc_io_wif.syukan_on.pi16 = plc_io_wif.syukan_off.pi16 = plc_io_wif.mh_spd_cs.pi16 = plc_io_wif.bh_mode_cs.pi16 = plc_io_wif.gt_notch.pi16 = p + i;
-		i = 7;
-		plc_io_wif.mh_notch.pi16 = plc_io_wif.alarm_stp_pb.pi16 = plc_io_wif.fault_reset_pb.pi16 = plc_io_wif.bypass_pb.pi16 = p + i;
-		i = 8;
-		plc_io_wif.estop.pi16 = p + i;
-		i = 9;
-		plc_io_wif.bh_notch.pi16 = plc_io_wif.sl_notch.pi16 = p + i;
-
+		{
+			plc_io_wif = plc_io_wdef0;	//IOデータインスタンスバッファ先頭アドレス
+			p = pbuf_w;					//書き込みバッファ先頭アドレス
+			//PLC制御
+			i = 0;plc_io_wif.pc_healthy.pi16 = p + i;
+			i = 1;plc_io_wif.pc_ctrl_mode.pi16 = p + i;
+			//運転室
+			i = 6;
+			plc_io_wif.syukan_on.pi16 = plc_io_wif.syukan_off.pi16 = plc_io_wif.mh_spd_cs.pi16 = plc_io_wif.bh_mode_cs.pi16 = plc_io_wif.gt_notch.pi16 = p + i;
+			i = 7;
+			plc_io_wif.mh_notch.pi16 = plc_io_wif.alarm_stp_pb.pi16 = plc_io_wif.fault_reset_pb.pi16 = plc_io_wif.bypass_pb.pi16 = p + i;
+			i = 8;
+			plc_io_wif.estop.pi16 = p + i;
+			i = 9;
+			plc_io_wif.bh_notch.pi16 = plc_io_wif.sl_notch.pi16 = p + i;
+		}
 	}break;
 	case CARNE_ID_HHGQ18:{
 		plc_io_rif = plc_io_rdef0;

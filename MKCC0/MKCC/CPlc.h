@@ -124,6 +124,10 @@ typedef struct _ST_PLC_IO_DEF {
 }ST_PLC_IO_DEF, * LPST_PLC_IO_DEF;
 
 typedef struct _ST_PLC_IO_RIF {
+	//PLCêßå‰
+	ST_PLC_IO_DEF plc_healthy;
+	ST_PLC_IO_DEF pc_ctrl_fb;
+	//â^ì]é∫ëÄçÏë‰
 	ST_PLC_IO_DEF syukan_on;
 	ST_PLC_IO_DEF syukan_off;
 	ST_PLC_IO_DEF mh_spd_cs;
@@ -145,6 +149,10 @@ typedef struct _ST_PLC_IO_RIF {
 }ST_PLC_IO_RIF, * LPST_PLC_IO_RIF;
 
 typedef struct _ST_PLC_IO_WIF {
+	//PLCêßå‰
+	ST_PLC_IO_DEF pc_healthy;
+	ST_PLC_IO_DEF pc_ctrl_mode;
+	//â^ì]é∫ëÄçÏë‰
 	ST_PLC_IO_DEF syukan_on;
 	ST_PLC_IO_DEF syukan_off;
 	ST_PLC_IO_DEF mh_spd_cs;

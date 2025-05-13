@@ -237,8 +237,8 @@ typedef struct _ST_CC_AXIS_STAT {
 } ST_CC_AXIS_STAT, * LPST_CC_AXIS_STAT;
 
 typedef struct _ST_CC_PLC_IO {
-	INT32 mode;					//リモートモード
-	INT32 healthy_cnt;
+	INT16 pc_ctrl_fb;			//PC制御受付状態
+	INT16 plc_enable;
 	INT32 ctrl_source;			//主幹状態
 	ST_CC_AXIS_STAT stat_mh;
 	ST_CC_AXIS_STAT stat_bh;
