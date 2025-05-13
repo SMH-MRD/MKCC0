@@ -13,7 +13,7 @@
 #define DEFAULT_MY_PORT				10050
 
 //@ CRANE-------------------------------------------------------------------------------------
-#define OTE_IF_CRANE_IP_PC0			"192.168.100.111"	//PC単体デバッグ用
+#define OTE_IF_CRANE_IP_PC0			"192.168.100.100"	//PC単体デバッグ用
 #define OTE_IF_CRANE_IP_H6R602		"192.168.100.100"	//みらい（デフォルト）
 #define OTE_IF_CRANE_IP_HHGH29		"192.168.100.100"	//今造多度津JC70t(102号)
 #define OTE_IF_CRANE_IP_HHGQ18		"192.168.100.121"	//今造多度津JC300t(10号)
@@ -21,12 +21,14 @@
 //@ OTE---------------------------------------------------------------------------------------
 #ifndef _DEBUG_PC0
 #define OTE_IF_UNI_IP_PC			OTE_IF_CRANE_IP_H6R602 	//PCのOTE UNICAST　IF用IP	（受信,送信）
+#define OTE_IF_UNI_IP_OTE0			"192.168.100.112"		//デフォルトOTEのUNICAST用IP（受信,送信）
 #else
 #define OTE_IF_UNI_IP_PC			OTE_IF_CRANE_IP_PC0 	//PCのOTE UNICAST　IF用IP	（受信,送信）
+#define OTE_IF_UNI_IP_OTE0			OTE_IF_CRANE_IP_PC0		//デフォルトOTEのUNICAST用IP（受信,送信）
 #endif
 #define OTE_IF_UNI_IP_PC_WAN		"100.87.239.249" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 #define OTE_IF_UNI_IP_PC_VPN		"192.168.1.9" 			//PCのOTE UNICAST　IF用IP	（受信 VPN回線）
-#define OTE_IF_UNI_IP_OTE0			OTE_IF_UNI_IP_PC		//デフォルトOTEのUNICAST用IP（受信,送信）
+
 
 #define OTE_IF_UNI_PORT_PC			10050					//ユニキャストPC受信ポート
 #define OTE_IF_UNI_PORT_OTE			10051					//ユニキャスト端末受信ポート
