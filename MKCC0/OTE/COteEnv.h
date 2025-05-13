@@ -5,7 +5,7 @@
 #include "CSHAREDMEM.H"
 #include "CCUILib.H"
 
-#define OTE_ENV_MON1_WND_X              1920
+#define OTE_ENV_MON1_WND_X              1200
 #define OTE_ENV_MON1_WND_Y              0
 #define OTE_ENV_MON1_WND_W              640
 #define OTE_ENV_MON1_WND_H              480
