@@ -155,18 +155,27 @@ int CAgent::input() {
 
 static PINT16 pOteCtrl = NULL;
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
+static ST_PLC_IO_RIF* pPlcRIf = NULL;
 static INT16 pc_healthy=0;
+static INT16 plc_healthy_chk_count = 0;
 static INT16 plc_healthy = 0;
 
 int CAgent::parse() {//メイン処理
-
 	pc_healthy++;
+	if (plc_healthy == pPLC_IO->buf_io_read[0]) {
+		plc_healthy_chk_count--;
+		if (plc_healthy_chk_count > 0)plc_healthy_chk_count--;
+		else plc_healthy_chk_count = 0;
+	}
+	else plc_healthy_chk_count = PRM_CC_PLC_CHK_COUNT;
+	plc_healthy = pPLC_IO->buf_io_read[0];
 
 	if ((pOTE_Inf == NULL)||(pCrane== NULL))
 		return S_FALSE;
-	if (pOteCtrl == NULL || (pPlcWIf == NULL)) {
+	if (pOteCtrl == NULL || (pPlcWIf == NULL) || (pPlcRIf == NULL)) {
 		pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.ctrl_ope;
 		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
+		pPlcRIf = &(pCrane->pPlc->plc_io_rif);
 	}
 
 	pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);
@@ -184,6 +193,7 @@ int CAgent::parse() {//メイン処理
 static INT16 healthy_count = 0;
 int CAgent::output() {
 	//ヘルシー出力
+	pPLC_IO->plc_enable = plc_healthy_chk_count;
 
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
@@ -387,6 +397,9 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				<< L"  W " << res_delay_max_w;
 
 			SetWindowText(hWnd, monwos.str().c_str());
+
+			monwos.str(L""); monwos << L" PLC healthy:" << pPLC_IO->plc_enable;
+			SetWindowText(st_mon2.hctrl[AGENT_ID_MON2_STATIC_MSG], monwos.str().c_str());
 
 			SOCKADDR_IN	addr;
 			if (pMCSock != NULL) {

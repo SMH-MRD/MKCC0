@@ -179,14 +179,19 @@ int CCcCS::input() {
 }
 
 int CCcCS::parse() {
+	if (!pPLC_IO->plc_enable) {
+		st_ote_work.st_ote_ctrl.id_ope_active= OTE_NON_OPEMODE_ACTIVE;
+		st_ote_work.st_ote_ctrl.gpad_mode = L_OFF;
+	}
+
+
 
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
 	//共有メモリ出力処理
 	memcpy_s(&(pCS_Inf->cs_ctrl), sizeof(ST_CC_CS_CTRL), &st_cs_work.cs_ctrl, sizeof(ST_CC_CS_CTRL));
-	//memcpy_s(pOTE_Inf, sizeof(ST_CC_OTE_INF), &st_ote_work, sizeof(ST_CC_OTE_INF));
-
+	memcpy_s(&(pOTE_Inf->st_ote_ctrl), sizeof(ST_CC_OTE_CTRL), &st_ote_work.st_ote_ctrl, sizeof(ST_CC_OTE_CTRL));
 	return STAT_OK;
 }
 
@@ -582,10 +587,10 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				pUSockOte->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
 				pUSockOte->addr_in_dst.sin_addr = pUSockOte->addr_in_from.sin_addr;
 
-				if (st_ote_work.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
-					snd_uni2ote(set_msg_u(true, 0, st_ote_work.id_ope_active), &pUSockOte->addr_in_dst);
+				if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
+					snd_uni2ote(set_msg_u(true, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
 				else 
-					snd_uni2ote(set_msg_u(false, 0, st_ote_work.id_ope_active), &pUSockOte->addr_in_dst);
+					snd_uni2ote(set_msg_u(false, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
 			}
 
 		}break;
@@ -595,7 +600,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		//OTE通信ヘッダに緊急停止要求有
 		if (st_ote_work.st_msg_ote_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
-			st_ote_work.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
+			st_ote_work.st_ote_ctrl.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
 		}
 
 	}break;

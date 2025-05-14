@@ -80,7 +80,8 @@ using namespace Gdiplus;
 #define ID_R		            1   // 半径方向
 
 
-#define N_NOTCH_MAX	            6	//ノッチ最大数　0ノッチを含む
+#define N_NOTCH_MAX	            6	            //ノッチ最大数　0ノッチを含む
+#define N_NOTCH_TBL	            N_NOTCH_MAX*2	//ノッチテーブル数　0ノッチを含む
 #define NOTCH_0	                0
 #define NOTCH_1	                1
 #define NOTCH_2	                2

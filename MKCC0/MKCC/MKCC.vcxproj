@@ -149,6 +149,7 @@
     <ClInclude Include="CFaults.h" />
     <ClInclude Include="CPlc.h" />
     <ClInclude Include="CSpec.h" />
+    <ClInclude Include="CValue.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MKCC.h" />
     <ClInclude Include="Resource.h" />
@@ -167,6 +168,7 @@
     <ClCompile Include="CFaults.cpp" />
     <ClCompile Include="CPlc.cpp" />
     <ClCompile Include="CSpec.cpp" />
+    <ClCompile Include="CValue.cpp" />
     <ClCompile Include="MKCC.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -63,6 +63,9 @@
     <ClInclude Include="CFaults.h">
       <Filter>Entity</Filter>
     </ClInclude>
+    <ClInclude Include="CValue.h">
+      <Filter>Value</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MKCC.cpp">
@@ -103,6 +106,9 @@
     </ClCompile>
     <ClCompile Include="CFaults.cpp">
       <Filter>Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="CValue.cpp">
+      <Filter>Value</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

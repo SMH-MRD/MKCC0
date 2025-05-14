@@ -236,9 +236,10 @@ typedef struct _ST_CC_AXIS_STAT {
 	INT32 endlim;					//極限センサ状態
 } ST_CC_AXIS_STAT, * LPST_CC_AXIS_STAT;
 
+#define PRM_CC_PLC_CHK_COUNT		20//PLCヘルシーチェック用 AGENT SCAN×カウントmsec
 typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;			//PC制御受付状態
-	INT16 plc_enable;
+	INT16 plc_enable;			//PLC有効で端末権利有でOTEリモートモード
 	INT32 ctrl_source;			//主幹状態
 	ST_CC_AXIS_STAT stat_mh;
 	ST_CC_AXIS_STAT stat_bh;
@@ -669,30 +670,39 @@ typedef struct _ST_CC_SIM_INF {
 }ST_CC_SIM_INF, * LPST_CC_SIM_INF;
 #pragma endregion シミュレーション信号定義構造体
 
-//   操作端末信号定義構造体                                  　         　	
+//   操作端末情報定義構造体
+typedef struct _ST_CC_OTE_CTRL {
+	UINT32		active_ote_mode;						//操作端末モード タブレット,,操作卓,リモート
+	UINT32		gpad_mode;								//ゲームパッドモード
+	UINT32		id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
+	UINT32		stop_req_mode;							//OTE停止要求モード	非常停止,主幹切
+	SOCKADDR_IN	addr_in_active_ote;
+}ST_CC_OTE_CTRL, * LPST_CC_OTE_CTRL;
+// OTEからの要求コード                              　         　	
+
 #define OTE_STOP_REQ_MODE_OFF			L_OFF
 #define OTE_STOP_REQ_MODE_ESTOP			0x00000001
 #define OTE_STOP_REQ_MODE_CTRL_OFF		0x00000002
 
-//## 操作端末状態定義構造体 
 typedef struct _ST_CC_OTE_INF {
-
+//CS作業バッファ
 	ST_OTE_U_MSG    st_msg_ote_u_rcv;
 	ST_PC_M_MSG     st_msg_pc_m_rcv;
 	ST_OTE_M_MSG    st_msg_ote_m_rcv;
 
 	ST_PC_U_MSG     st_msg_pc_u_snd;
 	ST_PC_M_MSG     st_msg_pc_m_snd;
-	
-	UINT32			id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
+
 	SOCKADDR_IN		addr_in_to_oteu;
 	SOCKADDR_IN		addr_in_from_oteu;
 	SOCKADDR_IN		addr_in_from_pcm;	
 	SOCKADDR_IN		addr_in_from_otem;	
-			
-	UINT32			ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
-	UINT32			mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
-	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
+	
+	UINT32	ope_ote_silent_cnt;		//操作有効端末からの受信無しでカウントアップ
+	UINT32	mon_silent_cnt;  		//隣接PCからのマルチキャスト受信カウント無しでカウントアップ
+
+	//CS共有情報
+	ST_CC_OTE_CTRL st_ote_ctrl;			//操作端末制御情報
 
 }ST_CC_OTE_INF, * LPST_CC_OTE_INF;
 
