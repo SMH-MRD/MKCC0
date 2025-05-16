@@ -18,16 +18,18 @@ using namespace std;
 #define ID_MAIN_PNL_OBJ_LMP_PLCS			60011
 #define ID_MAIN_PNL_OBJ_CB_ESTOP			60012
 #define ID_MAIN_PNL_OBJ_LMP_ESTOP			60013
-#define ID_MAIN_PNL_OBJ_PB_CSOURCE			60014
-#define ID_MAIN_PNL_OBJ_LMP_CSOURCE			60015
-#define ID_MAIN_PNL_OBJ_CB_PNL_NOTCH		60016
-#define ID_MAIN_PNL_OBJ_PB_PAD_MODE			60017
-#define ID_MAIN_PNL_OBJ_LMP_PAD_MODE		60018
-#define ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC		60019
-#define ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		60020
-#define ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND		60021
-#define ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		60022
-#define ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND	60023
+#define ID_MAIN_PNL_OBJ_PB_SYUKAN_ON		60014
+#define ID_MAIN_PNL_OBJ_LMP_SYUKAN_ON		60015
+#define ID_MAIN_PNL_OBJ_PB_SYUKAN_OFF		60016
+#define ID_MAIN_PNL_OBJ_LMP_SYUKAN_OFF		60017
+#define ID_MAIN_PNL_OBJ_CB_PNL_NOTCH		60018
+#define ID_MAIN_PNL_OBJ_PB_PAD_MODE			60019
+#define ID_MAIN_PNL_OBJ_LMP_PAD_MODE		60020
+#define ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC		60021
+#define ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		60022
+#define ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND		60023
+#define ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		60024
+#define ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND	60025
 
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		60030
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		60031
@@ -118,8 +120,10 @@ public:
 
 	CCbCtrl		* cb_estop;			//緊急停止チェックボックス
 	CLampCtrl	* lmp_estop;		//緊急停止ランプ
-	CPbCtrl		* pb_csource;		//主幹PB
-	CLampCtrl* lmp_csource;		//主幹ランプ
+	CPbCtrl		* pb_syukan_on;		//主幹入PB
+	CLampCtrl	* lmp_syukan_on;	//主幹入ランプ
+	CPbCtrl		* pb_syukan_off;	//主幹切PB
+	CLampCtrl	* lmp_syukan_off;	//主幹切ランプ
 	CCbCtrl		* cb_pnl_notch;		//パネルノッチPB
 	CPbCtrl		* pb_pad_mode;		//ジョイパッドモードPB
 	CLampCtrl* lmp_pad_mode;		//ジョイパッドモードランプ

@@ -179,13 +179,19 @@ int CCcCS::input() {
 }
 
 int CCcCS::parse() {
-	if (!pPLC_IO->plc_enable) {
-		st_ote_work.st_ote_ctrl.id_ope_active= OTE_NON_OPEMODE_ACTIVE;
-		st_ote_work.st_ote_ctrl.gpad_mode = L_OFF;
+	//操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
+	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
+	
+	if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
+		st_ote_work.st_ote_ctrl.id_ope_active	= OTE_NON_OPEMODE_ACTIVE;
+		st_ote_work.st_ote_ctrl.gpad_mode		= L_OFF;
+		st_ote_work.st_ote_ctrl.auto_sel		= L_OFF;
+		st_ote_work.st_ote_ctrl.auto_mode		= L_OFF;
 	}
+	else {
 
-
-
+		;
+	}
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
@@ -206,15 +212,66 @@ int CCcCS::close() {
 /// <summary>
 /// OTEユニキャスト電文受信処理
 /// </summary>
+ 
+static ST_OTE_U_MSG chkbuf_u_msg;
 HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
-	int nRtn = pUSockOte->rcv_msg((char*)pbuf, sizeof(ST_PC_U_MSG));
-	if (nRtn == SOCKET_ERROR) {
+	//# 操作有効端末との通信断で有効端末クリア
+	if (st_ote_work.ope_ote_silent_cnt > OTE_IF_RELEASE_COUNTUP) {
+		st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;			//保持IPアドレスクリア
+		st_ote_work.st_ote_ctrl.addr_in_active_ote.sin_addr.S_un.S_addr = 0;	//保持IPアドレスクリア
+		st_ote_work.st_ote_ctrl.active_ote_type = OTE_STAT_TYPE_UNKOWN;
+	}
+
+	//# 一旦チェックバッファに受信(操作有効/無効端末切り分けの為）
+	if (SOCKET_ERROR == pUSockOte->rcv_msg((char*)(&chkbuf_u_msg), sizeof(ST_PC_U_MSG))) {
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR rcv:" << pUSockOte->err_msg.str();
 			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
 			return S_FALSE;
 		}
 	}
+
+	//# 操作有効/無効切り分け処理
+	//## 受信電文ヘッダ部に操作モード接続要求があれば登録、なければモニタ用バッファに受信電文コピー
+	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {	//操作有効端末無し
+		//送信元の端末がモニタモードから操作モードへの要求有で端末セット
+		if ((chkbuf_u_msg.head.status == OTE_STAT_MODE_OPE) && (chkbuf_u_msg.head.code == OTE_CODE_REQ_OPE_ACTIVE)
+			&& pPLC_IO->plc_enable) {//送信元がリモート要求でPLCヘルシーOK
+			st_ote_work.st_ote_ctrl.id_ope_active = chkbuf_u_msg.head.myid.serial_no;
+			st_ote_work.st_ote_ctrl.addr_in_active_ote = pUSockOte->addr_in_from;	//運転有効IP保持
+			*pbuf = chkbuf_u_msg;													//運転用バッファにコピー
+			st_ote_work.ope_ote_silent_cnt = 0;										//サイレントカウンタクリア
+		}
+		else st_ote_work.st_msg_ote_u_rcv_mon = chkbuf_u_msg;						//モニタ要求対象用バッファにコピー
+	}
+
+	//操作有効端末が登録済で送信元アドレスが登録内容と一致の時
+	//## 受信電文ヘッダ部にモニタモード接続要求があれば操作端末登録解除、なければ制御用バッファに受信電文コピー
+	else if (st_ote_work.st_ote_ctrl.addr_in_active_ote.sin_addr.S_un.S_addr 
+		== pUSockOte->addr_in_from.sin_addr.S_un.S_addr) {//送信元IPが保持中のIPと一致
+		//操作モードの端末だんまりカウンタクリア
+		st_ote_work.ope_ote_silent_cnt = 0;
+		//送信元がモニタ要求か端末のモードがモニタの時
+		if ((chkbuf_u_msg.head.code == OTE_CODE_REQ_MON) || (chkbuf_u_msg.head.status == OTE_STAT_MODE_MON)) {
+			st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//有効ID無し
+			pUSockOte->addr_in_from.sin_addr.S_un.S_addr = 0;				//保持IPアドレスクリア
+			st_ote_work.st_msg_ote_u_rcv_mon = chkbuf_u_msg;				//モニタ要求対象用バッファにコピー
+		}
+		else {
+			*pbuf = chkbuf_u_msg;											//制御用バッファにコピー
+		}
+	}
+	//登録操作有効端末があって、その他の端末からの受信時
+	else {
+		st_ote_work.st_msg_ote_u_rcv_mon = chkbuf_u_msg;					//モニタ要求対象用バッファにコピー
+	}
+	
+	//# ヘッダ情報の緊急停止指令は無条件に取り込み
+	if (chkbuf_u_msg.head.code & OTE_MASK_REQ_STOP)
+		st_ote_work.st_ote_ctrl.stop_req_mode |= OTE_MASK_REQ_STOP;
+	if (chkbuf_u_msg.head.code & OTE_MASK_REQ_FAULT_RESET)
+		st_ote_work.st_ote_ctrl.stop_req_mode &= ~OTE_MASK_REQ_STOP;
+
 	rcv_count_ote_u++;
 	return S_OK;
 }
@@ -254,13 +311,25 @@ HRESULT CCcCS::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 /// <summary>
 /// PCユニキャスト電文送信処理 
 /// </summary>
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="is_monitor_mode"></param>
+/// <param name="code"></param>
+/// <param name="stat"></param>
+/// <returns></returns>
 LPST_PC_U_MSG CCcCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	
-	st_ote_work.st_msg_pc_u_snd.head.myid = pCraneStat->device_code;
-	st_ote_work.st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
-	st_ote_work.st_msg_pc_u_snd.head.code = code;
+	//#Header部
+	st_ote_work.st_msg_pc_u_snd.head.myid	= pCraneStat->device_code;
+	st_ote_work.st_msg_pc_u_snd.head.addr	= pUSockOte->addr_in_rcv;
+	st_ote_work.st_msg_pc_u_snd.head.code	= code;
 	st_ote_work.st_msg_pc_u_snd.head.status = stat;
-	st_ote_work.st_msg_pc_u_snd.head.tgid = 0;
+	st_ote_work.st_msg_pc_u_snd.head.tgid	= st_ote_work.st_ote_ctrl.id_ope_active;
+	
+	//#Body部
+	memcpy_s(&st_ote_work.st_msg_pc_u_snd.body, sizeof(ST_PC_U_BODY), &st_ote_work.st_body, sizeof(ST_PC_U_BODY) );
 
 	return &st_ote_work.st_msg_pc_u_snd;
 }
@@ -513,8 +582,8 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 					if (st_mon2.ipage_uni == 0) {
 						st_mon2.wo_uni << L"@ESTOP:" << pb0->ctrl_ope[OTE_PNL_CTRLS::estop]
-							<< L"@CSRC:" << pb0->ctrl_ope[OTE_PNL_CTRLS::ctrl_src]
-							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote_mode];
+							<< L"@CSRC:" << pb0->ctrl_ope[OTE_PNL_CTRLS::ctrl_src_on]
+							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote];
 					}
 					else if (st_mon2.ipage_uni == 1) {
 

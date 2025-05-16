@@ -15,7 +15,7 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_LMP_REMOTE			,Point(20,50)	,Size(100,100)	,L"遠隔"			},
 		{ID_MAIN_PNL_OBJ_TXT_UID			,Point(20,290)	,Size(100,30)	,L"UID"				},
 		{ID_MAIN_PNL_OBJ_PB_AUTH			,Point(20,320)	,Size(100,40)	,L"認証"			},
-		{ID_MAIN_PNL_OBJ_STR_PC_COM_STAT	,Point(10,900)	,Size(200,30)	,L"PC    R       S"	},
+		{ID_MAIN_PNL_OBJ_STR_PC_COM_STAT	,Point(10,900)	,Size(200,30)	,L"PC   R       S"	},
 		{ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT	,Point(10,930)	,Size(200,30)	,L"PLC  R       S"	},
 		{ID_MAIN_PNL_OBJ_LMP_PCR			,Point(62,905)	,Size(16,16)	,L"PC受信"			},
 		{ID_MAIN_PNL_OBJ_LMP_PCS			,Point(100,905)	,Size(16,16)	,L"PC送信"			},
@@ -23,12 +23,14 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_LMP_PLCS			,Point(100,935)	,Size(16,16)	,L"PLC送信"			},
 		{ID_MAIN_PNL_OBJ_CB_ESTOP			,Point(1780,50)	,Size(100,100)	,L"緊急停止"		},
 		{ID_MAIN_PNL_OBJ_LMP_ESTOP			,Point(1780,50)	,Size(100,100)	,L"緊急停止"		},
-		{ID_MAIN_PNL_OBJ_PB_CSOURCE			,Point(1780,180),Size(100,100)	,L"主 幹"			},
-		{ID_MAIN_PNL_OBJ_LMP_CSOURCE		,Point(1780,180),Size(100,100)	,L"主 幹"			},
-		{ID_MAIN_PNL_OBJ_CB_PNL_NOTCH		,Point(1780,300),Size(100,40)	,L"操作器"			},
-		{ID_MAIN_PNL_OBJ_PB_PAD_MODE		,Point(1780,345),Size(100,40)	,L"PAD"				},
-		{ID_MAIN_PNL_OBJ_LMP_PAD_MODE		,Point(1780,345),Size(100,40)	,L"PAD"				},
-		{ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC		,Point(1780,390),Size(100,40)	,L"アシスト"		},
+		{ID_MAIN_PNL_OBJ_PB_SYUKAN_ON		,Point(1780,180),Size(100,50)	,L"主幹入"			},
+		{ID_MAIN_PNL_OBJ_LMP_SYUKAN_ON		,Point(1780,180),Size(100,50)	,L"主幹入"			},
+		{ID_MAIN_PNL_OBJ_PB_SYUKAN_OFF		,Point(1780,235),Size(100,100)	,L"主幹切"			},
+		{ID_MAIN_PNL_OBJ_LMP_SYUKAN_OFF		,Point(1780,235),Size(100,100)	,L"主幹切"			},
+		{ID_MAIN_PNL_OBJ_CB_PNL_NOTCH		,Point(1780,360),Size(100,40)	,L"操作器"			},
+		{ID_MAIN_PNL_OBJ_PB_PAD_MODE		,Point(1780,405),Size(100,40)	,L"PAD"				},
+		{ID_MAIN_PNL_OBJ_LMP_PAD_MODE		,Point(1780,405),Size(100,40)	,L"PAD"				},
+		{ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC		,Point(1780,450),Size(100,40)	,L"アシスト"		},
 		{ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		,Point(1780,615),Size(100,30)	,L"端末モード"		},
 		{ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND	,Point(1780,645),Size(100,40)	,L"端末モード"		},
 		{ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		,Point(1780,715),Size(100,30)	,L"未接続"			},
@@ -108,15 +110,26 @@ CPanelObjBase::~CPanelObjBase() {
 HRESULT CMainPanelObj::setup_obj() { 
 	
 	int i = 0;
-	Image* pimg[32];//画像ポインタ配列
+	//画像ポインタ配列
+
+	static Image img_o80_of(L"../Img/HHGH29/sw80_of_o.png"), img_o80_on(L"../Img/HHGH29/sw80_on_o.png");
+	static Image img_b1_of(L"../Img/HHGH29/lmp1_b_of.png"), img_b1_on(L"../Img/HHGH29/lmp1_b_on.png"), img_y1_on(L"../Img/HHGH29/lmp1_y_on.png"), img_g1_on(L"../Img/HHGH29/lmp1_g_on.png"), img_r1_on(L"../Img/HHGH29/lmp1_r_on.png");
+	static Image img_estp_of(L"../Img/HHGH29/estop_of.png"), img_estp_on(L"../Img/HHGH29/estop_on.png");
+	static Image img_w80_of(L"../Img/HHGH29/sw80_of_w.png"), img_b80_on(L"../Img/HHGH29/sw80_on_b.png"), img_g80_on(L"../Img/HHGH29/sw80_on_g.png"), img_r80_on(L"../Img/HHGH29/sw80_on_r.png");
+
+	Image* pimg_remote[N_IMG_SWITCH_MAX] = { &img_o80_of, &img_o80_on , &img_b80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
+	Image* pimg_syukan_on[N_IMG_SWITCH_MAX] = { &img_w80_of, &img_g80_on , &img_r80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
+	Image* pimg_syukan_off[N_IMG_SWITCH_MAX] = { &img_w80_of, &img_r80_on , &img_g80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
+	Image* pimg_estop[N_IMG_SWITCH_MAX] = { &img_estp_of, &img_estp_on , &img_b80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
+	Image* pimg_signal[N_IMG_SWITCH_MAX] = { &img_b1_of, &img_b1_on , &img_y1_on, &img_r1_on, &img_g1_on, &img_b1_of, &img_b1_of, &img_b1_of };
+
 //0 メッセージ
 		str_message			= new CStringGdi(ID_MAIN_PNL_OBJ_STR_MESSAGE, &main_props[i].pt, &main_props[i].sz,  main_props[i].txt,
 											 pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_20]);
 	
 //1-2 リモートPBL
 	i++;pb_remote			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_REMOTE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,pgraphic,drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	static Image img0(L"../Img/HHGH29/sw80_of_o.png"), img1(L"../Img/HHGH29/sw80_on_o.png"); pimg[0] = &img0; pimg[1] = &img1;
-	i++; lmp_remote			= new CLampCtrl(ID_MAIN_PNL_OBJ_PB_REMOTE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg, 2, 3);
+	i++; lmp_remote			= new CLampCtrl(ID_MAIN_PNL_OBJ_PB_REMOTE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_remote, 3, 3);
 	lmp_remote->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 
 //3-4 認証表示TXT/PB
@@ -128,27 +141,24 @@ HRESULT CMainPanelObj::setup_obj() {
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
 	i++;str_plc_com_stat	= new CStringGdi(ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, 
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
-
-	static Image img2(L"../Img/HHGH29/lmp1_b_of.png"), img3(L"../Img/HHGH29/lmp1_b_on.png"), img4(L"../Img/HHGH29/lmp1_o_on.png"), img5(L"../Img/HHGH29/lmp1_y_on.png"), img6(L"../Img/HHGH29/lmp1_g_on.png"), img7(L"../Img/HHGH29/lmp1_r_on.png");
-	pimg[2] = &img2, pimg[3] = &img3, pimg[4] = &img4, pimg[5] = &img5, pimg[6] = &img6, pimg[7] = &img7;
-	i++;lmp_pcr				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[2], 6, 3, pgraphic);
-	i++;lmp_pcs				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[2], 6, 3, pgraphic);
-	i++;lmp_plcr			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,&pimg[2], 6, 3, pgraphic);
-	i++;lmp_plcs			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,&pimg[2], 6, 3, pgraphic);
+	i++;lmp_pcr				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_signal, 6, 3, pgraphic);
+	i++;lmp_pcs				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_signal, 6, 3, pgraphic);
+	i++;lmp_plcr			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,pimg_signal, 6, 3, pgraphic);
+	i++;lmp_plcs			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,pimg_signal, 6, 3, pgraphic);
 
 //11-12 緊急停止PBL
 	i++;cb_estop			= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,NULL, NULL, NULL);
-	static Image img8(L"../Img/HHGH29/estop_of.png"), img9(L"../Img/HHGH29/estop_on.png");
-	pimg[8] = &img8, pimg[9] = &img9;
-	i++;lmp_estop			= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[8], 2, 3);
+	i++;lmp_estop			= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_estop, 3, 3);
 	lmp_estop->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20],drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 
-//13-14 主幹PBL
-	i++;pb_csource			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_CSOURCE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	static Image img10(L"../Img/HHGH29/sw80_of_w.png"), img11(L"../Img/HHGH29/sw80_on_g.png"), img12(L"../Img/HHGH29/sw80_on_r.png");
-	pimg[10] = &img10, pimg[11] = &img11, pimg[12] = &img12;
-	i++;lmp_csource			= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_CSOURCE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[10], 3, 3);
-	lmp_csource->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+//13-14 主幹入PBL
+	i++;pb_syukan_on			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_SYUKAN_ON, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++;lmp_syukan_on			= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_SYUKAN_ON, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_syukan_on, 3, 3);
+	lmp_syukan_on->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+//13-14 主幹切PBL
+	i++; pb_syukan_off = new CPbCtrl(ID_MAIN_PNL_OBJ_PB_SYUKAN_OFF, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; lmp_syukan_off = new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_SYUKAN_OFF, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_syukan_off, 3, 3);
+	lmp_syukan_off->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 
 //15-18 操作条件設定PB類
 //操作器表示
@@ -156,8 +166,7 @@ HRESULT CMainPanelObj::setup_obj() {
 //PAD MODE
 	i++;pb_pad_mode			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_PAD_MODE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	static Image img13(L"../Img/HHGH29/sw80_of_w.png"), img14(L"../Img/HHGH29/sw80_on_o.png");
-	pimg[13] = &img13, pimg[14] = &img14;
-	i++; lmp_pad_mode		= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_PAD_MODE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, &pimg[10], 3, 3);
+	i++; lmp_pad_mode		= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_PAD_MODE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_remote, 3, 3);
 	lmp_pad_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_14], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 //ASSIST
 	i++;pb_assist_func		= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -206,8 +215,10 @@ void CMainPanelObj::delete_obj() {
 	delete lmp_plcs;		
 	delete cb_estop;		
 	delete lmp_estop;		
-	delete pb_csource;		
-	delete lmp_csource;		
+	delete pb_syukan_on;		
+	delete lmp_syukan_on;	
+	delete pb_syukan_off;
+	delete lmp_syukan_off;
 	delete cb_pnl_notch;	
 	delete pb_pad_mode;		
 	delete lmp_pad_mode;	

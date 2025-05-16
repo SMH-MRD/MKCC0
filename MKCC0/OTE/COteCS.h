@@ -3,6 +3,7 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 #include "PLC_DEF.h"
+#include "CValue.h"
 
 
 //MON1----------------------------------------------------
@@ -15,6 +16,9 @@
 
 #define OTE_CS_ID_MON1_CTRL_BASE     61500
 #define OTE_CS_ID_MON1_STATIC_MSG    0
+#define OTE_CS_ID_MON1_CB_VIB_ACT    16
+#define OTE_CS_ID_MON1_SLIDER_VIB_R  17
+#define OTE_CS_ID_MON1_SLIDER_VIB_L  18
 
 //MON2---------------------------------------------------
 #define OTE_CS_ID_MON2_CTRL_BASE         61540
@@ -37,7 +41,6 @@
 #define OTE_CS_PRM_MON1_TIMER_MS     150
 #define OTE_CS_PRM_MON2_TIMER_MS     100
 
-
 typedef struct _ST_OTE_CS_MON1 {
     int timer_ms = OTE_CS_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
@@ -50,21 +53,21 @@ typedef struct _ST_OTE_CS_MON1 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[OTE_CS_MON1_N_CTRL] = {
-        5,5, 5,30, 5,55, 5,50, 5,155, 5,260,0,0, 0,0,//Static
+        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        560,110, 560,195, 500,5, 555,5, 0,0, 0,0, 0,0, 0,0,//PB
+        5,200, 100,200, 200,200, 0,0, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[OTE_CS_MON1_N_CTRL] = {
-        615,20, 615,20, 565,20, 615,100, 615,100,565,20, 0,0, 0,0,//Static
+        320,180, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
+        80,20, 100,40, 100,40, 0,0, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[OTE_CS_MON1_N_CTRL][OTE_CS_MON1_N_WCHAR] = {
         L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"次R", L"次W", L"非表示", L"10進", L"", L"", L"", L"",//PB
+        L"ﾊﾞｲﾌﾞ", L"右", L"左", L"", L"", L"", L"", L"",//PB
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_OTE_CS_MON1, * LPST_OTE_CS_MON1;
@@ -138,6 +141,31 @@ public:
     //タスク出力用構造体
     static ST_OTE_CS_INF st_work;
 
+    CValue<INT16> remote_pb;
+    CValue<INT16> remote_mode;
+    CValue<INT16> game_pad_pb;
+    CValue<INT16> desk_mode;
+
+    CValue<INT16> syukan_on;
+    CValue<INT16> syukan_off;
+    CValue<INT16> estop;
+    CValue<INT16> f_reset;
+    CValue<INT16> bypass;
+    CValue<INT16> kidou_r;
+    CValue<INT16> kidou_l;
+    CValue<INT16> pan_l;
+    CValue<INT16> pan_r;
+    CValue<INT16> tilt_u;
+    CValue<INT16> tilt_d;
+    CValue<INT16> zoom_f;
+    CValue<INT16> zoom_n;
+
+    CPadNotch* pad_mh;
+    CPadNotch* pad_bh;
+    CPadNotch* pad_sl;
+    CPadNotch* pad_gt;
+    CPadNotch* pad_ah;
+
 
     //PLC IF関連
     static HRESULT rcv_uni_ote(LPST_PC_U_MSG pbuf);
@@ -182,14 +210,8 @@ private:
     }
 
     int input();//入力処理
-
-    int parse() {           //メイン処理
-        return STAT_NG;
-    }
-
-    int output() {          //出力処理
-        return STAT_NG;
-    }
+    int parse();
+    int output();
     int close();
 };
 

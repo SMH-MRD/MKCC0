@@ -13,7 +13,7 @@
 #include "COtePol.h"
 #include "COteAgent.h"
 
-#include "CCraneLib.h"
+#include "CCrane.h"
 
 using namespace OTE;
 
@@ -175,7 +175,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     
 	LPST_OTE_CC_IF pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
     //クレーンオブジェクト生成
-    pCraneObj = new CCraneBase(CRANE_ID_NULL);	//クレーンIDはNULLで初期化
+    pCraneObj = new CCrane(CRANE_ID_NULL);	//クレーンIDはNULLで初期化
 
     //デバイスコードセット
 

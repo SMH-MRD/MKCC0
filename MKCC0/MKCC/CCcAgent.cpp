@@ -180,7 +180,7 @@ int CAgent::parse() {//ƒƒCƒ“ˆ—
 
 	pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);
 
-	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::ctrl_src]);
+	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::ctrl_src_on]);
 	pCrane->pPlc->wval(pPlcWIf->estop, pOteCtrl[OTE_PNL_CTRLS::estop]);
 
 	return S_OK;

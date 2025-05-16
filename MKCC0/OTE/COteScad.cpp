@@ -2,7 +2,6 @@
 #include "resource.h"
 #include "framework.h"
 #include "CCraneLib.H"
-#include "CCUILib.h"
 #include "COteEnv.h"
 #include "COpePanelLib.h"
 
@@ -137,8 +136,10 @@ HRESULT COteScad::open_ope_window() {
 void COteScad::set_panel_io() {
 	if (pPanelBase != NULL) {
 		st_work.ctrl_stat[OTE_PNL_CTRLS::estop] = pPanelBase->pobjs->cb_estop->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::ctrl_src] = pPanelBase->pobjs->pb_csource->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::remote_mode] = pPanelBase->pobjs->pb_remote->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::ctrl_src_on] = pPanelBase->pobjs->pb_syukan_on->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::ctrl_src_off] = pPanelBase->pobjs->pb_syukan_off->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::remote] = pPanelBase->pobjs->pb_remote->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad] = pPanelBase->pobjs->pb_pad_mode->get();
 	}
 	return;
 }
@@ -292,10 +293,14 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		//# PBL !!OWNER DRAW
 		//主幹
-		CPbCtrl* ppb = pPanelBase->pobjs->pb_csource;
+		CPbCtrl* ppb = pPanelBase->pobjs->pb_syukan_on;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE| BS_OWNERDRAW,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
-		pPanelBase->pobjs->lmp_csource->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+		pPanelBase->pobjs->lmp_syukan_on->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+			ppb = pPanelBase->pobjs->pb_syukan_off;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pobjs->lmp_syukan_off->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
 		//Remote
 		ppb = pPanelBase->pobjs->pb_remote;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
@@ -383,8 +388,14 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				pPanelBase->pobjs->lmp_estop->set(L_ON);
 			}
 		}break;
-		case ID_MAIN_PNL_OBJ_PB_CSOURCE: {
-			pPanelBase->pobjs->pb_csource->update(true);
+		case ID_MAIN_PNL_OBJ_PB_SYUKAN_ON: {
+			pPanelBase->pobjs->pb_syukan_on->update(true);
+
+			//pPanelBase->pobjs->lmp_remote->set(L_ON);
+			//pPanelBase->pobjs->lmp_pad_mode->set(L_OFF);
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_SYUKAN_OFF: {
+			pPanelBase->pobjs->pb_syukan_off->update(true);
 
 			//pPanelBase->pobjs->lmp_remote->set(L_ON);
 			//pPanelBase->pobjs->lmp_pad_mode->set(L_OFF);
@@ -452,8 +463,14 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_TIMER: {
 		//LAMP(CTRL)更新
 		pPanelBase->pobjs->lmp_estop->update();
-		pPanelBase->pobjs->lmp_csource->update();
+		pPanelBase->pobjs->lmp_syukan_on->update();
+		pPanelBase->pobjs->lmp_syukan_off->update();
+		
+		
+		pPanelBase->pobjs->lmp_remote->set(pOteCsInf->st_body.remote);
 		pPanelBase->pobjs->lmp_remote->update();
+
+		pPanelBase->pobjs->lmp_pad_mode->set(pOteCsInf->st_body.game_pad_mode);
 		pPanelBase->pobjs->lmp_pad_mode->update();
 
 		//SwitchImg更新(ランプ）
@@ -471,7 +488,8 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pPanelBase->pobjs->lmp_plcs->update();
 		
 		//PB状態更新(カウントダウン
-		pPanelBase->pobjs->pb_csource->update(false);
+		pPanelBase->pobjs->pb_syukan_on->update(false);
+		pPanelBase->pobjs->pb_syukan_off->update(false);
 		pPanelBase->pobjs->pb_remote->update(false);
 		pPanelBase->pobjs->pb_auth->update(false);
 		pPanelBase->pobjs->pb_assist_func->update(false);
@@ -510,13 +528,16 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		else if (pDIS->CtlID == pos->pb_remote->id) {//リモートランプ
 			plamp = pos->lmp_remote;pfont = plamp->pFont;
 		}
-		else if (pDIS->CtlID == pos->pb_csource->id) {//主幹ランプ
-			plamp = pos->lmp_csource; pfont = plamp->pFont;
+		else if (pDIS->CtlID == pos->pb_syukan_on->id) {//主幹入ランプ
+			plamp = pos->lmp_syukan_on; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_syukan_off->id) {//主幹入ランプ
+			plamp = pos->lmp_syukan_off; pfont = plamp->pFont;
 		}
 		else if (pDIS->CtlID == pos->pb_pad_mode->id) {//PADランプ
 			plamp = pos->lmp_pad_mode; pfont = plamp->pFont;
 		}
-		else;
+		else return false;
 
 		image = plamp->pimg[plamp->get()];
 		gra.FillRectangle(pPanelBase->pobjs->pBrushBk, plamp->rc);											//背景色セット

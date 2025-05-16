@@ -198,14 +198,29 @@ using namespace Gdiplus;
 #define MOTION_ID_MAX   8  //制御軸最大数
 
 #define ID_HOIST                0   //巻 　       ID
-#define ID_GANTRY               1   //走行        ID
-#define ID_TROLLY               2   //横行        ID
-#define ID_BHMH                 2   //引込主巻    ID
-#define ID_BOOM_H               3   //引込        ID
-#define ID_SLEW                 4   //旋回        ID
-#define ID_AHOIST               5   //補巻　      ID
-#define ID_OP_ROOM              6   //運転室移動　ID
-#define ID_H_ASSY               7   //吊具等      ID
+#define ID_TROLLY               1   //横行        ID
+#define ID_BOOM_H               1   //引込        ID
+#define ID_SLEW                 2   //旋回        ID
+#define ID_GANTRY               3   //走行        ID
+#define ID_AHOIST               4   //補巻　      ID
+#define ID_OP_ROOM              5   //運転室移動　ID
+#define ID_H_ASSY               6   //吊具等      ID
+
+enum ID_AXIS {
+    mh = 0,
+    bh,
+    sl,
+    gt,
+    ah,
+    Max
+};
+
+#define MASK_BIT_MH = 0x00000001,
+#define MASK_BIT_BH = 0x00000002,
+#define MASK_BIT_SL = 0x00000004,
+#define MASK_BIT_GT = 0x00000008,
+#define MASK_BIT_AH = 0x00000010
+
 
 #pragma endregion 動作インデックス
 
@@ -342,10 +357,22 @@ typedef struct _PANEL_COLOR_PALLET {
 ///#信号表示ランプ
 #pragma region SIGNAL LAMPCOLOR
 
-#define ID_SIGNAL_LAMP_OFF	0	//SOCK NG
-#define ID_SIGNAL_LAMP_G	1	//LINK OK
-#define ID_SIGNAL_LAMP_R	2	//SOCK ERR
-#define ID_SIGNAL_LAMP_B	3	//SOCK OK
-#define ID_SIGNAL_LAMP_Y	4
+#define CODE_PNL_COM_DEACTIVE	-1
+#define CODE_PNL_COM_OFF		0
+#define CODE_PNL_COM_STANDBY    0
+#define CODE_PNL_COM_ON		    1
+#define CODE_PNL_COM_ACTIVE     1
+#define CODE_PNL_COM_SELECTED	2
+#define CODE_PNL_COM_FLICKER	255
+
+typedef struct StLampCom {
+    UINT8 com;
+    UINT8 color;
+}ST_LAMP_COM, * LPST_LAMP_COM;
+
+union UN_LAMP_COM {
+    INT16 code;
+    ST_LAMP_COM st;
+};
 
 #pragma endregion

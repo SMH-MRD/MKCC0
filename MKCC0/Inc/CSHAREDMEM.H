@@ -578,8 +578,8 @@ typedef struct _ST_CC_CS_INF {
 	ST_CC_CS_CTRL cs_ctrl;												
 	//OTE関連
 	double ote_camera_height_m;													//操作端末VIEWのカメラ設置高さ
-	ST_OTE_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];								//端末ランプ表示指令
-	ST_OTE_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//端末ノッチランプ表示指令
+	UN_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];								//端末ランプ表示指令
+	UN_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//端末ノッチランプ表示指令
 	INT16	notch_pos[2][MOTION_ID_MAX];										//ノッチ指定値
 
 	//JOB関連
@@ -672,10 +672,13 @@ typedef struct _ST_CC_SIM_INF {
 
 //   操作端末情報定義構造体
 typedef struct _ST_CC_OTE_CTRL {
-	UINT32		active_ote_mode;						//操作端末モード タブレット,,操作卓,リモート
-	UINT32		gpad_mode;								//ゲームパッドモード
-	UINT32		id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
-	UINT32		stop_req_mode;							//OTE停止要求モード	非常停止,主幹切
+	INT16		active_ote_mode;						//操作端末モード タブレット,,操作卓,リモート
+	INT16		gpad_mode;								//ゲームパッドモード
+	INT16		auto_mode;								//オートモード
+	INT16		auto_sel;								//オートSEL
+	INT32		id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
+	INT16		stop_req_mode;							//OTE停止要求モード	非常停止,主幹切
+	INT16		active_ote_type;						//操作有効OTEのタイプ
 	SOCKADDR_IN	addr_in_active_ote;
 }ST_CC_OTE_CTRL, * LPST_CC_OTE_CTRL;
 // OTEからの要求コード                              　         　	
@@ -687,6 +690,7 @@ typedef struct _ST_CC_OTE_CTRL {
 typedef struct _ST_CC_OTE_INF {
 //CS作業バッファ
 	ST_OTE_U_MSG    st_msg_ote_u_rcv;
+	ST_OTE_U_MSG    st_msg_ote_u_rcv_mon;
 	ST_PC_M_MSG     st_msg_pc_m_rcv;
 	ST_OTE_M_MSG    st_msg_ote_m_rcv;
 
@@ -703,6 +707,7 @@ typedef struct _ST_CC_OTE_INF {
 
 	//CS共有情報
 	ST_CC_OTE_CTRL st_ote_ctrl;			//操作端末制御情報
+	ST_PC_U_BODY   st_body;
 
 }ST_CC_OTE_INF, * LPST_CC_OTE_INF;
 
@@ -786,6 +791,10 @@ typedef struct _ST_OTE_ENV_INF {
 typedef struct _ST_OTE_CS_INF {
 	INT16 buf_io_read[CC_MC_SIZE_W_READ];	//PLCからの読み取り信号生値
 	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
+	INT32 cc_ope_active = L_OFF;
+	
+	ST_OTE_U_BODY st_body;
+
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他
 
@@ -798,8 +807,9 @@ typedef struct _ST_OTE_CS_INF {
 #define CODE_OTE_PC_COM_STAT_LINK_OK	2	//通信中
 
 typedef struct _ST_OTE_CC_IF {
-	INT32			cc_com_stat_r;	//制御PCとの通信状態（受信）
-	INT32			cc_com_stat_s;  //制御PCとの通信状態（送信）
+	INT32			cc_com_stat_r;		//制御PCとの通信状態（受信）
+	INT32			cc_com_stat_s;		//制御PCとの通信状態（送信）
+	INT32			cc_active_ote_id;	//クレーン側操作有効端末id
 
 	ST_PC_U_MSG     st_msg_pc_u_rcv;
 	ST_PC_M_MSG     st_msg_pc_m_rcv;
@@ -827,13 +837,14 @@ typedef struct _ST_OTE_CC_IF {
 
 //## OTE_UI @SCADA or VIEW Proc
 #pragma region OTE_UI
+
 typedef struct _ST_OTE_UI {
-	UINT16 ctrl_stat[N_OTE_PNL_CTRL];			
-	UINT16 notch_pb_mh[N_OTE_PNL_NOTCH_PBL];
-	UINT16 notch_pb_bh[N_OTE_PNL_NOTCH_PBL];
-	UINT16 notch_pb_sl[N_OTE_PNL_NOTCH_PBL];
-	UINT16 notch_pb_gt[N_OTE_PNL_NOTCH_PBL];
-	UINT16 notch_pb_ah[N_OTE_PNL_NOTCH_PBL];
+	INT16 ctrl_stat[N_OTE_PNL_CTRL];			
+	INT16 notch_pb_mh[N_OTE_PNL_NOTCH_PBL];
+	INT16 notch_pb_bh[N_OTE_PNL_NOTCH_PBL];
+	INT16 notch_pb_sl[N_OTE_PNL_NOTCH_PBL];
+	INT16 notch_pb_gt[N_OTE_PNL_NOTCH_PBL];
+	INT16 notch_pb_ah[N_OTE_PNL_NOTCH_PBL];
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 

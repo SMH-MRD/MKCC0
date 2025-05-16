@@ -1,12 +1,16 @@
 #include "CMCProtocol.h"
 #include "COteCS.h"
 #include "resource.h"
-#include "CCUILib.H"
+#include "CGamePad.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
+extern ST_DEVICE_CODE g_my_code; //端末コード
+
+extern CCraneBase* pCraneObj;	//クレーン制御クラスポインタ
+
 
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
@@ -25,13 +29,17 @@ static LPST_OTE_UI		pOteUi;
 static LPST_OTE_CC_IF	pOteCCInf;
 static LPST_OTE_CS_INF	pOteCsInf;
 
+static CGamePad* pPad = NULL;
+
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
 static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 
+
 COteCS::COteCS() {
+	remote_pb.set(0); remote_mode.set(0); game_pad_pb.set(0);
 }
 COteCS::~COteCS() {
 }
@@ -64,15 +72,11 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
-	//### IFウィンドウOPEN
+	//### IFウィンドウ  MON2 OPEN PLC通信
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 	LPARAM lp = BC_ID_MON2;
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 	Sleep(100);
-	//### PLC通信
-	//##インスタンス生成
-
-	//### 初期化
 	wos.str(L"");//初期化
 	if (st_mon2.hwnd_mon == NULL) {
 		wos << L"Initialize : MON NG"; msg2listview(wos.str());
@@ -89,6 +93,9 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
 	}
+	//### GamePadインスタンス
+	pPad = new CGamePad();
+	pPad->set_id(0);
 
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -109,6 +116,14 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	else
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
+	pad_mh=new CPadNotch(pCraneObj->);
+	pad_bh=new CPadNotch();
+	pad_sl=new CPadNotch();
+	pad_gt=new CPadNotch();
+	pad_ah=new CPadNotch();
+
+
+
 	set_func_pb_txt();
 	set_item_chk_txt();
 	set_panel_tip_txt();
@@ -126,10 +141,70 @@ HRESULT COteCS::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int COteCS::input() {
+	//	ゲームパッド取り込み
+	if ((pPad != NULL)&& st_work.st_body.game_pad_mode ){
+		if (pPad->PollController(pPad->controllerId)) {
+			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
+		}
+	}
 	return S_OK;
+}
+int COteCS::parse() {           //メイン処理
+
+	//リモート設定
+	if (CODE_TRIG_ON == remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])){
+		if (st_work.st_body.remote == CODE_PNL_COM_SELECTED) 
+			st_work.st_body.remote = CODE_PNL_COM_OFF;
+		else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE) 
+			st_work.st_body.remote = CODE_PNL_COM_OFF;
+		else													
+			st_work.st_body.remote = CODE_PNL_COM_SELECTED;
+	}
+	if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) &&(pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
+		st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
+
+	//GamePad設定
+	if (CODE_TRIG_ON == game_pad_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::game_pad])) {
+		if (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE)
+			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
+		else
+			st_work.st_body.game_pad_mode = CODE_PNL_COM_ACTIVE;
+	}
+
+	//PAD
+	if (st_work.st_body.game_pad_mode) {
+		syukan_on.set(pPad->get_start());
+		syukan_off.set(pPad->get_Y());
+		estop.set(pPad->get_B());;
+		f_reset.set(pPad->get_back());
+		bypass.set(pPad->get_X());;
+		kidou_r.set(pPad->get_thumbr());
+		kidou_l.set(pPad->get_thumbl());
+		pan_l.set(pPad->get_left());
+		pan_r.set(pPad->get_right());
+		tilt_u.set(pPad->get_up());
+		tilt_d.set(pPad->get_down());
+		zoom_f.set(pPad->get_shoulderr());
+		zoom_n.set(pPad->get_shoulderl());
+
+		pad_mh->set(pPad->get_LY());
+		pad_bh->set(pPad->get_LY());
+		pad_sl->set(pPad->get_LX());
+		pad_gt->set(pPad->get_RX());
+		pad_ah->set(pPad->get_RX());
+	}
+
+
+	return STAT_OK;
+}
+
+int COteCS::output() {          //出力処理
+		memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
+	return STAT_OK;
 }
 
 int COteCS::close() {
+	delete pPad;
 	return 0;
 }
 
@@ -151,6 +226,30 @@ LRESULT CALLBACK COteCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			st_mon1.sz[OTE_CS_ID_MON1_STATIC_MSG].cx, st_mon1.sz[OTE_CS_ID_MON1_STATIC_MSG].cy,
 			hWnd, (HMENU)(OTE_CS_ID_MON1_CTRL_BASE + OTE_CS_ID_MON1_STATIC_MSG), hInst, NULL);
 
+		st_mon1.hctrl[OTE_CS_ID_MON1_CB_VIB_ACT] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[OTE_CS_ID_MON1_CB_VIB_ACT], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX ,
+			st_mon1.pt[OTE_CS_ID_MON1_CB_VIB_ACT].x, st_mon1.pt[OTE_CS_ID_MON1_CB_VIB_ACT].y, st_mon1.sz[OTE_CS_ID_MON1_CB_VIB_ACT].cx, st_mon1.sz[OTE_CS_ID_MON1_CB_VIB_ACT].cy,
+			hWnd, (HMENU)(OTE_CS_ID_MON1_CTRL_BASE + OTE_CS_ID_MON1_CB_VIB_ACT), hInst, NULL);
+			
+		// スライダー作成（左モーター）
+		st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_L] = CreateWindowEx(0, TRACKBAR_CLASS, st_mon1.text[OTE_CS_ID_MON1_SLIDER_VIB_L],
+			WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS,
+			st_mon1.pt[OTE_CS_ID_MON1_SLIDER_VIB_L].x, st_mon1.pt[OTE_CS_ID_MON1_SLIDER_VIB_L].y,
+			st_mon1.sz[OTE_CS_ID_MON1_SLIDER_VIB_L].cx, st_mon1.sz[OTE_CS_ID_MON1_SLIDER_VIB_L].cy,
+			hWnd, (HMENU)(OTE_CS_ID_MON1_CTRL_BASE + OTE_CS_ID_MON1_SLIDER_VIB_L), hInst, nullptr);
+		
+		SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_L], TBM_SETRANGE, TRUE, MAKELPARAM(0, 100));
+		SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_L], TBM_SETPOS, TRUE, 0);
+
+		// スライダー作成（右モーター）
+		st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_R] = CreateWindowEx(0, TRACKBAR_CLASS, st_mon1.text[OTE_CS_ID_MON1_SLIDER_VIB_R],
+			WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS,
+			st_mon1.pt[OTE_CS_ID_MON1_SLIDER_VIB_R].x, st_mon1.pt[OTE_CS_ID_MON1_SLIDER_VIB_R].y,
+			st_mon1.sz[OTE_CS_ID_MON1_SLIDER_VIB_R].cx, st_mon1.sz[OTE_CS_ID_MON1_SLIDER_VIB_R].cy,
+			hWnd, (HMENU)(OTE_CS_ID_MON1_CTRL_BASE + OTE_CS_ID_MON1_SLIDER_VIB_R), hInst, nullptr);
+
+		SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_R], TBM_SETRANGE, TRUE, MAKELPARAM(0, 100));
+		SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_R], TBM_SETPOS, TRUE, 0);
+		
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_CS_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
@@ -161,12 +260,62 @@ LRESULT CALLBACK COteCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		// 選択されたメニューの解析:
 		switch (wmId)
 		{
-		case 1:break;
+		case OTE_CS_ID_MON1_CTRL_BASE + OTE_CS_ID_MON1_CB_VIB_ACT: {
+			if (pPad == NULL)break;
+			if(BST_UNCHECKED== SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_CB_VIB_ACT], BM_GETCHECK, 0, 0))
+				pPad->VibrateController(pPad->controllerId, 0, 0);
+			break;
+		}
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
 	case WM_TIMER: {
+
+		if (pPad != NULL) {
+			monwos.str(L"");
+			if(pPad->error_code)
+			monwos << "Controller " << pPad->controllerId << " is  Error:" << pPad->error_code <<"\n" ;
+			else
+				monwos << "Controller " << pPad->controllerId << " is connected\n";
+			monwos << "  Buttons: " << std::hex << pPad->state.Gamepad.wButtons << std::dec << "\n";
+			monwos << "  Left Thumb: (" << pPad->state.Gamepad.sThumbLX << ", " << pPad->state.Gamepad.sThumbLY << ")\n";
+			monwos << "  Right Thumb: (" << pPad->state.Gamepad.sThumbRX << ", " << pPad->state.Gamepad.sThumbRY << ")\n";
+			monwos << "  Triggers: L=" << (int)pPad->state.Gamepad.bLeftTrigger << ", R=" << (int)pPad->state.Gamepad.bRightTrigger << "\n";
+		}
+		SetWindowText(st_mon1.hctrl[OTE_CS_ID_MON1_STATIC_MSG], monwos.str().c_str());
+#if 0
+			// ボタン A で振動開始（中くらい）
+			if (state.Gamepad.wButtons & XINPUT_GAMEPAD_A) {
+				VibrateController(controllerId, 30000, 30000);
+			}
+
+			// ボタン B で振動停止
+			if (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) {
+				VibrateController(controllerId, 0, 0);
+			}
+		}
+
+#endif
+
+
+	}break;
+	case WM_HSCROLL: {
+		//ゲームパッドのバイブチェック
+		if (pPad == NULL)break;
+		if (BST_CHECKED == SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_CB_VIB_ACT], BM_GETCHECK, 0, 0)) {
+			if ((HWND)lp == st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_L] || (HWND)lp == st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_R]) {
+				int left = SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_L], TBM_GETPOS, 0, 0);
+				int right = SendMessage(st_mon1.hctrl[OTE_CS_ID_MON1_SLIDER_VIB_R], TBM_GETPOS, 0, 0);
+			
+				left *= 65535 / 100; right *= 65535 / 100;
+				
+				pPad->VibrateController(pPad->controllerId, (WORD)left, (WORD)right);
+			}
+		}
+		else {
+			pPad->VibrateController(pPad->controllerId, 0, 0);
+		}
 	}break;
 	case WM_PAINT: {
 		PAINTSTRUCT ps;

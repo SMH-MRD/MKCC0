@@ -1,6 +1,5 @@
 #include "COteEnv.h"
 #include "resource.h"
-#include "CCUILib.h"
 #include "CCraneLib.h"
 #include "COteScad.h"
 #include "COteAgent.h"

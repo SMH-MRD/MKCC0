@@ -3,7 +3,6 @@
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
-#include "CCUILib.H"
 
 #define OTE_ENV_MON1_WND_X              1200
 #define OTE_ENV_MON1_WND_Y              0

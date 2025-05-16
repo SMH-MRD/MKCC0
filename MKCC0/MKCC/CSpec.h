@@ -63,6 +63,9 @@ typedef struct _ST_AXIS_ITEMS {
 	double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1.0
 	double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1.0
 
+	INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+
 	double acc;			//加速度
 	double dec;			//減速度
 	double v_rated;		// 定格速度（m/s, rad/s：100％)

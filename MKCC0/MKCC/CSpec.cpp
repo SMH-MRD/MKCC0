@@ -38,26 +38,276 @@ ST_STRUCTURE	st_struct0 = {
 
 //主巻
 ST_AXIS_ITEMS	CSpec::base_mh;
+ST_AXIS_ITEMS	base_mh0 = {
+	//double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{5000,5000,20000,35000,40000,40000},
+	//INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{-5000,-5000.-20000,-35000,-40000,-40000},
+	//double acc;加速度
+	0.0,
+	//double dec;減速度
+	0.0,
+	//double v_rated;定格速度（m/s, rad/s：100％)
+	0.0,
+	//double t_acc;加速時間（100%)
+	0.0,
+	//double motor_rps;モータ定格回転数（rps　100%）
+	0.0,
+	//double motor_rpm;モータ定格回転数（rpm　100%）
+	0.0,
+	//double gear_ratio;減速比(ドラム回転 / モータ回転）
+	0.0,
+	//double drum_rps;定格ドラム回転速度（100％rps)
+	0.0,
+	//double drum_rpps;定格ドラム回転加速度（r/s~2)
+	0.0,
+	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
+	{0.0,0.0,0.0,0.0},
+	//double n_wire;		// ワイヤ掛数
+	0.0,
+	//double n_boom_wire;	// ワイヤ掛数ブーム部
+	0.0,
+	//double n_ex_wind;	// あだ巻数
+	0.0,
+	//double n_tread;		// ドラム溝数
+	0.0,
+	//double d_drum;		// １層ドラム径
+	0.0,
+	//double d_wire;		// ワイヤ径
+	0.0,
+	//double d_drum_layer;// ドラム径層加算値
+	0.0,
+	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
+	0.0
+};
 ST_AUTO_SPEC	CSpec::auto_mh;
 ST_REMOTE_SPEC	CSpec::rmt_mh;
 
 //起伏
 ST_AXIS_ITEMS	CSpec::base_bh;
+ST_AXIS_ITEMS	base_bh0 = {
+	//double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{5000,5000,20000,35000,40000,40000},
+	//INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{-5000,-5000. - 20000,-35000,-40000,-40000},
+	//double acc;加速度
+	0.0,
+	//double dec;減速度
+	0.0,
+	//double v_rated;定格速度（m/s, rad/s：100％)
+	0.0,
+	//double t_acc;加速時間（100%)
+	0.0,
+	//double motor_rps;モータ定格回転数（rps　100%）
+	0.0,
+	//double motor_rpm;モータ定格回転数（rpm　100%）
+	0.0,
+	//double gear_ratio;減速比(ドラム回転 / モータ回転）
+	0.0,
+	//double drum_rps;定格ドラム回転速度（100％rps)
+	0.0,
+	//double drum_rpps;定格ドラム回転加速度（r/s~2)
+	0.0,
+	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
+	{0.0,0.0,0.0,0.0},
+	//double n_wire;		// ワイヤ掛数
+	0.0,
+	//double n_boom_wire;	// ワイヤ掛数ブーム部
+	0.0,
+	//double n_ex_wind;	// あだ巻数
+	0.0,
+	//double n_tread;		// ドラム溝数
+	0.0,
+	//double d_drum;		// １層ドラム径
+	0.0,
+	//double d_wire;		// ワイヤ径
+	0.0,
+	//double d_drum_layer;// ドラム径層加算値
+	0.0,
+	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
+	0.0
+};
 ST_AUTO_SPEC	CSpec::auto_bh;
 ST_REMOTE_SPEC	CSpec::rmt_bh;
 
 //旋回
 ST_AXIS_ITEMS	CSpec::base_sl;
+ST_AXIS_ITEMS	base_sl0 = {
+	//double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{5000,5000,20000,35000,40000,40000},
+	//INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{-5000,-5000. - 20000,-35000,-40000,-40000},
+	//double acc;加速度
+	0.0,
+	//double dec;減速度
+	0.0,
+	//double v_rated;定格速度（m/s, rad/s：100％)
+	0.0,
+	//double t_acc;加速時間（100%)
+	0.0,
+	//double motor_rps;モータ定格回転数（rps　100%）
+	0.0,
+	//double motor_rpm;モータ定格回転数（rpm　100%）
+	0.0,
+	//double gear_ratio;減速比(ドラム回転 / モータ回転）
+	0.0,
+	//double drum_rps;定格ドラム回転速度（100％rps)
+	0.0,
+	//double drum_rpps;定格ドラム回転加速度（r/s~2)
+	0.0,
+	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
+	{0.0,0.0,0.0,0.0},
+	//double n_wire;		// ワイヤ掛数
+	0.0,
+	//double n_boom_wire;	// ワイヤ掛数ブーム部
+	0.0,
+	//double n_ex_wind;	// あだ巻数
+	0.0,
+	//double n_tread;		// ドラム溝数
+	0.0,
+	//double d_drum;		// １層ドラム径
+	0.0,
+	//double d_wire;		// ワイヤ径
+	0.0,
+	//double d_drum_layer;// ドラム径層加算値
+	0.0,
+	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
+	0.0
+};
 ST_AUTO_SPEC	CSpec::auto_sl;
 ST_REMOTE_SPEC	CSpec::rmt_sl;
 
 //走行
 ST_AXIS_ITEMS	CSpec::base_gt;
+ST_AXIS_ITEMS	base_gt0 = {
+	//double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{5000,5000,20000,35000,40000,40000},
+	//INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{-5000,-5000. - 20000,-35000,-40000,-40000},
+	//double acc;加速度
+	0.0,
+	//double dec;減速度
+	0.0,
+	//double v_rated;定格速度（m/s, rad/s：100％)
+	0.0,
+	//double t_acc;加速時間（100%)
+	0.0,
+	//double motor_rps;モータ定格回転数（rps　100%）
+	0.0,
+	//double motor_rpm;モータ定格回転数（rpm　100%）
+	0.0,
+	//double gear_ratio;減速比(ドラム回転 / モータ回転）
+	0.0,
+	//double drum_rps;定格ドラム回転速度（100％rps)
+	0.0,
+	//double drum_rpps;定格ドラム回転加速度（r/s~2)
+	0.0,
+	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
+	{0.0,0.0,0.0,0.0},
+	//double n_wire;		// ワイヤ掛数
+	0.0,
+	//double n_boom_wire;	// ワイヤ掛数ブーム部
+	0.0,
+	//double n_ex_wind;	// あだ巻数
+	0.0,
+	//double n_tread;		// ドラム溝数
+	0.0,
+	//double d_drum;		// １層ドラム径
+	0.0,
+	//double d_wire;		// ワイヤ径
+	0.0,
+	//double d_drum_layer;// ドラム径層加算値
+	0.0,
+	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
+	0.0
+};
 ST_AUTO_SPEC	CSpec::auto_gt;
 ST_REMOTE_SPEC	CSpec::rmt_gt;
 
 //補巻
 ST_AXIS_ITEMS	CSpec::base_ah;
+ST_AXIS_ITEMS	base_ah0 = {
+	//double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1.0
+	{{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0,0.0,0.0}},
+	//INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{5000,5000,20000,35000,40000,40000},
+	//INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	{-5000,-5000. - 20000,-35000,-40000,-40000},
+	//double acc;加速度
+	0.0,
+	//double dec;減速度
+	0.0,
+	//double v_rated;定格速度（m/s, rad/s：100％)
+	0.0,
+	//double t_acc;加速時間（100%)
+	0.0,
+	//double motor_rps;モータ定格回転数（rps　100%）
+	0.0,
+	//double motor_rpm;モータ定格回転数（rpm　100%）
+	0.0,
+	//double gear_ratio;減速比(ドラム回転 / モータ回転）
+	0.0,
+	//double drum_rps;定格ドラム回転速度（100％rps)
+	0.0,
+	//double drum_rpps;定格ドラム回転加速度（r/s~2)
+	0.0,
+	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
+	{0.0,0.0,0.0,0.0},
+	//double n_wire;		// ワイヤ掛数
+	0.0,
+	//double n_boom_wire;	// ワイヤ掛数ブーム部
+	0.0,
+	//double n_ex_wind;	// あだ巻数
+	0.0,
+	//double n_tread;		// ドラム溝数
+	0.0,
+	//double d_drum;		// １層ドラム径
+	0.0,
+	//double d_wire;		// ワイヤ径
+	0.0,
+	//double d_drum_layer;// ドラム径層加算値
+	0.0,
+	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
+	0.0
+};
 ST_AUTO_SPEC	CSpec::auto_ah;
 ST_REMOTE_SPEC	CSpec::rmt_ah;
 
@@ -65,18 +315,43 @@ int CSpec::setup(int crane_id) {
 	switch (crane_id) {
 	case CRANE_ID_H6R602:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
+		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
 	}break;
 	case CARNE_ID_HHGH29:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
+		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
 	}break;
 	case CARNE_ID_HHGQ18:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
+		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
 	}break;
 	case CARNE_ID_HHFR22:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
+		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
 	}break;
 	default: {
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
+		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
 	}break;
 	}
 	return 0;

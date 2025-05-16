@@ -1,6 +1,7 @@
 #pragma once
 #include "CBasicControl.h"
 #include "CSHAREDMEM.H"
+#include "CValue.h"
 
 #define CS_SEMIAUTO_TG_SEL_DEFAULT      0
 #define CS_SEMIAUTO_TG_SEL_CLEAR		0
@@ -132,6 +133,20 @@ typedef struct _ST_CS_MON2 {
 
 }ST_CS_MON2, * LPST_CS_MON2;
 
+class CCcCsOteCtrl {
+public:
+    CCcCsOteCtrl() {};
+    ~CCcCsOteCtrl() {};
+
+    CValue<INT16> remote;
+    CValue<INT16> auto_mode;
+
+
+};
+
+#define OTE_IF_RELEASE_COUNTUP          100          // 操作モードの端末の応答切れ判定時間
+
+
 class CCcCS : public CBasicControl
 {
 public:
@@ -149,8 +164,8 @@ public:
     static ST_CS_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_CC_CS_INF st_cs_work;
-    static ST_CC_OTE_INF st_ote_work;
+    static ST_CC_CS_INF     st_cs_work;
+    static ST_CC_OTE_INF    st_ote_work;
     
     static HRESULT rcv_uni_ote(LPST_OTE_U_MSG pbuf);
 	static HRESULT rcv_mul_pc(LPST_PC_M_MSG pbuf);
@@ -162,7 +177,6 @@ public:
 	static LPST_PC_M_MSG set_msg_m(INT32 code, INT32 stat);
 	static HRESULT snd_mul2pc(LPST_PC_M_MSG pbuf);
     static HRESULT snd_mul2ote(LPST_PC_M_MSG pbuf);
-
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;

@@ -11,6 +11,7 @@ extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 
 extern ST_DRAWING_BASE		drawing_items;
+extern ST_DEVICE_CODE g_my_code; //端末コード
 
 //ソケット
 static CSockUDP* pUSockPC;					//ユニキャストPC通信受信用
@@ -226,8 +227,7 @@ int COteAgent::input() {
 }
 
 int COteAgent::parse() {
-	//送信バッファデータセット
-
+	st_work.cc_active_ote_id = st_work.st_msg_pc_u_rcv.head.tgid;
 	return S_OK;
 }
 
@@ -243,6 +243,9 @@ int COteAgent::output() {          //出力処理
 	memcpy_s(&(pOteCCIf->st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG), &(st_work.st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG));
 	//CC通信状態ステータスセット（モニタ用）
 	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
+	//クレーン操作有効端末id
+	pOteCCIf->cc_active_ote_id = st_work.cc_active_ote_id;
+
 	return STAT_OK;
 }
 
@@ -618,10 +621,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	}
 	case WM_TIMER: {
 		//UniCast送信
-		if(st_work.id_ote_ope_active)
-			snd_uni2pc(set_msg_u(false, 0, 0), &pUSockPC->addr_in_dst);
+		if(pOteCsInf->st_body.remote)
+			snd_uni2pc(set_msg_u(true, OTE_CODE_REQ_OPE_ACTIVE, OTE_STAT_MODE_OPE), &pUSockPC->addr_in_dst);
 		else 
-			snd_uni2pc(set_msg_u(true, 0, 0), &pUSockPC->addr_in_dst);
+			snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_MON, OTE_STAT_MODE_MON), &pUSockPC->addr_in_dst);
 
 		QueryPerformanceCounter(&start_count_s);  // 送信時カウント値取り込み
 
@@ -700,8 +703,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					st_mon2.wo_uni << L"[BODY P" << st_mon2.ipage_uni << L"]" ;
 					if (st_mon2.ipage_uni == 0) {
 						st_mon2.wo_uni << L"@ESTOP:" << pb0->ctrl_ope[OTE_PNL_CTRLS::estop]
-							<< L"@CSRC:" << pb0->ctrl_ope[OTE_PNL_CTRLS::ctrl_src]
-							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote_mode];
+							<< L"@CSRC:" << pb0->ctrl_ope[OTE_PNL_CTRLS::ctrl_src_on]
+							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote];
 					}
 					else if (st_mon2.ipage_uni == 1) {
 

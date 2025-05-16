@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>OpePaneLib.lib;CraneLib.lib;PCIFLib.lib;CCUILib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpePaneLib.lib;CraneLib.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -134,11 +134,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>OpePaneLib.lib;CraneLib.lib;PCIFLib.lib;CCUILib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpePaneLib.lib;CraneLib.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CGamePad.h" />
     <ClInclude Include="COteAgent.h" />
     <ClInclude Include="COteCS.h" />
     <ClInclude Include="COteEnv.h" />
@@ -152,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="..\Src\CBasicControl.cpp" />
     <ClCompile Include="..\Src\CSharedMem.cpp" />
+    <ClCompile Include="CGamePad.cpp" />
     <ClCompile Include="COteAgent.cpp" />
     <ClCompile Include="COteCS.cpp" />
     <ClCompile Include="COteEnv.cpp" />
