@@ -62,10 +62,10 @@
     <ClCompile Include="CAuxScad.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\Src\CBasicControl.cpp">
+    <ClCompile Include="..\MKCC\CBasicControl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\Src\CSharedMem.cpp">
+    <ClCompile Include="..\MKCC\CSharedMem.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

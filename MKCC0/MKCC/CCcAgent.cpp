@@ -3,7 +3,6 @@
 #include "resource.h"
 #include "CCrane.h"
 #include "CPlc.h"
-#include "COpePanelLib.h"
 #include "CSpec.h"
 
 extern CSharedMem* pEnvInfObj;

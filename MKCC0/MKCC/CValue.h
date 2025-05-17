@@ -92,33 +92,33 @@ public:
 
 class CPadNotch :public CValue<INT16> {
 private:
-	LPST_AXIS_ITEMS p_spec;
-	INT16 n;//ノッチ数
+	INT16 n_max;					//ノッチ数
+	INT16 prm_f[N_NOTCH_MAX];	//ノッチテーブル
+	INT16 prm_r[N_NOTCH_MAX];	//ノッチテーブル
 
 public:
-	CPadNotch(LPST_AXIS_ITEMS _p_spec) {
-		p_spec = _p_spec;
+	CPadNotch(INT16 n_notch,INT16* p_ptn_f, INT16* p_ptn_r) {
+		n_max = n_notch;
+		for (int i = 0; i < n_max; i++) prm_f[i] = *(p_ptn_f + i);
+		for (int i = 0; i < n_max; i++) prm_r[i] = *(p_ptn_r + i);
 	}
 	virtual ~CPadNotch() {}
 
-	INT16 get_notch() { return n; }
 	INT16 get_notch(INT16 pad_value) {
 		
 		set(pad_value);
-		if (pad_value == 0) return n = 0;
+		if (pad_value == 0) return value = 0;
 		if (pad_value > 0) {
-			PINT16 p = p_spec->notch_pad_f;
-			for (int i = 1; i < N_NOTCH_MAX; i++) {
-				if (*(p + i) > pad_value) return n=i;
+			for (int i = 1; i < n_max; i++) {
+				if (prm_f[i] > pad_value) return value =i;
 			}
 		}
 		else {
-			PINT16 p = p_spec->notch_pad_r;
 			for (int i = 1; i < N_NOTCH_MAX; i++) {
-				if (*(p + i) <  pad_value) return n = i;
+				if (prm_r[i] <  pad_value) return value = i;
 			}
 		}
-		return n = 0;
+		return value = 0;
 	}
 };
 

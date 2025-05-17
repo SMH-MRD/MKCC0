@@ -1,6 +1,6 @@
 #include "COteEnv.h"
 #include "resource.h"
-#include "CCraneLib.h"
+#include "CCrane.h"
 #include "COteScad.h"
 #include "COteAgent.h"
 
@@ -12,7 +12,7 @@ extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 
-extern CCraneBase* pCraneObj;
+extern CCrane* pCraneObj;
 extern ST_DEVICE_CODE g_my_code;
 
 ST_OTE_ENV_MON1 COteEnv::st_mon1;
@@ -189,7 +189,8 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case OTE_ENV_ID_MON1_PB_START: {
 			if (crane_id_selected != CRANE_ID_NULL) {
-				if (S_OK == pCraneObj->setup_crane(crane_id_selected)) {
+				delete pCraneObj;
+				if (!(NULL == (pCraneObj= new CCrane(crane_id_selected)))){
 					close_monitor_wnd(BC_ID_MON1);
 					Sleep(200);
 					pAgentObj->setup_crane_if(crane_id_selected);

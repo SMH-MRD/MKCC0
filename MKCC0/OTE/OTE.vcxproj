@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>OpePaneLib.lib;CraneLib.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Gdiplus.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -134,31 +134,42 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>OpePaneLib.lib;CraneLib.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Gdiplus.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CGamePad.h" />
+    <ClInclude Include="COpePanel.H" />
     <ClInclude Include="COteAgent.h" />
     <ClInclude Include="COteCS.h" />
     <ClInclude Include="COteEnv.h" />
     <ClInclude Include="COtePol.h" />
     <ClInclude Include="COteScad.h" />
+    <ClInclude Include="CPanelGr.H" />
+    <ClInclude Include="CPanelIo.h" />
+    <ClInclude Include="CPanelObj.h" />
+    <ClInclude Include="CSubPanel.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="OTE.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Src\CBasicControl.cpp" />
-    <ClCompile Include="..\Src\CSharedMem.cpp" />
+    <ClCompile Include="..\MKCC\CBasicControl.cpp" />
+    <ClCompile Include="..\MKCC\CCrane.cpp" />
+    <ClCompile Include="..\MKCC\CFaults.cpp" />
+    <ClCompile Include="..\MKCC\CSharedMem.cpp" />
+    <ClCompile Include="..\MKCC\CSpec.cpp" />
     <ClCompile Include="CGamePad.cpp" />
     <ClCompile Include="COteAgent.cpp" />
     <ClCompile Include="COteCS.cpp" />
     <ClCompile Include="COteEnv.cpp" />
     <ClCompile Include="COtePol.cpp" />
     <ClCompile Include="COteScad.cpp" />
+    <ClCompile Include="CPanelObj.cpp" />
+    <ClCompile Include="CSubPanel.cpp" />
+    <ClCompile Include="OpePanel.cpp" />
     <ClCompile Include="OTE.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,7 @@
 #include "COteCS.h"
 #include "resource.h"
 #include "CGamePad.h"
+#include "CCrane.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
@@ -9,7 +10,7 @@ extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 extern ST_DEVICE_CODE g_my_code; //端末コード
 
-extern CCraneBase* pCraneObj;	//クレーン制御クラスポインタ
+extern CCrane* pCraneObj;	//クレーン制御クラスポインタ
 
 
 //ソケット
@@ -116,13 +117,11 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	else
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-	pad_mh=new CPadNotch(pCraneObj->);
-	pad_bh=new CPadNotch();
-	pad_sl=new CPadNotch();
-	pad_gt=new CPadNotch();
-	pad_ah=new CPadNotch();
-
-
+	pad_mh=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_mh())->notch_pad_f, (pCraneObj->get_base_mh())->notch_pad_r);
+	pad_bh=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_bh())->notch_pad_f, (pCraneObj->get_base_bh())->notch_pad_r);
+	pad_sl=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_sl())->notch_pad_f, (pCraneObj->get_base_sl())->notch_pad_r);
+	pad_gt=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_gt())->notch_pad_f, (pCraneObj->get_base_gt())->notch_pad_r);
+	pad_ah=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_ah())->notch_pad_f, (pCraneObj->get_base_ah())->notch_pad_r);
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -143,10 +142,59 @@ static UINT32	gpad_mode_last = L_OFF;
 int COteCS::input() {
 	//	ゲームパッド取り込み
 	if ((pPad != NULL)&& st_work.st_body.game_pad_mode ){
-		if (pPad->PollController(pPad->controllerId)) {
+		if (pPad->PollController(pPad->controllerId)) {//GamePad状態取り込み
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
 		}
+		syukan_on.set(pPad->get_start());
+		syukan_off.set(pPad->get_Y());
+		estop.set(pPad->get_B());;
+		f_reset.set(pPad->get_back());
+		bypass.set(pPad->get_X());;
+		kidou_r.set(pPad->get_thumbr());
+		kidou_l.set(pPad->get_thumbl());
+		pan_l.set(pPad->get_left());
+		pan_r.set(pPad->get_right());
+		tilt_u.set(pPad->get_up());
+		tilt_d.set(pPad->get_down());
+		zoom_f.set(pPad->get_shoulderr());
+		zoom_n.set(pPad->get_shoulderl());
+
+		pad_mh->set(pPad->get_LY());
+		pad_bh->set(pPad->get_LY());
+		pad_sl->set(pPad->get_LX());
+		pad_gt->set(pPad->get_RX());
+		pad_ah->set(pPad->get_RX());
 	}
+
+	// 操作パネル入力取り込み
+	remote_pb;
+	remote_mode;
+	game_pad_pb;
+	desk_mode;
+
+	syukan_on;
+	syukan_off;
+	estop;
+	f_reset;
+	bypass;
+	kidou_r;
+	kidou_l;
+	pan_l;
+	pan_r;
+	tilt_u;
+	tilt_d;
+	zoom_f;
+	zoom_n;
+
+
+
+
+
+
+
+
+
+
 	return S_OK;
 }
 int COteCS::parse() {           //メイン処理
@@ -171,30 +219,6 @@ int COteCS::parse() {           //メイン処理
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_ACTIVE;
 	}
 
-	//PAD
-	if (st_work.st_body.game_pad_mode) {
-		syukan_on.set(pPad->get_start());
-		syukan_off.set(pPad->get_Y());
-		estop.set(pPad->get_B());;
-		f_reset.set(pPad->get_back());
-		bypass.set(pPad->get_X());;
-		kidou_r.set(pPad->get_thumbr());
-		kidou_l.set(pPad->get_thumbl());
-		pan_l.set(pPad->get_left());
-		pan_r.set(pPad->get_right());
-		tilt_u.set(pPad->get_up());
-		tilt_d.set(pPad->get_down());
-		zoom_f.set(pPad->get_shoulderr());
-		zoom_n.set(pPad->get_shoulderl());
-
-		pad_mh->set(pPad->get_LY());
-		pad_bh->set(pPad->get_LY());
-		pad_sl->set(pPad->get_LX());
-		pad_gt->set(pPad->get_RX());
-		pad_ah->set(pPad->get_RX());
-	}
-
-
 	return STAT_OK;
 }
 
@@ -205,6 +229,11 @@ int COteCS::output() {          //出力処理
 
 int COteCS::close() {
 	delete pPad;
+	delete pad_mh;
+	delete pad_bh;
+	delete pad_sl;
+	delete pad_gt;
+	delete pad_ah;
 	return 0;
 }
 

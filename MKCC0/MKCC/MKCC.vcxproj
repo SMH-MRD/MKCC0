@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\AUXEQ;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\AUXEQ;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -139,6 +139,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AUXEQ_DEF.H" />
+    <ClInclude Include="CBasicControl.h" />
     <ClInclude Include="CCcAgent.h" />
     <ClInclude Include="CCcCS.h" />
     <ClInclude Include="CCcEnv.h" />
@@ -147,17 +149,25 @@
     <ClInclude Include="CCcSim.h" />
     <ClInclude Include="CCrane.h" />
     <ClInclude Include="CFaults.h" />
+    <ClInclude Include="CHelper.h" />
+    <ClInclude Include="CNotchHelper.h" />
+    <ClInclude Include="COMMON_DEF.h" />
     <ClInclude Include="CPlc.h" />
+    <ClInclude Include="CSHAREDMEM.H" />
     <ClInclude Include="CSpec.h" />
     <ClInclude Include="CValue.h" />
+    <ClInclude Include="CVector3.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MKCC.h" />
+    <ClInclude Include="NET_DEF.H" />
+    <ClInclude Include="OTE_DEF.H" />
+    <ClInclude Include="phisics.h" />
+    <ClInclude Include="PLC_DEF.H" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Src\CBasicControl.cpp" />
-    <ClCompile Include="..\Src\CSharedMem.cpp" />
+    <ClCompile Include="CBasicControl.cpp" />
     <ClCompile Include="CCcAgent.cpp" />
     <ClCompile Include="CCcCS.cpp" />
     <ClCompile Include="CCcEnv.cpp" />
@@ -166,9 +176,13 @@
     <ClCompile Include="CCcSim.cpp" />
     <ClCompile Include="CCrane.cpp" />
     <ClCompile Include="CFaults.cpp" />
+    <ClCompile Include="CHelper.cpp" />
+    <ClCompile Include="CNotchHelper.cpp" />
     <ClCompile Include="CPlc.cpp" />
+    <ClCompile Include="CSharedMem.cpp" />
     <ClCompile Include="CSpec.cpp" />
     <ClCompile Include="CValue.cpp" />
+    <ClCompile Include="CVector3.cpp" />
     <ClCompile Include="MKCC.cpp" />
   </ItemGroup>
   <ItemGroup>

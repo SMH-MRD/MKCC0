@@ -1,5 +1,0 @@
-#pragma once
-
-#define MKCC_ADDR_LANIO_TILT	L"192.168.100.30"
-#define MKCC_ADDR_LANIO_DIO01	L"192.168.100.31"
-

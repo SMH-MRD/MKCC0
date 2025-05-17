@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\MKCC;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\MKCC;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,8 +156,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Src\CBasicControl.cpp" />
-    <ClCompile Include="..\Src\CSharedMem.cpp" />
+    <ClCompile Include="..\MKCC\CBasicControl.cpp" />
+    <ClCompile Include="..\MKCC\CSharedMem.cpp" />
     <ClCompile Include="AUXEQ.cpp" />
     <ClCompile Include="CAuxAgent.cpp" />
     <ClCompile Include="CAuxCS.cpp" />

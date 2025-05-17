@@ -13,8 +13,35 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Helpers">
-      <UniqueIdentifier>{87e9bd86-0eb6-4a00-8524-cd8429d996e5}</UniqueIdentifier>
+    <Filter Include="Domain">
+      <UniqueIdentifier>{72615922-7eb9-46b2-b610-ee7e706b80a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure">
+      <UniqueIdentifier>{740f77b2-ad89-4b7b-b01d-13af135d6ce9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{5289a74c-58d0-4eec-ab50-92b8a6465818}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\ViewModel">
+      <UniqueIdentifier>{1b38998d-51d7-4324-a29c-bfee049fdeca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Views">
+      <UniqueIdentifier>{687fd794-f313-4051-be2d-3f12e24df71b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Entities">
+      <UniqueIdentifier>{70d54afa-bb0c-4782-b0de-3efdd5a9d7c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Helpers">
+      <UniqueIdentifier>{59159554-7bd5-4159-b6e6-72f89bc9d9be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Repositories">
+      <UniqueIdentifier>{557ca1ad-8c42-47d6-bcec-cff36a207858}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\ValueObjects">
+      <UniqueIdentifier>{85b57cbe-80c7-4bcb-b652-455419c59393}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Tasks">
+      <UniqueIdentifier>{279ca668-91d6-4698-be44-246b07ddcd91}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,55 +54,88 @@
     <ClInclude Include="Resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="OTE.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="COteEnv.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="COteCS.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="COtePol.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="COteScad.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="CGamePad.h">
+      <Filter>Infrastructure</Filter>
     </ClInclude>
     <ClInclude Include="COteAgent.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>Domain\Tasks</Filter>
     </ClInclude>
-    <ClInclude Include="CGamePad.h">
-      <Filter>Helpers</Filter>
+    <ClInclude Include="COteCS.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="COteEnv.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="COtePol.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="COteScad.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="OTE.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="COpePanel.H">
+      <Filter>UI\ViewModel</Filter>
+    </ClInclude>
+    <ClInclude Include="CPanelGr.H">
+      <Filter>UI\ViewModel</Filter>
+    </ClInclude>
+    <ClInclude Include="CPanelIo.h">
+      <Filter>UI\ViewModel</Filter>
+    </ClInclude>
+    <ClInclude Include="CPanelObj.h">
+      <Filter>UI\ViewModel</Filter>
+    </ClInclude>
+    <ClInclude Include="CSubPanel.h">
+      <Filter>UI\Views</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OTE.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\MKCC\CFaults.cpp">
+      <Filter>Domain\Entities</Filter>
     </ClCompile>
-    <ClCompile Include="..\Src\CBasicControl.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\MKCC\CCrane.cpp">
+      <Filter>Domain\Entities</Filter>
     </ClCompile>
-    <ClCompile Include="COteEnv.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\MKCC\CSpec.cpp">
+      <Filter>Domain\Entities</Filter>
     </ClCompile>
-    <ClCompile Include="COteCS.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="CGamePad.cpp">
+      <Filter>Infrastructure</Filter>
     </ClCompile>
-    <ClCompile Include="COtePol.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="COteScad.cpp">
+    <ClCompile Include="..\MKCC\CBasicControl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="COteAgent.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COteCS.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COteEnv.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COtePol.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COteScad.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="OTE.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\Src\CSharedMem.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\MKCC\CSharedMem.cpp">
+      <Filter>Domain\Entities</Filter>
     </ClCompile>
-    <ClCompile Include="CGamePad.cpp">
-      <Filter>Helpers</Filter>
+    <ClCompile Include="OpePanel.cpp">
+      <Filter>UI\ViewModel</Filter>
+    </ClCompile>
+    <ClCompile Include="CPanelObj.cpp">
+      <Filter>UI\ViewModel</Filter>
+    </ClCompile>
+    <ClCompile Include="CSubPanel.cpp">
+      <Filter>UI\Views</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

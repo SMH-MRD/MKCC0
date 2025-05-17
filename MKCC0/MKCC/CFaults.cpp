@@ -5,7 +5,7 @@ ST_FAULT_LIST CFaults::flt_list;
 
 ST_FAULT_LIST flt_list_H6R602 ={
 	//INT16	type[N_ALL_FAULTS]; (18+6)*16=384
-	{
+	{//Type
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//00
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//01
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//02
@@ -31,8 +31,8 @@ ST_FAULT_LIST flt_list_H6R602 ={
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//22
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//23
 	},
-	//INT16	limit[N_ALL_FAULTS];	//制限される軸	
-	{
+	//INT16	limit[N_ALL_FAULTS];		
+	{//制限される軸
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//00
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//01
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//02
@@ -58,8 +58,8 @@ ST_FAULT_LIST flt_list_H6R602 ={
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//22
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//23
 	},
-	//WCHAR	text[N_ALL_FAULTS][PLC_IF_N_MSG_CHAR];	//表示テキスト
-	{
+	//WCHAR	text[N_ALL_FAULTS][PLC_IF_N_MSG_CHAR];	
+	{//表示テキスト
 	 L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",//00
 	 L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",//01
 	 L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",//02
@@ -88,7 +88,7 @@ ST_FAULT_LIST flt_list_H6R602 ={
 };;
 ST_FAULT_LIST flt_list_HHGH29 ={
 	//INT16	type[N_ALL_FAULTS]; (18+6)*16=384
-	{
+	{//Type
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//00
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//01
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//02
@@ -114,8 +114,8 @@ ST_FAULT_LIST flt_list_HHGH29 ={
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//22
 	 5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,//23
 	},
-	//INT16	limit[N_ALL_FAULTS];	//制限される軸	
-	{
+	//INT16	limit[N_ALL_FAULTS];		
+	{//制限される軸
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//00
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//01
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//02
@@ -141,8 +141,8 @@ ST_FAULT_LIST flt_list_HHGH29 ={
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//22
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,//23
 	},
-	//WCHAR	text[N_ALL_FAULTS][PLC_IF_N_MSG_CHAR];	//表示テキスト
-	{
+	//WCHAR	text[N_ALL_FAULTS][PLC_IF_N_MSG_CHAR];	
+	{//表示テキスト
 	 L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",//00
 	 L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",//01
 	 L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",L"-",//02
@@ -484,51 +484,74 @@ UINT16 fault_mask0[FAULT_TYPE::ALL][N_ALL_FAULT_BUF] ={
 };
 
 int CFaults::setup(int crane_id) {
+
+
+
 	switch (crane_id) {
 	case CRANE_ID_H6R602: {
-		//読み出しアドレスセット
-		prfltbuf = prbuf + 14;
-		pwfltbuf = pwbuf +14;
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_H6R602, sizeof(flt_list_H6R602));
 		//フォルトマスク
 		memcpy_s(fault_mask, sizeof(fault_mask), fault_mask_H6R602, sizeof(fault_mask_H6R602));	//フォルトマスク
+		//読書アドレスセット
+		if ((prbuf == NULL) || (pwbuf == NULL)) {
+			prfltbuf = NULL;pwfltbuf = NULL;
+		}
+		else {
+			prfltbuf = prbuf + 14;pwfltbuf = pwbuf + 14;
+		}
 	}break;
 	case CARNE_ID_HHGH29: {
-		//読み出しアドレスセット
-		prfltbuf = prbuf + 14;
-		pwfltbuf = pwbuf + 14;
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGH29, sizeof(flt_list_HHGH29));
 		//フォルトマスク
 		memcpy_s(fault_mask, sizeof(fault_mask), fault_mask_HHGH29, sizeof(fault_mask_HHGH29));	//フォルトマスク
+		//読書アドレスセット
+		if ((prbuf == NULL) || (pwbuf == NULL)) {
+			prfltbuf = NULL; pwfltbuf = NULL;
+		}
+		else {
+			prfltbuf = prbuf + 14; pwfltbuf = pwbuf + 14;
+		}
 	}break;
 	case CARNE_ID_HHGQ18: {
-		//読み出しアドレスセット
-		prfltbuf = prbuf + 14;
-		pwfltbuf = pwbuf + 14;
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGQ18, sizeof(flt_list_HHGQ18));
 		//フォルトマスク
 		memcpy_s(fault_mask, sizeof(fault_mask), fault_mask_HHGQ18, sizeof(fault_mask_HHGQ18));	//フォルトマスク
+		//読書アドレスセット
+		if ((prbuf == NULL) || (pwbuf == NULL)) {
+			prfltbuf = NULL; pwfltbuf = NULL;
+		}
+		else {
+			prfltbuf = prbuf + 14; pwfltbuf = pwbuf + 14;
+		}
 	}break;
 	case CARNE_ID_HHFR22: { 
-		//読み出しアドレスセット
-		prfltbuf = prbuf + 14;
-		pwfltbuf = pwbuf + 14;
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHFR22, sizeof(flt_list_HHFR22));
 		//フォルトマスク
 		memcpy_s(fault_mask, sizeof(fault_mask), fault_mask_HHFR22, sizeof(fault_mask_HHFR22));	//フォルトマスク
+		//読書アドレスセット
+		if ((prbuf == NULL) || (pwbuf == NULL)) {
+			prfltbuf = NULL; pwfltbuf = NULL;
+		}
+		else {
+			prfltbuf = prbuf + 14; pwfltbuf = pwbuf + 14;
+		}
 	}break;
 	default: {
-		//読み出しアドレスセット
-		prfltbuf = prbuf + 14;
-		pwfltbuf = pwbuf + 14;
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list0, sizeof(flt_list0));
 		//フォルトマスク
 		memcpy_s(fault_mask, sizeof(fault_mask), fault_mask0, sizeof(fault_mask0));	//フォルトマスク
+		//読書アドレスセット
+		if ((prbuf == NULL) || (pwbuf == NULL)) {
+			prfltbuf = NULL; pwfltbuf = NULL;
+		}
+		else {
+			prfltbuf = prbuf + 14; pwfltbuf = pwbuf + 14;
+		}
 	}break;
 	};
 	return 0;

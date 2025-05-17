@@ -1,9 +1,10 @@
 #include "COteScad.h"
 #include "resource.h"
 #include "framework.h"
-#include "CCraneLib.H"
+#include "CCrane.H"
 #include "COteEnv.h"
-#include "COpePanelLib.h"
+#include "COpePanel.h"
+#include "CSubPanel.h"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -12,6 +13,9 @@ extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
+
+extern CCrane* pCraneObj;
+extern ST_DEVICE_CODE g_my_code;
 
 ST_OTE_SCAD_MON1 COteScad::st_mon1;
 ST_OTE_SCAD_MON2 COteScad::st_mon2;
@@ -436,12 +440,16 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}break;
 
 
-		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT :
-		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET :
-		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM :
-		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM :
-		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT:
-		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR :
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT:break;
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET: {
+			HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+			CSubPanel* psubpanel = new CSubPanel(hInst,hWnd);
+
+		}break;
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM :break;
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM :break;
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT:break;
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR :break;
 		{
 			pPanelBase->pobjs->rdo_opt_wnd->update(true);
 		}break;

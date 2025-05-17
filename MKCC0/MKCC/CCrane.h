@@ -8,6 +8,12 @@ class CCrane
 private:
 	int crane_id;
 public:
+	CCrane(int _crane_id) {	//PLCêßå‰ñ≥Çµ
+		crane_id = _crane_id;
+		pSpec = new CSpec(crane_id);
+		pPlc = NULL;
+		pFlt = new CFaults(crane_id, NULL, NULL);
+	};
 	CCrane(int _crane_id,INT16* plc_rbuf,INT16* plc_wbuf) {
 		crane_id = _crane_id;
 		pSpec = new CSpec(crane_id);

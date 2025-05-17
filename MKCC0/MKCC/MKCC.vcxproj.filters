@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="ヘッダー ファイル">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
@@ -13,11 +9,33 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Value">
+    <Filter Include="Domain">
+      <UniqueIdentifier>{3aa7f48e-a285-4d69-b638-694f8b269223}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Entity">
+      <UniqueIdentifier>{ca33075c-1405-49a1-86d7-ff2859ac40e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Helpers">
+      <UniqueIdentifier>{8a9771a3-2788-44f9-85d5-6900cf6495ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\ValueObjects">
       <UniqueIdentifier>{4867969e-b1a1-4b36-97c0-df8e4cf30df7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Entity">
-      <UniqueIdentifier>{ca33075c-1405-49a1-86d7-ff2859ac40e0}</UniqueIdentifier>
+    <Filter Include="Infrastructure">
+      <UniqueIdentifier>{c27af0ce-0e96-4752-ba6c-93064e827711}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{fde729be-7aa6-40a9-851b-1b9de4f52d61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Domain\Simulation">
+      <UniqueIdentifier>{70d95710-a0a8-47a0-8e7d-8b5d685d4994}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Tasks">
+      <UniqueIdentifier>{13c46847-bc50-4299-a112-6d3e04a4a1e4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,85 +48,127 @@
     <ClInclude Include="Resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="MKCC.h">
+    <ClInclude Include="CSpec.h">
+      <Filter>Domain\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="CPlc.h">
+      <Filter>Domain\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="CCrane.h">
+      <Filter>Domain\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="CFaults.h">
+      <Filter>Domain\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="CValue.h">
+      <Filter>Domain\ValueObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="CNotchHelper.h">
+      <Filter>Domain\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="phisics.h">
+      <Filter>Domain\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="CVector3.h">
+      <Filter>Domain\ValueObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="CSHAREDMEM.H">
+      <Filter>Domain\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="PLC_DEF.H">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CCcEnv.h">
+    <ClInclude Include="CHelper.h">
+      <Filter>Domain\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="NET_DEF.H">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CCcScad.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CCcCS.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CCcAgent.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CCcPol.h">
+    <ClInclude Include="OTE_DEF.H">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="CCcSim.h">
+      <Filter>Domain\Simulation</Filter>
+    </ClInclude>
+    <ClInclude Include="CCcAgent.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="CCcCS.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="CCcEnv.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="CCcPol.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="CCcScad.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="CBasicControl.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="MKCC.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="COMMON_DEF.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CSpec.h">
-      <Filter>Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="CPlc.h">
-      <Filter>Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="CCrane.h">
-      <Filter>Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="CFaults.h">
-      <Filter>Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="CValue.h">
-      <Filter>Value</Filter>
+    <ClInclude Include="AUXEQ_DEF.H">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MKCC.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CCcEnv.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CCcScad.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CCcCS.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CCcAgent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CCcPol.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="CCcSim.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\CBasicControl.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Src\CSharedMem.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="CSpec.cpp">
-      <Filter>Entity</Filter>
+      <Filter>Domain\Entity</Filter>
     </ClCompile>
     <ClCompile Include="CPlc.cpp">
-      <Filter>Entity</Filter>
+      <Filter>Domain\Entity</Filter>
     </ClCompile>
     <ClCompile Include="CCrane.cpp">
-      <Filter>Entity</Filter>
+      <Filter>Domain\Entity</Filter>
     </ClCompile>
     <ClCompile Include="CFaults.cpp">
-      <Filter>Entity</Filter>
+      <Filter>Domain\Entity</Filter>
     </ClCompile>
     <ClCompile Include="CValue.cpp">
-      <Filter>Value</Filter>
+      <Filter>Domain\ValueObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="CNotchHelper.cpp">
+      <Filter>Domain\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="CSharedMem.cpp">
+      <Filter>Domain\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="CHelper.cpp">
+      <Filter>Domain\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="CVector3.cpp">
+      <Filter>Domain\ValueObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="CCcSim.cpp">
+      <Filter>Domain\Simulation</Filter>
+    </ClCompile>
+    <ClCompile Include="CCcAgent.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="CCcCS.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="CCcEnv.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="CCcPol.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="CCcScad.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="CBasicControl.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="MKCC.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

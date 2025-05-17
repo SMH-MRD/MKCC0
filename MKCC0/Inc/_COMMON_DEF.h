@@ -8,37 +8,7 @@ using namespace Gdiplus;
 
 //#define _DVELOPMENT_MODE                //開発環境を有効にする
 
-///# 物理定数、変換係数
-#pragma region PHISIC
-#define GA				9.80665     //重力加速度
 
-#define PI360           6.2832      //2π
-#define PI330           5.7596   
-#define PI315           5.4978
-#define PI270           4.7124
-#define PI180           3.1416      //π
-#define PI165           2.8798
-#define PI150           2.6180
-#define PI135           2.3562
-#define PI120           2.0944
-#define PI90            1.5708     //π/2
-#define PI60            1.0472
-#define PI45            0.7854
-#define PI30            0.5236
-#define PI15            0.2618
-#define PI10            0.17453
-#define PI5             0.0873
-#define PI0             0.00000
-
-#define RAD1DEG         0.017453    //rad/deg
-#define DEG1RAD         57.29578    //deg/rad
-
-#define RAD1DEG_SQ      3282.6      //(rad/deg)^2
-#define DEG1RAD_SQ      0.00030462  //(deg/rad)^2
-
-#define PERCENT_NORM	1.0         //正規化％ 100% = 1.0
-
-#pragma endregion 物理定数＿係数
 
 ///# コード
 #pragma region ID
@@ -89,6 +59,24 @@ using namespace Gdiplus;
 #define NOTCH_4	                4
 #define NOTCH_5	                5
 
+#define NOTCH_F1	            1
+#define NOTCH_F2	            2
+#define NOTCH_F3	            3
+#define NOTCH_F4	            4
+#define NOTCH_F5	            5
+#define NOTCH_C0                6
+#define NOTCH_R1	            7
+#define NOTCH_R2	            8
+#define NOTCH_R3	            9
+#define NOTCH_R4	            10
+#define NOTCH_R5	            11
+
+
+
+
+
+
+
 #define FUNC_DEACTIVE           0
 #define FUNC_ACTIVE             1
 #define FUNC_PAUSE              2
@@ -114,18 +102,6 @@ using namespace Gdiplus;
 #define OTE_TYPE_MOBILE         1   //モバイル端末
 #define OTE_TYPE_REMOTE_ROOM    2   //遠隔操作室
 #define OTE_TYPE_REMOTE_SITE    3   //遠隔サイト
-
-#define NUM_FORMAT_TYPE_DEC     0x0000
-#define NUM_FORMAT_TYPE_HEX     0x0001
-#define NUM_FORMAT_TYPE_16      0x0010
-#define NUM_FORMAT_TYPE_32     0x00020
-
-#define NUM_FORMAT_TYPE_HEX16   0x0011
-#define NUM_FORMAT_TYPE_HEX32   0x0021
-
-#define NUM_FORMAT_TYPE_DEC16   0x0010
-#define NUM_FORMAT_TYPE_DEC32   0x0020
-
 
 #pragma endregion 種別
 

@@ -54,8 +54,8 @@ protected:
 /****************************************************************************/
 
 /****************************************************************************/
-/*   補機信号定義構造体                                  　         　    */
-/* 　AUXEQがセットする共有メモリ上の情報　      　　　　　　               */
+/*   補機信号定義構造体                                  　         　		*/
+/* 　AUXEQがセットする共有メモリ上の情報　      　　　　　　				*/
 /****************************************************************************/
 #define SMEM_AUX_ENV_INF_NAME			L"AUX_ENV_INF"
 #define SMEM_AUX_AGENT_INF_NAME			L"AUX_AGENT_INF"
@@ -105,7 +105,6 @@ typedef struct _ST_AUX_CS_INF {
 	SOCKADDR_IN addrin_rcv;
 	SOCKADDR_IN addrin_from;
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
-
 
 /****************************************************************************/
 /*	クレーンコントローラ（CC）構造体定義									*/	
@@ -715,7 +714,7 @@ typedef struct _ST_CC_OTE_INF {
 /*   操作端末側信号定義構造体                                    　			*/
 /* 　OTEプロセス用共有メモリ上の情報　　　　　　　          　				*/
 /****************************************************************************/
-//OTEの状態
+#pragma region SMEM NAME
 #define SMEM_OTE_ENV_NAME			L"OTE_ENV_IF"
 #define SMEM_OTE_CS_INF_NAME		L"OTE_CS_IF"
 #define SMEM_OTE_UI_NAME			L"OTE_UI"
@@ -726,7 +725,8 @@ typedef struct _ST_CC_OTE_INF {
 #define MUTEX_OTE_CS_INF_NAME		L"MU_OTE_CS_IF"
 #define MUTEX_OTE_UI_NAME			L"MU_OTE_UI"
 #define MUTEX_OTE_CC_IF_NAME		L"MU_OTE_CC_IF"
-
+#pragma endregion
+#pragma region GRAPHIC
 #define N_PANEL_COLOR_PEN		16
 #define N_PANEL_COLOR_BRUSH		16
 #define N_PANEL_FONT			16
@@ -769,6 +769,7 @@ typedef struct _ST_DRAWING_BASE {
 	Font*		pfont[N_PANEL_FONT];
 	StringFormat* pstrformat[N_STRING_FORMAT];
 }ST_DRAWING_BASE, *LPST_DRAWING_BASE;
+#pragma endregion
 
 #pragma region OTE_INF ENV
 typedef struct _ST_OTE_ENV_INF {
@@ -840,11 +841,11 @@ typedef struct _ST_OTE_CC_IF {
 
 typedef struct _ST_OTE_UI {
 	INT16 ctrl_stat[N_OTE_PNL_CTRL];			
-	INT16 notch_pb_mh[N_OTE_PNL_NOTCH_PBL];
-	INT16 notch_pb_bh[N_OTE_PNL_NOTCH_PBL];
-	INT16 notch_pb_sl[N_OTE_PNL_NOTCH_PBL];
-	INT16 notch_pb_gt[N_OTE_PNL_NOTCH_PBL];
-	INT16 notch_pb_ah[N_OTE_PNL_NOTCH_PBL];
+	INT16 notch_pb_mh;//選択中のノッチ
+	INT16 notch_pb_bh;
+	INT16 notch_pb_sl;
+	INT16 notch_pb_gt;
+	INT16 notch_pb_ah;
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 
