@@ -43,6 +43,9 @@
     <Filter Include="Domain\Tasks">
       <UniqueIdentifier>{279ca668-91d6-4698-be44-246b07ddcd91}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ValueObjects">
+      <UniqueIdentifier>{5d0c141a-47df-4264-aeb0-f035775fcc50}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -136,6 +139,12 @@
     </ClCompile>
     <ClCompile Include="CSubPanel.cpp">
       <Filter>UI\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\MKCC\CHelper.cpp">
+      <Filter>Domain\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\MKCC\CValue.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

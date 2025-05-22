@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>CraneLib.lib;PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -134,7 +134,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>CraneLib.lib;PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -159,8 +159,8 @@
     <ClInclude Include="CVector3.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MKCC.h" />
-    <ClInclude Include="NET_DEF.H" />
     <ClInclude Include="OTE_DEF.H" />
+    <ClInclude Include="Params.h" />
     <ClInclude Include="phisics.h" />
     <ClInclude Include="PLC_DEF.H" />
     <ClInclude Include="Resource.h" />

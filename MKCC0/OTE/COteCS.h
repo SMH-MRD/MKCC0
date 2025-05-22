@@ -144,7 +144,7 @@ public:
     CValue<INT16> remote_pb;
     CValue<INT16> remote_mode;
     CValue<INT16> game_pad_pb;
-    CValue<INT16> desk_mode;
+    CValue<INT16> ote_type;
 
     CValue<INT16> syukan_on;
     CValue<INT16> syukan_off;

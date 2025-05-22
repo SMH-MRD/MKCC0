@@ -134,8 +134,8 @@ typedef struct _ST_OTE_PC_MSG {
 
 enum OTE_PNL_CTRLS{
 	estop=0,
-	ctrl_src_on,
-	ctrl_src_off,
+	syukan_on,
+	syukan_off,
 	remote,
 	auto_mode,
 	fault_reset,
@@ -145,7 +145,8 @@ enum OTE_PNL_CTRLS{
 	asel_bh,
 	asel_sl,
 	asel_gt,
-	asel_ah
+	asel_ah,
+	ote_type,
 };
 
 enum OTE_PNL_NOTCH {
@@ -180,7 +181,7 @@ typedef struct OteUBody {
 	INT16		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）
 	INT16		opt_device_status;												//オプションデバイスモード
 	INT16		game_pad_mode;													//ゲームパッド操作モード
-	INT16		desk_mode;														//操作卓モード
+	INT16		ote_type;														//操作卓種別
 	INT16		ctrl_ope[N_OTE_PNL_CTRL];										//操作卓PB入力
 	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
 	UINT32		target_seq_no;													//自動目標位置のシーケンス番号（トリガ検出用）

@@ -9,7 +9,7 @@
 #include "PLC_DEF.h"
 #include "CVector3.h"
 #include <dinput.h>
-#include "CCraneLib.h"
+#include "CCrane.h"
 
 using namespace std;
 

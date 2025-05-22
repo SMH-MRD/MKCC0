@@ -3,6 +3,7 @@
 #include <windows.h>
 #include "COMMON_DEF.h"
 #include "CSpec.h"
+#include "CHelper.h"
 
 using namespace std;
 
@@ -41,17 +42,17 @@ public:
 	}
 };
 
-class CMotionV : public CValue<double> {
+class CVref : public CValue<double> {
 private:
 	INT32 axis_id;//軸ID
 	LPST_AXIS_ITEMS p_spec;
 
 public:
-	CMotionV(LPST_AXIS_ITEMS _p_spec,INT32 id) {
+	CVref(LPST_AXIS_ITEMS _p_spec,INT32 id) {
 		p_spec = _p_spec;
 		axis_id = id;
 	}
-	virtual ~CMotionV() {}
+	virtual ~CVref() {}
 
 	INT16 get_notch(double v,INT16 mode) {
 		INT16 notch=0;
@@ -92,7 +93,7 @@ public:
 
 class CPadNotch :public CValue<INT16> {
 private:
-	INT16 n_max;					//ノッチ数
+	INT16 n_max;				//ノッチ数
 	INT16 prm_f[N_NOTCH_MAX];	//ノッチテーブル
 	INT16 prm_r[N_NOTCH_MAX];	//ノッチテーブル
 

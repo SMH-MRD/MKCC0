@@ -582,7 +582,8 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 					if (st_mon2.ipage_uni == 0) {
 						st_mon2.wo_uni << L"@ESTOP:" << pb0->ctrl_ope[OTE_PNL_CTRLS::estop]
-							<< L"@CSRC:" << pb0->ctrl_ope[OTE_PNL_CTRLS::ctrl_src_on]
+							<< L"@ŽåŠ²“ü:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_on]
+							<< L"@ŽåŠ²Ø:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_off]
 							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote];
 					}
 					else if (st_mon2.ipage_uni == 1) {

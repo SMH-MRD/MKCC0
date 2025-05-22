@@ -52,32 +52,41 @@ typedef struct _ST_STRUCTURE
 #define NOTCH_MODE_1				1
 #define NOTCH_MODE_2				2
 
+#define N_ACC_MODE					3
+#define ACC_MODE_BASE				0
+#define ACC_MODE_1					1
+#define ACC_MODE_2					2
+
 #define N_POS_LIMIT_TYPE			4	//軸動作極限
 #define END_LIMIT_POS				0
 #define SPD_LIMIT_POS1				1
 #define SPD_LIMIT_POS2				2
 #define SPD_LIMIT_POS3				3
 typedef struct _ST_AXIS_ITEMS {
+	INT32 axis_id;
 	double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 	double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-	double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1.0
-	double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1.0
+	INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=10000
+	INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=10000
 
 	INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
 	INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
 
-	double acc;			//加速度
-	double dec;			//減速度
-	double v_rated;		// 定格速度（m/s, rad/s：100％)
-	double t_acc;		// 加速時間（100%)
+	double acc[N_ACC_MODE];			//加速度
+	double dec[N_ACC_MODE];			//減速度
+	double t_acc[N_ACC_MODE];		// 加速時間（100%)
+	double t_dec[N_ACC_MODE];		// 加速時間（100%)
 
-	double motor_rps;	// モータ定格回転数（rps　100%）
-	double motor_rpm;	// モータ定格回転数（rpm　100%）
-	double gear_ratio;	// 減速比(ドラム回転 / モータ回転）
-	double drum_rps;	// 定格ドラム回転速度（100％rps)
-	double drum_rpps;	// 定格ドラム回転加速度（r/s~2)
+	double v_rated;					// 定格速度（m/s, rad/s：100％)
+
+	double motor_rps;				// モータ定格回転数（rps　100%）
+	double motor_rpm;				// モータ定格回転数（rpm　100%）
+	double gear_ratio;				// 減速比(ドラム回転 / モータ回転）
+	double drum_rps;				// 定格ドラム回転速度（100％rps)
+	double drum_rpps;				// 定格ドラム回転加速度（r/s~2)
 
 	double pos_limit_f[N_POS_LIMIT_TYPE] ;//軸動作極限
+	double pos_limit_r[N_POS_LIMIT_TYPE];//軸動作極限
 
 	double n_wire;		// ワイヤ掛数
 	double n_boom_wire;	// ワイヤ掛数ブーム部

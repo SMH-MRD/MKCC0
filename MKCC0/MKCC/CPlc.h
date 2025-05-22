@@ -89,16 +89,6 @@ union UN_PLC_WBUF {
 	ST_PLC_WBUF_HHGH29	st_hhgh29;
 };
 
-//ノッチビットパターン
-#define PTN_NOTCH_0			0x0001
-#define PTN_NOTCH_F1		0x0002
-#define PTN_NOTCH_F2		0x000A
-#define PTN_NOTCH_F3		0x001A
-#define PTN_NOTCH_F4		0x003A
-#define PTN_NOTCH_R1		0x0004
-#define PTN_NOTCH_R2		0x000C
-#define PTN_NOTCH_R3		0x001C
-#define PTN_NOTCH_R4		0x003C
 
 /*** PLC IO構造体定義 ***/
 #define CODE_PLCIO_WORD		0
@@ -119,8 +109,8 @@ typedef struct _ST_PLC_IO_DEF {
 	INT16*	pi16;	//信号が入っているバッファのアドレス
 	INT16	mask;	//信号抽出用マスク;
 	INT16	type;	//
-	INT16	lp;		//パラメータLow		:ノッチ,CS：ビットシフト数,　Fault：バッファサイズ
-	INT16   hp;		//パラメータHIGH	:
+	INT16	shift;	//ビットシフト数
+	INT16   size;	//バッファサイズ
 }ST_PLC_IO_DEF, * LPST_PLC_IO_DEF;
 
 typedef struct _ST_PLC_IO_RIF {

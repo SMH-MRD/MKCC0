@@ -140,8 +140,8 @@ HRESULT COteScad::open_ope_window() {
 void COteScad::set_panel_io() {
 	if (pPanelBase != NULL) {
 		st_work.ctrl_stat[OTE_PNL_CTRLS::estop] = pPanelBase->pobjs->cb_estop->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::ctrl_src_on] = pPanelBase->pobjs->pb_syukan_on->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::ctrl_src_off] = pPanelBase->pobjs->pb_syukan_off->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_on] = pPanelBase->pobjs->pb_syukan_on->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_off] = pPanelBase->pobjs->pb_syukan_off->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::remote] = pPanelBase->pobjs->pb_remote->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad] = pPanelBase->pobjs->pb_pad_mode->get();
 	}
@@ -473,8 +473,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pPanelBase->pobjs->lmp_estop->update();
 		pPanelBase->pobjs->lmp_syukan_on->update();
 		pPanelBase->pobjs->lmp_syukan_off->update();
-		
-		
+				
 		pPanelBase->pobjs->lmp_remote->set(pOteCsInf->st_body.remote);
 		pPanelBase->pobjs->lmp_remote->update();
 

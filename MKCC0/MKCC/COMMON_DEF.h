@@ -71,12 +71,6 @@ using namespace Gdiplus;
 #define NOTCH_R4	            10
 #define NOTCH_R5	            11
 
-
-
-
-
-
-
 #define FUNC_DEACTIVE           0
 #define FUNC_ACTIVE             1
 #define FUNC_PAUSE              2

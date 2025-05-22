@@ -167,14 +167,12 @@ int COteCS::input() {
 	}
 
 	// 操作パネル入力取り込み
-	remote_pb;
-	remote_mode;
-	game_pad_pb;
-	desk_mode;
-
-	syukan_on;
-	syukan_off;
-	estop;
+	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::syukan_on] 
+		= syukan_on.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_on] | syukan_on.get());
+	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::syukan_off]
+		= syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off] | syukan_off.get());
+	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::estop]
+		= estop.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::estop] | estop.get());
 	f_reset;
 	bypass;
 	kidou_r;
@@ -185,12 +183,6 @@ int COteCS::input() {
 	tilt_d;
 	zoom_f;
 	zoom_n;
-
-
-
-
-
-
 
 
 
@@ -217,6 +209,10 @@ int COteCS::parse() {           //メイン処理
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
 		else
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_ACTIVE;
+	}
+	//操作卓タイプ変更
+	if (ote_type.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::ote_type])) {
+		st_work.st_body.ote_type = ote_type.get();
 	}
 
 	return STAT_OK;

@@ -159,8 +159,10 @@
     <ClCompile Include="..\MKCC\CBasicControl.cpp" />
     <ClCompile Include="..\MKCC\CCrane.cpp" />
     <ClCompile Include="..\MKCC\CFaults.cpp" />
+    <ClCompile Include="..\MKCC\CHelper.cpp" />
     <ClCompile Include="..\MKCC\CSharedMem.cpp" />
     <ClCompile Include="..\MKCC\CSpec.cpp" />
+    <ClCompile Include="..\MKCC\CValue.cpp" />
     <ClCompile Include="CGamePad.cpp" />
     <ClCompile Include="COteAgent.cpp" />
     <ClCompile Include="COteCS.cpp" />

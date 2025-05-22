@@ -81,9 +81,6 @@
     <ClInclude Include="CHelper.h">
       <Filter>Domain\Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="NET_DEF.H">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="OTE_DEF.H">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -115,6 +112,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="AUXEQ_DEF.H">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Params.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

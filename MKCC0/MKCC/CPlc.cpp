@@ -108,7 +108,7 @@ int CPlc::setup(int crane_id) {
 }
 
 /// <summary>
-/// 
+/// PLC読み込みバッファからの取り込み関数
 /// </summary>
 /// <param name="st_r_def"></param>
 /// <returns></returns>
@@ -131,7 +131,7 @@ UN_IF_VALUE CPlc::rval(ST_PLC_IO_DEF st_r_def) {
 	case CODE_PLCIO_BITS: {
 		uval.i16 = *st_r_def.pi16;
 		uval.i16 &= st_r_def.mask;
-		uval.i16 = uval.i16 >> st_r_def.lp;
+		uval.i16 = uval.i16 >> st_r_def.shift;
 	}break;
 	case CODE_PLCIO_FLOAT: {
 		uval.f = *((float*)st_r_def.pi16);
@@ -145,7 +145,7 @@ UN_IF_VALUE CPlc::rval(ST_PLC_IO_DEF st_r_def) {
 }
 
 /// <summary>
-/// 
+/// PLC書き込みバッファの更新用関数
 /// </summary>
 /// <param name="st_w_def"></param>
 /// <param name="val"></param>
@@ -167,7 +167,7 @@ HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, INT16 val) {
 	}break;
 	case CODE_PLCIO_BITS: {
 		INT16 val16 = val;
-		val16 = val16 << st_w_def.lp;
+		val16 = val16 << st_w_def.shift;
 		*(st_w_def.pi16) &= ~st_w_def.mask;		
 		*(st_w_def.pi16) |= val16;
 	}break;
@@ -199,7 +199,7 @@ HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, INT32 val) {
 	}break;
 	case CODE_PLCIO_BITS: {
 		INT16 val16 = (INT16)val;
-		val16 = val16 << st_w_def.lp;
+		val16 = val16 << st_w_def.shift;
 		*(st_w_def.pi16) &= ~st_w_def.mask;
 		*(st_w_def.pi16) |= val16;
 	}break;
@@ -231,7 +231,7 @@ HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, float val) {
 	}break;
 	case CODE_PLCIO_BITS: {
 		INT16 val16 = (INT16)val;
-		val16 = val16 << st_w_def.lp;
+		val16 = val16 << st_w_def.shift;
 		*(st_w_def.pi16) &= ~st_w_def.mask;
 		*(st_w_def.pi16) |= val16;
 	}break;
@@ -261,7 +261,7 @@ HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, double val) {
 	}break;
 	case CODE_PLCIO_BITS: {
 		INT16 val16 = (INT16)val;
-		val16 = val16 << st_w_def.lp;
+		val16 = val16 << st_w_def.shift;
 		*(st_w_def.pi16) &= ~st_w_def.mask;
 		*(st_w_def.pi16) |= val16;
 	}break;
