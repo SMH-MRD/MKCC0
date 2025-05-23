@@ -144,7 +144,7 @@
       <Filter>Domain\Helpers</Filter>
     </ClCompile>
     <ClCompile Include="..\MKCC\CValue.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ValueObjects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

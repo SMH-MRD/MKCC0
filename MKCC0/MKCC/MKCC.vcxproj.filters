@@ -63,9 +63,6 @@
     <ClInclude Include="CValue.h">
       <Filter>Domain\ValueObjects</Filter>
     </ClInclude>
-    <ClInclude Include="CNotchHelper.h">
-      <Filter>Domain\Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="phisics.h">
       <Filter>Domain\Helpers</Filter>
     </ClInclude>
@@ -74,9 +71,6 @@
     </ClInclude>
     <ClInclude Include="CSHAREDMEM.H">
       <Filter>Domain\Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="PLC_DEF.H">
-      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="CHelper.h">
       <Filter>Domain\Helpers</Filter>
@@ -108,9 +102,6 @@
     <ClInclude Include="MKCC.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="COMMON_DEF.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="AUXEQ_DEF.H">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -133,9 +124,6 @@
     </ClCompile>
     <ClCompile Include="CValue.cpp">
       <Filter>Domain\ValueObjects</Filter>
-    </ClCompile>
-    <ClCompile Include="CNotchHelper.cpp">
-      <Filter>Domain\Helpers</Filter>
     </ClCompile>
     <ClCompile Include="CSharedMem.cpp">
       <Filter>Domain\Entity</Filter>

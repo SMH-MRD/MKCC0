@@ -121,26 +121,7 @@ typedef struct _ST_OTE_CS_MON2 {
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_OTE_CS_MON2, * LPST_OTE_CS_MON2;
-
-class COteCS :public CBasicControl
-{
-public:
-    COteCS();
-    ~COteCS();
-
-    virtual HRESULT initialize(LPVOID lpParam) override;
-
-    LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
-
-    static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
-    static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
-
-    static ST_OTE_CS_MON1 st_mon1;
-    static ST_OTE_CS_MON2 st_mon2;
-
-    //タスク出力用構造体
-    static ST_OTE_CS_INF st_work;
-
+typedef struct _ST_OTE_CS_OBJ {
     CValue<INT16> remote_pb;
     CValue<INT16> remote_mode;
     CValue<INT16> game_pad_pb;
@@ -160,12 +141,35 @@ public:
     CValue<INT16> zoom_f;
     CValue<INT16> zoom_n;
 
+    CValue<INT16> trig_l;
+    CValue<INT16> trig_r;
+
     CPadNotch* pad_mh;
     CPadNotch* pad_bh;
     CPadNotch* pad_sl;
     CPadNotch* pad_gt;
     CPadNotch* pad_ah;
+} ST_OTE_CS_OBJ, * LPST_OTE_CS_OBJ;
 
+class COteCS :public CBasicControl
+{
+public:
+    COteCS();
+    ~COteCS();
+
+    virtual HRESULT initialize(LPVOID lpParam) override;
+
+    LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
+
+    static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
+    static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
+
+    static ST_OTE_CS_MON1 st_mon1;
+    static ST_OTE_CS_MON2 st_mon2;
+
+    //タスク出力用構造体
+    static ST_OTE_CS_INF st_work;
+    static ST_OTE_CS_OBJ st_obj;
 
     //PLC IF関連
     static HRESULT rcv_uni_ote(LPST_PC_U_MSG pbuf);

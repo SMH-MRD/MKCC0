@@ -191,6 +191,7 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			if (crane_id_selected != CRANE_ID_NULL) {
 				delete pCraneObj;
 				if (!(NULL == (pCraneObj= new CCrane(crane_id_selected)))){
+					pCraneObj->pSpec->base_mh;
 					close_monitor_wnd(BC_ID_MON1);
 					Sleep(200);
 					pAgentObj->setup_crane_if(crane_id_selected);

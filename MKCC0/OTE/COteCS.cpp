@@ -21,6 +21,7 @@ ST_OTE_CS_MON1 COteCS::st_mon1;
 ST_OTE_CS_MON2 COteCS::st_mon2;
 
 ST_OTE_CS_INF COteCS::st_work;
+ST_OTE_CS_OBJ COteCS::st_obj;
 
 //共有メモリ参照用定義
 
@@ -40,7 +41,7 @@ static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 
 
 COteCS::COteCS() {
-	remote_pb.set(0); remote_mode.set(0); game_pad_pb.set(0);
+	st_obj.remote_pb.set(0); st_obj.remote_mode.set(0); st_obj.game_pad_pb.set(0);
 }
 COteCS::~COteCS() {
 }
@@ -117,11 +118,11 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	else
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-	pad_mh=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_mh())->notch_pad_f, (pCraneObj->get_base_mh())->notch_pad_r);
-	pad_bh=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_bh())->notch_pad_f, (pCraneObj->get_base_bh())->notch_pad_r);
-	pad_sl=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_sl())->notch_pad_f, (pCraneObj->get_base_sl())->notch_pad_r);
-	pad_gt=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_gt())->notch_pad_f, (pCraneObj->get_base_gt())->notch_pad_r);
-	pad_ah=new CPadNotch(N_NOTCH_MAX, (pCraneObj->get_base_ah())->notch_pad_f, (pCraneObj->get_base_ah())->notch_pad_r);
+	st_obj.pad_mh=new CPadNotch(pCraneObj->get_base_mh(), ID_HOIST);
+	st_obj.pad_bh=new CPadNotch(pCraneObj->get_base_bh(), ID_BOOM_H);
+	st_obj.pad_sl=new CPadNotch(pCraneObj->get_base_sl(), ID_SLEW);
+	st_obj.pad_gt=new CPadNotch(pCraneObj->get_base_gt(), ID_GANTRY);
+	st_obj.pad_ah=new CPadNotch(pCraneObj->get_base_ah(), ID_AHOIST);
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -145,54 +146,54 @@ int COteCS::input() {
 		if (pPad->PollController(pPad->controllerId)) {//GamePad状態取り込み
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
 		}
-		syukan_on.set(pPad->get_start());
-		syukan_off.set(pPad->get_Y());
-		estop.set(pPad->get_B());;
-		f_reset.set(pPad->get_back());
-		bypass.set(pPad->get_X());;
-		kidou_r.set(pPad->get_thumbr());
-		kidou_l.set(pPad->get_thumbl());
-		pan_l.set(pPad->get_left());
-		pan_r.set(pPad->get_right());
-		tilt_u.set(pPad->get_up());
-		tilt_d.set(pPad->get_down());
-		zoom_f.set(pPad->get_shoulderr());
-		zoom_n.set(pPad->get_shoulderl());
+		pOteCsInf->gpad_in.syukan_on	= pPad->chk_on(st_obj.syukan_on.set(pPad->get_start()));
+		pOteCsInf->gpad_in.syukan_off	= pPad->chk_on(st_obj.syukan_off.set(pPad->get_Y()));
+		pOteCsInf->gpad_in.remote		= pPad->chk_on(st_obj.remote_pb.set(pPad->get_A()));
+		pOteCsInf->gpad_in.estop		= pPad->chk_on(st_obj.estop.set(pPad->get_B()));
+		pOteCsInf->gpad_in.f_reset		= pPad->chk_on(st_obj.f_reset.set(pPad->get_back()));
+		pOteCsInf->gpad_in.bypass		= pPad->chk_on(st_obj.bypass.set(pPad->get_X()));
+		pOteCsInf->gpad_in.kidou_r		= pPad->chk_on(st_obj.kidou_r.set(pPad->get_thumbr()));
+		pOteCsInf->gpad_in.kidou_l		= pPad->chk_on(st_obj.kidou_l.set(pPad->get_thumbl()));
+		pOteCsInf->gpad_in.pan_l		= pPad->chk_on(st_obj.pan_l.set(pPad->get_left()));
+		pOteCsInf->gpad_in.pan_r		= pPad->chk_on(st_obj.pan_r.set(pPad->get_right()));
+		pOteCsInf->gpad_in.tilt_u		= pPad->chk_on(st_obj.tilt_u.set(pPad->get_up()));
+		pOteCsInf->gpad_in.tilt_d		= pPad->chk_on(st_obj.tilt_d.set(pPad->get_down()));
+		pOteCsInf->gpad_in.zoom_f		= pPad->chk_on(st_obj.zoom_f.set(pPad->get_shoulderr()));
+		pOteCsInf->gpad_in.zoom_n		= pPad->chk_on(st_obj.zoom_n.set(pPad->get_shoulderl()));
 
-		pad_mh->set(pPad->get_LY());
-		pad_bh->set(pPad->get_LY());
-		pad_sl->set(pPad->get_LX());
-		pad_gt->set(pPad->get_RX());
-		pad_ah->set(pPad->get_RX());
+		pOteCsInf->gpad_in.trig_l		= st_obj.trig_l.set(pPad->get_trig_L());
+		pOteCsInf->gpad_in.trig_r		= st_obj.trig_r.set(pPad->get_trig_R());
+
+		st_obj.pad_mh->set(pPad->get_RY());pOteCsInf->gpad_in.pad_mh = st_obj.pad_mh->get_notch();
+		st_obj.pad_bh->set(pPad->get_LY());pOteCsInf->gpad_in.pad_bh = st_obj.pad_bh->get_notch();
+		st_obj.pad_sl->set(pPad->get_LX());pOteCsInf->gpad_in.pad_sl = st_obj.pad_sl->get_notch();
+		st_obj.pad_gt->set(pPad->get_RX());pOteCsInf->gpad_in.pad_gt = st_obj.pad_gt->get_notch();
 	}
 
 	// 操作パネル入力取り込み
 	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::syukan_on] 
-		= syukan_on.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_on] | syukan_on.get());
+		= st_obj.syukan_on.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_on] | st_obj.syukan_on.get());
 	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::syukan_off]
-		= syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off] | syukan_off.get());
+		= st_obj.syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off] | st_obj.syukan_off.get());
 	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::estop]
-		= estop.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::estop] | estop.get());
-	f_reset;
-	bypass;
-	kidou_r;
-	kidou_l;
-	pan_l;
-	pan_r;
-	tilt_u;
-	tilt_d;
-	zoom_f;
-	zoom_n;
-
-
-
+		= st_obj.estop.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::estop] | st_obj.estop.get());
+	st_obj.f_reset;
+	st_obj.bypass;
+	st_obj.kidou_r;
+	st_obj.kidou_l;
+	st_obj.pan_l;
+	st_obj.pan_r;
+	st_obj.tilt_u;
+	st_obj.tilt_d;
+	st_obj.zoom_f;
+	st_obj.zoom_n;
 
 	return S_OK;
 }
 int COteCS::parse() {           //メイン処理
 
 	//リモート設定
-	if (CODE_TRIG_ON == remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])){
+	if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])){
 		if (st_work.st_body.remote == CODE_PNL_COM_SELECTED) 
 			st_work.st_body.remote = CODE_PNL_COM_OFF;
 		else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE) 
@@ -204,16 +205,24 @@ int COteCS::parse() {           //メイン処理
 		st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
 
 	//GamePad設定
-	if (CODE_TRIG_ON == game_pad_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::game_pad])) {
+	if (CODE_TRIG_ON == st_obj.game_pad_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::game_pad])) {
 		if (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE)
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
 		else
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_ACTIVE;
 	}
 	//操作卓タイプ変更
-	if (ote_type.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::ote_type])) {
-		st_work.st_body.ote_type = ote_type.get();
+	if (st_obj.ote_type.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::ote_type])) {
+		st_work.st_body.ote_type = st_obj.ote_type.get();
 	}
+
+	//ノッチ指令値
+	st_work.st_body.axis[ID_AXIS::mh].notch_ref = st_obj.pad_mh->get_notch();
+	st_work.st_body.axis[ID_AXIS::bh].notch_ref = st_obj.pad_bh->get_notch();
+	st_work.st_body.axis[ID_AXIS::sl].notch_ref = st_obj.pad_sl->get_notch();
+	st_work.st_body.axis[ID_AXIS::gt].notch_ref = st_obj.pad_gt->get_notch();
+	st_work.st_body.axis[ID_AXIS::ah].notch_ref = st_obj.pad_ah->get_notch();
+
 
 	return STAT_OK;
 }
@@ -225,11 +234,11 @@ int COteCS::output() {          //出力処理
 
 int COteCS::close() {
 	delete pPad;
-	delete pad_mh;
-	delete pad_bh;
-	delete pad_sl;
-	delete pad_gt;
-	delete pad_ah;
+	delete st_obj.pad_mh;
+	delete st_obj.pad_bh;
+	delete st_obj.pad_sl;
+	delete st_obj.pad_gt;
+	delete st_obj.pad_ah;
 	return 0;
 }
 
@@ -306,7 +315,11 @@ LRESULT CALLBACK COteCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			monwos << "  Buttons: " << std::hex << pPad->state.Gamepad.wButtons << std::dec << "\n";
 			monwos << "  Left Thumb: (" << pPad->state.Gamepad.sThumbLX << ", " << pPad->state.Gamepad.sThumbLY << ")\n";
 			monwos << "  Right Thumb: (" << pPad->state.Gamepad.sThumbRX << ", " << pPad->state.Gamepad.sThumbRY << ")\n";
-			monwos << "  Triggers: L=" << (int)pPad->state.Gamepad.bLeftTrigger << ", R=" << (int)pPad->state.Gamepad.bRightTrigger << "\n";
+			monwos << "  Triggers: L=" << (int)pPad->state.Gamepad.bLeftTrigger << ", R=" << (int)pPad->state.Gamepad.bRightTrigger << "\n\n";
+
+			monwos << "PAD Notch MH:" << st_obj.pad_mh->get_notch() << " BH:" << st_obj.pad_bh->get_notch();
+			monwos << " SL:" << st_obj.pad_sl->get_notch() << " GT:" << st_obj.pad_gt->get_notch();
+
 		}
 		SetWindowText(st_mon1.hctrl[OTE_CS_ID_MON1_STATIC_MSG], monwos.str().c_str());
 #if 0

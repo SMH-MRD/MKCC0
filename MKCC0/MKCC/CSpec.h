@@ -66,8 +66,8 @@ typedef struct _ST_AXIS_ITEMS {
 	INT32 axis_id;
 	double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 	double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-	INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=10000
-	INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=10000
+	INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1000
+	INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1000
 
 	INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
 	INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
@@ -96,6 +96,8 @@ typedef struct _ST_AXIS_ITEMS {
 	double d_wire;		// ワイヤ径
 	double d_drum_layer;// ドラム径層加算値
 	double l_wire;		// 基準ワイヤ長(旋回はTTB円周
+
+	INT32	v100plc;
 } ST_AXIS_ITEMS, * LPST_AXIS_ITEMS;
 
 #define N_SWAY_LEVEL				3	//完了,トリガ,制限

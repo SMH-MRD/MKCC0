@@ -150,8 +150,6 @@
     <ClInclude Include="CCrane.h" />
     <ClInclude Include="CFaults.h" />
     <ClInclude Include="CHelper.h" />
-    <ClInclude Include="CNotchHelper.h" />
-    <ClInclude Include="COMMON_DEF.h" />
     <ClInclude Include="CPlc.h" />
     <ClInclude Include="CSHAREDMEM.H" />
     <ClInclude Include="CSpec.h" />
@@ -162,7 +160,6 @@
     <ClInclude Include="OTE_DEF.H" />
     <ClInclude Include="Params.h" />
     <ClInclude Include="phisics.h" />
-    <ClInclude Include="PLC_DEF.H" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -177,7 +174,6 @@
     <ClCompile Include="CCrane.cpp" />
     <ClCompile Include="CFaults.cpp" />
     <ClCompile Include="CHelper.cpp" />
-    <ClCompile Include="CNotchHelper.cpp" />
     <ClCompile Include="CPlc.cpp" />
     <ClCompile Include="CSharedMem.cpp" />
     <ClCompile Include="CSpec.cpp" />

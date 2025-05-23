@@ -35,7 +35,7 @@ public:
 	static INT16 get_notch4_by_v(double v, double* vtbl_f, double* vtbl_r);
 	static INT16 get_notch_by_pad(INT16 val, PINT16 vtbl_f, PINT16 vtbl_r);
 
-	//UI用配列用インデクス取得
+	//UI配列用インデクス取得
 	static INT16 get_iui4_by_notch(int notch);
 	static INT16 get_iui4_by_v(double v, double* vtbl_f, double* vtbl_r);
 };

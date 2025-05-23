@@ -587,10 +587,12 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote];
 					}
 					else if (st_mon2.ipage_uni == 1) {
-
+						st_mon2.wo_uni	<< L"@GPAD@ #Notch mh:" << pb0->gpad_in.pad_mh << L" bh:" << pb0->gpad_in.pad_bh << L" sl:" << pb0->gpad_in.pad_sl << L" gt:" << pb0->gpad_in.pad_gt;
+						st_mon2.wo_uni	<< L" estop:" << pb0->gpad_in.estop << L" ŽåŠ²off:" << pb0->gpad_in.syukan_off << L" ŽåŠ²on:" << pb0->gpad_in.syukan_on << L" ‰“Šu:" << pb0->gpad_in.remote
+							<< L"\n freset:" << pb0->gpad_in.f_reset << L" bypass:" << pb0->gpad_in.bypass << L" kidoul:" << pb0->gpad_in.kidou_l << L" kidour:" << pb0->gpad_in.kidou_r << L" trigl:" << pb0->gpad_in.trig_l << L" trigr:" << pb0->gpad_in.trig_r<< L"\n";
+						st_mon2.wo_uni	<< L" panl:" << pb0->gpad_in.pan_l << L" panr:" << pb0->gpad_in.pan_r << L" tild:" << pb0->gpad_in.tilt_d << L" tilu:" << pb0->gpad_in.tilt_u << L" zmf:" << pb0->gpad_in.zoom_f << L" zmn:" << pb0->gpad_in.zoom_n;
 					}
 					else if (st_mon2.ipage_uni == 2) {
-
 					}
 					else {
 

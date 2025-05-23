@@ -139,11 +139,11 @@ HRESULT COteScad::open_ope_window() {
 
 void COteScad::set_panel_io() {
 	if (pPanelBase != NULL) {
-		st_work.ctrl_stat[OTE_PNL_CTRLS::estop] = pPanelBase->pobjs->cb_estop->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_on] = pPanelBase->pobjs->pb_syukan_on->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_off] = pPanelBase->pobjs->pb_syukan_off->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::remote] = pPanelBase->pobjs->pb_remote->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad] = pPanelBase->pobjs->pb_pad_mode->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::estop]			= pPanelBase->pobjs->cb_estop->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_on]		= pPanelBase->pobjs->pb_syukan_on->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_off]	= pPanelBase->pobjs->pb_syukan_off->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::remote]		= pPanelBase->pobjs->pb_remote->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pobjs->pb_pad_mode->get();
 	}
 	return;
 }
@@ -470,7 +470,9 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 	case WM_TIMER: {
 		//LAMP(CTRL)更新
+		pPanelBase->pobjs->lmp_estop->set(pPanelBase->pobjs->cb_estop->get());
 		pPanelBase->pobjs->lmp_estop->update();
+
 		pPanelBase->pobjs->lmp_syukan_on->update();
 		pPanelBase->pobjs->lmp_syukan_off->update();
 				
@@ -511,6 +513,14 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			pPanelBase->pobjs->str_plc_com_stat->update();
 		//	is_initial_draw_mon1 = false;
 		}
+
+		//GamePadチェック
+		if(pOteCsInf->gpad_in.syukan_on) pPanelBase->pobjs->pb_syukan_on->update(true);
+		if (pOteCsInf->gpad_in.syukan_off)pPanelBase->pobjs->pb_syukan_off->update(true);
+		if (pOteCsInf->gpad_in.remote)pPanelBase->pobjs->pb_remote->update(true);
+		if (pOteCsInf->gpad_in.estop)pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
+		if (pOteCsInf->gpad_in.f_reset)pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
+		
 	}break;
 
 	case WM_PAINT: {

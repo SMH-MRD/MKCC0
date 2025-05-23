@@ -57,7 +57,7 @@ INT16 CNotchHelper::get_notch4_by_v(double v, double* vtbl_f, double* vtbl_r) {
 				break;
 			}
 		}
-		if (i >= N_NOTCH_MAX)	i = N_NOTCH_MAX - 1;
+		if (i > 4)	i = 4;
 		return -i;
 	}
 	else if (v > 0.0) {
@@ -68,7 +68,7 @@ INT16 CNotchHelper::get_notch4_by_v(double v, double* vtbl_f, double* vtbl_r) {
 				break;
 			}
 		}
-		if (i >= N_NOTCH_MAX)	i = N_NOTCH_MAX - 1;
+		if (i >4)	i = 4;
 		return i;
 	}
 	else return 0;
@@ -76,18 +76,18 @@ INT16 CNotchHelper::get_notch4_by_v(double v, double* vtbl_f, double* vtbl_r) {
 	return 0;
 }
 
-//PADのアナログ出力値からノッチ取得 -0x7FFF～0x7FFF：
+//PADのアナログ出力値からノッチ取得 0x8000～0x7FFF：
 INT16 CNotchHelper::get_notch_by_pad(INT16 val, PINT16 vtbl_f,PINT16 vtbl_r) {
 	INT16 ans=0, i=0;
 	INT16 val0 = 0;
-	PINT16 p;;
+	PINT16 p;
 
 	if (val == val0) return 0;
 	else if (val < val0) {
 		p = vtbl_r;
 		for (i = 1; i < N_NOTCH_MAX; i++) {
-			p += i;
-			if (val > *p) break;
+			INT16 _val = *(p + i);
+			if (val >= _val) break;
 		}
 		if (i >= N_NOTCH_MAX)	i = N_NOTCH_MAX - 1;
 		return -i;
@@ -95,8 +95,8 @@ INT16 CNotchHelper::get_notch_by_pad(INT16 val, PINT16 vtbl_f,PINT16 vtbl_r) {
 	else if (val > val0) {
 		p = vtbl_f;
 		for (i = 1; i < N_NOTCH_MAX; i++) {
-			p += i;
-			if (val < *p)break;
+			INT16 _val = *(p + i);
+			if (val <= _val)break;
 		}
 		if (i >= N_NOTCH_MAX)	i = N_NOTCH_MAX - 1;
 		return i;

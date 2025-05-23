@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <Xinput.h>
 
+
 class CGamePad
 {
 public:
@@ -17,6 +18,11 @@ public:
 	DWORD PollController(int controllerId);
 
 	void set_id(int id) { controllerId = id; return; }
+	WORD chk_on(WORD val)
+	{
+		if (val) return true;
+		else return false;
+	}
 	WORD get_up(){return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;}
 	WORD get_down(){return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;}
 	WORD get_left(){return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;}
@@ -32,7 +38,10 @@ public:
 	WORD get_X(){return state.Gamepad.wButtons & XINPUT_GAMEPAD_X;}
 	WORD get_Y(){return state.Gamepad.wButtons & XINPUT_GAMEPAD_Y;}
 
-	SHORT get_LX(){ return state.Gamepad.sThumbLX; }
+	WORD get_trig_L() { return state.Gamepad.bLeftTrigger; }
+	WORD get_trig_R() { return state.Gamepad.bRightTrigger; }
+
+	SHORT get_LX() { return state.Gamepad.sThumbLX; }
 	SHORT get_LY() { return state.Gamepad.sThumbLY; }
 	SHORT get_RX() { return state.Gamepad.sThumbRX; }
 	SHORT get_RY() { return state.Gamepad.sThumbRY; }
