@@ -577,8 +577,8 @@ typedef struct _ST_CC_CS_INF {
 	ST_CC_CS_CTRL cs_ctrl;												
 	//OTE関連
 	double ote_camera_height_m;													//操作端末VIEWのカメラ設置高さ
-	UN_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];								//端末ランプ表示指令
-	UN_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//端末ノッチランプ表示指令
+	UN_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];									//端末ランプ表示指令
+	UN_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];	//端末ノッチランプ表示指令
 	INT16	notch_pos[2][MOTION_ID_MAX];										//ノッチ指定値
 
 	//JOB関連
@@ -832,7 +832,6 @@ typedef struct _ST_OTE_CC_IF {
 	UINT32			ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
 	UINT32			mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
 	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
-
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体
 

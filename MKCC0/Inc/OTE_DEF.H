@@ -147,6 +147,10 @@ enum OTE_PNL_CTRLS{
 	asel_gt,
 	asel_ah,
 	ote_type,
+	notch_mh,
+	notch_bh,
+	notch_sl,
+	notch_gt
 };
 
 enum OTE_PNL_NOTCH {

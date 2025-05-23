@@ -227,7 +227,34 @@ int COteAgent::input() {
 }
 
 int COteAgent::parse() {
+	//受信データ解析
 	st_work.cc_active_ote_id = st_work.st_msg_pc_u_rcv.head.tgid;
+
+	//送信データ解析
+		//操作ボタン類（SCADA共有メモリ部）
+	//memcpy_s(
+	//	st_work.st_msg_ote_u_snd.body.st.ctrl_ope, sizeof(st_work.st_msg_ote_u_snd.body.st.ctrl_ope),
+	//	pOteUI->ctrl_stat, sizeof(pOteUI->ctrl_stat)
+	//);
+	//Game Pad信号（CS共有メモリ部）
+	memcpy_s(
+		&st_work.st_msg_ote_u_snd.body.st.gpad_in, sizeof(ST_GPAD_IN),
+		&(pOteCsInf->gpad_in), sizeof(ST_GPAD_IN)
+	);
+
+
+	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.ctrl_ope;
+	pctrl[OTE_PNL_CTRLS::estop] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::estop];
+	pctrl[OTE_PNL_CTRLS::syukan_on] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::syukan_on];
+	pctrl[OTE_PNL_CTRLS::syukan_off] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::syukan_off];
+	pctrl[OTE_PNL_CTRLS::remote] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::remote];
+	
+	pctrl[OTE_PNL_CTRLS::notch_mh] = pOteCsInf->gpad_in.pad_mh;
+	pctrl[OTE_PNL_CTRLS::notch_bh] = pOteCsInf->gpad_in.pad_bh;
+	pctrl[OTE_PNL_CTRLS::notch_sl] = pOteCsInf->gpad_in.pad_sl;
+	pctrl[OTE_PNL_CTRLS::notch_gt] = pOteCsInf->gpad_in.pad_gt;
+
+
 	return S_OK;
 }
 
@@ -412,17 +439,6 @@ LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat
 	st_work.st_msg_ote_u_snd.head.code = code;
 	st_work.st_msg_ote_u_snd.head.status = stat;
 	st_work.st_msg_ote_u_snd.head.tgid = 0;
-	
-	//操作ボタン類（SCADA共有メモリ部）
-	memcpy_s(
-		st_work.st_msg_ote_u_snd.body.st.ctrl_ope, sizeof(st_work.st_msg_ote_u_snd.body.st.ctrl_ope),
-		pOteUI->ctrl_stat, sizeof(pOteUI->ctrl_stat)
-	);
-	//Game Pad信号（CS共有メモリ部）
-	memcpy_s(
-		&st_work.st_msg_ote_u_snd.body.st.gpad_in, sizeof(ST_GPAD_IN),
-		&(pOteCsInf->gpad_in), sizeof(ST_GPAD_IN)
-	);
 
 	return &st_work.st_msg_ote_u_snd;
 }

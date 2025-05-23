@@ -584,7 +584,11 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 						st_mon2.wo_uni << L"@ESTOP:" << pb0->ctrl_ope[OTE_PNL_CTRLS::estop]
 							<< L"@ŽåŠ²“ü:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_on]
 							<< L"@ŽåŠ²Ø:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_off]
-							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote];
+							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote]
+							<< L"@notch mh:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_mh]
+							<< L" bh:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_bh]
+							<< L" sl:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_sl]
+							<< L" gt:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_gt];
 					}
 					else if (st_mon2.ipage_uni == 1) {
 						st_mon2.wo_uni	<< L"@GPAD@ #Notch mh:" << pb0->gpad_in.pad_mh << L" bh:" << pb0->gpad_in.pad_bh << L" sl:" << pb0->gpad_in.pad_sl << L" gt:" << pb0->gpad_in.pad_gt;
