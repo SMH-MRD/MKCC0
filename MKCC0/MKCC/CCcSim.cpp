@@ -43,6 +43,10 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 }
 
 HRESULT CSim::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
 	input();
 	parse();
 	output();

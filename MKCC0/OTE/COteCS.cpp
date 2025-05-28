@@ -10,7 +10,7 @@ extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 extern ST_DEVICE_CODE g_my_code; //端末コード
 
-extern CCrane* pCraneObj;	//クレーン制御クラスポインタ
+extern CCrane* pCrane;
 
 
 //ソケット
@@ -39,6 +39,8 @@ static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 
+static ST_PLC_IO_WIF* pPlcWIf = NULL;
+static ST_PLC_IO_RIF* pPlcRIf = NULL;
 
 COteCS::COteCS() {
 	st_obj.remote_pb.set(0); st_obj.remote_mode.set(0); st_obj.game_pad_pb.set(0);
@@ -118,11 +120,11 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	else
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-	st_obj.pad_mh=new CPadNotch(pCraneObj->get_base_mh(), ID_HOIST);
-	st_obj.pad_bh=new CPadNotch(pCraneObj->get_base_bh(), ID_BOOM_H);
-	st_obj.pad_sl=new CPadNotch(pCraneObj->get_base_sl(), ID_SLEW);
-	st_obj.pad_gt=new CPadNotch(pCraneObj->get_base_gt(), ID_GANTRY);
-	st_obj.pad_ah=new CPadNotch(pCraneObj->get_base_ah(), ID_AHOIST);
+	st_obj.pad_mh=new CPadNotch(pCrane->get_base_mh(), ID_HOIST);
+	st_obj.pad_bh=new CPadNotch(pCrane->get_base_bh(), ID_BOOM_H);
+	st_obj.pad_sl=new CPadNotch(pCrane->get_base_sl(), ID_SLEW);
+	st_obj.pad_gt=new CPadNotch(pCrane->get_base_gt(), ID_GANTRY);
+	st_obj.pad_ah=new CPadNotch(pCrane->get_base_ah(), ID_AHOIST);
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -132,6 +134,10 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 }
 
 HRESULT COteCS::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
 	input();
 	parse();
 	output();
@@ -164,6 +170,7 @@ int COteCS::input() {
 		pOteCsInf->gpad_in.trig_l		= st_obj.trig_l.set(pPad->get_trig_L());
 		pOteCsInf->gpad_in.trig_r		= st_obj.trig_r.set(pPad->get_trig_R());
 
+		//GamePadのアナログ値をValueオブジェクトにセット⇒ノッチ信号を共有メモリにセット
 		st_obj.pad_mh->set(pPad->get_RY());pOteCsInf->gpad_in.pad_mh = st_obj.pad_mh->get_notch();
 		st_obj.pad_bh->set(pPad->get_LY());pOteCsInf->gpad_in.pad_bh = st_obj.pad_bh->get_notch();
 		st_obj.pad_sl->set(pPad->get_LX());pOteCsInf->gpad_in.pad_sl = st_obj.pad_sl->get_notch();
@@ -192,8 +199,8 @@ int COteCS::input() {
 }
 int COteCS::parse() {           //メイン処理
 
-	//リモート設定
-	if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])){
+	//リモート操作有効化設定
+	if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])){//
 		if (st_work.st_body.remote == CODE_PNL_COM_SELECTED) 
 			st_work.st_body.remote = CODE_PNL_COM_OFF;
 		else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE) 
@@ -204,7 +211,7 @@ int COteCS::parse() {           //メイン処理
 	if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) &&(pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
 		st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
 
-	//GamePad設定
+	//GamePadmoモード設定
 	if (CODE_TRIG_ON == st_obj.game_pad_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::game_pad])) {
 		if (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE)
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
@@ -216,13 +223,12 @@ int COteCS::parse() {           //メイン処理
 		st_work.st_body.ote_type = st_obj.ote_type.get();
 	}
 
-	//ノッチ指令値
+	//ノッチ指令値　!!！250526　とりあえずGpad入力を出力（直接送信バッファにセット）
 	st_work.st_body.axis[ID_AXIS::mh].notch_ref = st_obj.pad_mh->get_notch();
 	st_work.st_body.axis[ID_AXIS::bh].notch_ref = st_obj.pad_bh->get_notch();
 	st_work.st_body.axis[ID_AXIS::sl].notch_ref = st_obj.pad_sl->get_notch();
 	st_work.st_body.axis[ID_AXIS::gt].notch_ref = st_obj.pad_gt->get_notch();
 	st_work.st_body.axis[ID_AXIS::ah].notch_ref = st_obj.pad_ah->get_notch();
-
 
 	return STAT_OK;
 }

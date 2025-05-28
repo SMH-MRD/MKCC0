@@ -226,6 +226,10 @@ private:
     virtual int output(void* param) { return 0; }                   //o—Íˆ—
 
 	virtual HRESULT routine_work(void* param) { 
+        if (inf.total_act % 20 == 0) {
+            wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+            msg2host(wos.str());
+        }
 		input(param);
         parse(param);
         output(param);

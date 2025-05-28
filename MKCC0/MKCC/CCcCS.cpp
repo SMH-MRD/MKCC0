@@ -38,6 +38,9 @@ static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
 static LPST_CC_OTE_INF		pOTE_Inf;
 
+static ST_PLC_IO_WIF* pPlcWIf = NULL;
+static ST_PLC_IO_RIF* pPlcRIf = NULL;
+
 static LONG rcv_count_ote_u = 0, snd_count_ote_u = 0;
 static LONG rcv_count_pc_m = 0, snd_count_m2pc = 0;
 static LONG rcv_count_ote_m = 0, snd_count_m2ote = 0;
@@ -65,6 +68,16 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
+
+	//### クレーンオブジェクト取得
+	if (pCrane == NULL) {
+		wos.str(L""); wos << L"Initialize : CraneObject NULL"; msg2listview(wos.str());
+		return S_FALSE;
+	}
+	else {
+		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
+		pPlcRIf = &(pCrane->pPlc->plc_io_rif);
+	}
 
 	if((pCraneStat == NULL) || (pPLC_IO == NULL) || (pOTE_Inf == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
 		hr = S_FALSE;
@@ -166,6 +179,10 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 }
 
 HRESULT CCcCS::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
 	input();
 	parse();
 	output();
@@ -182,16 +199,47 @@ int CCcCS::parse() {
 	//操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
 	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
 	
+	//受信データ解析
+	//st_ote_work.st_bodyの内容が送信バッファにコピーされる
+	UN_LAMP_COM *plamp_com = st_ote_work.st_body.lamp;
 	if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
 		st_ote_work.st_ote_ctrl.id_ope_active	= OTE_NON_OPEMODE_ACTIVE;
 		st_ote_work.st_ote_ctrl.gpad_mode		= L_OFF;
 		st_ote_work.st_ote_ctrl.auto_sel		= L_OFF;
 		st_ote_work.st_ote_ctrl.auto_mode		= L_OFF;
+		//ランプクリア
+		memset(plamp_com, 0, sizeof(UN_LAMP_COM) * N_OTE_PNL_CTRL);	
 	}
 	else {
+		//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
+		plamp_com[OTE_PNL_CTRLS::estop].st.com		= pCrane->pPlc->rval(pPlcRIf->estop).i16;
 
-		;
+		if (pCrane->pPlc->rval(pPlcRIf->syukan_mc_comp).i16 ) {
+			plamp_com[OTE_PNL_CTRLS::syukan_on].st.com  = CODE_PNL_COM_OFF;
+			plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
+		}
+		else {
+			plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_ON;
+			plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
+		}
+		 pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
+		 pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
+
+
+		plamp_com[OTE_PNL_CTRLS::fault_reset].st.com= pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
+		plamp_com[OTE_PNL_CTRLS::bypass].st.com		= CODE_PNL_COM_ON;
+
+		
+		INT16 notch = pCrane->pPlc->rval(pPlcRIf->mh_notch).i16;
+		plamp_com[OTE_PNL_CTRLS::asel_mh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		notch = pCrane->pPlc->rval(pPlcRIf->bh_notch).i16;
+		plamp_com[OTE_PNL_CTRLS::asel_bh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		notch = pCrane->pPlc->rval(pPlcRIf->sl_notch).i16;
+		plamp_com[OTE_PNL_CTRLS::asel_sl].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
+		plamp_com[OTE_PNL_CTRLS::asel_gt].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
 	}
+
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理

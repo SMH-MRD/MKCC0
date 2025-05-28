@@ -12,7 +12,7 @@ extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 
-extern CCrane* pCraneObj;
+extern CCrane* pCrane;
 extern ST_DEVICE_CODE g_my_code;
 
 ST_OTE_ENV_MON1 COteEnv::st_mon1;
@@ -87,6 +87,10 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 }
 
 HRESULT COteEnv::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
 	input();
 	parse();
 	output();
@@ -189,9 +193,9 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case OTE_ENV_ID_MON1_PB_START: {
 			if (crane_id_selected != CRANE_ID_NULL) {
-				delete pCraneObj;
-				if (!(NULL == (pCraneObj= new CCrane(crane_id_selected)))){
-					pCraneObj->pSpec->base_mh;
+				delete pCrane;
+				if (!(NULL == (pCrane= new CCrane(crane_id_selected)))){
+					pCrane->pSpec->base_mh;
 					close_monitor_wnd(BC_ID_MON1);
 					Sleep(200);
 					pAgentObj->setup_crane_if(crane_id_selected);

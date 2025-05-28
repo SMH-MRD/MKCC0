@@ -31,7 +31,7 @@ CSharedMem* pOteCcInfObj;
 CSharedMem* pOteUiObj;
 
 //共有クラス
-CCrane* pCraneObj;	//クレーン制御クラスポインタ
+CCrane* pCrane;	//クレーン制御クラスポインタ
 ST_DEVICE_CODE g_my_code; //端末コード
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
@@ -175,7 +175,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     
 	LPST_OTE_CC_IF pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
     //クレーンオブジェクト生成
-    pCraneObj = new CCrane(CRANE_ID_NULL);	//クレーンIDはNULLで初期化
+    pCrane = new CCrane(CRANE_ID_NULL);	//クレーンIDはNULLで初期化
 
     //デバイスコードセット
 

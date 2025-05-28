@@ -4,6 +4,7 @@
 #include "CCrane.h"
 #include "CPlc.h"
 #include "CSpec.h"
+#include "CHelper.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -27,11 +28,15 @@ ST_CC_AGENT_INF CAgent::st_work;
 ST_CC_PLC_IO CAgent::st_work_plcio;
 
 //共有メモリ
-static LPST_CC_ENV_INF		pEnv_Inf;
-static LPST_CC_CS_INF		pCS_Inf;
-static LPST_CC_PLC_IO		pPLC_IO;
-static LPST_CC_AGENT_INF	pAgent_Inf;
-static LPST_CC_OTE_INF		pOTE_Inf;
+static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
+static LPST_CC_CS_INF		pCS_Inf		= NULL;
+static LPST_CC_PLC_IO		pPLC_IO		= NULL;
+static LPST_CC_AGENT_INF	pAgent_Inf	= NULL;
+static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
+
+static PINT16				pOteCtrl	= NULL;	//OTE操作入力信号ポインタ
+static ST_PLC_IO_WIF* pPlcWIf = NULL;
+static ST_PLC_IO_RIF* pPlcRIf = NULL;
 
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
@@ -59,20 +64,29 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 
 	//### 入力用共有メモリ取得
 
-	pAgent_Inf = (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
-	pEnv_Inf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
-	pPLC_IO = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
-	pCS_Inf = (LPST_CC_CS_INF)pCsInfObj->get_pMap();
-	pOTE_Inf = (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
-
-	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
-		hr = S_FALSE;
-
-	if (hr == S_FALSE) {
+	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
+	pEnv_Inf	= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+	pPLC_IO		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
+	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
+	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
+	
+	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
-		return hr;
-	};
+		return S_FALSE;
+	}
+	else {
+		//OTE操作入力信号ポインタセット
+		pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.ctrl_ope;
+	}
 
+	//### クレーンオブジェクト取得
+	if (pCrane == NULL) {
+		wos.str(L""); wos << L"Initialize : CraneObject NULL"; msg2listview(wos.str());
+		return S_FALSE;
+	}else{
+		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
+		pPlcRIf = &(pCrane->pPlc->plc_io_rif);
+	}
 
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -130,6 +144,10 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 }
 
 HRESULT CAgent::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
 	input();
 	parse();
 	output();
@@ -152,35 +170,48 @@ int CAgent::input() {
 /// <returns></returns>
 /// 
 
-static PINT16 pOteCtrl = NULL;
-static ST_PLC_IO_WIF* pPlcWIf = NULL;
-static ST_PLC_IO_RIF* pPlcRIf = NULL;
+
 static INT16 pc_healthy=0;
 static INT16 plc_healthy_chk_count = 0;
 static INT16 plc_healthy = 0;
 
 int CAgent::parse() {//メイン処理
-	pc_healthy++;
-	if (plc_healthy == pPLC_IO->buf_io_read[0]) {
-		plc_healthy_chk_count--;
+	pc_healthy++;//PCヘルシーカウンタ更新
+
+
+	if (plc_healthy == pPLC_IO->buf_io_read[0]) {				//PLCヘルシー状態が変化していない場合
+		plc_healthy_chk_count--;								//PLCヘルシー状態が変化している⇒チェックカウントダウン
 		if (plc_healthy_chk_count > 0)plc_healthy_chk_count--;
 		else plc_healthy_chk_count = 0;
 	}
-	else plc_healthy_chk_count = PRM_CC_PLC_CHK_COUNT;
-	plc_healthy = pPLC_IO->buf_io_read[0];
+	else plc_healthy_chk_count = PRM_CC_PLC_CHK_COUNT;			//PLCヘルシー状態が変化している⇒チェックカウントリミットセット
+	plc_healthy = pPLC_IO->buf_io_read[0];						//PLCヘルシー前回値保持
 
-	if ((pOTE_Inf == NULL)||(pCrane== NULL))
-		return S_FALSE;
-	if (pOteCtrl == NULL || (pPlcWIf == NULL) || (pPlcRIf == NULL)) {
-		pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.ctrl_ope;
-		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
-		pPlcRIf = &(pCrane->pPlc->plc_io_rif);
+	//PCヘルシー書込セット
+	pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);	
+	//PCコントロール信号セット
+
+//	INT16 mask = 0xc000;	//PLC通信有効、デバッグモード
+	INT16 mask = MASK_BIT_PC_COM_ACTIVE; mask |= MASK_BIT_PC_DBG_MODE;	//PLC通信有効、デバッグモード
+	if (plc_healthy) {
+		pAgent_Inf->pc_ctrl_mode2plc |= mask;
 	}
+	else {
+		pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
+	}
+	pCrane->pPlc->wval(pPlcWIf->pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
 
-	pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);
-
-	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::syukan_on]);
-	pCrane->pPlc->wval(pPlcWIf->estop, pOteCtrl[OTE_PNL_CTRLS::estop]);
+	//### OTE操作信号書込セット
+	//PB,スイッチ類
+	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::syukan_on]);		//主幹ON
+	pCrane->pPlc->wval(pPlcWIf->syukan_off, pOteCtrl[OTE_PNL_CTRLS::syukan_off]);	//主幹OFF
+	pCrane->pPlc->wval(pPlcWIf->estop, pOteCtrl[OTE_PNL_CTRLS::estop]);				//非常停止
+	//Notch信号
+	pCrane->pPlc->wval(pPlcWIf->mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
+	pCrane->pPlc->wval(pPlcWIf->bh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
+	pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
+	pCrane->pPlc->wval(pPlcWIf->gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
+	//### OTE操作信号書込セット
 
 	return S_OK;
 }
@@ -197,7 +228,7 @@ int CAgent::output() {
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
 	//PLC IO送信データ出力
-	//!!! 共有メモリに設定後、送信バッファにコピー
+	//送信は 共有メモリに設定後、送信バッファにコピー（受信は直接共有メモリに読み込む）
 	memcpy_s(&st_work_plcio.buf_io_write,sizeof(pPLC_IO->buf_io_write),pPLC_IO->buf_io_write, sizeof(pPLC_IO->buf_io_write));
 
 	return S_OK;

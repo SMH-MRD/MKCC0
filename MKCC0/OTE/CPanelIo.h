@@ -32,15 +32,15 @@ public:
 public:
     T value;	    //現在値
  
-	Point pt= { 0,0 };//表示位置
-	Size sz	= { 0,0 };//表示サイズ
+	Point pt= { 0,0 };			//表示位置
+	Size sz	= { 0,0 };			//表示サイズ
 	std::wstring txt;
 
 	HWND hWnd			= NULL;	//ウィンドウハンドル
 	INT32 id			= 0;	//メニューID
 
-	Rect rc;
-	RectF frc;
+	Rect rc;					//表示領域int
+	RectF frc;					//表示領域float
 
 public:
 
@@ -114,31 +114,30 @@ public:
 		return get(); //戻り値はカウント値
 	}
 
-	virtual int chk_trig(INT16 val) {
-		if (value != status) {
-			if ((value == 0) || (status == 0)) {
-				status = value; return L_ON;
+	virtual int chk_trig() {
+		if (value != status) {						//status=カウントダウン前のvalueのホールド値が前回値と異なる
+			if ((value == 0) || (status == 0)) {	//status　or　valueが0⇒立ち上がりまたは立下り
+				status = value; return L_ON;		//statusを更新してTriger ON
 			}
 		}
 		return L_OFF;
 	}
-
-	void set_off_delay(INT16 val_delay) { count_off_set_val = val_delay; return; }
-
-	bool is_on() { //ON状態か？
-		if (value > 0) return true;	
-		else return false;
-	}
-
 	HRESULT disp_status() {
-		if (chk_trig(value)) {
+		if (chk_trig()) {	//トリガのタイミングvalueが0⇒！0　!0⇒0で枠線描画　valueの値でpenを変える
 			Pen* ppen = pPenOff;
 			if (value != 0) ppen = pPenOn;
 			pgraphics->DrawRectangle(ppen, rc);
 		}
 		return S_OK;
-	}
+	}	
 
+	//ボタンオフディレイのカウント値更新
+	void set_off_delay(INT16 val_delay) { count_off_set_val = val_delay; return; }//
+
+	bool is_on() { //ON状態か？
+		if (value > 0) return true;	
+		else return false;
+	}
 };
 
 /// <summary>
@@ -199,7 +198,18 @@ public:
 		}
 		return get(); //戻り値はカウント値
 	}
-
+	//INT16 update(INT16 signal) {	//更新 
+	//	if (!is_owner_draw) {//オーナードロータイプでなければON/OFF枠表示
+	//		Pen* ppen = pPenOff;
+	//		if (value != 0) ppen = pPenOn;
+	//		pgraphics->DrawRectangle(ppen, rc);
+	//	}
+	//	else {				//オーナードローで信号表示に応じて枠線表示
+	//		if (signal) pgraphics->DrawRectangle(pPenOn, rc);
+	//		else		pgraphics->DrawRectangle(pPenOff, rc);
+	//	}
+	//	return signal;
+	//}
 };
 
 /// <summary>
@@ -274,7 +284,7 @@ public:
 /// <summary>
 /// ImageLamp
 /// 指定画像を切替表示
-/// Imaggeを読み込んでグラフィックに書き込み
+/// Imageを読み込んでグラフィックに書き込み
 /// 登録1番目の画像をOFF、2番目の画像をONで予約
 /// </summary>
 #define N_IMG_SWITCH_MAX			8
@@ -450,7 +460,7 @@ public:
 		return id_disp;
 	}
 	
-	HRESULT update() {
+	HRESULT update() {//WM_DRAWITEMをInvalidiateRectで呼び出してvalueにセットしたindexの画像を描画
 		INT16 id = 0;
 		if (value != ID_PANEL_LAMP_FLICK) {
 			id = value;	if (chk_trig(id)) InvalidateRect(hWnd, NULL, TRUE);

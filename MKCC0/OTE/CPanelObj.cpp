@@ -114,13 +114,13 @@ HRESULT CMainPanelObj::setup_obj() {
 
 	static Image img_o80_of(L"../Img/HHGH29/sw80_of_o.png"), img_o80_on(L"../Img/HHGH29/sw80_on_o.png");
 	static Image img_b1_of(L"../Img/HHGH29/lmp1_b_of.png"), img_b1_on(L"../Img/HHGH29/lmp1_b_on.png"), img_y1_on(L"../Img/HHGH29/lmp1_y_on.png"), img_g1_on(L"../Img/HHGH29/lmp1_g_on.png"), img_r1_on(L"../Img/HHGH29/lmp1_r_on.png");
-	static Image img_estp_of(L"../Img/HHGH29/estop_of.png"), img_estp_on(L"../Img/HHGH29/estop_on.png");
+	static Image img_estp_of(L"../Img/HHGH29/estop_of.png"), img_estp_on(L"../Img/HHGH29/estop_on.png"), img_estp_of2(L"../Img/HHGH29/estop_of2.png"), img_estp_on2(L"../Img/HHGH29/estop_on2.png");
 	static Image img_w80_of(L"../Img/HHGH29/sw80_of_w.png"), img_b80_on(L"../Img/HHGH29/sw80_on_b.png"), img_g80_on(L"../Img/HHGH29/sw80_on_g.png"), img_r80_on(L"../Img/HHGH29/sw80_on_r.png");
 
 	Image* pimg_remote[N_IMG_SWITCH_MAX] = { &img_o80_of, &img_o80_on , &img_b80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
 	Image* pimg_syukan_on[N_IMG_SWITCH_MAX] = { &img_w80_of, &img_g80_on , &img_r80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
 	Image* pimg_syukan_off[N_IMG_SWITCH_MAX] = { &img_w80_of, &img_r80_on , &img_g80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
-	Image* pimg_estop[N_IMG_SWITCH_MAX] = { &img_estp_of, &img_estp_on , &img_b80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
+	Image* pimg_estop[N_IMG_SWITCH_MAX] = { &img_estp_of, &img_estp_on, &img_estp_of2, &img_estp_on2 , &img_b80_on, &img_w80_of, &img_w80_of, &img_b80_on };
 	Image* pimg_signal[N_IMG_SWITCH_MAX] = { &img_b1_of, &img_b1_on , &img_y1_on, &img_r1_on, &img_g1_on, &img_b1_of, &img_b1_of, &img_b1_of };
 
 //0 メッセージ
@@ -147,8 +147,8 @@ HRESULT CMainPanelObj::setup_obj() {
 	i++;lmp_plcs			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,pimg_signal, 6, 3, pgraphic);
 
 //11-12 緊急停止PBL
-	i++;cb_estop			= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,NULL, NULL, NULL);
-	i++;lmp_estop			= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_estop, 3, 3);
+	i++;cb_estop			= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,NULL, drawing_items.ppen[ID_PANEL_COLOR_RED], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++;lmp_estop			= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_ESTOP, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_estop, 4, 3);
 	lmp_estop->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20],drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 
 //13-14 主幹入PBL

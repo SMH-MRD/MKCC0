@@ -137,11 +137,15 @@ typedef struct _ST_AUX_CS_INF {
 #define N_SWAY_DIR				4
 #define N_DRUM_LAYER			10	//ドラ巻取り層数最大値
 
+#define MODE_ENV_APP_PRODUCT	0	//実機モード
+#define MODE_ENV_APP_EMURATOR	1	//エミュレータモード
+#define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
+
 typedef struct _ST_CC_ENV_INF {
 
 	ST_DEVICE_CODE device_code;
-	ST_SPEC spec;
 
+	UINT32	app_mode = MODE_ENV_APP_PRODUCT;
 	UINT32	aux_mode = FUNC_DEACTIVE;	
 	
 	DWORD helthy_cnt;
@@ -540,7 +544,8 @@ typedef struct _ST_CC_AXIS_CTRL {
 
 typedef struct _ST_CC_AGENT_INF {
 	//プロセス外から参照可能
-	int pc_ctrl_mode;								//PCからの指令で動作させる軸の指定
+	INT16 pc_ctrl_mode;								//PCからの指令で動作させる軸の指定
+	INT16 pc_ctrl_mode2plc = 0;							//PLCへのPC制御フラグ出力信号
 	ST_CC_AXIS_CTRL st_mh_ctrl;
 	ST_CC_AXIS_CTRL st_bh_ctrl;
 	ST_CC_AXIS_CTRL st_sl_ctrl;
@@ -548,6 +553,7 @@ typedef struct _ST_CC_AGENT_INF {
 	ST_CC_AXIS_CTRL st_ah_ctrl;
 
 	//プロセス内参照用
+
 	int command_count;								//コマンドレシピ作成呼び出し回数
 	int auto_on_going;								//実行中の自動種別
 	int antisway_on_going;							//実行中振れ止め
@@ -819,19 +825,15 @@ typedef struct _ST_OTE_CC_IF {
 	ST_OTE_U_MSG    st_msg_ote_u_snd;
 	ST_OTE_M_MSG    st_msg_ote_m_snd;
 
-	INT32			id_ote_ope_active = OTE_NON_OPEMODE_ACTIVE;			//ノッチ操作が有効な接続端末ID
-	INT32			id_conected_crane = CRANE_ID_NULL;					//接続中クレーンID
-	INT32			com_status_cc_rcv = CODE_OTE_PC_COM_STAT_SOCK_NG;	//受信ソケット状態
-	INT32			com_status_cc_snd = CODE_OTE_PC_COM_STAT_SOCK_NG;	//受信ソケット状態
+	INT32	id_ote_ope_active = OTE_NON_OPEMODE_ACTIVE;			//ノッチ操作が有効な接続端末ID
+	INT32	id_conected_crane = CRANE_ID_NULL;					//接続中クレーンID
+	INT32	com_status_cc_rcv = CODE_OTE_PC_COM_STAT_SOCK_NG;	//受信ソケット状態
+	INT32	com_status_cc_snd = CODE_OTE_PC_COM_STAT_SOCK_NG;	//受信ソケット状態
 
-	//SOCKADDR_IN		addr_in_to_oteu;
-	//SOCKADDR_IN		addr_in_from_oteu;
-	//SOCKADDR_IN		addr_in_from_pcm;
-	//SOCKADDR_IN		addr_in_from_otem;
+	UINT32	ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
+	UINT32	mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
+	UINT32	stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
 
-	UINT32			ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
-	UINT32			mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
-	UINT32			stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体
 

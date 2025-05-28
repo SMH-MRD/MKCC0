@@ -102,6 +102,10 @@ HRESULT COteScad::initialize(LPVOID lpParam) {
 }
 
 HRESULT COteScad::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
 	input();
 	parse();
 	output();
@@ -469,34 +473,45 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}return 1; // 背景を処理したことを示す
 
 	case WM_TIMER: {
-		//LAMP(CTRL)更新
-		pPanelBase->pobjs->lmp_estop->set(pPanelBase->pobjs->cb_estop->get());
+		//# LAMP(CTRL)更新
+		//e-stop : PLCの認識がESTOPの時枠有表示
+		INT16 code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::estop].code;
+		int val = pPanelBase->pobjs->cb_estop->get();
+		if (val == BST_CHECKED) { if (code) val = 3; }
+		else {if (code)val = 2;}
+		pPanelBase->pobjs->lmp_estop->set(val);
 		pPanelBase->pobjs->lmp_estop->update();
+		
+		//主幹
+		code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code;
+		pPanelBase->pobjs->lmp_syukan_on->set(code); pPanelBase->pobjs->lmp_syukan_on->update();
+		code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code;
+		pPanelBase->pobjs->lmp_syukan_off->set(code); pPanelBase->pobjs->lmp_syukan_off->update();
 
-		pPanelBase->pobjs->lmp_syukan_on->update();
-		pPanelBase->pobjs->lmp_syukan_off->update();
-				
+		//遠隔
 		pPanelBase->pobjs->lmp_remote->set(pOteCsInf->st_body.remote);
 		pPanelBase->pobjs->lmp_remote->update();
 
 		pPanelBase->pobjs->lmp_pad_mode->set(pOteCsInf->st_body.game_pad_mode);
 		pPanelBase->pobjs->lmp_pad_mode->update();
 
-		//SwitchImg更新(ランプ）
+		//# SwitchImg更新(ランプ）
+		//CCとの通信状態表示(受信）
 		if(pOteCCIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV) 
 			pPanelBase->pobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
 		else pPanelBase->pobjs->lmp_pcr->set(pOteCCIf->cc_com_stat_r);
 		pPanelBase->pobjs->lmp_pcr->update();
-
+		//CCとの通信状態表示(送信）
 		if (pOteCCIf->cc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
 			pPanelBase->pobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
 		else pPanelBase->pobjs->lmp_pcs->set(pOteCCIf->cc_com_stat_s);
 		pPanelBase->pobjs->lmp_pcs->update();
-
+		//PLCとの通信状態表示(受信）
 		pPanelBase->pobjs->lmp_plcr->update();
+		//PLCとの通信状態表示(送信）
 		pPanelBase->pobjs->lmp_plcs->update();
 		
-		//PB状態更新(カウントダウン
+		//PB状態更新(オフディレイカウントダウン)
 		pPanelBase->pobjs->pb_syukan_on->update(false);
 		pPanelBase->pobjs->pb_syukan_off->update(false);
 		pPanelBase->pobjs->pb_remote->update(false);
@@ -505,6 +520,8 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pPanelBase->pobjs->pb_crane_sel_wnd->update(false);
 		pPanelBase->pobjs->pb_ote_type_wnd->update(false);
 		pPanelBase->pobjs->pb_pad_mode->update(false);
+
+		//pPanelBase->pobjs->cb_estop->update(L_ON);
 
 		//String更新
 		if (is_initial_draw_mon1) {
@@ -531,7 +548,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		EndPaint(hWnd, &ps);
 	}break;
-	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてMessage送信
+	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
 		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lp;
 		Image* image;
 		Graphics gra(pDIS->hDC); 

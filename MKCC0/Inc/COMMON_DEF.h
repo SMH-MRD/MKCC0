@@ -185,12 +185,6 @@ enum ID_AXIS {
     Max
 };
 
-#define MASK_BIT_MH = 0x00000001,
-#define MASK_BIT_BH = 0x00000002,
-#define MASK_BIT_SL = 0x00000004,
-#define MASK_BIT_GT = 0x00000008,
-#define MASK_BIT_AH = 0x00000010
-
 
 #pragma endregion 動作インデックス
 

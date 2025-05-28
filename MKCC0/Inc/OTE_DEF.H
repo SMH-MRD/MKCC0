@@ -150,7 +150,8 @@ enum OTE_PNL_CTRLS{
 	notch_mh,
 	notch_bh,
 	notch_sl,
-	notch_gt
+	notch_gt,
+	MAX
 };
 
 enum OTE_PNL_NOTCH {

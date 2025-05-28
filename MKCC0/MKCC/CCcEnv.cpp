@@ -118,6 +118,10 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 	//モニタウィンドウテキスト	
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"AUX IF");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Emulator");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Simulator");
+
 	set_item_chk_txt();
 	set_panel_tip_txt();
 	
@@ -138,6 +142,14 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 }
 
 HRESULT CCcEnv::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		if (inf.mode_id == MODE_ENV_APP_SIMURATION)	wos << inf.status << L" MODE>>SIMULATOR";
+		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)				wos << inf.status << L" MODE>>EMULATOR";
+		else										wos << inf.status << L" MODE>>PRODUCT";
+		msg2host(wos.str());
+	}
+	
 	input();
 	parse();
 	output();
@@ -152,7 +164,7 @@ int CCcEnv::input() {
 
 int CCcEnv::parse() { return STAT_OK; }
 int CCcEnv::output() {          //出力処理
-	memcpy_s(pEnvInf, sizeof(ST_CC_ENV_INF), &st_work, sizeof(ST_CC_ENV_INF));
+	//memcpy_s(pEnvInf, sizeof(ST_CC_ENV_INF), &st_work, sizeof(ST_CC_ENV_INF));
 	return STAT_OK;
 }
 
@@ -526,15 +538,15 @@ LRESULT CALLBACK CCcEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_MODE_RADIO0:
 		{
-			inf.mode_id = BC_ID_MODE0;
+			inf.mode_id = pEnvInf->app_mode = MODE_ENV_APP_PRODUCT;
 		}break;
 		case IDC_TASK_MODE_RADIO1:
 		{
-			inf.mode_id = BC_ID_MODE1;
+			inf.mode_id = pEnvInf->app_mode = MODE_ENV_APP_EMURATOR;
 		}break;
 		case IDC_TASK_MODE_RADIO2:
 		{
-			inf.mode_id = BC_ID_MODE2;
+			inf.mode_id = pEnvInf->app_mode = MODE_ENV_APP_SIMURATION;
 		}break;
 
 		case IDC_TASK_MON_CHECK1:

@@ -215,6 +215,10 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 }
 
 HRESULT COteAgent::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
 	input();
 	parse();
 	output();
@@ -228,7 +232,7 @@ int COteAgent::input() {
 
 int COteAgent::parse() {
 	//受信データ解析
-	st_work.cc_active_ote_id = st_work.st_msg_pc_u_rcv.head.tgid;
+	st_work.cc_active_ote_id = pOteCCIf->st_msg_pc_u_rcv.head.tgid;
 
 	//送信データ解析
 		//操作ボタン類（SCADA共有メモリ部）
@@ -236,24 +240,28 @@ int COteAgent::parse() {
 	//	st_work.st_msg_ote_u_snd.body.st.ctrl_ope, sizeof(st_work.st_msg_ote_u_snd.body.st.ctrl_ope),
 	//	pOteUI->ctrl_stat, sizeof(pOteUI->ctrl_stat)
 	//);
-	//Game Pad信号（CS共有メモリ部）
+
+	//##################### 送信バッファセット　############################################
+	// Game Pad信号（CS共有メモリ部）
 	memcpy_s(
-		&st_work.st_msg_ote_u_snd.body.st.gpad_in, sizeof(ST_GPAD_IN),
-		&(pOteCsInf->gpad_in), sizeof(ST_GPAD_IN)
+		&st_work.st_msg_ote_u_snd.body.st.gpad_in, sizeof(ST_GPAD_IN),	//出力先：送信バッファ
+		&(pOteCsInf->gpad_in), sizeof(ST_GPAD_IN)						//source: CS共有メモリ部のGame Pad入力信号
 	);
 
+	// パネル操作信号 !!!250526(当面SCADA共有メモリ部をセット）⇒操作台入力も折り込み改善必要
+	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.ctrl_ope;//送信バッファのOTE操作信号情報部のポインタ
 
-	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.ctrl_ope;
-	pctrl[OTE_PNL_CTRLS::estop] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::estop];
-	pctrl[OTE_PNL_CTRLS::syukan_on] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::syukan_on];
-	pctrl[OTE_PNL_CTRLS::syukan_off] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::syukan_off];
-	pctrl[OTE_PNL_CTRLS::remote] = pOteUI->ctrl_stat[OTE_PNL_CTRLS::remote];
+	pctrl[OTE_PNL_CTRLS::estop]			= pOteUI->ctrl_stat[OTE_PNL_CTRLS::estop];
+	pctrl[OTE_PNL_CTRLS::syukan_on]		= pOteUI->ctrl_stat[OTE_PNL_CTRLS::syukan_on];
+	pctrl[OTE_PNL_CTRLS::syukan_off]	= pOteUI->ctrl_stat[OTE_PNL_CTRLS::syukan_off];
+	pctrl[OTE_PNL_CTRLS::remote]		= pOteUI->ctrl_stat[OTE_PNL_CTRLS::remote];
 	
-	pctrl[OTE_PNL_CTRLS::notch_mh] = pOteCsInf->gpad_in.pad_mh;
-	pctrl[OTE_PNL_CTRLS::notch_bh] = pOteCsInf->gpad_in.pad_bh;
-	pctrl[OTE_PNL_CTRLS::notch_sl] = pOteCsInf->gpad_in.pad_sl;
-	pctrl[OTE_PNL_CTRLS::notch_gt] = pOteCsInf->gpad_in.pad_gt;
+	pctrl[OTE_PNL_CTRLS::notch_mh]		= pOteCsInf->gpad_in.pad_mh;
+	pctrl[OTE_PNL_CTRLS::notch_bh]		= pOteCsInf->gpad_in.pad_bh;
+	pctrl[OTE_PNL_CTRLS::notch_sl]		= pOteCsInf->gpad_in.pad_sl;
+	pctrl[OTE_PNL_CTRLS::notch_gt]		= pOteCsInf->gpad_in.pad_gt;
 
+	//##################### 送信バッファセット　############################################
 
 	return S_OK;
 }
@@ -265,7 +273,8 @@ int COteAgent::close() {
 
 int COteAgent::output() {          //出力処理
 	//共有メモリ出力処理
-	//CC通信送信バッファセット
+	//受信データは直接共有メモリで受け取るのでコピー無し
+	//送信データの内容を共有バッファへコピー
 	memcpy_s(&(pOteCCIf->st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG), &(st_work.st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG));
 	memcpy_s(&(pOteCCIf->st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG), &(st_work.st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG));
 	//CC通信状態ステータスセット（モニタ用）
@@ -699,17 +708,32 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			st_mon2.wo_uni.str(L""); st_mon2.wo_mpc.str(L""); st_mon2.wo_mote.str(L"");
 			if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_RCV) {
 				if (st_mon2.is_body_disp_mode) {
-					LPST_PC_U_BODY pb0 = &st_work.st_msg_pc_u_rcv.body.st;
-					LPST_PC_M_BODY pb1 = &st_work.st_msg_pc_m_rcv.body.st;
-					LPST_OTE_M_BODY pb2 = &st_work.st_msg_ote_m_rcv.body.st;
-					st_mon2.wo_uni << L"[BODY P" << st_mon2.ipage_uni << L"]" << L"\n";
-					st_mon2.wo_mpc << L"[BODY P" << st_mon2.ipage_mpc << L"]" << L"\n";
+					LPST_PC_U_BODY	pb0 = &(pOteCCIf->st_msg_pc_u_rcv.body.st);
+					LPST_PC_M_BODY	pb1 = &(pOteCCIf->st_msg_pc_m_rcv.body.st);
+					LPST_OTE_M_BODY pb2 = &(pOteCCIf->st_msg_ote_m_rcv.body.st);
+					st_mon2.wo_uni	<< L"[BODY P" << st_mon2.ipage_uni << L"]" << L"\n";
+					st_mon2.wo_mpc	<< L"[BODY P" << st_mon2.ipage_mpc << L"]" << L"\n";
 					st_mon2.wo_mote << L"[BODY P" << st_mon2.ipage_mot << L"]" << L"\n";
+					if (st_mon2.ipage_uni == 0) {
+						st_mon2.wo_uni << L"@LAMP:";
+						for (int i = 0; i < OTE_PNL_CTRLS::MAX; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pb0->lamp[i].code;
+						}
+					}
+					else if (st_mon2.ipage_uni == 1) {
+	
+					}
+					else if (st_mon2.ipage_uni == 2) {
+
+					}
+					else {
+						st_mon2.wo_uni << L"No Page";
+					}
 				}
 				else {
-					LPST_OTE_HEAD  ph0 = &st_work.st_msg_pc_u_rcv.head;
-					LPST_OTE_HEAD  ph1 = &st_work.st_msg_pc_m_rcv.head;
-					LPST_OTE_HEAD  ph2 = &st_work.st_msg_ote_m_rcv.head;
+					LPST_OTE_HEAD  ph0 = &(pOteCCIf->st_msg_pc_u_rcv.head); 
+					LPST_OTE_HEAD  ph1 = &(pOteCCIf->st_msg_pc_m_rcv.head); 
+					LPST_OTE_HEAD  ph2 = &(pOteCCIf->st_msg_ote_m_rcv.head);
 					st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
 						<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
 					st_mon2.wo_uni << L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
@@ -744,19 +768,18 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				}
 				else {
 					LPST_OTE_HEAD	ph0 = &st_work.st_msg_ote_u_snd.head;
-					LPST_OTE_HEAD  ph1 = &st_work.st_msg_ote_m_snd.head;
+					LPST_OTE_HEAD	ph1 = &st_work.st_msg_ote_m_snd.head;
 
 					st_mon2.wo_uni << L"[HEAD]" << L" ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
 						<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << "\n"
 						<< L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 					st_mon2.wo_mpc << L"[HEAD] -\n";
 					st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
-
 				}
 			}
 			else {
-				st_mon2.wo_uni << L"No Message";
-				st_mon2.wo_mpc << L"No Message";
+				st_mon2.wo_uni	<< L"No Message";
+				st_mon2.wo_mpc	<< L"No Message";
 				st_mon2.wo_mote << L"No Message";
 			}
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
@@ -780,8 +803,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_uni_ote(&st_work.st_msg_pc_u_rcv);
-
+			rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv));
 			QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
 			LONGLONG lspan = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
 			if (res_delay_max < lspan) res_delay_max = lspan;
@@ -796,9 +818,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		case FD_CLOSE: break;
 		}
 		//OTE通信ヘッダに緊急停止要求有
-		if (st_work.st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
+		if (pOteCCIf->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
 			st_work.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
 		}
+
 
 	}break;
 	case ID_SOCK_EVENT_OTE_MUL: {
