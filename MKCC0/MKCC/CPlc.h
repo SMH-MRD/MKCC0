@@ -101,6 +101,7 @@ union UN_PLC_WBUF {
 #define CODE_PLCIO_FLOAT	3 
 #define CODE_PLCIO_DOUBLE	4 
 #define CODE_PLCIO_BITS		5 //NOTCH CS等
+#define CODE_PLCIO_BIT_NC	6 //ノーマルクローズ
 
 union UN_IF_VALUE {
 	INT16 i16;

@@ -47,6 +47,9 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT	,Point(20,680)	,Size(100,40)	,L"状態"			},
 		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR	,Point(20,725)	,Size(100,40)	,L"クリア"			},
 		{ID_MAIN_PNL_OBJ_RDO_OPT_WND		,Point(20,500)	,Size(100,40)	,L"オプション"		},
+
+		{ID_MAIN_PNL_OBJ_PB_FRESET			,Point(1800,520),Size(80,80)	,L"故障リセット"	},
+		{ID_MAIN_PNL_OBJ_LMP_FRESET			,Point(1800,520),Size(80,80)	,L"故障リセット"	},
 };
 
 
@@ -197,6 +200,12 @@ HRESULT CMainPanelObj::setup_obj() {
 	CCbCtrl* pcb_opt[8]		= { cb_opt_flt,cb_opt_set,cb_opt_com,cb_opt_cam,	cb_opt_stat,cb_opt_clr };
 	i++; rdo_opt_wnd		= new CRadioCtrl(6, pcb_opt);
 
+	//故障リセット
+	i++; pb_freset = new CPbCtrl(ID_MAIN_PNL_OBJ_PB_FRESET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	static Image img15(L"../Img/HHGH29/freset_off.png"), img16(L"../Img/HHGH29/freset_on.png");
+	i++; lmp_freset = new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_FRESET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_remote, 3, 3);
+	lmp_pad_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_14], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+
 	return S_OK;
 }
 void CMainPanelObj::delete_obj() {
@@ -227,4 +236,6 @@ void CMainPanelObj::delete_obj() {
 	delete pb_ote_type_wnd;	
 	delete txt_link_crane;	
 	delete pb_crane_sel_wnd;
+	delete pb_freset;
+	delete lmp_freset;
 }

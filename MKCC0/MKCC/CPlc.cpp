@@ -22,7 +22,7 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0},	//mh_notch;
 	{NULL,BIT7 | BIT8,			CODE_PLCIO_BITS,	7,0},	//gt_spd_sel;	
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0},	//gt_notch;	
-	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0},	//estop;	
+	{NULL,BIT15,				CODE_PLCIO_BIT_NC,	0,0},	//estop;	
 	//B240
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//ah_under_limit;補巻制限荷重以下
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},	//mlim_warn_1;	ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下//ah_under_limit;
@@ -73,7 +73,7 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0},	//mh_notch;
 	{NULL,BIT7 | BIT8,			CODE_PLCIO_BITS,	7,0},	//gt_spd_sel;	
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0},	//gt_notch;	
-	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0},	//estop;	
+	{NULL,BIT15,				CODE_PLCIO_BIT_NC,	0,0},	//estop;	
 	//B240
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//ah_under_limit;補巻制限荷重以下
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},	//mlim_warn_1;	ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下//ah_under_limit;
@@ -251,6 +251,10 @@ UN_IF_VALUE CPlc::rval(ST_PLC_IO_DEF st_r_def) {
 		if (*st_r_def.pi16 & st_r_def.mask)	uval.i16 = L_ON;
 		else								uval.i16 = L_OFF;
 	}break;
+	case CODE_PLCIO_BIT_NC: {
+		if (*st_r_def.pi16 & st_r_def.mask)	uval.i16 = L_OFF;
+		else								uval.i16 = L_ON;
+	}break;
 	case CODE_PLCIO_WORD: {
 		uval.i16 = *st_r_def.pi16;
 	}break;
@@ -287,6 +291,10 @@ HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, INT16 val) {
 	case CODE_PLCIO_BIT: {
 		if (val) *(st_w_def.pi16) |= st_w_def.mask;
 		else	 *(st_w_def.pi16) &= ~st_w_def.mask;
+	}break;
+	case CODE_PLCIO_BIT_NC: {
+		if (val) *(st_w_def.pi16) &= ~st_w_def.mask;
+		else	 *(st_w_def.pi16) |= st_w_def.mask;
 	}break;
 	case CODE_PLCIO_WORD: {
 		*(st_w_def.pi16) = val;
