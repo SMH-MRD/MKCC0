@@ -14,7 +14,7 @@
 #define ID_PANEL_POINT_SRC_ON	1
 #define ID_PANEL_POINT_SRC_OFF	2
 
-#define VAL_PB_OFF_DELAY_COUNT	0x0005	//ボタンOFFディレイカウント値
+#define VAL_PB_OFF_DELAY_COUNT	0x000A	//ボタンOFFディレイカウント値
 
 #define VAL_TRIGGER_NON			0		//トリガ無し
 #define VAL_TRIGGER_VALUE		3		//数値変更トリガ
@@ -122,7 +122,7 @@ public:
 		}
 		return L_OFF;
 	}
-	HRESULT disp_status() {
+	HRESULT disp_status() { //枠線を表示させたくないときはPENをONもOFFのPENにする
 		if (chk_trig()) {	//トリガのタイミングvalueが0⇒！0　!0⇒0で枠線描画　valueの値でpenを変える
 			Pen* ppen = pPenOff;
 			if (value != 0) ppen = pPenOn;

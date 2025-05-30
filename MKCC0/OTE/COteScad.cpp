@@ -142,12 +142,15 @@ HRESULT COteScad::open_ope_window() {
 }
 
 void COteScad::set_panel_io() {
+	//st_workにセットしてoutputで共有メモリへ出力する
+	// !!GamePadの入力はMON1ウィンドウのTIMERでCSの共有メモリのGPAD情報をみてPanelBaseのオブジェクトにセットしている
 	if (pPanelBase != NULL) {
 		st_work.ctrl_stat[OTE_PNL_CTRLS::estop]			= pPanelBase->pobjs->cb_estop->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_on]		= pPanelBase->pobjs->pb_syukan_on->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_off]	= pPanelBase->pobjs->pb_syukan_off->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::remote]		= pPanelBase->pobjs->pb_remote->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pobjs->pb_pad_mode->get();
+		st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pobjs->pb_freset->get();
 	}
 	return;
 }
@@ -286,7 +289,11 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pst = pPanelBase->pobjs->txt_link_crane;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
-	 
+	
+		pst = pPanelBase->pobjs->txt_freset;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
 		//CB
 		CCbCtrl* pcb = pPanelBase->pobjs->cb_estop;
 		i = OTE_SCAD_ID_MON1_CB_ESTP;
@@ -405,28 +412,16 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_SYUKAN_ON: {
 			pPanelBase->pobjs->pb_syukan_on->update(true);
-
-			//pPanelBase->pobjs->lmp_remote->set(L_ON);
-			//pPanelBase->pobjs->lmp_pad_mode->set(L_OFF);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_SYUKAN_OFF: {
 			pPanelBase->pobjs->pb_syukan_off->update(true);
-
-			//pPanelBase->pobjs->lmp_remote->set(L_ON);
-			//pPanelBase->pobjs->lmp_pad_mode->set(L_OFF);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_REMOTE: {
 			pPanelBase->pobjs->pb_remote->update(true);
-
-			//pPanelBase->pobjs->lmp_csource->set(ID_PANEL_LAMP_FLICK);
-			//pPanelBase->pobjs->lmp_pad_mode->set(L_ON);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_PAD_MODE: {
 
 			pPanelBase->pobjs->pb_pad_mode->update(true);
-
-			//pPanelBase->pobjs->lmp_remote->set(L_OFF);
-			//pPanelBase->pobjs->lmp_csource->set(2);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC: {
 			pPanelBase->pobjs->pb_assist_func->update(true);
@@ -464,6 +459,11 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		{
 			pPanelBase->pobjs->rdo_opt_wnd->update(true);
 		}break;
+
+		case ID_MAIN_PNL_OBJ_PB_FRESET: {
+			pPanelBase->pobjs->pb_freset->update(true);
+		}break;
+
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
@@ -482,8 +482,9 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_TIMER: {
 		//# LAMP(CTRL)更新
 		//e-stop : PLCの認識がESTOPの時枠有表示
-		INT16 code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::estop].code;
-		int val = pPanelBase->pobjs->cb_estop->get();
+		INT16 code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::estop].code;//制御PC受信バッファの指令内容
+		int val = pPanelBase->pobjs->cb_estop->get();									//CBの状態
+		//CB状態で制御PCのON表示があれば表示画像を切替
 		if (val == BST_CHECKED) { if (code) val = 3; }
 		else {if (code)val = 2;}
 		pPanelBase->pobjs->lmp_estop->set(val);
@@ -503,7 +504,12 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pPanelBase->pobjs->lmp_pad_mode->update();
 
 		//故障リセット
-		pPanelBase->pobjs->lmp_freset->set(pOteCsInf->st_body.ctrl_ope[OTE_PNL_CTRLS::fault_reset]);
+	//	pPanelBase->pobjs->lmp_freset->set(pOteCsInf->st_body.ctrl_ope[OTE_PNL_CTRLS::fault_reset]);
+		if(st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset])
+			pPanelBase->pobjs->lmp_freset->set(L_ON);
+		else 
+			pPanelBase->pobjs->lmp_freset->set(L_OFF);
+
 		pPanelBase->pobjs->lmp_freset->update();
 
 
@@ -532,9 +538,8 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		pPanelBase->pobjs->pb_crane_sel_wnd->update(false);
 		pPanelBase->pobjs->pb_ote_type_wnd->update(false);
 		pPanelBase->pobjs->pb_pad_mode->update(false);
-
-		//pPanelBase->pobjs->cb_estop->update(L_ON);
-
+		pPanelBase->pobjs->pb_freset->update(false);
+		
 		//String更新
 		if (is_initial_draw_mon1) {
 			pPanelBase->pobjs->str_message->update();
@@ -548,7 +553,10 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		if (pOteCsInf->gpad_in.syukan_off)pPanelBase->pobjs->pb_syukan_off->update(true);
 		if (pOteCsInf->gpad_in.remote)pPanelBase->pobjs->pb_remote->update(true);
 		if (pOteCsInf->gpad_in.estop)pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
-		if (pOteCsInf->gpad_in.f_reset)pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
+		if (pOteCsInf->gpad_in.f_reset) {//ゲームパッドの非常停止クリアはResetPBで実行
+			pPanelBase->pobjs->pb_freset->update(true);
+			pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
+		}
 		
 	}break;
 
@@ -582,6 +590,9 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 		else if (pDIS->CtlID == pos->pb_pad_mode->id) {//PADランプ
 			plamp = pos->lmp_pad_mode; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_freset->id) {//FAULTランプ
+			plamp = pos->lmp_freset; pfont = plamp->pFont;
 		}
 		else return false;
 

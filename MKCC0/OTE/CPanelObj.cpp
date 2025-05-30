@@ -31,10 +31,10 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_PB_PAD_MODE		,Point(1780,405),Size(100,40)	,L"PAD"				},
 		{ID_MAIN_PNL_OBJ_LMP_PAD_MODE		,Point(1780,405),Size(100,40)	,L"PAD"				},
 		{ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC		,Point(1780,450),Size(100,40)	,L"アシスト"		},
-		{ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		,Point(1780,615),Size(100,30)	,L"端末モード"		},
-		{ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND	,Point(1780,645),Size(100,40)	,L"端末モード"		},
-		{ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		,Point(1780,715),Size(100,30)	,L"未接続"			},
-		{ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND	,Point(1780,755),Size(100,40)	,L"接続選択"		},
+		{ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		,Point(1780,735),Size(100,30)	,L"端末モード"		},
+		{ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND	,Point(1780,760),Size(100,40)	,L"端末モード"		},
+		{ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		,Point(1780,820),Size(100,30)	,L"未接続"			},
+		{ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND	,Point(1780,850),Size(100,40)	,L"接続選択"		},
 
 		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		,Point(20,170)	,Size(100,40)	,L"MODE1"			},
 		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		,Point(20,215)	,Size(100,40)	,L"MODE2"			},
@@ -48,8 +48,10 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR	,Point(20,725)	,Size(100,40)	,L"クリア"			},
 		{ID_MAIN_PNL_OBJ_RDO_OPT_WND		,Point(20,500)	,Size(100,40)	,L"オプション"		},
 
-		{ID_MAIN_PNL_OBJ_PB_FRESET			,Point(1800,520),Size(80,80)	,L"故障リセット"	},
-		{ID_MAIN_PNL_OBJ_LMP_FRESET			,Point(1800,520),Size(80,80)	,L"故障リセット"	},
+		{ID_MAIN_PNL_OBJ_PB_FRESET			,Point(1800,560),Size(60,60)	,L"故障リセット"	},
+		{ID_MAIN_PNL_OBJ_LMP_FRESET			,Point(1800,560),Size(60,60)	,L"故障リセット"	},
+		{ID_MAIN_PNL_OBJ_TXT_FRESET			,Point(1780,530),Size(100,30)	,L"故障リセット"	},
+
 };
 
 
@@ -119,12 +121,14 @@ HRESULT CMainPanelObj::setup_obj() {
 	static Image img_b1_of(L"../Img/HHGH29/lmp1_b_of.png"), img_b1_on(L"../Img/HHGH29/lmp1_b_on.png"), img_y1_on(L"../Img/HHGH29/lmp1_y_on.png"), img_g1_on(L"../Img/HHGH29/lmp1_g_on.png"), img_r1_on(L"../Img/HHGH29/lmp1_r_on.png");
 	static Image img_estp_of(L"../Img/HHGH29/estop_of.png"), img_estp_on(L"../Img/HHGH29/estop_on.png"), img_estp_of2(L"../Img/HHGH29/estop_of2.png"), img_estp_on2(L"../Img/HHGH29/estop_on2.png");
 	static Image img_w80_of(L"../Img/HHGH29/sw80_of_w.png"), img_b80_on(L"../Img/HHGH29/sw80_on_b.png"), img_g80_on(L"../Img/HHGH29/sw80_on_g.png"), img_r80_on(L"../Img/HHGH29/sw80_on_r.png");
+	static Image img_freset_of(L"../Img/HHGH29/freset_off.png"), img_freset_on(L"../Img/HHGH29/freset_on.png");
 
 	Image* pimg_remote[N_IMG_SWITCH_MAX] = { &img_o80_of, &img_o80_on , &img_b80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
 	Image* pimg_syukan_on[N_IMG_SWITCH_MAX] = { &img_w80_of, &img_g80_on , &img_r80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
 	Image* pimg_syukan_off[N_IMG_SWITCH_MAX] = { &img_w80_of, &img_r80_on , &img_g80_on, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of, &img_w80_of };
 	Image* pimg_estop[N_IMG_SWITCH_MAX] = { &img_estp_of, &img_estp_on, &img_estp_of2, &img_estp_on2 , &img_b80_on, &img_w80_of, &img_w80_of, &img_b80_on };
 	Image* pimg_signal[N_IMG_SWITCH_MAX] = { &img_b1_of, &img_b1_on , &img_y1_on, &img_r1_on, &img_g1_on, &img_b1_of, &img_b1_of, &img_b1_of };
+	Image* pimg_freset[N_IMG_SWITCH_MAX] = { &img_freset_of, &img_freset_on, &img_w80_of, &img_w80_of , &img_b80_on, &img_w80_of, &img_w80_of, &img_b80_on };
 
 //0 メッセージ
 		str_message			= new CStringGdi(ID_MAIN_PNL_OBJ_STR_MESSAGE, &main_props[i].pt, &main_props[i].sz,  main_props[i].txt,
@@ -168,7 +172,6 @@ HRESULT CMainPanelObj::setup_obj() {
 	i++;cb_pnl_notch		= new CCbCtrl(ID_MAIN_PNL_OBJ_CB_PNL_NOTCH, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 //PAD MODE
 	i++;pb_pad_mode			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_PAD_MODE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	static Image img13(L"../Img/HHGH29/sw80_of_w.png"), img14(L"../Img/HHGH29/sw80_on_o.png");
 	i++; lmp_pad_mode		= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_PAD_MODE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_remote, 3, 3);
 	lmp_pad_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_14], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 //ASSIST
@@ -201,10 +204,10 @@ HRESULT CMainPanelObj::setup_obj() {
 	i++; rdo_opt_wnd		= new CRadioCtrl(6, pcb_opt);
 
 	//故障リセット
-	i++; pb_freset = new CPbCtrl(ID_MAIN_PNL_OBJ_PB_FRESET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	static Image img15(L"../Img/HHGH29/freset_off.png"), img16(L"../Img/HHGH29/freset_on.png");
-	i++; lmp_freset = new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_FRESET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_remote, 3, 3);
+	i++; pb_freset = new CPbCtrl(ID_MAIN_PNL_OBJ_PB_FRESET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_DGRAY], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; lmp_freset = new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_FRESET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_freset, 2, 4);
 	lmp_pad_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_14], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+	i++; txt_freset = new CStaticCtrl(ID_MAIN_PNL_OBJ_TXT_FRESET, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
 
 	return S_OK;
 }
@@ -234,8 +237,9 @@ void CMainPanelObj::delete_obj() {
 	delete pb_assist_func;	
 	delete txt_ote_type;	
 	delete pb_ote_type_wnd;	
-	delete txt_link_crane;	
-	delete pb_crane_sel_wnd;
 	delete pb_freset;
 	delete lmp_freset;
+	delete txt_link_crane;	
+	delete pb_crane_sel_wnd;
+
 }

@@ -45,6 +45,7 @@ using namespace std;
 
 #define ID_MAIN_PNL_OBJ_PB_FRESET			60047
 #define ID_MAIN_PNL_OBJ_LMP_FRESET			60048
+#define ID_MAIN_PNL_OBJ_TXT_FRESET			60049
 
 #define ID_PNL_SOCK_STAT_CLOSED				0//OFF
 #define ID_PNL_SOCK_STAT_INIT				1//青
@@ -148,8 +149,9 @@ public:
 	CCbCtrl		* cb_opt_clr;	//オプションウィンドウラジオボタン
 	CRadioCtrl	* rdo_opt_wnd;	//オプションウィンドウラジオボタン
 
-	CPbCtrl* pb_freset;	//主幹切PB
-	CLampCtrl* lmp_freset;	//主幹切ランプ
+	CPbCtrl* pb_freset;			//故障リセットPB
+	CLampCtrl* lmp_freset;		//故障リセットランプ
+	CStaticCtrl* txt_freset;	//故障リセット表示テキスト
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

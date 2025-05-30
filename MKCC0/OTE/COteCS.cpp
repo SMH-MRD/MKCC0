@@ -184,7 +184,11 @@ int COteCS::input() {
 		= st_obj.syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off] | st_obj.syukan_off.get());
 	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::estop]
 		= st_obj.estop.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::estop] | st_obj.estop.get());
-	st_obj.f_reset;
+	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::fault_reset]
+		= st_obj.f_reset.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::fault_reset] | st_obj.f_reset.get());
+	
+	
+	;
 	st_obj.bypass;
 	st_obj.kidou_r;
 	st_obj.kidou_l;
@@ -233,7 +237,8 @@ int COteCS::parse() {           //メイン処理
 	return STAT_OK;
 }
 
-int COteCS::output() {          //出力処理
+int COteCS::output() {          
+		//送信バッファ内容を共有メモリにコピー
 		memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
 	return STAT_OK;
 }
