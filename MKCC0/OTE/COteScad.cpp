@@ -585,7 +585,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		else if (pDIS->CtlID == pos->pb_syukan_on->id) {//主幹入ランプ
 			plamp = pos->lmp_syukan_on; pfont = plamp->pFont;
 		}
-		else if (pDIS->CtlID == pos->pb_syukan_off->id) {//主幹入ランプ
+		else if (pDIS->CtlID == pos->pb_syukan_off->id) {//主幹切ランプ
 			plamp = pos->lmp_syukan_off; pfont = plamp->pFont;
 		}
 		else if (pDIS->CtlID == pos->pb_pad_mode->id) {//PADランプ
