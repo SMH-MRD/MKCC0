@@ -16,6 +16,8 @@ extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
 extern CCrane* pCrane;
+extern ST_DEVICE_CODE g_my_code;
+
 
 //ソケット
 static CSockUDP* pUSockOte;	//ユニキャストOTE通信受信用
@@ -199,7 +201,7 @@ int CCcCS::parse() {
 	//操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
 	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
 	
-	//受信データ解析
+	//PLCデータ解析
 	//st_ote_work.st_bodyの内容が送信バッファにコピーされる
 	UN_LAMP_COM *plamp_com = st_ote_work.st_body.lamp;
 	if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
@@ -229,22 +231,32 @@ int CCcCS::parse() {
 		plamp_com[OTE_PNL_CTRLS::fault_reset].st.com= pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
 		plamp_com[OTE_PNL_CTRLS::bypass].st.com		= CODE_PNL_COM_ON;
 
-		
+		//PLC側CSスイッチの状態
+		plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com 
+			= CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, g_my_code.serial_no);
+		plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com
+			= CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
+
+		//ノッチ信号FB
 		INT16 notch = pCrane->pPlc->rval(pPlcRIf->mh_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::asel_mh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_mh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
 		notch = pCrane->pPlc->rval(pPlcRIf->bh_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::asel_bh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_bh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
 		notch = pCrane->pPlc->rval(pPlcRIf->sl_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::asel_sl].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_sl].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
 		notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::asel_gt].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_gt].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
 	}
 
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
 	//共有メモリ出力処理
+	//CS_INF 制御コントロール情報（モード等）
 	memcpy_s(&(pCS_Inf->cs_ctrl), sizeof(ST_CC_CS_CTRL), &st_cs_work.cs_ctrl, sizeof(ST_CC_CS_CTRL));
+	
+	//OTE接続情報（モード等）
+	//CS_INF 制御コントロール情報（モード等）
 	memcpy_s(&(pOTE_Inf->st_ote_ctrl), sizeof(ST_CC_OTE_CTRL), &st_ote_work.st_ote_ctrl, sizeof(ST_CC_OTE_CTRL));
 	return STAT_OK;
 }

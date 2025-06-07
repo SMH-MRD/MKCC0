@@ -149,7 +149,7 @@
     <ClInclude Include="CPanelGr.H" />
     <ClInclude Include="CPanelIo.h" />
     <ClInclude Include="CPanelObj.h" />
-    <ClInclude Include="CSubPanel.h" />
+    <ClInclude Include="CPanelWindow.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="OTE.h" />
     <ClInclude Include="Resource.h" />
@@ -170,7 +170,7 @@
     <ClCompile Include="COtePol.cpp" />
     <ClCompile Include="COteScad.cpp" />
     <ClCompile Include="CPanelObj.cpp" />
-    <ClCompile Include="CSubPanel.cpp" />
+    <ClCompile Include="CPanelWindow.cpp" />
     <ClCompile Include="OpePanel.cpp" />
     <ClCompile Include="OTE.cpp" />
   </ItemGroup>

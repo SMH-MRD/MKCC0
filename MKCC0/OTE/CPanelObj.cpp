@@ -54,6 +54,21 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 
 };
 
+#define N_SUB_PNL_OBJ		64
+static ST_OBJ_PROPERTY sub_set_props[N_MAIN_PNL_OBJ] = {
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(20,50)	,Size(40,40)	,L"7"				},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(120,20)	,Size(40,40)	,L"14"				},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(220,50)	,Size(40,40)	,L"21"				},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD	,Point(20,50)	,Size(40,40)	,L"主巻モード"		},
+	{ID_SUB_PNL_SET_OBJ_LMP_MHSPD	,Point(30,50)	,Size(100,100)	,L"主巻モード"		},
+
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_0	,Point(20,150)	,Size(100,100)	,L"57"				},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(20,120)	,Size(100,100)	,L"62"				},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(20,150)	,Size(100,30)	,L"ﾚｽﾄ"				},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,150)	,Size(100,40)	,L"引込モード"		},
+	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(30,150)	,Size(200,30)	,L"引込モード"		},
+};
+
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
 {
@@ -242,4 +257,44 @@ void CMainPanelObj::delete_obj() {
 	delete txt_link_crane;	
 	delete pb_crane_sel_wnd;
 
+}
+
+HRESULT CSubPanelObj::setup_obj() {
+
+	int i = 0;
+	//画像ポインタ配列
+	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png");
+	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX] = { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
+	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX] = { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
+
+	//0 メッセージ
+		cb_mh_spd_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_mh_spd_mode1 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_mh_spd_mode2 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	CCbCtrl* pcb_opt[8] = { cb_mh_spd_mode0,cb_mh_spd_mode1,cb_mh_spd_mode2, };
+	i++; rdo_mh_spd_mode = new CRadioCtrl(3, pcb_opt);
+	i++; lmp_mh_spd_mode = new CLampCtrl(ID_SUB_PNL_SET_OBJ_LMP_MHSPD, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_mh_spd_mode, 3, 3);
+	lmp_mh_spd_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+
+	i++; cb_bh_r_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_bh_r_mode1 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_bh_r_mode2 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	CCbCtrl* pcb_opt2[8] = { cb_mh_spd_mode0,cb_mh_spd_mode1,cb_mh_spd_mode2, };
+	i++; rdo_bh_r_mode = new CRadioCtrl(3, pcb_opt2);
+	i++; lmp_bh_r_mode = new CLampCtrl(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 3, 3);
+	lmp_bh_r_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+		
+	return S_OK;
+}
+void CSubPanelObj::delete_obj() {
+	delete cb_mh_spd_mode0;
+	delete cb_mh_spd_mode1;
+	delete cb_mh_spd_mode2;
+	delete rdo_mh_spd_mode;
+	delete lmp_mh_spd_mode;
+	delete cb_bh_r_mode0;
+	delete cb_bh_r_mode1;
+	delete cb_bh_r_mode2;
+	delete rdo_bh_r_mode;
+	delete lmp_bh_r_mode;
 }

@@ -31,7 +31,7 @@ CSharedMem* pOteCcInfObj;
 CSharedMem* pOteUiObj;
 
 //共有クラス
-CCrane* pCrane;	//クレーン制御クラスポインタ
+CCrane* pCrane=NULL;	//クレーン制御クラスポインタ
 ST_DEVICE_CODE g_my_code; //端末コード
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体

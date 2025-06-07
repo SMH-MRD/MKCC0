@@ -51,7 +51,6 @@ public:
 
 	virtual T get() { return value; }
 	virtual HRESULT set(T _value) { value = _value;  return S_OK; }
-
 	virtual HRESULT set_wnd(HWND _hWnd) { if (_hWnd == NULL) return S_FALSE;  hWnd = _hWnd; return S_OK; }
 	
 	INT32 get_id() { return id; }

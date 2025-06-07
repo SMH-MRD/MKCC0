@@ -198,9 +198,7 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-
     //オーバーライド
-
     virtual HRESULT routine_work(void* pObj) override;
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id);

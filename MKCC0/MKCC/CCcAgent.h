@@ -137,17 +137,6 @@ public:
     static ST_CC_PLC_IO st_work_plcio;
 
     //PLC IF関連
-    static HRESULT rcv_uni_ote(LPST_PC_U_MSG pbuf);
-    static HRESULT rcv_mul_pc(LPST_PC_M_MSG pbuf);
-    static HRESULT rcv_mul_ote(LPST_OTE_M_MSG pbuf);
-
-    static LPST_OTE_U_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
-    static HRESULT snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to);
-
-    static LPST_OTE_M_MSG set_msg_m();
-    static HRESULT snd_mul2pc(LPST_OTE_M_MSG pbuf);
-    static HRESULT snd_mul2ote(LPST_OTE_M_MSG pbuf);
-
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
     //タブパネルのFunctionボタンのStaticテキストを設定
@@ -164,9 +153,7 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-
     //オーバーライド
-
     virtual HRESULT routine_work(void* pObj) override;
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id);

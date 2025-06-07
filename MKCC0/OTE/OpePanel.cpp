@@ -13,13 +13,18 @@ ULONG_PTR			gdiplusToken;		//Gdi+初期化,終了処理用
 ST_DRAWING_BASE		drawing_items;		//描画用素材登録構造体
 //###############################################################
 
+//###   CPanelBase  #################################################
 int CPanelBase::_crane_id;
 int CPanelBase::_panel_id;
 CPanelBase*		CPanelBase::pPanel;
-CMainPanelObj*	CPanelBase::pobjs;
+CMainPanelObj*	CPanelBase::pmainobjs;
+CSubPanelObj* CPanelBase::psubobjs;
 LPST_DRAWING_BASE CPanelBase::pdrawing_items;
+LPST_OTE_UI CPanelBase::puiif;
+HRESULT CPanelBase::hr_init_setting = S_FALSE;
 
-HRESULT CPanelBase::setup_drawing_base() {
+HRESULT CPanelBase::setup_common_base(LPST_OTE_UI pui) {
+	puiif = pui;
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	PANEL_COLOR_PALLET pallet;
@@ -139,19 +144,17 @@ void CPanelBase::close_drawing_base() {
 	return;
 }
 
-HRESULT CPanelBase::setup_panel(int crane_id, int panel_id) {
-	set_crane_id(crane_id);
-	set_panel_id(panel_id);
-	pPanel = this;
+HRESULT CPanelBase::setup_panel() {
 	return S_OK;
 }
 void CPanelBase::close_panel() {
 	return;
 }
 
-HRESULT CPanelBase::setup_graphic(int crane_id, int panel_id) {
+HRESULT CPanelBase::setup_graphic() {
 	return S_OK;
 }
 void	CPanelBase::close_graphic() {
 	return;
 }
+

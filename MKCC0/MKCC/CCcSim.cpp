@@ -56,8 +56,13 @@ HRESULT CSim::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int CSim::input() {
+	return S_OK;
+}
 
-
+int CSim::parse() {           //ƒƒCƒ“ˆ—
+	return S_OK;
+}
+int CSim::output() {          //o—Íˆ—
 	return S_OK;
 }
 

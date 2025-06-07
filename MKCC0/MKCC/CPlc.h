@@ -57,11 +57,13 @@ typedef struct _ST_PLC_WBUF_HHGH29 {//制御PC→PLC
 	INT16   ctrl_mode;            //D10201:自動制御フラグ
 	UINT16  cab_ai[4];            //D10202:運転室PLC AI信号【モーメントリミッタ】
 	INT16   cab_bi[4];            //D10206:運転室PLC→電気室PLC b出力
-	UINT32  hcounter[4];          //D10210:高速カウンタユニット 
-	UINT32  absocoder[3];         //D10218　アブソコーダ 
-	INT16   pc_fault[2];          //D10224　PC検出異常マップ
-	INT16   erm_unitx[6];         //電気室ユニットX 020-03F：カウンタユニット　040-04F：ABSユニット
-	INT16   erm_x[7];             //電気室X 080-0EF
+	INT16   pc_fault[2];          //D10210:制御PC故障
+	INT16   mh_load;              //D10212:主巻荷重
+	INT16   ah_load;              //D10213:補巻荷重
+	INT16   wind_spd;             //D10214:風速
+	INT16   spear[15];            //D10215:予備
+	UINT32  hcounter[4];          //D10230:高速カウンタユニット 
+	UINT32  absocoder[3];         //D10238　アブソコーダ 
 	INT16   spare[30];
 }ST_PLC_WBUF_HHGH29, * LPST_PLC_WBUF_HHGH29;
 typedef struct _ST_PLC_RBUF_HHGH29 {

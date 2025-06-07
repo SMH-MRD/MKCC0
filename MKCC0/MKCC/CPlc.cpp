@@ -64,7 +64,7 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	//â^ì]é∫ëÄçÏë‰
 	//B220
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//syukan_on;
-	{NULL,BIT1,					CODE_PLCIO_BIT_NC,		0,0},	//syukan_off;
+	{NULL,BIT1,					CODE_PLCIO_BIT_NC,	0,0},	//syukan_off;
 	{NULL,BIT2 | BIT3 | BIT7,	CODE_PLCIO_BITS,	2,0},	//mh_spd_cs;
 	{NULL,BIT4 | BIT5 | BIT6,	CODE_PLCIO_BITS,	4,0},	//bh_mode_cs;
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0},	//ah_use_sel;	 

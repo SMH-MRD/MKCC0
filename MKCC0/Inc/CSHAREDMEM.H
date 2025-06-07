@@ -258,9 +258,10 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLCからの読み取り信号生値
 	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLCへの書き込み信号生値
 
-	INT32 mh_spd_mode;
-	INT32 ah_spd_mode;
-	INT32 bh_ope_mode;
+	INT16 mh_spd_mode;
+	INT16 ah_spd_mode;
+	INT16 bh_ope_mode;
+	INT16 spare;
 	double v_ratio[MOTION_ID_MAX] = { 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0 };
 }ST_CC_PLC_IO, * LPST_CC_PLC_IO;
 
@@ -576,6 +577,8 @@ typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_status[MOTION_ID_MAX];
 	INT32		ote_remote_status;												//操作端末の状態　0bit：端末信号有効
 	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
+	INT16		ote_mh_spd_mode;													//主巻速度モード
+	INT16		ote_bh_r_mode;														//引込モード
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
 
 typedef struct _ST_CC_CS_INF {
@@ -586,6 +589,8 @@ typedef struct _ST_CC_CS_INF {
 	UN_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];									//端末ランプ表示指令
 	UN_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];	//端末ノッチランプ表示指令
 	INT16	notch_pos[2][MOTION_ID_MAX];										//ノッチ指定値
+	INT16	ote_mh_spd_mode;													//主巻速度モード
+	INT16	ote_bh_r_mode;														//引込モード
 
 	//JOB関連
 	int command_type;													//PARK,PICK,GRND
@@ -625,52 +630,16 @@ typedef struct stClientIO {
 
 //## シミュレーション信号定義構造体 
 #pragma region SIMULATOR
-typedef struct _ST_SIM_LOAD {//負荷
-	double m;	//質量
-	double wx;	//幅
-	double dy;	//奥行
-	double hz;	//高さ
-}ST_SIM_LOAD, * LPST_SIM_LOAD;
 
-#define SIM_N_SENSOR			128							//センサ数
 typedef struct _ST_CC_SIM_INF {
 	DWORD mode;
 	DWORD helthy_cnt;
-	INT16 plc_w[CC_MC_SIZE_W_WRITE];
-	ST_AUX_ENV_INF sway_io;
-	Vector3 L, vL;											//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）
-	Vector3 L2, vL2;										//ﾛｰﾌﾟﾍﾞｸﾄﾙ(補巻振れ）
-	double a_fb[MOTION_ID_MAX];								//軸座標加速度fb
-	double v_fb[MOTION_ID_MAX];								//軸座標速度fb
-	double pos[MOTION_ID_MAX];								//軸座標位置fb
-	double mtrq[MOTION_ID_MAX];								//モータトルクfb
-	ST_SIM_LOAD load[MOTION_ID_MAX];						//軸負荷（巻は荷重）
-	double rad_cam_x, rad_cam_y, w_cam_x, w_cam_y;			//カメラ座標振れ角,振れ角速度
-	double kbh;												//引込半径に依存する速度、加速度補正係数
-	ST_SWAY_SERVER_MSG rcv_msg;
-	ST_SWAY_CLIENT_MSG snd_msg;
-	INT32 sonsor[SIM_N_SENSOR];								//センサ状態
 
-	ST_MOVE_SET	nd[MOTION_ID_MAX];							//ドラム回転動作
-	ST_MOVE_SET	d;									//ポスト‐起伏シーブ間状態（距離・速度・加速度）
-	ST_MOVE_SET	db;									//ジブポスト‐起伏シーブ間状態（距離・速度・加速度）
-	ST_MOVE_SET	ph;									//φ
-	ST_MOVE_SET	phb;								//φ
-	ST_MOVE_SET	th;									//θ
+	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLC IFバッファSIMULATION結果(Simulation Mode)
+	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLC IFバッファSIMULATION結果(Emulator, Simulation Mode)
 
-	UINT32 i_layer[MOTION_ID_MAX];					//ドラム現在層数
-	double n_layer[MOTION_ID_MAX];					//ドラム現在層巻取数
-	double l_drum[MOTION_ID_MAX];					//ドラム巻取り量
-
-	ST_MOVE_SET	lrm;								//主巻ロープ長
-	ST_MOVE_SET	lra;								//補巻ロープ長
-
-	double T;										//主巻振れ周期
-	double Tah;										//補巻振れ周期
-	double w;										//主巻振れ角周波数
-	double wah;										//補巻振れ角周波数
-
-	double tht_swx_mh, tht_swy_mh, tht_swx_ah, tht_swy_ah;
+	ST_AUX_ENV_INF aux_io;							//センサ,補機SIMULATION結果(Emulator, Simulation Mode)
+	ST_SWAY_SERVER_MSG rcv_msg;						//振れセンサセンサ受信バッファ計算値
 
 }ST_CC_SIM_INF, * LPST_CC_SIM_INF;
 #pragma endregion シミュレーション信号定義構造体

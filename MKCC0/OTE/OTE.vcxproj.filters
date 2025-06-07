@@ -90,7 +90,7 @@
     <ClInclude Include="CPanelObj.h">
       <Filter>UI\ViewModel</Filter>
     </ClInclude>
-    <ClInclude Include="CSubPanel.h">
+    <ClInclude Include="CPanelWindow.h">
       <Filter>UI\Views</Filter>
     </ClInclude>
   </ItemGroup>
@@ -137,7 +137,7 @@
     <ClCompile Include="CPanelObj.cpp">
       <Filter>UI\ViewModel</Filter>
     </ClCompile>
-    <ClCompile Include="CSubPanel.cpp">
+    <ClCompile Include="CPanelWindow.cpp">
       <Filter>UI\Views</Filter>
     </ClCompile>
     <ClCompile Include="..\MKCC\CHelper.cpp">

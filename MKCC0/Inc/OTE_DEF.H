@@ -141,16 +141,18 @@ enum OTE_PNL_CTRLS{
 	fault_reset,
 	bypass,
 	game_pad,
-	asel_mh,
-	asel_bh,
-	asel_sl,
-	asel_gt,
-	asel_ah,
+	asel_mh,//自動選択主巻
+	asel_bh,//自動選択引込
+	asel_sl,//自動選択旋回
+	asel_gt,//自動選択走行
+	asel_ah,//自動選択補巻
 	ote_type,
 	notch_mh,
 	notch_bh,
 	notch_sl,
 	notch_gt,
+	mh_spd_mode,
+	bh_r_mode,
 	MAX
 };
 

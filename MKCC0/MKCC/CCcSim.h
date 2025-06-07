@@ -63,6 +63,54 @@ typedef struct _ST_SIM_MON2 {
 
 }ST_SIM_MON2, * LPST_SIM_MON2;
 
+typedef struct _ST_SIM_LOAD {//負荷
+    double m;	//質量
+    double wx;	//幅
+    double dy;	//奥行
+    double hz;	//高さ
+}ST_SIM_LOAD, * LPST_SIM_LOAD;
+
+typedef struct _ST_SIM_AXIS {//軸
+    double mtrq;					//モータトルクfb
+    ST_SIM_LOAD load;				//軸負荷（巻は荷重）
+    ST_MOVE_SET	fb;					//軸座標
+    ST_MOVE_SET	nd;					//ドラム回転動作
+    UINT32 i_layer;					//ドラム現在層数
+    double n_layer;					//ドラム現在層巻取数
+    double l_drum;					//ドラム巻取り量
+}ST_SIM_AXIS, * LPST_SIM_AXIS;
+
+typedef struct _ST_CC_SIM_WORK {
+    //共有メモリ出力
+    DWORD mode;
+    DWORD helthy_cnt;
+    INT16 plc_w[CC_MC_SIZE_W_WRITE];
+    ST_AUX_ENV_INF sway_io;
+
+    ST_SWAY_SERVER_MSG rcv_msg;
+    ST_SWAY_CLIENT_MSG snd_msg;
+    
+    ST_SIM_AXIS axis[MOTION_ID_MAX];				//軸計算値
+
+    Vector3 L, vL,L2, vL2;							//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）(補巻振れ）
+    double kbh;										//引込半径に依存する速度、加速度補正係数   
+    ST_MOVE_SET	d;									//ポスト‐起伏シーブ間状態（距離・速度・加速度）
+    ST_MOVE_SET	db;									//ジブポスト‐起伏シーブ間状態（距離・速度・加速度）
+    ST_MOVE_SET	ph;									//φ
+    ST_MOVE_SET	phb;								//φ
+    ST_MOVE_SET	th;									//θ
+
+    double rad_cam_x, rad_cam_y, w_cam_x, w_cam_y;	//カメラ座標振れ角,振れ角速度
+    double T;										//主巻振れ周期
+    double Tah;										//補巻振れ周期
+    double w;										//主巻振れ角周波数
+    double wah;										//補巻振れ角周波数
+    double tht_swx_mh, tht_swy_mh, tht_swx_ah, tht_swy_ah;
+
+}ST_CC_SIM_WORK, * LPST_CC_SIM_WORK;
+
+
+
 class CSim : public CBasicControl
 {
 public:
@@ -114,12 +162,7 @@ private:
     }
 
     int input();//入力処理
-
-    int parse() {           //メイン処理
-        return STAT_NG;
-    }
-    int output() {          //出力処理
-        return STAT_NG;
-    }
+    int parse();
+    int output();
     int close();
 };

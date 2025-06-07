@@ -117,7 +117,7 @@ using namespace Gdiplus;
 #pragma region MESSAGE
 // タスクスレッドからの要求イベント
 //wp:要求イベントのハンドル要求種別　lp:パラメータ
-#define WM_USER_TASK_REQ         0x0405         // ibennwp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
+#define WM_USER_TASK_REQ         0x0405         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
 #define WM_USER_SET_BK_COLOR_REQ 0x0406         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD 
 
 #define WM_USER_WPH_OPEN_IF_WND  0x0001         // wp HWORD　code IFウィンドウOPEN 

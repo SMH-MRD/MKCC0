@@ -102,9 +102,11 @@ public:
 
 class CMainPanelObj :public CPanelObjBase
 {
+private:
+	int crane_id;
 public:
-	CMainPanelObj(HWND _hwnd) : CPanelObjBase(_hwnd) {
-
+	CMainPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+		crane_id = _crane_id;
 		setup_obj();
 	}
 	virtual ~CMainPanelObj() {
@@ -157,3 +159,45 @@ public:
 	virtual void delete_obj();
 };
 
+
+#define ID_SUB_PNL_SET_OBJ_BASE					60200
+#define ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0			60200
+#define ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1			60201
+#define ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2			60202
+#define ID_SUB_PNL_SET_OBJ_RDO_MHSPD			60203
+#define ID_SUB_PNL_SET_OBJ_LMP_MHSPD			60204
+
+#define ID_SUB_PNL_SET_OBJ_RDO_BHR_0			60205
+#define ID_SUB_PNL_SET_OBJ_RDO_BHR_1			60206
+#define ID_SUB_PNL_SET_OBJ_RDO_BHR_2			60207
+#define ID_SUB_PNL_SET_OBJ_RDO_BHR				60208
+#define ID_SUB_PNL_SET_OBJ_LMP_BHR				60209
+
+
+class CSubPanelObj :public CPanelObjBase
+{
+private:
+	int crane_id;
+public:
+	CSubPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+		crane_id = _crane_id;
+		setup_obj();
+	}
+	virtual ~CSubPanelObj() {
+	}
+
+	CCbCtrl*	cb_mh_spd_mode0;	//主巻速度モード選択ラジオボタン
+	CCbCtrl*	cb_mh_spd_mode1;	//主巻速度モード選択ラジオボタン
+	CCbCtrl*	cb_mh_spd_mode2;	//主巻速度モード選択ラジオボタン
+	CRadioCtrl* rdo_mh_spd_mode;	//主巻速度モード選択ラジオボタン
+	CLampCtrl*	lmp_mh_spd_mode;		//緊急停止ランプ
+
+	CCbCtrl*	cb_bh_r_mode0;		//主巻速度モード選択ラジオボタン
+	CCbCtrl*	cb_bh_r_mode1;		//主巻速度モード選択ラジオボタン
+	CCbCtrl*	cb_bh_r_mode2;		//主巻速度モード選択ラジオボタン
+	CRadioCtrl* rdo_bh_r_mode;		//主巻速度モード選択ラジオボタン
+	CLampCtrl*	lmp_bh_r_mode;		//緊急停止ランプ
+
+	virtual HRESULT setup_obj();
+	virtual void delete_obj();
+};
