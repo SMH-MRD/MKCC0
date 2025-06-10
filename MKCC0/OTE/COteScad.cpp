@@ -81,7 +81,7 @@ HRESULT COteScad::initialize(LPVOID lpParam) {
 
 	//### パネル関連セットアップ
 	CPanelBase::hr_init_setting = CPanelBase::setup_common_base(pOteUI);//ベースクラス初期化
-	CMainPanelWindow::set_up(pOteUI, pOteCsInf, pOteCCIf);						//メインパネルセットアップ
+	CMainPanelWindow::set_up(pOteUI, pOteCsInf, pOteCCIf, pOteEnvInf);						//メインパネルセットアップ
 
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -153,6 +153,8 @@ void COteScad::set_panel_io() {
 		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_on]		= pPanelBase->pmainobjs->pb_syukan_on->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_off]	= pPanelBase->pmainobjs->pb_syukan_off->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::remote]		= pPanelBase->pmainobjs->pb_remote->get();
+		if (pPanelBase->pmainobjs->pb_remote->get() != 0)
+			int a = 0;
 		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pmainobjs->pb_pad_mode->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pmainobjs->pb_freset->get();
 	}
@@ -718,30 +720,15 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	HINSTANCE hInst = GetModuleHandle(0);
 
 	WNDCLASSEXW wcex;
-	ATOM fb = RegisterClassExW(&wcex);
+//	ATOM fb = RegisterClassExW(&wcex);
 
 	if (id == BC_ID_MON1) {
-#if 0
-		wcex.cbSize = sizeof(WNDCLASSEX);
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Mon1Proc;
-		wcex.cbClsExtra = 0;
-		wcex.cbWndExtra = 0;
-		wcex.hInstance = hInst;
-		wcex.hIcon = NULL;
-		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("OTE_SCAD_MON1");
-		wcex.lpszClassName = TEXT("OTE_SCAD_MON1");
-		wcex.hIconSm = NULL;
-
-		ATOM fb = RegisterClassExW(&wcex);
-
+#if 1
 		CMainPanelWindow* pMainWnd = new CMainPanelWindow(
 			hInst, h_parent_wnd,
-			pPanelBase->get_crane_id(),
-			pPanelBase->get_crane_id(),
-			pPanelBase
+			pOteEnvInf->selected_crane,
+			pOteEnvInf->selected_crane,
+			&pPanelBase
 		);
 
 		

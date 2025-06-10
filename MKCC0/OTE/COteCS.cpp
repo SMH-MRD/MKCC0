@@ -178,7 +178,7 @@ int COteCS::input() {
 	}
 
 	// 操作パネル入力取り込み
-	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::syukan_on] 
+	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::syukan_on] //SCAD PBの状態 or GamePad入力(↑でsetメソッド実行している）をセット 
 		= st_obj.syukan_on.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_on] | st_obj.syukan_on.get());
 	st_work.st_body.ctrl_ope[OTE_PNL_CTRLS::syukan_off]
 		= st_obj.syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off] | st_obj.syukan_off.get());

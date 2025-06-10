@@ -197,8 +197,10 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				if (!(NULL == (pCrane= new CCrane(crane_id_selected)))){
 					pCrane->pSpec->base_mh;
 					close_monitor_wnd(BC_ID_MON1);
-					Sleep(200);
+					Sleep(100);
 					pAgentObj->setup_crane_if(crane_id_selected);
+
+					pOteEnvInf->selected_crane = st_work.selected_crane = crane_id_selected;
 					pScadObj->open_ope_window();
 					crane_id_selected = CRANE_ID_NULL;
 				}
@@ -328,7 +330,7 @@ HWND COteEnv::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	else if (id == BC_ID_MON2) {
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Mon1Proc;
+		wcex.lpfnWndProc = Mon2Proc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInst;
