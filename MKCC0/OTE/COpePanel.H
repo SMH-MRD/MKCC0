@@ -6,8 +6,6 @@
 #include "CPanelObj.H"
 #include "CSHAREDMEM.H"
 
-
-
 class CPanelBase {
 
 private:
@@ -43,6 +41,5 @@ public:
 	void	close_graphic();
 	HRESULT setup_panel();
 	void	close_panel();
-
 };
 

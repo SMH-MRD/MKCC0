@@ -75,29 +75,32 @@ public:
 
 	HRESULT hr = S_OK;
 
-	HWND hWnd;			//ウィンドウハンドル
-	Rect rc_panel;		//パネルの表示位置
+	HWND hWnd;				//ウィンドウハンドル
+	Rect rc_panel;			//パネルの表示位置
 
-	HBITMAP hBmp_mem;	//背景用ビットマップ
-	HBITMAP hBmp_bk;	//パネル用ビットマップ
-	HBITMAP hBmp_inf;	//情報表示用ビットマップ
+	HBITMAP hBmp_img;		//イメージ素材用ビットマップ
+	HBITMAP hBmp_bk;		//背景用ビットマップ
+	HBITMAP hBmp_inf;		//情報表示用ビットマップ
 
-	HDC hdc;			//パネルへ書き込み用DC
-	HDC hdc_mem;		//パネルへ書き込み用DC
-	HDC hdc_bk;			//背景用DC
-	HDC hdc_inf;		//情報表示用DC
+	HDC hdc;				//パネルへ書き込み用DC
+	HDC hdc_img;			//イメージ素材用DC
+	HDC hdc_bk;				//背景用DC
+	HDC hdc_inf;			//情報表示用DC
 
 	Graphics* pgraphic;		//描画用グラフィックス
-	Graphics* pgraphic_mem;	//描画用グラフィックス
+	Graphics* pgraphic_img;	//イメージ素材用グラフィックス
 	Graphics* pgraphic_bk;	//背景用グラフィックス
 	Graphics* pgraphic_inf;	//情報表示用グラフィックス
 
 	SolidBrush* pBrushBk;	//背景塗りつぶし用ブラシ
 
 	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
+	virtual HRESULT setup_graphics(HWND hwnd);
+	virtual void clear_graghics();
 
 	virtual HRESULT setup_obj() = 0;
 	virtual void delete_obj() = 0;
+
 };
 
 class CMainPanelObj :public CPanelObjBase

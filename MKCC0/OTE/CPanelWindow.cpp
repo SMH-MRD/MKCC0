@@ -427,7 +427,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
 		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lp;
 		Image* image;
-		Graphics gra(pDIS->hDC);
+		Gdiplus::Graphics gra(pDIS->hDC);
 		Font* pfont = NULL;
 		CMainPanelObj* pos = pPanelBase->pmainobjs;
 		CLampCtrl* plamp = NULL;
@@ -739,9 +739,8 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 
 		pPanelBase->pmainobjs->lmp_freset->update();
 
-
 		//# SwitchImg更新(ランプ）
-		//CCとの通信状態表示(受信）
+//CCとの通信状態表示(受信）
 		if (pCcIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
 			pPanelBase->pmainobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
 		else pPanelBase->pmainobjs->lmp_pcr->set(pCcIf->cc_com_stat_r);
@@ -798,7 +797,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
 		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lp;
 		Image* image;
-		Graphics gra(pDIS->hDC);
+		Gdiplus::Graphics gra(pDIS->hDC);
 		Font* pfont = NULL;
 		CMainPanelObj* pos = pPanelBase->pmainobjs;
 		CLampCtrl* plamp = NULL;
@@ -856,9 +855,10 @@ LPST_OTE_CC_IF CSubPanelWindow::pCcIf;
 LPST_OTE_ENV_INF CSubPanelWindow::pOteEnvInf; 
 
 
-CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int wnd_code, CPanelBase* _pPanelBase) {
+CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int _wnd_code, CPanelBase* _pPanelBase) {
 	pPanelBase = _pPanelBase;
 	hParentWnd = hParent;
+	wnd_code = _wnd_code; //ウィンドウコードをセット
 
     const wchar_t CLASS_NAME[] = L"SubWindowClass";
     const wchar_t CLASS_NAME_FLT[] = L"SubWindowFltClass";
@@ -869,7 +869,7 @@ CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_i
 
     const wchar_t* pClassName;
 
-    WNDCLASS wc = { };
+	WNDCLASS wc = { };
 	switch (wnd_code) {
 	case ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT:
         wc.lpfnWndProc = WndProcFlt;
@@ -913,6 +913,8 @@ CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_i
         hParent, nullptr, hInstance, nullptr
     );
 
+
+
     if (hWnd) {
         ShowWindow(hWnd, SW_SHOW);
         UpdateWindow(hWnd);
@@ -936,7 +938,6 @@ void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 	return;
 };
-
 
 LRESULT CALLBACK CSubPanelWindow::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -972,9 +973,136 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 #if 1	
 	switch (uMsg) {
 	case WM_CREATE: {
+		InitCommonControls();//コモンコントロール初期化
+		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+
+		pPanelBase->psubobjs->clear_graghics();
+		pPanelBase->psubobjs->setup_graphics(hwnd);
+
 		SetWindowText(hwnd, L"設定");
+
+		//ウィンドウにコントロール追加
+		//RADIO BUTTON
+		CCbCtrl* pcb = pPanelBase->psubobjs->cb_mh_spd_mode0;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_mh_spd_mode1;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_mh_spd_mode2;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+		pcb = pPanelBase->psubobjs->cb_bh_r_mode0;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_bh_r_mode1;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_bh_r_mode2;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 	}break;
 
+	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
+		InvalidateRect(hwnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
+	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
+		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
+		SetBkMode((HDC)wParam, TRANSPARENT);
+	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
+
+	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
+		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
+	}return 1; // 背景を処理したことを示す
+
+	case WM_TIMER: {
+		//# LAMP(CTRL)更新
+
+	//	//主幹
+	//	code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code;
+	//	pPanelBase->pobjs->lmp_syukan_on->set(code); pPanelBase->pobjs->lmp_syukan_on->update();
+	//	code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code;
+	//	pPanelBase->pobjs->lmp_syukan_off->set(code); pPanelBase->pobjs->lmp_syukan_off->update();
+
+	//	//遠隔
+	//	pPanelBase->pobjs->lmp_remote->set(pOteCsInf->st_body.remote);
+	//	pPanelBase->pobjs->lmp_remote->update();
+
+	//	pPanelBase->pobjs->lmp_pad_mode->set(pOteCsInf->st_body.game_pad_mode);
+	//	pPanelBase->pobjs->lmp_pad_mode->update();
+
+	//	//故障リセット
+	////	pPanelBase->pobjs->lmp_freset->set(pOteCsInf->st_body.ctrl_ope[OTE_PNL_CTRLS::fault_reset]);
+	//	if (st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset])
+	//		pPanelBase->pobjs->lmp_freset->set(L_ON);
+	//	else
+	//		pPanelBase->pobjs->lmp_freset->set(L_OFF);
+
+	//	pPanelBase->pobjs->lmp_freset->update();
+	
+	}break;
+
+	case WM_COMMAND: {
+		int wmId = LOWORD(wParam);
+		// 選択されたメニューの解析:
+		switch (wmId)
+		{
+		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0: 
+		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1: 
+		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2: {
+			pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);
+		}break;
+		case ID_SUB_PNL_SET_OBJ_RDO_BHR_0: 
+		case ID_SUB_PNL_SET_OBJ_RDO_BHR_1: 
+		case ID_SUB_PNL_SET_OBJ_RDO_BHR_2: {
+			pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
+		}break;
+
+		default:
+			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		}
+	}break;
+
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+		EndPaint(hwnd, &ps);
+	}break;
+	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
+		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
+		Image* image;
+		Gdiplus::Graphics gra(pDIS->hDC);
+		Font* pfont = NULL;
+		CSubPanelObj* pos = pPanelBase->psubobjs;
+		CLampCtrl* plamp = NULL;
+
+		if (pDIS->CtlID == pos->cb_bh_r_mode0->id) {
+			plamp = pos->lmp_bh_r_mode;	pfont = plamp->pFont;
+		}
+		if (pDIS->CtlID == pos->cb_bh_r_mode1->id) {
+			plamp = pos->lmp_bh_r_mode;	pfont = plamp->pFont;
+		}
+		if (pDIS->CtlID == pos->cb_bh_r_mode2->id) {
+			plamp = pos->lmp_bh_r_mode;	pfont = plamp->pFont;
+		}
+		if (pDIS->CtlID == pos->cb_mh_spd_mode0->id) {
+			plamp = pos->lmp_mh_spd_mode;	pfont = plamp->pFont;
+		}
+		if (pDIS->CtlID == pos->cb_mh_spd_mode0->id) {
+			plamp = pos->lmp_mh_spd_mode;	pfont = plamp->pFont;
+		}
+		if (pDIS->CtlID == pos->cb_mh_spd_mode0->id) {
+			plamp = pos->lmp_mh_spd_mode;	pfont = plamp->pFont;
+		}
+
+		image = plamp->pimg[plamp->get()];
+		gra.FillRectangle(pPanelBase->psubobjs->pBrushBk, plamp->rc);	//背景色セット
+		if (image) gra.DrawImage(image, plamp->rc);						//イメージ描画
+		if (pfont != NULL)
+			gra.DrawString(plamp->txt.c_str(), -1, pfont, plamp->frc, plamp->pStrFormat, plamp->pTxtBrush);	//テキスト描画
+
+	}return true;
 	case WM_DESTROY:
 		// PostQuitMessage(0);
 		return 0;
@@ -987,42 +1115,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	switch (uMsg)
 	{
 
-	case WM_CREATE: {
-		InitCommonControls();//コモンコントロール初期化
-		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
-		//ウィンドウにコントロール追加
-		int i;
-
-		//RADIO BUTTON
-		CCbCtrl* pcb = pSubPanelBase->pobjs->cb_mh_spd_mode0;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pSubPanelBase->pobjs->cb_mh_spd_mode1;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pSubPanelBase->pobjs->cb_mh_spd_mode2;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
-
-		pcb = pSubPanelBase->pobjs->cb_bh_r_mode0;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pSubPanelBase->pobjs->cb_bh_r_mode1;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pSubPanelBase->pobjs->cb_bh_r_mode2;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
-
-		//Lamp ウィンドウハンドルセット
-		pSubPanelBase->pobjs->lmp_mh_spd_mode->set_wnd(hWnd);
-		pSubPanelBase->pobjs->lmp_bh_r_mode->set_wnd(hWnd);
-
-		//表示更新用タイマー
-		SetTimer(hWnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
-		break;
-	}
 	case WM_COMMAND: {
 		int wmId = LOWORD(wParam);
 		// 選択されたメニューの解析:
@@ -1042,195 +1135,94 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		case ID_SUB_PNL_SET_OBJ_RDO_BHR_2: {
 		}break;
 		
-
-		case ID_MAIN_PNL_OBJ_CB_ESTOP: {
-			if (pPanelBase->pobjs->cb_estop->get() == BST_CHECKED) {
-				pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
-				pPanelBase->pobjs->lmp_estop->set(L_OFF);
-			}
-			else {
-				pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
-				pPanelBase->pobjs->lmp_estop->set(L_ON);
-			}
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_SYUKAN_ON: {
-			pPanelBase->pobjs->pb_syukan_on->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_SYUKAN_OFF: {
-			pPanelBase->pobjs->pb_syukan_off->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_REMOTE: {
-			pPanelBase->pobjs->pb_remote->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_PAD_MODE: {
-
-			pPanelBase->pobjs->pb_pad_mode->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC: {
-			pPanelBase->pobjs->pb_assist_func->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND: {
-			pPanelBase->pobjs->pb_ote_type_wnd->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND: {
-			pPanelBase->pobjs->pb_crane_sel_wnd->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_PB_AUTH: {
-			pPanelBase->pobjs->pb_auth->update(true);
-		}break;
-		case ID_MAIN_PNL_OBJ_CB_PNL_NOTCH: {
-			pPanelBase->pobjs->cb_pnl_notch->update();
-		}break;
-
-		case ID_MAIN_PNL_OBJ_RDO_DISP_MODE1:
-		case ID_MAIN_PNL_OBJ_RDO_DISP_MODE2:
-		{
-			pPanelBase->pobjs->rdo_disp_mode->update(true);
-		}break;
-
-
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		}
 	}break;
 
-	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
-		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
-	}
-	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
-		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
-		SetBkMode((HDC)wParam, TRANSPARENT);
-	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
-
-	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
-		pSubPanelBase->pobjs->pgraphic->FillRectangle(pSubPanelBase->pobjs->pBrushBk, pSubPanelBase->pobjs->rc_panel);
-
-	}return 1; // 背景を処理したことを示す
 
 	case WM_TIMER: {
 		//# LAMP(CTRL)更新
 		//e-stop : PLCの認識がESTOPの時枠有表示
-		INT16 code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::estop].code;//制御PC受信バッファの指令内容
-		int val = pPanelBase->pobjs->cb_estop->get();									//CBの状態
-		//CB状態で制御PCのON表示があれば表示画像を切替
-		if (val == BST_CHECKED) { if (code) val = 3; }
-		else { if (code)val = 2; }
-		pPanelBase->pobjs->lmp_estop->set(val);
-		pPanelBase->pobjs->lmp_estop->update();
+	//	INT16 code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::estop].code;//制御PC受信バッファの指令内容
+	//	int val = pPanelBase->psubobjs->cb_estop->get();									//CBの状態
+	//	//CB状態で制御PCのON表示があれば表示画像を切替
+	//	if (val == BST_CHECKED) { if (code) val = 3; }
+	//	else { if (code)val = 2; }
+	//	pPanelBase->pobjs->lmp_estop->set(val);
+	//	pPanelBase->pobjs->lmp_estop->update();
 
-		//主幹
-		code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code;
-		pPanelBase->pobjs->lmp_syukan_on->set(code); pPanelBase->pobjs->lmp_syukan_on->update();
-		code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code;
-		pPanelBase->pobjs->lmp_syukan_off->set(code); pPanelBase->pobjs->lmp_syukan_off->update();
+	//	//主幹
+	//	code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code;
+	//	pPanelBase->pobjs->lmp_syukan_on->set(code); pPanelBase->pobjs->lmp_syukan_on->update();
+	//	code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code;
+	//	pPanelBase->pobjs->lmp_syukan_off->set(code); pPanelBase->pobjs->lmp_syukan_off->update();
 
-		//遠隔
-		pPanelBase->pobjs->lmp_remote->set(pOteCsInf->st_body.remote);
-		pPanelBase->pobjs->lmp_remote->update();
+	//	//遠隔
+	//	pPanelBase->pobjs->lmp_remote->set(pOteCsInf->st_body.remote);
+	//	pPanelBase->pobjs->lmp_remote->update();
 
-		pPanelBase->pobjs->lmp_pad_mode->set(pOteCsInf->st_body.game_pad_mode);
-		pPanelBase->pobjs->lmp_pad_mode->update();
+	//	pPanelBase->pobjs->lmp_pad_mode->set(pOteCsInf->st_body.game_pad_mode);
+	//	pPanelBase->pobjs->lmp_pad_mode->update();
 
-		//故障リセット
-	//	pPanelBase->pobjs->lmp_freset->set(pOteCsInf->st_body.ctrl_ope[OTE_PNL_CTRLS::fault_reset]);
-		if (st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset])
-			pPanelBase->pobjs->lmp_freset->set(L_ON);
-		else
-			pPanelBase->pobjs->lmp_freset->set(L_OFF);
+	//	//故障リセット
+	////	pPanelBase->pobjs->lmp_freset->set(pOteCsInf->st_body.ctrl_ope[OTE_PNL_CTRLS::fault_reset]);
+	//	if (st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset])
+	//		pPanelBase->pobjs->lmp_freset->set(L_ON);
+	//	else
+	//		pPanelBase->pobjs->lmp_freset->set(L_OFF);
 
-		pPanelBase->pobjs->lmp_freset->update();
+	//	pPanelBase->pobjs->lmp_freset->update();
 
 
-		//# SwitchImg更新(ランプ）
-		//CCとの通信状態表示(受信）
-		if (pOteCCIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
-			pPanelBase->pobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
-		else pPanelBase->pobjs->lmp_pcr->set(pOteCCIf->cc_com_stat_r);
-		pPanelBase->pobjs->lmp_pcr->update();
-		//CCとの通信状態表示(送信）
-		if (pOteCCIf->cc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
-			pPanelBase->pobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
-		else pPanelBase->pobjs->lmp_pcs->set(pOteCCIf->cc_com_stat_s);
-		pPanelBase->pobjs->lmp_pcs->update();
-		//PLCとの通信状態表示(受信）
-		pPanelBase->pobjs->lmp_plcr->update();
-		//PLCとの通信状態表示(送信）
-		pPanelBase->pobjs->lmp_plcs->update();
+	//	//# SwitchImg更新(ランプ）
+	//	//CCとの通信状態表示(受信）
+	//	if (pOteCCIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
+	//		pPanelBase->pobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
+	//	else pPanelBase->pobjs->lmp_pcr->set(pOteCCIf->cc_com_stat_r);
+	//	pPanelBase->pobjs->lmp_pcr->update();
+	//	//CCとの通信状態表示(送信）
+	//	if (pOteCCIf->cc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
+	//		pPanelBase->pobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
+	//	else pPanelBase->pobjs->lmp_pcs->set(pOteCCIf->cc_com_stat_s);
+	//	pPanelBase->pobjs->lmp_pcs->update();
+	//	//PLCとの通信状態表示(受信）
+	//	pPanelBase->pobjs->lmp_plcr->update();
+	//	//PLCとの通信状態表示(送信）
+	//	pPanelBase->pobjs->lmp_plcs->update();
 
-		//PB状態更新(オフディレイカウントダウン)
-		pPanelBase->pobjs->pb_syukan_on->update(false);
-		pPanelBase->pobjs->pb_syukan_off->update(false);
-		pPanelBase->pobjs->pb_remote->update(false);
-		pPanelBase->pobjs->pb_auth->update(false);
-		pPanelBase->pobjs->pb_assist_func->update(false);
-		pPanelBase->pobjs->pb_crane_sel_wnd->update(false);
-		pPanelBase->pobjs->pb_ote_type_wnd->update(false);
-		pPanelBase->pobjs->pb_pad_mode->update(false);
-		pPanelBase->pobjs->pb_freset->update(false);
+	//	//PB状態更新(オフディレイカウントダウン)
+	//	pPanelBase->pobjs->pb_syukan_on->update(false);
+	//	pPanelBase->pobjs->pb_syukan_off->update(false);
+	//	pPanelBase->pobjs->pb_remote->update(false);
+	//	pPanelBase->pobjs->pb_auth->update(false);
+	//	pPanelBase->pobjs->pb_assist_func->update(false);
+	//	pPanelBase->pobjs->pb_crane_sel_wnd->update(false);
+	//	pPanelBase->pobjs->pb_ote_type_wnd->update(false);
+	//	pPanelBase->pobjs->pb_pad_mode->update(false);
+	//	pPanelBase->pobjs->pb_freset->update(false);
 
-		//String更新
-		if (is_initial_draw_mon1) {
-			pPanelBase->pobjs->str_message->update();
-			pPanelBase->pobjs->str_pc_com_stat->update();
-			pPanelBase->pobjs->str_plc_com_stat->update();
-			//	is_initial_draw_mon1 = false;
-		}
+	//	//String更新
+	//	if (is_initial_draw_mon1) {
+	//		pPanelBase->pobjs->str_message->update();
+	//		pPanelBase->pobjs->str_pc_com_stat->update();
+	//		pPanelBase->pobjs->str_plc_com_stat->update();
+	//		//	is_initial_draw_mon1 = false;
+	//	}
 
-		//GamePadチェック
-		if (pOteCsInf->gpad_in.syukan_on) pPanelBase->pobjs->pb_syukan_on->update(true);
-		if (pOteCsInf->gpad_in.syukan_off)pPanelBase->pobjs->pb_syukan_off->update(true);
-		if (pOteCsInf->gpad_in.remote)pPanelBase->pobjs->pb_remote->update(true);
-		if (pOteCsInf->gpad_in.estop)pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
-		if (pOteCsInf->gpad_in.f_reset) {//ゲームパッドの非常停止クリアはResetPBで実行
-			pPanelBase->pobjs->pb_freset->update(true);
-			pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
-		}
+	//	//GamePadチェック
+	//	if (pOteCsInf->gpad_in.syukan_on) pPanelBase->pobjs->pb_syukan_on->update(true);
+	//	if (pOteCsInf->gpad_in.syukan_off)pPanelBase->pobjs->pb_syukan_off->update(true);
+	//	if (pOteCsInf->gpad_in.remote)pPanelBase->pobjs->pb_remote->update(true);
+	//	if (pOteCsInf->gpad_in.estop)pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
+	//	if (pOteCsInf->gpad_in.f_reset) {//ゲームパッドの非常停止クリアはResetPBで実行
+	//		pPanelBase->pobjs->pb_freset->update(true);
+	//		pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
+	//	}
 
 	}break;
 
-	case WM_PAINT: {
-		PAINTSTRUCT ps;
-		HDC hdc = BeginPaint(hWnd, &ps);
 
-		//PatBlt(hdc, 0, 0, OTE_SCAD_MON1_WND_W, OTE_SCAD_MON1_WND_H, RGB(64, 64, 64));
-
-		EndPaint(hWnd, &ps);
-	}break;
-	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
-		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
-		Image* image;
-		Graphics gra(pDIS->hDC);
-		Font* pfont = NULL;
-		CSubPanelObj* pos = pSubPanelBase->pobjs;
-		CLampCtrl* plamp = NULL;
-
-		if (pDIS->CtlID == pos->cb_bh_r_mode0->id) {
-			plamp = pos->lmp_mh_spd_mode;	pfont = NULL;
-		}
-		else if (pDIS->CtlID == pos->pb_remote->id) {//リモートランプ
-			plamp = pos->lmp_remote; pfont = plamp->pFont;
-		}
-		else if (pDIS->CtlID == pos->pb_syukan_on->id) {//主幹入ランプ
-			plamp = pos->lmp_syukan_on; pfont = plamp->pFont;
-		}
-		else if (pDIS->CtlID == pos->pb_syukan_off->id) {//主幹切ランプ
-			plamp = pos->lmp_syukan_off; pfont = plamp->pFont;
-		}
-		else if (pDIS->CtlID == pos->pb_pad_mode->id) {//PADランプ
-			plamp = pos->lmp_pad_mode; pfont = plamp->pFont;
-		}
-		else if (pDIS->CtlID == pos->pb_freset->id) {//FAULTランプ
-			plamp = pos->lmp_freset; pfont = plamp->pFont;
-		}
-		else return false;
-
-		image = plamp->pimg[plamp->get()];
-		gra.FillRectangle(pSubPanelBase->pobjs->pBrushBk, plamp->rc);											//背景色セット
-		if (image) gra.DrawImage(image, plamp->rc);															//イメージ描画
-		if (pfont != NULL)
-			gra.DrawString(plamp->txt.c_str(), -1, pfont, plamp->frc, plamp->pStrFormat, plamp->pTxtBrush);	//テキスト描画
-
-	}return true;
 
 	case WM_DESTROY: {
 		KillTimer(hWnd, ID_SUB_PANEL_TIMER);

@@ -56,76 +56,85 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 
 #define N_SUB_PNL_OBJ		64
 static ST_OBJ_PROPERTY sub_set_props[N_MAIN_PNL_OBJ] = {
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(20,50)	,Size(40,40)	,L"7"				},
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(120,20)	,Size(40,40)	,L"14"				},
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(220,50)	,Size(40,40)	,L"21"				},
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD	,Point(20,50)	,Size(40,40)	,L"主巻モード"		},
-	{ID_SUB_PNL_SET_OBJ_LMP_MHSPD	,Point(30,50)	,Size(100,100)	,L"主巻モード"		},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(85,110)	,Size(30,30)	,L"7"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(155,80)	,Size(30,30)	,L"14"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(225,110)	,Size(30,30)	,L"21"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD	,Point(20,110)	,Size(30,30)	,L"主巻モード"	},
+	{ID_SUB_PNL_SET_OBJ_LMP_MHSPD	,Point(105,120)	,Size(80,80)	,L"主巻モード"	},
 
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_0	,Point(20,150)	,Size(100,100)	,L"57"				},
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(20,120)	,Size(100,100)	,L"62"				},
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(20,150)	,Size(100,30)	,L"ﾚｽﾄ"				},
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,150)	,Size(100,40)	,L"引込モード"		},
-	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(30,150)	,Size(200,30)	,L"引込モード"		},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_0	,Point(85,280)	,Size(30,30)	,L"57"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(155,250)	,Size(30,30)	,L"62"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(225,280)	,Size(35,30)	,L"ﾚｽﾄ"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,280)	,Size(30,30)	,L"引込モード"	},
+	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(105,290)	,Size(80,80)	,L"引込モード"	},
 };
-
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
 {
 	hWnd = _hwnd;
+	setup_graphics(hWnd);
+}
+CPanelObjBase::~CPanelObjBase() {
+	clear_graghics();
+}
+
+HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
 
 	RECT rect;
-	GetClientRect(hWnd, &rect);
+	GetClientRect(hwnd, &rect);
 	rc_panel.X = rect.left; rc_panel.Y = rect.top; rc_panel.Width = rect.right - rect.left; rc_panel.Height = rect.bottom - rect.top;
-	hdc = GetDC(hWnd);
+	hdc = GetDC(hwnd);
 
-	hBmp_mem = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+	hBmp_img = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
 	hBmp_bk = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
 	hBmp_inf = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	if (hBmp_mem == NULL || hBmp_bk == NULL || hBmp_inf == NULL) {
-		hr = E_FAIL;
-		return;
+	if (hBmp_img == NULL || hBmp_bk == NULL || hBmp_inf == NULL) {
+	
+		return E_FAIL;
 	}
 
-	hdc_mem = CreateCompatibleDC(hdc);
+	hdc_img = CreateCompatibleDC(hdc);
 	hdc_bk = CreateCompatibleDC(hdc);
 	hdc_inf = CreateCompatibleDC(hdc);
-	if (hdc_mem == NULL || hdc_bk == NULL || hdc_inf == NULL) {
-		hr = E_FAIL;
-		return;
+	if (hdc_img == NULL || hdc_bk == NULL || hdc_inf == NULL) {
+		return E_FAIL;
+	
 	}
-	SelectObject(hdc_mem, hBmp_mem);
+	SelectObject(hdc_img, hBmp_img);
 	SelectObject(hdc_bk, hBmp_bk);
 	SelectObject(hdc_inf, hBmp_inf);
 
-	pgraphic = new Graphics(hdc);
-	pgraphic_mem = new Graphics(hdc_mem);
-	pgraphic_bk = new Graphics(hdc_bk);
-	pgraphic_inf = new Graphics(hdc_inf);
-	if (pgraphic_mem == NULL || pgraphic_bk == NULL || pgraphic_inf == NULL) {
-		hr = E_FAIL;
-		return;
+	pgraphic = new Gdiplus::Graphics(hdc);
+	pgraphic_img = new Gdiplus::Graphics(hdc_img);
+	pgraphic_bk = new Gdiplus::Graphics(hdc_bk);
+	pgraphic_inf = new Gdiplus::Graphics(hdc_inf);
+	if (pgraphic_img == NULL || pgraphic_bk == NULL || pgraphic_inf == NULL) {
+		return E_FAIL;
+
 	}
-	pgraphic_mem->SetSmoothingMode(SmoothingModeAntiAlias);
+	pgraphic_img->SetSmoothingMode(SmoothingModeAntiAlias);
 	pgraphic_bk->SetSmoothingMode(SmoothingModeAntiAlias);
 	pgraphic_inf->SetSmoothingMode(SmoothingModeAntiAlias);
 
 	pBrushBk = drawing_items.pbrush[ID_PANEL_COLOR_DGRAY];
 
+	return S_OK;
 }
-CPanelObjBase::~CPanelObjBase() {
+void CPanelObjBase::clear_graghics() {
 	delete pgraphic;
-	delete pgraphic_mem;
+	delete pgraphic_img;
 	delete pgraphic_bk;
 	delete pgraphic_inf;
-	DeleteDC(hdc_mem);
+	DeleteDC(hdc_img);
 	DeleteDC(hdc_bk);
 	DeleteDC(hdc_inf);
-	DeleteObject(hBmp_mem);
+	DeleteObject(hBmp_img);
 	DeleteObject(hBmp_bk);
 	DeleteObject(hBmp_inf);
 	ReleaseDC(hWnd, hdc);
+	return;
 }
+
 
 HRESULT CMainPanelObj::setup_obj() { 
 	
@@ -258,7 +267,6 @@ void CMainPanelObj::delete_obj() {
 	delete pb_crane_sel_wnd;
 
 }
-
 HRESULT CSubPanelObj::setup_obj() {
 
 	int i = 0;
