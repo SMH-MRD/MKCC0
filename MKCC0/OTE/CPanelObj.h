@@ -74,8 +74,9 @@ public:
 	virtual ~CPanelObjBase(); 
 
 	HRESULT hr = S_OK;
+	int panel_code;	//パネルコード
 
-	HWND hWnd;				//ウィンドウハンドル
+	HWND hPnlWnd;			//パネルのウィンドウハンドル
 	Rect rc_panel;			//パネルの表示位置
 
 	HBITMAP hBmp_img;		//イメージ素材用ビットマップ
@@ -94,6 +95,7 @@ public:
 
 	SolidBrush* pBrushBk;	//背景塗りつぶし用ブラシ
 
+	int set_panel_code(int code) { panel_code = code; return panel_code; };
 	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
 	virtual HRESULT setup_graphics(HWND hwnd);
 	virtual void clear_graghics();
@@ -110,6 +112,7 @@ private:
 public:
 	CMainPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
 		crane_id = _crane_id;
+		set_panel_code(ID_MAIN_PNL_OBJ_BASE);
 		setup_obj();
 	}
 	virtual ~CMainPanelObj() {
@@ -193,14 +196,15 @@ public:
 	CCbCtrl*	cb_mh_spd_mode1;	//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_mh_spd_mode2;	//主巻速度モード選択ラジオボタン
 	CRadioCtrl* rdo_mh_spd_mode;	//主巻速度モード選択ラジオボタン
-	CLampCtrl*	lmp_mh_spd_mode;		//緊急停止ランプ
+	CSwitchImg*	lmp_mh_spd_mode;		//緊急停止ランプ
 
 	CCbCtrl*	cb_bh_r_mode0;		//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode1;		//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode2;		//主巻速度モード選択ラジオボタン
 	CRadioCtrl* rdo_bh_r_mode;		//主巻速度モード選択ラジオボタン
-	CLampCtrl*	lmp_bh_r_mode;		//緊急停止ランプ
+	CSwitchImg*	lmp_bh_r_mode;		//緊急停止ランプ
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();
+	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };

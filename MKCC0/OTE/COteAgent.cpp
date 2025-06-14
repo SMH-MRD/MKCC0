@@ -257,6 +257,8 @@ int COteAgent::parse() {
 	pctrl[OTE_PNL_CTRLS::remote]		= pOteUI->ctrl_stat[OTE_PNL_CTRLS::remote];
 	pctrl[OTE_PNL_CTRLS::fault_reset]	= pOteUI->ctrl_stat[OTE_PNL_CTRLS::fault_reset];
 
+	pctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pOteUI->ctrl_stat[OTE_PNL_CTRLS::mh_spd_mode];
+	pctrl[OTE_PNL_CTRLS::bh_r_mode]		= pOteUI->ctrl_stat[OTE_PNL_CTRLS::bh_r_mode];
 
 	pctrl[OTE_PNL_CTRLS::notch_mh]		= pOteCsInf->gpad_in.pad_mh;
 	pctrl[OTE_PNL_CTRLS::notch_bh]		= pOteCsInf->gpad_in.pad_bh;
@@ -754,7 +756,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 							<< L"@ŽåŠ²“ü:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_on]
 							<< L"@ŽåŠ²Ø:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_off]
 							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote]
-							<< L"@FRESET:" << pb0->ctrl_ope[OTE_PNL_CTRLS::fault_reset];
+							<< L"@FRESET:" << pb0->ctrl_ope[OTE_PNL_CTRLS::fault_reset]
+							<< L"@MH_SPD:" << pb0->ctrl_ope[OTE_PNL_CTRLS::mh_spd_mode]
+							<< L"@BH_MODE:" << pb0->ctrl_ope[OTE_PNL_CTRLS::bh_r_mode]
+							;
 					}
 					else if (st_mon2.ipage_uni == 1) {
 

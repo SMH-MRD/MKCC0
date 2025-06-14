@@ -76,6 +76,15 @@ using namespace Gdiplus;
 #define FUNC_PAUSE              2
 #define FUNC_RESTART            3
 
+#define CODE_MODE0				0   //モード0
+#define CODE_MODE1				1   //モード1
+#define CODE_MODE2				2   //モード2
+#define CODE_MODE3				3   //モード3
+#define CODE_MODE4				4   //モード4
+#define CODE_MODE5				5   //モード5
+#define CODE_MODE6				6   //モード6
+#define CODE_MODE7				7   //モード7
+
 #pragma endregion ステータスコード
 
 #pragma region TYPE

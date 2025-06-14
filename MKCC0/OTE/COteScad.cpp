@@ -157,6 +157,9 @@ void COteScad::set_panel_io() {
 			int a = 0;
 		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pmainobjs->pb_pad_mode->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pmainobjs->pb_freset->get();
+
+		st_work.ctrl_stat[OTE_PNL_CTRLS::mh_spd_mode] = pPanelBase->psubobjs->rdo_mh_spd_mode->get(); //タスクのFunction ID
+		st_work.ctrl_stat[OTE_PNL_CTRLS::bh_r_mode] = pPanelBase->psubobjs->rdo_bh_r_mode->get(); //タスクのFunction ID
 	}
 	return;
 }
@@ -732,20 +735,20 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		);
 
 		
-		SetLayeredWindowAttributes(pMainWnd->hWnd, 0, 200, LWA_ALPHA);
+		SetLayeredWindowAttributes(pMainWnd->hPnlWnd, 0, 200, LWA_ALPHA);
 		
 		//show_monitor_wnd(id);
 
-		ShowWindow(pMainWnd->hWnd, SW_SHOW);
-		UpdateWindow(pMainWnd->hWnd);
+		ShowWindow(pMainWnd->hPnlWnd, SW_SHOW);
+		UpdateWindow(pMainWnd->hPnlWnd);
 		st_mon1.is_monitor_active = true;
 
 		wos.str(L"");
-		if (pMainWnd->hWnd != NULL) wos << L"Succeed CRANE ID:"<< pPanelBase->get_crane_id() << L" Open";
+		if (pMainWnd->hPnlWnd != NULL) wos << L"Succeed CRANE ID:"<< pPanelBase->get_crane_id() << L" Open";
 		else                          wos << L"!! Failed  CRANE ID: << pPanelBase->get_crane_id()";
 		msg2listview(wos.str());
 
-		return pMainWnd->hWnd;
+		return pMainWnd->hPnlWnd;
 #else
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;

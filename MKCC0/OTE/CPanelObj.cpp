@@ -60,19 +60,19 @@ static ST_OBJ_PROPERTY sub_set_props[N_MAIN_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(155,80)	,Size(30,30)	,L"14"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(225,110)	,Size(30,30)	,L"21"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD	,Point(20,110)	,Size(30,30)	,L"主巻モード"	},
-	{ID_SUB_PNL_SET_OBJ_LMP_MHSPD	,Point(105,120)	,Size(80,80)	,L"主巻モード"	},
+	{ID_SUB_PNL_SET_OBJ_LMP_MHSPD	,Point(130,120)	,Size(80,80)	,L"主巻モード"	},
 
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR_0	,Point(85,280)	,Size(30,30)	,L"57"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(155,250)	,Size(30,30)	,L"62"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(225,280)	,Size(35,30)	,L"ﾚｽﾄ"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,280)	,Size(30,30)	,L"引込モード"	},
-	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(105,290)	,Size(80,80)	,L"引込モード"	},
+	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(130,290)	,Size(80,80)	,L"引込モード"	},
 };
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
 {
-	hWnd = _hwnd;
-	setup_graphics(hWnd);
+	hPnlWnd = _hwnd;
+	setup_graphics(hPnlWnd);
 }
 CPanelObjBase::~CPanelObjBase() {
 	clear_graghics();
@@ -131,10 +131,9 @@ void CPanelObjBase::clear_graghics() {
 	DeleteObject(hBmp_img);
 	DeleteObject(hBmp_bk);
 	DeleteObject(hBmp_inf);
-	ReleaseDC(hWnd, hdc);
+	ReleaseDC(hPnlWnd, hdc);
 	return;
 }
-
 
 HRESULT CMainPanelObj::setup_obj() { 
 	
@@ -281,16 +280,15 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; cb_mh_spd_mode2 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	CCbCtrl* pcb_opt[8] = { cb_mh_spd_mode0,cb_mh_spd_mode1,cb_mh_spd_mode2, };
 	i++; rdo_mh_spd_mode = new CRadioCtrl(3, pcb_opt);
-	i++; lmp_mh_spd_mode = new CLampCtrl(ID_SUB_PNL_SET_OBJ_LMP_MHSPD, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_mh_spd_mode, 3, 3);
-	lmp_mh_spd_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+	i++; lmp_mh_spd_mode = new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_MHSPD, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_mh_spd_mode, 3, 3, pgraphic);
 
 	i++; cb_bh_r_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_bh_r_mode1 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_bh_r_mode2 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	CCbCtrl* pcb_opt2[8] = { cb_mh_spd_mode0,cb_mh_spd_mode1,cb_mh_spd_mode2, };
+	CCbCtrl* pcb_opt2[8] = { cb_bh_r_mode0,cb_bh_r_mode1,cb_bh_r_mode2, };
 	i++; rdo_bh_r_mode = new CRadioCtrl(3, pcb_opt2);
-	i++; lmp_bh_r_mode = new CLampCtrl(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 3, 3);
-	lmp_bh_r_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_20], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
+	i++; lmp_bh_r_mode = new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 3, 3, pgraphic);
+
 		
 	return S_OK;
 }
@@ -305,4 +303,21 @@ void CSubPanelObj::delete_obj() {
 	delete cb_bh_r_mode2;
 	delete rdo_bh_r_mode;
 	delete lmp_bh_r_mode;
+}
+
+void CSubPanelObj::refresh_obj_graphics() {
+	cb_mh_spd_mode0->refresh_graphics(pgraphic);
+	cb_mh_spd_mode1->refresh_graphics(pgraphic);
+	cb_mh_spd_mode2->refresh_graphics(pgraphic);
+
+	rdo_mh_spd_mode->refresh_graphics(pgraphic);
+	lmp_mh_spd_mode->refresh_graphics(pgraphic);
+
+	cb_bh_r_mode0->refresh_graphics(pgraphic);
+	cb_bh_r_mode1->refresh_graphics(pgraphic);
+	cb_bh_r_mode2->refresh_graphics(pgraphic);
+	rdo_bh_r_mode->refresh_graphics(pgraphic);
+	lmp_bh_r_mode->refresh_graphics(pgraphic);
+
+	return;
 }

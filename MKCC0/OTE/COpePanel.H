@@ -19,11 +19,12 @@ public:
 	static LPST_DRAWING_BASE pdrawing_items;
 	static LPST_OTE_UI puiif;
 	static HRESULT hr_init_setting;
-	
+	//メインウィンドウ生成時にWM＿CREATEでインスタンス生成
 	CPanelBase(int crane_id, int panel_id,HWND hwnd_parent) {
 		_panel_id=panel_id;
 		_crane_id = crane_id;
 		pmainobjs = new CMainPanelObj(hwnd_parent,crane_id);
+		//親ウィンドウの設定はメインパネルからインスタンス生成されるときに再設定が必要
 		psubobjs = new CSubPanelObj(hwnd_parent, crane_id);
 	}
 	virtual ~CPanelBase(void) {

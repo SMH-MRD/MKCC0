@@ -24,6 +24,8 @@
 
 #define N_VAL_RADIO_MAX			10		//RADIO PB最大数
 
+using namespace Gdiplus;
+
 template <class T> class CPnlParts {
 public:
 	CPnlParts() {}
@@ -42,11 +44,18 @@ public:
 	Rect rc;					//表示領域int
 	RectF frc;					//表示領域float
 
+	Graphics* pgraphics;
+
 public:
 
 	HRESULT set_base(Point* ppt, Size* psz, LPCWSTR ptext) {
 		pt = *ppt; sz = *psz; std::wstring _txt = ptext; txt = _txt; return S_OK;
 	};
+
+	void refresh_graphics(Graphics* _pgraphics) { //グラフィックスのポインタを更新
+		pgraphics = _pgraphics;
+		return;
+	}
 
 
 	virtual T get() { return value; }
@@ -77,7 +86,7 @@ public:
 	}
 	virtual ~CStaticCtrl() {}
 	int  update(LPCWSTR ptext) {				//更新 
-		return SetWindowText(hWnd,ptext); //戻り値はカウント値
+		return SetWindowText(hWnd,ptext);		//戻り値はテキストカウント値
 	}
 };
 
@@ -88,7 +97,7 @@ public:
 class CPbCtrl : public CPnlParts<INT16> {	//ボタン
 
 public:
-	CPbCtrl( INT32 _id, Point* ppt, Size* psz, LPCWSTR ptext,Graphics* _pgraphics,Pen* ppenON,Pen* ppenOFF) { 
+	CPbCtrl( INT32 _id, Point* ppt, Size* psz, LPCWSTR ptext, Gdiplus::Graphics* _pgraphics,Pen* ppenON,Pen* ppenOFF) {
 		set_id(_id) ;
 		set_base(ppt, psz, ptext);
 		rc = { pt.X,pt.Y,sz.Width,sz.Height };
@@ -100,7 +109,6 @@ public:
 
 	Pen* pPenOn, *pPenOff;
 	INT16 status = 0;
-	Graphics* pgraphics;
 
 	INT16 count_off_set_val = VAL_PB_OFF_DELAY_COUNT;	//オフディレイカウント値
 	INT16 update(bool is_trigger) {				//更新 
@@ -165,7 +173,6 @@ public:
 
 	Pen* pPenOn, * pPenOff;
 	INT16 status = 0;
-	Graphics* pgraphics;
 	BOOL is_owner_draw = false;
 
 	//コントロールの状態でget,set
@@ -259,12 +266,13 @@ public:
 	}
 
 	INT16 check() { 
+		value = -1;	//初期値は-1
 		for (int i = 0; i < n_radio; i++) {
 			if (pradio[i]->get() == BST_CHECKED) {
 				value = i;
 			}
 		}
-		return -1;
+		return value;
 	}
 
 	virtual HRESULT set(INT16 val) {
@@ -292,7 +300,7 @@ class CSwitchImg : public CPnlParts<INT16> {
 public:
 	CSwitchImg(
 		INT32 _id, Point* ppt, Size* psz, LPWSTR ptext,
-		Image** _ppimg, INT32 _n_switch,INT32 _fcount,Graphics* _pgraphic
+		Image** _ppimg, INT32 _n_switch,INT32 _fcount,Gdiplus::Graphics* _pgraphic
 	)
 	{
 		set_id(_id);
@@ -309,7 +317,8 @@ public:
 
 		rect = { pt.X,pt.Y,pt.X + sz.Width,pt.Y + sz.Height };
 
-		pgraphic = _pgraphic;
+		pgraphics = _pgraphic;
+
 		value = ID_PANEL_LAMP_OFF;
 	}
 	virtual ~CSwitchImg() {
@@ -332,7 +341,7 @@ public:
 	Rect rc;
 	RECT rect;
 	RectF frc;
-	Graphics* pgraphic;
+	
 
 	Image* pimg_disp;
 
@@ -359,8 +368,10 @@ public:
 	HRESULT update() {
 		INT16 id = 0;
 		if (value != ID_PANEL_LAMP_FLICK) {
+			if (value < 0) return S_FALSE;			//-1は無効値
+			if (value >= n_switch) return S_FALSE;	//n_switch以上は無効値
 			id_disp = value;
-			pgraphic->DrawImage(pimg[id_disp], rc);
+			pgraphics->DrawImage(pimg[id_disp], rc);
 			InvalidateRect(hWnd, &rect, FALSE);
 			return S_OK;
 		}
@@ -368,7 +379,7 @@ public:
 			count++; if (count > fcount) {
 				count = 0;
 				id_disp++; if (id_disp >= n_flick) id_disp = 0;
-				pgraphic->DrawImage(pimg[list_flick_id[id_disp]], rc);
+				pgraphics->DrawImage(pimg[list_flick_id[id_disp]], rc);
 				InvalidateRect(hWnd, &rect, FALSE);
 			}
 			return S_OK;
@@ -558,7 +569,7 @@ public:
 	{
 		set_id(_id);
 		set_base(ppt, psz, ptext);
-		pgraphic = _pgraphic;
+		pgraphics = _pgraphic;
 		pStrFormat = _pStrFormat; pTxtBrush = _pTxtBrush; pFont = _pFont; 
 		Rect _rc(pt.X, pt.Y, sz.Width, sz.Height); rc = _rc;
 		RectF _frc((REAL)pt.X, (REAL)pt.Y, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
@@ -566,7 +577,6 @@ public:
 	}
 	virtual ~CStringGdi() {}
 
-	Graphics* pgraphic;
 	StringFormat* pStrFormat;
 	SolidBrush* pTxtBrush;	//テキストブラシ
 	SolidBrush* pBkBrush;	//背景ブラシ
@@ -582,34 +592,34 @@ public:
 	HRESULT update(Graphics* _pgraphic, const LPCWSTR pstr) {
 		if ((_pgraphic == NULL) || (pstr == NULL))return S_FALSE;
 		value = pstr;
-		pgraphic = _pgraphic;
-		pgraphic->DrawString(value.c_str(), -1, pFont, frc, pStrFormat, pTxtBrush);
+		pgraphics = _pgraphic;
+		pgraphics->DrawString(value.c_str(), -1, pFont, frc, pStrFormat, pTxtBrush);
 		return S_OK;
 	}
 
 	HRESULT update(Graphics* _pgraphic) {//描画先DC変更
-		update(pgraphic, value.c_str());
+		update(pgraphics, value.c_str());
 		return S_OK;
 	}
 
 	HRESULT update() {//再描画
-		update(pgraphic, value.c_str());
+		update(pgraphics, value.c_str());
 		return S_OK;
 	}
 
 	HRESULT update(const LPCWSTR pstr) {//テキスト変更
-		update(pgraphic, pstr);
+		update(pgraphics, pstr);
 		return S_OK;
 	}
 
 	HRESULT update(SolidBrush* pbr_bk) {//背景のみ変更
-		pgraphic->FillRectangle(pbr_bk, rc);
-		update(pgraphic, value.c_str());
+		pgraphics->FillRectangle(pbr_bk, rc);
+		update(pgraphics, value.c_str());
 		return S_OK;
 	}
 
 	HRESULT update(const LPCWSTR pstr,SolidBrush* pbr_bk) {//テキストと背景変更
-		pgraphic->FillRectangle(pbr_bk, rc);
+		pgraphics->FillRectangle(pbr_bk, rc);
 		update(pstr);
 		return S_OK;
 	}

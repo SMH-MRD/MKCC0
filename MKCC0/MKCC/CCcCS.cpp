@@ -645,7 +645,12 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 							<< L"@ŽåŠ²“ü:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_on]
 							<< L"@ŽåŠ²Ø:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_off]
 							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote]
-							<< L"@notch mh:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_mh]
+							<< L"@FRESET:" << pb0->ctrl_ope[OTE_PNL_CTRLS::fault_reset]
+							<< L"@BYPASS:" << pb0->ctrl_ope[OTE_PNL_CTRLS::bypass]
+							<< L"@MH_MODE:" << pb0->ctrl_ope[OTE_PNL_CTRLS::mh_spd_mode]
+							<< L"@BH_MODE:" << pb0->ctrl_ope[OTE_PNL_CTRLS::bh_r_mode]
+
+							<< L"\n@notch mh:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_mh]
 							<< L" bh:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_bh]
 							<< L" sl:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_sl]
 							<< L" gt:" << pb0->ctrl_ope[OTE_PNL_CTRLS::notch_gt];

@@ -13,9 +13,6 @@
 #define ID_SUB_PANEL_TIMER_MS	  200
 
 class CSubPanelWindow {
-private:
-	LRESULT(CALLBACK* pSubWndProc)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = WndProc;
-
 
 public:
 	CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int wnd_code, CPanelBase* pPanelBase);
@@ -30,7 +27,7 @@ public:
 	static LPST_OTE_ENV_INF pOteEnvInf;
 
 	static CPanelBase* pPanelBase;
-	static HWND hWnd;//生成したパネルのウィンドウハンドル
+	static HWND hPnlWnd;//生成したパネルのウィンドウハンドル
 	static HWND hParentWnd;//親ウィンドウハンドル
 
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -61,7 +58,7 @@ private:
 	LRESULT(CALLBACK* pMainWndProc)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = WndProc;
 
 public:
-	static HWND hWnd;//生成したパネルのウィンドウハンドル
+	static HWND hPnlWnd;//生成したパネルのウィンドウハンドル
 	static HWND hParentWnd;//親ウィンドウハンドル
 
 	CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int wnd_code, CPanelBase** _ppPanelBase);

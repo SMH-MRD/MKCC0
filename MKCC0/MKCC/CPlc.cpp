@@ -251,7 +251,7 @@ UN_IF_VALUE CPlc::rval(ST_PLC_IO_DEF st_r_def) {
 		if (*st_r_def.pi16 & st_r_def.mask)	uval.i16 = L_ON;
 		else								uval.i16 = L_OFF;
 	}break;
-	case CODE_PLCIO_BIT_NC: {
+	case CODE_PLCIO_BIT_NC: {//Normal Close
 		if (*st_r_def.pi16 & st_r_def.mask)	uval.i16 = L_OFF;
 		else								uval.i16 = L_ON;
 	}break;

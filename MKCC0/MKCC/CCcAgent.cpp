@@ -209,6 +209,11 @@ int CAgent::parse() {//メイン処理
 	pCrane->pPlc->wval(pPlcWIf->syukan_off, pOteCtrl[OTE_PNL_CTRLS::syukan_off]);		//主幹OFF
 	pCrane->pPlc->wval(pPlcWIf->estop, pOteCtrl[OTE_PNL_CTRLS::estop]);					//非常停止
 	pCrane->pPlc->wval(pPlcWIf->fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
+
+	pCrane->pPlc->wval(pPlcWIf->mh_spd_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE,0));
+	pCrane->pPlc->wval(pPlcWIf->bh_mode_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE,0));
+
+
 	//Notch信号
 	pCrane->pPlc->wval(pPlcWIf->mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
 	pCrane->pPlc->wval(pPlcWIf->bh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));

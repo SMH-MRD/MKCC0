@@ -3,8 +3,6 @@
 //#include "pch.h"
 #include "framework.h"
 #include "COpePanel.h"
-
-
 using namespace Gdiplus;
 
 //###   GLOBAL  #################################################
