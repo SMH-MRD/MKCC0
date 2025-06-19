@@ -7,8 +7,8 @@
 #define MASK_BIT_SL             0x00000004
 #define MASK_BIT_GT             0x00000008
 #define MASK_BIT_AH             0x00000010
-#define MASK_BIT_PC_COM_ACTIVE  0x00008000
-#define MASK_BIT_PC_DBG_MODE    0x00004000
+#define MASK_BIT_PC_CTRL_ACTIVE  0x00008000
+#define MASK_BIT_PC_SIM_MODE    0x00004000
 
 
 /*** PLC IFバッファ構造体定義 ***/
@@ -169,6 +169,37 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF ah_ari_jc;		//補巻有JC
 	ST_PLC_IO_DEF sl_fix_pl2;		//旋回固定PL
 	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立
+	//X0C0
+	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
+	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
+	ST_PLC_IO_DEF bh_brk_fb;		//引込ブレーキアンサーバック
+	ST_PLC_IO_DEF gt_brk_fb;		//走行ブレーキアンサーバック
+
+	//インバータへの指令出力内容
+	ST_PLC_IO_DEF inv_fwd_mh;		//主巻インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_mh;		//主巻インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_bh;		//引込インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_bh;		//引込インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_sl;		//旋回インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_sl;		//旋回インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_gt;		//走行インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_gt;		//走行インバータ指令REV
+
+	ST_PLC_IO_DEF inv_vref_mh;		//主巻インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_bh;		//引込インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
+
+	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
+	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
+
+	//高速カウンタユニット
+	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_bh;
+	ST_PLC_IO_DEF hcounter_sl;
+	//アブソコーダ
+	ST_PLC_IO_DEF absocoder_mh;
+	
 
 }ST_PLC_IO_RIF, * LPST_PLC_IO_RIF;
 
@@ -210,6 +241,20 @@ typedef struct _ST_PLC_IO_WIF {
 	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
 	ST_PLC_IO_DEF sl_notch;
 	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
+
+	//高速カウンタユニット
+	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_bh;
+	ST_PLC_IO_DEF hcounter_sl;
+	//アブソコーダ
+	ST_PLC_IO_DEF absocoder_mh;
+
+	//INV出力
+	ST_PLC_IO_DEF vfb_mh;
+	ST_PLC_IO_DEF vfb_bh;
+	ST_PLC_IO_DEF vfb_sl;
+	ST_PLC_IO_DEF trqref_mh;
+	ST_PLC_IO_DEF trqref_bh;
 
 }ST_PLC_IO_WIF, * LPST_PLC_IO_WIF;
 

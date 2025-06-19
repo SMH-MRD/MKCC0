@@ -33,6 +33,7 @@ static LPST_CC_CS_INF		pCS_Inf		= NULL;
 static LPST_CC_PLC_IO		pPLC_IO		= NULL;
 static LPST_CC_AGENT_INF	pAgent_Inf	= NULL;
 static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
+static LPST_CC_SIM_INF		pSim_Inf	= NULL;
 
 static PINT16				pOteCtrl	= NULL;	//OTE操作入力信号ポインタ
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
@@ -69,6 +70,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pPLC_IO		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
+	pSim_Inf	= (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();;
 	
 	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
@@ -161,6 +163,26 @@ static UINT32	gpad_mode_last = L_OFF;
 /// </summary>
 /// <returns></returns>
 int CAgent::input() {
+	pPLC_IO->stat_mh.brk_fb = pCrane->pPlc->rval(pPlcRIf->mh_brk1_fb).i16;		//MHブレーキ状態
+	pPLC_IO->stat_bh.brk_fb = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;		//BHブレーキ状態
+	pPLC_IO->stat_gt.brk_fb = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;		//GTブレーキ状態
+	pPLC_IO->stat_sl.brk_fb = pCrane->pPlc->rval(pPlcRIf->sl_hydr_press_sw).i16;//SLブレーキ状態
+
+	pPLC_IO->stat_mh.hcount_fb;
+	pPLC_IO->stat_mh.absocoder_fb;
+
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16)		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;//MHインバータリファレンス方向
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16)	pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_REV;//MHインバータリファレンス方向
+	else													pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_STP;//MHインバータリファレンス方向
+
+	pPLC_IO->stat_mh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_mh).i16;	//MHインバータリファレンス速度
+	pPLC_IO->stat_bh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_bh).i16;	//BHインバータリファレンス速度
+	pPLC_IO->stat_sl.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_sl).i16;	//SLインバータリファレンス速度
+	pPLC_IO->stat_gt.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_gt).i16;	//GTインバータリファレンス速度
+
+	pPLC_IO->stat_mh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_mh).i16;	//MHインバータリファレンストルク
+	pPLC_IO->stat_bh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_bh).i16;	//BHインバータリファレンストルク
+
 	return S_OK;
 }
 
@@ -178,7 +200,6 @@ static INT16 plc_healthy = 0;
 int CAgent::parse() {//メイン処理
 	pc_healthy++;//PCヘルシーカウンタ更新
 
-
 	if (plc_healthy == pPLC_IO->buf_io_read[0]) {				//PLCヘルシー状態が変化していない場合
 		plc_healthy_chk_count--;								//PLCヘルシー状態が変化している⇒チェックカウントダウン
 		if (plc_healthy_chk_count > 0)plc_healthy_chk_count--;
@@ -192,7 +213,7 @@ int CAgent::parse() {//メイン処理
 	//PCコントロール信号セット
 
 //	INT16 mask = 0xc000;	//PLC通信有効、デバッグモード
-	INT16 mask = MASK_BIT_PC_COM_ACTIVE; mask |= MASK_BIT_PC_DBG_MODE;	//PLC通信有効、デバッグモード
+	INT16 mask = MASK_BIT_PC_CTRL_ACTIVE; mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
 	if (plc_healthy) {
 		pAgent_Inf->pc_ctrl_mode2plc |= mask;
 	}
@@ -219,7 +240,15 @@ int CAgent::parse() {//メイン処理
 	pCrane->pPlc->wval(pPlcWIf->bh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
 	pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
 	pCrane->pPlc->wval(pPlcWIf->gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
-	//### OTE操作信号書込セット
+
+	//### SIMULATOR計算値セット
+	//高速カウンタ・アブソコーダ
+	pCrane->pPlc->wval(pPlcWIf->hcounter_mh, pSim_Inf->hcount_mh);
+	pCrane->pPlc->wval(pPlcWIf->hcounter_bh, pSim_Inf->hcount_bh);
+	pCrane->pPlc->wval(pPlcWIf->hcounter_sl, pSim_Inf->hcount_sl);
+	pCrane->pPlc->wval(pPlcWIf->absocoder_mh, pSim_Inf->absocoder_mh);
+
+	//速度FB　トルク指令(INV出力）
 
 	return S_OK;
 }

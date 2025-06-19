@@ -223,32 +223,30 @@ typedef struct _ST_CC_ENV_INF {
 //## PLC IO定義構造体　PLC通信の情報　
 #pragma region PLC IO
 
-typedef struct _ST_CC_AXIS_STAT {
-	double	v_fb;					//速度FB
-	double	v_fb_rpm;				//速度FB rpm
-	INT16	v_fb_notch;				//速度FB ノッチ表現
-	INT16	v_com_notch;			//速度指令 ノッチ表現
-	double	v_com_pc;				//PLCへの速度指令生値
-	double	nv_ref;					//PLCのINVへの速度指令出力
-	double	nv_tg;					//PLC目標速度
-	double	trq_fb_01per;			//トルクFB
-	double	pos;					//位置FB
-	double  load;					//負荷,荷重
-	INT16	brk;					//ブレーキ状態FB 0閉
-	INT16	notch_auto;				//AGENT指令のノッチ位置
-	INT32 endlim;					//極限センサ状態
-} ST_CC_AXIS_STAT, * LPST_CC_AXIS_STAT;
+typedef struct _ST_PLC_AXIS_STAT {
+	INT16	v_ad_fb;				//速度FB ADユニット値
+	INT16	brk_fb;					//ブレーキ状態FB 0閉
+	INT16	notch_fb;				//AGENT指令のノッチ位置
+	INT32   hcount_fb;				//高速カウンタFB値
+	INT32	absocoder_fb;			//アブソコーダFB値
+	INT32	endlim;					//極限センサ状態
+
+	INT16	inv_ref_dir;			//インバータ運転指令
+	INT16	inv_ref_v;				//インバータ速度指令
+	INT16	inv_ref_trq;			//インバータトルク指令
+
+} ST_PLC_AXIS_STAT, * LPST_PLC_AXIS_STAT;
 
 #define PRM_CC_PLC_CHK_COUNT		20//PLCヘルシーチェック用 AGENT SCAN×カウントmsec
 typedef struct _ST_CC_PLC_IO {
-	INT16 pc_ctrl_fb;			//PC制御受付状態
-	INT16 plc_enable;			//PLC有効で端末権利有でOTEリモートモード
-	INT32 ctrl_source;			//主幹状態
-	ST_CC_AXIS_STAT stat_mh;
-	ST_CC_AXIS_STAT stat_bh;
-	ST_CC_AXIS_STAT stat_sl;
-	ST_CC_AXIS_STAT stat_gt;
-	ST_CC_AXIS_STAT stat_ah;
+	INT16 pc_ctrl_fb;								//PC制御受付状態
+	INT16 plc_enable;								//PLC有効で端末権利有でOTEリモートモード
+	INT32 ctrl_source;								//主幹状態
+	ST_PLC_AXIS_STAT stat_mh;
+	ST_PLC_AXIS_STAT stat_bh;
+	ST_PLC_AXIS_STAT stat_sl;
+	ST_PLC_AXIS_STAT stat_gt;
+	ST_PLC_AXIS_STAT stat_ah;
 
 	double	weight;									//主巻荷重FB
 	double	weight_ah;								//補巻荷重FB
@@ -640,6 +638,18 @@ typedef struct _ST_CC_SIM_INF {
 
 	ST_AUX_ENV_INF aux_io;							//センサ,補機SIMULATION結果(Emulator, Simulation Mode)
 	ST_SWAY_SERVER_MSG rcv_msg;						//振れセンサセンサ受信バッファ計算値
+
+	INT32 hcount_mh;					//主巻高速カウンタ計算値
+	INT32 hcount_bh;					//引込高速カウンタ計算値
+	INT32 hcount_sl;					//旋回高速カウンタ計算値
+	INT32 absocoder_mh;					//主巻アブソコーダ計算値
+	
+	INT16 vfb_mh;						//主巻速度FB計算値
+	INT16 vfb_bh;						//引込速度FB計算値
+	INT16 vfb_sl;						//旋回速度FB計算値
+
+	INT16 trq_ref_mh;					//主巻トルク指令計算値
+	INT16 trq_ref_bh;					//引込トルク指令計算値
 
 }ST_CC_SIM_INF, * LPST_CC_SIM_INF;
 #pragma endregion シミュレーション信号定義構造体

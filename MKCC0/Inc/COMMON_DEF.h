@@ -85,6 +85,10 @@ using namespace Gdiplus;
 #define CODE_MODE6				6   //モード6
 #define CODE_MODE7				7   //モード7
 
+#define CODE_DIR_STP			0   //停止
+#define CODE_DIR_FWD			1   //正転
+#define CODE_DIR_REV			-1  //逆転
+
 #pragma endregion ステータスコード
 
 #pragma region TYPE

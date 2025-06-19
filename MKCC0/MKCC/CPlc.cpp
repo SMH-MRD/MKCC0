@@ -55,6 +55,38 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0},	//ah_ari_jc
 	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0},	//sl_fix_pl2;		//旋回固定PL
 	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0},	//douryoku_ok;		//動力電源確立
+	//X0C0
+	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0},	//brk_mc3_fb;		//ブレーキ主幹アンサーバック
+	{NULL,BIT10,				CODE_PLCIO_BIT,		0,0},	//mh_brk1_fb;		//主巻ブレーキアンサーバック
+	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0},	//bh_brk_fb;		//引込ブレーキアンサーバック
+	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0},	//gt_brk_fb;		//走行ブレーキアンサーバック
+
+	//インバータへの指令出力内容
+	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},//inv_fwd_mh
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},//inv_rev_mh
+	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},//inv_fwd_bh
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},//inv_rev_bh
+	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0},//inv_fwd_sl
+	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0},//inv_rev_sl
+	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},//inv_fwd_gt
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},//inv_rev_gt
+
+	//インバータ速度指令
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_mh
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_bh
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_sl
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_gt
+
+	//インバータトルク指令
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_trqref_mh
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_trqref_bh
+
+	//SIM　高速カウンタ　アブソコーダ
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_bh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_sl
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_mh
+
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 
 	//{pi16,mask,type,lp,hp}
@@ -95,6 +127,20 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0},	//sl_brake;
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0},	//sl_notch;
 	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0},	//sl_hydr_press_sw;	旋回油圧圧力スイ
+
+	//SIM　高速カウンタ　アブソコーダ
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_bh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_sl
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_mh
+
+	//SIM　INV 出力
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//vfb_mh;
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//vfb_bh;
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//vfb_sl;
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//trqref_mh
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//trqref_bh
+
 };
 
 int CPlc::setup(int crane_id) {
@@ -169,6 +215,49 @@ int CPlc::setup(int crane_id) {
 			= plc_io_rif.sl_fix_pl2.pi16
 			= plc_io_rif.douryoku_ok.pi16
 			= p + i;
+			//電気室
+			//X0C0
+			i = 66;
+			plc_io_rif.brk_mc3_fb.pi16
+			= plc_io_rif.mh_brk1_fb.pi16
+			= plc_io_rif.bh_brk_fb.pi16
+			= plc_io_rif.gt_brk_fb.pi16
+			= p + i;
+
+			//インバータへの指令出力内容
+			//Y0F0
+			i = 57;
+			plc_io_rif.inv_fwd_mh.pi16
+			= plc_io_rif.inv_rev_mh.pi16
+			= p + i;	//主巻インバータ指令FWD,REV
+			
+			i = 58;
+			plc_io_rif.inv_fwd_bh.pi16
+			= plc_io_rif.inv_rev_bh.pi16
+			= plc_io_rif.inv_fwd_sl.pi16
+			= plc_io_rif.inv_rev_sl.pi16
+			= p + i;	//引込,旋回インバータ指令FWD,REV
+			
+			i = 59;
+			plc_io_rif.inv_fwd_gt.pi16
+			= plc_io_rif.inv_rev_gt.pi16
+			= p + i;	//走行インバータ指令FWD,REV
+
+			//インバータ速度指令
+			plc_io_rif.inv_vref_mh.pi16		= p + 70;	//主巻インバータ速度指令
+			plc_io_rif.inv_vref_bh.pi16		= p + 71;	//引込インバータ速度指令
+			plc_io_rif.inv_vref_sl.pi16		= p + 72;	//旋回インバータ速度指令
+			plc_io_rif.inv_vref_gt.pi16		= p + 73;	//走行インバータ速度指令
+			//インバータトルク指令
+			plc_io_rif.inv_trqref_mh.pi16	= p + 75;	//主巻インバータトルク指令
+			plc_io_rif.inv_trqref_bh.pi16	= p + 76;	//引込インバータトルク指令
+
+			//高速カウンタ,アブソコーダ
+			plc_io_rif.hcounter_mh.pi16		= p + 80;
+			plc_io_rif.hcounter_bh.pi16		= p + 84;
+			plc_io_rif.hcounter_sl.pi16		= p + 86;
+			plc_io_rif.absocoder_mh.pi16	= p + 88;
+
 		}
 		//WRITE
 		{
@@ -218,6 +307,18 @@ int CPlc::setup(int crane_id) {
 				= plc_io_wif.sl_notch.pi16
 				= plc_io_wif.sl_hydr_press_sw.pi16
 				= p + i;
+			//高速カウンタ,アブソコーダ
+			plc_io_wif.hcounter_mh.pi16		= p + 30;
+			plc_io_wif.hcounter_bh.pi16		= p + 34;
+			plc_io_wif.hcounter_sl.pi16		= p + 36;
+			plc_io_wif.absocoder_mh.pi16	= p + 38;
+
+			plc_io_wif.vfb_mh.pi16			= p + 70;
+			plc_io_wif.vfb_bh.pi16			= p + 71;
+			plc_io_wif.vfb_sl.pi16			= p + 72;
+
+			plc_io_wif.trqref_mh.pi16		= p + 75;
+			plc_io_wif.trqref_bh.pi16		= p + 76;
 		}
 	}break;
 	case CARNE_ID_HHGQ18:{

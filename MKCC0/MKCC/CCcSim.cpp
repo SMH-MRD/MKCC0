@@ -11,6 +11,21 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
+extern CCrane* pCrane;
+
+//共有メモリ
+static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
+static LPST_CC_CS_INF		pCS_Inf		= NULL;
+static LPST_CC_PLC_IO		pPLC_IO		= NULL;
+static LPST_CC_AGENT_INF	pAgent_Inf	= NULL;
+static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
+static LPST_CC_SIM_INF		pSim_Inf	= NULL;
+
+static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
+static ST_PLC_IO_WIF* pPlcWIf = NULL;
+static ST_PLC_IO_RIF* pPlcRIf = NULL;
+
+
 ST_SIM_MON1 CSim::st_mon1;
 ST_SIM_MON2 CSim::st_mon2;
 
@@ -24,6 +39,14 @@ CSim::~CSim() {
 }
 
 HRESULT CSim::initialize(LPVOID lpParam) {
+
+	//### 入出力用共有メモリ取得
+	pAgent_Inf = (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
+	pEnv_Inf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+	pPLC_IO = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
+	pCS_Inf = (LPST_CC_CS_INF)pCsInfObj->get_pMap();
+	pOTE_Inf = (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
+	pSim_Inf = (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();;
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -59,10 +82,16 @@ int CSim::input() {
 	return S_OK;
 }
 
-int CSim::parse() {           //メイン処理
+int CSim::parse() {					//メイン処理
+	st_work.hcount_mh = 100000000;	//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
+	st_work.hcount_bh = 86673000;	//クレーン補巻吊点のクレーン基準点とのx,y,z相対座標
+	st_work.hcount_sl = 15000000;	//主巻振れセンサ検出x,y,z座標 m
+	st_work.absocoder_mh = 84816;	//主巻アブソコーダ計算値
 	return S_OK;
 }
 int CSim::output() {          //出力処理
+
+	memcpy_s(pSim_Inf, sizeof(ST_CC_SIM_INF), &st_work, sizeof(ST_CC_SIM_INF));
 	return S_OK;
 }
 
