@@ -552,7 +552,6 @@ typedef struct _ST_CC_AGENT_INF {
 	ST_CC_AXIS_CTRL st_ah_ctrl;
 
 	//プロセス内参照用
-
 	int command_count;								//コマンドレシピ作成呼び出し回数
 	int auto_on_going;								//実行中の自動種別
 	int antisway_on_going;							//実行中振れ止め

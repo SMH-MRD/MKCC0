@@ -25,11 +25,11 @@ static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
 static ST_PLC_IO_RIF* pPlcRIf = NULL;
 
-
 ST_SIM_MON1 CSim::st_mon1;
 ST_SIM_MON2 CSim::st_mon2;
 
-ST_CC_SIM_INF CSim::st_work;
+ST_CC_SIM_INF CSim::st_sim_inf;
+ST_CC_SIM_WORK CSim::st_work; 
 
 CSim::CSim() {
 
@@ -46,8 +46,19 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	pPLC_IO = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pCS_Inf = (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pOTE_Inf = (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
-	pSim_Inf = (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();;
+	pSim_Inf = (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
 
+	pPlcWIf = &st_work.st_plc_w;						//PLC出力IF
+	pPlcRIf = (ST_PLC_IO_RIF*)pPLC_IO->buf_io_read;		//PLC入力IF
+
+
+	CSim* pEnvObj = (CSim*)lpParam;
+	int code = 0;
+
+	//ドラム動作初期値
+	init_drm_motion();
+
+	//operation panel　初期設定
 	set_func_pb_txt();
 	set_item_chk_txt();
 	set_panel_tip_txt();
@@ -60,8 +71,6 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-	CSim* pEnvObj = (CSim*)lpParam;
-	int code = 0;
 	return S_OK;
 }
 
@@ -79,21 +88,66 @@ HRESULT CSim::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int CSim::input() {
+
 	return S_OK;
 }
 
 int CSim::parse() {					//メイン処理
-	st_work.hcount_mh = 100000000;	//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
-	st_work.hcount_bh = 86673000;	//クレーン補巻吊点のクレーン基準点とのx,y,z相対座標
-	st_work.hcount_sl = 15000000;	//主巻振れセンサ検出x,y,z座標 m
-	st_work.absocoder_mh = 84816;	//主巻アブソコーダ計算値
+
 	return S_OK;
 }
-int CSim::output() {          //出力処理
+int CSim::output() {						//出力処理
 
 	memcpy_s(pSim_Inf, sizeof(ST_CC_SIM_INF), &st_work, sizeof(ST_CC_SIM_INF));
 	return S_OK;
 }
+
+HRESULT CSim::init_drm_motion() {	//ドラムパラメータ設定(巻取量,層数,速度,加速度）
+	st_work.axis[ID_HOIST].nd.p	= 10.0;	st_work.axis[ID_HOIST].i_layer	= 3;st_work.axis[ID_HOIST].nd.v = 0.0;	st_work.axis[ID_HOIST].nd.a = 0.0;
+	st_work.axis[ID_BOOM_H].nd.p= 10.0; st_work.axis[ID_BOOM_H].i_layer = 3;st_work.axis[ID_BOOM_H].nd.v= 0.0;	st_work.axis[ID_BOOM_H].nd.a= 0.0;
+	st_work.axis[ID_SLEW].nd.p	= 10.0;	st_work.axis[ID_SLEW].i_layer	= 3;st_work.axis[ID_SLEW].nd.v	= 0.0;	st_work.axis[ID_SLEW].nd.a	= 0.0;
+	st_work.axis[ID_GANTRY].nd.p= 10.0; st_work.axis[ID_GANTRY].i_layer = 3;st_work.axis[ID_GANTRY].nd.v= 0.0;	st_work.axis[ID_GANTRY].nd.a= 0.0;
+	st_work.axis[ID_BH_HST].nd.p= 10.0; st_work.axis[ID_BH_HST].i_layer = 3;st_work.axis[ID_BH_HST].nd.v= 0.0;	st_work.axis[ID_BH_HST].nd.a= 0.0;
+
+	set_sensor_fb();	// センサフィードバック設定
+	calc_axis_motion();	// 軸動作計算
+	calc_load_motion();	// 吊荷動作計算
+	calc_plc_output();	// PLC出力計算
+
+	st_sim_inf.hcount_mh	= 100000000;//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
+	st_sim_inf.hcount_bh	= 86673000;	//クレーン補巻吊点のクレーン基準点とのx,y,z相対座標
+	st_sim_inf.hcount_sl	= 15000000;	//主巻振れセンサ検出x,y,z座標 m
+	st_sim_inf.absocoder_mh = 84816;	//主巻アブソコーダ計算値
+	return S_OK;
+}  
+HRESULT CSim::set_drm_condition() {	//ドラム状態設定(ブレーキ,極限,荷重）
+
+
+
+
+
+
+	return S_OK;
+} 
+HRESULT CSim::set_drm_motion() {	//ドラム動作設定(加速度,速度,位置,層）
+	return S_OK;
+}   
+HRESULT CSim::set_sensor_fb() {				//高速カウンタ,アブソコーダ,LS他
+	return S_OK;
+}            
+
+HRESULT CSim::calc_axis_motion() {			//軸荷動作計算
+	return S_OK;
+}         
+HRESULT CSim::calc_load_motion() {			//吊荷動作計算
+	return S_OK;
+}          
+HRESULT CSim::calc_plc_output() {			//軸状態出力（PLC IO用）
+
+	return S_OK;
+}        
+
+
 
 int CSim::close() {
 

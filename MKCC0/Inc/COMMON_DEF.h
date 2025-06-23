@@ -187,6 +187,7 @@ using namespace Gdiplus;
 #define ID_GANTRY               3   //走行        ID
 #define ID_AHOIST               4   //補巻　      ID
 #define ID_OP_ROOM              5   //運転室移動　ID
+#define ID_BH_HST               5   //起伏ドラム主巻  ID
 #define ID_H_ASSY               6   //吊具等      ID
 
 enum ID_AXIS {

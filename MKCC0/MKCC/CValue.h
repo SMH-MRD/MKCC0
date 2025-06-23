@@ -47,36 +47,32 @@ public:
 	}
 };
 
+//速度バリュー
 class CVValue : public CValue<double> {
 private:
 	INT32 axis_id;//軸ID
 	LPST_AXIS_ITEMS p_spec;
 
 public:
-	CVValue(LPST_AXIS_ITEMS _p_spec,INT32 id) {
+	CVValue(LPST_AXIS_ITEMS _p_spec,INT32 id) {//引数：spec設定値　軸ID
 		p_spec = _p_spec;
 		axis_id = id;
 	}
 	virtual ~CVValue() {}
 
 	//速度指定でPLC IO用コードの取得,出力
-	INT16 get_code4(int mode, LPST_PLC_IO_DEF piodef) {
+	INT16 get_code4(int mode, LPST_PLC_IO_DEF piodef) {//速度指定でPLC IO用コード取得(4ノッチタイプ）
 		return CNotchHelper::get_code4_by_v(value, p_spec->notch_spd_f[mode], p_spec->notch_spd_r[mode], piodef->shift);
 	}
-	INT16 set_code4(int mode, LPST_PLC_IO_DEF piodef) {
+	INT16 set_code4(int mode, LPST_PLC_IO_DEF piodef) {//速度指定でPLC IO用コード設定(4ノッチタイプ）
 		return CNotchHelper::set_code4_by_v(piodef->pi16, value, p_spec->notch_spd_f[mode], p_spec->notch_spd_r[mode], piodef->shift);
 	}
-
-	//速度指定でノッチ取得
-	INT16 get_notch4(int mode, LPST_PLC_IO_DEF piodef) {
+	INT16 get_notch4(int mode, LPST_PLC_IO_DEF piodef) {//速度指定でノッチ取得(4ノッチタイプ）
 		return CNotchHelper::get_notch4_by_v(value, p_spec->notch_spd_f[mode], p_spec->notch_spd_r[mode]);
 	}
-
-	//UI配列用インデクス取得
-	INT16 get_iui4_by_v(int mode, LPST_PLC_IO_DEF piodef) {
+	INT16 get_iui4_by_v(int mode, LPST_PLC_IO_DEF piodef) {//UI配列用インデクス取得:UI配列R5-F5の順
 		return CNotchHelper::get_iui4_by_v(value, p_spec->notch_spd_f[mode], p_spec->notch_spd_r[mode]);
 	}
-
 	double set_from_plc(LPST_PLC_IO_DEF piodef) {
 		double val = p_spec->v_rated * (double)(*piodef->pi16);
 		return set(val);

@@ -89,7 +89,7 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 
-	//{pi16,mask,type,lp,hp}
+	//{pi16,mask,type,lp:ビットシフト,hp：バッファサイズ}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_healthy;
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_ctrl_mode;

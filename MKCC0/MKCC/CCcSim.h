@@ -73,11 +73,15 @@ typedef struct _ST_SIM_LOAD {//負荷
 typedef struct _ST_SIM_AXIS {//軸
     double mtrq;					//モータトルクfb
     ST_SIM_LOAD load;				//軸負荷（巻は荷重）
+    ST_MOVE_SET	ref;				//軸指令
     ST_MOVE_SET	fb;					//軸座標
-    ST_MOVE_SET	nd;					//ドラム回転動作
-    UINT32 i_layer;					//ドラム現在層数
-    double n_layer;					//ドラム現在層巻取数
-    double l_drum;					//ドラム巻取り量
+    ST_MOVE_SET	nd;					//ドラム回転動作(速度はrps)
+    INT32  i_layer;				    //ドラム現在層数
+	INT32  hcount;				    //高速カウンタ値
+	INT32  absocoder;				//アブソコーダ値
+    double  n_layer;				//ドラム現在層巻取数
+    double  l_drum;					//ドラム巻取り量
+	INT32   brake;					//ブレーキ状態
 }ST_SIM_AXIS, * LPST_SIM_AXIS;
 
 typedef struct _ST_CC_SIM_WORK {
@@ -86,6 +90,7 @@ typedef struct _ST_CC_SIM_WORK {
     DWORD helthy_cnt;
     INT16 plc_w[CC_MC_SIZE_W_WRITE];
     ST_AUX_ENV_INF sway_io;
+	ST_PLC_IO_WIF st_plc_w;			                //PLC IO書き込みIF
 
     ST_SWAY_SERVER_MSG rcv_msg;
     ST_SWAY_CLIENT_MSG snd_msg;
@@ -109,8 +114,6 @@ typedef struct _ST_CC_SIM_WORK {
 
 }ST_CC_SIM_WORK, * LPST_CC_SIM_WORK;
 
-
-
 class CSim : public CBasicControl
 {
 public:
@@ -128,7 +131,8 @@ public:
     static ST_SIM_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_CC_SIM_INF st_work;
+    static ST_CC_SIM_INF st_sim_inf;
+    static ST_CC_SIM_WORK st_work;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -165,4 +169,14 @@ private:
     int parse();
     int output();
     int close();
+
+	HRESULT init_drm_motion();  //ドラムパラメータ設定(巻取量,層数,速度,加速度）
+    HRESULT set_drm_condition();//ドラム状態設定(ブレーキ,極限,荷重）
+	HRESULT set_drm_motion();   //ドラム動作設定(加速度,速度,位置,層）
+    HRESULT set_sensor_fb();            //高速カウンタ,アブソコーダ,LS他
+	
+    HRESULT calc_axis_motion();         //軸荷動作計算
+    HRESULT calc_load_motion();         //吊荷動作計算
+	HRESULT calc_plc_output();          //軸状態出力（PLC IO用）
+
 };
