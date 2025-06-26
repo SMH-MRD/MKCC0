@@ -10,39 +10,17 @@
 //クレーン構造定義構造体
 typedef struct _ST_STRUCTURE
 {
-	double wheel_span = 20.0;	// ホイルスパン
-	double leg_span = 15.0;		// 脚間スパン
-	double Hp = 47.7;			// ブーム水平時高さ
-	double Lb = 64.009;			// ブーム長さ
+	double Mr		= 700000.0;	//定格荷重Kg
+	double Lb		= 84.0;		//ジブ長さ
+	double Zbase	= 70.0;		//休止時揚程
+	double Rbase	= 45.0;		//休止時半径
+	double Nttl_bh	= 90.0;		//引込ドラム引込/主巻部回転数の和
+	double Nbhb_base= 72.50;	//引込引込ドラム休止時回転数
+	double Nbhm_base= 17.50;	//引込主巻ドラム休止時回転数
+	double Nmh_base = 138.1;	//主巻ドラム休止時回転数
+	double Ha		= 35.0;		//ポスト上部高さ(ジブピン-AフレームTOP）
+	double Hp		= 38.5;		//ポスト下部高さ(ジブピン高さ)
 
-	double Lm = 63.000;			//ジブpin-主巻シーブ中心距離
-	double La_add = 4.981;		//ジブ主補巻シーブ間距離
-	double rad_mh_ah = 2.371;	//ジブ主補巻シーブ間角度
-	double La = 66.566;			//ジブpin-補巻シーブ中心距離
-	double rad_Lm_La = 0.0537;	//ジブ主補巻シーブ間角度
-	double Lmb = 1.676;
-	double Lma = 4.981;
-	double Lba = 5.512;
-	double Th_pba = 2.00301;
-	double Alpa_db = 0.90266;
-	double Alpa_b = 0.02109;	//ジブ主巻軸－起伏軸間角度
-	double Alpa_a = 0.05373;	//ジブ補巻軸－主巻軸間角度
-	double Phbm = 2.20547;
-	double Lp = 25.174;
-	double Php = 1.6583;
-	double Lmf = 2.9000;
-	double Laf = 2.2910;
-
-	double Th_rest = -0.7113;	//ジブレスト時の起伏角
-	double D_min = 41.425;	//最小半径時の起伏シーブ間距離
-	double D_rest = 83.905;	//ジブレスト時の起伏シーブ間距離
-	double Hb_min = 59.397;	//最小半径時の起伏高さ
-	double Hb_rest = -41.786;	//ジブレスト時起伏高さ
-	double Dttb = 3.652;	//TTB径
-	double Kttb = 0.08434;	//ピニオン径/TTB径
-	double Nbh_drum = 67.974;	//引込ドラム回転数の和（引込＋主巻）
-	double Load0_mh = 11000.0;	//主巻吊具荷重
-	double Load0_ah = 1900.0;	//補巻吊具荷重
 }ST_STRUCTURE, * LPST_STRUCTURE;
 
 #define N_NOTCH_MAX					6	//ノッチ最大数　0ノッチを含む
@@ -64,40 +42,44 @@ typedef struct _ST_STRUCTURE
 #define SPD_LIMIT_POS3				3
 typedef struct _ST_AXIS_ITEMS {
 	INT32 axis_id;
-	double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-	double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-	INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1000
-	INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1000
-
-	INT16 notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
-	INT16 notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
-
-	double acc[N_ACC_MODE];			//加速度
-	double dec[N_ACC_MODE];			//減速度
-	double t_acc[N_ACC_MODE];		// 加速時間（100%)
-	double t_dec[N_ACC_MODE];		// 加速時間（100%)
-
+	double	notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	double	notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	INT16	notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	INT16	notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	
 	double v_rated;					// 定格速度（m/s, rad/s：100％)
 
-	double motor_rps;				// モータ定格回転数（rps　100%）
-	double motor_rpm;				// モータ定格回転数（rpm　100%）
-	double gear_ratio;				// 減速比(ドラム回転 / モータ回転）
-	double drum_rps;				// 定格ドラム回転速度（100％rps)
-	double drum_rpps;				// 定格ドラム回転加速度（r/s~2)
+	//INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1000
+	//INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1000
 
-	double pos_limit_f[N_POS_LIMIT_TYPE] ;//軸動作極限
-	double pos_limit_r[N_POS_LIMIT_TYPE];//軸動作極限
 
-	double n_wire;		// ワイヤ掛数
-	double n_boom_wire;	// ワイヤ掛数ブーム部
-	double n_ex_wind;	// あだ巻数
-	double n_tread;		// ドラム溝数
-	double d_drum;		// １層ドラム径
-	double d_wire;		// ワイヤ径
-	double d_drum_layer;// ドラム径層加算値
-	double l_wire;		// 基準ワイヤ長(旋回はTTB円周
 
-	INT32	v100plc;
+	//double acc[N_ACC_MODE];			//加速度
+	//double dec[N_ACC_MODE];			//減速度
+	//double t_acc[N_ACC_MODE];		// 加速時間（100%)
+	//double t_dec[N_ACC_MODE];		// 加速時間（100%)
+
+	
+
+	//double motor_rps;				// モータ定格回転数（rps　100%）
+	//double motor_rpm;				// モータ定格回転数（rpm　100%）
+	//double gear_ratio;				// 減速比(ドラム回転 / モータ回転）
+	//double drum_rps;				// 定格ドラム回転速度（100％rps)
+	//double drum_rpps;				// 定格ドラム回転加速度（r/s~2)
+
+	//double pos_limit_f[N_POS_LIMIT_TYPE] ;//軸動作極限
+	//double pos_limit_r[N_POS_LIMIT_TYPE];//軸動作極限
+
+	//double n_wire;		// ワイヤ掛数
+	//double n_boom_wire;	// ワイヤ掛数ブーム部
+	//double n_ex_wind;	// あだ巻数
+	//double n_tread;		// ドラム溝数
+	//double d_drum;		// １層ドラム径
+	//double d_wire;		// ワイヤ径
+	//double d_drum_layer;// ドラム径層加算値
+	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
+
+	//INT32	v100plc;
 } ST_AXIS_ITEMS, * LPST_AXIS_ITEMS;
 
 #define N_SWAY_LEVEL				3	//完了,トリガ,制限
