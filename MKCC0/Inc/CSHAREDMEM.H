@@ -339,7 +339,7 @@ typedef struct stMotionStep {	//運動要素
 
 typedef struct _ST_MOTION_SEQ {	
 	//CS set
-	int axis_id;
+	int Axis_id;
 	int motion_type;
 	int option_i;								//オプション条件
 	int direction;								//動作方向(-1,0,+1)

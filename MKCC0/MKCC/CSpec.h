@@ -41,35 +41,51 @@ typedef struct _ST_STRUCTURE
 #define SPD_LIMIT_POS2				2
 #define SPD_LIMIT_POS3				3
 typedef struct _ST_AXIS_ITEMS {
-	INT32 axis_id;
-	double	notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-	double	notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-	INT16	notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
-	INT16	notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	INT32 Axis_id;
+	double	Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	double	Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	INT16	Notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+	INT16	Notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
 	
-	double v_rated;					// 定格速度（m/s, rad/s：100％)
+	double V_rated;					// 定格速度（m/s, rad/s：100％)
+	double Rpm_rated;				// 定格回転数（rpm：100％)
+	double Kw_rated;				// 定格出力（kW：100％)
+	double Gear_ratio;				// 減速比(モータ回転 /ドラム回転 ）
+	double Ddrm0;					// ドラム径0
+	double Ddrm1;					// ドラム径1
+	double Nwire;					// ロープ掛数
+	double Ta0;						// 加速時間0
+	double Ta1;						// 加速時間1
+	double Td0;						// 減速時間0
+	double Td1;						// 減速時間1
+	double Ndmizo0;					// ドラム溝数0
+	double Ndmizo1;					// ドラム溝数1
+	double CntPgR;					// PG1回転カウント数×逓倍
+	double CntPgSet0;				// PGプリセット0カウント値
+	double CntPgSet1;				// PGプリセット1カウント値
+	double CntAbsR;					// アブソコーダ1回転カウント数×入力軸ギア比
+	double CntAbsSet0;				// アブソコーダプリセット0カウント値
+	double CntAbsSet1;				// アブソコーダプリセット1カウント値
+	
+	double dDdrm;					// ドラム1層追加径
+	double Trq_rated;				// 定格トルク（モータ軸）
+	double Pwr_base;				// 定格必要出力
+	double Trq_base;				// 定格必要トルク
+	double Ia;						// 慣性モーメント
 
 	//INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1000
 	//INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1000
-
-
-
 	//double acc[N_ACC_MODE];			//加速度
 	//double dec[N_ACC_MODE];			//減速度
 	//double t_acc[N_ACC_MODE];		// 加速時間（100%)
 	//double t_dec[N_ACC_MODE];		// 加速時間（100%)
-
-	
-
 	//double motor_rps;				// モータ定格回転数（rps　100%）
 	//double motor_rpm;				// モータ定格回転数（rpm　100%）
 	//double gear_ratio;				// 減速比(ドラム回転 / モータ回転）
 	//double drum_rps;				// 定格ドラム回転速度（100％rps)
 	//double drum_rpps;				// 定格ドラム回転加速度（r/s~2)
-
 	//double pos_limit_f[N_POS_LIMIT_TYPE] ;//軸動作極限
 	//double pos_limit_r[N_POS_LIMIT_TYPE];//軸動作極限
-
 	//double n_wire;		// ワイヤ掛数
 	//double n_boom_wire;	// ワイヤ掛数ブーム部
 	//double n_ex_wind;	// あだ巻数
@@ -115,8 +131,8 @@ typedef struct _ST_AUTO_SPEC
 
 typedef struct _ST_REMOTE_SPEC
 {
-	double notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//# ノッチ指令速度
-	double notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//# ノッチ指令速度
+	double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//# ノッチ指令速度
+	double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//# ノッチ指令速度
 	double notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//# ノッチ指令速度正規化100%=1.0
 	double notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//# ノッチ指令速度正規化100%=1.0
 }ST_REMOTE_SPEC, * LPST_REMOTE_SPEC;
