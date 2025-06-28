@@ -72,10 +72,10 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},//inv_rev_gt
 
 	//インバータ速度指令
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_mh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_bh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_sl
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vref_gt
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//inv_vref_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//inv_vref_bh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//inv_vref_sl
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//inv_vref_gt
 
 	//インバータトルク指令
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_trqref_mh
@@ -245,18 +245,18 @@ int CPlc::setup(int crane_id) {
 
 			//インバータ速度指令
 			plc_io_rif.inv_vref_mh.pi16		= p + 70;	//主巻インバータ速度指令
-			plc_io_rif.inv_vref_bh.pi16		= p + 71;	//引込インバータ速度指令
-			plc_io_rif.inv_vref_sl.pi16		= p + 72;	//旋回インバータ速度指令
-			plc_io_rif.inv_vref_gt.pi16		= p + 73;	//走行インバータ速度指令
+			plc_io_rif.inv_vref_bh.pi16		= p + 72;	//引込インバータ速度指令
+			plc_io_rif.inv_vref_sl.pi16		= p + 74;	//旋回インバータ速度指令
+			plc_io_rif.inv_vref_gt.pi16		= p + 76;	//走行インバータ速度指令
 			//インバータトルク指令
-			plc_io_rif.inv_trqref_mh.pi16	= p + 75;	//主巻インバータトルク指令
-			plc_io_rif.inv_trqref_bh.pi16	= p + 76;	//引込インバータトルク指令
+			plc_io_rif.inv_trqref_mh.pi16	= p + 78;	//主巻インバータトルク指令
+			plc_io_rif.inv_trqref_bh.pi16	= p + 80;	//引込インバータトルク指令
 
 			//高速カウンタ,アブソコーダ
-			plc_io_rif.hcounter_mh.pi16		= p + 80;
-			plc_io_rif.hcounter_bh.pi16		= p + 84;
-			plc_io_rif.hcounter_sl.pi16		= p + 86;
-			plc_io_rif.absocoder_mh.pi16	= p + 88;
+			plc_io_rif.hcounter_mh.pi16		= p + 82;
+			plc_io_rif.hcounter_bh.pi16		= p + 86;
+			plc_io_rif.hcounter_sl.pi16		= p + 88;
+			plc_io_rif.absocoder_mh.pi16	= p + 90;
 
 		}
 		//WRITE

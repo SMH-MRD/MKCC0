@@ -231,8 +231,8 @@ typedef struct _ST_PLC_AXIS_STAT {
 	INT32	absocoder_fb;			//アブソコーダFB値
 	INT32	endlim;					//極限センサ状態
 
-	INT16	inv_ref_dir;			//インバータ運転指令
-	INT16	inv_ref_v;				//インバータ速度指令
+	INT16	inv_ref_dir;			//インバータ運転指令(FWD,REV)
+	INT32	inv_ref_v;				//インバータ速度指令(絶対値）
 	INT16	inv_ref_trq;			//インバータトルク指令
 
 } ST_PLC_AXIS_STAT, * LPST_PLC_AXIS_STAT;

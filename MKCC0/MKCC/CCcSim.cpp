@@ -166,10 +166,10 @@ LRESULT CALLBACK CSim::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[SIM_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[SIM_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[SIM_ID_MON1_STATIC_GPAD].x, st_mon1.pt[SIM_ID_MON1_STATIC_GPAD].y,
-			st_mon1.sz[SIM_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[SIM_ID_MON1_STATIC_GPAD].cy,
-			hWnd, (HMENU)(SIM_ID_MON1_CTRL_BASE + SIM_ID_MON1_STATIC_GPAD), hInst, NULL);
+		st_mon1.hctrl[SIM_ID_MON1_STATIC_INF0] = CreateWindowW(TEXT("STATIC"), st_mon1.text[SIM_ID_MON1_STATIC_INF0], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[SIM_ID_MON1_STATIC_INF0].x, st_mon1.pt[SIM_ID_MON1_STATIC_INF0].y,
+			st_mon1.sz[SIM_ID_MON1_STATIC_INF0].cx, st_mon1.sz[SIM_ID_MON1_STATIC_INF0].cy,
+			hWnd, (HMENU)(SIM_ID_MON1_CTRL_BASE + SIM_ID_MON1_STATIC_INF0), hInst, NULL);
 
 		//表示更新用タイマー
 		SetTimer(hWnd, SIM_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -187,6 +187,11 @@ LRESULT CALLBACK CSim::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 	}break;
 	case WM_TIMER: {
+
+		st_mon1.wo.str(L""); 
+		st_mon1.wo << L"[INV Ref V] mh:"<<pPLC_IO->stat_mh.inv_ref_v ;
+		SetWindowText(st_mon1.hctrl[SIM_ID_MON1_STATIC_INF0], st_mon1.wo.str().c_str());
+
 	}break;
 
 	case WM_PAINT: {
@@ -248,7 +253,7 @@ HWND CSim::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	WNDCLASSEXW wcex;
 	ATOM fb = RegisterClassExW(&wcex);
 
-	if (id == BC_ID_MON1) {
+	if ((id == BC_ID_MON1) &&(st_mon1.hwnd_mon == NULL)){
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
 		wcex.lpfnWndProc = Mon1Proc;
@@ -263,13 +268,12 @@ HWND CSim::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
-
 		st_mon1.hwnd_mon = CreateWindowW(TEXT("SIM_MON1"), TEXT("SIM_MON1"), WS_OVERLAPPEDWINDOW,
 			SIM_MON1_WND_X, SIM_MON1_WND_Y, SIM_MON1_WND_W, SIM_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
 	}
-	else if (id == BC_ID_MON2) {
+	else if ((id == BC_ID_MON2) && (st_mon2.hwnd_mon == NULL)) {
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
 		wcex.lpfnWndProc = Mon1Proc;
@@ -300,10 +304,14 @@ HWND CSim::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	return NULL;
 }
 void CSim::close_monitor_wnd(int id) {
-	if (id == BC_ID_MON1)
+	if (id == BC_ID_MON1) {
 		DestroyWindow(st_mon1.hwnd_mon);
-	else if (id == BC_ID_MON2)
+		st_mon1.hwnd_mon = NULL;
+	}
+	else if (id == BC_ID_MON2) {
 		DestroyWindow(st_mon2.hwnd_mon);
+		st_mon2.hwnd_mon = NULL;
+	}
 	else;
 	return;
 }

@@ -13,7 +13,7 @@
 #define SIM_MON1_N_WCHAR   64
 
 #define SIM_ID_MON1_CTRL_BASE   56100
-#define SIM_ID_MON1_STATIC_GPAD     0
+#define SIM_ID_MON1_STATIC_INF0     0
 
 #define SIM_ID_MON2_CTRL_BASE   56140
 
@@ -26,6 +26,8 @@
 
 typedef struct _ST_SIM_MON1 {
     int timer_ms = SIM_PRM_MON1_TIMER_MS;
+    wostringstream wo;
+
     HWND hwnd_mon;
     HWND hctrl[SIM_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -46,7 +48,7 @@ typedef struct _ST_SIM_MON1 {
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[SIM_MON1_N_CTRL][SIM_MON1_N_WCHAR] = {
-        L"GAME_PAD", L"", L"", L"", L"", L"", L"", L"",
+        L"-", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""

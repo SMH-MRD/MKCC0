@@ -689,9 +689,26 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					LPST_PC_U_BODY pb0 = &st_ote_work.st_msg_pc_u_snd.body.st;
 					LPST_PC_M_BODY pb1 = &st_ote_work.st_msg_pc_m_snd.body.st;
 
-					st_mon2.wo_uni << L"[BODY P"<< st_mon2.ipage_uni <<L"]" << L"\n";
-					st_mon2.wo_mpc << L"[BODY P"<< st_mon2.ipage_mpc <<L"]" << L"\n";
-					st_mon2.wo_mote<< L"[BODY P"<< st_mon2.ipage_mot <<L"]" << L"\n";
+					st_mon2.wo_uni << L"[BODY P" << st_mon2.ipage_uni << L"]";
+
+					if (st_mon2.ipage_uni == 0) {
+						st_mon2.wo_uni << L"@ESTOP:" << pb0->lamp[OTE_PNL_CTRLS::estop].code
+							<< L"@ŽåŠ²“ü:" << pb0->lamp[OTE_PNL_CTRLS::syukan_on].code
+							<< L"@ŽåŠ²Ø:" << pb0->lamp[OTE_PNL_CTRLS::syukan_off].code
+							<< L"@RMT:" << pb0->lamp[OTE_PNL_CTRLS::remote].code
+							<< L"@FRESET:" << pb0->lamp[OTE_PNL_CTRLS::fault_reset].code
+							<< L"@BYPASS:" << pb0->lamp[OTE_PNL_CTRLS::bypass].code
+							<< L"@MH_MODE:" << pb0->lamp[OTE_PNL_CTRLS::mh_spd_mode].code
+							<< L"@BH_MODE:" << pb0->lamp[OTE_PNL_CTRLS::bh_r_mode].code;
+
+						st_mon2.wo_mpc << L"[BODY P" << st_mon2.ipage_mpc << L"]" << L"\n";
+						st_mon2.wo_mote << L"[BODY P" << st_mon2.ipage_mot << L"]" << L"\n";
+					}
+					else {
+						st_mon2.wo_uni << L"[BODY P"<< st_mon2.ipage_uni <<L"]" << L"\n";
+						st_mon2.wo_mpc << L"[BODY P"<< st_mon2.ipage_mpc <<L"]" << L"\n";
+						st_mon2.wo_mote<< L"[BODY P"<< st_mon2.ipage_mot <<L"]" << L"\n";
+					}
 				}
 				else {
 					LPST_OTE_HEAD ph0 = &st_ote_work.st_msg_pc_u_snd.head;
