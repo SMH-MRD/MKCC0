@@ -5,6 +5,7 @@
 #include "AUXEQ_DEF.H"
 #include "CCrane.H"
 #include "CFaults.h"
+#include "phisics.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -63,6 +64,13 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return hr;
 	}
+
+	//### 計算用パラメータ初期化
+	if(pCrane == NULL) {
+		wos.str(L""); wos << L"Initialize : Crane Object NG"; msg2listview(wos.str());
+		return S_FALSE;
+	}
+	set_drum_param(pCrane->pSpec);
 
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -139,6 +147,34 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	st_work.device_code = g_my_code;
 
 	return S_OK;
+}
+
+void CCcEnv::set_drum_param(CSpec* pspec) {//出力バッファセット
+	double* pcdrm;
+	for(int i = 0; i < N_DRUM_LAYER; i++) {
+		pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)i	* pspec->base_mh.dDdrm) * PI360;
+		pEnvInf->Cdrm[ID_BOOM_H][i] = (pspec->base_bh.Ddrm0 + (double)i * pspec->base_bh.dDdrm) * PI360;
+		pEnvInf->Cdrm[ID_SLEW][i]	= (pspec->base_sl.Ddrm0 + (double)i * pspec->base_sl.dDdrm) * PI360;
+		pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)i * pspec->base_gt.dDdrm) * PI360;
+		//引込主巻ドラム 層負荷直径はBHを使用
+		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_mh.Ddrm1 + (double)i * pspec->base_bh.dDdrm) * PI360;
+
+		if(i == 0) {//1層巻取り量
+			pEnvInf->Ldrm[ID_HOIST][i]	= pEnvInf->Cdrm[ID_HOIST][i]	* pspec->base_mh.Ndmizo0;
+			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Cdrm[ID_BOOM_H][i]	* pspec->base_bh.Ndmizo0;
+			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Cdrm[ID_SLEW][i]		* pspec->base_sl.Ndmizo0;
+			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Cdrm[ID_GANTRY][i]	* pspec->base_gt.Ndmizo0;
+			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Cdrm[ID_BH_HST][i]	* pspec->base_mh.Ndmizo1;
+		}
+		else {
+			pEnvInf->Ldrm[ID_HOIST][i]	= pEnvInf->Ldrm[ID_HOIST][i-1]		+pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
+			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Ldrm[ID_BOOM_H][i - 1]	+pEnvInf->Cdrm[ID_BOOM_H][i] * pspec->base_bh.Ndmizo0;
+			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Ldrm[ID_SLEW][i - 1]		+pEnvInf->Cdrm[ID_SLEW][i] * pspec->base_sl.Ndmizo0;
+			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Ldrm[ID_GANTRY][i - 1]	+pEnvInf->Cdrm[ID_GANTRY][i] * pspec->base_gt.Ndmizo0;
+			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1]	+pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;
+		}
+	}
+	return;
 }
 
 HRESULT CCcEnv::routine_work(void* pObj) {

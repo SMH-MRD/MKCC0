@@ -90,7 +90,7 @@ typedef struct _ST_CC_SIM_WORK {
     //‹¤—Lƒƒ‚ƒŠo—Í
     DWORD mode;
     DWORD helthy_cnt;
-    INT16 plc_w[CC_MC_SIZE_W_WRITE];
+ 
     ST_AUX_ENV_INF sway_io;
 	ST_PLC_IO_WIF st_plc_w;			                //PLC IO‘‚«‚İIF
 

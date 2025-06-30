@@ -8,8 +8,6 @@ using namespace Gdiplus;
 
 //#define _DVELOPMENT_MODE                //開発環境を有効にする
 
-
-
 ///# コード
 #pragma region ID
 //クレーン種別 ID  配列INDEX

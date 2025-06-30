@@ -8,15 +8,23 @@ class CCrane
 private:
 	int crane_id;
 public:
-	//PLC制御無し（OTE用）
+	/// <summary>
+	/// コンストラクタ　PLC制御無し（OTE用）
+	/// </summary>
+	/// <param name="_crane_id"></param>
 	CCrane(int _crane_id) {	
 		crane_id = _crane_id;
 		pSpec = new CSpec(crane_id);
 		pPlc = NULL;
 		pFlt = new CFaults(crane_id, NULL, NULL);
 	};
-	//PLC制御有（MKCC用）
-	//plc_rbuf,plc_wbufにはPLCとの通信バッファのアドレスを指定する
+	/// <summary>
+	/// コンストラクタ　PLC制御有（MKCC用）
+	/// plc_rbuf,plc_wbufにはPLCとの通信バッファのアドレスを指定する
+	/// </summary>
+	/// <param name="_crane_id"></param>
+	/// <param name="plc_rbuf"></param>
+	/// <param name="plc_wbuf"></param>
 	CCrane(int _crane_id,INT16* plc_rbuf,INT16* plc_wbuf) {
 		crane_id = _crane_id;
 		pSpec = new CSpec(crane_id);

@@ -53,7 +53,8 @@ typedef struct _ST_AXIS_ITEMS {
 	double Gear_ratio;				// 減速比(モータ回転 /ドラム回転 ）
 	double Ddrm0;					// ドラム径0
 	double Ddrm1;					// ドラム径1
-	double Nwire;					// ロープ掛数
+	double Nwire0;					// ロープ掛数
+	double Nwire1;					// ロープ掛数
 	double Ta0;						// 加速時間0
 	double Ta1;						// 加速時間1
 	double Td0;						// 減速時間0
@@ -67,35 +68,13 @@ typedef struct _ST_AXIS_ITEMS {
 	double CntAbsSet0;				// アブソコーダプリセット0カウント値
 	double CntAbsSet1;				// アブソコーダプリセット1カウント値
 	
-	double dDdrm;					// ドラム1層追加径
+	double dDdrm;					// ドラム1層追加半径
 	double Trq_rated;				// 定格トルク（モータ軸）
 	double Pwr_base;				// 定格必要出力
 	double Trq_base;				// 定格必要トルク
 	double Ia;						// 慣性モーメント
+	double Lfull;					// フルスパン（m）
 
-	//INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1000
-	//INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX]; 	//ノッチ指令速度正規化100%=1000
-	//double acc[N_ACC_MODE];			//加速度
-	//double dec[N_ACC_MODE];			//減速度
-	//double t_acc[N_ACC_MODE];		// 加速時間（100%)
-	//double t_dec[N_ACC_MODE];		// 加速時間（100%)
-	//double motor_rps;				// モータ定格回転数（rps　100%）
-	//double motor_rpm;				// モータ定格回転数（rpm　100%）
-	//double gear_ratio;				// 減速比(ドラム回転 / モータ回転）
-	//double drum_rps;				// 定格ドラム回転速度（100％rps)
-	//double drum_rpps;				// 定格ドラム回転加速度（r/s~2)
-	//double pos_limit_f[N_POS_LIMIT_TYPE] ;//軸動作極限
-	//double pos_limit_r[N_POS_LIMIT_TYPE];//軸動作極限
-	//double n_wire;		// ワイヤ掛数
-	//double n_boom_wire;	// ワイヤ掛数ブーム部
-	//double n_ex_wind;	// あだ巻数
-	//double n_tread;		// ドラム溝数
-	//double d_drum;		// １層ドラム径
-	//double d_wire;		// ワイヤ径
-	//double d_drum_layer;// ドラム径層加算値
-	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
-
-	//INT32	v100plc;
 } ST_AXIS_ITEMS, * LPST_AXIS_ITEMS;
 
 #define N_SWAY_LEVEL				3	//完了,トリガ,制限

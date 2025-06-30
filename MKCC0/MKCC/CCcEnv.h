@@ -19,7 +19,6 @@
 #define ENV_PRM_MON1_TIMER_MS  200
 #define ENV_PRM_MON2_TIMER_MS  50
 
-
 typedef struct _ST_ENV_MON1 {
     bool is_monitor_active = false;
 
@@ -50,7 +49,6 @@ typedef struct _ST_ENV_MON1 {
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_ENV_MON1, * LPST_ENV_MON1;
-
 
 #define ENV_MON2_WND_X     ENV_MON1_WND_X
 #define ENV_MON2_WND_Y     620   
@@ -124,6 +122,7 @@ public:
     //タスク出力用構造体
     static ST_CC_ENV_INF st_work;
 
+    //補機通信用
     static HRESULT rcv_uni_aux(LPST_AUX_COM_SERV_MSG pbuf);
     static LPST_AUX_COM_CLI_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
     static HRESULT snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to);
@@ -161,6 +160,8 @@ private:
     int parse();
     int output();
     int close();
+
+    void set_drum_param(CSpec* pspec);
 };
 
 

@@ -52,7 +52,8 @@ ST_AXIS_ITEMS	base_mh0 = {
 	31.129,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.624,			// Ddrm0;		ドラム径0
 	0.720,			// Ddrm1;		ドラム径1
-	4.0,			// Nwire;		ロープ掛数
+	4.0,			// Nwire0;		ロープ掛数
+	2.0,			// Nwire1;		ロープ掛数
 	1.5,			// Ta0;			加速時間0
 	2.5,			// Ta1;			加速時間1
 	1.5,			// Td0;			減速時間0
@@ -65,60 +66,12 @@ ST_AXIS_ITEMS	base_mh0 = {
 	64.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
 	50000.0,		// CntAbsSet0;	PGプリセット0カウント値
 	0.0	,			// CntAbsSet1;	PGプリセット1カウント値
-	20.78461,		// dDdrm;		ドラム1層追加径
+	0.04157,		// dDdrm;		ドラム1層追加径
 	2801.127,		// Trq_rated;	定格トルク（モータ軸）
 	135.1407,		// Pwr_base;	定格必要出力
 	175.39915,		// Trq_base;	定格必要トルク
 	26.748792,		// Ia;			慣性モーメント
-
-	/*
-	//INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=1000
-	{{0,100,300,600,10000,10000},{0,258,773,1545,2575,2575},{0,0,0,0,0,0}},
-	//INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX];//ノッチ指令速度正規化100%=10000
-	{{0,-100,-300,-600,-10000,-10000},{0,-258,-773,-1545,-2575,-2575},{0,0,0,0,0,0}},
-
-	//double acc;加速度
-	{0.1533,0.1491,0.0},
-	//double dec;減速度
-	{0.-1533,-0.1491,0.0},
-	//double t_acc;加時間
-	{1.5,2.5,0.0},
-	//double t_dec;減時間
-	{1.5,2.5,0.0},
-
-	//double motor_rps;モータ定格回転数（rps　100%）
-	0.0,
-	//double motor_rpm;モータ定格回転数（rpm　100%）
-	0.0,
-	//double gear_ratio;減速比(ドラム回転 / モータ回転）
-	0.0,
-	//double drum_rps;定格ドラム回転速度（100％rps)
-	0.0,
-	//double drum_rpps;定格ドラム回転加速度（r/s~2)
-	0.0,
-	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
-	{0.0,0.0,0.0,0.0},
-	//double pos_limit_r[N_POS_LIMIT_TYPE];軸動作極限
-	{0.0,0.0,0.0,0.0},
-	//double n_wire;		// ワイヤ掛数
-	0.0,
-	//double n_boom_wire;	// ワイヤ掛数ブーム部
-	0.0,
-	//double n_ex_wind;	// あだ巻数
-	0.0,
-	//double n_tread;		// ドラム溝数
-	0.0,
-	//double d_drum;		// １層ドラム径
-	0.0,
-	//double d_wire;		// ワイヤ径
-	0.0,
-	//double d_drum_layer;// ドラム径層加算値
-	0.0,
-	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
-	0.0,
-	//INT32 v100plc
-	1000
-	*/
+	387.55,			// Lfull;		フルスパン（m）
 };
 ST_AXIS_ITEMS	base_mh1 = {
 	ID_HOIST,//INT32 Axis_id
@@ -143,7 +96,8 @@ ST_AXIS_ITEMS	base_mh1 = {
 	31.129,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.624,			// Ddrm0;		ドラム径0
 	0.720,			// Ddrm1;		ドラム径1
-	4.0,			// Nwire;		ロープ掛数
+	4.0,			// Nwire0;		ロープ掛数
+	2.0,			// Nwire1;		ロープ掛数
 	1.5,			// Ta0;			加速時間0
 	2.5,			// Ta1;			加速時間1
 	1.5,			// Td0;			減速時間0
@@ -156,11 +110,12 @@ ST_AXIS_ITEMS	base_mh1 = {
 	64.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
 	50000.0,		// CntAbsSet0;	PGプリセット0カウント値
 	0.0	,			// CntAbsSet1;	PGプリセット1カウント値
-	20.78461,		// dDdrm;		ドラム1層追加径
+	0.04157,		// dDdrm;		ドラム1層追加径
 	2801.127,		// Trq_rated;	定格トルク（モータ軸）
 	135.1407,		// Pwr_base;	定格必要出力
 	175.39915,		// Trq_base;	定格必要トルク
 	26.748792,		// Ia;			慣性モーメント
+	387.55,			// Lfull;		フルスパン（m）
 };
 ST_AUTO_SPEC	CSpec::auto_mh;
 ST_REMOTE_SPEC	CSpec::rmt_mh;
@@ -189,7 +144,8 @@ ST_AXIS_ITEMS	base_bh0 = {
 	78.12,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.720,				// Ddrm0;		ドラム径0
 	0.0,				// Ddrm1;		ドラム径1
-	6.0,				// Nwire;		ロープ掛数
+	6.0,				// Nwire0;		ロープ掛数
+	1.0,				// Nwire1;		ロープ掛数
 	1.5,				// Ta0;			加速時間0
 	0.0,				// Ta1;			加速時間1
 	1.5,				// Td0;			減速時間0
@@ -202,59 +158,13 @@ ST_AXIS_ITEMS	base_bh0 = {
 	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
 	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
 	0.0,				// CntAbsSet1;	アブソコーダプリセット1カウント値
-	20.78461,			// dDdrm;		ドラム1層追加径
+	0.04157,			// dDdrm;		ドラム1層追加直径
 	491.1067,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,				// Pwr_base;	定格必要出力
 	0.0,				// Trq_base;	定格必要トルク
 	4.885128,			// Ia;			慣性モーメント
-	/*
-	//INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=10000
-	{{0,1000,3030,6061,10000,10000},{0,0,0,0,0,0},{0,0,0,0,0,0}},
-	//INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX];//ノッチ指令速度正規化100%=10000
-	{{0,-1000,-3030,-6061,-10000,-10000},{0,0,0,0,0,0},{0,0,0,0,0,0}},
+	348.50,				// Lfull;		フルスパン（m）
 
-	//double acc;加速度
-	{0.22,0.0,0.0},
-	//double dec;減速度
-	{-0.22,0.0,0.0},
-	//double t_acc;加時間
-	{1.5,0.0,0.0},
-	//double t_dec;減時間
-	{1.5,0.0,0.0},
-
-	//double motor_rps;モータ定格回転数（rps　100%）
-	0.0,
-	//double motor_rpm;モータ定格回転数（rpm　100%）
-	0.0,
-	//double gear_ratio;減速比(ドラム回転 / モータ回転）
-	0.0,
-	//double drum_rps;定格ドラム回転速度（100％rps)
-	0.0,
-	//double drum_rpps;定格ドラム回転加速度（r/s~2)
-	0.0,
-	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
-	{0.0,0.0,0.0,0.0},
-	//double pos_limit_r[N_POS_LIMIT_TYPE];軸動作極限
-	{0.0,0.0,0.0,0.0},
-	//double n_wire;		// ワイヤ掛数
-	0.0,
-	//double n_boom_wire;	// ワイヤ掛数ブーム部
-	0.0,
-	//double n_ex_wind;	// あだ巻数
-	0.0,
-	//double n_tread;		// ドラム溝数
-	0.0,
-	//double d_drum;		// １層ドラム径
-	0.0,
-	//double d_wire;		// ワイヤ径
-	0.0,
-	//double d_drum_layer;// ドラム径層加算値
-	0.0,
-	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
-	0.0,
-	//INT32 v100plc
-	1000
-	*/
 };
 ST_AXIS_ITEMS	base_bh1 = {
 
@@ -278,7 +188,8 @@ ST_AXIS_ITEMS	base_bh1 = {
 	78.12,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.720,				// Ddrm0;		ドラム径0
 	0.0,				// Ddrm1;		ドラム径1
-	6.0,				// Nwire;		ロープ掛数
+	6.0,				// Nwire0;		ロープ掛数
+	1.0,				// Nwire1;		ロープ掛数
 	1.5,				// Ta0;			加速時間0
 	0.0,				// Ta1;			加速時間1
 	1.5,				// Td0;			減速時間0
@@ -291,11 +202,12 @@ ST_AXIS_ITEMS	base_bh1 = {
 	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
 	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
 	0.0,				// CntAbsSet1;	アブソコーダプリセット1カウント値
-	20.78461,			// dDdrm;		ドラム1層追加径
+	0.04157,			// dDdrm;		ドラム1層追加直径
 	491.1067,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,				// Pwr_base;	定格必要出力
 	0.0,				// Trq_base;	定格必要トルク
 	4.885128,			// Ia;			慣性モーメント
+	348.50,				// Lfull;		フルスパン（m）
 };
 ST_AUTO_SPEC	CSpec::auto_bh;
 ST_REMOTE_SPEC	CSpec::rmt_bh;
@@ -323,7 +235,8 @@ ST_AXIS_ITEMS	base_sl0 = {
 	479.4,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.33,				// Ddrm0;		ドラム径0
 	0.0,				// Ddrm1;		ドラム径1
-	1.0,				// Nwire;		ロープ掛数
+	1.0,				// Nwire0;		ロープ掛数
+	1.0,				// Nwire1;		ロープ掛数
 	12.0,				// Ta0;			加速時間0
 	20.0,				// Ta1;			加速時間1
 	12.0,				// Td0;			減速時間0
@@ -341,6 +254,7 @@ ST_AXIS_ITEMS	base_sl0 = {
 	0.0,				// Pwr_base;	定格必要出力
 	0.0,				// Trq_base;	定格必要トルク
 	30.39636,			// Ia;			慣性モーメント
+	11.473,				// Lfull;		フルスパン（m）
 };
 ST_AXIS_ITEMS	base_sl1 = {
 	ID_SLEW,//INT32 Axis_id;
@@ -363,7 +277,8 @@ ST_AXIS_ITEMS	base_sl1 = {
 	479.4,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.33,				// Ddrm0;		ドラム径0
 	0.0,				// Ddrm1;		ドラム径1
-	1.0,				// Nwire;		ロープ掛数
+	1.0,				// Nwire0;		ロープ掛数
+	1.0,				// Nwire1;		ロープ掛数
 	12.0,				// Ta0;			加速時間0
 	20.0,				// Ta1;			加速時間1
 	12.0,				// Td0;			減速時間0
@@ -381,7 +296,7 @@ ST_AXIS_ITEMS	base_sl1 = {
 	0.0,				// Pwr_base;	定格必要出力
 	0.0,				// Trq_base;	定格必要トルク
 	30.39636,			// Ia;			慣性モーメント
-	
+	11.473,				// Lfull;		フルスパン（m）
 };
 ST_AUTO_SPEC	CSpec::auto_sl;
 ST_REMOTE_SPEC	CSpec::rmt_sl;
@@ -410,7 +325,8 @@ ST_AXIS_ITEMS	base_gt0 = {
 	88.0,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.5,			// Ddrm0;		ドラム径0
 	0.0,			// Ddrm1;		ドラム径1
-	1.0,			// Nwire;		ロープ掛数
+	1.0,			// Nwire0;		ロープ掛数
+	1.0,			// Nwire1;		ロープ掛数
 	9.0,			// Ta0;			加速時間0
 	9.0,			// Ta1;			加速時間1
 	9.0,			// Td0;			減速時間0
@@ -428,55 +344,8 @@ ST_AXIS_ITEMS	base_gt0 = {
 	0.0,			// Pwr_base;	定格必要出力
 	0.0,			// Trq_base;	定格必要トルク
 	6.24755,		// Ia;			慣性モーメント
+	1000.0,			// Lfull;		フルスパン（m）
 
-	/*
-	//INT32 notch_spd_nrm_f[N_NOTCH_MODE][N_NOTCH_MAX];	//ノッチ指令速度正規化100%=10000
-	{{0,1000,3017,6034,10000,10000},{0,0,0,0,0,0},{0,0,0,0,0,0}},
-	//INT32 notch_spd_nrm_r[N_NOTCH_MODE][N_NOTCH_MAX];//ノッチ指令速度正規化100%=10000
-	{{0,-1000,-3017,-6034,-10000,-10000},{0,0,0,0,0,0},{0,0,0,0,0,0}},
-
-	//double acc;加速度
-	{0.0644,0.0644,0.0},
-	//double dec;減速度
-	{-0.0644,-0.116,0.0},
-	//double t_acc;加時間
-	{9.0,9.0,0.0},
-	//double t_dec;減時間
-	{9.0,5.0,0.0},
-
-	//double motor_rps;モータ定格回転数（rps　100%）
-	0.0,
-	//double motor_rpm;モータ定格回転数（rpm　100%）
-	0.0,
-	//double gear_ratio;減速比(ドラム回転 / モータ回転）
-	0.0,
-	//double drum_rps;定格ドラム回転速度（100％rps)
-	0.0,
-	//double drum_rpps;定格ドラム回転加速度（r/s~2)
-	0.0,
-	//double pos_limit_f[N_POS_LIMIT_TYPE];軸動作極限
-	{0.0,0.0,0.0,0.0},
-	//double pos_limit_r[N_POS_LIMIT_TYPE];軸動作極限
-	{0.0,0.0,0.0,0.0},
-	//double n_wire;		// ワイヤ掛数
-	0.0,
-	//double n_boom_wire;	// ワイヤ掛数ブーム部
-	0.0,
-	//double n_ex_wind;	// あだ巻数
-	0.0,
-	//double n_tread;		// ドラム溝数
-	0.0,
-	//double d_drum;		// １層ドラム径
-	0.0,
-	//double d_wire;		// ワイヤ径
-	0.0,
-	//double d_drum_layer;// ドラム径層加算値
-	0.0,
-	//double l_wire;		// 基準ワイヤ長(旋回はTTB円周
-	0.0,
-	//INT32 v100plc
-	1000
-	*/
 };
 ST_AXIS_ITEMS	base_gt1 = {
 	ID_GANTRY,//INT32 Axis_id;
@@ -500,7 +369,8 @@ ST_AXIS_ITEMS	base_gt1 = {
 	88.0,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.5,			// Ddrm0;		ドラム径0
 	0.0,			// Ddrm1;		ドラム径1
-	1.0,			// Nwire;		ロープ掛数
+	1.0,			// Nwire0;		ロープ掛数
+	1.0,			// Nwire1;		ロープ掛数
 	9.0,			// Ta0;			加速時間0
 	9.0,			// Ta1;			加速時間1
 	9.0,			// Td0;			減速時間0
@@ -518,6 +388,7 @@ ST_AXIS_ITEMS	base_gt1 = {
 	0.0,			// Pwr_base;	定格必要出力
 	0.0,			// Trq_base;	定格必要トルク
 	6.24755,		// Ia;			慣性モーメント
+	1000.0,			// Lfull;		フルスパン（m）
 };
 ST_AUTO_SPEC	CSpec::auto_gt;
 ST_REMOTE_SPEC	CSpec::rmt_gt;

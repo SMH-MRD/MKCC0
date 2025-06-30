@@ -141,6 +141,15 @@ typedef struct _ST_AUX_CS_INF {
 #define MODE_ENV_APP_EMURATOR	1	//エミュレータモード
 #define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
 
+typedef struct _ST_CRANE_STAT {
+	double i_layer[MOTION_ID_MAX];					//ドラム現在層数
+	double n_layer[MOTION_ID_MAX];					//ドラム現在層巻取数
+	double l_drum[MOTION_ID_MAX];					//ドラム巻取り量
+	ST_MOVE_SET	nd[MOTION_ID_MAX];					//ドラム回転動作
+	ST_MOVE_SET	d;									//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
+
+} ST_CRANE_STAT, * LPST_CRANE_STAT;
+
 typedef struct _ST_CC_ENV_INF {
 
 	ST_DEVICE_CODE device_code;
@@ -157,13 +166,17 @@ typedef struct _ST_CC_ENV_INF {
 
 	//Event Update				:イベント条件で更新
 	bool is_tasks_standby_ok;							//タスクの立ち上がり確認
-	bool is_crane_status_ok = false;						//クレーンステータス初期化完了
+	bool is_crane_status_ok = false;					//クレーンステータス初期化完了
 
 
 	//Periodical Update			：定周期更新
 	DWORD env_act_count = 0;								//ヘルシー信号
 	WORD operation_mode;								//運転モード　機上,リモート
 	int debug_mode;
+
+	double Cdrm[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム1層円周
+	double Ldrm[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム層巻取量
+	double Lspan[MOTION_ID_MAX][N_DRUM_LAYER];	//全ロープ長,TTB周長,走行可能距離
 
 	Vector3 rc;											//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
 	Vector3 rl;											//主巻吊荷のクレーン吊点とのx,y,z相対座標
@@ -187,8 +200,8 @@ typedef struct _ST_CC_ENV_INF {
 	double w2_ah;										//振角周波数の2乗
 
 	double R;											//旋回半径
-	double g_ratio_x = 2.0;							//振れ周期補正係数　√gの比率で調整
-	double g_ratio_y = 2.0;							//振れ周期補正係数　√gの比率で調整
+	double g_ratio_x = 2.0;								//振れ周期補正係数　√gの比率で調整
+	double g_ratio_y = 2.0;								//振れ周期補正係数　√gの比率で調整
 
 	WORD faultPC[N_PC_FAULT_WORDS];						//PLC検出異常
 	WORD faultPLC[N_PLC_FAULT_WORDS];					//制御PC検出異常
@@ -200,20 +213,14 @@ typedef struct _ST_CC_ENV_INF {
 
 	INT32 notch0;										//0ノッチ判定総合
 
-	double Cdr[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム1層円周
-	double Ldr[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム層巻取量
-	double Kdr[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム層円周倍率
-
 	ST_MOVE_SET	axc[MOTION_ID_MAX];					//軸動作
-	ST_MOVE_SET	d;									//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
+
 	ST_MOVE_SET	ph;									//φ
 	ST_MOVE_SET	th;									//θ
 	ST_MOVE_SET	hm0;								//主巻シーブ起伏高さ
 	ST_MOVE_SET	ha0;								//補巻シーブ起伏高さ
-	ST_MOVE_SET	nd[MOTION_ID_MAX];					//ドラム回転動作
-	UINT32 i_layer[MOTION_ID_MAX];					//ドラム現在層数
-	double n_layer[MOTION_ID_MAX];					//ドラム現在層巻取数
-	double l_drum[MOTION_ID_MAX];					//ドラム巻取り量
+
+
 	ST_MOVE_SET	lrm;								//主巻ロープ長
 	ST_MOVE_SET	lra;								//補巻ロープ長
 

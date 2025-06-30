@@ -189,7 +189,18 @@ LRESULT CALLBACK CSim::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_TIMER: {
 
 		st_mon1.wo.str(L""); 
-		st_mon1.wo << L"[INV Ref V] mh:"<<pPLC_IO->stat_mh.inv_ref_v ;
+
+		st_mon1.wo	<< L"[INV FWD/RWD] mh:" << pPLC_IO->stat_mh.inv_ref_dir
+			<< L" bh:" << pPLC_IO->stat_bh.inv_ref_dir
+			<< L" sl:" << pPLC_IO->stat_sl.inv_ref_dir
+			<< L" gt:" << pPLC_IO->stat_gt.inv_ref_dir
+			<< L" \n";
+		st_mon1.wo << L"[INV Ref V] mh:" << pPLC_IO->stat_mh.inv_ref_v
+			<< L" bh:" << pPLC_IO->stat_bh.inv_ref_v
+			<< L" sl:" << pPLC_IO->stat_sl.inv_ref_v
+			<< L" gt:" << pPLC_IO->stat_gt.inv_ref_v
+			<< L" \n";
+
 		SetWindowText(st_mon1.hctrl[SIM_ID_MON1_STATIC_INF0], st_mon1.wo.str().c_str());
 
 	}break;

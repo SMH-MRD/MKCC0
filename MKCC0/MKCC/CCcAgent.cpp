@@ -171,18 +171,31 @@ int CAgent::input() {
 	pPLC_IO->stat_mh.hcount_fb;
 	pPLC_IO->stat_mh.absocoder_fb;
 
-	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16)		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;//MHインバータリファレンス方向
-	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16)	pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_REV;//MHインバータリファレンス方向
-	else													pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_STP;//MHインバータリファレンス方向
-
-	pPLC_IO->stat_mh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_mh).i16;	//MHインバータリファレンス速度
-	pPLC_IO->stat_bh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_bh).i16;	//BHインバータリファレンス速度
-	pPLC_IO->stat_sl.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_sl).i16;	//SLインバータリファレンス速度
-	pPLC_IO->stat_gt.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_gt).i16;	//GTインバータリファレンス速度
-
-	pPLC_IO->stat_mh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_mh).i16;	//MHインバータリファレンストルク
-	pPLC_IO->stat_bh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_bh).i16;	//BHインバータリファレンストルク
-
+	//インバータ指令状態
+	//インバータ運転指令方向
+	if		(pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16)	pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16)	pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_REV;
+	else													pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_STP;
+	
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16)		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16)	pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_REV;
+	else													pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_STP;
+	
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16)		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16)	pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_REV;
+	else													pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_STP;
+	
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16)		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16)	pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_REV;
+	else													pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_STP;
+	//インバータ速度指令
+	pPLC_IO->stat_mh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_mh).i16;	
+	pPLC_IO->stat_bh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_bh).i16;	
+	pPLC_IO->stat_sl.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_sl).i16;	
+	pPLC_IO->stat_gt.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_gt).i16;	
+	//インバータリトルク指令
+	pPLC_IO->stat_mh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_mh).i16;	
+	pPLC_IO->stat_bh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_bh).i16;
 	return S_OK;
 }
 
