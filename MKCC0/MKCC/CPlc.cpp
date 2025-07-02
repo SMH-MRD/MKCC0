@@ -85,7 +85,9 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_mh
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_bh
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_sl
+
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_gt
 
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 
@@ -133,6 +135,7 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_bh
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//hcounter_sl
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_gt
 
 	//SIMÅ@INV èoóÕ
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//vfb_mh;
@@ -257,6 +260,7 @@ int CPlc::setup(int crane_id) {
 			plc_io_rif.hcounter_bh.pi16		= p + 86;
 			plc_io_rif.hcounter_sl.pi16		= p + 88;
 			plc_io_rif.absocoder_mh.pi16	= p + 90;
+			plc_io_rif.absocoder_gt.pi16	= p + 94;
 
 		}
 		//WRITE
@@ -312,6 +316,7 @@ int CPlc::setup(int crane_id) {
 			plc_io_wif.hcounter_bh.pi16		= p + 34;
 			plc_io_wif.hcounter_sl.pi16		= p + 36;
 			plc_io_wif.absocoder_mh.pi16	= p + 38;
+			plc_io_wif.absocoder_gt.pi16	= p + 42;
 
 			plc_io_wif.vfb_mh.pi16			= p + 70;
 			plc_io_wif.vfb_bh.pi16			= p + 71;

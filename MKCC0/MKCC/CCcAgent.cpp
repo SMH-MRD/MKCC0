@@ -163,6 +163,16 @@ static UINT32	gpad_mode_last = L_OFF;
 /// </summary>
 /// <returns></returns>
 int CAgent::input() {
+
+	//PG アブソコーダ
+	pPLC_IO->stat_mh.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_mh).i32;	//MH　PG
+	pPLC_IO->stat_bh.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_bh).i32;	//BH　PG
+	pPLC_IO->stat_sl.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_sl).i32;	//SL　PG
+	
+	pPLC_IO->stat_mh.absocoder_fb = pCrane->pPlc->rval(pPlcRIf->absocoder_mh).i32;	//MHアブソコーダ
+	pPLC_IO->stat_gt.absocoder_fb = pCrane->pPlc->rval(pPlcRIf->absocoder_gt).i32;	//BHアブソコーダ
+
+	//ブレーキ状態FB
 	pPLC_IO->stat_mh.brk_fb = pCrane->pPlc->rval(pPlcRIf->mh_brk1_fb).i16;		//MHブレーキ状態
 	pPLC_IO->stat_bh.brk_fb = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;		//BHブレーキ状態
 	pPLC_IO->stat_gt.brk_fb = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;		//GTブレーキ状態
@@ -260,6 +270,7 @@ int CAgent::parse() {//メイン処理
 	pCrane->pPlc->wval(pPlcWIf->hcounter_bh, pSim_Inf->hcount_bh);
 	pCrane->pPlc->wval(pPlcWIf->hcounter_sl, pSim_Inf->hcount_sl);
 	pCrane->pPlc->wval(pPlcWIf->absocoder_mh, pSim_Inf->absocoder_mh);
+	pCrane->pPlc->wval(pPlcWIf->absocoder_gt, pSim_Inf->absocoder_gt);
 
 	//速度FB　トルク指令(INV出力）
 

@@ -98,33 +98,30 @@ int CSim::parse() {					//メイン処理
 }
 int CSim::output() {						//出力処理
 
-	memcpy_s(pSim_Inf, sizeof(ST_CC_SIM_INF), &st_work, sizeof(ST_CC_SIM_INF));
+	memcpy_s(pSim_Inf, sizeof(ST_CC_SIM_INF), &st_sim_inf, sizeof(ST_CC_SIM_INF));
 	return S_OK;
 }
 
 HRESULT CSim::init_drm_motion() {	//ドラムパラメータ設定(巻取量,層数,速度,加速度）
-	st_work.axis[ID_HOIST].nd.p	= 10.0;	st_work.axis[ID_HOIST].i_layer	= 3;st_work.axis[ID_HOIST].nd.v = 0.0;	st_work.axis[ID_HOIST].nd.a = 0.0;
-	st_work.axis[ID_BOOM_H].nd.p= 10.0; st_work.axis[ID_BOOM_H].i_layer = 3;st_work.axis[ID_BOOM_H].nd.v= 0.0;	st_work.axis[ID_BOOM_H].nd.a= 0.0;
-	st_work.axis[ID_SLEW].nd.p	= 10.0;	st_work.axis[ID_SLEW].i_layer	= 3;st_work.axis[ID_SLEW].nd.v	= 0.0;	st_work.axis[ID_SLEW].nd.a	= 0.0;
-	st_work.axis[ID_GANTRY].nd.p= 10.0; st_work.axis[ID_GANTRY].i_layer = 3;st_work.axis[ID_GANTRY].nd.v= 0.0;	st_work.axis[ID_GANTRY].nd.a= 0.0;
+	//st_work.axis[ID_HOIST].nd.p	= 10.0;	st_work.axis[ID_HOIST].i_layer	= 3;st_work.axis[ID_HOIST].nd.v = 0.0;	st_work.axis[ID_HOIST].nd.a = 0.0;
+	//st_work.axis[ID_BOOM_H].nd.p= 10.0; st_work.axis[ID_BOOM_H].i_layer = 3;st_work.axis[ID_BOOM_H].nd.v= 0.0;	st_work.axis[ID_BOOM_H].nd.a= 0.0;
+	//st_work.axis[ID_SLEW].nd.p	= 10.0;	st_work.axis[ID_SLEW].i_layer	= 3;st_work.axis[ID_SLEW].nd.v	= 0.0;	st_work.axis[ID_SLEW].nd.a	= 0.0;
+	//st_work.axis[ID_GANTRY].nd.p= 10.0; st_work.axis[ID_GANTRY].i_layer = 3;st_work.axis[ID_GANTRY].nd.v= 0.0;	st_work.axis[ID_GANTRY].nd.a= 0.0;
 	st_work.axis[ID_BH_HST].nd.p= 10.0; st_work.axis[ID_BH_HST].i_layer = 3;st_work.axis[ID_BH_HST].nd.v= 0.0;	st_work.axis[ID_BH_HST].nd.a= 0.0;
 
-	set_sensor_fb();	// センサフィードバック設定
-	calc_axis_motion();	// 軸動作計算
-	calc_load_motion();	// 吊荷動作計算
-	calc_plc_output();	// PLC出力計算
+	set_sensor_fb();						// センサフィードバック設定
+	calc_axis_motion();						// 軸動作計算
+	calc_load_motion();						// 吊荷動作計算
+	calc_plc_output();						// PLC出力計算
 
-	st_sim_inf.hcount_mh	= 100000000;//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
-	st_sim_inf.hcount_bh	= 86673000;	//クレーン補巻吊点のクレーン基準点とのx,y,z相対座標
-	st_sim_inf.hcount_sl	= 15000000;	//主巻振れセンサ検出x,y,z座標 m
-	st_sim_inf.absocoder_mh = 84816;	//主巻アブソコーダ計算値
+	st_sim_inf.hcount_mh		= 96450040;		//主巻PG　(R45,H70）
+	st_sim_inf.hcount_bh		= 85167878;		//引込PG　(R45,H70）
+	st_sim_inf.hcount_sl		= 15000000;		//旋回PG　0°
+	st_sim_inf.absocoder_mh		= 50000;		//主巻アブソコーダ初期値3層開始位置(R45,H70）
+	st_sim_inf.absocoder_gt		= 32595;		//走行アブソコーダ初期値50m
 	return S_OK;
 }  
 HRESULT CSim::set_drm_condition() {	//ドラム状態設定(ブレーキ,極限,荷重）
-
-
-
-
 
 
 	return S_OK;

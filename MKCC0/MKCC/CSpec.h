@@ -62,11 +62,12 @@ typedef struct _ST_AXIS_ITEMS {
 	double Ndmizo0;					// ドラム溝数0
 	double Ndmizo1;					// ドラム溝数1
 	double CntPgR;					// PG1回転カウント数×逓倍
+	double CntPgDrumR;				// ドラム1回転PGカウント数
 	double CntPgSet0;				// PGプリセット0カウント値
-	double CntPgSet1;				// PGプリセット1カウント値
+	double NdrmPgSet0;				// PGプリセット0ドラム回転数
 	double CntAbsR;					// アブソコーダ1回転カウント数×入力軸ギア比
 	double CntAbsSet0;				// アブソコーダプリセット0カウント値
-	double CntAbsSet1;				// アブソコーダプリセット1カウント値
+	double NdrmAbsSet0;				// アブソコーダプリセット0ドラム回転数
 	
 	double dDdrm;					// ドラム1層追加半径
 	double Trq_rated;				// 定格トルク（モータ軸）

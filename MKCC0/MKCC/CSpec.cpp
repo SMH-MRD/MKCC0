@@ -61,11 +61,12 @@ ST_AXIS_ITEMS	base_mh0 = {
 	34,				// Ndmizo0;		ドラム溝数0
 	21,				// Ndmizo1;		ドラム溝数1
 	2048,			// CntPgR;		PG1回転カウント数×逓倍
+	63752,			// CntPgDrumR　ドラム1回転PGカウント数
 	100000000,		// CntPgSet0;	PGプリセット0カウント値
-	0.0,			// CntPgSet1;	PGプリセット1カウント値
-	64.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	50000.0,		// CntAbsSet0;	PGプリセット0カウント値
-	0.0	,			// CntAbsSet1;	PGプリセット1カウント値
+	230.51,			// NdrmPgSet0;	PGプリセット1カウント値
+	512.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
+	50000.0,		// CntAbsSet0;	アブソコーダプリセット0カウント値
+	68.0,			// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
 	0.04157,		// dDdrm;		ドラム1層追加径
 	2801.127,		// Trq_rated;	定格トルク（モータ軸）
 	135.1407,		// Pwr_base;	定格必要出力
@@ -105,11 +106,12 @@ ST_AXIS_ITEMS	base_mh1 = {
 	34,				// Ndmizo0;		ドラム溝数0
 	21,				// Ndmizo1;		ドラム溝数1
 	2048,			// CntPgR;		PG1回転カウント数×逓倍
+	63752,			// CntPgDrumR　ドラム1回転PGカウント数
 	100000000,		// CntPgSet0;	PGプリセット0カウント値
-	0.0,			// CntPgSet1;	PGプリセット1カウント値
-	64.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	50000.0,		// CntAbsSet0;	PGプリセット0カウント値
-	0.0	,			// CntAbsSet1;	PGプリセット1カウント値
+	230.51,			// NdrmPgSet0;	PGプリセット1カウント値
+	512.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
+	50000.0,		// CntAbsSet0;	アブソコーダプリセット0カウント値
+	68.0,			// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
 	0.04157,		// dDdrm;		ドラム1層追加径
 	2801.127,		// Trq_rated;	定格トルク（モータ軸）
 	135.1407,		// Pwr_base;	定格必要出力
@@ -153,17 +155,18 @@ ST_AXIS_ITEMS	base_bh0 = {
 	21.0,				// Ndmizo0;		ドラム溝数0
 	0.0,				// Ndmizo1;		ドラム溝数1
 	2048,				// CntPgR;		PG1回転カウント数×逓倍
+	159990,				// CntPgDrumR　ドラム1回転PGカウント数
 	86673,				// CntPgSet0;	PGプリセット0カウント値
-	0.0,				// CntPgSet1;	PGプリセット1カウント値
+	83.3,				// NdrmPgSet0;	PGプリセット0ドラム回転数
 	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
 	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
-	0.0,				// CntAbsSet1;	アブソコーダプリセット1カウント値
+	0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
 	0.04157,			// dDdrm;		ドラム1層追加直径
 	491.1067,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,				// Pwr_base;	定格必要出力
 	0.0,				// Trq_base;	定格必要トルク
 	4.885128,			// Ia;			慣性モーメント
-	348.50,				// Lfull;		フルスパン（m）
+	312.015,			// Lfull;		フルスパン（m）
 
 };
 ST_AXIS_ITEMS	base_bh1 = {
@@ -197,17 +200,18 @@ ST_AXIS_ITEMS	base_bh1 = {
 	21.0,				// Ndmizo0;		ドラム溝数0
 	0.0,				// Ndmizo1;		ドラム溝数1
 	2048,				// CntPgR;		PG1回転カウント数×逓倍
-	86673,				// CntPgSet0;	PGプリセット0カウント値
-	0.0,				// CntPgSet1;	PGプリセット1カウント値
+	159990,				// CntPgDrumR　ドラム1回転PGカウント数
+	86673000,			// CntPgSet0;	PGプリセット0カウント値
+	83.3,				// NdrmPgSet0;	PGプリセット0ドラム回転数
 	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
 	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
-	0.0,				// CntAbsSet1;	アブソコーダプリセット1カウント値
+	0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
 	0.04157,			// dDdrm;		ドラム1層追加直径
 	491.1067,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,				// Pwr_base;	定格必要出力
 	0.0,				// Trq_base;	定格必要トルク
 	4.885128,			// Ia;			慣性モーメント
-	348.50,				// Lfull;		フルスパン（m）
+	312.015,			// Lfull;		フルスパン（m）
 };
 ST_AUTO_SPEC	CSpec::auto_bh;
 ST_REMOTE_SPEC	CSpec::rmt_bh;
@@ -244,11 +248,12 @@ ST_AXIS_ITEMS	base_sl0 = {
 	1.0,				// Ndmizo0;		ドラム溝数0
 	1.0,				// Ndmizo1;		ドラム溝数1
 	2048,				// CntPgR;		PG1回転カウント数×逓倍
+	981811,				// CntPgDrumR　ドラム1回転PGカウント数
 	15000000,			// CntPgSet0;	PGプリセット0カウント値
-	20432689,			// CntPgSet1;	PGプリセット1カウント値
+	0.0,				// NdrmPgSet0;	PGプリセット0ドラム回転数
 	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	0.0,				// CntAbsSet0;	アブソコーダPGプリセット0カウント値
-	0.0,				// CntAbsSet1;	アブソコーダPGプリセット1カウント値
+	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
+	0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
 	0.0,				// dDdrm;		ドラム1層追加径
 	175.0704,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,				// Pwr_base;	定格必要出力
@@ -286,11 +291,12 @@ ST_AXIS_ITEMS	base_sl1 = {
 	1.0,				// Ndmizo0;		ドラム溝数0
 	1.0,				// Ndmizo1;		ドラム溝数1
 	2048,				// CntPgR;		PG1回転カウント数×逓倍
+	981811,				// CntPgDrumR　ドラム1回転PGカウント数
 	15000000,			// CntPgSet0;	PGプリセット0カウント値
-	20432689,			// CntPgSet1;	PGプリセット1カウント値
+	0.0,				// NdrmPgSet0;	PGプリセット0ドラム回転数
 	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	0.0,				// CntAbsSet0;	アブソコーダPGプリセット0カウント値
-	0.0,				// CntAbsSet1;	アブソコーダPGプリセット1カウント値
+	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
+	0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
 	0.0,				// dDdrm;		ドラム1層追加径
 	175.0704,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,				// Pwr_base;	定格必要出力
@@ -334,11 +340,11 @@ ST_AXIS_ITEMS	base_gt0 = {
 	1.0,			// Ndmizo0;		ドラム溝数0
 	0.0,			// Ndmizo1;		ドラム溝数1
 	0.0,			// CntPgR;		PG1回転カウント数×逓倍
-	0.0,			// CntPgSet0;	PGプリセット0カウント値
-	0.0,			// CntPgSet1;	PGプリセット1カウント値
-	0.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	0.0,			// CntAbsSet0;	PGプリセット0カウント値
-	0.0,			// CntAbsSet1;	PGプリセット1カウント値
+	1000000000.0,	// CntPgSet0;	PGプリセット0カウント値
+	0.0,			// NdrmPgSet0;	PGプリセット0ドラム回転数
+	32595.0,		// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
+	31.831,			// CntAbsSet0;	アブソコーダプリセット0カウント値
+	0.0,			// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
 	0.0,			// dDdrm;		ドラム1層追加径
 	0.0,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,			// Pwr_base;	定格必要出力
@@ -378,11 +384,12 @@ ST_AXIS_ITEMS	base_gt1 = {
 	1.0,			// Ndmizo0;		ドラム溝数0
 	0.0,			// Ndmizo1;		ドラム溝数1
 	0.0,			// CntPgR;		PG1回転カウント数×逓倍
+	180224,			// CntPgDrumR　ドラム1回転PGカウント数
 	0.0,			// CntPgSet0;	PGプリセット0カウント値
 	0.0,			// CntPgSet1;	PGプリセット1カウント値
-	0.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	0.0,			// CntAbsSet0;	PGプリセット0カウント値
-	0.0,			// CntAbsSet1;	PGプリセット1カウント値
+	1024.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
+	0.0,			// CntAbsSet0;	アブソコーダプリセット0カウント値
+	0.0,			// CntAbsSet1;	アブソコーダプリセット1カウント値
 	0.0,			// dDdrm;		ドラム1層追加径
 	0.0,			// Trq_rated;	定格トルク（モータ軸）
 	0.0,			// Pwr_base;	定格必要出力

@@ -17,8 +17,8 @@ using namespace std;
 #define	OK_SHMEM						0	// 共有メモリ 生成/破棄正常
 #define	ERR_SHMEM_CREATE				-1	// 共有メモリ Create異常
 #define	ERR_SHMEM_VIEW					-2	// 共有メモリ View異常
-#define	ERR_SHMEM_NOT_AVAILABLE			-3	// 共有メモリ View異常
-#define	ERR_SHMEM_MUTEX					-4	// 共有メモリ View異常
+#define	ERR_SHMEM_NOT_AVAILABLE			-3	// 共有メモリ NULL
+#define	ERR_SHMEM_MUTEX					-4	// 共有メモリ MUTEX異常
 
 #define SMEM_DATA_SIZE_MAX				1000000	//共有メモリ割り当て最大サイズ　1Mbyte	
 
@@ -142,87 +142,67 @@ typedef struct _ST_AUX_CS_INF {
 #define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
 
 typedef struct _ST_CRANE_STAT {
-	double i_layer[MOTION_ID_MAX];					//ドラム現在層数
-	double n_layer[MOTION_ID_MAX];					//ドラム現在層巻取数
-	double l_drum[MOTION_ID_MAX];					//ドラム巻取り量
-	ST_MOVE_SET	nd[MOTION_ID_MAX];					//ドラム回転動作
-	ST_MOVE_SET	d;									//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
-
+	double		i_layer[MOTION_ID_MAX];			//ドラム現在層数
+	double		n_layer[MOTION_ID_MAX];			//ドラム現在回転数
+	double		l_drum[MOTION_ID_MAX];			//ドラムロープ巻取り量
+	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作
+	ST_MOVE_SET	mv[MOTION_ID_MAX];				//軸動作　引込は角度
+	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
+	ST_MOVE_SET r;								//旋回半径
+	ST_MOVE_SET	lrm;							//主巻ロープ
+	double		m;								//吊荷質量
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
 typedef struct _ST_CC_ENV_INF {
 
 	ST_DEVICE_CODE device_code;
 
+	//タスクステータス
 	UINT32	app_mode = MODE_ENV_APP_PRODUCT;
-	UINT32	aux_mode = FUNC_DEACTIVE;	
+	UINT32	aux_mode = FUNC_DEACTIVE;
+	bool is_tasks_standby_ok;					//タスクの立ち上がり確認
+	bool is_crane_status_ok = false;			//クレーンステータス初期化完了
 	
-	DWORD helthy_cnt;
+	//Periodical Update	：定周期更新
+	DWORD env_act_count = 0;					//ヘルシー信号
+	WORD operation_mode;						//運転モード　機上,リモート
+	//補機通信
 	ST_AUX_COM_SERV_MSG st_msg_u_rcv;
 	ST_AUX_COM_CLI_MSG st_msg_u_snd;
 	SOCKADDR_IN addrin_snd;
 	SOCKADDR_IN addrin_rcv;
 	SOCKADDR_IN addrin_from;
 
-	//Event Update				:イベント条件で更新
-	bool is_tasks_standby_ok;							//タスクの立ち上がり確認
-	bool is_crane_status_ok = false;					//クレーンステータス初期化完了
-
-
-	//Periodical Update			：定周期更新
-	DWORD env_act_count = 0;								//ヘルシー信号
-	WORD operation_mode;								//運転モード　機上,リモート
+	//Parameters
 	int debug_mode;
+	double Cdrm[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム1層円周　[0]はドラム1層目の円周
+	double Ldrm[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム層巻取量 [0]はドラム1層目の巻取量
+	double Lspan[MOTION_ID_MAX];				//全ロープ長,TTB周長,走行可能距離
 
-	double Cdrm[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム1層円周
-	double Ldrm[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム層巻取量
-	double Lspan[MOTION_ID_MAX][N_DRUM_LAYER];	//全ロープ長,TTB周長,走行可能距離
+	ST_CRANE_STAT crane_stat;					//クレーン状態
 
-	Vector3 rc;											//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
-	Vector3 rl;											//主巻吊荷のクレーン吊点とのx,y,z相対座標
-	Vector3 rcam_m;										//主巻振れセンサ検出x,y,z座標 m
+	//吊荷状態
+	Vector3 rc;									//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
+	Vector3 rl;									//主巻吊荷のクレーン吊点とのx,y,z相対座標
+	Vector3 rcam_m;								//主巻振れセンサ検出x,y,z座標 m
+	Vector3 sway_ph_expected[MOTION_ID_MAX];	//振れ位相評価値
+	Vector3 sway_amp_expected[MOTION_ID_MAX];	//振れ振幅評価値
 
-	Vector3 rc_a;										//クレーン補巻吊点のクレーン基準点とのx,y,z相対座標
-	Vector3 rl_a;										//補巻吊荷のクレーン吊点とのx,y,z相対座標
-	Vector3 rcam_m_a;									//補巻振れセンサ検出x,y,z座標 m
+	double T;									//振周期		s
+	double w;									//振角周波数	/s
+	double w2;									//振角周波数の2乗
+	double g_ratio_x = 2.0;						//振れ周期補正係数　√gの比率で調整
+	double g_ratio_y = 2.0;						//振れ周期補正係数　√gの比率で調整
 
-	double mh_l;										//ロープ長
-	double T;											//振周期		s
-	double w;											//振角周波数	/s
-	double w2;											//振角周波数の2乗
+	WORD faultPC[N_PC_FAULT_WORDS];				//PLC検出異常
+	WORD faultPLC[N_PLC_FAULT_WORDS];			//制御PC検出異常
 
-	double sway_ph_expected[MOTION_ID_MAX];				//振れ位相評価値
-	double sway_amp_expected[MOTION_ID_MAX];			//振れ振幅評価値
+	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
+	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
 
-	double ah_l;										//ロープ長
-	double T_ah;										//振周期		s
-	double w_ah;										//振角周波数	/s
-	double w2_ah;										//振角周波数の2乗
+	INT32 OTE_req_status;						//操作端末要求状態
 
-	double R;											//旋回半径
-	double g_ratio_x = 2.0;								//振れ周期補正係数　√gの比率で調整
-	double g_ratio_y = 2.0;								//振れ周期補正係数　√gの比率で調整
-
-	WORD faultPC[N_PC_FAULT_WORDS];						//PLC検出異常
-	WORD faultPLC[N_PLC_FAULT_WORDS];					//制御PC検出異常
-
-	bool is_fwd_endstop[MOTION_ID_MAX];					//正転極限判定
-	bool is_rev_endstop[MOTION_ID_MAX];					//逆転極限判定
-
-	INT32 OTE_req_status;								//操作端末要求状態
-
-	INT32 notch0;										//0ノッチ判定総合
-
-	ST_MOVE_SET	axc[MOTION_ID_MAX];					//軸動作
-
-	ST_MOVE_SET	ph;									//φ
-	ST_MOVE_SET	th;									//θ
-	ST_MOVE_SET	hm0;								//主巻シーブ起伏高さ
-	ST_MOVE_SET	ha0;								//補巻シーブ起伏高さ
-
-
-	ST_MOVE_SET	lrm;								//主巻ロープ長
-	ST_MOVE_SET	lra;								//補巻ロープ長
+	INT32 notch0;								//0ノッチ判定総合
 
 }ST_CC_ENV_INF, * LPST_CC_ENV_INF;
 #pragma endregion  クレーン状態定義構造体
@@ -649,6 +629,7 @@ typedef struct _ST_CC_SIM_INF {
 	INT32 hcount_bh;					//引込高速カウンタ計算値
 	INT32 hcount_sl;					//旋回高速カウンタ計算値
 	INT32 absocoder_mh;					//主巻アブソコーダ計算値
+	INT32 absocoder_gt;					//走行アブソコーダ計算値
 	
 	INT16 vfb_mh;						//主巻速度FB計算値
 	INT16 vfb_bh;						//引込速度FB計算値

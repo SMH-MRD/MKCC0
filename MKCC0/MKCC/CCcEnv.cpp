@@ -70,7 +70,11 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : Crane Object NG"; msg2listview(wos.str());
 		return S_FALSE;
 	}
+
+	//### ドラムパラメータ初期化
 	set_drum_param(pCrane->pSpec);
+	//### 対象クレーン用関数ポインタセット
+	fp_set_drum_stat = set_drum_stat;
 
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -164,7 +168,8 @@ void CCcEnv::set_drum_param(CSpec* pspec) {//出力バッファセット
 			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Cdrm[ID_BOOM_H][i]	* pspec->base_bh.Ndmizo0;
 			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Cdrm[ID_SLEW][i]		* pspec->base_sl.Ndmizo0;
 			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Cdrm[ID_GANTRY][i]	* pspec->base_gt.Ndmizo0;
-			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Cdrm[ID_BH_HST][i]	* pspec->base_mh.Ndmizo1;
+			//引込主巻ドラム 
+			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;//Ndmizo1は引込主巻ドラムの溝数
 		}
 		else {
 			pEnvInf->Ldrm[ID_HOIST][i]	= pEnvInf->Ldrm[ID_HOIST][i-1]		+pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
@@ -174,7 +179,25 @@ void CCcEnv::set_drum_param(CSpec* pspec) {//出力バッファセット
 			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1]	+pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;
 		}
 	}
+
+	pEnvInf->Lspan[ID_HOIST]	= pspec->base_mh.Lfull;
+	pEnvInf->Lspan[ID_BOOM_H]	= pspec->base_bh.Lfull;
+	pEnvInf->Lspan[ID_SLEW]		= pspec->base_sl.Lfull;
+	pEnvInf->Lspan[ID_GANTRY]	= pspec->base_gt.Lfull;
 	return;
+}
+HRESULT CCcEnv::set_drum_stat(CSpec* pspec) {
+	//回転数セット
+	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder_fb- pspec->base_mh.CntAbsSet0)/ pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
+	//起伏ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_BOOM_H].p = (pPlcIo->stat_bh.hcount_fb - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
+	//旋回ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_SLEW].p = (pPlcIo->stat_sl.hcount_fb - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
+	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder_fb - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
+	
+	return S_OK;
 }
 
 HRESULT CCcEnv::routine_work(void* pObj) {
@@ -198,7 +221,11 @@ int CCcEnv::input() {
 	return S_OK;
 }
 
-int CCcEnv::parse() { return STAT_OK; }
+int CCcEnv::parse() { 
+	//ドラム状態セット
+	fp_set_drum_stat(pCrane->pSpec);
+	return STAT_OK; 
+}
 int CCcEnv::output() {          //出力処理
 	//memcpy_s(pEnvInf, sizeof(ST_CC_ENV_INF), &st_work, sizeof(ST_CC_ENV_INF));
 	return STAT_OK;

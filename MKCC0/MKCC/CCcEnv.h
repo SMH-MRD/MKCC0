@@ -162,6 +162,9 @@ private:
     int close();
 
     void set_drum_param(CSpec* pspec);
+    static HRESULT set_drum_stat(CSpec* pspec);
+
+	HRESULT(*fp_set_drum_stat)(CSpec* pspec) = NULL; //ドラムの状態をセットする関数ポインタ   
 };
 
 

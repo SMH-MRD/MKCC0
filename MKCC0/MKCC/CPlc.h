@@ -72,15 +72,25 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	UINT16  cab_ai[4];          // D10402:運転室PLC→電気室PLC W出力
 	INT16   cab_bi[4];          // D10406:運転室PLC→電気室PLC b出力
 	INT16   cab_xi[4];          // D10410:運転室PLC→電気室PLC b出力
-	INT16   cab_bo;				// D10414:運転室PLCランプ出力	
-	INT16   cab_yo;				// D10415:運転室PLCランプ出力
+	INT16   cab_bo;				// D10414:b2b0-f = Y70-F
+	INT16   cab_yo;				// D10415:b160-f
 	INT16   erm_900;			// D10416:
 	INT16   erm_bo[8];          // D10417:電気室PLC b出力
-	INT32   pos[4];             // D10425:各軸位置信号
-	INT16   spd_tg[6];          // D10432:各軸指令速度目標
-	INT16   plc_fault[18];      // D10437:故障信号
+	INT16	mh_z;				// D10425:主巻揚程　D7100
+	INT16	r_mm;				// D10426:引込半径　D2772(W202)
+	INT16	spar0[6];			// D10427:予備
+	INT16	cv_tg[4];			// D10433:目標速度％
+	INT16	spar1[2];			// D10437:予備
+	INT16   plc_fault[18];      // D10439:故障信号
 	INT16   erm_y[5];           // D10457:電気室PLC Y出力
 	INT16   erm_x[7];           // D10462:電気室PLC X入力
+	INT16   spar2;				// D10469:インバータPLC DO指令	
+	INT32   inv_vref[4];		// D10470:インバータ速度指令
+	INT32   inv_trq[2];			// D10478:インバータトルク指令
+	INT32   hcount_fb[4];       // D10480:高速カウンタユニット FB値
+	INT32   absocoder_fb[3];    // D10488:アブソコーダ FB値
+	INT16   spar3[4];			// D10496:予備
+
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
 union UN_PLC_RBUF {
@@ -199,6 +209,7 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF hcounter_sl;
 	//アブソコーダ
 	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_gt;
 	
 
 }ST_PLC_IO_RIF, * LPST_PLC_IO_RIF;
@@ -248,6 +259,7 @@ typedef struct _ST_PLC_IO_WIF {
 	ST_PLC_IO_DEF hcounter_sl;
 	//アブソコーダ
 	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_gt;
 
 	//INV出力
 	ST_PLC_IO_DEF vfb_mh;
