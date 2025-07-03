@@ -93,7 +93,10 @@ int CSim::input() {
 }
 
 int CSim::parse() {					//メイン処理
-
+	set_sensor_fb();						// センサフィードバック設定
+	calc_axis_motion();						// 軸動作計算
+	calc_load_motion();						// 吊荷動作計算
+	calc_plc_output();						// PLC出力計算
 	return S_OK;
 }
 int CSim::output() {						//出力処理
@@ -103,17 +106,8 @@ int CSim::output() {						//出力処理
 }
 
 HRESULT CSim::init_drm_motion() {	//ドラムパラメータ設定(巻取量,層数,速度,加速度）
-	//st_work.axis[ID_HOIST].nd.p	= 10.0;	st_work.axis[ID_HOIST].i_layer	= 3;st_work.axis[ID_HOIST].nd.v = 0.0;	st_work.axis[ID_HOIST].nd.a = 0.0;
-	//st_work.axis[ID_BOOM_H].nd.p= 10.0; st_work.axis[ID_BOOM_H].i_layer = 3;st_work.axis[ID_BOOM_H].nd.v= 0.0;	st_work.axis[ID_BOOM_H].nd.a= 0.0;
-	//st_work.axis[ID_SLEW].nd.p	= 10.0;	st_work.axis[ID_SLEW].i_layer	= 3;st_work.axis[ID_SLEW].nd.v	= 0.0;	st_work.axis[ID_SLEW].nd.a	= 0.0;
-	//st_work.axis[ID_GANTRY].nd.p= 10.0; st_work.axis[ID_GANTRY].i_layer = 3;st_work.axis[ID_GANTRY].nd.v= 0.0;	st_work.axis[ID_GANTRY].nd.a= 0.0;
-	st_work.axis[ID_BH_HST].nd.p= 10.0; st_work.axis[ID_BH_HST].i_layer = 3;st_work.axis[ID_BH_HST].nd.v= 0.0;	st_work.axis[ID_BH_HST].nd.a= 0.0;
 
-	set_sensor_fb();						// センサフィードバック設定
-	calc_axis_motion();						// 軸動作計算
-	calc_load_motion();						// 吊荷動作計算
-	calc_plc_output();						// PLC出力計算
-
+	//ドラム回転数計算用パラメータ初期値設定
 	st_sim_inf.hcount_mh		= 96450040;		//主巻PG　(R45,H70）
 	st_sim_inf.hcount_bh		= 85167878;		//引込PG　(R45,H70）
 	st_sim_inf.hcount_sl		= 15000000;		//旋回PG　0°
@@ -129,7 +123,26 @@ HRESULT CSim::set_drm_condition() {	//ドラム状態設定(ブレーキ,極限,荷重）
 HRESULT CSim::set_drm_motion() {	//ドラム動作設定(加速度,速度,位置,層）
 	return S_OK;
 }   
-HRESULT CSim::set_sensor_fb() {				//高速カウンタ,アブソコーダ,LS他
+HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
+	if (pPLC_IO->stat_mh.inv_ref_dir != CODE_DIR_STP) {
+		if( pPLC_IO->stat_mh.brk_fb == 0) {//ブレーキ閉
+			st_sim_inf.trq_ref_mh = 600;	//30%トルク指令
+			st_sim_inf.vfb_mh = 0;			//速度FBは0
+		}
+		else{//ブレーキ開
+			st_sim_inf.trq_ref_mh = 2000;	//100%トルク指令
+			st_sim_inf.vfb_mh = (INT16)((double)pPLC_IO->stat_mh.inv_ref_v / 0.803125);
+		}
+		st_sim_inf.trq_ref_mh = pPLC_IO->stat_mh.inv_ref_v * 10;	//トルク指令計算
+	}
+	else{
+		st_sim_inf.trq_ref_mh = 0;	//停止時は速度0
+		st_sim_inf.vfb_mh = 0;			//速度FBは0
+	}
+
+
+
+
 	return S_OK;
 }            
 

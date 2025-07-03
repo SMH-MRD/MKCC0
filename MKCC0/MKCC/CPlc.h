@@ -64,7 +64,11 @@ typedef struct _ST_PLC_WBUF_HHGH29 {//制御PC→PLC
 	INT16   spear[15];            //D10215:予備
 	UINT32  hcounter[4];          //D10230:高速カウンタユニット 
 	UINT32  absocoder[3];         //D10238　アブソコーダ 
-	INT16   spare[30];
+	INT16   spare0[26];			  //D10244　予備 
+	INT16   spd_fb[4];			  //D10270:速度FB（符号付き　3200が最高速度）
+	INT16   trq_ref[2];			  //D10274:トルク指令（符号付き　4000/200%）
+	INT16   spear1[24];		  //D10276:インバータ速度指令（符号付き　3200が最高速度）
+
 }ST_PLC_WBUF_HHGH29, * LPST_PLC_WBUF_HHGH29;
 typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   helthy;             // D10400:PLCヘルシーカウンタ
@@ -84,12 +88,14 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   plc_fault[18];      // D10439:故障信号
 	INT16   erm_y[5];           // D10457:電気室PLC Y出力
 	INT16   erm_x[7];           // D10462:電気室PLC X入力
-	INT16   spar2;				// D10469:インバータPLC DO指令	
-	INT32   inv_vref[4];		// D10470:インバータ速度指令
-	INT32   inv_trq[2];			// D10478:インバータトルク指令
+	INT16   spar2;				//
+	INT16   inv_vref[4];		// D10470:インバータ速度指令
+	INT16   inv_vfb[4];			// D10475:インバータ速度指令
+	INT16   inv_trq[2];			// D10478:インバータトルク指令
+	INT16   spar3[2];			// D10469:インバータPLC DO指令	
 	INT32   hcount_fb[4];       // D10480:高速カウンタユニット FB値
 	INT32   absocoder_fb[3];    // D10488:アブソコーダ FB値
-	INT16   spar3[4];			// D10496:予備
+	INT16   spar4[4];			// D10496:予備
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
@@ -200,6 +206,11 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
 	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
 
+	ST_PLC_IO_DEF inv_vfb_mh;		//主巻インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
+
 	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
 	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
 
@@ -265,6 +276,7 @@ typedef struct _ST_PLC_IO_WIF {
 	ST_PLC_IO_DEF vfb_mh;
 	ST_PLC_IO_DEF vfb_bh;
 	ST_PLC_IO_DEF vfb_sl;
+	ST_PLC_IO_DEF vfb_gt;
 	ST_PLC_IO_DEF trqref_mh;
 	ST_PLC_IO_DEF trqref_bh;
 

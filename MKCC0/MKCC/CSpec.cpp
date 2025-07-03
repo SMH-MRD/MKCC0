@@ -186,7 +186,7 @@ ST_AXIS_ITEMS	base_bh1 = {
 	{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
 	{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
 	0.33,				//double V_rated;定格速度（m/s, rad/s：100％)
-	1750.0,				// Rpm_rated;	定格回転数（rpm：100％)
+	1650.0,				// Rpm_rated;	定格回転数（rpm：100％)
 	90.0,				// Kw_rated;	定格出力（kW：100％)
 	78.12,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
 	0.720,				// Ddrm0;		ドラム径0

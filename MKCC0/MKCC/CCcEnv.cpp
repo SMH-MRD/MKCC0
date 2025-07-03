@@ -187,7 +187,7 @@ void CCcEnv::set_drum_param(CSpec* pspec) {//出力バッファセット
 	return;
 }
 HRESULT CCcEnv::set_drum_stat(CSpec* pspec) {
-	//回転数セット
+	//#回転数セット
 	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder_fb- pspec->base_mh.CntAbsSet0)/ pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
 	//起伏ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
@@ -196,7 +196,20 @@ HRESULT CCcEnv::set_drum_stat(CSpec* pspec) {
 	pEnvInf->crane_stat.nd[ID_SLEW].p = (pPlcIo->stat_sl.hcount_fb - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
 	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder_fb - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
-	
+
+	//#回転速度セット ベース速度が100％で±0.1％単位 inv fb/3200*最高速%*10　　＊＊＊inf_fb->3200が100%
+	//主巻　257%*10/3200=2570/3200=0.803125
+	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.inv_fb_v * 0.803125;
+	//起伏　100%*10/3200 = 0.3125
+	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.inv_fb_v * 0.3125;
+	//旋回　100%*10/3200 = 0.3125
+	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.inv_fb_v * 0.3125;
+	//走行　100%*10/3200 = 0.3125
+	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.inv_fb_v * 0.3125;
+
+	//#ドラム層セット
+
+
 	return S_OK;
 }
 

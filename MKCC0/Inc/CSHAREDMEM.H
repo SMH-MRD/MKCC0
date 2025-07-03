@@ -142,11 +142,12 @@ typedef struct _ST_AUX_CS_INF {
 #define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
 
 typedef struct _ST_CRANE_STAT {
-	double		i_layer[MOTION_ID_MAX];			//ドラム現在層数
-	double		n_layer[MOTION_ID_MAX];			//ドラム現在回転数
+	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
+	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
 	double		l_drum[MOTION_ID_MAX];			//ドラムロープ巻取り量
-	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作
-	ST_MOVE_SET	mv[MOTION_ID_MAX];				//軸動作　引込は角度
+	ST_MOVE_SET	vdk[MOTION_ID_MAX];				//ドラム回転速度　100%が1000
+	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転数動作
+	ST_MOVE_SET	vm[MOTION_ID_MAX];				//軸動作　引込は角度
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
 	ST_MOVE_SET r;								//旋回半径
 	ST_MOVE_SET	lrm;							//主巻ロープ
@@ -211,7 +212,7 @@ typedef struct _ST_CC_ENV_INF {
 #pragma region PLC IO
 
 typedef struct _ST_PLC_AXIS_STAT {
-	INT16	v_ad_fb;				//速度FB ADユニット値
+	INT16	inv_fb_v;				//速度FB ADユニット値
 	INT16	brk_fb;					//ブレーキ状態FB 0閉
 	INT16	notch_fb;				//AGENT指令のノッチ位置
 	INT32   hcount_fb;				//高速カウンタFB値
@@ -219,7 +220,7 @@ typedef struct _ST_PLC_AXIS_STAT {
 	INT32	endlim;					//極限センサ状態
 
 	INT16	inv_ref_dir;			//インバータ運転指令(FWD,REV)
-	INT32	inv_ref_v;				//インバータ速度指令(絶対値）
+	INT16	inv_ref_v;				//インバータ速度指令(絶対値）
 	INT16	inv_ref_trq;			//インバータトルク指令
 
 } ST_PLC_AXIS_STAT, * LPST_PLC_AXIS_STAT;
@@ -634,6 +635,7 @@ typedef struct _ST_CC_SIM_INF {
 	INT16 vfb_mh;						//主巻速度FB計算値
 	INT16 vfb_bh;						//引込速度FB計算値
 	INT16 vfb_sl;						//旋回速度FB計算値
+	INT16 vfb_gt;						//走行速度FB計算値
 
 	INT16 trq_ref_mh;					//主巻トルク指令計算値
 	INT16 trq_ref_bh;					//引込トルク指令計算値
