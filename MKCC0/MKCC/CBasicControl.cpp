@@ -20,16 +20,27 @@ unsigned WINAPI CBasicControl::run(LPVOID lpParam)
 	LONGLONG disp_count = 50/inf.cycle_count; //表示周期
 
 	
-	QueryPerformanceFrequency(&inf.sys_freq);  // システムの周波数
-	QueryPerformanceCounter(&inf.sys_count); // パフォーマンスカウンター現在値
+	QueryPerformanceFrequency(&inf.sys_freq);	// システムの周波数(1秒間のカウント数）
+	QueryPerformanceCounter(&inf.sys_count);	// パフォーマンスカウンター現在値
+
+	inf.cnt_unit_ms = inf.sys_freq.QuadPart / 1000; //1msあたりのカウント数
+	inf.cnt_unit_us = inf.sys_freq.QuadPart / 1000000; //1μsあたりのカウント数
 	
 	while (pobj->inf.command != BC_CODE_COM_TERMINATE) {
 
 		QueryPerformanceCounter(&start_count);  // 現在のカウント数
-		pobj->inf.event_triggered = WaitForMultipleObjects(pobj->inf.n_active_events, pobj->inf.hevents, FALSE, INFINITE);//メインスレッドからのSIGNAL状態待ち
 
+		//######ここでメインスレッドからのSIGNAL状態待ち#######
+		pobj->inf.event_triggered = WaitForMultipleObjects(pobj->inf.n_active_events, pobj->inf.hevents, FALSE, INFINITE);
+		//######ここでメインスレッドからのSIGNAL状態待ち#######
 
-		pobj->inf.act_time = ((start_count.QuadPart - inf.sys_count.QuadPart) * 1000000L) / inf.sys_freq.QuadPart;
+		//スレッド処理時間＝(前回処理前のカウント-SIGNAL待ちになった時のカウント）/1μ秒のカウント数(μ秒）
+		pobj->inf.act_time = (start_count.QuadPart - inf.sys_count.QuadPart) / inf.cnt_unit_us;
+		
+		QueryPerformanceCounter(&start_count);  // 現在のカウント数
+		//スキャン時間＝(前回処理前のカウント-今回処理前のカウント）/1μ秒のカウント数(μ秒）
+		pobj->inf.cnt_dt_us = (start_count.QuadPart - inf.sys_count.QuadPart) / inf.cnt_unit_us;
+
 		QueryPerformanceCounter(&inf.sys_count); // パフォーマンスカウンター現在値
 
 		//if (inf.total_act % disp_count == 0) {

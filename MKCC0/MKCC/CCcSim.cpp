@@ -88,7 +88,7 @@ HRESULT CSim::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int CSim::input() {
-
+	st_work.dt = (double)inf.cnt_dt_us/1000000.0;
 	return S_OK;
 }
 

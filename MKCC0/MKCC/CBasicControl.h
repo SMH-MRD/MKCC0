@@ -112,6 +112,10 @@ typedef struct _tagTHREAD_INFO {
     LONGLONG	event_triggered;   // スレッドトリガイベント
     uint32_t    time_over_count;   // 予定周期をオーバーした回数
 
+	LONGLONG    cnt_unit_ms;       // パフォーマンスカウンタの単位時間(1msあたりのカウント数)
+	LONGLONG    cnt_unit_us;      // パフォーマンスカウンタの単位時間(1usあたりのカウント数)
+	LONGLONG    cnt_dt_us;        // 実績スキャン（μ秒単位のカウント数）
+
     // 関連ウィンドウハンドル
     HWND hwnd_parent;       // 親ウィンドウのハンドル
     HWND hwnd_msgstatics;   // 親ウィンドウメッセージ表示用ウィンドウへのハンドル
