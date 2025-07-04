@@ -54,7 +54,16 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 
 	CSim* pEnvObj = (CSim*)lpParam;
 	int code = 0;
-
+	//計算パラメータセット
+	//0.1%速度時のPGカウント値設定
+	st_work.axis[ID_HOIST].PGcnt01v		= pCrane->pSpec->base_mh.Rpm_rated / 600.0* pCrane->pSpec->base_mh.CntPgR;	//主巻
+	st_work.axis[ID_BOOM_H].PGcnt01v	= pCrane->pSpec->base_bh.Rpm_rated / 600.0 * pCrane->pSpec->base_bh.CntPgR;	//引込
+	st_work.axis[ID_SLEW].PGcnt01v		= pCrane->pSpec->base_sl.Rpm_rated / 600.0 * pCrane->pSpec->base_sl.CntPgR;	//旋回
+	st_work.axis[ID_GANTRY].PGcnt01v	= pCrane->pSpec->base_gt.Rpm_rated / 600.0 * pCrane->pSpec->base_gt.CntPgR;	//走行
+	//0.1%速度時のアブソコーダカウント値設定
+	st_work.axis[ID_HOIST].ABSOcnt01v = pCrane->pSpec->base_mh.Rpm_rated / 600.0 * pCrane->pSpec->base_mh.CntAbsR / pCrane->pSpec->base_mh.Gear_ratio;	//主巻
+	st_work.axis[ID_GANTRY].ABSOcnt01v = pCrane->pSpec->base_gt.Rpm_rated / 600.0 * pCrane->pSpec->base_gt.CntAbsR / pCrane->pSpec->base_gt.Gear_ratio;	//走行
+		
 	//ドラム動作初期値
 	init_drm_motion();
 
@@ -88,7 +97,7 @@ HRESULT CSim::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int CSim::input() {
-	st_work.dt = (double)inf.cnt_dt_us/1000000.0;
+	
 	return S_OK;
 }
 
@@ -115,15 +124,9 @@ HRESULT CSim::init_drm_motion() {	//ドラムパラメータ設定(巻取量,層数,速度,加速度
 	st_sim_inf.absocoder_gt		= 32595;		//走行アブソコーダ初期値50m
 	return S_OK;
 }  
-HRESULT CSim::set_drm_condition() {	//ドラム状態設定(ブレーキ,極限,荷重）
 
-
-	return S_OK;
-} 
-HRESULT CSim::set_drm_motion() {	//ドラム動作設定(加速度,速度,位置,層）
-	return S_OK;
-}   
 HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
+	//トルク指令設定
 	if (pPLC_IO->stat_mh.inv_ref_dir != CODE_DIR_STP) {
 		if( pPLC_IO->stat_mh.brk_fb == 0) {//ブレーキ閉
 			st_sim_inf.trq_ref_mh = 600;	//30%トルク指令
@@ -140,8 +143,13 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		st_sim_inf.vfb_mh = 0;			//速度FBは0
 	}
 
+	//高速カウンタ,アブソコーダフィードバック設定
 
-
+	st_sim_inf.hcount_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * inf.dt * st_work.axis[ID_HOIST].PGcnt01v ) ;	//主巻PGフィードバック
+	st_sim_inf.hcount_bh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v * inf.dt * st_work.axis[ID_BOOM_H].PGcnt01v);
+	st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v * inf.dt * st_work.axis[ID_SLEW].PGcnt01v);
+	st_sim_inf.absocoder_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * inf.dt * st_work.axis[ID_HOIST].ABSOcnt01v);
+	st_sim_inf.absocoder_gt += (INT32)(pEnv_Inf->crane_stat.nd[ID_GANTRY].v * inf.dt * st_work.axis[ID_GANTRY].ABSOcnt01v);	//他は未使用なので0
 
 	return S_OK;
 }            

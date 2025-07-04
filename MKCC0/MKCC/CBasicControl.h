@@ -114,7 +114,7 @@ typedef struct _tagTHREAD_INFO {
 
 	LONGLONG    cnt_unit_ms;       // パフォーマンスカウンタの単位時間(1msあたりのカウント数)
 	LONGLONG    cnt_unit_us;      // パフォーマンスカウンタの単位時間(1usあたりのカウント数)
-	LONGLONG    cnt_dt_us;        // 実績スキャン（μ秒単位のカウント数）
+	double      dt;                // 実績スキャン（μ秒単位のカウント数）
 
     // 関連ウィンドウハンドル
     HWND hwnd_parent;       // 親ウィンドウのハンドル
@@ -158,6 +158,11 @@ typedef struct _tagTHREAD_INFO {
         , total_act(0)
         , event_triggered(0)
         , time_over_count(1000)
+
+        ,cnt_unit_ms(0) 
+        ,cnt_unit_us(0) 
+        ,dt(1.0)   
+
         , hwnd_parent(NULL)
         , hwnd_msgstatics(NULL)
         , hwnd_opepane(NULL)

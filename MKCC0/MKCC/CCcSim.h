@@ -84,6 +84,8 @@ typedef struct _ST_SIM_AXIS {//軸
     double  n_layer;				//ドラム現在層巻取数
     double  l_drum;					//ドラム巻取り量
 	INT32   brake;					//ブレーキ状態
+	double PGcnt01v;                //0.1%速度時のPG１秒カウント値
+    double ABSOcnt01v;              //0.1%速度時のアブソコーダ１秒カウント値
 }ST_SIM_AXIS, * LPST_SIM_AXIS;
 
 typedef struct _ST_CC_SIM_WORK {
@@ -175,8 +177,6 @@ private:
     int close();
 
 	HRESULT init_drm_motion();  //ドラムパラメータ設定(巻取量,層数,速度,加速度）
-    HRESULT set_drm_condition();//ドラム状態設定(ブレーキ,極限,荷重）
-	HRESULT set_drm_motion();   //ドラム動作設定(加速度,速度,位置,層）
     HRESULT set_sensor_fb();            //高速カウンタ,アブソコーダ,LS他
 	
     HRESULT calc_axis_motion();         //軸荷動作計算

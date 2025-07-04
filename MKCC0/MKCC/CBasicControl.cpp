@@ -38,8 +38,8 @@ unsigned WINAPI CBasicControl::run(LPVOID lpParam)
 		pobj->inf.act_time = (start_count.QuadPart - inf.sys_count.QuadPart) / inf.cnt_unit_us;
 		
 		QueryPerformanceCounter(&start_count);  // 現在のカウント数
-		//スキャン時間＝(前回処理前のカウント-今回処理前のカウント）/1μ秒のカウント数(μ秒）
-		pobj->inf.cnt_dt_us = (start_count.QuadPart - inf.sys_count.QuadPart) / inf.cnt_unit_us;
+		//スキャン時間
+		pobj->inf.dt = (double)(start_count.QuadPart - inf.sys_count.QuadPart) / (double)inf.sys_freq.QuadPart;
 
 		QueryPerformanceCounter(&inf.sys_count); // パフォーマンスカウンター現在値
 
