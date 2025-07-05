@@ -214,7 +214,7 @@ int CCcCS::parse() {
 	}
 	else {
 		//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
-		plamp_com[OTE_PNL_CTRLS::estop].st.com		= pCrane->pPlc->rval(pPlcRIf->estop).i16;
+		plamp_com[OTE_PNL_CTRLS::estop].st.com		= (UINT8)pCrane->pPlc->rval(pPlcRIf->estop).i16;
 
 		if (pCrane->pPlc->rval(pPlcRIf->syukan_mc_comp).i16 ) {
 			plamp_com[OTE_PNL_CTRLS::syukan_on].st.com  = CODE_PNL_COM_OFF;
@@ -228,24 +228,24 @@ int CCcCS::parse() {
 		 pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
 
 
-		plamp_com[OTE_PNL_CTRLS::fault_reset].st.com= pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
+		plamp_com[OTE_PNL_CTRLS::fault_reset].st.com= (UINT8)pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
 		plamp_com[OTE_PNL_CTRLS::bypass].st.com		= CODE_PNL_COM_ON;
 
 		//PLC側CSスイッチの状態
 		plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com 
-			= CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, g_my_code.serial_no);
+			= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, g_my_code.serial_no);
 		plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com
-			= CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
+			= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
 
 		//ノッチ信号FB
 		INT16 notch = pCrane->pPlc->rval(pPlcRIf->mh_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_mh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_mh].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
 		notch = pCrane->pPlc->rval(pPlcRIf->bh_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_bh].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_bh].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
 		notch = pCrane->pPlc->rval(pPlcRIf->sl_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_sl].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_sl].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
 		notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_gt].st.com	= CNotchHelper::get_notch4_by_code(&notch,0);
+		plamp_com[OTE_PNL_CTRLS::notch_gt].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
 	}
 
 	return S_OK;

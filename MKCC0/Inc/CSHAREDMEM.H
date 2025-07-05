@@ -150,6 +150,7 @@ typedef struct _ST_CRANE_STAT {
 	ST_MOVE_SET	vm[MOTION_ID_MAX];				//軸動作　引込は角度
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
 	ST_MOVE_SET r;								//旋回半径
+	ST_MOVE_SET th;								//起伏角度
 	ST_MOVE_SET	lrm;							//主巻ロープ
 	double		m;								//吊荷質量
 } ST_CRANE_STAT, * LPST_CRANE_STAT;

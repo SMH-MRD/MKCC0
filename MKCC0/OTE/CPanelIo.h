@@ -410,8 +410,8 @@ public:
 		n_switch = _n_switch;
 		fcount = _fcount;
 
-		Rect _rc(0, 0, sz.Width, sz.Height); rc = _rc;
-		RectF _frc(0, 0, sz.Width, sz.Height); frc = _frc;
+		Gdiplus::Rect _rc((REAL)0, (REAL)0, (REAL)sz.Width, (REAL)sz.Height); rc = _rc;
+		Gdiplus::RectF _frc((REAL)0, (REAL)0, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
 
 		value = ID_PANEL_LAMP_OFF;
 	}

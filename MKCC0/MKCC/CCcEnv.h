@@ -143,6 +143,8 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
+    static CSpec* pspec;
+
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
 
@@ -161,10 +163,10 @@ private:
     int output();
     int close();
 
-    void set_drum_param(CSpec* pspec);
-    static HRESULT set_drum_stat(CSpec* pspec);
+    void set_drum_param();
+    static HRESULT set_drum_stat();
 
-	HRESULT(*fp_set_drum_stat)(CSpec* pspec) = NULL; //ドラムの状態をセットする関数ポインタ   
+	HRESULT(*fp_set_drum_stat)() = NULL; //ドラムの状態をセットする関数ポインタ   
 };
 
 

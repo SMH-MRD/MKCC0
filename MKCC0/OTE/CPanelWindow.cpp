@@ -1089,7 +1089,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
 		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
-		Image* image;
+
 		Gdiplus::Graphics gra(pDIS->hDC);
 		Font* pfont = NULL;
 		CSubPanelObj* pos = pPanelBase->psubobjs;

@@ -25,6 +25,7 @@ ST_ENV_MON1 CCcEnv::st_mon1;
 ST_ENV_MON2 CCcEnv::st_mon2;
 
 ST_CC_ENV_INF CCcEnv::st_work;
+CSpec* CCcEnv::pspec;
 
 //共有メモリ
 static LPST_CC_ENV_INF		pEnvInf;
@@ -70,9 +71,10 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : Crane Object NG"; msg2listview(wos.str());
 		return S_FALSE;
 	}
+	pspec = pCrane->pSpec;
 
 	//### ドラムパラメータ初期化
-	set_drum_param(pCrane->pSpec);
+	set_drum_param();
 	//### 対象クレーン用関数ポインタセット
 	fp_set_drum_stat = set_drum_stat;
 
@@ -153,15 +155,15 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	return S_OK;
 }
 
-void CCcEnv::set_drum_param(CSpec* pspec) {//出力バッファセット
+void CCcEnv::set_drum_param() {//出力バッファセット
 	double* pcdrm;
 	for(int i = 0; i < N_DRUM_LAYER; i++) {
-		pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)i	* pspec->base_mh.dDdrm) * PI360;
-		pEnvInf->Cdrm[ID_BOOM_H][i] = (pspec->base_bh.Ddrm0 + (double)i * pspec->base_bh.dDdrm) * PI360;
-		pEnvInf->Cdrm[ID_SLEW][i]	= (pspec->base_sl.Ddrm0 + (double)i * pspec->base_sl.dDdrm) * PI360;
-		pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)i * pspec->base_gt.dDdrm) * PI360;
+		pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)i	* pspec->base_mh.dDdrm) * PI180;
+		pEnvInf->Cdrm[ID_BOOM_H][i] = (pspec->base_bh.Ddrm0 + (double)i * pspec->base_bh.dDdrm) * PI180;
+		pEnvInf->Cdrm[ID_SLEW][i]	= (pspec->base_sl.Ddrm0 + (double)i * pspec->base_sl.dDdrm) * PI180;
+		pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)i * pspec->base_gt.dDdrm) * PI180;
 		//引込主巻ドラム 層負荷直径はBHを使用
-		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_mh.Ddrm1 + (double)i * pspec->base_bh.dDdrm) * PI360;
+		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_mh.Ddrm1 + (double)i * pspec->base_bh.dDdrm) * PI180;
 
 		if(i == 0) {//1層巻取り量
 			pEnvInf->Ldrm[ID_HOIST][i]	= pEnvInf->Cdrm[ID_HOIST][i]	* pspec->base_mh.Ndmizo0;
@@ -186,7 +188,7 @@ void CCcEnv::set_drum_param(CSpec* pspec) {//出力バッファセット
 	pEnvInf->Lspan[ID_GANTRY]	= pspec->base_gt.Lfull;
 	return;
 }
-HRESULT CCcEnv::set_drum_stat(CSpec* pspec) {
+HRESULT CCcEnv::set_drum_stat() {
 	//#回転数セット
 	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder_fb- pspec->base_mh.CntAbsSet0)/ pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
@@ -199,26 +201,39 @@ HRESULT CCcEnv::set_drum_stat(CSpec* pspec) {
 
 	//#回転速度セット ベース速度が100％で±0.1％単位 inv fb/3200*最高速%*10　　＊＊＊inf_fb->3200が100%
 	//主巻　257%*10/3200=2570/3200=0.803125
-	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.inv_fb_v * 0.803125;
+	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.inv_fb_v * pspec->base_mh.Kv_C2D;
 	//起伏　100%*10/3200 = 0.3125
-	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.inv_fb_v * 0.3125;
+	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.inv_fb_v * pspec->base_bh.Kv_C2D;
 	//旋回　100%*10/3200 = 0.3125
-	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.inv_fb_v * 0.3125;
+	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.inv_fb_v * pspec->base_sl.Kv_C2D;
 	//走行　100%*10/3200 = 0.3125
-	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.inv_fb_v * 0.3125;
+	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.inv_fb_v * pspec->base_gt.Kv_C2D;
 
-	//#ドラム層セット
+	//#d ドラム層セット
+	double rd = pspec->base_bh.NdrmPgSet0 - pEnvInf->crane_stat.nd[ID_BOOM_H].p;	//上限からの回転量
+	double chk_n = 0.7;// 初期値　83.3-21*4	5層巻取り数
+	double lout = 0.0;
 
-
+	for(int i= 0; i < 5; i++) {
+		if (rd < chk_n) {
+			lout += rd * pEnvInf->Cdrm[ID_BOOM_H][4-i];	//巻取り量 index4=5層
+			break;
+		}
+		lout += chk_n * pEnvInf->Cdrm[ID_BOOM_H][4-i];	//巻取り量
+		rd -= chk_n;
+		chk_n = pspec->base_bh.Ndmizo0;	
+	}
+	pEnvInf->crane_stat.d.p = pspec->st_struct.d0 + lout/pspec->base_bh.Nwire0;	//巻取り量
+	
 	return S_OK;
 }
 
 HRESULT CCcEnv::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
-		if (inf.mode_id == MODE_ENV_APP_SIMURATION)	wos << inf.status << L" MODE>>SIMULATOR";
-		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)				wos << inf.status << L" MODE>>EMULATOR";
-		else										wos << inf.status << L" MODE>>PRODUCT";
+		if (inf.mode_id == MODE_ENV_APP_SIMURATION)		wos  << L" MODE>>SIMULATOR";
+		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)	wos  << L" MODE>>EMULATOR";
+		else											wos  << L" MODE>>PRODUCT";
 		msg2host(wos.str());
 	}
 	
@@ -235,12 +250,18 @@ int CCcEnv::input() {
 }
 
 int CCcEnv::parse() { 
+
 	//ドラム状態セット
-	fp_set_drum_stat(pCrane->pSpec);
+	fp_set_drum_stat();
+	//起伏角,旋回半径
+	double d=pEnvInf->crane_stat.d.p,Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
+	pEnvInf->crane_stat.th.p = PI90 - acos((d*d - Lb*Lb - Ha*Ha)/(-2.0*Lb*Ha));	//起伏角度
+	pEnvInf->crane_stat.r.p = Lb*cos(pEnvInf->crane_stat.th.p);					//旋回半径
+
 	return STAT_OK; 
 }
 int CCcEnv::output() {          //出力処理
-	//memcpy_s(pEnvInf, sizeof(ST_CC_ENV_INF), &st_work, sizeof(ST_CC_ENV_INF));
+	//共有メモリに直接書き込みにする　memcpy_s(pEnvInf, sizeof(ST_CC_ENV_INF), &st_work, sizeof(ST_CC_ENV_INF));
 	return STAT_OK;
 }
 

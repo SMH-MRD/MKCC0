@@ -94,6 +94,7 @@ typedef struct _ST_CC_SIM_WORK {
     DWORD helthy_cnt;
 
     double dt;
+    INT32 sl_cnt_pg360;//旋回360°のPGカウント値
  
     ST_AUX_ENV_INF sway_io;
 	ST_PLC_IO_WIF st_plc_w;			                //PLC IO書き込みIF
@@ -156,6 +157,8 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
+
+    static CSpec* pspec;
 
     //オーバーライド
 
