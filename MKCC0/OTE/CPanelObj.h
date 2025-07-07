@@ -179,11 +179,15 @@ public:
 #define ID_SUB_PNL_SET_OBJ_RDO_BHR				60208
 #define ID_SUB_PNL_SET_OBJ_LMP_BHR				60209
 
+#define ID_SUB_PNL_STAT_OBJ_BASE				60300
+#define ID_SUB_PNL_STAT_OBJ_PB_NEXT				60300
+#define ID_SUB_PNL_STAT_OBJ_PB_BACK				60301
 
 class CSubPanelObj :public CPanelObjBase
 {
 private:
 	int crane_id;
+
 public:
 	CSubPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
 		crane_id = _crane_id;
@@ -191,18 +195,25 @@ public:
 	}
 	virtual ~CSubPanelObj() {
 	}
+	int i_disp_page = 0;
+	int n_disp_page = 1;
 
+	//設定サブウィンドウ
 	CCbCtrl*	cb_mh_spd_mode0;	//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_mh_spd_mode1;	//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_mh_spd_mode2;	//主巻速度モード選択ラジオボタン
 	CRadioCtrl* rdo_mh_spd_mode;	//主巻速度モード選択ラジオボタン
-	CSwitchImg*	lmp_mh_spd_mode;		//緊急停止ランプ
+	CSwitchImg*	lmp_mh_spd_mode;	//緊急停止ランプ
 
 	CCbCtrl*	cb_bh_r_mode0;		//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode1;		//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode2;		//主巻速度モード選択ラジオボタン
 	CRadioCtrl* rdo_bh_r_mode;		//主巻速度モード選択ラジオボタン
 	CSwitchImg*	lmp_bh_r_mode;		//緊急停止ランプ
+
+	//状態表示サブウィンドウのオブジェクト
+	CPbCtrl*	pb_stat_next;		//次表示PB
+	CPbCtrl*	pb_stat_back;		//前表示PB
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

@@ -153,6 +153,7 @@ HRESULT CPanelBase::setup_graphic() {
 	return S_OK;
 }
 void	CPanelBase::close_graphic() {
+
 	return;
 }
 

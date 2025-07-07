@@ -23,9 +23,7 @@ LPST_OTE_CS_INF CMainPanelWindow::pCsInf;
 LPST_OTE_CC_IF CMainPanelWindow::pCcIf;
 LPST_OTE_ENV_INF CMainPanelWindow::pOteEnvInf;
 
-
 CSubPanelWindow* CMainPanelWindow::pSubPanelWnd;
-
 
 CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int _wnd_code, CPanelBase** _ppPanelBase) {
 	ppPanelBase = _ppPanelBase;
@@ -965,7 +963,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-#if 1	
 	switch (uMsg) {
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
@@ -1124,6 +1121,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_DESTROY:
 		//表示更新用タイマー
 		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+	//	pPanelBase->psubobjs->clear_graghics();
 		// PostQuitMessage(0);
 		return 0;
 	case WM_CLOSE:
@@ -1131,127 +1129,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		return 0;
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
-#else
-	switch (uMsg)
-	{
 
-
-	case WM_COMMAND: {
-		int wmId = LOWORD(wParam);
-		// 選択されたメニューの解析:
-		switch (wmId)
-		{
-		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0: {
-
-		}break;
-		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1: {
-		}break;
-		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2: {
-		}break;
-		case ID_SUB_PNL_SET_OBJ_RDO_BHR_0: {
-		}break;
-		case ID_SUB_PNL_SET_OBJ_RDO_BHR_1: {
-		}break;
-		case ID_SUB_PNL_SET_OBJ_RDO_BHR_2: {
-		}break;
-		
-		default:
-			return DefWindowProc(hWnd, uMsg, wParam, lParam);
-		}
-	}break;
-
-
-	case WM_TIMER: {
-		//# LAMP(CTRL)更新
-		//e-stop : PLCの認識がESTOPの時枠有表示
-	//	INT16 code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::estop].code;//制御PC受信バッファの指令内容
-	//	int val = pPanelBase->psubobjs->cb_estop->get();									//CBの状態
-	//	//CB状態で制御PCのON表示があれば表示画像を切替
-	//	if (val == BST_CHECKED) { if (code) val = 3; }
-	//	else { if (code)val = 2; }
-	//	pPanelBase->pobjs->lmp_estop->set(val);
-	//	pPanelBase->pobjs->lmp_estop->update();
-
-	//	//主幹
-	//	code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code;
-	//	pPanelBase->pobjs->lmp_syukan_on->set(code); pPanelBase->pobjs->lmp_syukan_on->update();
-	//	code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code;
-	//	pPanelBase->pobjs->lmp_syukan_off->set(code); pPanelBase->pobjs->lmp_syukan_off->update();
-
-	//	//遠隔
-	//	pPanelBase->pobjs->lmp_remote->set(pOteCsInf->st_body.remote);
-	//	pPanelBase->pobjs->lmp_remote->update();
-
-	//	pPanelBase->pobjs->lmp_pad_mode->set(pOteCsInf->st_body.game_pad_mode);
-	//	pPanelBase->pobjs->lmp_pad_mode->update();
-
-	//	//故障リセット
-	////	pPanelBase->pobjs->lmp_freset->set(pOteCsInf->st_body.ctrl_ope[OTE_PNL_CTRLS::fault_reset]);
-	//	if (st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset])
-	//		pPanelBase->pobjs->lmp_freset->set(L_ON);
-	//	else
-	//		pPanelBase->pobjs->lmp_freset->set(L_OFF);
-
-	//	pPanelBase->pobjs->lmp_freset->update();
-
-
-	//	//# SwitchImg更新(ランプ）
-	//	//CCとの通信状態表示(受信）
-	//	if (pOteCCIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
-	//		pPanelBase->pobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
-	//	else pPanelBase->pobjs->lmp_pcr->set(pOteCCIf->cc_com_stat_r);
-	//	pPanelBase->pobjs->lmp_pcr->update();
-	//	//CCとの通信状態表示(送信）
-	//	if (pOteCCIf->cc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
-	//		pPanelBase->pobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
-	//	else pPanelBase->pobjs->lmp_pcs->set(pOteCCIf->cc_com_stat_s);
-	//	pPanelBase->pobjs->lmp_pcs->update();
-	//	//PLCとの通信状態表示(受信）
-	//	pPanelBase->pobjs->lmp_plcr->update();
-	//	//PLCとの通信状態表示(送信）
-	//	pPanelBase->pobjs->lmp_plcs->update();
-
-	//	//PB状態更新(オフディレイカウントダウン)
-	//	pPanelBase->pobjs->pb_syukan_on->update(false);
-	//	pPanelBase->pobjs->pb_syukan_off->update(false);
-	//	pPanelBase->pobjs->pb_remote->update(false);
-	//	pPanelBase->pobjs->pb_auth->update(false);
-	//	pPanelBase->pobjs->pb_assist_func->update(false);
-	//	pPanelBase->pobjs->pb_crane_sel_wnd->update(false);
-	//	pPanelBase->pobjs->pb_ote_type_wnd->update(false);
-	//	pPanelBase->pobjs->pb_pad_mode->update(false);
-	//	pPanelBase->pobjs->pb_freset->update(false);
-
-	//	//String更新
-	//	if (is_initial_draw_mon1) {
-	//		pPanelBase->pobjs->str_message->update();
-	//		pPanelBase->pobjs->str_pc_com_stat->update();
-	//		pPanelBase->pobjs->str_plc_com_stat->update();
-	//		//	is_initial_draw_mon1 = false;
-	//	}
-
-	//	//GamePadチェック
-	//	if (pOteCsInf->gpad_in.syukan_on) pPanelBase->pobjs->pb_syukan_on->update(true);
-	//	if (pOteCsInf->gpad_in.syukan_off)pPanelBase->pobjs->pb_syukan_off->update(true);
-	//	if (pOteCsInf->gpad_in.remote)pPanelBase->pobjs->pb_remote->update(true);
-	//	if (pOteCsInf->gpad_in.estop)pPanelBase->pobjs->cb_estop->set(BST_CHECKED);
-	//	if (pOteCsInf->gpad_in.f_reset) {//ゲームパッドの非常停止クリアはResetPBで実行
-	//		pPanelBase->pobjs->pb_freset->update(true);
-	//		pPanelBase->pobjs->cb_estop->set(BST_UNCHECKED);
-	//	}
-
-	}break;
-
-
-
-	case WM_DESTROY: {
-		KillTimer(hWnd, ID_SUB_PANEL_TIMER);
-	}break;
-	default:
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
-	}
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
-#endif
 }
 LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -1284,18 +1162,104 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-    case WM_CREATE: {
-        SetWindowText(hwnd, L"状態");
-    }break;
+	switch (uMsg) {
+	case WM_CREATE: {
 
-    case WM_DESTROY:
-        // PostQuitMessage(0);
-        return 0;
-    case WM_CLOSE:
-        DestroyWindow(hwnd);
-        return 0;
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+		InitCommonControls();//コモンコントロール初期化
+		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+
+		pPanelBase->psubobjs->clear_graghics();
+		pPanelBase->psubobjs->setup_graphics(hwnd);
+		pPanelBase->psubobjs->refresh_obj_graphics();
+
+		SetWindowText(hwnd, L"状態監視");
+		pPanelBase->psubobjs->n_disp_page = 2; //ページ数
+		pPanelBase->psubobjs->n_disp_page = 0; //ページ番号
+
+
+		//表示更新用タイマー
+		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
+
+		//ウィンドウにコントロール追加
+		//PB 
+		CPbCtrl* ppb = pPanelBase->psubobjs->pb_stat_next;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+		ppb = pPanelBase->psubobjs->pb_stat_back;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+	}break;
+
+	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
+		InvalidateRect(hwnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
+	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
+		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
+		SetBkMode((HDC)wParam, TRANSPARENT);
+	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
+
+	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
+		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
+	}return 1; // 背景を処理したことを示す
+
+	case WM_TIMER: {
+		//# Switching Image更新
+		//巻速度モード
+		//INT16 code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
+		//pPanelBase->psubobjs->lmp_mh_spd_mode->set(code);
+		//pPanelBase->psubobjs->lmp_mh_spd_mode->update();
+
+		////起伏モード
+		//code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
+		//pPanelBase->psubobjs->lmp_bh_r_mode->set(code);
+		//pPanelBase->psubobjs->lmp_bh_r_mode->update();
+
+	}break;
+
+	case WM_COMMAND: {
+		INT16 code = 0;
+		int wmId = LOWORD(wParam);
+		// 選択されたメニューの解析:
+		switch (wmId)
+		{
+		case ID_SUB_PNL_STAT_OBJ_PB_NEXT: {
+			pPanelBase->psubobjs->i_disp_page++;
+			if (pPanelBase->psubobjs->i_disp_page >= pPanelBase->psubobjs->n_disp_page)
+				pPanelBase->psubobjs->i_disp_page = 0; //ページ番号をリセット
+		}break; 
+		case ID_SUB_PNL_STAT_OBJ_PB_BACK: {
+			pPanelBase->psubobjs->i_disp_page--;
+			if (pPanelBase->psubobjs->i_disp_page < 0)
+				pPanelBase->psubobjs->i_disp_page = pPanelBase->psubobjs->n_disp_page - 1; //ページ番号をリセット
+		}break;
+		default:
+			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);
+		}
+	}break;
+
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+		EndPaint(hwnd, &ps);
+	}break;
+	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
+		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
+
+		Gdiplus::Graphics gra(pDIS->hDC);
+		Font* pfont = NULL;
+		CSubPanelObj* pos = pPanelBase->psubobjs;
+		CLampCtrl* plamp = NULL;
+	
+	}return true;
+	case WM_DESTROY:
+		//表示更新用タイマー
+		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+		// PostQuitMessage(0);
+		return 0;
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		return 0;
+	}
+	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 

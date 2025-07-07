@@ -55,7 +55,8 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 };
 
 #define N_SUB_PNL_OBJ		64
-static ST_OBJ_PROPERTY sub_set_props[N_MAIN_PNL_OBJ] = {
+static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
+	//設定サブウィンドウ
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(85,110)	,Size(30,30)	,L"7"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(155,80)	,Size(30,30)	,L"14"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(225,110)	,Size(30,30)	,L"21"			},
@@ -67,6 +68,11 @@ static ST_OBJ_PROPERTY sub_set_props[N_MAIN_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(225,280)	,Size(35,30)	,L"ﾚｽﾄ"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,280)	,Size(30,30)	,L"引込モード"	},
 	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(130,290)	,Size(80,80)	,L"引込モード"	},
+
+	//状態サブウィンドウ
+	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},
+	{ID_SUB_PNL_STAT_OBJ_PB_BACK	,Point(285,420)	,Size(50,30)	,L"BACK"		},
+
 };
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
@@ -103,11 +109,12 @@ HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
 	SelectObject(hdc_img, hBmp_img);
 	SelectObject(hdc_bk, hBmp_bk);
 	SelectObject(hdc_inf, hBmp_inf);
-
+	
 	pgraphic = new Gdiplus::Graphics(hdc);
 	pgraphic_img = new Gdiplus::Graphics(hdc_img);
 	pgraphic_bk = new Gdiplus::Graphics(hdc_bk);
 	pgraphic_inf = new Gdiplus::Graphics(hdc_inf);
+
 	if (pgraphic_img == NULL || pgraphic_bk == NULL || pgraphic_inf == NULL) {
 		return E_FAIL;
 
@@ -121,10 +128,10 @@ HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
 	return S_OK;
 }
 void CPanelObjBase::clear_graghics() {
-	delete pgraphic;
-	delete pgraphic_img;
-	delete pgraphic_bk;
-	delete pgraphic_inf;
+	if(pgraphic != NULL)		delete pgraphic;
+	if(pgraphic_img != NULL)	delete pgraphic_img;
+	if (pgraphic_bk != NULL)	delete pgraphic_bk;
+	if (pgraphic_inf != NULL)	delete pgraphic_inf;
 	DeleteDC(hdc_img);
 	DeleteDC(hdc_bk);
 	DeleteDC(hdc_inf);
@@ -268,14 +275,14 @@ void CMainPanelObj::delete_obj() {
 }
 HRESULT CSubPanelObj::setup_obj() {
 
-	int i = 0;
+
 	//画像ポインタ配列
 	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png");
 	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX] = { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
 	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX] = { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
 
-	//0 メッセージ
-		cb_mh_spd_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	//設定ウィンドウオブジェクト
+	int i = 0;	cb_mh_spd_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_mh_spd_mode1 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_mh_spd_mode2 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	CCbCtrl* pcb_opt[8] = { cb_mh_spd_mode0,cb_mh_spd_mode1,cb_mh_spd_mode2, };
@@ -289,7 +296,11 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; rdo_bh_r_mode = new CRadioCtrl(3, pcb_opt2);
 	i++; lmp_bh_r_mode = new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 3, 3, pgraphic);
 
-		
+	//状態表示ウィンドウオブジェクト
+
+	i++; pb_stat_next = new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_NEXT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; pb_stat_back = new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_NEXT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+
 	return S_OK;
 }
 void CSubPanelObj::delete_obj() {
