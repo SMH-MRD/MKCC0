@@ -183,6 +183,16 @@ public:
 #define ID_SUB_PNL_STAT_OBJ_PB_NEXT				60300
 #define ID_SUB_PNL_STAT_OBJ_PB_BACK				60301
 
+#define ID_SUB_PNL_FLT_OBJ_BASE					60320
+#define ID_SUB_PNL_FLT_OBJ_IMG_BK				60320
+#define ID_SUB_PNL_FLT_OBJ_PB_NEXT				60321
+#define ID_SUB_PNL_FLT_OBJ_PB_BACK				60322
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY				60323
+#define ID_SUB_PNL_FLT_OBJ_CB_LITE				60324
+#define ID_SUB_PNL_FLT_OBJ_CB_IL				60325
+#define ID_SUB_PNL_FLT_OBJ_CB_BYPASS			60326
+
+
 class CSubPanelObj :public CPanelObjBase
 {
 private:
@@ -214,6 +224,17 @@ public:
 	//状態表示サブウィンドウのオブジェクト
 	CPbCtrl*	pb_stat_next;		//次表示PB
 	CPbCtrl*	pb_stat_back;		//前表示PB
+
+	//故障表示サブウィンドウのオブジェクト
+	CSwitchImg* img_flt_bk;			//PLC通信インジケータ
+	CPbCtrl* pb_flt_next;		//次表示PB
+	CPbCtrl* pb_flt_back;		//前表示PB
+	CCbCtrl* cb_disp_interlock;	//主巻速度モード選択ラジオボタン
+	CCbCtrl* cb_disp_flt_light;	//軽故障表示チェックボタン
+	CCbCtrl* cb_disp_flt_heavy;	//重故障表示チェックボタン
+	CCbCtrl* cb_flt_bypass;		//ILバイパスチェックボタン
+
+
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

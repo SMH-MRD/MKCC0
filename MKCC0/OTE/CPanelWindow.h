@@ -4,7 +4,7 @@
 #include <string>
 #include "CSHAREDMEM.h"
 
-#define SUB_PNL_WND_X             150
+#define SUB_PNL_WND_X             130
 #define SUB_PNL_WND_Y             500
 #define SUB_PNL_WND_W             360
 #define SUB_PNL_WND_H             500
@@ -20,6 +20,7 @@ public:
 
 	static int crane_id;
 	static int wnd_code;
+	static bool is_disp_flt_heavy, is_disp_flt_light, is_disp_flt_il;
 
 	static LPST_OTE_UI pUi;
 	static LPST_OTE_CS_INF pCsInf;

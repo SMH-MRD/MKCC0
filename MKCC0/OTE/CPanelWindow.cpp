@@ -555,8 +555,6 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
 		pPanelBase->pmainobjs->lmp_freset->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
 
-
-
 		//RADIO BUTTON
 		pcb = pPanelBase->pmainobjs->cb_disp_mode1;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
@@ -843,6 +841,7 @@ HWND CSubPanelWindow::hParentWnd;
 CPanelBase* CSubPanelWindow::pPanelBase;
 int CSubPanelWindow::crane_id;
 int CSubPanelWindow::wnd_code;
+bool CSubPanelWindow::is_disp_flt_heavy, CSubPanelWindow::is_disp_flt_light, CSubPanelWindow::is_disp_flt_il;
 
 LPST_OTE_UI CSubPanelWindow::pUi;
 LPST_OTE_CS_INF CSubPanelWindow::pCsInf;
@@ -948,19 +947,141 @@ LRESULT CALLBACK CSubPanelWindow::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-    case WM_CREATE: {
-        SetWindowText(hwnd, L"故障");
-    }break;
+	switch (uMsg) {
+	case WM_CREATE: {
 
-    case WM_DESTROY:
-        // PostQuitMessage(0);
-        return 0;
-    case WM_CLOSE:
-        DestroyWindow(hwnd);
-        return 0;
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+		InitCommonControls();//コモンコントロール初期化
+		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+
+		pPanelBase->psubobjs->clear_graghics();
+		pPanelBase->psubobjs->setup_graphics(hwnd);
+		pPanelBase->psubobjs->refresh_obj_graphics();
+
+		SetWindowText(hwnd, L"故障情報");
+		pPanelBase->psubobjs->n_disp_page = 2; //ページ数
+		pPanelBase->psubobjs->n_disp_page = 0; //ページ番号
+
+		
+		//表示更新用タイマー
+		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
+
+		//ウィンドウにコントロール追加
+		//PB 
+		//CPbCtrl* ppb = pPanelBase->psubobjs->pb_flt_next;
+		//ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+		//ppb = pPanelBase->psubobjs->pb_flt_back;
+		//ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
+		//CB
+		CCbCtrl* pcb = pPanelBase->psubobjs->cb_disp_flt_heavy;;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_disp_flt_light;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_disp_interlock;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_flt_bypass;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		
+		//背景
+		//Switch Image Windowハンドルセット（パネルウィンドウ）
+		pPanelBase->psubobjs->lmp_mh_spd_mode->set_wnd(hwnd);
+
+		pPanelBase->psubobjs->img_flt_bk->set_wnd(hwnd);
+
+		//初期値セット
+		is_disp_flt_heavy = is_disp_flt_light = is_disp_flt_il = true; //初期値は全て表示
+		SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessage(pPanelBase->psubobjs->cb_disp_flt_light->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessage(pPanelBase->psubobjs->cb_disp_interlock->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		//バイパスは初期値OFF
+		SendMessage(pPanelBase->psubobjs->cb_flt_bypass->hWnd, BM_SETCHECK, BST_UNCHECKED, 0); 
+
+	}break;
+
+	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
+		InvalidateRect(hwnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
+	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
+		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
+		SetBkMode((HDC)wParam, TRANSPARENT);
+	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
+
+	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
+		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
+	}return 1; // 背景を処理したことを示す
+
+	case WM_TIMER: {
+		//# Switching Image更新
+
+	}break;
+
+	case WM_COMMAND: {
+		INT16 code = 0;
+		int wmId = LOWORD(wParam);
+		// 選択されたメニューの解析:
+		switch (wmId)
+		{
+		case ID_SUB_PNL_FLT_OBJ_PB_NEXT: {
+			pPanelBase->psubobjs->i_disp_page++;
+			if (pPanelBase->psubobjs->i_disp_page >= pPanelBase->psubobjs->n_disp_page)
+				pPanelBase->psubobjs->i_disp_page = 0; //ページ番号をリセット
+		}break;
+		case ID_SUB_PNL_FLT_OBJ_PB_BACK: {
+			pPanelBase->psubobjs->i_disp_page--;
+			if (pPanelBase->psubobjs->i_disp_page < 0)
+				pPanelBase->psubobjs->i_disp_page = pPanelBase->psubobjs->n_disp_page - 1; //ページ番号をリセット
+		}break;
+		default:
+			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);
+		}
+	}break;
+
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		pPanelBase->psubobjs->img_flt_bk->set(0);
+		pPanelBase->psubobjs->img_flt_bk->update();
+
+//		PatBlt(pPanelBase->psubobjs->hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, WHITENESS);
+//		draw_graphic();
+//		draw_info();
+
+		//背景エリア	
+//		BitBlt(hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, pPanelBase->psubobjs->hdc_bk , 0, 0, SRCCOPY);
+//		TransparentBlt(hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, pPanelBase->psubobjs->hdc_bk, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, RGB(255, 255, 255));
+
+//		//情報エリア
+//		BitBlt(hdc, OTE0_IF_AREA_X, OTE0_IF_AREA_Y, OTE0_IF_AREA_W, OTE0_IF_AREA_H, st_work_wnd.hdc[ID_OTE_HDC_MEM0], OTE0_IF_AREA_X, OTE0_IF_AREA_Y, SRCCOPY);
+
+
+		EndPaint(hwnd, &ps);
+	}break;
+	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
+		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
+
+		Gdiplus::Graphics gra(pDIS->hDC);
+		Font* pfont = NULL;
+		CSubPanelObj* pos = pPanelBase->psubobjs;
+		CLampCtrl* plamp = NULL;
+
+	}return true;
+	case WM_DESTROY:
+		//表示更新用タイマー
+		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+		// PostQuitMessage(0);
+		return 0;
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		return 0;
+	}
+	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
