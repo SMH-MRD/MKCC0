@@ -5,6 +5,7 @@
 #include "CBasicControl.h"
 #include <vector>
 #include "COteEnv.h"
+#include <windows.h>
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -952,10 +953,16 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-
-		pPanelBase->psubobjs->clear_graghics();
+		//グラフィックオブジェクトの初期化
 		pPanelBase->psubobjs->setup_graphics(hwnd);
 		pPanelBase->psubobjs->refresh_obj_graphics();
+			
+		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
+		Status status = pPanelBase->psubobjs->attr.SetColorKey(
+			pPanelBase->psubobjs->colorkey,
+			pPanelBase->psubobjs->colorkey,
+			ColorAdjustTypeDefault // DefaultではなくBitmapを指定する方が明確
+		);
 
 		SetWindowText(hwnd, L"故障情報");
 		pPanelBase->psubobjs->n_disp_page = 2; //ページ数
@@ -990,9 +997,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		
 		//背景
 		//Switch Image Windowハンドルセット（パネルウィンドウ）
-		pPanelBase->psubobjs->lmp_mh_spd_mode->set_wnd(hwnd);
-
 		pPanelBase->psubobjs->img_flt_bk->set_wnd(hwnd);
+		pPanelBase->psubobjs->img_flt_bk->set(0);
+		pPanelBase->psubobjs->img_flt_bk->update();
 
 		//初期値セット
 		is_disp_flt_heavy = is_disp_flt_light = is_disp_flt_il = true; //初期値は全て表示
@@ -1001,7 +1008,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		SendMessage(pPanelBase->psubobjs->cb_disp_interlock->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 		//バイパスは初期値OFF
 		SendMessage(pPanelBase->psubobjs->cb_flt_bypass->hWnd, BM_SETCHECK, BST_UNCHECKED, 0); 
-
+			
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
@@ -1019,6 +1026,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_TIMER: {
 		//# Switching Image更新
 
+	//	InvalidateRect(hwnd, NULL, false);
+	
 	}break;
 
 	case WM_COMMAND: {
@@ -1037,6 +1046,23 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			if (pPanelBase->psubobjs->i_disp_page < 0)
 				pPanelBase->psubobjs->i_disp_page = pPanelBase->psubobjs->n_disp_page - 1; //ページ番号をリセット
 		}break;
+
+		case ID_SUB_PNL_FLT_OBJ_CB_HEAVY	:{
+			pPanelBase->psubobjs->img_flt_bk->set(3);
+			pPanelBase->psubobjs->img_flt_bk->update();
+		}break;
+		case ID_SUB_PNL_FLT_OBJ_CB_LITE		:{
+			pPanelBase->psubobjs->img_flt_bk->set(2);
+			pPanelBase->psubobjs->img_flt_bk->update();
+		}break;
+		case ID_SUB_PNL_FLT_OBJ_CB_IL		:{
+			pPanelBase->psubobjs->img_flt_bk->set(1);
+			pPanelBase->psubobjs->img_flt_bk->update();
+	
+		}break;
+		case ID_SUB_PNL_FLT_OBJ_CB_BYPASS	:{
+		}break;
+
 		default:
 			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);
 		}
@@ -1046,20 +1072,21 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
 
-		pPanelBase->psubobjs->img_flt_bk->set(0);
-		pPanelBase->psubobjs->img_flt_bk->update();
+		Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
+		Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_inf, NULL);
+		Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
 
-//		PatBlt(pPanelBase->psubobjs->hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, WHITENESS);
-//		draw_graphic();
-//		draw_info();
+		pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0,0,SUB_PNL_WND_W, SUB_PNL_WND_H,UnitPixel);
 
-		//背景エリア	
-//		BitBlt(hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, pPanelBase->psubobjs->hdc_bk , 0, 0, SRCCOPY);
-//		TransparentBlt(hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, pPanelBase->psubobjs->hdc_bk, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, RGB(255, 255, 255));
+		PatBlt(pPanelBase->psubobjs->hdc_inf, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
 
-//		//情報エリア
-//		BitBlt(hdc, OTE0_IF_AREA_X, OTE0_IF_AREA_Y, OTE0_IF_AREA_W, OTE0_IF_AREA_H, st_work_wnd.hdc[ID_OTE_HDC_MEM0], OTE0_IF_AREA_X, OTE0_IF_AREA_Y, SRCCOPY);
+		pPanelBase->psubobjs->str_flt_message->update(); //故障メッセージ更新
 
+
+		Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
+		if (drawStatus != Ok){
+			drawStatus = drawStatus;
+		}
 
 		EndPaint(hwnd, &ps);
 	}break;
@@ -1089,7 +1116,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
-		pPanelBase->psubobjs->clear_graghics();
 		pPanelBase->psubobjs->setup_graphics(hwnd);
 		pPanelBase->psubobjs->refresh_obj_graphics();
 
@@ -1289,9 +1315,16 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
-		pPanelBase->psubobjs->clear_graghics();
+		//グラフィックオブジェクトの初期化
 		pPanelBase->psubobjs->setup_graphics(hwnd);
 		pPanelBase->psubobjs->refresh_obj_graphics();
+
+		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
+		Status status = pPanelBase->psubobjs->attr.SetColorKey(
+			pPanelBase->psubobjs->colorkey,
+			pPanelBase->psubobjs->colorkey,
+			ColorAdjustTypeDefault // DefaultではなくBitmapを指定する方が明確
+		);
 
 		SetWindowText(hwnd, L"状態監視");
 		pPanelBase->psubobjs->n_disp_page = 2; //ページ数
@@ -1361,6 +1394,23 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
+
+		Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
+		Gdiplus::Bitmap* pbmp_img = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_img, NULL);
+		Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
+
+		pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel);
+
+		PatBlt(pPanelBase->psubobjs->hdc_img, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
+
+		pPanelBase->psubobjs->str_flt_message->update(); //故障メッセージ更新
+
+
+		Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_img, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
+		if (drawStatus != Ok) {
+			drawStatus = drawStatus;
+		}
+
 		EndPaint(hwnd, &ps);
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し

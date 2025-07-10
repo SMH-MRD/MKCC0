@@ -79,9 +79,15 @@ public:
 	HWND hPnlWnd;			//パネルのウィンドウハンドル
 	Rect rc_panel;			//パネルの表示位置
 
+	HBITMAP hBmp0;			//イメージ素材用ビットマップ
 	HBITMAP hBmp_img;		//イメージ素材用ビットマップ
 	HBITMAP hBmp_bk;		//背景用ビットマップ
 	HBITMAP hBmp_inf;		//情報表示用ビットマップ
+
+	Bitmap* pbmp0;			//背景用ビットマップ
+	Bitmap* pbmp_img;		//背景用ビットマップ
+	Bitmap* pbmp_bk;		//背景用ビットマップ
+	Bitmap* pbmp_inf;		//背景用ビットマップ
 
 	HDC hdc;				//パネルへ書き込み用DC
 	HDC hdc_img;			//イメージ素材用DC
@@ -94,6 +100,9 @@ public:
 	Graphics* pgraphic_inf;	//情報表示用グラフィックス
 
 	SolidBrush* pBrushBk;	//背景塗りつぶし用ブラシ
+
+	Color colorkey;				//画像を重ね合わせる時の透過色
+	ImageAttributes attr;		//カラーキーを透過させる設定
 
 	int set_panel_code(int code) { panel_code = code; return panel_code; };
 	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
@@ -182,15 +191,34 @@ public:
 #define ID_SUB_PNL_STAT_OBJ_BASE				60300
 #define ID_SUB_PNL_STAT_OBJ_PB_NEXT				60300
 #define ID_SUB_PNL_STAT_OBJ_PB_BACK				60301
+#define ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR		60302
+#define ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		60303
+#define ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		60304
+#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		60305
+#define ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V		60306
+#define ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V		60307
+#define ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V		60308
+#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V		60309
+#define ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V		60310
+#define ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V		60311
+#define ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V		60312
+#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V		60313
+#define ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V		60314
+#define ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V		60315
+#define ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V		60316
+#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V		60317
+#define ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	60318
+#define ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	60319
 
-#define ID_SUB_PNL_FLT_OBJ_BASE					60320
-#define ID_SUB_PNL_FLT_OBJ_IMG_BK				60320
-#define ID_SUB_PNL_FLT_OBJ_PB_NEXT				60321
-#define ID_SUB_PNL_FLT_OBJ_PB_BACK				60322
-#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY				60323
-#define ID_SUB_PNL_FLT_OBJ_CB_LITE				60324
-#define ID_SUB_PNL_FLT_OBJ_CB_IL				60325
-#define ID_SUB_PNL_FLT_OBJ_CB_BYPASS			60326
+#define ID_SUB_PNL_FLT_OBJ_BASE					60330
+#define ID_SUB_PNL_FLT_OBJ_IMG_BK				60330
+#define ID_SUB_PNL_FLT_OBJ_PB_NEXT				60331
+#define ID_SUB_PNL_FLT_OBJ_PB_BACK				60332
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY				60333
+#define ID_SUB_PNL_FLT_OBJ_CB_LITE				60334
+#define ID_SUB_PNL_FLT_OBJ_CB_IL				60335
+#define ID_SUB_PNL_FLT_OBJ_CB_BYPASS			60336
+#define ID_SUB_PNL_OBJ_STR_FLT_MESSAGE			60337
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -225,16 +253,34 @@ public:
 	CPbCtrl*	pb_stat_next;		//次表示PB
 	CPbCtrl*	pb_stat_back;		//前表示PB
 
+	CStaticCtrl* mh_notch_dir;
+	CStaticCtrl* bh_notch_dir;
+	CStaticCtrl* sl_notch_dir;
+	CStaticCtrl* gt_notch_dir;
+	CStaticCtrl* mh_target_v;
+	CStaticCtrl* bh_target_v;
+	CStaticCtrl* sl_target_v;
+	CStaticCtrl* gt_target_v;
+	CStaticCtrl* mh_ref_v;
+	CStaticCtrl* bh_ref_v;
+	CStaticCtrl* sl_ref_v;
+	CStaticCtrl* gt_ref_v;
+	CStaticCtrl* mh_fb_v;
+	CStaticCtrl* bh_fb_v;
+	CStaticCtrl* sl_fb_v;
+	CStaticCtrl* gt_fb_v;
+	CStaticCtrl* mh_ref_trq;
+	CStaticCtrl* bh_ref_trq;
+
 	//故障表示サブウィンドウのオブジェクト
 	CSwitchImg* img_flt_bk;			//PLC通信インジケータ
-	CPbCtrl* pb_flt_next;		//次表示PB
-	CPbCtrl* pb_flt_back;		//前表示PB
-	CCbCtrl* cb_disp_interlock;	//主巻速度モード選択ラジオボタン
-	CCbCtrl* cb_disp_flt_light;	//軽故障表示チェックボタン
-	CCbCtrl* cb_disp_flt_heavy;	//重故障表示チェックボタン
-	CCbCtrl* cb_flt_bypass;		//ILバイパスチェックボタン
-
-
+	CPbCtrl* pb_flt_next;			//次表示PB
+	CPbCtrl* pb_flt_back;			//前表示PB
+	CCbCtrl* cb_disp_interlock;		//主巻速度モード選択ラジオボタン
+	CCbCtrl* cb_disp_flt_light;		//軽故障表示チェックボタン
+	CCbCtrl* cb_disp_flt_heavy;		//重故障表示チェックボタン
+	CCbCtrl* cb_flt_bypass;			//ILバイパスチェックボタン
+	CStringGdi* str_flt_message;	//故障表示メッセージラベル
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

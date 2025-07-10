@@ -73,14 +73,34 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=10
 	{ID_SUB_PNL_STAT_OBJ_PB_BACK	,Point(285,420)	,Size(50,30)	,L"BACK"		},
 
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR		,Point(60, 50 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		,Point(60, 85)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		,Point(60, 120)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		,Point(60, 155)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V		,Point(120,50 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V		,Point(120,85 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V		,Point(120,120)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V		,Point(120,155)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V	,Point(180,50 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V	,Point(180,85 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V	,Point(180,120)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V	,Point(180,155)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V		,Point(240,50 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V		,Point(240,85 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V		,Point(240,120)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V		,Point(240,155)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	,Point(300,50 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	,Point(300,85 )	,Size(50,30)	,L"-"	},
+
 	//故障表示サブウィンドウ
-	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(360,500)	,L"故障表示"	},//i=12	CSwitchImg* img_flt_bk;
+	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(360,500)	,L"故障表示"	},//i=30	CSwitchImg* img_flt_bk;
 	{ID_SUB_PNL_FLT_OBJ_PB_NEXT		,Point(230,420)	,Size(50,30)	,L"NEXT"		},//		CPbCtrl* pb_stat_next;
 	{ID_SUB_PNL_FLT_OBJ_PB_BACK		,Point(285,420)	,Size(50,30)	,L"BACK"		},//		CPbCtrl* pb_stat_back;
 	{ID_SUB_PNL_FLT_OBJ_CB_HEAVY	,Point(10,420)	,Size(50,30)	,L"重故"		},//		CCbCtrl* cb_disp_interlock;
 	{ID_SUB_PNL_FLT_OBJ_CB_LITE		,Point(65,420)	,Size(50,30)	,L"軽故"		},//		CCbCtrl* cb_disp_flt_light;
 	{ID_SUB_PNL_FLT_OBJ_CB_IL		,Point(120,420)	,Size(50,30)	,L"警IL"		},//		CCbCtrl* cb_disp_flt_heavy;
 	{ID_SUB_PNL_FLT_OBJ_CB_BYPASS	,Point(270,420)	,Size(60,30)	,L"BYPASS"		},//		CCbCtrl* cb_flt_bypass;
+	{ID_SUB_PNL_OBJ_STR_FLT_MESSAGE	,Point(10,10)	,Size(300,30)	,L"故障表示"	},//		CStringGdi* str_flt_message
 
 };
 
@@ -94,27 +114,29 @@ CPanelObjBase::~CPanelObjBase() {
 }
 
 HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
+	clear_graghics();
 
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	rc_panel.X = rect.left; rc_panel.Y = rect.top; rc_panel.Width = rect.right - rect.left; rc_panel.Height = rect.bottom - rect.top;
 	hdc = GetDC(hwnd);
-
-	hBmp_img = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	hBmp_bk = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	hBmp_inf = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	if (hBmp_img == NULL || hBmp_bk == NULL || hBmp_inf == NULL) {
-	
-		return E_FAIL;
-	}
-
 	hdc_img = CreateCompatibleDC(hdc);
 	hdc_bk = CreateCompatibleDC(hdc);
 	hdc_inf = CreateCompatibleDC(hdc);
 	if (hdc_img == NULL || hdc_bk == NULL || hdc_inf == NULL) {
 		return E_FAIL;
-	
 	}
+
+	//ビットマップの作成
+	hBmp0 = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+	hBmp_img = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+	hBmp_bk = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+	hBmp_inf = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+	if (hBmp0 == NULL || hBmp_img == NULL || hBmp_bk == NULL || hBmp_inf == NULL) {
+		return E_FAIL;
+	}
+	
+	SelectObject(hdc, hBmp0);
 	SelectObject(hdc_img, hBmp_img);
 	SelectObject(hdc_bk, hBmp_bk);
 	SelectObject(hdc_inf, hBmp_inf);
@@ -141,9 +163,11 @@ void CPanelObjBase::clear_graghics() {
 	if(pgraphic_img != NULL)	delete pgraphic_img;
 	if (pgraphic_bk != NULL)	delete pgraphic_bk;
 	if (pgraphic_inf != NULL)	delete pgraphic_inf;
+	DeleteDC(hdc);
 	DeleteDC(hdc_img);
 	DeleteDC(hdc_bk);
 	DeleteDC(hdc_inf);
+	DeleteObject(hBmp0);
 	DeleteObject(hBmp_img);
 	DeleteObject(hBmp_bk);
 	DeleteObject(hBmp_inf);
@@ -308,12 +332,31 @@ HRESULT CSubPanelObj::setup_obj() {
 
 	//# 状態表示ウィンドウオブジェクト
 	i++; pb_stat_next		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_NEXT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; pb_stat_back		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_NEXT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; pb_stat_back		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_BACK, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+
+	i++; mh_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; bh_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; sl_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; gt_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; mh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; bh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; sl_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; gt_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; mh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; bh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; sl_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; gt_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; mh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; bh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; sl_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; gt_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; mh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; bh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
 	//# 故障表示ウィンドウオブジェクト
 	
 	//!!背景用のグラフィックオブジェクトを渡す
-	i++; img_flt_bk			= new CSwitchImg(ID_SUB_PNL_FLT_OBJ_IMG_BK	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_flt_bk, 5, 3, pgraphic);
+	i++; img_flt_bk			= new CSwitchImg(ID_SUB_PNL_FLT_OBJ_IMG_BK	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_flt_bk, 5, 3, pgraphic_bk);
 
 	i++; pb_flt_next		= new CPbCtrl(ID_SUB_PNL_FLT_OBJ_PB_NEXT	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; pb_flt_back		= new CPbCtrl(ID_SUB_PNL_FLT_OBJ_PB_BACK	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -321,6 +364,10 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; cb_disp_flt_light	= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_LITE	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_disp_flt_heavy	= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_IL		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_flt_bypass		= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_BYPASS	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+
+	i++; str_flt_message	= new CStringGdi(ID_SUB_PNL_OBJ_STR_FLT_MESSAGE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pfont[ID_PANEL_FONT_20]);
+
 	return S_OK;
 }
 void CSubPanelObj::delete_obj() {
@@ -334,6 +381,18 @@ void CSubPanelObj::delete_obj() {
 	delete cb_bh_r_mode2;
 	delete rdo_bh_r_mode;
 	delete lmp_bh_r_mode;
+	delete pb_stat_next;
+	delete pb_stat_back;
+	delete img_flt_bk;
+	delete pb_flt_next;
+	delete pb_flt_back;
+	delete cb_disp_interlock;
+	delete cb_disp_flt_light;
+	delete cb_disp_flt_heavy;
+	delete cb_flt_bypass;
+	delete str_flt_message;
+	return;
+
 }
 
 void CSubPanelObj::refresh_obj_graphics() {
@@ -349,7 +408,9 @@ void CSubPanelObj::refresh_obj_graphics() {
 	cb_bh_r_mode2->refresh_graphics(pgraphic);
 	rdo_bh_r_mode->refresh_graphics(pgraphic);
 	lmp_bh_r_mode->refresh_graphics(pgraphic);
-	img_flt_bk->refresh_graphics(pgraphic);
+
+	img_flt_bk->refresh_graphics(pgraphic_bk);
+	str_flt_message->refresh_graphics(pgraphic_inf);
 
 	return;
 }
