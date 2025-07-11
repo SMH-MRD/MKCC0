@@ -73,24 +73,24 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=10
 	{ID_SUB_PNL_STAT_OBJ_PB_BACK	,Point(285,420)	,Size(50,30)	,L"BACK"		},
 
-	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR		,Point(60, 50 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		,Point(60, 85)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		,Point(60, 120)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		,Point(60, 155)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V		,Point(120,50 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V		,Point(120,85 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V		,Point(120,120)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V		,Point(120,155)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V	,Point(180,50 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V	,Point(180,85 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V	,Point(180,120)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V	,Point(180,155)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V		,Point(240,50 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V		,Point(240,85 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V		,Point(240,120)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V		,Point(240,155)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	,Point(300,50 )	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	,Point(300,85 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR		,Point(35, 70 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		,Point(35, 105)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		,Point(35, 140)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		,Point(35, 175)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V		,Point(95,70 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V		,Point(95,105)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V		,Point(95,140)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V		,Point(95,175)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V	,Point(155,70 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V	,Point(155,105)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V	,Point(155,140)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V	,Point(155,175)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V		,Point(215,70 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V		,Point(215,105)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V		,Point(215,140)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V		,Point(215,175)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	,Point(275,70 )	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	,Point(275,105 ),Size(50,30)	,L"-"	},
 
 	//故障表示サブウィンドウ
 	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(360,500)	,L"故障表示"	},//i=30	CSwitchImg* img_flt_bk;
@@ -174,6 +174,8 @@ void CPanelObjBase::clear_graghics() {
 	ReleaseDC(hPnlWnd, hdc);
 	return;
 }
+
+
 
 HRESULT CMainPanelObj::setup_obj() { 
 	
@@ -306,6 +308,55 @@ void CMainPanelObj::delete_obj() {
 	delete pb_crane_sel_wnd;
 
 }
+
+void CMainPanelObj::refresh_obj_graphics() {
+
+	str_message->refresh_graphics(pgraphic);
+	pb_remote->refresh_graphics(pgraphic);
+	lmp_remote->refresh_graphics(pgraphic);
+	txt_uid->refresh_graphics(pgraphic);
+	pb_auth->refresh_graphics(pgraphic);
+	str_pc_com_stat->refresh_graphics(pgraphic);
+	str_plc_com_stat->refresh_graphics(pgraphic);
+	lmp_pcr->refresh_graphics(pgraphic);
+	lmp_pcs->refresh_graphics(pgraphic);
+	lmp_plcr->refresh_graphics(pgraphic);
+	lmp_plcs->refresh_graphics(pgraphic);
+
+	cb_estop->refresh_graphics(pgraphic);
+	lmp_estop->refresh_graphics(pgraphic);
+	pb_syukan_on->refresh_graphics(pgraphic);
+	lmp_syukan_on->refresh_graphics(pgraphic);
+	pb_syukan_off->refresh_graphics(pgraphic);
+	lmp_syukan_off->refresh_graphics(pgraphic);
+	cb_pnl_notch->refresh_graphics(pgraphic);
+	pb_pad_mode->refresh_graphics(pgraphic);
+	lmp_pad_mode->refresh_graphics(pgraphic);
+	pb_assist_func->refresh_graphics(pgraphic);
+	txt_ote_type->refresh_graphics(pgraphic);
+	pb_ote_type_wnd->refresh_graphics(pgraphic);
+	txt_link_crane->refresh_graphics(pgraphic);
+	pb_crane_sel_wnd->refresh_graphics(pgraphic);
+
+	cb_disp_mode1->refresh_graphics(pgraphic);
+	cb_disp_mode2->refresh_graphics(pgraphic);
+	rdo_disp_mode->refresh_graphics(pgraphic);
+
+	cb_opt_flt->refresh_graphics(pgraphic);	//
+	cb_opt_set->refresh_graphics(pgraphic);	//
+	cb_opt_com->refresh_graphics(pgraphic);	//
+	cb_opt_cam->refresh_graphics(pgraphic);	//
+	cb_opt_stat->refresh_graphics(pgraphic);	//
+	cb_opt_clr->refresh_graphics(pgraphic);	//
+	rdo_opt_wnd->refresh_graphics(pgraphic);	//
+
+	pb_freset->refresh_graphics(pgraphic);
+	lmp_freset->refresh_graphics(pgraphic);
+	txt_freset->refresh_graphics(pgraphic);	//
+	return;
+}
+
+
 HRESULT CSubPanelObj::setup_obj() {
 	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png");	
 	static Image img_flt_bk_gr(L"../Img/HHGH29/bk_sub_gr.png"), img_flt_bk_rd(L"../Img/HHGH29/bk_sub_rd.png"), img_flt_bk_yl(L"../Img/HHGH29/bk_sub_yl.png"), img_flt_bk_bl(L"../Img/HHGH29/bk_sub_bl.png") ;
@@ -334,24 +385,24 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; pb_stat_next		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_NEXT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; pb_stat_back		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_BACK, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 
-	i++; mh_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; bh_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; sl_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; gt_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; mh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; bh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; sl_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; gt_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; mh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; bh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; sl_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; gt_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; mh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; bh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; sl_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; gt_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; mh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; bh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_sl_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_sl_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_sl_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_sl_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
 	//# 故障表示ウィンドウオブジェクト
 	

@@ -39,7 +39,7 @@ public:
 	static LRESULT CALLBACK WndProcStat(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static int close();
-	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf);
+	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf,int _crane_id);
 	
 };
 

@@ -215,7 +215,7 @@ typedef struct _ST_CC_ENV_INF {
 typedef struct _ST_PLC_AXIS_STAT {
 	INT16	inv_fb_v;				//速度FB ADユニット値
 	INT16	brk_fb;					//ブレーキ状態FB 0閉
-	INT16	notch_fb;				//AGENT指令のノッチ位置
+	INT16	notch_fb;				//ノッチ位置
 	INT32   hcount_fb;				//高速カウンタFB値
 	INT32	absocoder_fb;			//アブソコーダFB値
 	INT32	endlim;					//極限センサ状態

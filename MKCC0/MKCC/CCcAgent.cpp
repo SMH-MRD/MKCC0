@@ -181,6 +181,16 @@ int CAgent::input() {
 	pPLC_IO->stat_mh.hcount_fb;
 	pPLC_IO->stat_mh.absocoder_fb;
 
+	//ノッチ指令状態
+	INT16 notch = pCrane->pPlc->rval(pPlcRIf->mh_notch).i16;
+	pPLC_IO->stat_mh.notch_fb = CNotchHelper::get_notch4_by_code(&notch,0);	//MHノッチFB
+	notch = pCrane->pPlc->rval(pPlcRIf->bh_notch).i16;
+	pPLC_IO->stat_bh.notch_fb = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
+	notch = pCrane->pPlc->rval(pPlcRIf->sl_notch).i16;
+	pPLC_IO->stat_sl.notch_fb = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
+	notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
+	pPLC_IO->stat_gt.notch_fb = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
+
 	//インバータ指令状態
 	//インバータ運転指令方向 速度指令
 	pPLC_IO->stat_mh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_mh).i16;//インバータ速度指令

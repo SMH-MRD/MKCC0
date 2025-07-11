@@ -147,7 +147,7 @@ public:
 	CLampCtrl	* lmp_syukan_off;	//主幹切ランプ
 	CCbCtrl		* cb_pnl_notch;		//パネルノッチPB
 	CPbCtrl		* pb_pad_mode;		//ジョイパッドモードPB
-	CLampCtrl* lmp_pad_mode;		//ジョイパッドモードランプ
+	CLampCtrl	* lmp_pad_mode;		//ジョイパッドモードランプ
 	CPbCtrl		* pb_assist_func;	//アシスト機能設定
 	CStaticCtrl	* txt_ote_type;		//端末タイプ表示テキスト
 	CPbCtrl		* pb_ote_type_wnd;	//端末タイプ設定ウィンドウ
@@ -166,12 +166,13 @@ public:
 	CCbCtrl		* cb_opt_clr;	//オプションウィンドウラジオボタン
 	CRadioCtrl	* rdo_opt_wnd;	//オプションウィンドウラジオボタン
 
-	CPbCtrl* pb_freset;			//故障リセットPB
-	CLampCtrl* lmp_freset;		//故障リセットランプ
-	CStaticCtrl* txt_freset;	//故障リセット表示テキスト
+	CPbCtrl		* pb_freset;			//故障リセットPB
+	CLampCtrl	* lmp_freset;		//故障リセットランプ
+	CStaticCtrl	* txt_freset;	//故障リセット表示テキスト
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();
+	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
 
 
@@ -253,24 +254,24 @@ public:
 	CPbCtrl*	pb_stat_next;		//次表示PB
 	CPbCtrl*	pb_stat_back;		//前表示PB
 
-	CStaticCtrl* mh_notch_dir;
-	CStaticCtrl* bh_notch_dir;
-	CStaticCtrl* sl_notch_dir;
-	CStaticCtrl* gt_notch_dir;
-	CStaticCtrl* mh_target_v;
-	CStaticCtrl* bh_target_v;
-	CStaticCtrl* sl_target_v;
-	CStaticCtrl* gt_target_v;
-	CStaticCtrl* mh_ref_v;
-	CStaticCtrl* bh_ref_v;
-	CStaticCtrl* sl_ref_v;
-	CStaticCtrl* gt_ref_v;
-	CStaticCtrl* mh_fb_v;
-	CStaticCtrl* bh_fb_v;
-	CStaticCtrl* sl_fb_v;
-	CStaticCtrl* gt_fb_v;
-	CStaticCtrl* mh_ref_trq;
-	CStaticCtrl* bh_ref_trq;
+	CStaticCtrl* st_mh_notch_dir;
+	CStaticCtrl* st_bh_notch_dir;
+	CStaticCtrl* st_sl_notch_dir;
+	CStaticCtrl* st_gt_notch_dir;
+	CStaticCtrl* st_mh_target_v;
+	CStaticCtrl* st_bh_target_v;
+	CStaticCtrl* st_sl_target_v;
+	CStaticCtrl* st_gt_target_v;
+	CStaticCtrl* st_mh_ref_v;
+	CStaticCtrl* st_bh_ref_v;
+	CStaticCtrl* st_sl_ref_v;
+	CStaticCtrl* st_gt_ref_v;
+	CStaticCtrl* st_mh_fb_v;
+	CStaticCtrl* st_bh_fb_v;
+	CStaticCtrl* st_sl_fb_v;
+	CStaticCtrl* st_gt_fb_v;
+	CStaticCtrl* st_mh_ref_trq;
+	CStaticCtrl* st_bh_ref_trq;
 
 	//故障表示サブウィンドウのオブジェクト
 	CSwitchImg* img_flt_bk;			//PLC通信インジケータ

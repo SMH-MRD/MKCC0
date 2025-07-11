@@ -118,6 +118,7 @@ typedef struct _ST_OTE_MOTION_STAT {
 	double nv_ref;
 	INT32 brake;
 	INT32 auto_sel;
+	INT32 notch_ref;
 }ST_OTE_MOTION_STAT,*LPST_OTE_MOTION_STAT;
 #define N_OTE_LOAD_TYPE		2
 #define ID_OTE_LOAD_MHOIST	0

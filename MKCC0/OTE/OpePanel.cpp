@@ -138,7 +138,7 @@ void CPanelBase::close_drawing_base() {
 		DeleteObject(drawing_items.pstrformat[i]);
 	}
 
-	GdiplusShutdown(gdiplusToken);
+	//GdiplusShutdown(gdiplusToken);
 	return;
 }
 

@@ -90,7 +90,7 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   erm_x[7];           // D10462:電気室PLC X入力
 	INT16   spar2;				//
 	INT16   inv_vref[4];		// D10470:インバータ速度指令
-	INT16   inv_vfb[4];			// D10475:インバータ速度指令
+	INT16   inv_vfb[4];			// D10475:インバータ速度FB
 	INT16   inv_trq[2];			// D10478:インバータトルク指令
 	INT16   spar3[2];			// D10469:インバータPLC DO指令	
 	INT32   hcount_fb[4];       // D10480:高速カウンタユニット FB値

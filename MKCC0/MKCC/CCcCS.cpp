@@ -34,7 +34,7 @@ ST_CC_CS_INF CCcCS::st_cs_work;
 ST_CC_OTE_INF CCcCS::st_ote_work;
 
 //共有メモリ
-static LPST_CC_ENV_INF		pCraneStat;
+static LPST_CC_ENV_INF		pEnv_Inf;
 static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
@@ -65,7 +65,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	set_outbuf(pCsInfObj->get_pMap());
 
 	//### 共有メモリ
-	pCraneStat	= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+	pEnv_Inf	= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPLC_IO		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
@@ -81,7 +81,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 		pPlcRIf = &(pCrane->pPlc->plc_io_rif);
 	}
 
-	if((pCraneStat == NULL) || (pPLC_IO == NULL) || (pOTE_Inf == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
+	if((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pOTE_Inf == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))
 		hr = S_FALSE;
 
 	if (hr == S_FALSE) {
@@ -213,6 +213,15 @@ int CCcCS::parse() {
 		memset(plamp_com, 0, sizeof(UN_LAMP_COM) * N_OTE_PNL_CTRL);	
 	}
 	else {
+		//PLC受信バッファをコピー
+		memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
+
+		//ノッチ指令信号
+		st_ote_work.st_body.st_motion_stat[ID_HOIST].notch_ref = pPLC_IO->stat_mh.notch_fb;
+		st_ote_work.st_body.st_motion_stat[ID_BOOM_H].notch_ref = pPLC_IO->stat_bh.notch_fb;
+		st_ote_work.st_body.st_motion_stat[ID_SLEW].notch_ref = pPLC_IO->stat_sl.notch_fb;
+		st_ote_work.st_body.st_motion_stat[ID_GANTRY].notch_ref = pPLC_IO->stat_gt.notch_fb;
+
 		//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
 		plamp_com[OTE_PNL_CTRLS::estop].st.com		= (UINT8)pCrane->pPlc->rval(pPlcRIf->estop).i16;
 
@@ -382,7 +391,7 @@ HRESULT CCcCS::rcv_mul_ote(LPST_OTE_M_MSG pbuf) {
 LPST_PC_U_MSG CCcCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	
 	//#Header部
-	st_ote_work.st_msg_pc_u_snd.head.myid	= pCraneStat->device_code;
+	st_ote_work.st_msg_pc_u_snd.head.myid	= pEnv_Inf->device_code;
 	st_ote_work.st_msg_pc_u_snd.head.addr	= pUSockOte->addr_in_rcv;
 	st_ote_work.st_msg_pc_u_snd.head.code	= code;
 	st_ote_work.st_msg_pc_u_snd.head.status = stat;

@@ -79,6 +79,11 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 		ShowWindow(hPnlWnd, SW_SHOW);
 		UpdateWindow(hPnlWnd);
 	}
+
+	//サブウィンドウの共有メモリのポインタセット
+	CSubPanelWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf, crane_id);
+
+	return;
 }
 CMainPanelWindow::~CMainPanelWindow()
 {
@@ -92,9 +97,6 @@ void CMainPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OT
 	pOteEnvInf	= _pOteEnvInf;
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
-
-	//サブウィンドウの共有メモリのポインタセット
-	CSubPanelWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf);
 	return;
 };
 int CMainPanelWindow::close()
@@ -112,7 +114,10 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
-		pPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN, hWnd);
+		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN, hWnd);
+		//オブジェクトのグラフィックを設定
+		pPanelBase->pmainobjs->setup_graphics(hWnd);
+		pPanelBase->pmainobjs->refresh_obj_graphics();
 
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
@@ -476,10 +481,11 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-
-		delete* ppPanelBase;
+		
 		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN, hWnd);
-		pPanelBase->psubobjs->refresh_obj_graphics();//サブパネルオブジェクトのグラフィックを更新
+		//オブジェクトのグラフィックを設定
+		pPanelBase->pmainobjs->setup_graphics(hWnd);
+		pPanelBase->pmainobjs->refresh_obj_graphics();
 
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
@@ -827,6 +833,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_DESTROY: {
 		hWnd = NULL;
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
+//		if (pPanelBase != NULL) delete pPanelBase;
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
 
@@ -922,11 +929,12 @@ int CSubPanelWindow::close()
 	DestroyWindow(hPnlWnd); 
 	return 0;
 }
-void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF _pOteEnvInf) {
+void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF _pOteEnvInf, int _crane_id) {
 	pUi = _pUi;
 	pCsInf = _pCsInf;
 	pCcIf = _pCcIf;
 	pOteEnvInf = _pOteEnvInf;
+	crane_id = _crane_id; //クレーンIDをセット
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 	return;
@@ -1318,7 +1326,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 		//グラフィックオブジェクトの初期化
 		pPanelBase->psubobjs->setup_graphics(hwnd);
 		pPanelBase->psubobjs->refresh_obj_graphics();
-
+		//重ね合わせ画像透過色設定
 		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
 		Status status = pPanelBase->psubobjs->attr.SetColorKey(
 			pPanelBase->psubobjs->colorkey,
@@ -1335,13 +1343,77 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
 
 		//ウィンドウにコントロール追加
-		//PB 
-		CPbCtrl* ppb = pPanelBase->psubobjs->pb_stat_next;
-		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
-		ppb = pPanelBase->psubobjs->pb_stat_back;
-		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+		//LABEL 
+		CreateWindowW(TEXT("STATIC"), L"方向  目標速度 速度指令 速度FB ﾄﾙｸFB", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			60, 20, 355, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"巻上", WS_CHILD | WS_VISIBLE | SS_LEFT, 
+			5, 70, 40, 30, hwnd, (HMENU)(100), hInst, NULL);				   
+		CreateWindowW(TEXT("STATIC"), L"引込", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			5, 105, 40, 30, hwnd, (HMENU)(100), hInst, NULL);				   
+		CreateWindowW(TEXT("STATIC"), L"旋回", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			5, 140, 40, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"走行", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			5, 175, 40, 30, hwnd, (HMENU)(100), hInst, NULL);
+
+		//STATIC 
+		CStaticCtrl* pst = pPanelBase->psubobjs->st_mh_notch_dir;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_bh_notch_dir;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_sl_notch_dir;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_gt_notch_dir;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_mh_target_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_bh_target_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_sl_target_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_gt_target_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_mh_ref_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_bh_ref_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_sl_ref_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_gt_ref_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_mh_fb_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_bh_fb_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_sl_fb_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_gt_fb_v;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_mh_ref_trq;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_bh_ref_trq;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
@@ -1350,23 +1422,112 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wParam, TRANSPARENT);
-	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
+	}return (LRESULT)GetStockObject(BLACK_BRUSH); // 背景色に合わせる
 
 	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
 		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
 	}return 1; // 背景を処理したことを示す
 
 	case WM_TIMER: {
-		//# Switching Image更新
-		//巻速度モード
-		//INT16 code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
-		//pPanelBase->psubobjs->lmp_mh_spd_mode->set(code);
-		//pPanelBase->psubobjs->lmp_mh_spd_mode->update();
+		//InvalidateRect(pPanelBase->psubobjs->st_mh_ref_v->hWnd, NULL, TRUE);
+		switch (crane_id) {
+		case CARNE_ID_HHGH29: {
+			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+			wostringstream wos;
 
-		////起伏モード
-		//code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
-		//pPanelBase->psubobjs->lmp_bh_r_mode->set(code);
-		//pPanelBase->psubobjs->lmp_bh_r_mode->update();
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"0");
+		
+			//目標速度
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_target_v->hWnd, wos.str().c_str());
+
+			//速度指令
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[0]; 
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_ref_v->hWnd, wos.str().c_str());
+
+			//速度FB
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_fb_v->hWnd, wos.str().c_str());
+
+			//ﾄﾙｸ指令
+			wos.str(L""); wos << p_plc_rbuf->inv_trq[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_trq->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_trq[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, wos.str().c_str());
+
+
+
+		}break;
+		default: {
+			SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_target_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_target_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_target_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_target_v->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_ref_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_ref_v->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_fb_v->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_trq->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, L"?");
+
+		}break;
+		}
 
 	}break;
 
@@ -1394,23 +1555,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
-
-		Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
-		Gdiplus::Bitmap* pbmp_img = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_img, NULL);
-		Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
-
-		pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel);
-
-		PatBlt(pPanelBase->psubobjs->hdc_img, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
-
-		pPanelBase->psubobjs->str_flt_message->update(); //故障メッセージ更新
-
-
-		Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_img, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
-		if (drawStatus != Ok) {
-			drawStatus = drawStatus;
-		}
-
+		PatBlt(hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
 		EndPaint(hwnd, &ps);
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し

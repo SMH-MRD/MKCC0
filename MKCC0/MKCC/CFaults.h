@@ -3,7 +3,7 @@
 #include "COMMON_DEF.h"
 
 #define N_PLC_FAULT_BUF				18
-#define N_AUTO_FAULT_BUF			6
+#define N_AUTO_FAULT_BUF			0
 #define N_ALL_FAULT_BUF				N_PLC_FAULT_BUF+N_AUTO_FAULT_BUF
 #define N_ALL_FAULTS				(N_PLC_FAULT_BUF+N_AUTO_FAULT_BUF)*16
 
@@ -27,21 +27,32 @@
 
 
 enum FAULT_TYPE {
-	HEVY = 0,	//重故障
-	LIGT,		//軽故障
-	IL,			//インターロック
+	NON = 0,	//フォルトなし
+	HEVY1,		//重故障1
+	HEVY2,		//重故障2
+	HEVY3,		//重故障3
+	LIGHT,		//軽故障
+	IL,			//渋滞
 	RMT,		//リモート
 	AUTO,		//自動
 	ALL			//全体
 };
 
+#define PLC_IF_N_ITEM_CHAR			48
 #define PLC_IF_N_MSG_CHAR			48
 
+typedef struct _ST_FAULT_ITEM {
+	INT16	type;						//種別　
+	INT16	limit;						//制限される軸	0－8bit：即　
+	WCHAR	item[PLC_IF_N_MSG_CHAR];	//表示テキスト(項目名)
+	WCHAR	comment[PLC_IF_N_MSG_CHAR];	//表示テキスト(コメント)
+}ST_FAULT_ITEM, * LPST_FAULT_ITEM;
+
 typedef struct _ST_FAULT_LIST {
-	INT16	type[N_ALL_FAULTS];
-	INT16	limit[N_ALL_FAULTS];	//制限される軸	
-	WCHAR	text[N_ALL_FAULTS][PLC_IF_N_MSG_CHAR];	//表示テキスト
+	ST_FAULT_ITEM faults[N_ALL_FAULTS];	//登録フォルト数
+	INT16 fault_mask[FAULT_TYPE::ALL][N_ALL_FAULT_BUF];	//登録フォルト数
 }ST_FAULT_LIST, * LPST_FAULT_LIST;
+
 
 class CFaults
 {
@@ -49,9 +60,9 @@ private:
 	INT16* pbuf;	//情報が含まれているバッファのアドレス
 	int crane_id;
 	INT16* prbuf;		//PLCからの読み取りバッファアドレス
-	INT16* pwbuf;		//PLCへの書き込みバッファアドレス
+	INT16* pwbuf;		//PLCへの書き込みバッファアドレス(遠隔,自動用Faultセット用）
 	INT16* prfltbuf;	//PLCからの故障ビットバッファアドレス
-	INT16* pwfltbuf;	//PLCへの故障ビットバッファアドレス
+	INT16* pwfltbuf;	//PLCへの故障ビットバッファアドレス(遠隔,自動用Faultセット用）
 public:
 	CFaults(int _crane_id,INT16* _prbuf,INT16* _pwbuf) {
 		crane_id = _crane_id;
@@ -76,9 +87,9 @@ public:
 
 	UINT16 fault_bits[N_ALL_FAULT_BUF];				//検出中フォルトビット列
 	UINT16 faults_trig_on[N_ALL_FAULT_BUF];			//発生フォルトビット列   
-	UINT16 faults_trig_off[N_ALL_FAULT_BUF];			//解消フォルトビット列
+	UINT16 faults_trig_off[N_ALL_FAULT_BUF];		//解消フォルトビット列
 
-	UINT16 faults_disp[N_ALL_FAULT_BUF];				//
+	UINT16 faults_disp[N_ALL_FAULT_BUF];			//表示用フォルトビット列
 
 	int chk_flt_trig();
 
