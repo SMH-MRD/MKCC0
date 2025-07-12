@@ -194,7 +194,12 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case OTE_ENV_ID_MON1_PB_START: {
 			if (crane_id_selected != CRANE_ID_NULL) {
 				delete pCrane;
-				if (!(NULL == (pCrane= new CCrane(crane_id_selected)))){
+				if (!(NULL == (
+					pCrane= new CCrane(crane_id_selected
+					,pOteCCIf->st_msg_pc_u_rcv.body.st.buf_io_read
+					,pOteCCIf->st_msg_ote_u_snd.body.st.buf_io_write
+					))))
+				{
 					pCrane->pSpec->base_mh;
 					close_monitor_wnd(BC_ID_MON1);
 					Sleep(100);

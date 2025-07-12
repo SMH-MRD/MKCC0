@@ -156,7 +156,6 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 }
 
 void CCcEnv::set_drum_param() {//出力バッファセット
-	double* pcdrm;
 	for(int i = 0; i < N_DRUM_LAYER; i++) {
 		pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)i	* pspec->base_mh.dDdrm) * PI180;
 		pEnvInf->Cdrm[ID_BOOM_H][i] = (pspec->base_bh.Ddrm0 + (double)i * pspec->base_bh.dDdrm) * PI180;

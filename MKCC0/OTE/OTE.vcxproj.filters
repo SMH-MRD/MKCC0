@@ -146,6 +146,9 @@
     <ClCompile Include="..\MKCC\CValue.cpp">
       <Filter>ValueObjects</Filter>
     </ClCompile>
+    <ClCompile Include="..\MKCC\CPlc.cpp">
+      <Filter>Domain\Entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OTE.rc">

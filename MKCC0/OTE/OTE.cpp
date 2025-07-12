@@ -174,8 +174,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     if (OK_SHMEM != pOteCcInfObj->create_smem(  SMEM_OTE_CC_IF_NAME	, sizeof(ST_OTE_CC_IF)  , MUTEX_OTE_CC_IF_NAME))    return(FALSE);
     
 	LPST_OTE_CC_IF pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
+	INT16 plc_buf_dummy[256]; //PLCのバッファーサイズは256byte
+
     //クレーンオブジェクト生成
-    pCrane = new CCrane(CRANE_ID_NULL);	//クレーンIDはNULLで初期化
+    pCrane = new CCrane(CRANE_ID_NULL, plc_buf_dummy, plc_buf_dummy);	//クレーンIDはNULLで初期化
 
     //デバイスコードセット
 

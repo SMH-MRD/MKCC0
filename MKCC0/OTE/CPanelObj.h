@@ -215,11 +215,14 @@ public:
 #define ID_SUB_PNL_FLT_OBJ_IMG_BK				60330
 #define ID_SUB_PNL_FLT_OBJ_PB_NEXT				60331
 #define ID_SUB_PNL_FLT_OBJ_PB_BACK				60332
-#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY				60333
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY1			60333
 #define ID_SUB_PNL_FLT_OBJ_CB_LITE				60334
 #define ID_SUB_PNL_FLT_OBJ_CB_IL				60335
 #define ID_SUB_PNL_FLT_OBJ_CB_BYPASS			60336
 #define ID_SUB_PNL_OBJ_STR_FLT_MESSAGE			60337
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY2			60338
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY3			60339
+#define ID_SUB_PNL_FLT_OBJ_PB_PLCMAP			60340
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -279,9 +282,12 @@ public:
 	CPbCtrl* pb_flt_back;			//前表示PB
 	CCbCtrl* cb_disp_interlock;		//主巻速度モード選択ラジオボタン
 	CCbCtrl* cb_disp_flt_light;		//軽故障表示チェックボタン
-	CCbCtrl* cb_disp_flt_heavy;		//重故障表示チェックボタン
+	CCbCtrl* cb_disp_flt_heavy1;	//重故障1表示チェックボタン
 	CCbCtrl* cb_flt_bypass;			//ILバイパスチェックボタン
 	CStringGdi* str_flt_message;	//故障表示メッセージラベル
+	CCbCtrl* cb_disp_flt_heavy2;	//重故障2表示チェックボタン
+	CCbCtrl* cb_disp_flt_heavy3;	//重故障3表示チェックボタン
+	CPbCtrl* pb_disp_flt_plcmap;	//PLC faulrmap表示チェックボタン
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

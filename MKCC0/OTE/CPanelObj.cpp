@@ -93,15 +93,17 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	,Point(275,105 ),Size(50,30)	,L"-"	},
 
 	//故障表示サブウィンドウ
-	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(360,500)	,L"故障表示"	},//i=30	CSwitchImg* img_flt_bk;
-	{ID_SUB_PNL_FLT_OBJ_PB_NEXT		,Point(230,420)	,Size(50,30)	,L"NEXT"		},//		CPbCtrl* pb_stat_next;
-	{ID_SUB_PNL_FLT_OBJ_PB_BACK		,Point(285,420)	,Size(50,30)	,L"BACK"		},//		CPbCtrl* pb_stat_back;
-	{ID_SUB_PNL_FLT_OBJ_CB_HEAVY	,Point(10,420)	,Size(50,30)	,L"重故"		},//		CCbCtrl* cb_disp_interlock;
-	{ID_SUB_PNL_FLT_OBJ_CB_LITE		,Point(65,420)	,Size(50,30)	,L"軽故"		},//		CCbCtrl* cb_disp_flt_light;
-	{ID_SUB_PNL_FLT_OBJ_CB_IL		,Point(120,420)	,Size(50,30)	,L"警IL"		},//		CCbCtrl* cb_disp_flt_heavy;
-	{ID_SUB_PNL_FLT_OBJ_CB_BYPASS	,Point(270,420)	,Size(60,30)	,L"BYPASS"		},//		CCbCtrl* cb_flt_bypass;
-	{ID_SUB_PNL_OBJ_STR_FLT_MESSAGE	,Point(10,10)	,Size(300,30)	,L"故障表示"	},//		CStringGdi* str_flt_message
-
+	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(360,500)	,L"故障表示"	},	//i=30	CSwitchImg* img_flt_bk;
+	{ID_SUB_PNL_FLT_OBJ_PB_NEXT		,Point(230,420)	,Size(50,30)	,L"NEXT"		},	//		CPbCtrl* pb_stat_next;
+	{ID_SUB_PNL_FLT_OBJ_PB_BACK		,Point(285,420)	,Size(50,30)	,L"BACK"		},	//		CPbCtrl* pb_stat_back;
+	{ID_SUB_PNL_FLT_OBJ_CB_HEAVY1	,Point(10,420)	,Size(40,30)	,L"重1"			},	//		CCbCtrl* cb_disp_interlock;
+	{ID_SUB_PNL_FLT_OBJ_CB_HEAVY2	,Point(55,420)	,Size(40,30)	,L"重2"			},	//		CCbCtrl* cb_disp_flt_light;
+	{ID_SUB_PNL_FLT_OBJ_CB_HEAVY3	,Point(100,420)	,Size(40,30)	,L"重3"			},	//		CCbCtrl* cb_disp_flt_heavy;
+	{ID_SUB_PNL_FLT_OBJ_CB_BYPASS	,Point(235,420)	,Size(60,30)	,L"BYPASS"		},	//		CCbCtrl* cb_flt_bypass;
+	{ID_SUB_PNL_OBJ_STR_FLT_MESSAGE	,Point(10,10)	,Size(300,30)	,L"故障表示"	},	//		CStringGdi* str_flt_message
+	{ID_SUB_PNL_FLT_OBJ_CB_LITE		,Point(145,420)	,Size(40,30)	,L"軽"			},	//		CCbCtrl* cb_disp_interlock;
+	{ID_SUB_PNL_FLT_OBJ_CB_IL		,Point(190,420)	,Size(40,30)	,L"IL"			},	//		CCbCtrl* cb_disp_flt_light;
+	{ID_SUB_PNL_FLT_OBJ_PB_PLCMAP	,Point(300,420)	,Size(40,30)	,L"MAP"			},	//		CCbCtrl* cb_disp_flt_heavy;
 };
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
@@ -411,13 +413,17 @@ HRESULT CSubPanelObj::setup_obj() {
 
 	i++; pb_flt_next		= new CPbCtrl(ID_SUB_PNL_FLT_OBJ_PB_NEXT	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; pb_flt_back		= new CPbCtrl(ID_SUB_PNL_FLT_OBJ_PB_BACK	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_disp_interlock	= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_HEAVY	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_disp_flt_light	= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_LITE	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_disp_flt_heavy	= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_IL		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_disp_flt_heavy1 = new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_HEAVY1	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_disp_flt_heavy2 = new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_HEAVY2	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_disp_flt_heavy3	= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_HEAVY3	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_flt_bypass		= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_BYPASS	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 
 	i++; str_flt_message	= new CStringGdi(ID_SUB_PNL_OBJ_STR_FLT_MESSAGE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
 		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pfont[ID_PANEL_FONT_20]);
+
+	i++; cb_disp_flt_light = new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_LITE		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_disp_interlock = new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_IL		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; pb_disp_flt_plcmap = new CPbCtrl(ID_SUB_PNL_FLT_OBJ_PB_PLCMAP	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 
 	return S_OK;
 }
@@ -439,9 +445,12 @@ void CSubPanelObj::delete_obj() {
 	delete pb_flt_back;
 	delete cb_disp_interlock;
 	delete cb_disp_flt_light;
-	delete cb_disp_flt_heavy;
+	delete cb_disp_flt_heavy1;
 	delete cb_flt_bypass;
 	delete str_flt_message;
+	delete cb_disp_flt_heavy2;
+	delete cb_disp_flt_heavy3;
+	delete pb_disp_flt_plcmap;
 	return;
 
 }

@@ -20,7 +20,7 @@ public:
 
 	static int crane_id;
 	static int wnd_code;
-	static bool is_disp_flt_heavy, is_disp_flt_light, is_disp_flt_il;
+	static int flt_disp_code;
 
 	static LPST_OTE_UI pUi;
 	static LPST_OTE_CS_INF pCsInf;
@@ -30,6 +30,8 @@ public:
 	static CPanelBase* pPanelBase;
 	static HWND hPnlWnd;//生成したパネルのウィンドウハンドル
 	static HWND hParentWnd;//親ウィンドウハンドル
+
+	static PINT16 pflt_plc;
 
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

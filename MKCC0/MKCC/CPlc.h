@@ -1,5 +1,6 @@
 #pragma once
 #include "PLC_DEF.h"
+#include "CFaults.h"
 
 
 #define MASK_BIT_MH             0x00000001
@@ -52,50 +53,51 @@ typedef struct _ST_PLC_RBUF {
 }ST_PLC_RBUF, * LPST_PLC_RBUF;
 
 //西多度津70tJC102号の定義
-typedef struct _ST_PLC_WBUF_HHGH29 {//制御PC→PLC
-	INT16   helthy;               //D10200:PCヘルシー出力信号
-	INT16   ctrl_mode;            //D10201:自動制御フラグ
-	UINT16  cab_ai[4];            //D10202:運転室PLC AI信号【モーメントリミッタ】
-	INT16   cab_bi[4];            //D10206:運転室PLC→電気室PLC b出力
-	INT16   pc_fault[2];          //D10210:制御PC故障
-	INT16   mh_load;              //D10212:主巻荷重
-	INT16   ah_load;              //D10213:補巻荷重
-	INT16   wind_spd;             //D10214:風速
-	INT16   spear[15];            //D10215:予備
-	UINT32  hcounter[4];          //D10230:高速カウンタユニット 
-	UINT32  absocoder[3];         //D10238　アブソコーダ 
-	INT16   spare0[26];			  //D10244　予備 
-	INT16   spd_fb[4];			  //D10270:速度FB（符号付き　3200が最高速度）
-	INT16   trq_ref[2];			  //D10274:トルク指令（符号付き　4000/200%）
-	INT16   spear1[24];		  //D10276:インバータ速度指令（符号付き　3200が最高速度）
+typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC
+	INT16   helthy;						//D10200:PCヘルシー出力信号
+	INT16   ctrl_mode;					//D10201:自動制御フラグ
+	UINT16  cab_ai[4];					//D10202:運転室PLC AI信号【モーメントリミッタ】
+	INT16   cab_bi[4];					//D10206:運転室PLC→電気室PLC b出力
+	INT16   spare[2];					//D10210:予備
+	INT16   mh_load;					//D10212:主巻荷重
+	INT16   ah_load;					//D10213:補巻荷重
+	INT16   wind_spd;					//D10214:風速
+	INT16   spear[15];					//D10215:予備
+	UINT32  hcounter[4];				//D10230:高速カウンタユニット 
+	UINT32  absocoder[3];				//D10238　アブソコーダ 
+	INT16   pc_fault[N_PLC_FAULT_BUF];	//D10244　PC　FAULT
+	INT16   spare0[8];					//D10244　予備 
+	INT16   spd_fb[4];					//D10270:速度FB（符号付き　3200が最高速度）
+	INT16   trq_ref[2];					//D10274:トルク指令（符号付き　4000/200%）
+	INT16   spear1[24];					//D10276:インバータ速度指令（符号付き　3200が最高速度）
 
 }ST_PLC_WBUF_HHGH29, * LPST_PLC_WBUF_HHGH29;
 typedef struct _ST_PLC_RBUF_HHGH29 {
-	INT16   helthy;             // D10400:PLCヘルシーカウンタ
-	INT16   plc_ctrl;           // D10401: PLC運転モード
-	UINT16  cab_ai[4];          // D10402:運転室PLC→電気室PLC W出力
-	INT16   cab_bi[4];          // D10406:運転室PLC→電気室PLC b出力
-	INT16   cab_xi[4];          // D10410:運転室PLC→電気室PLC b出力
-	INT16   cab_bo;				// D10414:b2b0-f = Y70-F
-	INT16   cab_yo;				// D10415:b160-f
-	INT16   erm_900;			// D10416:
-	INT16   erm_bo[8];          // D10417:電気室PLC b出力
-	INT16	mh_z;				// D10425:主巻揚程　D7100
-	INT16	r_mm;				// D10426:引込半径　D2772(W202)
-	INT16	spar0[6];			// D10427:予備
-	INT16	cv_tg[4];			// D10433:目標速度％
-	INT16	spar1[2];			// D10437:予備
-	INT16   plc_fault[18];      // D10439:故障信号
-	INT16   erm_y[5];           // D10457:電気室PLC Y出力
-	INT16   erm_x[7];           // D10462:電気室PLC X入力
-	INT16   spar2;				//
-	INT16   inv_vref[4];		// D10470:インバータ速度指令
-	INT16   inv_vfb[4];			// D10475:インバータ速度FB
-	INT16   inv_trq[2];			// D10478:インバータトルク指令
-	INT16   spar3[2];			// D10469:インバータPLC DO指令	
-	INT32   hcount_fb[4];       // D10480:高速カウンタユニット FB値
-	INT32   absocoder_fb[3];    // D10488:アブソコーダ FB値
-	INT16   spar4[4];			// D10496:予備
+	INT16   helthy;						// D10400:PLCヘルシーカウンタ
+	INT16   plc_ctrl;					// D10401: PLC運転モード
+	UINT16  cab_ai[4];					// D10402:運転室PLC→電気室PLC W出力
+	INT16   cab_bi[4];					// D10406:運転室PLC→電気室PLC b出力
+	INT16   cab_xi[4];					// D10410:運転室PLC→電気室PLC b出力
+	INT16   cab_bo;						// D10414:b2b0-f = Y70-F
+	INT16   cab_yo;						// D10415:b160-f
+	INT16   erm_900;					// D10416:
+	INT16   erm_bo[8];					// D10417:電気室PLC b出力
+	INT16	mh_z;						// D10425:主巻揚程　D7100
+	INT16	r_mm;						// D10426:引込半径　D2772(W202)
+	INT16	spar0[6];					// D10427:予備
+	INT16	cv_tg[4];					// D10433:目標速度％
+	INT16	spar1[2];					// D10437:予備
+	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10439:故障信号
+	INT16   erm_y[5];					// D10457:電気室PLC Y出力
+	INT16   erm_x[7];					// D10462:電気室PLC X入力
+	INT16   spar2;						//
+	INT16   inv_vref[4];				// D10470:インバータ速度指令
+	INT16   inv_vfb[4];					// D10475:インバータ速度FB
+	INT16   inv_trq[2];					// D10478:インバータトルク指令
+	INT16   spar3[2];					// D10469:インバータPLC DO指令	
+	INT32   hcount_fb[4];				// D10480:高速カウンタユニット FB値
+	INT32   absocoder_fb[3];			// D10488:アブソコーダ FB値
+	INT16   spar4[4];					// D10496:予備
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
@@ -298,8 +300,10 @@ public:
 	};
 	virtual ~CPlc() {};
 
-	static ST_PLC_IO_RIF plc_io_rif;
-	static ST_PLC_IO_WIF plc_io_wif;
+	//static ST_PLC_IO_RIF plc_io_rif;
+	//static ST_PLC_IO_WIF plc_io_wif;
+	ST_PLC_IO_RIF plc_io_rif;
+	ST_PLC_IO_WIF plc_io_wif;
 
 	void set_rbuf(INT16* _pbuf_r) {
 		pbuf_r = _pbuf_r;

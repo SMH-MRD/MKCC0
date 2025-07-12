@@ -8,19 +8,10 @@ class CCrane
 private:
 	int crane_id;
 public:
+
 	/// <summary>
-	/// コンストラクタ　PLC制御無し（OTE用）
-	/// </summary>
-	/// <param name="_crane_id"></param>
-	CCrane(int _crane_id) {	
-		crane_id = _crane_id;
-		pSpec = new CSpec(crane_id);
-		pPlc = NULL;
-		pFlt = new CFaults(crane_id, NULL, NULL);
-	};
-	/// <summary>
-	/// コンストラクタ　PLC制御有（MKCC用）
-	/// plc_rbuf,plc_wbufにはPLCとの通信バッファのアドレスを指定する
+	/// コンストラクタ　
+	/// plc_rbuf,plc_wbuf (MCC用）PLCとの通信バッファのアドレス,(OTE用）MCCとの通信バッファのアドレス
 	/// </summary>
 	/// <param name="_crane_id"></param>
 	/// <param name="plc_rbuf"></param>
@@ -48,9 +39,6 @@ public:
 	//PLC通信バッファ
 	LPST_PLC_IO_RIF get_plc_rif()	{ if (pPlc != NULL) return &(pPlc->plc_io_rif);	return NULL;}
 	LPST_PLC_IO_WIF get_plc_wif()	{ if (pPlc != NULL) return &(pPlc->plc_io_wif);	return NULL;}
-	
-	//故障リスト
-	LPST_FAULT_LIST  get_flt_list()	{ if (pFlt != NULL) return &(pFlt->flt_list);	return NULL;}
 	
 	//仕様定義構造体
 	LPST_STRUCTURE	 get_st_struct(){ if (pSpec != NULL)return &pSpec->st_struct;	return NULL;}

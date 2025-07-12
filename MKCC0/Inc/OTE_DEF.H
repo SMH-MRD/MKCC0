@@ -218,6 +218,7 @@ typedef struct OteUBody {
 	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
 	UINT32		target_seq_no;													//自動目標位置のシーケンス番号（トリガ検出用）
 	ST_GPAD_IN	gpad_in;														//ゲームパッド入力
+	INT16				buf_io_write[CC_MC_SIZE_W_WRITE];							//PLC WRITEデータ
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
 
 //########################################################

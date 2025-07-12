@@ -2,8 +2,8 @@
 #include "COMMON_DEF.h"
 
 
-ST_PLC_IO_RIF CPlc::plc_io_rif;
-ST_PLC_IO_WIF CPlc::plc_io_wif;
+//ST_PLC_IO_RIF CPlc::plc_io_rif;
+//ST_PLC_IO_WIF CPlc::plc_io_wif;
 
 ST_PLC_IO_RIF plc_io_rdef0 = { 
 	//{pi16,mask,type,lp,hp}

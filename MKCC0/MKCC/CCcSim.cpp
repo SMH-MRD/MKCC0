@@ -71,7 +71,7 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	//ドラム動作初期値
 	init_drm_motion();
 	//旋回360°回転PGカウント= ピニオン1回転カウント×TTB径/ピニオン径
-	st_work.sl_cnt_pg360 = pspec->base_sl.CntPgR * pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0;
+	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0);
 
 	//operation panel　初期設定
 	set_func_pb_txt();
@@ -181,8 +181,8 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 	if(!pPLC_IO->stat_sl.brk_fb)
 		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v	* inf.dt * st_work.axis[ID_SLEW].PGcnt01v);
 	//プリセット
-	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360)st_sim_inf.hcount_sl = pspec->base_sl.CntPgSet0;
-	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360)st_sim_inf.hcount_sl = pspec->base_sl.CntPgSet0;
+	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360)st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
+	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360)st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
 
 	
 	if(pPLC_IO->stat_gt.brk_fb)

@@ -6,9 +6,12 @@
 #include <vector>
 #include "COteEnv.h"
 #include <windows.h>
+#include "CFaults.h"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
+
+extern CCrane* pCrane;
 
 static COteEnv* pEnvObj;
 
@@ -849,8 +852,8 @@ HWND CSubPanelWindow::hParentWnd;
 CPanelBase* CSubPanelWindow::pPanelBase;
 int CSubPanelWindow::crane_id;
 int CSubPanelWindow::wnd_code;
-bool CSubPanelWindow::is_disp_flt_heavy, CSubPanelWindow::is_disp_flt_light, CSubPanelWindow::is_disp_flt_il;
-
+int CSubPanelWindow::flt_disp_code = 0;
+PINT16 CSubPanelWindow::pflt_plc;
 LPST_OTE_UI CSubPanelWindow::pUi;
 LPST_OTE_CS_INF CSubPanelWindow::pCsInf;
 LPST_OTE_CC_IF CSubPanelWindow::pCcIf;
@@ -937,6 +940,18 @@ void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE
 	crane_id = _crane_id; //クレーンIDをセット
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
+
+	//PLCの故障情報ポインタセット
+	switch (crane_id) {
+	case CARNE_ID_HHGH29:
+	default:
+	{
+		LPST_PLC_RBUF_HHGH29 prbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+		pflt_plc = (PINT16)prbuf->plc_fault; //PLCの故障情報ポインタセット
+	}
+		break;
+	}
+
 	return;
 };
 
@@ -955,6 +970,11 @@ LRESULT CALLBACK CSubPanelWindow::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
+
+
+static bool is_flt_bk_update_required, is_flt_mask_update_required;
+static int  code_flt_bk = 0, cnt_disp_update_required = 0;
+
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
@@ -982,6 +1002,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		//ウィンドウにコントロール追加
 		//PB 
+		 CPbCtrl* ppb = pPanelBase->psubobjs->pb_disp_flt_plcmap;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
 		//CPbCtrl* ppb = pPanelBase->psubobjs->pb_flt_next;
 		//ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
@@ -990,7 +1013,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
 
 		//CB
-		CCbCtrl* pcb = pPanelBase->psubobjs->cb_disp_flt_heavy;;
+		CCbCtrl* pcb = pPanelBase->psubobjs->cb_disp_flt_heavy1;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		pcb = pPanelBase->psubobjs->cb_disp_flt_light;
@@ -1002,6 +1025,12 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		pcb = pPanelBase->psubobjs->cb_flt_bypass;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_disp_flt_heavy2;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_disp_flt_heavy3;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		
 		//背景
 		//Switch Image Windowハンドルセット（パネルウィンドウ）
@@ -1009,11 +1038,19 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		pPanelBase->psubobjs->img_flt_bk->set(0);
 		pPanelBase->psubobjs->img_flt_bk->update();
 
+		is_flt_bk_update_required = true;//背景再描画フラグON
+		is_flt_mask_update_required = true; //マスク更新フラグOFF
+		code_flt_bk = 0;				 //背景色初期値0
+
 		//初期値セット
-		is_disp_flt_heavy = is_disp_flt_light = is_disp_flt_il = true; //初期値は全て表示
-		SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy1->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy2->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy3->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 		SendMessage(pPanelBase->psubobjs->cb_disp_flt_light->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 		SendMessage(pPanelBase->psubobjs->cb_disp_interlock->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+
+		flt_disp_code |= FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3 | FAULT_LIGHT | FAULT_INTERLOCK;
+
 		//バイパスは初期値OFF
 		SendMessage(pPanelBase->psubobjs->cb_flt_bypass->hWnd, BM_SETCHECK, BST_UNCHECKED, 0); 
 			
@@ -1032,10 +1069,61 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 	}return 1; // 背景を処理したことを示す
 
 	case WM_TIMER: {
-		//# Switching Image更新
+		cnt_disp_update_required++; //更新カウンタ
+		
+		//故障発生/クリアチェック
+		int chk_result = pCrane->pFlt->chk_flt_trig();
+		if (chk_result)cnt_disp_update_required = 0;//変化があったら表示を更新
 
-	//	InvalidateRect(hwnd, NULL, false);
-	
+		if ((cnt_disp_update_required % 5)&&(is_flt_bk_update_required == false))break; //5回に1回更新
+
+		pCrane->pFlt->set_disp_buf(flt_disp_code);
+
+		int flt_code,iflt;
+		for (int i = 0; i < N_PLC_FAULT_BUF;i++) {
+			INT16 mask = 1;
+			for (int j = 0; j < 16; j++) {
+				mask = mask << j;
+				if (pCrane->pFlt->faults_disp[i] & mask) {
+					iflt = 16 * i + j;
+					LPWCH pwch = pCrane->pFlt->flt_list.faults[iflt].item;
+					flt_code = iflt + 301;
+				}
+			}
+		}
+
+		//マスク更新
+		//背景更新
+		{
+			is_flt_bk_update_required = false;
+			if (flt_disp_code & FAULT_HEAVY1) {
+				if (code_flt_bk != 3) is_flt_bk_update_required = true;
+				pPanelBase->psubobjs->img_flt_bk->set(code_flt_bk = 3);
+			}
+			else if (flt_disp_code & FAULT_HEAVY2) {
+				if (code_flt_bk != 3) is_flt_bk_update_required = true;
+				pPanelBase->psubobjs->img_flt_bk->set(code_flt_bk = 3);
+			}
+			else if (flt_disp_code & FAULT_HEAVY3) {
+				if (code_flt_bk != 3) is_flt_bk_update_required = true;
+				pPanelBase->psubobjs->img_flt_bk->set(code_flt_bk = 3);
+			}
+			else if (flt_disp_code & FAULT_LIGHT) {
+				if (code_flt_bk != 2) is_flt_bk_update_required = true;
+				pPanelBase->psubobjs->img_flt_bk->set(code_flt_bk = 2);
+			}
+			else if (flt_disp_code & FAULT_INTERLOCK) {
+				if (code_flt_bk != 1) is_flt_bk_update_required = true;
+				pPanelBase->psubobjs->img_flt_bk->set(code_flt_bk = 1);
+			}
+			else {
+				if (code_flt_bk != 0) is_flt_bk_update_required = true;
+				pPanelBase->psubobjs->img_flt_bk->set(code_flt_bk = 0);
+			}
+
+			if (is_flt_bk_update_required)pPanelBase->psubobjs->img_flt_bk->update();
+		}
+
 	}break;
 
 	case WM_COMMAND: {
@@ -1055,21 +1143,53 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 				pPanelBase->psubobjs->i_disp_page = pPanelBase->psubobjs->n_disp_page - 1; //ページ番号をリセット
 		}break;
 
-		case ID_SUB_PNL_FLT_OBJ_CB_HEAVY	:{
-			pPanelBase->psubobjs->img_flt_bk->set(3);
-			pPanelBase->psubobjs->img_flt_bk->update();
+		case ID_SUB_PNL_FLT_OBJ_CB_HEAVY1: {
+			flt_disp_code &= ~FAULT_HEAVY1;
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy1->hWnd, BM_GETCHECK, 0, 0)) {
+				is_flt_bk_update_required =true;
+				flt_disp_code |= FAULT_HEAVY1;
+			}
+		}break;
+		case ID_SUB_PNL_FLT_OBJ_CB_HEAVY2: {
+			flt_disp_code &= ~FAULT_HEAVY2;
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy2->hWnd, BM_GETCHECK, 0, 0)) {
+				is_flt_bk_update_required = true;
+				flt_disp_code |= FAULT_HEAVY2;
+			}
+		}break;
+		case ID_SUB_PNL_FLT_OBJ_CB_HEAVY3:	{
+			flt_disp_code &= ~FAULT_HEAVY3;
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy3->hWnd, BM_GETCHECK, 0, 0)) {
+				is_flt_bk_update_required = true;
+				flt_disp_code |= FAULT_HEAVY3;
+			}
 		}break;
 		case ID_SUB_PNL_FLT_OBJ_CB_LITE		:{
-			pPanelBase->psubobjs->img_flt_bk->set(2);
-			pPanelBase->psubobjs->img_flt_bk->update();
+			flt_disp_code &= ~FAULT_LIGHT;
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_disp_flt_light->hWnd, BM_GETCHECK, 0, 0)) {
+				is_flt_bk_update_required = true;
+				flt_disp_code |= FAULT_LIGHT;
+			}
 		}break;
 		case ID_SUB_PNL_FLT_OBJ_CB_IL		:{
-			pPanelBase->psubobjs->img_flt_bk->set(1);
-			pPanelBase->psubobjs->img_flt_bk->update();
-	
+			flt_disp_code &= ~FAULT_INTERLOCK;
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_disp_interlock->hWnd, BM_GETCHECK, 0, 0)) {
+				is_flt_bk_update_required = true;
+				flt_disp_code |= FAULT_INTERLOCK;
+			}
 		}break;
 		case ID_SUB_PNL_FLT_OBJ_CB_BYPASS	:{
 		}break;
+
+		case ID_SUB_PNL_FLT_OBJ_PB_PLCMAP: {//メッセージボックスでPLCの故障情報を表示
+			wostringstream wos;
+			wos << hex ;
+			for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
+				wos  << std::setw(4) << std::setfill(L'0')<< pflt_plc[i] << L"\n";
+			}
+			MessageBox(hwnd, wos.str().c_str(), L"PLC FAULT MAP", MB_OK | MB_ICONINFORMATION);
+		}break;
+
 
 		default:
 			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);

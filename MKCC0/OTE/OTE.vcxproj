@@ -160,6 +160,7 @@
     <ClCompile Include="..\MKCC\CCrane.cpp" />
     <ClCompile Include="..\MKCC\CFaults.cpp" />
     <ClCompile Include="..\MKCC\CHelper.cpp" />
+    <ClCompile Include="..\MKCC\CPlc.cpp" />
     <ClCompile Include="..\MKCC\CSharedMem.cpp" />
     <ClCompile Include="..\MKCC\CSpec.cpp" />
     <ClCompile Include="..\MKCC\CValue.cpp" />
