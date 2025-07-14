@@ -214,7 +214,7 @@ public:
 #define ID_SUB_PNL_FLT_OBJ_BASE					60330
 #define ID_SUB_PNL_FLT_OBJ_IMG_BK				60330
 #define ID_SUB_PNL_FLT_OBJ_PB_NEXT				60331
-#define ID_SUB_PNL_FLT_OBJ_PB_BACK				60332
+#define ID_SUB_PNL_FLT_OBJ_CB_HISTORY			60332
 #define ID_SUB_PNL_FLT_OBJ_CB_HEAVY1			60333
 #define ID_SUB_PNL_FLT_OBJ_CB_LITE				60334
 #define ID_SUB_PNL_FLT_OBJ_CB_IL				60335
@@ -279,7 +279,7 @@ public:
 	//故障表示サブウィンドウのオブジェクト
 	CSwitchImg* img_flt_bk;			//PLC通信インジケータ
 	CPbCtrl* pb_flt_next;			//次表示PB
-	CPbCtrl* pb_flt_back;			//前表示PB
+	CCbCtrl* pb_disp_history;		//履歴表示チェックBOX
 	CCbCtrl* cb_disp_interlock;		//主巻速度モード選択ラジオボタン
 	CCbCtrl* cb_disp_flt_light;		//軽故障表示チェックボタン
 	CCbCtrl* cb_disp_flt_heavy1;	//重故障1表示チェックボタン

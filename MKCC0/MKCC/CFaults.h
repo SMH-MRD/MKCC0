@@ -13,6 +13,7 @@
 #define FAULT_HEAVY3				BIT3
 #define FAULT_LIGHT					BIT4
 #define FAULT_INTERLOCK				BIT5
+#define FAULT_HISTORY				BIT6//履歴
 
 
 //動作制限ビット
@@ -34,7 +35,7 @@
 
 
 enum FAULT_TYPE {
-	WORK = 0,	//作業用
+	BASE = 0,	//作業用
 	HEVY1,		//重故障1
 	HEVY2,		//重故障2
 	HEVY3,		//重故障3
@@ -88,14 +89,10 @@ public:
 	int get_id() { return crane_id; };
 	int setup(int crane_id); 
 
-	UINT16 faults_hold[N_PLC_FAULT_BUF];			//フォルトビット列保持(前回値）
 	UINT16 faults_disp[N_PLC_FAULT_BUF];			//表示用フォルトビット列
-	UINT16 faults_trig_on[N_PLC_FAULT_BUF];			//発生フォルトビット列   
-	UINT16 faults_trig_off[N_PLC_FAULT_BUF];		//解消フォルトビット列
 	UINT16 faults_work[N_PLC_FAULT_BUF];			//作業用フォルトビット列
 	UINT16 faults_chkmask[N_PLC_FAULT_BUF];			//チェック用マスクビット列
 
-	int chk_flt_trig();//発生/解消フォルトビット列セット
 	void set_flt_mask(int code);//フォルトチェックマスクセット
 	int set_disp_buf(int code);//表示用フォルトビット列セット
 

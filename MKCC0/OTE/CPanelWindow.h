@@ -20,7 +20,7 @@ public:
 
 	static int crane_id;
 	static int wnd_code;
-	static int flt_disp_code;
+	static int flt_disp_code;//ŒÌá•\¦‘ÎÛİ’èbit—ñ
 
 	static LPST_OTE_UI pUi;
 	static LPST_OTE_CS_INF pCsInf;

@@ -141,6 +141,21 @@ typedef struct _ST_AUX_CS_INF {
 #define MODE_ENV_APP_EMURATOR	1	//エミュレータモード
 #define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
 
+#define N_FAULTS_HISTORY_BUF	200	//故障履歴バッファ数
+typedef struct _ST_FAULT_RECORD {
+	SYSTEMTIME systime;				//検出中故障リスト
+	INT16 code;						//検出故障コード
+	INT16 status;					//TriggerON,TriggerOFF,TriggerNON状態
+}ST_FAULT_RECORD, * LPST_FAULT_RECORD;
+
+typedef struct _ST_FAULTS_LIST {
+	INT16 faults_detected_map[FAULT_TYPE::ALL][N_PLC_FAULT_BUF];	//検出中故障リスト
+	INT16 codes[N_OTE_PC_SET_FLT];									//発生中故障コード
+	ST_FAULT_RECORD history[N_FAULTS_HISTORY_BUF];					//故障履歴
+	INT16 history_count=0;											//故障履歴数
+	INT16 iw_history=0;												//書き込みポインタ
+}ST_FAULTS_LIST, * LPST_FAULTS_LIST;
+
 typedef struct _ST_CRANE_STAT {
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
 	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
@@ -153,6 +168,7 @@ typedef struct _ST_CRANE_STAT {
 	ST_MOVE_SET th;								//起伏角度
 	ST_MOVE_SET	lrm;							//主巻ロープ
 	double		m;								//吊荷質量
+	ST_FAULTS_LIST fault_list;				//故障検出リスト
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
 typedef struct _ST_CC_ENV_INF {
@@ -195,9 +211,6 @@ typedef struct _ST_CC_ENV_INF {
 	double w2;									//振角周波数の2乗
 	double g_ratio_x = 2.0;						//振れ周期補正係数　√gの比率で調整
 	double g_ratio_y = 2.0;						//振れ周期補正係数　√gの比率で調整
-
-	WORD faultPC[N_PC_FAULT_WORDS];				//PLC検出異常
-	WORD faultPLC[N_PLC_FAULT_WORDS];			//制御PC検出異常
 
 	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
 	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
@@ -680,8 +693,8 @@ typedef struct _ST_CC_OTE_INF {
 	UINT32	mon_silent_cnt;  		//隣接PCからのマルチキャスト受信カウント無しでカウントアップ
 
 	//CS共有情報
-	ST_CC_OTE_CTRL st_ote_ctrl;			//操作端末制御情報
-	ST_PC_U_BODY   st_body;
+	ST_CC_OTE_CTRL st_ote_ctrl;		//操作端末制御情報
+	ST_PC_U_BODY   st_body;			//送信バッファ作業用
 
 }ST_CC_OTE_INF, * LPST_CC_OTE_INF;
 

@@ -8,6 +8,7 @@
 //操作端末のテキスト,ボタン、ランプ数
 #define N_OTE_PNL_CTRL				64
 #define N_OTE_PC_MSG_WCHAR			64
+#define N_OTE_PC_SET_FLT			63//最初の要素にはセットされているタイプのコードが入る
 #define N_OTE_PNL_NOTCH_DEVICE		5
 #define N_OTE_PNL_NOTCH_PBL			N_NOTCH_TBL
 
@@ -130,8 +131,12 @@ typedef struct _ST_OTE_LOAD_STAT {
 typedef struct _ST_OTE_PC_MSG {
 	INT16 counter;						//メッセージを更新する毎にカウントアップ
 	INT16 id;							//固定メッセージのID
-	WCHAR wch[N_OTE_PC_MSG_WCHAR];
 }ST_OTE_PC_MSG, * LPST_OTE_PC_MSG;
+typedef struct _ST_OTE_PC_FLTS_SET {
+	INT16 set_type;						//セットされている故障の内容
+	INT16 set_count;					//セットされている故障コード数
+	INT16 codes[N_OTE_PC_SET_FLT];		//発生中故障コード
+}ST_OTE_PC_FLTS_SET, * LPST_OTE_PC_FLTS_SET;
 
 enum OTE_PNL_CTRLS{
 	estop=0,
@@ -172,6 +177,7 @@ typedef struct PcUBody {//デフォルト
 	ST_OTE_MOTION_STAT	st_motion_stat[ID_AXIS::Max];							//動作状態モニタ値
 	ST_OTE_LOAD_STAT	st_load_stat[N_OTE_LOAD_TYPE];							//吊荷状態
 	ST_OTE_PC_MSG		pc_msg;													//メッセージを更新する毎にカウントアップ
+	ST_OTE_PC_FLTS_SET  faults_set;												//発生中故障コード
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/
@@ -206,6 +212,14 @@ typedef struct _ST_GPAD_IN {
 	INT16 pad_gt;
 }ST_GPAD_IN, * LPST_GPAD_IN;
 
+#define CODE_OTE_FLT_SEL_HEAVY1		BIT1	//重故障1	
+#define CODE_OTE_FLT_SEL_HEAVY2		BIT2	//重故障2
+#define CODE_OTE_FLT_SEL_HEAVY3		BIT3	//重故障3
+#define CODE_OTE_FLT_SEL_LIGHT		BIT4	//軽故障
+#define CODE_OTE_FLT_SEL_IL			BIT5	//INTER_LOCK
+#define CODE_OTE_FLT_INF_TRIG		BIT8	//PCからトリガ通知
+#define CODE_OTE_FLT_REQ_REFRESH	BIT8	//OTEからリスト更新要求（トリガクリア,表示選択変更時）
+
 typedef struct OteUBody {
 	INT16		ope_mode;														//操作モード（自動/手動/ビギナー）
 	INT16		remote;															//
@@ -213,8 +227,10 @@ typedef struct OteUBody {
 	INT16		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）
 	INT16		opt_device_status;												//オプションデバイスモード
 	INT16		game_pad_mode;													//ゲームパッド操作モード
-	INT16		ote_type;														//操作卓種別
+	INT16		faults_disp_command;											//故障表示要求
+	INT16		notch_mode;														//ノッチモード
 	INT16		ctrl_ope[N_OTE_PNL_CTRL];										//操作卓PB入力
+	INT16		ote_type;
 	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
 	UINT32		target_seq_no;													//自動目標位置のシーケンス番号（トリガ検出用）
 	ST_GPAD_IN	gpad_in;														//ゲームパッド入力

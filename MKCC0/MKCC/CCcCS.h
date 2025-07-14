@@ -194,7 +194,9 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-
+    INT16 ote_disp_com_hold;
+    INT16 disp_mask[N_PLC_FAULT_BUF];
+	void set_ote_flt_info();
     //オーバーライド
 
     virtual HRESULT routine_work(void* pObj) override;

@@ -8,7 +8,7 @@ using namespace Gdiplus;
 
 //#define _DVELOPMENT_MODE                //開発環境を有効にする
 
-///# コード
+///# ID
 #pragma region ID
 //クレーン種別 ID  配列INDEX
 #define CRANE_TYPE_MAX          16  //開発
@@ -86,6 +86,10 @@ using namespace Gdiplus;
 #define CODE_DIR_STP			0   //停止
 #define CODE_DIR_FWD			1   //正転
 #define CODE_DIR_REV			-1  //逆転
+
+#define CODE_TRIG_ON			1   //トリガON
+#define CODE_TRIG_OFF			-1  //トリガOFF
+#define CODE_TRIG_NA			0   //トリガ無し
 
 #pragma endregion ステータスコード
 

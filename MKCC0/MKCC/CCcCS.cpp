@@ -217,9 +217,9 @@ int CCcCS::parse() {
 		memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
 
 		//ノッチ指令信号
-		st_ote_work.st_body.st_motion_stat[ID_HOIST].notch_ref = pPLC_IO->stat_mh.notch_fb;
+		st_ote_work.st_body.st_motion_stat[ID_HOIST].notch_ref	= pPLC_IO->stat_mh.notch_fb;
 		st_ote_work.st_body.st_motion_stat[ID_BOOM_H].notch_ref = pPLC_IO->stat_bh.notch_fb;
-		st_ote_work.st_body.st_motion_stat[ID_SLEW].notch_ref = pPLC_IO->stat_sl.notch_fb;
+		st_ote_work.st_body.st_motion_stat[ID_SLEW].notch_ref	= pPLC_IO->stat_sl.notch_fb;
 		st_ote_work.st_body.st_motion_stat[ID_GANTRY].notch_ref = pPLC_IO->stat_gt.notch_fb;
 
 		//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
@@ -235,7 +235,6 @@ int CCcCS::parse() {
 		}
 		 pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
 		 pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
-
 
 		plamp_com[OTE_PNL_CTRLS::fault_reset].st.com= (UINT8)pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
 		plamp_com[OTE_PNL_CTRLS::bypass].st.com		= CODE_PNL_COM_ON;
@@ -256,6 +255,9 @@ int CCcCS::parse() {
 		notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
 		plamp_com[OTE_PNL_CTRLS::notch_gt].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
 	}
+
+	//OTE故障情報セット
+	set_ote_flt_info();
 
 	return S_OK;
 }
@@ -278,6 +280,64 @@ int CCcCS::close() {
 /****************************************************************************/
 /*   通信関数											                    */
 /****************************************************************************/
+void CCcCS::set_ote_flt_info() {
+	INT16 com_ote;
+	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {//操作権獲得端末が無い時はモニタモードの端末の要求を受付
+		com_ote = pOTE_Inf->st_msg_ote_u_rcv_mon.body.st.faults_disp_command;
+	}
+	else {
+		com_ote = pOTE_Inf->st_msg_ote_u_rcv.body.st.faults_disp_command;
+	}
+
+	if (ote_disp_com_hold != com_ote) {//要求内容が変わったらマスク更新
+		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
+			disp_mask[i] = 0;
+			if (com_ote & FAULT_CLEAR)break; //クリア要求なら全てクリア
+			if (com_ote & FAULT_HEAVY1) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::HEVY1][i];
+			if (com_ote & FAULT_HEAVY2) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::HEVY2][i];
+			if (com_ote & FAULT_HEAVY3) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::HEVY3][i];
+			if (com_ote & FAULT_LIGHT) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::LIGHT][i];
+			if (com_ote & FAULT_INTERLOCK) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::IL][i];
+		}
+		st_ote_work.st_body.faults_set.set_type = com_ote;//表示要求タイプアンサバックセット
+	}
+
+	int flt_count = 0;	//表示故障数
+	INT16 i16work;
+	if (com_ote & FAULT_HISTORY) {	//履歴表示要求時
+		i16work = pEnv_Inf->crane_stat.fault_list.iw_history - 1;	//履歴書き込みポインタ-1
+		for (int i = 0; i < N_OTE_PC_SET_FLT;i++) {
+			i16work -=i;
+			if (i16work < 0) i16work= N_FAULTS_HISTORY_BUF-1;
+			st_ote_work.st_body.faults_set.codes[i] = pEnv_Inf->crane_stat.fault_list.history[i16work].code;	//履歴コードセット
+			st_ote_work.st_body.faults_set.codes[i] *= pEnv_Inf->crane_stat.fault_list.history[i16work].status;	//クリアは-コード
+		}
+		flt_count = N_OTE_PC_SET_FLT;
+	}
+	else {							//現在発生分要求時
+		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
+			i16work = disp_mask[i] & pEnv_Inf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::ALL][i];
+
+			//表示カウント数オーバーまたは故障無しでスキップ
+			if ((flt_count >= N_OTE_PC_SET_FLT) || (i16work == 0)) break;
+
+			for (int j = 0; j < 16; j++) {
+				if (flt_count >= N_OTE_PC_SET_FLT) break;	//表示故障数上限
+
+				if (i16work & (1 << j)) {	//検出ありの時
+					st_ote_work.st_body.faults_set.codes[flt_count] = 16 * i + j;
+					flt_count++;
+				}
+			}
+		}
+	}
+	st_ote_work.st_body.faults_set.set_count = flt_count;	//表示故障数セット
+	ote_disp_com_hold = com_ote;						//表示内容要求前回値保持
+
+	return; 
+}
+
+
 /// <summary>
 /// OTEユニキャスト電文受信処理
 /// </summary>

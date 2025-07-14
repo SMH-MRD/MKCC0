@@ -1005,15 +1005,18 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		 CPbCtrl* ppb = pPanelBase->psubobjs->pb_disp_flt_plcmap;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
-		//CPbCtrl* ppb = pPanelBase->psubobjs->pb_flt_next;
-		//ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
-		//ppb = pPanelBase->psubobjs->pb_flt_back;
-		//ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+		
+		ppb = pPanelBase->psubobjs->pb_flt_next ;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
 
 		//CB
-		CCbCtrl* pcb = pPanelBase->psubobjs->cb_disp_flt_heavy1;
+		CCbCtrl*pcb = pPanelBase->psubobjs->pb_disp_history;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+		 pcb = pPanelBase->psubobjs->cb_disp_flt_heavy1;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		pcb = pPanelBase->psubobjs->cb_disp_flt_light;
@@ -1072,8 +1075,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		cnt_disp_update_required++; //更新カウンタ
 		
 		//故障発生/クリアチェック
-		int chk_result = pCrane->pFlt->chk_flt_trig();
-		if (chk_result)cnt_disp_update_required = 0;//変化があったら表示を更新
 
 		if ((cnt_disp_update_required % 5)&&(is_flt_bk_update_required == false))break; //5回に1回更新
 
@@ -1137,7 +1138,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			if (pPanelBase->psubobjs->i_disp_page >= pPanelBase->psubobjs->n_disp_page)
 				pPanelBase->psubobjs->i_disp_page = 0; //ページ番号をリセット
 		}break;
-		case ID_SUB_PNL_FLT_OBJ_PB_BACK: {
+		case ID_SUB_PNL_FLT_OBJ_CB_HISTORY: {
 			pPanelBase->psubobjs->i_disp_page--;
 			if (pPanelBase->psubobjs->i_disp_page < 0)
 				pPanelBase->psubobjs->i_disp_page = pPanelBase->psubobjs->n_disp_page - 1; //ページ番号をリセット

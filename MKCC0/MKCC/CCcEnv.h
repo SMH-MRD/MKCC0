@@ -145,6 +145,10 @@ public:
 private:
     static CSpec* pspec;
 
+    INT16 falt_detected_hold[N_PLC_FAULT_BUF];
+    INT16 falt_detected_trig_on[N_PLC_FAULT_BUF];
+    INT16 falt_detected_trig_off[N_PLC_FAULT_BUF];
+    INT16 plc_enable_hold = 0;
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
 
@@ -152,6 +156,9 @@ private:
     void close_monitor_wnd(int id);
     void show_monitor_wnd(int id);
     void hide_monitor_wnd(int id);
+
+	void set_faults_info();
+    void refresh_faults_info();
 
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;
