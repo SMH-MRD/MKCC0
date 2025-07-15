@@ -20,8 +20,7 @@ public:
 
 	static int crane_id;
 	static int wnd_code;
-	static int flt_disp_code;//åÃè·ï\é¶ëŒè€ê›íËbitóÒ
-
+	
 	static LPST_OTE_UI pUi;
 	static LPST_OTE_CS_INF pCsInf;
 	static LPST_OTE_CC_IF pCcIf;
@@ -39,6 +38,11 @@ public:
 	static LRESULT CALLBACK WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK WndProcStat(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	static void SetFltToListView(HWND hlv,int code,int i);
+	static void ClearFltListView(HWND hlv, bool is_init,int i);
+	static void DeleteFltListItem(HWND hlv,int i);
+	
 
 	static int close();
 	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf,int _crane_id);

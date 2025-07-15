@@ -283,10 +283,10 @@ int CCcCS::close() {
 void CCcCS::set_ote_flt_info() {
 	INT16 com_ote;
 	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {//操作権獲得端末が無い時はモニタモードの端末の要求を受付
-		com_ote = pOTE_Inf->st_msg_ote_u_rcv_mon.body.st.faults_disp_command;
+		com_ote = pOTE_Inf->st_msg_ote_u_rcv_mon.body.st.faults_disp_req;
 	}
 	else {
-		com_ote = pOTE_Inf->st_msg_ote_u_rcv.body.st.faults_disp_command;
+		com_ote = pOTE_Inf->st_msg_ote_u_rcv.body.st.faults_disp_req;
 	}
 
 	if (ote_disp_com_hold != com_ote) {//要求内容が変わったらマスク更新
@@ -305,27 +305,30 @@ void CCcCS::set_ote_flt_info() {
 	int flt_count = 0;	//表示故障数
 	INT16 i16work;
 	if (com_ote & FAULT_HISTORY) {	//履歴表示要求時
-		i16work = pEnv_Inf->crane_stat.fault_list.iw_history - 1;	//履歴書き込みポインタ-1
+		i16work = pEnv_Inf->crane_stat.fault_list.iw_history ;	//履歴書き込みポインタ
 		for (int i = 0; i < N_OTE_PC_SET_FLT;i++) {
-			i16work -=i;
+			i16work--;
 			if (i16work < 0) i16work= N_FAULTS_HISTORY_BUF-1;
 			st_ote_work.st_body.faults_set.codes[i] = pEnv_Inf->crane_stat.fault_list.history[i16work].code;	//履歴コードセット
 			st_ote_work.st_body.faults_set.codes[i] *= pEnv_Inf->crane_stat.fault_list.history[i16work].status;	//クリアは-コード
+		
 		}
 		flt_count = N_OTE_PC_SET_FLT;
 	}
 	else {							//現在発生分要求時
 		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
-			i16work = disp_mask[i] & pEnv_Inf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::ALL][i];
+			i16work = disp_mask[i] & pEnv_Inf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][i];
 
 			//表示カウント数オーバーまたは故障無しでスキップ
-			if ((flt_count >= N_OTE_PC_SET_FLT) || (i16work == 0)) break;
+			if ((flt_count >= N_OTE_PC_SET_FLT) || (i16work == 0)) continue;
 
 			for (int j = 0; j < 16; j++) {
 				if (flt_count >= N_OTE_PC_SET_FLT) break;	//表示故障数上限
 
 				if (i16work & (1 << j)) {	//検出ありの時
 					st_ote_work.st_body.faults_set.codes[flt_count] = 16 * i + j;
+					//最初の故障0bit目の故障コードが301なのでリスト参照用に+１を入れる
+					st_ote_work.st_body.faults_set.codes[flt_count]++;
 					flt_count++;
 				}
 			}
@@ -371,7 +374,7 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 			*pbuf = chkbuf_u_msg;													//運転用バッファにコピー
 			st_ote_work.ope_ote_silent_cnt = 0;										//サイレントカウンタクリア
 		}
-		else st_ote_work.st_msg_ote_u_rcv_mon = chkbuf_u_msg;						//モニタ要求対象用バッファにコピー
+		else pOTE_Inf->st_msg_ote_u_rcv_mon = chkbuf_u_msg;						//モニタ要求対象用バッファにコピー
 	}
 
 	//操作有効端末が登録済で送信元アドレスが登録内容と一致の時
@@ -384,7 +387,7 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 		if ((chkbuf_u_msg.head.code == OTE_CODE_REQ_MON) || (chkbuf_u_msg.head.status == OTE_STAT_MODE_MON)) {
 			st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//有効ID無し
 			pUSockOte->addr_in_from.sin_addr.S_un.S_addr = 0;				//保持IPアドレスクリア
-			st_ote_work.st_msg_ote_u_rcv_mon = chkbuf_u_msg;				//モニタ要求対象用バッファにコピー
+			pOTE_Inf->st_msg_ote_u_rcv_mon = chkbuf_u_msg;				//モニタ要求対象用バッファにコピー
 		}
 		else {
 			*pbuf = chkbuf_u_msg;											//制御用バッファにコピー

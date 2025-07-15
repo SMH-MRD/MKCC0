@@ -160,6 +160,9 @@ void COteScad::set_panel_io() {
 
 		st_work.ctrl_stat[OTE_PNL_CTRLS::mh_spd_mode] = pPanelBase->psubobjs->rdo_mh_spd_mode->get(); //タスクのFunction ID
 		st_work.ctrl_stat[OTE_PNL_CTRLS::bh_r_mode] = pPanelBase->psubobjs->rdo_bh_r_mode->get(); //タスクのFunction ID
+		
+		//故障情報要求コード
+		st_work.flt_req_code = pPanelBase->psubobjs->flt_req_code;
 	}
 	return;
 }

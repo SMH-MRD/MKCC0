@@ -311,6 +311,7 @@ void CCcEnv::set_faults_info() {
 					if (falt_detected_trig_on[j] & chk_bit) {
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;	//時間
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j*16+k;		//故障コード
+						++pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code;				//++故障コードは１から開始
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_ON;//種別
 					
 						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新
@@ -325,7 +326,8 @@ void CCcEnv::set_faults_info() {
 					chk_bit = 1 << k;	//チェックビット
 					if (falt_detected_trig_off[j] & chk_bit) {
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;	//時間
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;		//故障コード
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;	//故障コード
+						++pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code;				//++故障コードは１から開始
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_OFF;//種別
 
 						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新

@@ -265,6 +265,9 @@ int COteAgent::parse() {
 	pctrl[OTE_PNL_CTRLS::notch_sl]		= pOteCsInf->gpad_in.pad_sl;
 	pctrl[OTE_PNL_CTRLS::notch_gt]		= pOteCsInf->gpad_in.pad_gt;
 
+	//故障信号要求コード
+	st_work.st_msg_ote_u_snd.body.st.faults_disp_req = pOteUI->flt_req_code;	//故障信号要求コード
+
 	//##################### 送信バッファセット　############################################
 
 	return S_OK;

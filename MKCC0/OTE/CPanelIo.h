@@ -574,6 +574,7 @@ public:
 		Rect _rc(pt.X, pt.Y, sz.Width, sz.Height); rc = _rc;
 		RectF _frc((REAL)pt.X, (REAL)pt.Y, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
 		value = txt;	
+		rect = { pt.X,pt.Y,pt.X + sz.Width,pt.Y + sz.Height };
 	}
 	virtual ~CStringGdi() {}
 
@@ -583,6 +584,7 @@ public:
 	Font* pFont;
 	Rect rc;
 	RectF frc,frc_bk;
+	RECT rect;
 
 	HRESULT set_str_items(Font* pfont, StringFormat* pformat, SolidBrush* pbrush) {
 		pFont = pfont; pStrFormat = pformat; pTxtBrush = pbrush;
@@ -625,5 +627,22 @@ public:
 	}
 
 };
+
+/// <summary>
+/// ListView コントロール
+/// </summary>
+class CListViewCtrl : public CPnlParts<INT16> {	//スタティック
+
+public:
+	CListViewCtrl(INT32 _id, Point* ppt, Size* psz, LPCWSTR ptext) {
+		set_id(_id);
+		set_base(ppt, psz, ptext);
+	}
+	virtual ~CListViewCtrl() {}
+	int  update(LPCWSTR ptext) {				//更新 
+		return SetWindowText(hWnd, ptext);		//戻り値はテキストカウント値
+	}
+};
+
 
 

@@ -822,6 +822,7 @@ typedef struct _ST_OTE_CC_IF {
 //## OTE_UI @SCADA or VIEW Proc
 #pragma region OTE_UI
 
+
 typedef struct _ST_OTE_UI {
 	INT16 ctrl_stat[N_OTE_PNL_CTRL];			
 	INT16 notch_pb_mh;//選択中のノッチ
@@ -829,6 +830,7 @@ typedef struct _ST_OTE_UI {
 	INT16 notch_pb_sl;
 	INT16 notch_pb_gt;
 	INT16 notch_pb_ah;
+	INT16 flt_req_code;		//フォルト要求コード
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 

@@ -6,6 +6,7 @@
 //H6R602
 ST_FAULT_LIST flt_list_H6R602 ={
 {
+{0,00,L"0",L"0"},
 {1,0xF800,L"‰^“]Žº”ñí’âŽ~",L"‰^“]Žº”ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {1,0xF800,L"‹r•””ñí’âŽ~",L"‹r•””ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {0,0x0000,L"",L""},
@@ -276,6 +277,7 @@ ST_FAULT_LIST flt_list_H6R602 ={
 //HHGH29
 ST_FAULT_LIST flt_list_HHGH29 = {
 {
+{0,00,L"0",L"0"},
 {1,0xF800,L"‰^“]Žº”ñí’âŽ~",L"‰^“]Žº”ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {1,0xF800,L"‹r•””ñí’âŽ~",L"‹r•””ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {0,0x0000,L"",L""},
@@ -817,6 +819,7 @@ ST_FAULT_LIST flt_list_HHGQ18 = {
 //HHFR22
 ST_FAULT_LIST flt_list_HHFR22 = {
 {
+{0,00,L"0",L"0"},
 {1,0xF800,L"‰^“]Žº”ñí’âŽ~",L"‰^“]Žº”ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {1,0xF800,L"‹r•””ñí’âŽ~",L"‹r•””ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {0,0x0000,L"",L""},
@@ -1087,6 +1090,7 @@ ST_FAULT_LIST flt_list_HHFR22 = {
 //Default
 ST_FAULT_LIST flt_list0 = {
 {
+{0,00,L"0",L"0"},
 {1,0xF800,L"‰^“]Žº”ñí’âŽ~",L"‰^“]Žº”ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {1,0xF800,L"‹r•””ñí’âŽ~",L"‹r•””ñí’âŽ~PB‚ª‘€ì‚³‚ê‚½"},
 {0,0x0000,L"",L""},

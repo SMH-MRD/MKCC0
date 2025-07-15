@@ -223,6 +223,7 @@ public:
 #define ID_SUB_PNL_FLT_OBJ_CB_HEAVY2			60338
 #define ID_SUB_PNL_FLT_OBJ_CB_HEAVY3			60339
 #define ID_SUB_PNL_FLT_OBJ_PB_PLCMAP			60340
+#define ID_SUB_PNL_FLT_OBJ_LV_FAULTS			60341
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -279,7 +280,7 @@ public:
 	//故障表示サブウィンドウのオブジェクト
 	CSwitchImg* img_flt_bk;			//PLC通信インジケータ
 	CPbCtrl* pb_flt_next;			//次表示PB
-	CCbCtrl* pb_disp_history;		//履歴表示チェックBOX
+	CCbCtrl* cb_disp_history;		//履歴表示チェックBOX
 	CCbCtrl* cb_disp_interlock;		//主巻速度モード選択ラジオボタン
 	CCbCtrl* cb_disp_flt_light;		//軽故障表示チェックボタン
 	CCbCtrl* cb_disp_flt_heavy1;	//重故障1表示チェックボタン
@@ -288,6 +289,9 @@ public:
 	CCbCtrl* cb_disp_flt_heavy2;	//重故障2表示チェックボタン
 	CCbCtrl* cb_disp_flt_heavy3;	//重故障3表示チェックボタン
 	CPbCtrl* pb_disp_flt_plcmap;	//PLC faulrmap表示チェックボタン
+	CListViewCtrl* lv_flt_list;		//故障リストビュー
+	INT16 flt_req_code = 0;			//故障リスト更新要求コード
+
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

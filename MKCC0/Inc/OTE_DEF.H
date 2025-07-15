@@ -227,7 +227,7 @@ typedef struct OteUBody {
 	INT16		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）
 	INT16		opt_device_status;												//オプションデバイスモード
 	INT16		game_pad_mode;													//ゲームパッド操作モード
-	INT16		faults_disp_command;											//故障表示要求
+	INT16		faults_disp_req;											//故障表示要求
 	INT16		notch_mode;														//ノッチモード
 	INT16		ctrl_ope[N_OTE_PNL_CTRL];										//操作卓PB入力
 	INT16		ote_type;

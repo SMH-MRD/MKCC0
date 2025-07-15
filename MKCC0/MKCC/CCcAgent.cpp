@@ -403,8 +403,8 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 /// Mon2 コールバック関数
 /// </summary>
 static bool is_write_req_turn = false;//書き込み要求送信の順番でtrue
-static int n_page_w = 5, i_page_w = 0, i_ref_w = 0;
-static int n_page_r = 5, i_page_r = 0, i_ref_r = 0;
+static int n_page_w = 5, i_page_w = 0, i_ref_w = 0;//モニタ画面表示用
+static int n_page_r = 5, i_page_r = 0, i_ref_r = 0;//モニタ画面表示用
 LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
