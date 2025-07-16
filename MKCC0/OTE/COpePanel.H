@@ -16,6 +16,7 @@ public:
 	static CPanelBase* pPanel;
 	static CMainPanelObj* pmainobjs;
 	static CSubPanelObj* psubobjs;
+	static CGWindowObj* pgwinobjs;
 	static LPST_DRAWING_BASE pdrawing_items;
 	static LPST_OTE_UI puiif;
 	static HRESULT hr_init_setting;

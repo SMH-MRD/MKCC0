@@ -523,6 +523,7 @@ LRESULT CALLBACK COteAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			&pt,&sz,st_mon1.text[OTE_AG_ID_MON1_GDI_STR_1],st_mon1.pgraphic, 
 			drawing_items.pstrformat[ID_STR_FORMAT_LEFT_TOP], 
 			drawing_items.pbrush[ID_PANEL_COLOR_BLACK], 
+			drawing_items.pbrush[ID_PANEL_COLOR_DGRAY],
 			drawing_items.pfont[ID_PANEL_FONT_10]
 		);
 

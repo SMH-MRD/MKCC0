@@ -17,6 +17,7 @@ int CPanelBase::_panel_id;
 CPanelBase*		CPanelBase::pPanel;
 CMainPanelObj*	CPanelBase::pmainobjs;
 CSubPanelObj* CPanelBase::psubobjs;
+CGWindowObj* CPanelBase::pgwinobjs;
 LPST_DRAWING_BASE CPanelBase::pdrawing_items;
 LPST_OTE_UI CPanelBase::puiif;
 HRESULT CPanelBase::hr_init_setting = S_FALSE;

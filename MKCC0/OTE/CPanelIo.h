@@ -564,13 +564,13 @@ class CStringGdi : public CPnlParts<std::wstring> {
 public:
 	CStringGdi(
 		INT32 _id, Point* ppt, Size* psz, LPWSTR ptext, 
-		Graphics* _pgraphic,StringFormat* _pStrFormat,SolidBrush* _pTxtBrush,Font* _pFont
+		Graphics* _pgraphic,StringFormat* _pStrFormat,SolidBrush* _pTxtBrush, SolidBrush* _pBkBrush,Font* _pFont
 	)
 	{
 		set_id(_id);
 		set_base(ppt, psz, ptext);
 		pgraphics = _pgraphic;
-		pStrFormat = _pStrFormat; pTxtBrush = _pTxtBrush; pFont = _pFont; 
+		pStrFormat = _pStrFormat; pTxtBrush = _pTxtBrush; pBkBrush = _pBkBrush; pFont = _pFont;
 		Rect _rc(pt.X, pt.Y, sz.Width, sz.Height); rc = _rc;
 		RectF _frc((REAL)pt.X, (REAL)pt.Y, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
 		value = txt;	
@@ -600,28 +600,32 @@ public:
 	}
 
 	HRESULT update(Graphics* _pgraphic) {//描画先DC変更
+		pgraphics = _pgraphic;
 		update(pgraphics, value.c_str());
 		return S_OK;
 	}
 
 	HRESULT update() {//再描画
+		pgraphics->FillRectangle(pBkBrush, rc);
 		update(pgraphics, value.c_str());
 		return S_OK;
 	}
 
 	HRESULT update(const LPCWSTR pstr) {//テキスト変更
+		pgraphics->FillRectangle(pBkBrush, rc);
 		update(pgraphics, pstr);
 		return S_OK;
 	}
 
 	HRESULT update(SolidBrush* pbr_bk) {//背景のみ変更
-		pgraphics->FillRectangle(pbr_bk, rc);
-		update(pgraphics, value.c_str());
+		pBkBrush = pbr_bk;
+		pgraphics->FillRectangle(pTxtBrush, rc);
+		update(value.c_str());
 		return S_OK;
 	}
 
-	HRESULT update(const LPCWSTR pstr,SolidBrush* pbr_bk) {//テキストと背景変更
-		pgraphics->FillRectangle(pbr_bk, rc);
+	HRESULT update(const LPCWSTR pstr,SolidBrush* ptxt_bk) {//テキストとテキスト色変更
+		pTxtBrush= ptxt_bk;
 		update(pstr);
 		return S_OK;
 	}

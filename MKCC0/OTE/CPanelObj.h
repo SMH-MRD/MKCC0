@@ -10,8 +10,8 @@ using namespace std;
 #define ID_MAIN_PNL_OBJ_LMP_REMOTE			60002
 #define ID_MAIN_PNL_OBJ_TXT_UID				60003
 #define ID_MAIN_PNL_OBJ_PB_AUTH				60004
-#define ID_MAIN_PNL_OBJ_STR_PC_COM_STAT		60006
-#define ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT	60007
+#define ID_MAIN_PNL_OBJ_TXT_PC_COM_STAT		60006
+#define ID_MAIN_PNL_OBJ_TXT_PLC_COM_STAT	60007
 #define ID_MAIN_PNL_OBJ_LMP_PCR				60008
 #define ID_MAIN_PNL_OBJ_LMP_PCS				60009
 #define ID_MAIN_PNL_OBJ_LMP_PLCR			60010
@@ -132,8 +132,8 @@ public:
 	CLampCtrl	* lmp_remote;		//遠隔設定ランプ
 	CStaticCtrl	* txt_uid;
 	CPbCtrl		* pb_auth;			//認証PB
-	CStringGdi	* str_pc_com_stat;	//PC通信インジケータ用ラベル
-	CStringGdi	* str_plc_com_stat;	//PLC通信インジケータ用ラベル
+	CStaticCtrl* str_pc_com_stat;	//PC通信インジケータ用ラベル
+	CStaticCtrl* str_plc_com_stat;	//PLC通信インジケータ用ラベル
 	CSwitchImg	* lmp_pcr;			//PC通信インジケータ
 	CSwitchImg	* lmp_pcs;			//PC通信インジケータ
 	CSwitchImg	* lmp_plcr;			//PLC通信インジケータ
@@ -292,6 +292,29 @@ public:
 	CListViewCtrl* lv_flt_list;		//故障リストビュー
 	INT16 flt_req_code = 0;			//故障リスト更新要求コード
 
+
+	virtual HRESULT setup_obj();
+	virtual void delete_obj();
+	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
+};
+
+class CGWindowObj :public CPanelObjBase
+{
+private:
+	int crane_id;
+
+public:
+	CGWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+		crane_id = _crane_id;
+		setup_obj();
+	}
+	virtual ~CGWindowObj() {
+	}
+
+	//設定サブウィンドウ
+	CSwitchImg* lmg_bk_gwindow;	//グラフィックウィンドウの背景
+
+	CStringGdi* str_flt_message;	//故障表示メッセージラベル
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

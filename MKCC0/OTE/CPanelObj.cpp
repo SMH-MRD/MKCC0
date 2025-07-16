@@ -15,8 +15,8 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_LMP_REMOTE			,Point(20,50)	,Size(100,100)	,L"遠隔"			},
 		{ID_MAIN_PNL_OBJ_TXT_UID			,Point(20,290)	,Size(100,30)	,L"UID"				},
 		{ID_MAIN_PNL_OBJ_PB_AUTH			,Point(20,320)	,Size(100,40)	,L"認証"			},
-		{ID_MAIN_PNL_OBJ_STR_PC_COM_STAT	,Point(10,900)	,Size(200,30)	,L"PC   R       S"	},
-		{ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT	,Point(10,930)	,Size(200,30)	,L"PLC  R       S"	},
+		{ID_MAIN_PNL_OBJ_TXT_PC_COM_STAT	,Point(10,905)	,Size(120,30)	,L"PC   R     S"	},
+		{ID_MAIN_PNL_OBJ_TXT_PLC_COM_STAT	,Point(10,935)	,Size(120,30)	,L"PLC  R     S"	},
 		{ID_MAIN_PNL_OBJ_LMP_PCR			,Point(62,905)	,Size(16,16)	,L"PC受信"			},
 		{ID_MAIN_PNL_OBJ_LMP_PCS			,Point(100,905)	,Size(16,16)	,L"PC送信"			},
 		{ID_MAIN_PNL_OBJ_LMP_PLCR			,Point(62,935)	,Size(16,16)	,L"PLC受信"			},
@@ -200,7 +200,7 @@ HRESULT CMainPanelObj::setup_obj() {
 
 //0 メッセージ
 		str_message			= new CStringGdi(ID_MAIN_PNL_OBJ_STR_MESSAGE, &main_props[i].pt, &main_props[i].sz,  main_props[i].txt,
-											 pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_20]);
+											 pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE],drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pfont[ID_PANEL_FONT_20]);
 	
 //1-2 リモートPBL
 	i++;pb_remote			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_REMOTE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,pgraphic,drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -212,10 +212,8 @@ HRESULT CMainPanelObj::setup_obj() {
 	i++; pb_auth			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_AUTH, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 
 //5-10 通信状態ラベル/ランプ
-	i++;str_pc_com_stat		= new CStringGdi(ID_MAIN_PNL_OBJ_STR_PC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, 
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
-	i++;str_plc_com_stat	= new CStringGdi(ID_MAIN_PNL_OBJ_STR_PLC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, 
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE], drawing_items.pfont[ID_PANEL_FONT_14]);
+	i++;str_pc_com_stat		= new CStaticCtrl(ID_MAIN_PNL_OBJ_TXT_PC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
+	i++;str_plc_com_stat	= new CStaticCtrl(ID_MAIN_PNL_OBJ_TXT_PLC_COM_STAT, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
 	i++;lmp_pcr				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_signal, 6, 3, pgraphic);
 	i++;lmp_pcs				= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PCS, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_signal, 6, 3, pgraphic);
 	i++;lmp_plcr			= new CSwitchImg(ID_MAIN_PNL_OBJ_LMP_PLCR, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,pimg_signal, 6, 3, pgraphic);
@@ -420,7 +418,7 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; cb_flt_bypass		= new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_BYPASS	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 
 	i++; str_flt_message	= new CStringGdi(ID_SUB_PNL_OBJ_STR_FLT_MESSAGE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
-		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pfont[ID_PANEL_FONT_20]);
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 
 	i++; cb_disp_flt_light = new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_LITE		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_disp_interlock = new CCbCtrl(ID_SUB_PNL_FLT_OBJ_CB_IL		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);

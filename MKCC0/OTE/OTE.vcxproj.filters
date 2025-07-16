@@ -93,6 +93,9 @@
     <ClInclude Include="CPanelWindow.h">
       <Filter>UI\Views</Filter>
     </ClInclude>
+    <ClInclude Include="CGraphicWindow.h">
+      <Filter>UI\Views</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\MKCC\CFaults.cpp">
@@ -148,6 +151,9 @@
     </ClCompile>
     <ClCompile Include="..\MKCC\CPlc.cpp">
       <Filter>Domain\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="CGraphicWindow.cpp">
+      <Filter>UI\Views</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

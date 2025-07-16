@@ -575,8 +575,6 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		//StringXV
 		if (is_initial_draw_mon1) {
 			pPanelBase->pmainobjs->str_message->update();
-			pPanelBase->pmainobjs->str_pc_com_stat->update();
-			pPanelBase->pmainobjs->str_plc_com_stat->update();
 		//	is_initial_draw_mon1 = false;
 		}
 
