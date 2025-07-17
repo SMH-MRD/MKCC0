@@ -59,6 +59,7 @@ using namespace std;
 
 #define N_MAIN_PNL_WCHAR	128
 
+//各クレーン用のオブジェクト初期化用プロパティ値保持用構造体
 struct ST_OBJ_PROPERTY {
 	INT32 id;	//ID
 	Point pt;	//表示位置
@@ -298,6 +299,15 @@ public:
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
 
+#define ID_GWIN_MAIN_OBJ_BASE				60800
+#define ID_GWIN_MAIN_OBJ_IMG_BK				60800
+#define ID_GWIN_MAIN_OBJ_IMG_BOOM_XY		60801
+#define ID_GWIN_MAIN_OBJ_IMG_BOOM_YZ		60802
+#define ID_GWIN_MAIN_OBJ_STR_POS_MH			60820		
+#define ID_GWIN_MAIN_OBJ_STR_POS_BH			60821		
+#define ID_GWIN_MAIN_OBJ_STR_POS_SL			60822		
+#define ID_GWIN_MAIN_OBJ_STR_POS_GT			60823		
+
 class CGWindowObj :public CPanelObjBase
 {
 private:
@@ -312,9 +322,13 @@ public:
 	}
 
 	//設定サブウィンドウ
-	CSwitchImg* lmg_bk_gwindow;	//グラフィックウィンドウの背景
-
-	CStringGdi* str_flt_message;	//故障表示メッセージラベル
+	CSwitchImg* lmg_bk_gwindow;		//グラフィックウィンドウの背景
+	CSwitchImg* lmg_crane_bm_xy;	//ブーム上面
+	CSwitchImg* lmg_crane_bm_yz;	//ブーム側面
+	CStringGdi* str_pos_mh;			//主巻高さ
+	CStringGdi* str_pos_bh;			//旋回半径
+	CStringGdi* str_pos_sl;			//旋回角度
+	CStringGdi* str_pos_gt;			//走行位置
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

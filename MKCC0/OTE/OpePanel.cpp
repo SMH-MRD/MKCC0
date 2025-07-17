@@ -15,10 +15,15 @@ ST_DRAWING_BASE		drawing_items;		//描画用素材登録構造体
 int CPanelBase::_crane_id;
 int CPanelBase::_panel_id;
 CPanelBase*		CPanelBase::pPanel;
+
+//描画用ペン、ブラシ、フォント、フォントファミリオブジェクト保持構造体のポインタ
 CMainPanelObj*	CPanelBase::pmainobjs;
-CSubPanelObj* CPanelBase::psubobjs;
-CGWindowObj* CPanelBase::pgwinobjs;
+CSubPanelObj*	CPanelBase::psubobjs;
+CGWindowObj*	CPanelBase::pgwinobjs;
+
+//描画用ペン、ブラシ、フォント、フォントファミリオブジェクト保持構造体のポインタ
 LPST_DRAWING_BASE CPanelBase::pdrawing_items;
+
 LPST_OTE_UI CPanelBase::puiif;
 HRESULT CPanelBase::hr_init_setting = S_FALSE;
 
@@ -125,36 +130,10 @@ HRESULT CPanelBase::setup_common_base(LPST_OTE_UI pui) {
 }
 
 void CPanelBase::close_drawing_base() {
-	for (int i = 0; i < N_PANEL_COLOR_PEN; i++) {
-		delete drawing_items.ppen[i];
-	}
-	for (int i = 0; i < N_PANEL_COLOR_BRUSH; i++) {
-		delete drawing_items.pbrush[i];
-	}
-	for (int i = 0; i < N_PANEL_FONT; i++) {
-		DeleteObject(drawing_items.pfont[i]);
-	}
-
-	for (int i = 0; i < N_STRING_FORMAT; i++) {
-		DeleteObject(drawing_items.pstrformat[i]);
-	}
-
-	//GdiplusShutdown(gdiplusToken);
-	return;
-}
-
-HRESULT CPanelBase::setup_panel() {
-	return S_OK;
-}
-void CPanelBase::close_panel() {
-	return;
-}
-
-HRESULT CPanelBase::setup_graphic() {
-	return S_OK;
-}
-void	CPanelBase::close_graphic() {
-
+	for (int i = 0; i < N_PANEL_COLOR_PEN; i++)		delete drawing_items.ppen[i];
+	for (int i = 0; i < N_PANEL_COLOR_BRUSH; i++)	delete drawing_items.pbrush[i];
+	for (int i = 0; i < N_PANEL_FONT; i++) 			DeleteObject(drawing_items.pfont[i]);
+	for (int i = 0; i < N_STRING_FORMAT; i++) 		DeleteObject(drawing_items.pstrformat[i]);
 	return;
 }
 

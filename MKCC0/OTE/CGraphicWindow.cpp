@@ -14,6 +14,7 @@ extern CCrane* pCrane;
 
 static COteEnv* pEnvObj;
 
+HWND CGraphicWindow::hGWnd;
 HWND CGraphicWindow::hParentWnd;
 CPanelBase* CGraphicWindow::pPanelBase;
 int CGraphicWindow::crane_id;
@@ -51,13 +52,12 @@ CGraphicWindow::CGraphicWindow(HINSTANCE hInstance, HWND hParent, int _crane_id,
 		0,																// Optional window styles
 		pClassName,														// Window class
 		L"MAIN GRAPHIC",												// Window text
-		WS_CHILD | WS_CAPTION,											// Window style
+		WS_CHILD | WS_BORDER,											// Window style
 		GMAIN_PNL_WND_X, GMAIN_PNL_WND_Y, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H,
 		hParent, nullptr, hInstance, nullptr
 	);
 
 	if (hGWnd) {
-		pPanelBase->set_panel_id(wnd_code);//パネルコードセット
 		ShowWindow(hGWnd, SW_SHOW);
 		UpdateWindow(hGWnd);
 	}
@@ -89,14 +89,14 @@ void CGraphicWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_
 	}
 	break;
 	}
-
 	return;
 };
-
 
 LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
+		//表示更新用タイマー
+		SetTimer(hwnd, ID_GMAIN_TIMER, ID_GMAIN_TIMER_MS, NULL);
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
@@ -108,7 +108,7 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
 
 	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
-		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
+		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->pgwinobjs->pBrushBk, pPanelBase->pgwinobjs->rc_panel);
 	}return 1; // 背景を処理したことを示す
 
 	case WM_NOTIFY: {
@@ -124,21 +124,19 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
 
-		Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
-		Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_inf, NULL);
-		Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
+		Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->pgwinobjs->hBmp_bk, NULL);
+		Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->pgwinobjs->hBmp_inf, NULL);
+		Rect destRect(0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H);
 
-		pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel);
+		//背景画像描画
+		pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, UnitPixel);
 
-		PatBlt(pPanelBase->psubobjs->hdc_inf, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
+		//情報画像の背景を黒く塗りつぶしてメッセージ書き込み
+		PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, BLACKNESS);
+		pPanelBase->pgwinobjs->str_pos_mh->update(); //故障メッセージ更新
 
-		pPanelBase->psubobjs->str_flt_message->update(); //故障メッセージ更新
+		Status drawStatus = pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, UnitPixel, &pPanelBase->pgwinobjs->attr);
 
-
-		Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
-		if (drawStatus != Ok) {
-			drawStatus = drawStatus;
-		}
 		EndPaint(hwnd, &ps);
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
@@ -152,7 +150,7 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	}return true;
 	case WM_DESTROY: {
 		//表示更新用タイマー
-		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+		KillTimer(hwnd, ID_GMAIN_TIMER);
 		// PostQuitMessage(0);
 	}return 0;
 	case WM_CLOSE: {
@@ -164,6 +162,11 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 LRESULT CALLBACK CGraphicWindow::GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
+		//表示更新用タイマー
+		SetTimer(hwnd, ID_GMAIN_TIMER, ID_GMAIN_TIMER_MS, NULL);
+		pPanelBase->pgwinobjs->pgraphic = new Gdiplus::Graphics(GetDC(hwnd));
+		pPanelBase->pgwinobjs->pBrushBk = new Gdiplus::SolidBrush(Gdiplus::Color(64, 64, 64)); // 背景色をグレーに設定
+		pPanelBase->pgwinobjs->rc_panel = Rect(0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H);
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
@@ -175,7 +178,7 @@ LRESULT CALLBACK CGraphicWindow::GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wPa
 	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
 
 	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
-		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
+		pPanelBase->pgwinobjs->pgraphic->FillRectangle(pPanelBase->pgwinobjs->pBrushBk, pPanelBase->pgwinobjs->rc_panel);
 	}return 1; // 背景を処理したことを示す
 
 	case WM_NOTIFY: {
@@ -191,35 +194,30 @@ LRESULT CALLBACK CGraphicWindow::GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wPa
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
 
-		Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
-		Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_inf, NULL);
-		Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
+		//Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->pgwinobjs->hBmp_bk, NULL);
+		//Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->pgwinobjs->hBmp_inf, NULL);
+		//Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
 
-		pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel);
+		//pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel);
 
-		PatBlt(pPanelBase->psubobjs->hdc_inf, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
+		//PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
 
-		pPanelBase->psubobjs->str_flt_message->update(); //故障メッセージ更新
+		//pPanelBase->pgwinobjs->str_pos_mh->update(); //故障メッセージ更新
 
 
-		Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
-		if (drawStatus != Ok) {
-			drawStatus = drawStatus;
-		}
+		//Status drawStatus = pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->pgwinobjs->attr);
+		//if (drawStatus != Ok) {
+		//	drawStatus = drawStatus;
+		//}
 		EndPaint(hwnd, &ps);
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
 		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
-
 		Gdiplus::Graphics gra(pDIS->hDC);
-		Font* pfont = NULL;
-		CSubPanelObj* pos = pPanelBase->psubobjs;
-		CLampCtrl* plamp = NULL;
-
 	}return true;
 	case WM_DESTROY: {
 		//表示更新用タイマー
-		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+	
 		// PostQuitMessage(0);
 	}return 0;
 	case WM_CLOSE: {

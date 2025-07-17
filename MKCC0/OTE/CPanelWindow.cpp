@@ -7,7 +7,7 @@
 #include "COteEnv.h"
 #include <windows.h>
 #include "CFaults.h"
-#include "CGraphicWindow.h"
+
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -16,21 +16,26 @@ extern CCrane* pCrane;
 
 static COteEnv* pEnvObj;
 
-HWND CMainPanelWindow::hPnlWnd;
-HWND CMainPanelWindow::hParentWnd;
-CPanelBase** CMainPanelWindow::ppPanelBase;
-CPanelBase* CMainPanelWindow::pPanelBase;
-int CMainPanelWindow::crane_id;
-int CMainPanelWindow::wnd_code;
+HWND				CMainPanelWindow::hPnlWnd;
+HWND				CMainPanelWindow::hParentWnd;
+CPanelBase**		CMainPanelWindow::ppPanelBase;
+CPanelBase*			CMainPanelWindow::pPanelBase;
+int					CMainPanelWindow::crane_id;
+int					CMainPanelWindow::wnd_code;
 
-LPST_OTE_UI CMainPanelWindow::pUi;
-LPST_OTE_CS_INF CMainPanelWindow::pCsInf;
-LPST_OTE_CC_IF CMainPanelWindow::pCcIf;
-LPST_OTE_ENV_INF CMainPanelWindow::pOteEnvInf;
+LPST_OTE_UI			CMainPanelWindow::pUi;
+LPST_OTE_CS_INF		CMainPanelWindow::pCsInf;
+LPST_OTE_CC_IF		CMainPanelWindow::pCcIf;
+LPST_OTE_ENV_INF	CMainPanelWindow::pOteEnvInf;
 
-CSubPanelWindow* CMainPanelWindow::pSubPanelWnd;
+CSubPanelWindow*	CMainPanelWindow::pSubPanelWnd;
+CGraphicWindow*		CMainPanelWindow::pGWnd;
 
 CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int _wnd_code, CPanelBase** _ppPanelBase) {
+	
+	//SCADAでPanelBaseのポインタのグローバル変数を宣言(pPanelBase）保持
+	// ⇒この変数のポインタを渡しておいてMainWindow生成時にインスタンス生成してポインタを更新してSCADAから参照出来るようにする
+	//メインウィンドウを生成時に
 	ppPanelBase = _ppPanelBase;
 	crane_id = _crane_id;
 	wnd_code = _wnd_code;
@@ -119,6 +124,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
 		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN, hWnd);
+
 		//オブジェクトのグラフィックを設定
 		pPanelBase->pmainobjs->setup_graphics(hWnd);
 		pPanelBase->pmainobjs->refresh_obj_graphics();
@@ -491,11 +497,15 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-		
 		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN, hWnd);
 		//オブジェクトのグラフィックを設定
 		pPanelBase->pmainobjs->setup_graphics(hWnd);
 		pPanelBase->pmainobjs->refresh_obj_graphics();
+
+		//グラフィックウィンドウ生成、表示
+		if (pGWnd == NULL) {
+	//		pGWnd = new CGraphicWindow(hInst, hWnd, crane_id,  pPanelBase);
+		}
 
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
@@ -711,7 +721,6 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
-
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
 		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
 	}
@@ -719,12 +728,10 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		SetTextColor((HDC)wp, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wp, TRANSPARENT);
 	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
-
 	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
 		pPanelBase->pmainobjs->pgraphic->FillRectangle(pPanelBase->pmainobjs->pBrushBk, pPanelBase->pmainobjs->rc_panel);
 
 	}return 1; // 背景を処理したことを示す
-
 	case WM_TIMER: {
 		//# LAMP(CTRL)更新
 		//e-stop : PLCの認識がESTOPの時枠有表示
@@ -801,7 +808,6 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		}
 
 	}break;
-
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
@@ -1403,11 +1409,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
 		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
-
 		Gdiplus::Graphics gra(pDIS->hDC);
-		Font* pfont = NULL;
-		CSubPanelObj* pos = pPanelBase->psubobjs;
-		CLampCtrl* plamp = NULL;
 
 	}return true;
 	case WM_DESTROY: {

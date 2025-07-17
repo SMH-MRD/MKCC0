@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <string>
 #include "CSHAREDMEM.h"
+#include "CGraphicWindow.h"
 
 #define SUB_PNL_WND_X             130
 #define SUB_PNL_WND_Y             500
@@ -60,6 +61,10 @@ public:
 #define ID_MAIN_PANEL_TIMER		  60264
 #define ID_MAIN_PANEL_TIMER_MS	  100
 
+/// <summary>
+/// MainWindowのクレーンごとのコールバック関数を定義するクラス
+/// MainWindowは、Scadaのメインパネルウィンドウであり、クレーンごとに異なる動作をするためのクラスです。
+/// </summary>
 class CMainPanelWindow {
 private:
 	LRESULT(CALLBACK* pMainWndProc)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = WndProc;
@@ -80,6 +85,7 @@ public:
 	static LPST_OTE_ENV_INF pOteEnvInf;
 
 	static CSubPanelWindow* pSubPanelWnd;
+	static CGraphicWindow* pGWnd;
 
 	static CPanelBase** ppPanelBase;
 	static CPanelBase* pPanelBase;

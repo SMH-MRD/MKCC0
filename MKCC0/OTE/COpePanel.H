@@ -6,19 +6,23 @@
 #include "CPanelObj.H"
 #include "CSHAREDMEM.H"
 
+/// <summary>
+/// CPanelBase クラスは、アプリケーションウィンドウに配置するオブジェクトを定義するベースクラスです。
+/// MainWindow,SubWindow,GraphicWindow用のオブジェクトを保持するクラスのインスタンスを保持して
+/// 各ウィンドウのコールバック関数から利用出来るようにします。
+/// </summary>
 class CPanelBase {
 
 private:
-	static int _panel_id;
-	static int _crane_id;
-
+	static int _panel_id;	//適用元のパネルの種別（操作卓用,タブレット端末用など）
+	static int _crane_id;	//クレーンID（HHGH29,HHGH30など）
 public:
 	static CPanelBase* pPanel;
-	static CMainPanelObj* pmainobjs;
-	static CSubPanelObj* psubobjs;
-	static CGWindowObj* pgwinobjs;
-	static LPST_DRAWING_BASE pdrawing_items;
-	static LPST_OTE_UI puiif;
+	static CMainPanelObj*		pmainobjs;
+	static CSubPanelObj*		psubobjs;
+	static CGWindowObj*			pgwinobjs;
+	static LPST_DRAWING_BASE	pdrawing_items;
+	static LPST_OTE_UI			puiif;
 	static HRESULT hr_init_setting;
 	//メインウィンドウ生成時にWM＿CREATEでインスタンス生成
 	CPanelBase(int crane_id, int panel_id,HWND hwnd_parent) {
@@ -27,6 +31,7 @@ public:
 		pmainobjs = new CMainPanelObj(hwnd_parent,crane_id);
 		//親ウィンドウの設定はメインパネルからインスタンス生成されるときに再設定が必要
 		psubobjs = new CSubPanelObj(hwnd_parent, crane_id);
+		pgwinobjs = new CGWindowObj(hwnd_parent, crane_id);
 	}
 	virtual ~CPanelBase(void) {
 		close_drawing_base();
