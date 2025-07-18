@@ -497,14 +497,14 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN, hWnd);
+		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN_HHGH29, hWnd);
 		//オブジェクトのグラフィックを設定
 		pPanelBase->pmainobjs->setup_graphics(hWnd);
 		pPanelBase->pmainobjs->refresh_obj_graphics();
 
 		//グラフィックウィンドウ生成、表示
 		if (pGWnd == NULL) {
-	//		pGWnd = new CGraphicWindow(hInst, hWnd, crane_id,  pPanelBase);
+			pGWnd = new CGraphicWindow(hInst, hWnd, crane_id,  pPanelBase);
 		}
 
 		//ウィンドウにコントロール追加
@@ -1055,11 +1055,43 @@ void CSubPanelWindow::DeleteFltListItem(HWND hlv, int i) {
 	ListView_DeleteItem(hlv, i);
 	return;
 }
+void CSubPanelWindow::OnPaintFlt(HDC hdc, HWND hwnd) {
+	int width	= SUB_PNL_WND_W;
+	int height	= SUB_PNL_WND_H;
+
+	Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
+	// 1. 背景画像の描画(pbmp_bkに描画）
+	pPanelBase->psubobjs->img_flt_bk->update();// memGraphics.DrawImage(g_pBgImage, 0, 0, width, height);
+
+	// 2. 文字列の描画(pbmp_infに描画）
+	pPanelBase->psubobjs->str_flt_message->update();//memGraphics.DrawString(wo.str().c_str(), -1, &font, pointF, &blackBrush);
+
+	// バックバッファに画像集約
+	//
+	Status drawStatus = pPanelBase->psubobjs->pgraphic_bk->DrawImage(
+		pPanelBase->psubobjs->pbmp_inf, 
+		destRect, 
+		0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, 
+		UnitPixel, 
+		&pPanelBase->psubobjs->attr
+	);
+
+
+	pPanelBase->psubobjs->pgraphic->DrawImage(pPanelBase->psubobjs->pbmp_bk, 0, 0);
+	// 集約バックバッファの内容を一度に画面に転送
+
+//	pPanelBase->psubobjs->pgraphic->DrawImage(pPanelBase->psubobjs->pbmp_bk, 0, 0);
+
+	return;
+}
+
+
 
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
 
+		// ListView関連
 		INITCOMMONCONTROLSEX icex = { };
 		icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
 		icex.dwICC = ICC_LISTVIEW_CLASSES;  // ListViewやHeaderなどの共通コントロールを初期化
@@ -1390,21 +1422,21 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
 		
-		Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
-		Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_inf, NULL);
-		Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
+		OnPaintFlt(hdc,hwnd);
 
-		pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0,0,SUB_PNL_WND_W, SUB_PNL_WND_H,UnitPixel);
+		//Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
+		//Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_inf, NULL);
+		//Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
 
-		PatBlt(pPanelBase->psubobjs->hdc_inf, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
+		//pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0,0,SUB_PNL_WND_W, SUB_PNL_WND_H,UnitPixel);
 
-		pPanelBase->psubobjs->str_flt_message->update(); //故障メッセージ更新
+		//PatBlt(pPanelBase->psubobjs->hdc_inf, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
+		//pPanelBase->psubobjs->str_flt_message->update(); //故障表示内容表示更新
 
-
-		Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
-		if (drawStatus != Ok){
-			drawStatus = drawStatus;
-		}
+		//Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
+		//if (drawStatus != Ok){
+		//	drawStatus = drawStatus;
+		//}
 		EndPaint(hwnd, &ps);
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し

@@ -110,13 +110,13 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 #define N_GWINL_OBJ			64
 static ST_OBJ_PROPERTY gwin_set_props[N_SUB_PNL_OBJ] = {
 	//グラフィックMAINウィンドウ
-	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)	,Size(1660,1040)	,L"背景"		},//i=0
-	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(2000,0)	,Size(300,300)	,L"ブーム上面"	},
-	{ID_GWIN_MAIN_OBJ_IMG_BOOM_YZ	,Point(2000,300),Size(300,300)	,L"ブーム側面"	},
-	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(1000,100)	,Size(100,50)	,L"主巻位置"},
-	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(1000,150)	,Size(100,50)	,L"引込位置"},
-	{ID_GWIN_MAIN_OBJ_STR_POS_SL	,Point(1000,200)	,Size(100,50)	,L"旋回位置"},
-	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(1000,250)	,Size(100,50)	,L"走行位置"},//i=6
+	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(1280,960),L"背景"		},//i=0
+	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(645,70)		,Size(40,550)	,L"ブーム上面"	},
+	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(595,520)		,Size(150,60)	,L"走行装置"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(950,20)		,Size(400,40)	,L"主巻位置"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(950,60)		,Size(400,40)	,L"引込位置"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_SL	,Point(950,100)		,Size(400,40)	,L"旋回位置"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(950,240)		,Size(400,40)	,L"走行位置"	},//i=6
 };
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
@@ -134,42 +134,54 @@ HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	rc_panel.X = rect.left; rc_panel.Y = rect.top; rc_panel.Width = rect.right - rect.left; rc_panel.Height = rect.bottom - rect.top;
-	hdc = GetDC(hwnd);
+	
+	hdc		= GetDC(hwnd);
 	hdc_img = CreateCompatibleDC(hdc);
-	hdc_bk = CreateCompatibleDC(hdc);
+	hdc_bk	= CreateCompatibleDC(hdc);
 	hdc_inf = CreateCompatibleDC(hdc);
-	if (hdc_img == NULL || hdc_bk == NULL || hdc_inf == NULL) {
-		return E_FAIL;
-	}
+	if (hdc_img == NULL || hdc_bk == NULL || hdc_inf == NULL) return E_FAIL;
 
-	//ビットマップの作成
-	hBmp0 = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	hBmp_img = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	hBmp_bk = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	hBmp_inf = CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
-	if (hBmp0 == NULL || hBmp_img == NULL || hBmp_bk == NULL || hBmp_inf == NULL) {
-		return E_FAIL;
-	}
 	
-	SelectObject(hdc, hBmp0);
-	SelectObject(hdc_img, hBmp_img);
-	SelectObject(hdc_bk, hBmp_bk);
-	SelectObject(hdc_inf, hBmp_inf);
+	//グラフィックオブジェクト作成
+	pgraphic		= new Gdiplus::Graphics(hdc);//バッファリング（描画まとめ）用オブジェクト
+
+	pbmp_inf		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//情報用メモリビットマップ
+	pgraphic_inf	= new Gdiplus::Graphics(pbmp_inf);							//情報書き込みオブジェクト
 	
-	pgraphic = new Gdiplus::Graphics(hdc);
-	pgraphic_img = new Gdiplus::Graphics(hdc_img);
-	pgraphic_bk = new Gdiplus::Graphics(hdc_bk);
-	pgraphic_inf = new Gdiplus::Graphics(hdc_inf);
+	pbmp_img = new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);			//画像書き込みオブジェクト
+	pgraphic_img	= new Gdiplus::Graphics(pbmp_img);							//画像用メモリビットマップ
 
-	if (pgraphic_img == NULL || pgraphic_bk == NULL || pgraphic_inf == NULL) {
-		return E_FAIL;
+	pbmp_bk			= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//背景用メモリビットマップ
+	pgraphic_bk = new Gdiplus::Graphics(pbmp_bk);								//背景用オブジェクト
 
-	}
-	pgraphic_img->SetSmoothingMode(SmoothingModeAntiAlias);
-	pgraphic_bk->SetSmoothingMode(SmoothingModeAntiAlias);
+	if (pgraphic_img == NULL || pgraphic_bk == NULL || pgraphic_inf == NULL) return E_FAIL;
+	if (pbmp_img == NULL || pbmp_bk == NULL || pbmp_inf == NULL)return E_FAIL;
+	
+	pgraphic_img->SetSmoothingMode(SmoothingModeHighQuality);
+	pgraphic_bk	->SetSmoothingMode(SmoothingModeAntiAlias);
 	pgraphic_inf->SetSmoothingMode(SmoothingModeAntiAlias);
+	pgraphic_img->SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+	pgraphic_bk->SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+	pgraphic_inf->SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+	pgraphic_img->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
+	pgraphic_bk->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
+	pgraphic_inf->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAlias);
 
 	pBrushBk = drawing_items.pbrush[ID_PANEL_COLOR_DGRAY];
+
+#if 0
+//ビットマップの作成
+hBmp0		= CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+hBmp_img	= CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+hBmp_bk		= CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+hBmp_inf	= CreateCompatibleBitmap(hdc, rc_panel.Width, rc_panel.Height);
+if (hBmp0 == NULL || hBmp_img == NULL || hBmp_bk == NULL || hBmp_inf == NULL)return E_FAIL;
+
+SelectObject(hdc, hBmp0);
+SelectObject(hdc_img, hBmp_img);
+SelectObject(hdc_bk, hBmp_bk);
+SelectObject(hdc_inf, hBmp_inf);
+#endif
 
 	return S_OK;
 }
@@ -189,8 +201,6 @@ void CPanelObjBase::clear_graghics() {
 	ReleaseDC(hPnlWnd, hdc);
 	return;
 }
-
-
 
 HRESULT CMainPanelObj::setup_obj() { 
 	
@@ -321,7 +331,6 @@ void CMainPanelObj::delete_obj() {
 	delete pb_crane_sel_wnd;
 
 }
-
 void CMainPanelObj::refresh_obj_graphics() {
 
 	str_message->refresh_graphics(pgraphic);
@@ -368,7 +377,6 @@ void CMainPanelObj::refresh_obj_graphics() {
 	txt_freset->refresh_graphics(pgraphic);	//
 	return;
 }
-
 
 HRESULT CSubPanelObj::setup_obj() {
 	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png");	
@@ -490,33 +498,33 @@ void CSubPanelObj::refresh_obj_graphics() {
 
 
 HRESULT CGWindowObj::setup_obj() {
-	static Image img_gwin_bk(L"../Img/HHGH29/BK_MAIN.png");
+static Image img_gwin_bk(L"../Img/HHGH29/hhgh29_bk0.png");
 static Image img_boom_xy(L"../Img/HHGH29/hhgh29_bm_top.png");
-static Image img_boom_yz(L"../Img/HHGH29/hhgh29_bm_side.png");
+static Image img_crane_gt_base(L"../Img/HHGH29/hhgh29_potal_top.png");
 
 Image* pimg_gwin_bk[N_IMG_SWITCH_MAX]	= { &img_gwin_bk, &img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk };
 Image* pimg_boom_xy[N_IMG_SWITCH_MAX]	= { &img_boom_xy, &img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy };
-Image* pimg_boom_yz[N_IMG_SWITCH_MAX]	= { &img_boom_yz,  &img_boom_yz, &img_boom_yz, &img_boom_yz, &img_boom_yz, &img_boom_yz, &img_boom_yz, &img_boom_yz };
+Image* pimg_gt_base[N_IMG_SWITCH_MAX]	= { &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base};
 
 	//設定ウィンドウオブジェクト
 	int i = 0;	lmg_bk_gwindow	= new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_BK,		&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_gwin_bk, 3, 3, pgraphic);
 		i++;	lmg_crane_bm_xy = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_BOOM_XY,	&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_boom_xy, 3, 3, pgraphic);
-		i++;	lmg_crane_bm_yz = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_BOOM_YZ,	&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_boom_yz, 3, 3, pgraphic);
+		i++;	lmg_crane_gt_base = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_GT_BASE,	&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_gt_base, 3, 3, pgraphic);
 
-		i++;	str_pos_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
+		i++;	str_pos_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
-		i++;	str_pos_bh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
+		i++;	str_pos_bh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
-		i++;	str_pos_sl = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
+		i++;	str_pos_sl = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
-		i++;	str_pos_gt = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
+		i++;	str_pos_gt = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
 	return S_OK;
 }
 void CGWindowObj::delete_obj() {
 	delete lmg_bk_gwindow;
 	delete lmg_crane_bm_xy;
-	delete lmg_crane_bm_yz;
+	delete lmg_crane_gt_base;
 	delete str_pos_mh;
 	delete str_pos_bh;
 	delete str_pos_sl;
@@ -525,12 +533,14 @@ void CGWindowObj::delete_obj() {
 }
 
 void CGWindowObj::refresh_obj_graphics() {
-	lmg_bk_gwindow->refresh_graphics(pgraphic);
-	lmg_crane_bm_xy->refresh_graphics(pgraphic);
-	lmg_crane_bm_yz->refresh_graphics(pgraphic);
-	str_pos_mh->refresh_graphics(pgraphic);
-	str_pos_bh->refresh_graphics(pgraphic);
-	str_pos_sl->refresh_graphics(pgraphic);
-	str_pos_gt->refresh_graphics(pgraphic);
+	lmg_bk_gwindow->refresh_graphics(pgraphic_bk);
+
+	lmg_crane_bm_xy->refresh_graphics(pgraphic_img);
+	lmg_crane_gt_base->refresh_graphics(pgraphic_img);
+
+	str_pos_mh->refresh_graphics(pgraphic_inf);
+	str_pos_bh->refresh_graphics(pgraphic_inf);
+	str_pos_sl->refresh_graphics(pgraphic_inf);
+	str_pos_gt->refresh_graphics(pgraphic_inf);
 	return;
 }

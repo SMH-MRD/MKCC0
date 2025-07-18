@@ -24,6 +24,8 @@ HINSTANCE hInst;                                // 現在のインターフェ�
 WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキスト
 WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
 
+ULONG_PTR g_gdiplusToken;
+
 //共有メモリオブジェクト
 CSharedMem* pOteEnvInfObj;
 CSharedMem* pOteCsInfObj;
@@ -91,6 +93,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDC_OTE, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
+    // GDI+ の初期化
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    Gdiplus::GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
+
     // アプリケーション初期化の実行:
     if (!InitInstance(hInstance, nCmdShow))
     {
@@ -110,6 +116,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
         }
     }
+
+    // GDI+ のシャットダウン
+    Gdiplus::GdiplusShutdown(g_gdiplusToken);
     return (int)msg.wParam;
 }
 

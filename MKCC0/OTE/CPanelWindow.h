@@ -5,7 +5,7 @@
 #include "CSHAREDMEM.h"
 #include "CGraphicWindow.h"
 
-#define SUB_PNL_WND_X             130
+#define SUB_PNL_WND_X             125
 #define SUB_PNL_WND_Y             500
 #define SUB_PNL_WND_W             360
 #define SUB_PNL_WND_H             500
@@ -43,6 +43,7 @@ public:
 	static void SetFltToListView(HWND hlv,int code,int i);
 	static void ClearFltListView(HWND hlv, bool is_init,int i);
 	static void DeleteFltListItem(HWND hlv,int i);
+	static void OnPaintFlt(HDC hdc,HWND hwnd);
 	
 
 	static int close();

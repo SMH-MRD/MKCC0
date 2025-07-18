@@ -302,7 +302,7 @@ public:
 #define ID_GWIN_MAIN_OBJ_BASE				60800
 #define ID_GWIN_MAIN_OBJ_IMG_BK				60800
 #define ID_GWIN_MAIN_OBJ_IMG_BOOM_XY		60801
-#define ID_GWIN_MAIN_OBJ_IMG_BOOM_YZ		60802
+#define ID_GWIN_MAIN_OBJ_IMG_GT_BASE		60802
 #define ID_GWIN_MAIN_OBJ_STR_POS_MH			60820		
 #define ID_GWIN_MAIN_OBJ_STR_POS_BH			60821		
 #define ID_GWIN_MAIN_OBJ_STR_POS_SL			60822		
@@ -324,7 +324,7 @@ public:
 	//設定サブウィンドウ
 	CSwitchImg* lmg_bk_gwindow;		//グラフィックウィンドウの背景
 	CSwitchImg* lmg_crane_bm_xy;	//ブーム上面
-	CSwitchImg* lmg_crane_bm_yz;	//ブーム側面
+	CSwitchImg* lmg_crane_gt_base;	//走行装置
 	CStringGdi* str_pos_mh;			//主巻高さ
 	CStringGdi* str_pos_bh;			//旋回半径
 	CStringGdi* str_pos_sl;			//旋回角度
