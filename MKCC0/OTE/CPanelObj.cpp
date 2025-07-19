@@ -111,12 +111,13 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 static ST_OBJ_PROPERTY gwin_set_props[N_SUB_PNL_OBJ] = {
 	//グラフィックMAINウィンドウ
 	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(1280,960),L"背景"		},//i=0
-	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(645,70)		,Size(40,550)	,L"ブーム上面"	},
-	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(595,520)		,Size(150,60)	,L"走行装置"	},
+	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(645,70)		,Size(29,446)	,L"ブーム上面"	},
+	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(605,480)		,Size(131,62)	,L"走行装置"	},
+	{ID_GWIN_MAIN_OBJ_IMG_POTAL		,Point(645,440)		,Size(44,84)	,L"ポータル"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(950,20)		,Size(400,40)	,L"主巻位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(950,60)		,Size(400,40)	,L"引込位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_SL	,Point(950,100)		,Size(400,40)	,L"旋回位置"	},
-	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(950,240)		,Size(400,40)	,L"走行位置"	},//i=6
+	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(950,140)		,Size(400,40)	,L"走行位置"	},//i=6
 };
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
@@ -501,15 +502,19 @@ HRESULT CGWindowObj::setup_obj() {
 static Image img_gwin_bk(L"../Img/HHGH29/hhgh29_bk0.png");
 static Image img_boom_xy(L"../Img/HHGH29/hhgh29_bm_top.png");
 static Image img_crane_gt_base(L"../Img/HHGH29/hhgh29_potal_top.png");
+static Image img_crane_potal(L"../Img/HHGH29/hhgh29_post_top.png");
 
 Image* pimg_gwin_bk[N_IMG_SWITCH_MAX]	= { &img_gwin_bk, &img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk };
 Image* pimg_boom_xy[N_IMG_SWITCH_MAX]	= { &img_boom_xy, &img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy };
 Image* pimg_gt_base[N_IMG_SWITCH_MAX]	= { &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base};
+Image* pimg_post[N_IMG_SWITCH_MAX] = { &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal };
+
 
 	//設定ウィンドウオブジェクト
 	int i = 0;	lmg_bk_gwindow	= new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_BK,		&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_gwin_bk, 3, 3, pgraphic);
 		i++;	lmg_crane_bm_xy = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_BOOM_XY,	&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_boom_xy, 3, 3, pgraphic);
 		i++;	lmg_crane_gt_base = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_GT_BASE,	&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_gt_base, 3, 3, pgraphic);
+		i++;	lmg_crane_potal = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_POTAL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_post, 3, 3, pgraphic);
 
 		i++;	str_pos_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
@@ -534,9 +539,11 @@ void CGWindowObj::delete_obj() {
 
 void CGWindowObj::refresh_obj_graphics() {
 	lmg_bk_gwindow->refresh_graphics(pgraphic_bk);
+	lmg_crane_gt_base->refresh_graphics(pgraphic_bk);
 
 	lmg_crane_bm_xy->refresh_graphics(pgraphic_img);
-	lmg_crane_gt_base->refresh_graphics(pgraphic_img);
+	lmg_crane_potal->refresh_graphics(pgraphic_img);
+	
 
 	str_pos_mh->refresh_graphics(pgraphic_inf);
 	str_pos_bh->refresh_graphics(pgraphic_inf);

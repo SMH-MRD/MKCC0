@@ -155,6 +155,9 @@
     <ClCompile Include="CGraphicWindow.cpp">
       <Filter>UI\Views</Filter>
     </ClCompile>
+    <ClCompile Include="CPanelIo.cpp">
+      <Filter>UI\ViewModel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OTE.rc">

@@ -172,6 +172,7 @@
     <ClCompile Include="COteEnv.cpp" />
     <ClCompile Include="COtePol.cpp" />
     <ClCompile Include="COteScad.cpp" />
+    <ClCompile Include="CPanelIo.cpp" />
     <ClCompile Include="CPanelObj.cpp" />
     <ClCompile Include="CPanelWindow.cpp" />
     <ClCompile Include="OpePanel.cpp" />

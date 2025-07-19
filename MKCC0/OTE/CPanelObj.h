@@ -303,6 +303,8 @@ public:
 #define ID_GWIN_MAIN_OBJ_IMG_BK				60800
 #define ID_GWIN_MAIN_OBJ_IMG_BOOM_XY		60801
 #define ID_GWIN_MAIN_OBJ_IMG_GT_BASE		60802
+#define ID_GWIN_MAIN_OBJ_IMG_POTAL			60803
+
 #define ID_GWIN_MAIN_OBJ_STR_POS_MH			60820		
 #define ID_GWIN_MAIN_OBJ_STR_POS_BH			60821		
 #define ID_GWIN_MAIN_OBJ_STR_POS_SL			60822		
@@ -321,16 +323,24 @@ public:
 	virtual ~CGWindowObj() {
 	}
 
-	//設定サブウィンドウ
+	//グラフィックメインウィンドウ
 	CSwitchImg* lmg_bk_gwindow;		//グラフィックウィンドウの背景
 	CSwitchImg* lmg_crane_bm_xy;	//ブーム上面
+	CSwitchImg* lmg_crane_potal;	//ポータル部
+
 	CSwitchImg* lmg_crane_gt_base;	//走行装置
 	CStringGdi* str_pos_mh;			//主巻高さ
 	CStringGdi* str_pos_bh;			//旋回半径
 	CStringGdi* str_pos_sl;			//旋回角度
 	CStringGdi* str_pos_gt;			//走行位置
 
+
+	//グラフィックサブウィンドウ
+	CSwitchImg* lmg_crane_bm_yz;	//ブーム側面
+
+
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
+

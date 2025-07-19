@@ -114,12 +114,19 @@ gwin_count++; if (gwin_count > 1000) gwin_count = 0; // カウントをリセット
 // 1. 背景画像の描画(pbmp_bk）
 pPanelBase->pgwinobjs->lmg_bk_gwindow->set(0);		// 背景画像書き込み
 pPanelBase->pgwinobjs->lmg_bk_gwindow->update();	// 背景画像書き込み
-
-// 2. クレーン画像の描画(pbmp_img） 
 pPanelBase->pgwinobjs->lmg_crane_gt_base->set(0);
 pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// クレーン画像書き込み
+
+
+// 2. クレーン画像の描画(pbmp_img） 
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->set(0);
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->update();	// クレーン画像書き込み
+//pPanelBase->pgwinobjs->lmg_crane_bm_xy->update_with_scale_angle(40,0,1.0,1.0,0.0);	// クレーン画像書き込み
+//pPanelBase->pgwinobjs->lmg_crane_bm_xy->update_with_center(gwin_count * -1.0,0);	// クレーン画像書き込み
+pPanelBase->pgwinobjs->lmg_crane_potal->set(0);
+pPanelBase->pgwinobjs->lmg_crane_potal->update();	// クレーン画像書き込み
+
+
 
 // 3. Info画像の描画(pbmp_inf） 
 wostringstream wo; 
@@ -127,7 +134,7 @@ wo.str(L""); wo << L"揚程： " << 50.0 + gwin_count*0.1;
 pPanelBase->pgwinobjs->str_pos_mh->update(wo.str().c_str());	// 主巻位置書き込み
 wo.str(L""); wo << L"半径： " << 50.0 - gwin_count * 0.1;
 pPanelBase->pgwinobjs->str_pos_bh->update(wo.str().c_str());	// 半径書き込み
-wo.str(L""); wo << L"旋回角： " << 0.0 + gwin_count * -0.1;
+wo.str(L""); wo << L"旋回角： " << 0.0 + gwin_count * 0.1;
 pPanelBase->pgwinobjs->str_pos_sl->update(wo.str().c_str());	// 旋回各書き込み
 wo.str(L""); wo << L"走行位置： " << 100.0 + gwin_count * 0.1;
 pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 主巻位置書き込み
