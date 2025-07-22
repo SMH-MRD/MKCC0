@@ -147,7 +147,6 @@
     <ClInclude Include="COteEnv.h" />
     <ClInclude Include="COtePol.h" />
     <ClInclude Include="COteScad.h" />
-    <ClInclude Include="CPanelGr.H" />
     <ClInclude Include="CPanelIo.h" />
     <ClInclude Include="CPanelObj.h" />
     <ClInclude Include="CPanelWindow.h" />

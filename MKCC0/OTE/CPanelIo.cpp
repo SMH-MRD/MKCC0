@@ -46,6 +46,9 @@ HRESULT CSwitchImg::setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid) {
 /// 画像表示を更新し、パネルランプの状態に応じて描画処理を行います。
 /// </summary>
 /// <returns>処理が正常に完了した場合は S_OK、無効な値の場合は S_FALSE を返します。</returns>
+
+static SolidBrush blackBrush(Color::Black);
+
 HRESULT CSwitchImg::update() {
 	INT16 id = 0;
 	if (value != ID_PANEL_LAMP_FLICK) {
@@ -81,7 +84,6 @@ HRESULT CSwitchImg::update(int x, int y) {
 
 	Rect dest_rc(x,	y,rc.Width,rc.Height);
 
-	SolidBrush blackBrush(Color::Black);
 	pgraphics->FillRectangle(&blackBrush, rc_clear); // 背景色セット
 	pgraphics->DrawImage(pimg[id_disp], dest_rc);
 }
@@ -92,11 +94,11 @@ HRESULT CSwitchImg::update(int x, int y) {
 /// </summary>
 /// <param name="x_center">画像の中心のX座標。</param>
 /// <param name="y_center">画像の中心のY座標。</param>
-/// <param name="scale_x">X方向のスケール値。</param>
-/// <param name="scale_y">Y方向のスケール値。</param>
+/// <param name="scale_x">X方向のスケール値（拡大,縮小率）</param>
+/// <param name="scale_y">Y方向のスケール値（拡大,縮小率）</param>
 /// <param name="angle">回転角度（度）。</param>
 /// <returns>操作が成功した場合は S_OK を返します。</returns>
-HRESULT CSwitchImg::update(int x_center, int y_center, float w, float h, float angle) {
+HRESULT CSwitchImg::update(int x_center, int y_center, float w_retio, float h_retio, float angle) {
 	if (value < 0) return S_FALSE;			//-1は無効値
 	if (value >= n_switch) return S_FALSE;	//n_switch以上は無効値
 	id_disp = value;
@@ -104,17 +106,15 @@ HRESULT CSwitchImg::update(int x_center, int y_center, float w, float h, float a
 	// 1.グラフィックオブジェクト現在の状態を保存
 	Gdiplus::GraphicsState state = pgraphics->Save();
 
-	pgraphics->TranslateTransform(x_center, y_center);
+	pgraphics->TranslateTransform(rc.X+x_center, rc.Y+y_center);
 	//pgraphics->TranslateTransform(670, 475);
 	pgraphics->RotateTransform(angle);
 
-	Rect rc_dest(0,	0,	w,	h);
-
-	SolidBrush blackBrush(Color::Black);
-	pgraphics->FillRectangle(&blackBrush, rc_clear); // 背景色セット
-	delete& blackBrush; // 背景色セット用のブラシを削除
+	Rect rc_dest(-x_center,	-y_center, rc.Width*w_retio,rc.Height*h_retio);
+	
 
 	//描画
+//	pgraphics->FillRectangle(&blackBrush, rc_clear); // 背景色セット
 	pgraphics->DrawImage(pimg[id_disp], rc_dest);
 
 	pgraphics->ResetTransform();

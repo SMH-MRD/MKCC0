@@ -1171,7 +1171,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		//カラム３　故障名
 		LVCOLUMN col2 = { };
 		col2.mask = LVCF_WIDTH | LVCF_TEXT;
-		col2.cx = 300;
+		col2.cx = 580;
 		col2.pszText = const_cast<TCHAR*>(TEXT("故障内容"));
 		ListView_InsertColumn(plv->hWnd, 2, &col2);
 		//空項目で埋めてビュー初期化（背景を黒にするため）	

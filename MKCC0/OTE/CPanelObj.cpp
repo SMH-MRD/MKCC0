@@ -10,7 +10,7 @@ extern ST_DRAWING_BASE		drawing_items;
 #define N_MAIN_PNL_OBJ		64
 
 static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
-		{ID_MAIN_PNL_OBJ_STR_MESSAGE		,Point(0,0)	,Size(1920,40)	,L"メッセージなし"	},
+		{ID_MAIN_PNL_OBJ_STR_MESSAGE		,Point(920,0)	,Size(1000,40)	,L"メッセージなし"	},
 		{ID_MAIN_PNL_OBJ_PB_REMOTE			,Point(20,50)	,Size(100,100)	,L"遠隔"			},
 		{ID_MAIN_PNL_OBJ_LMP_REMOTE			,Point(20,50)	,Size(100,100)	,L"遠隔"			},
 		{ID_MAIN_PNL_OBJ_TXT_UID			,Point(20,290)	,Size(100,30)	,L"UID"				},
@@ -93,7 +93,7 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	,Point(275,105 ),Size(50,30)	,L"-"	},
 
 	//故障表示サブウィンドウ
-	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(360,500)	,L"背景"	},	//i=30	CSwitchImg* img_flt_bk;
+	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(640,500)	,L"背景"		},	//i=30	CSwitchImg* img_flt_bk;
 	{ID_SUB_PNL_FLT_OBJ_PB_NEXT		,Point(270,420)	,Size(30,30)	,L"次"			},	//		CPbCtrl* pb_stat_next;
 	{ID_SUB_PNL_FLT_OBJ_CB_HISTORY	,Point(235,420)	,Size(40,30)	,L"履歴"		},	//		CCbCtrl* cb_stat_back;
 	{ID_SUB_PNL_FLT_OBJ_CB_HEAVY1	,Point(5,420)	,Size(40,30)	,L"重1"			},	//		CCbCtrl* cb_disp_flt_heavy1;
@@ -104,20 +104,32 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_FLT_OBJ_CB_LITE		,Point(140,420)	,Size(40,30)	,L"軽"			},	//		CCbCtrl* cb_disp_flt_light;
 	{ID_SUB_PNL_FLT_OBJ_CB_IL		,Point(185,420)	,Size(35,30)	,L"IL"			},	//		CCbCtrl* cb_disp_flt_il;
 	{ID_SUB_PNL_FLT_OBJ_PB_PLCMAP	,Point(305,420)	,Size(35,30)	,L"MAP"			},	//		CCbCtrl* cb_disp_plcmap;
-	{ID_SUB_PNL_FLT_OBJ_LV_FAULTS	,Point(5,45)	,Size(335,365)	,L"LIST VIEW"	},	//		CCbCtrl* cb_disp_flt_heavy;
+	{ID_SUB_PNL_FLT_OBJ_LV_FAULTS	,Point(5,45)	,Size(620,365)	,L"LIST VIEW"	},	//		CCbCtrl* cb_disp_flt_heavy;
 };
 
-#define N_GWINL_OBJ			64
-static ST_OBJ_PROPERTY gwin_set_props[N_SUB_PNL_OBJ] = {
+#define N_GWIN_OBJ			32
+static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 	//グラフィックMAINウィンドウ
-	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(1280,960),L"背景"		},//i=0
-	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(645,70)		,Size(29,446)	,L"ブーム上面"	},
-	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(605,480)		,Size(131,62)	,L"走行装置"	},
-	{ID_GWIN_MAIN_OBJ_IMG_POTAL		,Point(645,440)		,Size(44,84)	,L"ポータル"	},
-	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(950,20)		,Size(400,40)	,L"主巻位置"	},
-	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(950,60)		,Size(400,40)	,L"引込位置"	},
-	{ID_GWIN_MAIN_OBJ_STR_POS_SL	,Point(950,100)		,Size(400,40)	,L"旋回位置"	},
-	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(950,140)		,Size(400,40)	,L"走行位置"	},//i=6
+	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(1000,1000)	,L"背景"		},//i=0
+	//{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(28,400)	,L"ブーム上面"	},
+	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(70,500)	,L"ブーム上面"	},
+	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(450,522)		,Size(131,62)	,L"走行装置"	},
+	{ID_GWIN_MAIN_OBJ_IMG_POTAL		,Point(490,500)		,Size(50,100)	,L"ポータル"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(20,20)		,Size(400,40)	,L"主巻位置"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(20,60)		,Size(400,40)	,L"引込位置"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_SL	,Point(20,100)		,Size(400,40)	,L"旋回位置"	},
+	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(20,140)		,Size(400,40)	,L"走行位置"	},//i=6
+};
+
+#define N_GSUBWIN_OBJ			32
+static ST_OBJ_PROPERTY gsubwin_set_props[N_GSUBWIN_OBJ] = {
+	//グラフィックMAINウィンドウ
+	{ID_GWIN_SUB_OBJ_IMG_BK			,Point(0,0)			,Size(645,510)	,L"背景"		},//i=0
+	{ID_GWIN_SUB_OBJ_IMG_BOOM_YZ	,Point(130,300)		,Size(400,25)	,L"ブーム側面"	},
+	{ID_GWIN_SUB_OBJ_IMG_HOOK_MH	,Point(500,400)		,Size(45,60)    ,L"フック"		},
+
+	{ID_GWIN_SUB_OBJ_STR_POS_MH		,Point(20,20)		,Size(300,40)	,L"主巻位置"	},
+	{ID_GWIN_SUB_OBJ_STR_ANGLE_BH	,Point(20,60)		,Size(300,40)	,L"引込位置"	},
 };
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
@@ -223,7 +235,7 @@ HRESULT CMainPanelObj::setup_obj() {
 
 //0 メッセージ
 		str_message			= new CStringGdi(ID_MAIN_PNL_OBJ_STR_MESSAGE, &main_props[i].pt, &main_props[i].sz,  main_props[i].txt,
-											 pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE],drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pfont[ID_PANEL_FONT_20]);
+											 pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_WHITE],drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pfont[ID_PANEL_FONT_20]);
 	
 //1-2 リモートPBL
 	i++;pb_remote			= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_REMOTE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt,pgraphic,drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -497,7 +509,6 @@ void CSubPanelObj::refresh_obj_graphics() {
 	return;
 }
 
-
 HRESULT CGWindowObj::setup_obj() {
 static Image img_gwin_bk(L"../Img/HHGH29/hhgh29_bk0.png");
 static Image img_boom_xy(L"../Img/HHGH29/hhgh29_bm_top.png");
@@ -517,13 +528,13 @@ Image* pimg_post[N_IMG_SWITCH_MAX] = { &img_crane_potal,  &img_crane_potal,  &im
 		i++;	lmg_crane_potal = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_POTAL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_post, 3, 3, pgraphic);
 
 		i++;	str_pos_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_bh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_sl = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_gt = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_32]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 	return S_OK;
 }
 void CGWindowObj::delete_obj() {
@@ -536,7 +547,6 @@ void CGWindowObj::delete_obj() {
 	delete str_pos_gt;
 	return;
 }
-
 void CGWindowObj::refresh_obj_graphics() {
 	lmg_bk_gwindow->refresh_graphics(pgraphic_bk);
 	lmg_crane_gt_base->refresh_graphics(pgraphic_bk);
@@ -549,5 +559,49 @@ void CGWindowObj::refresh_obj_graphics() {
 	str_pos_bh->refresh_graphics(pgraphic_inf);
 	str_pos_sl->refresh_graphics(pgraphic_inf);
 	str_pos_gt->refresh_graphics(pgraphic_inf);
+	return;
+}
+
+HRESULT CGSubWindowObj::setup_obj() {
+	static Image img_gsubwin_bk(L"../Img/HHGH29/hhgh29_bk1.png");
+	static Image img_boom_yz(L"../Img/HHGH29/hhgh29_bm_side.png");
+	static Image img_hook_mh(L"../Img/HHGH29/hhgh29_hook.png");
+	static Image img_hook_load_mh(L"../Img/HHGH29/hhgh29_hook_load.png");
+
+	Image* pimg_gsubwin_bk[N_IMG_SWITCH_MAX] = { &img_gsubwin_bk, &img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk };
+	Image* pimg_boom_yz[N_IMG_SWITCH_MAX] = { &img_boom_yz, &img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz };
+	Image* pimg_hook_mh[N_IMG_SWITCH_MAX] = { &img_hook_mh, &img_hook_load_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh };
+
+	//設定ウィンドウオブジェクト
+	int i = 0;	lmg_bk_gsubwindow = new CSwitchImg(ID_GWIN_SUB_OBJ_IMG_BK, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt, pimg_gsubwin_bk, 3, 3, pgraphic);
+	i++;		lmg_crane_bm_yz = new CSwitchImg(ID_GWIN_SUB_OBJ_IMG_BOOM_YZ, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt, pimg_boom_yz, 3, 3, pgraphic);
+	i++;		lmg_crane_hook_mh = new CSwitchImg(ID_GWIN_SUB_OBJ_IMG_HOOK_MH, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt, pimg_hook_mh, 3, 3, pgraphic);
+
+
+	i++;	str_pos_mh = new CStringGdi(ID_GWIN_SUB_OBJ_STR_POS_MH, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt,
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+	i++;	str_angle_bh = new CStringGdi(ID_GWIN_SUB_OBJ_STR_POS_MH, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt,
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+
+	return S_OK;
+}
+void CGSubWindowObj::delete_obj() {
+	delete lmg_bk_gsubwindow;
+	delete lmg_crane_bm_yz;
+	delete lmg_crane_hook_mh;
+
+	delete str_pos_mh;
+	delete str_angle_bh;
+
+	return;
+}
+void CGSubWindowObj::refresh_obj_graphics() {
+	lmg_bk_gsubwindow->refresh_graphics(pgraphic_bk);
+	lmg_crane_bm_yz->refresh_graphics(pgraphic_img);
+	lmg_crane_hook_mh->refresh_graphics(pgraphic_img);
+
+	str_pos_mh->refresh_graphics(pgraphic_inf);
+	str_angle_bh->refresh_graphics(pgraphic_inf);
+
 	return;
 }

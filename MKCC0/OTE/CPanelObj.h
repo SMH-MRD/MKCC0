@@ -1,6 +1,5 @@
 #pragma once
 #include "CPanelIo.h"
-#include "CPanelGr.h"
 
 using namespace std;
 
@@ -334,11 +333,42 @@ public:
 	CStringGdi* str_pos_sl;			//旋回角度
 	CStringGdi* str_pos_gt;			//走行位置
 
+	virtual HRESULT setup_obj();
+	virtual void delete_obj();
+	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
+};
 
-	//グラフィックサブウィンドウ
+#define ID_GWIN_SUB_OBJ_BASE				60832
+#define ID_GWIN_SUB_OBJ_IMG_BK				60832
+#define ID_GWIN_SUB_OBJ_IMG_BOOM_YZ			60833
+#define ID_GWIN_SUB_OBJ_IMG_HOOK_MH			60834
+
+#define ID_GWIN_SUB_OBJ_STR_POS_MH			60835		
+#define ID_GWIN_SUB_OBJ_STR_ANGLE_BH		60836	
+#define ID_GWIN_SUB_OBJ_STR_HOOK_MH			60837	
+
+class CGSubWindowObj :public CPanelObjBase
+{
+private:
+	int crane_id;
+
+public:
+	CGSubWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+		crane_id = _crane_id;
+		setup_obj();
+	}
+	virtual ~CGSubWindowObj() {
+	}
+
+	//グラフィックメインウィンドウ
+	CSwitchImg* lmg_bk_gsubwindow;	//グラフィックウィンドウの背景
 	CSwitchImg* lmg_crane_bm_yz;	//ブーム側面
+	CSwitchImg* lmg_crane_hook_mh;	//クレーンフック
 
+	CStringGdi* str_pos_mh;			//主巻高さ
+	CStringGdi* str_angle_bh;		//起伏角
 
+	
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新

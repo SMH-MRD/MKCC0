@@ -6,8 +6,8 @@
 #include "CGraphicWindow.h"
 
 #define SUB_PNL_WND_X             125
-#define SUB_PNL_WND_Y             500
-#define SUB_PNL_WND_W             360
+#define SUB_PNL_WND_Y             540
+#define SUB_PNL_WND_W             640
 #define SUB_PNL_WND_H             500
 
 #define ID_SUB_PANEL_TIMER		  60265

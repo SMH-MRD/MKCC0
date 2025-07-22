@@ -21,6 +21,7 @@ public:
 	static CMainPanelObj*		pmainobjs;
 	static CSubPanelObj*		psubobjs;
 	static CGWindowObj*			pgwinobjs;
+	static CGSubWindowObj*		pgsubwinobjs;
 	static LPST_DRAWING_BASE	pdrawing_items;
 	static LPST_OTE_UI			puiif;
 	static HRESULT hr_init_setting;
@@ -32,6 +33,7 @@ public:
 		//親ウィンドウの設定はメインパネルからインスタンス生成されるときに再設定が必要
 		psubobjs = new CSubPanelObj(hwnd_parent, crane_id);
 		pgwinobjs = new CGWindowObj(hwnd_parent, crane_id);
+		pgsubwinobjs = new CGSubWindowObj(hwnd_parent, crane_id);
 	}
 	virtual ~CPanelBase(void) {
 		close_drawing_base();

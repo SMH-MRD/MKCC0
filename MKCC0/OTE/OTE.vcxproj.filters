@@ -81,9 +81,6 @@
     <ClInclude Include="COpePanel.H">
       <Filter>UI\ViewModel</Filter>
     </ClInclude>
-    <ClInclude Include="CPanelGr.H">
-      <Filter>UI\ViewModel</Filter>
-    </ClInclude>
     <ClInclude Include="CPanelIo.h">
       <Filter>UI\ViewModel</Filter>
     </ClInclude>

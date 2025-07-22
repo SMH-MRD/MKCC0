@@ -20,6 +20,7 @@ CPanelBase*		CPanelBase::pPanel;
 CMainPanelObj*	CPanelBase::pmainobjs;
 CSubPanelObj*	CPanelBase::psubobjs;
 CGWindowObj*	CPanelBase::pgwinobjs;
+CGSubWindowObj* CPanelBase::pgsubwinobjs;
 
 //描画用ペン、ブラシ、フォント、フォントファミリオブジェクト保持構造体のポインタ
 LPST_DRAWING_BASE CPanelBase::pdrawing_items;
@@ -66,28 +67,28 @@ HRESULT CPanelBase::setup_common_base(LPST_OTE_UI pui) {
 	drawing_items.pfamily[ID_PANEL_FONT_6] = new FontFamily(L"Arial");
 	drawing_items.pfont[ID_PANEL_FONT_6 ] = new Font(drawing_items.pfamily[ID_PANEL_FONT_6], 6, FontStyleBold, UnitPixel);
 	
-	drawing_items.pfamily[ID_PANEL_FONT_8] = new FontFamily(L"Arial");
+	drawing_items.pfamily[ID_PANEL_FONT_8] = new FontFamily(L"メイリオ");
 	drawing_items.pfont[ID_PANEL_FONT_8] = new Font(drawing_items.pfamily[ID_PANEL_FONT_8], 8, FontStyleBold, UnitPixel);
 	
-	drawing_items.pfamily[ID_PANEL_FONT_10] = new FontFamily(L"Arial");
+	drawing_items.pfamily[ID_PANEL_FONT_10] = new FontFamily(L"メイリオ");
 	drawing_items.pfont[ID_PANEL_FONT_10] = new Font(drawing_items.pfamily[ID_PANEL_FONT_10], 10, FontStyleRegular, UnitPixel);
 
 	drawing_items.pfamily[ID_PANEL_FONT_12] = new FontFamily(L"Arial");
 	drawing_items.pfont[ID_PANEL_FONT_12] = new Font(drawing_items.pfamily[ID_PANEL_FONT_12], 12, FontStyleRegular, UnitPixel);
 
-	drawing_items.pfamily[ID_PANEL_FONT_14] = new FontFamily(L"Arial");
+	drawing_items.pfamily[ID_PANEL_FONT_14] = new FontFamily(L"メイリオ");
 	drawing_items.pfont[ID_PANEL_FONT_14] = new Font(drawing_items.pfamily[ID_PANEL_FONT_14], 14, FontStyleRegular, UnitPixel);
 
-	drawing_items.pfamily[ID_PANEL_FONT_20] = new FontFamily(L"Arial");
+	drawing_items.pfamily[ID_PANEL_FONT_20] = new FontFamily(L"メイリオ");
 	drawing_items.pfont[ID_PANEL_FONT_20] = new Font(drawing_items.pfamily[ID_PANEL_FONT_20], 20, FontStyleRegular, UnitPixel);
 
-	drawing_items.pfamily[ID_PANEL_FONT_24] = new FontFamily(L"Arial");
+	drawing_items.pfamily[ID_PANEL_FONT_24] = new FontFamily(L"メイリオ");
 	drawing_items.pfont[ID_PANEL_FONT_24] = new Font(drawing_items.pfamily[ID_PANEL_FONT_24], 24, FontStyleRegular, UnitPixel);
 
-	drawing_items.pfamily[ID_PANEL_FONT_32] = new FontFamily(L"Arial");
+	drawing_items.pfamily[ID_PANEL_FONT_32] = new FontFamily(L"メイリオ");
 	drawing_items.pfont[ID_PANEL_FONT_32] = new Font(drawing_items.pfamily[ID_PANEL_FONT_32], 32, FontStyleRegular, UnitPixel);
 
-	drawing_items.pfamily[ID_PANEL_FONT_48] = new FontFamily(L"Arial");
+	drawing_items.pfamily[ID_PANEL_FONT_48] = new FontFamily(L"メイリオl");
 	drawing_items.pfont[ID_PANEL_FONT_48] = new Font(drawing_items.pfamily[ID_PANEL_FONT_48], 48, FontStyleRegular, UnitPixel);
 
 	for (int i = ID_PANEL_FONT_48 + 1; i < N_PANEL_FONT; i++) {
