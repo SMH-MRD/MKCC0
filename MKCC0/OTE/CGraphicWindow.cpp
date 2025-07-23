@@ -152,19 +152,19 @@ pPanelBase->pgwinobjs->lmg_bk_gwindow->update();	// 背景画像書き込み(Main)
 pPanelBase->pgwinobjs->lmg_crane_gt_base->set(0);
 pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// クレーンポータル画像書き込み
 
-
 // 2. クレーン画像の描画(pbmp_img） 
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->set(0);
-pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(35,0,1.0,1.0, (float)(gwin_count%360));	// クレーンブーム上面画像書き込み
-
+//pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(500,550, (float)(gwin_count%360),35,0,1.0,0.8);	// クレーンブーム上面画像書き込み
+pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(500, 550, 180.0, 35, 0, 1.0, 0.8);	// クレーンブーム上面画像書き込み
 
 pPanelBase->pgwinobjs->lmg_crane_potal->set(0);
-pPanelBase->pgwinobjs->lmg_crane_potal->update(25,55,1.0,1.0, (float)(gwin_count % 360));	// クレーンポスト上面書き込み
+//pPanelBase->pgwinobjs->lmg_crane_potal->update(500,550, (float)(gwin_count % 360),25,65,1.0,1.0);	// クレーンポスト上面書き込み
+pPanelBase->pgwinobjs->lmg_crane_potal->update(500, 550, 180.0, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
 
 
 // 3. Info画像の描画(pbmp_inf） 
 wostringstream wo; 
-wo.str(L""); wo << L"揚程： " << 50.0 + gwin_count*0.1;
+wo.str(L""); wo << L"揚程： " << 50.0 + gwin_count * 0.1;
 pPanelBase->pgwinobjs->str_pos_mh->update(wo.str().c_str());	// 主巻位置書き込み
 wo.str(L""); wo << L"半径： " << 50.0 - gwin_count * 0.1;
 pPanelBase->pgwinobjs->str_pos_bh->update(wo.str().c_str());	// 半径書き込み
@@ -357,7 +357,8 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->update(x,y);	// クレーンフック画像書き込み
 
 	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->set(0);
-	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update();	// クレーンブーム上面画像書き込み
+	//pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145,340,-30.0- gsubwin_count * 0.5,5,50,0.9,0.9);	// クレーンブーム上面画像書き込み
+	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145, 340, -65.0, 5, 50, 0.9, 0.9);	// クレーンブーム上面画像書き込み
 
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(0);
 

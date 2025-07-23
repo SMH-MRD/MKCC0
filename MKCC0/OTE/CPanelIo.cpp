@@ -89,7 +89,7 @@ HRESULT CSwitchImg::update(int x, int y) {
 }
 
 /// <summary>
-/// 画像の中心を指定し、更にスケール、回転角度を指定して表示を行います。
+
 /// 画像の中心はスケールに応じて補正し、表示指定位置に合わせて表示します。
 /// </summary>
 /// <param name="x_center">画像の中心のX座標。</param>
@@ -98,7 +98,22 @@ HRESULT CSwitchImg::update(int x, int y) {
 /// <param name="scale_y">Y方向のスケール値（拡大,縮小率）</param>
 /// <param name="angle">回転角度（度）。</param>
 /// <returns>操作が成功した場合は S_OK を返します。</returns>
-HRESULT CSwitchImg::update(int x_center, int y_center, float w_retio, float h_retio, float angle) {
+
+/// <summary>
+/// 表示エリアで画像を回転させる中心点と回転角度を指定します。
+/// この指定により描画画像の座標軸原点（回転軸）を表示先座標の回転中心に合わせます
+/// 次に描画画像の座標を回転させこの座標上に描画すると表示先に重ね合わせで描画される形となります
+/// 描画時に描画座標上に指定したオフセットと倍率で書き込んで位置の調整をします
+/// </summary>
+/// <param name="x_center"></param>
+/// <param name="y_center"></param>
+/// <param name="angle"></param>
+/// <param name="offset_x"></param>
+/// <param name="offset_y"></param>
+/// <param name="scale_w"></param>
+/// <param name="scale_h"></param>
+/// <returns></returns>
+HRESULT CSwitchImg::update(int x_center, int y_center, float angle, int offset_x, int offset_y, float scale_w, float scale_h) {
 	if (value < 0) return S_FALSE;			//-1は無効値
 	if (value >= n_switch) return S_FALSE;	//n_switch以上は無効値
 	id_disp = value;
@@ -106,11 +121,10 @@ HRESULT CSwitchImg::update(int x_center, int y_center, float w_retio, float h_re
 	// 1.グラフィックオブジェクト現在の状態を保存
 	Gdiplus::GraphicsState state = pgraphics->Save();
 
-	pgraphics->TranslateTransform(rc.X+x_center, rc.Y+y_center);
-	//pgraphics->TranslateTransform(670, 475);
+	pgraphics->TranslateTransform(x_center, y_center);
 	pgraphics->RotateTransform(angle);
 
-	Rect rc_dest(-x_center,	-y_center, rc.Width*w_retio,rc.Height*h_retio);
+	Rect rc_dest(-offset_x,	-offset_y, rc.Width* scale_w,rc.Height* scale_h);
 	
 
 	//描画

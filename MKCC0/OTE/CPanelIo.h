@@ -395,7 +395,7 @@ public:
 	//}
 	HRESULT update(int x, int y);
 
-	HRESULT update(int x_center, int y_center, float scale_x, float scale_y, float angle);
+	HRESULT update(int x_center, int y_center, float angle,int offset_x,int offset_y,float scale_w, float scale_h);
 };
 
 /// <summary>

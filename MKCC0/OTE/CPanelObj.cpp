@@ -113,7 +113,7 @@ static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(1000,1000)	,L"背景"		},//i=0
 	//{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(28,400)	,L"ブーム上面"	},
 	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(70,500)	,L"ブーム上面"	},
-	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(450,522)		,Size(131,62)	,L"走行装置"	},
+	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(450,522)		,Size(120,62)	,L"走行装置"	},
 	{ID_GWIN_MAIN_OBJ_IMG_POTAL		,Point(490,500)		,Size(50,100)	,L"ポータル"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(20,20)		,Size(400,40)	,L"主巻位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(20,60)		,Size(400,40)	,L"引込位置"	},
@@ -125,7 +125,7 @@ static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 static ST_OBJ_PROPERTY gsubwin_set_props[N_GSUBWIN_OBJ] = {
 	//グラフィックMAINウィンドウ
 	{ID_GWIN_SUB_OBJ_IMG_BK			,Point(0,0)			,Size(645,510)	,L"背景"		},//i=0
-	{ID_GWIN_SUB_OBJ_IMG_BOOM_YZ	,Point(130,300)		,Size(400,25)	,L"ブーム側面"	},
+	{ID_GWIN_SUB_OBJ_IMG_BOOM_YZ	,Point(130,300)		,Size(450,60)	,L"ブーム側面"	},
 	{ID_GWIN_SUB_OBJ_IMG_HOOK_MH	,Point(500,400)		,Size(45,60)    ,L"フック"		},
 
 	{ID_GWIN_SUB_OBJ_STR_POS_MH		,Point(20,20)		,Size(300,40)	,L"主巻位置"	},
