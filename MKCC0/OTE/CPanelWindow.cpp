@@ -1085,8 +1085,6 @@ void CSubPanelWindow::OnPaintFlt(HDC hdc, HWND hwnd) {
 	return;
 }
 
-
-
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
@@ -1681,8 +1679,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 
 		//ウィンドウにコントロール追加
 		//LABEL 
-		CreateWindowW(TEXT("STATIC"), L"方向  目標速度 速度指令 速度FB ﾄﾙｸFB", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			60, 20, 355, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"方向  目標速度 速度指令 速度FB ﾄﾙｸFB  PG COUNTER  ABSOCODER", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			60, 20, 600, 30, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"巻上", WS_CHILD | WS_VISIBLE | SS_LEFT, 
 			5, 70, 40, 30, hwnd, (HMENU)(100), hInst, NULL);				   
 		CreateWindowW(TEXT("STATIC"), L"引込", WS_CHILD | WS_VISIBLE | SS_LEFT,
@@ -1691,6 +1689,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 			5, 140, 40, 30, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"走行", WS_CHILD | WS_VISIBLE | SS_LEFT,
 			5, 175, 40, 30, hwnd, (HMENU)(100), hInst, NULL);
+			
 
 		//STATIC 
 		CStaticCtrl* pst = pPanelBase->psubobjs->st_mh_notch_dir;

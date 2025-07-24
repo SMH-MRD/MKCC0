@@ -210,20 +210,27 @@ public:
 #define ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V		60317
 #define ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	60318
 #define ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	60319
+#define ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_PG		60320
+#define ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG		60321
+#define ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG		60322
+#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_PG		60323
+#define ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS	60324
+#define ID_SUB_PNL_STAT_OBJ_STATIC_AH_FB_ABS	60325
+#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_ABS	60326
 
-#define ID_SUB_PNL_FLT_OBJ_BASE					60330
-#define ID_SUB_PNL_FLT_OBJ_IMG_BK				60330
-#define ID_SUB_PNL_FLT_OBJ_PB_NEXT				60331
-#define ID_SUB_PNL_FLT_OBJ_CB_HISTORY			60332
-#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY1			60333
-#define ID_SUB_PNL_FLT_OBJ_CB_LITE				60334
-#define ID_SUB_PNL_FLT_OBJ_CB_IL				60335
-#define ID_SUB_PNL_FLT_OBJ_CB_BYPASS			60336
-#define ID_SUB_PNL_OBJ_STR_FLT_MESSAGE			60337
-#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY2			60338
-#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY3			60339
-#define ID_SUB_PNL_FLT_OBJ_PB_PLCMAP			60340
-#define ID_SUB_PNL_FLT_OBJ_LV_FAULTS			60341
+#define ID_SUB_PNL_FLT_OBJ_BASE					60340
+#define ID_SUB_PNL_FLT_OBJ_IMG_BK				60340
+#define ID_SUB_PNL_FLT_OBJ_PB_NEXT				60341
+#define ID_SUB_PNL_FLT_OBJ_CB_HISTORY			60342
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY1			60343
+#define ID_SUB_PNL_FLT_OBJ_CB_LITE				60344
+#define ID_SUB_PNL_FLT_OBJ_CB_IL				60345
+#define ID_SUB_PNL_FLT_OBJ_CB_BYPASS			60346
+#define ID_SUB_PNL_OBJ_STR_FLT_MESSAGE			60347
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY2			60348
+#define ID_SUB_PNL_FLT_OBJ_CB_HEAVY3			60349
+#define ID_SUB_PNL_FLT_OBJ_PB_PLCMAP			60350
+#define ID_SUB_PNL_FLT_OBJ_LV_FAULTS			60351
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -276,6 +283,13 @@ public:
 	CStaticCtrl* st_gt_fb_v;
 	CStaticCtrl* st_mh_ref_trq;
 	CStaticCtrl* st_bh_ref_trq;
+	CStaticCtrl* st_mh_fb_pg;
+	CStaticCtrl* st_bh_fb_pg;
+	CStaticCtrl* st_sl_fb_pg;
+	CStaticCtrl* st_gt_fb_pg;
+	CStaticCtrl* st_mh_fb_abs;
+	CStaticCtrl* st_ah_fb_abs;
+	CStaticCtrl* st_gt_fb_abs;
 
 	//故障表示サブウィンドウのオブジェクト
 	CSwitchImg* img_flt_bk;			//PLC通信インジケータ

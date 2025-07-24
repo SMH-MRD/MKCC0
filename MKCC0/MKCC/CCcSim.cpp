@@ -133,6 +133,7 @@ HRESULT CSim::init_drm_motion() {	//ドラムパラメータ設定(巻取量,層数,速度,加速度
 
 HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 	//速度FB,トルク指令
+	//主巻の速度FB,トルク指令設定
 	if (pPLC_IO->stat_mh.inv_ref_dir != CODE_DIR_STP) {
 		if( pPLC_IO->stat_mh.brk_fb == 0) {//ブレーキ閉
 			st_sim_inf.trq_ref_mh = 600;	//30%トルク指令
@@ -148,7 +149,25 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		st_sim_inf.trq_ref_mh = 0;	//停止時は速度0
 		st_sim_inf.vfb_mh = 0;			//速度FBは0
 	}
-
+	
+	//引込の速度FB,トルク指令設定
+	if (pPLC_IO->stat_bh.inv_ref_dir != CODE_DIR_STP) {
+		if (pPLC_IO->stat_bh.brk_fb == 0) {//ブレーキ閉
+			st_sim_inf.trq_ref_bh = 600;	//30%トルク指令
+			st_sim_inf.vfb_bh = 0;			//速度FBは0
+		}
+		else {//ブレーキ開
+			st_sim_inf.trq_ref_bh = 2000;	//100%トルク指令
+			//inv_ref(ベース100%で0.1%単位表現⇒vfb　3200/max_v
+			st_sim_inf.vfb_bh = (INT16)((double)pPLC_IO->stat_bh.inv_ref_v / pspec->base_bh.Kv_C2D);
+		}
+	}
+	else {
+		st_sim_inf.trq_ref_bh	= 0;	//停止時は速度0
+		st_sim_inf.vfb_bh		= 0;	//速度FBは0
+	}
+	
+	//旋回の速度FB
 	if (pPLC_IO->stat_sl.inv_ref_dir != CODE_DIR_STP) {
 		if (pPLC_IO->stat_sl.brk_fb) //!!!旋回ブレーキは信号ONで閉
 			st_sim_inf.vfb_sl = 0;			//速度FBは0
@@ -156,8 +175,8 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 			st_sim_inf.vfb_sl = (INT16)((double)pPLC_IO->stat_sl.inv_ref_v / pspec->base_sl.Kv_C2D);
 	}
 	else st_sim_inf.vfb_sl = 0;			//速度FBは0
-
-
+	
+	//走行の速度FB,トルク指令設定
 	if (pPLC_IO->stat_gt.inv_ref_dir != CODE_DIR_STP) {
 		if (pPLC_IO->stat_gt.brk_fb==0) 
 			st_sim_inf.vfb_gt = 0;			//速度FBは0
@@ -165,9 +184,6 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 			st_sim_inf.vfb_gt = (INT16)((double)pPLC_IO->stat_gt.inv_ref_v / pspec->base_gt.Kv_C2D);
 	}
 	else st_sim_inf.vfb_gt = 0;			//速度FBは0
-
-
-
 
 	//高速カウンタ,アブソコーダフィードバック設定
 	if (pPLC_IO->stat_mh.brk_fb) {
@@ -181,8 +197,8 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 	if(!pPLC_IO->stat_sl.brk_fb)
 		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v	* inf.dt * st_work.axis[ID_SLEW].PGcnt01v);
 	//プリセット
-	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360)st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
-	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360)st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
+	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360) st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
+	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360) st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
 
 	
 	if(pPLC_IO->stat_gt.brk_fb)

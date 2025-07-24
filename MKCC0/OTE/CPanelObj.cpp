@@ -92,6 +92,11 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	,Point(275,70 )	,Size(50,30)	,L"-"	},
 	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	,Point(275,105 ),Size(50,30)	,L"-"	},
 
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_PG	,Point(335,70)	,Size(100,30)	,L"MH PG CNT"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG	,Point(335,105)	,Size(100,30)	,L"MH PG CNT"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG	,Point(335,140)	,Size(100,30)	,L"MH PG CNT"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS	,Point(435,70)	,Size(100,30)	,L"MH ABS CNT"	},
+
 	//故障表示サブウィンドウ
 	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(640,500)	,L"背景"		},	//i=30	CSwitchImg* img_flt_bk;
 	{ID_SUB_PNL_FLT_OBJ_PB_NEXT		,Point(270,420)	,Size(30,30)	,L"次"			},	//		CPbCtrl* pb_stat_next;
@@ -423,20 +428,25 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; st_bh_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_sl_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_gt_notch_dir		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_DIR		, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_mh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_bh_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_sl_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_gt_target_v		= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_target_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_target_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_sl_target_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_target_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_TG_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_mh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_bh_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_sl_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_gt_ref_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_REF_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_mh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_bh_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_sl_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_gt_fb_v			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_fb_v				= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_fb_v				= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_sl_fb_v				= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_fb_v				= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_V	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_mh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_bh_ref_trq			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+
+	i++; st_mh_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_bh_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_sl_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
 	//# 故障表示ウィンドウオブジェクト
 	
