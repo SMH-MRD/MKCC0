@@ -241,7 +241,8 @@ int CAgent::input() {
 	pPLC_IO->stat_sl.brk_fb = pCrane->pPlc->rval(pPlcRIf->sl_brake).i16;
 	pPLC_IO->stat_gt.brk_fb = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;
 	
-	
+	//荷重
+	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH荷重
 	
 	return S_OK;
 }
@@ -312,13 +313,18 @@ int CAgent::parse() {//メイン処理
 	pCrane->pPlc->wval(pPlcWIf->absocoder_gt, pSim_Inf->absocoder_gt);
 
 	//速度FB(INV出力）
-	pCrane->pPlc->wval(pPlcWIf->vfb_mh, pSim_Inf->vfb_mh);
-	pCrane->pPlc->wval(pPlcWIf->vfb_bh, pSim_Inf->vfb_bh);
-	pCrane->pPlc->wval(pPlcWIf->vfb_sl, pSim_Inf->vfb_sl);
-	pCrane->pPlc->wval(pPlcWIf->vfb_gt, pSim_Inf->vfb_gt);
+	pCrane->pPlc->wval(pPlcWIf->vfb_mh,INT16((double)pSim_Inf->vfb_mh * 1.254));//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_bh, INT16((double)pSim_Inf->vfb_bh* 3.2));//4000/1200 ： 速度FBは4000が120％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_sl, INT16((double)pSim_Inf->vfb_sl*3.2));	//4000/2000 ： 速度FBは4000が200％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_gt, INT16((double)pSim_Inf->vfb_gt*3.2));	//3200/1000 ： 速度FBは3200が100％　vfbは0.1%単位
 	//トルク指令(INV出力）
 	pCrane->pPlc->wval(pPlcWIf->trqref_mh, pSim_Inf->trq_ref_mh);
 	pCrane->pPlc->wval(pPlcWIf->trqref_bh, pSim_Inf->trq_ref_bh);
+
+	//モーメントリミッタフック質量,半径
+	pCrane->pPlc->wval(pPlcWIf->mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
+	pCrane->pPlc->wval(pPlcWIf->mlim_r_ai, pSim_Inf->mlim_r_AI);//0.1m単位
+
 
 	return S_OK;
 }

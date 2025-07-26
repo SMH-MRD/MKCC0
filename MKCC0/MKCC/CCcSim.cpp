@@ -90,8 +90,9 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 }
 
 HRESULT CSim::routine_work(void* pObj) {
-	if (inf.total_act % 20 == 0) {
-		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+	if (inf.total_act % 25 == 0) {
+		wos.str(L""); wos << inf.status << L":" << inf.dt;
+		//		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 		msg2host(wos.str());
 	}
 	input();
@@ -141,8 +142,8 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		}
 		else{//ブレーキ開
 			st_sim_inf.trq_ref_mh = 2000;	//100%トルク指令
-			//inv_ref(ベース100%で0.1%単位表現⇒vfb　3200/max_v
-			st_sim_inf.vfb_mh = (INT16)((double)pPLC_IO->stat_mh.inv_ref_v / pspec->base_mh.Kv_C2D);
+			//inv_ref(ベース100%で0.1%単位表現)
+			st_sim_inf.vfb_mh = (INT16)pPLC_IO->stat_mh.inv_ref_v;
 		}
 	}
 	else{
@@ -158,8 +159,8 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		}
 		else {//ブレーキ開
 			st_sim_inf.trq_ref_bh = 2000;	//100%トルク指令
-			//inv_ref(ベース100%で0.1%単位表現⇒vfb　3200/max_v
-			st_sim_inf.vfb_bh = (INT16)((double)pPLC_IO->stat_bh.inv_ref_v / pspec->base_bh.Kv_C2D);
+			//inv_ref(ベース100%で0.1%単位表現)
+			st_sim_inf.vfb_bh = (INT16)pPLC_IO->stat_bh.inv_ref_v;
 		}
 	}
 	else {
@@ -172,7 +173,7 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		if (pPLC_IO->stat_sl.brk_fb) //!!!旋回ブレーキは信号ONで閉
 			st_sim_inf.vfb_sl = 0;			//速度FBは0
 		else //ブレーキ開
-			st_sim_inf.vfb_sl = (INT16)((double)pPLC_IO->stat_sl.inv_ref_v / pspec->base_sl.Kv_C2D);
+			st_sim_inf.vfb_sl = (INT16)pPLC_IO->stat_sl.inv_ref_v;
 	}
 	else st_sim_inf.vfb_sl = 0;			//速度FBは0
 	
@@ -181,11 +182,12 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		if (pPLC_IO->stat_gt.brk_fb==0) 
 			st_sim_inf.vfb_gt = 0;			//速度FBは0
 		else //ブレーキ開
-			st_sim_inf.vfb_gt = (INT16)((double)pPLC_IO->stat_gt.inv_ref_v / pspec->base_gt.Kv_C2D);
+			st_sim_inf.vfb_gt = (INT16)pPLC_IO->stat_gt.inv_ref_v;
 	}
 	else st_sim_inf.vfb_gt = 0;			//速度FBは0
 
 	//高速カウンタ,アブソコーダフィードバック設定
+	//crane_stat.nd[].vは±0.1%単位の速度値
 	if (pPLC_IO->stat_mh.brk_fb) {
 		st_sim_inf.hcount_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v	* inf.dt * st_work.axis[ID_HOIST].PGcnt01v ) ;	//主巻PGフィードバック
 		st_sim_inf.absocoder_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v	* inf.dt * st_work.axis[ID_HOIST].ABSOcnt01v);
@@ -194,16 +196,24 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v * inf.dt * st_work.axis[ID_BOOM_H].PGcnt01v);
 	
 	//!!!旋回ブレーキは信号OFFで開
-	if(!pPLC_IO->stat_sl.brk_fb)
+	if((!pPLC_IO->stat_sl.brk_fb)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-5)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>5)))
 		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v	* inf.dt * st_work.axis[ID_SLEW].PGcnt01v);
 	//プリセット
-	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360) st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
-	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360) st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
+	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360) 
+		st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
+	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360) 
+		st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
 
 	
 	if(pPLC_IO->stat_gt.brk_fb)
 		st_sim_inf.absocoder_gt += (INT32)(pEnv_Inf->crane_stat.nd[ID_GANTRY].v * inf.dt * st_work.axis[ID_GANTRY].ABSOcnt01v);	//他は未使用なので0
 
+	
+	//荷重
+	st_work.weight_mh=pspec->st_struct.Whook;								//フック質量
+	st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh/80000.0 * 1600);	//フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
+	
+	st_sim_inf.mlim_r_AI = (INT16)(pEnv_Inf->crane_stat.r.p *10.0);	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
 	return S_OK;
 }            
 
@@ -217,8 +227,6 @@ HRESULT CSim::calc_plc_output() {			//軸状態出力（PLC IO用）
 
 	return S_OK;
 }        
-
-
 
 int CSim::close() {
 

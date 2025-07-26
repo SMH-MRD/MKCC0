@@ -94,6 +94,8 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_mh
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_gt
+	//荷重
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//荷重
 
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 
@@ -150,6 +152,10 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//vfb_gt;
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//trqref_mh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//trqref_bh
+
+	//モーメントリミッタ
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//mlim_weight_ai;	//モーメントリミッタ荷重AI
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//mlim_r_ai;		//モーメントリミッタ旋回半径AI
 
 };
 
@@ -274,6 +280,9 @@ int CPlc::setup(int crane_id) {
 			plc_io_rif.absocoder_mh.pi16	= p + 90;
 			plc_io_rif.absocoder_gt.pi16	= p + 94;
 
+			//荷重
+			plc_io_rif.m.pi16 = p + 4;	//主巻荷重
+
 		}
 		//WRITE
 		{
@@ -337,6 +346,9 @@ int CPlc::setup(int crane_id) {
 
 			plc_io_wif.trqref_mh.pi16		= p + 74;
 			plc_io_wif.trqref_bh.pi16		= p + 75;
+
+			plc_io_wif.mlim_r_ai.pi16		= p + 3;
+			plc_io_wif.mlim_weight_ai.pi16	= p + 4;
 		}
 	}break;
 	case CARNE_ID_HHGQ18:{

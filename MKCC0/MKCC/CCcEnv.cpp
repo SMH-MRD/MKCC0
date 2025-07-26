@@ -201,15 +201,15 @@ HRESULT CCcEnv::set_drum_stat() {
 	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder_fb - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
 
-	//#回転速度セット ベース速度が100％で±0.1％単位 inv fb/3200*最高速%*10　　＊＊＊inf_fb->3200が100%
-	//主巻　257%*10/3200=2570/3200=0.803125
-	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.inv_fb_v * pspec->base_mh.Kv_C2D;
-	//起伏　100%*10/3200 = 0.3125
-	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.inv_fb_v * pspec->base_bh.Kv_C2D;
-	//旋回　100%*10/3200 = 0.3125
-	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.inv_fb_v * pspec->base_sl.Kv_C2D;
-	//走行　100%*10/3200 = 0.3125
-	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.inv_fb_v * pspec->base_gt.Kv_C2D;
+	//#回転速度セット ±0.1％単位 ベース速度が100％で inv fb/1000*定格回転数
+	//主巻
+	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.inv_fb_v * pspec->base_mh.Rpm_rated/1000.0;
+	//起伏
+	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.inv_fb_v * pspec->base_bh.Rpm_rated / 1000.0;
+	//旋回
+	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.inv_fb_v * pspec->base_sl.Rpm_rated / 1000.0;
+	//走行
+	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.inv_fb_v * pspec->base_gt.Rpm_rated / 1000.0;
 
 	//#d ドラム層セット
 	double rd = pspec->base_bh.NdrmPgSet0 - pEnvInf->crane_stat.nd[ID_BOOM_H].p;	//上限からの回転量
@@ -232,7 +232,8 @@ HRESULT CCcEnv::set_drum_stat() {
 
 HRESULT CCcEnv::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
-		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		wos.str(L""); wos << inf.status << L":" << inf.dt;
+		//wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 		if (inf.mode_id == MODE_ENV_APP_SIMURATION)		wos  << L" MODE>>SIMULATOR";
 		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)	wos  << L" MODE>>EMULATOR";
 		else											wos  << L" MODE>>PRODUCT";
@@ -256,10 +257,19 @@ int CCcEnv::parse() {
 	//ドラム状態セット
 	fp_set_drum_stat();
 	//起伏角,旋回半径
-	double d=pEnvInf->crane_stat.d.p,Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
+	double d=pEnvInf->crane_stat.d.p,	Lb = pspec->st_struct.Lb,	Ha = pspec->st_struct.Ha;
 	pEnvInf->crane_stat.th.p = PI90 - acos((d*d - Lb*Lb - Ha*Ha)/(-2.0*Lb*Ha));	//起伏角度
 	pEnvInf->crane_stat.r.p = Lb*cos(pEnvInf->crane_stat.th.p);					//旋回半径
 
+	
+	pEnvInf->crane_stat.m = pPlcIo->weight;//荷重
+	
+	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
+	//揚程
+	pEnvInf->crane_stat.vm[ID_HOIST].p = (double)(pPlcRbuf->mh_z) / 10.0;
+	//旋回角度
+	pEnvInf->crane_stat.vm[ID_SLEW].p = (double)(pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp ;//旋回角度
+	
 	//故障情報セット
 
 	if (pPlcIo->plc_enable) {

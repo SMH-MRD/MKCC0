@@ -79,6 +79,11 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 		break;
 	}
 
+	//サブウィンドウの共有メモリのポインタセット
+	CSubPanelWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf, crane_id);
+	CGraphicWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf, crane_id);
+	
+
 	ATOM fb = RegisterClassExW(&wcex);
 	hPnlWnd = CreateWindowW(pClassName, TEXT("Operation Panel"), WS_OVERLAPPEDWINDOW,
 		MAIN_PNL_WND_X, MAIN_PNL_WND_Y, MAIN_PNL_WND_W, MAIN_PNL_WND_H,
@@ -89,8 +94,6 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 		UpdateWindow(hPnlWnd);
 	}
 
-	//サブウィンドウの共有メモリのポインタセット
-	CSubPanelWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf, crane_id);
 
 	return;
 }
@@ -1679,8 +1682,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 
 		//ウィンドウにコントロール追加
 		//LABEL 
-		CreateWindowW(TEXT("STATIC"), L"方向  目標速度 速度指令 速度FB ﾄﾙｸFB  PG COUNTER  ABSOCODER", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			60, 20, 600, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"方向  目標速度 速度指令 速度FB  ﾄﾙｸFB    PG COUNTER    ABSOCODER", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			50, 20, 600, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"        1K/100%  1K/100%  rpm    2K/100%", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			50, 45, 600, 30, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"巻上", WS_CHILD | WS_VISIBLE | SS_LEFT, 
 			5, 70, 40, 30, hwnd, (HMENU)(100), hInst, NULL);				   
 		CreateWindowW(TEXT("STATIC"), L"引込", WS_CHILD | WS_VISIBLE | SS_LEFT,
@@ -1748,6 +1753,21 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 		pst = pPanelBase->psubobjs->st_bh_ref_trq;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_mh_fb_pg;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_bh_fb_pg;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_sl_fb_pg;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_mh_fb_abs;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 	}break;
@@ -1835,7 +1855,16 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 			wos.str(L""); wos << p_plc_rbuf->inv_trq[1];
 			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, wos.str().c_str());
 
-
+			//PG
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_MH];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_pg->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_BH];
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_pg->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_SL] ;
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_pg->hWnd, wos.str().c_str());
+			//アブソコーダ
+			wos.str(L""); wos << p_plc_rbuf->absocoder_fb[ID_PLC_ABSO_MH];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_abs->hWnd, wos.str().c_str());
 
 		}break;
 		default: {
@@ -1861,6 +1890,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 
 			SetWindowText(pPanelBase->psubobjs->st_mh_ref_trq->hWnd, L"?");
 			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, L"?");
+
+
 
 		}break;
 		}

@@ -640,6 +640,9 @@ typedef struct _ST_CC_SIM_INF {
 	ST_AUX_ENV_INF aux_io;							//センサ,補機SIMULATION結果(Emulator, Simulation Mode)
 	ST_SWAY_SERVER_MSG rcv_msg;						//振れセンサセンサ受信バッファ計算値
 
+	INT16 mlim_weight_AI;					//モーメントリミッタフック質量 AI入力計算値 
+	INT16 mlim_r_AI;					//モーメントリミッタ半径AI入力計算値
+	
 	INT32 hcount_mh;					//主巻高速カウンタ計算値
 	INT32 hcount_bh;					//引込高速カウンタ計算値
 	INT32 hcount_sl;					//旋回高速カウンタ計算値

@@ -93,9 +93,9 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_REF_TRQ	,Point(275,105 ),Size(50,30)	,L"-"	},
 
 	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_PG	,Point(335,70)	,Size(100,30)	,L"MH PG CNT"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG	,Point(335,105)	,Size(100,30)	,L"MH PG CNT"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG	,Point(335,140)	,Size(100,30)	,L"MH PG CNT"	},
-	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS	,Point(435,70)	,Size(100,30)	,L"MH ABS CNT"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG	,Point(335,105)	,Size(100,30)	,L"BH PG CNT"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG	,Point(335,140)	,Size(100,30)	,L"SL PG CNT"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS	,Point(445,70)	,Size(100,30)	,L"MH ABS CNT"	},
 
 	//故障表示サブウィンドウ
 	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(640,500)	,L"背景"		},	//i=30	CSwitchImg* img_flt_bk;
@@ -118,7 +118,7 @@ static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(1000,1000)	,L"背景"		},//i=0
 	//{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(28,400)	,L"ブーム上面"	},
 	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(70,500)	,L"ブーム上面"	},
-	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(450,522)		,Size(120,62)	,L"走行装置"	},
+	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(445,522)		,Size(120,62)	,L"走行装置"	},
 	{ID_GWIN_MAIN_OBJ_IMG_POTAL		,Point(490,500)		,Size(50,100)	,L"ポータル"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(20,20)		,Size(400,40)	,L"主巻位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(20,60)		,Size(400,40)	,L"引込位置"	},
@@ -446,7 +446,7 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; st_mh_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_bh_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_sl_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_gt_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_mh_fb_abs			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
 	//# 故障表示ウィンドウオブジェクト
 	
@@ -537,7 +537,7 @@ Image* pimg_post[N_IMG_SWITCH_MAX] = { &img_crane_potal,  &img_crane_potal,  &im
 		i++;	lmg_crane_gt_base = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_GT_BASE,	&gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_gt_base, 3, 3, pgraphic);
 		i++;	lmg_crane_potal = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_POTAL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_post, 3, 3, pgraphic);
 
-		i++;	str_pos_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+		i++;	str_load_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_bh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
@@ -551,7 +551,7 @@ void CGWindowObj::delete_obj() {
 	delete lmg_bk_gwindow;
 	delete lmg_crane_bm_xy;
 	delete lmg_crane_gt_base;
-	delete str_pos_mh;
+	delete str_load_mh;
 	delete str_pos_bh;
 	delete str_pos_sl;
 	delete str_pos_gt;
@@ -565,7 +565,7 @@ void CGWindowObj::refresh_obj_graphics() {
 	lmg_crane_potal->refresh_graphics(pgraphic_img);
 	
 
-	str_pos_mh->refresh_graphics(pgraphic_inf);
+	str_load_mh->refresh_graphics(pgraphic_inf);
 	str_pos_bh->refresh_graphics(pgraphic_inf);
 	str_pos_sl->refresh_graphics(pgraphic_inf);
 	str_pos_gt->refresh_graphics(pgraphic_inf);

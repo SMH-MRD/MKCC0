@@ -11,6 +11,13 @@
 #define MASK_BIT_PC_CTRL_ACTIVE  0x00008000
 #define MASK_BIT_PC_SIM_MODE    0x00004000
 
+#define ID_PLC_HCOUNT_MH      0
+#define ID_PLC_HCOUNT_AH      1
+#define ID_PLC_HCOUNT_BH      2
+#define ID_PLC_HCOUNT_SL      3
+#define ID_PLC_ABSO_MH      0
+#define ID_PLC_ABSO_AH      1
+#define ID_PLC_ABSO_GT      2
 
 /*** PLC IFバッファ構造体定義 ***/
 //デフォルト（みらい）の定義
@@ -83,7 +90,7 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   erm_900;					// D10416:
 	INT16   erm_bo[8];					// D10417:電気室PLC b出力
 	INT16	mh_z;						// D10425:主巻揚程　D7100
-	INT16	r_mm;						// D10426:引込半径　D2772(W202)
+	INT16	r_01m;						// D10426:引込半径　D2772(W202)
 	INT16	spar0[6];					// D10427:予備
 	INT16	cv_tg[4];					// D10433:目標速度％
 	INT16	spar1[2];					// D10437:予備
@@ -108,7 +115,7 @@ union UN_PLC_RBUF {
 };
 
 union UN_PLC_WBUF {
-	INT16 rbuf[CC_MC_SIZE_W_WRITE];
+	INT16 wbuf[CC_MC_SIZE_W_WRITE];
 	ST_PLC_WBUF			st;
 	ST_PLC_WBUF_HHGH29	st_hhgh29;
 };
@@ -224,6 +231,8 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF absocoder_mh;
 	ST_PLC_IO_DEF absocoder_gt;
 	
+	//荷重
+	ST_PLC_IO_DEF m;
 
 }ST_PLC_IO_RIF, * LPST_PLC_IO_RIF;
 
@@ -281,6 +290,10 @@ typedef struct _ST_PLC_IO_WIF {
 	ST_PLC_IO_DEF vfb_gt;
 	ST_PLC_IO_DEF trqref_mh;
 	ST_PLC_IO_DEF trqref_bh;
+
+	//モーメントリミッタ
+	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
+	ST_PLC_IO_DEF mlim_r_ai;		//モーメントリミッタ旋回半径AI
 
 }ST_PLC_IO_WIF, * LPST_PLC_IO_WIF;
 

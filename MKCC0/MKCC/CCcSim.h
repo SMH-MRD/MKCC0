@@ -103,6 +103,7 @@ typedef struct _ST_CC_SIM_WORK {
     ST_SWAY_CLIENT_MSG snd_msg;
     
     ST_SIM_AXIS axis[MOTION_ID_MAX];				//軸計算値
+    double weight_mh;					            //フック質量 
 
     Vector3 L, vL,L2, vL2;							//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）(補巻振れ）
     double kbh;										//引込半径に依存する速度、加速度補正係数   

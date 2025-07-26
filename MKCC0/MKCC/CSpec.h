@@ -20,7 +20,8 @@ typedef struct _ST_STRUCTURE
 	double Nmh_base = 138.1;	//主巻ドラム休止時回転数
 	double Ha		= 35.0;		//ポスト上部高さ(ジブピン-AフレームTOP）
 	double Hp		= 38.5;		//ポスト下部高さ(ジブピン高さ)
-	double d0		= 52.809;		//起伏上限時d	
+	double d0		= 52.809;	//起伏上限時d	
+	double Whook	= 10000.0;	//フック重量KG	
 
 }ST_STRUCTURE, * LPST_STRUCTURE;
 
@@ -69,7 +70,7 @@ typedef struct _ST_AXIS_ITEMS {
 	double CntAbsR;					// アブソコーダ1回転カウント数×入力軸ギア比
 	double CntAbsSet0;				// アブソコーダプリセット0カウント値
 	double NdrmAbsSet0;				// アブソコーダプリセット0ドラム回転数
-	double Kv_C2D;					//速度変換係数0.1％表現/DA値
+	double Kp;						// 位置変換係数
 
 	double dDdrm;					// ドラム1層追加半径
 	double Trq_rated;				// 定格トルク（モータ軸）

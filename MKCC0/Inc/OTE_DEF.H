@@ -127,6 +127,7 @@ typedef struct _ST_OTE_MOTION_STAT {
 typedef struct _ST_OTE_LOAD_STAT {
 	ST_XYZ pos;		//吊点からの相対位置
 	double l;		//ロープ長
+	double m;		//質量
 }ST_OTE_LOAD_STAT, * LPST_OTE_LOAD_STAT;
 typedef struct _ST_OTE_PC_MSG {
 	INT16 counter;						//メッセージを更新する毎にカウントアップ
@@ -178,6 +179,7 @@ typedef struct PcUBody {//デフォルト
 	ST_OTE_LOAD_STAT	st_load_stat[N_OTE_LOAD_TYPE];							//吊荷状態
 	ST_OTE_PC_MSG		pc_msg;													//メッセージを更新する毎にカウントアップ
 	ST_OTE_PC_FLTS_SET  faults_set;												//発生中故障コード
+	double 				bh_angle;												//起伏角度
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/

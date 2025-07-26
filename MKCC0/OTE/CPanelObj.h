@@ -342,7 +342,7 @@ public:
 	CSwitchImg* lmg_crane_potal;	//ポータル部
 
 	CSwitchImg* lmg_crane_gt_base;	//走行装置
-	CStringGdi* str_pos_mh;			//主巻高さ
+	CStringGdi* str_load_mh;		//主巻荷重
 	CStringGdi* str_pos_bh;			//旋回半径
 	CStringGdi* str_pos_sl;			//旋回角度
 	CStringGdi* str_pos_gt;			//走行位置

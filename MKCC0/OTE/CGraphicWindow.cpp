@@ -7,6 +7,7 @@
 #include <vector>
 #include "COteEnv.h"
 #include "CFaults.h"
+#include "phisics.h"
 
 
 extern vector<CBasicControl*>	VectCtrlObj;
@@ -27,6 +28,9 @@ LPST_OTE_CC_IF CGraphicWindow::pCcIf;
 LPST_OTE_ENV_INF CGraphicWindow::pOteEnvInf;
 
 CGraphicWindow::CGraphicWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, CPanelBase* _pPanelBase) {
+	
+	
+	
 	pPanelBase = _pPanelBase;
 	hParentWnd = hParent;
 	
@@ -164,13 +168,13 @@ pPanelBase->pgwinobjs->lmg_crane_potal->update(500, 550, 180.0, 25, 65, 1.0, 1.0
 
 // 3. Info画像の描画(pbmp_inf） 
 wostringstream wo; 
-wo.str(L""); wo << L"揚程： " << 50.0 + gwin_count * 0.1;
-pPanelBase->pgwinobjs->str_pos_mh->update(wo.str().c_str());	// 主巻位置書き込み
-wo.str(L""); wo << L"半径： " << 50.0 - gwin_count * 0.1;
+wo.str(L""); wo << L"荷重： " << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m / 10.0<<L"t";
+pPanelBase->pgwinobjs->str_load_mh->update(wo.str().c_str());	// 主巻位置書き込み
+wo.str(L""); wo << L"半径： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb << L"m";
 pPanelBase->pgwinobjs->str_pos_bh->update(wo.str().c_str());	// 半径書き込み
-wo.str(L""); wo << L"旋回角： " << 0.0 + gwin_count * 0.1;
+wo.str(L""); wo << L"旋回： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].pos_fb << L"°";
 pPanelBase->pgwinobjs->str_pos_sl->update(wo.str().c_str());	// 旋回各書き込み
-wo.str(L""); wo << L"走行位置： " << 100.0 + gwin_count * 0.1;
+wo.str(L""); wo << L"走行： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].pos_fb << L"m";
 pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 主巻位置書き込み
 
 // クレーン画像を背景画像に書き込み
@@ -236,7 +240,6 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 
 		//情報画像の背景を黒く塗りつぶしてメッセージ書き込み
 		PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, BLACKNESS);
-		pPanelBase->pgwinobjs->str_pos_mh->update(); //故障メッセージ更新
 
 		Status drawStatus = pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, UnitPixel, &pPanelBase->pgwinobjs->attr);
 
@@ -364,9 +367,10 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;
-	wo.str(L""); wo << L"揚程： " << 50.0 + gsubwin_count * 0.1;
+	wo.str(L""); wo << L"揚程： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].pos_fb<<L"m";
 	pPanelBase->pgsubwinobjs->str_pos_mh->update(wo.str().c_str());	// 主巻位置書き込み
-	wo.str(L""); wo << L"起伏角： "<< 50.0 - gsubwin_count * 0.1;
+
+	wo.str(L""); wo << L"起伏角： "<< pCcIf->st_msg_pc_u_rcv.body.st.bh_angle * DEG1RAD << L"°";
 	pPanelBase->pgsubwinobjs->str_angle_bh->update(wo.str().c_str());	// 起伏角
 
 	// クレーン画像を背景画像に書き込み
@@ -432,7 +436,7 @@ LRESULT CALLBACK CGraphicWindow::GSubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		//情報画像の背景を黒く塗りつぶしてメッセージ書き込み
 		PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, GSUB_PNL_WND_W, GSUB_PNL_WND_H, BLACKNESS);
-		pPanelBase->pgwinobjs->str_pos_mh->update(); //故障メッセージ更新
+	
 
 		Status drawStatus = pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, GSUB_PNL_WND_W, GSUB_PNL_WND_H, UnitPixel, &pPanelBase->pgwinobjs->attr);
 
