@@ -124,6 +124,8 @@ static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(20,60)		,Size(400,40)	,L"引込位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_SL	,Point(20,100)		,Size(400,40)	,L"旋回位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(20,140)		,Size(400,40)	,L"走行位置"	},//i=6
+
+	{ID_GWIN_MAIN_OBJ_STR_POS_MOUSE	,Point(900,960)		,Size(100,20)	,L"マウス位置"	},//i=7
 };
 
 #define N_GSUBWIN_OBJ			32
@@ -135,6 +137,8 @@ static ST_OBJ_PROPERTY gsubwin_set_props[N_GSUBWIN_OBJ] = {
 
 	{ID_GWIN_SUB_OBJ_STR_POS_MH		,Point(20,20)		,Size(300,40)	,L"主巻位置"	},
 	{ID_GWIN_SUB_OBJ_STR_ANGLE_BH	,Point(20,60)		,Size(300,40)	,L"引込位置"	},
+
+	{ID_GWIN_SUB_OBJ_STR_POS_MOUSE	,Point(550,460)		,Size(100,20)	,L"マウス位置"	},//i=7
 };
 
 CPanelObjBase::CPanelObjBase(HWND _hwnd)
@@ -539,12 +543,15 @@ Image* pimg_post[N_IMG_SWITCH_MAX] = { &img_crane_potal,  &img_crane_potal,  &im
 
 		i++;	str_load_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
-		i++;	str_pos_bh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+		i++;	str_pos_bh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_BH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
-		i++;	str_pos_sl = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+		i++;	str_pos_sl = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_SL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
-		i++;	str_pos_gt = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+		i++;	str_pos_gt = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_GT, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+		i++;	str_pos_mouse = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MOUSE, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+
 	return S_OK;
 }
 void CGWindowObj::delete_obj() {
@@ -569,6 +576,7 @@ void CGWindowObj::refresh_obj_graphics() {
 	str_pos_bh->refresh_graphics(pgraphic_inf);
 	str_pos_sl->refresh_graphics(pgraphic_inf);
 	str_pos_gt->refresh_graphics(pgraphic_inf);
+	str_pos_mouse->refresh_graphics(pgraphic_inf);
 	return;
 }
 
@@ -592,7 +600,9 @@ HRESULT CGSubWindowObj::setup_obj() {
 		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 	i++;	str_angle_bh = new CStringGdi(ID_GWIN_SUB_OBJ_STR_POS_MH, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt,
 		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
-
+	i++;	str_pos_mouse = new CStringGdi(ID_GWIN_SUB_OBJ_STR_POS_MOUSE, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt,
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+		
 	return S_OK;
 }
 void CGSubWindowObj::delete_obj() {
@@ -612,6 +622,7 @@ void CGSubWindowObj::refresh_obj_graphics() {
 
 	str_pos_mh->refresh_graphics(pgraphic_inf);
 	str_angle_bh->refresh_graphics(pgraphic_inf);
+	str_pos_mouse->refresh_graphics(pgraphic_inf);
 
 	return;
 }

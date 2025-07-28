@@ -96,6 +96,9 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//absocoder_gt
 	//荷重
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//荷重
+	//揚程　旋回半径
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//h_mh_mm
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//r_bh_mm
 
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 
@@ -154,8 +157,8 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//trqref_bh
 
 	//モーメントリミッタ
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//mlim_weight_ai;	//モーメントリミッタ荷重AI
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//mlim_r_ai;		//モーメントリミッタ旋回半径AI
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//h_mh_mm	//モーメントリミッタ荷重AI
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//r_bh_mm	//モーメントリミッタ旋回半径AI
 
 };
 
@@ -277,11 +280,16 @@ int CPlc::setup(int crane_id) {
 			plc_io_rif.hcounter_mh.pi16		= p + 82;
 			plc_io_rif.hcounter_bh.pi16		= p + 86;
 			plc_io_rif.hcounter_sl.pi16		= p + 88;
+
 			plc_io_rif.absocoder_mh.pi16	= p + 90;
 			plc_io_rif.absocoder_gt.pi16	= p + 94;
 
 			//荷重
 			plc_io_rif.m.pi16 = p + 4;	//主巻荷重
+
+			//揚程　旋回半径
+			plc_io_rif.h_mh_mm.pi16 = p+25;
+			plc_io_rif.r_bh_mm.pi16 = p+27;
 
 		}
 		//WRITE

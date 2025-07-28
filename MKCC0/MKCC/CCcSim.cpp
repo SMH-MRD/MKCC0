@@ -70,8 +70,8 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 		
 	//ドラム動作初期値
 	init_drm_motion();
-	//旋回360°回転PGカウント= ピニオン1回転カウント×TTB径/ピニオン径
-	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0);
+	//旋回360°回転PGカウント= ピニオン1回転カウント×TTB径/ピニオン径*減速比
+	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0 * pspec->base_sl.Gear_ratio);
 
 	//operation panel　初期設定
 	set_func_pb_txt();
@@ -213,7 +213,7 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 	st_work.weight_mh=pspec->st_struct.Whook;								//フック質量
 	st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh/80000.0 * 1600);	//フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
 	
-	st_sim_inf.mlim_r_AI = (INT16)(pEnv_Inf->crane_stat.r.p *10.0);	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
+	st_sim_inf.mlim_r_AI = (INT16)(pEnv_Inf->crane_stat.r.p/50000 *1600 );	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
 	return S_OK;
 }            
 

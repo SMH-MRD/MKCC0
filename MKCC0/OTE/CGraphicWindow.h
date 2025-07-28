@@ -13,15 +13,24 @@
 #define GMAIN_PNL_WND_W             1000
 #define GMAIN_PNL_WND_H             1000
 
-#define GSUB_PNL_WND_X             125
-#define GSUB_PNL_WND_Y             40
-#define GSUB_PNL_WND_W             640
-#define GSUB_PNL_WND_H             510
+#define GMAIN_PNL_ORG_X             500//グラフィッククレーン原点
+#define GMAIN_PNL_ORG_Y             550//グラフィッククレーン原点
+#define GMAIN_PNL_PIX2M				0.1531//グラフィックm/PIXEL 62m/405
 
-#define ID_GMAIN_TIMER		  60898
-#define ID_GMAIN_TIMER_MS	  100
-#define ID_GSUB_TIMER		  60899
-#define ID_GSUB_TIMER_MS	  100
+
+#define GSUB_PNL_WND_X				125
+#define GSUB_PNL_WND_Y				40
+#define GSUB_PNL_WND_W				640
+#define GSUB_PNL_WND_H				510
+
+#define GSUB_PNL_ORG_X				118
+#define GSUB_PNL_ORG_Y				500
+#define GSUB_PNL_PIX2M				0.234756//グラフィックm/PIXEL(Hp35.8/164)
+
+#define ID_GMAIN_TIMER				60898
+#define ID_GMAIN_TIMER_MS			100
+#define ID_GSUB_TIMER				60899
+#define ID_GSUB_TIMER_MS			100
 
 class CGraphicWindow
 {
@@ -44,10 +53,14 @@ public:
 
 	static CPanelBase* pPanelBase;
 	
+	static Point mouse_pos_main;	//マウス位置
+	static Point org_main;			//クレーン原点位置
+
 	static void OnPaint(HDC hdc, HWND hWnd);
 	static LRESULT CALLBACK GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+	static Point mouse_pos_sub;
 	static void OnPaintSub(HDC hdc, HWND hWnd);
 	static LRESULT CALLBACK GSubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK GSubWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

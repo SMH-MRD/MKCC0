@@ -2,6 +2,9 @@
 #include "PLC_DEF.h"
 #include "CFaults.h"
 
+//######!!!!!!!! 通信バッファのアライメントはWORD単位にする#######################
+//######!!!!!!!! 構造体のポインタで参照したときにずれる 	#######################
+#pragma pack(push,2)
 
 #define MASK_BIT_MH             0x00000001
 #define MASK_BIT_BH             0x00000002
@@ -89,9 +92,9 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   cab_yo;						// D10415:b160-f
 	INT16   erm_900;					// D10416:
 	INT16   erm_bo[8];					// D10417:電気室PLC b出力
-	INT16	mh_z;						// D10425:主巻揚程　D7100
-	INT16	r_01m;						// D10426:引込半径　D2772(W202)
-	INT16	spar0[6];					// D10427:予備
+	INT32	mh_z;						// D10425:主巻揚程　D1010
+	INT32	r_01m;						// D10426:引込半径　D2772(W202)
+	INT16	spar0[4];					// D10427:予備
 	INT16	cv_tg[4];					// D10433:目標速度％
 	INT16	spar1[2];					// D10437:予備
 	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10439:故障信号
@@ -120,6 +123,7 @@ union UN_PLC_WBUF {
 	ST_PLC_WBUF_HHGH29	st_hhgh29;
 };
 
+#pragma pack(pop)
 
 /*** PLC IO構造体定義 ***/
 #define CODE_PLCIO_WORD		0
@@ -233,6 +237,10 @@ typedef struct _ST_PLC_IO_RIF {
 	
 	//荷重
 	ST_PLC_IO_DEF m;
+
+	//揚程、旋回半径
+	ST_PLC_IO_DEF h_mh_mm;
+	ST_PLC_IO_DEF r_bh_mm;
 
 }ST_PLC_IO_RIF, * LPST_PLC_IO_RIF;
 

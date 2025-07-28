@@ -254,6 +254,8 @@ typedef struct _ST_CC_PLC_IO {
 	double	weight_ah;								//補巻荷重FB
 	double	th_bh;									//起伏角 acos(R/Lm)
 	double	dth_bh;									//起伏角速度
+	double	h_mh;									//揚程
+	double  r;										//半径
 
 	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLCからの読み取り信号生値
 	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLCへの書き込み信号生値

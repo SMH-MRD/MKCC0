@@ -1890,9 +1890,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 
 			SetWindowText(pPanelBase->psubobjs->st_mh_ref_trq->hWnd, L"?");
 			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, L"?");
-
-
-
 		}break;
 		}
 

@@ -27,6 +27,8 @@ LPST_OTE_CS_INF CGraphicWindow::pCsInf;
 LPST_OTE_CC_IF CGraphicWindow::pCcIf;
 LPST_OTE_ENV_INF CGraphicWindow::pOteEnvInf;
 
+Point CGraphicWindow::mouse_pos_main, CGraphicWindow::mouse_pos_sub;
+
 CGraphicWindow::CGraphicWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, CPanelBase* _pPanelBase) {
 	
 	
@@ -157,25 +159,33 @@ pPanelBase->pgwinobjs->lmg_crane_gt_base->set(0);
 pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// クレーンポータル画像書き込み
 
 // 2. クレーン画像の描画(pbmp_img） 
+double angle = pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].pos_fb;
+double k = pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb/62.0*0.9;
+
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->set(0);
 //pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(500,550, (float)(gwin_count%360),35,0,1.0,0.8);	// クレーンブーム上面画像書き込み
-pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(500, 550, 180.0, 35, 0, 1.0, 0.8);	// クレーンブーム上面画像書き込み
+pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0 - angle, 35, 0, 1.0, k);	// クレーンブーム上面画像書き込み
 
 pPanelBase->pgwinobjs->lmg_crane_potal->set(0);
 //pPanelBase->pgwinobjs->lmg_crane_potal->update(500,550, (float)(gwin_count % 360),25,65,1.0,1.0);	// クレーンポスト上面書き込み
-pPanelBase->pgwinobjs->lmg_crane_potal->update(500, 550, 180.0, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
+pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0- angle, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
 
 
 // 3. Info画像の描画(pbmp_inf） 
 wostringstream wo; 
-wo.str(L""); wo << L"荷重： " << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m / 10.0<<L"t";
+wo.str(L""); wo << L"荷重： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m / 10.0<<L"t";
 pPanelBase->pgwinobjs->str_load_mh->update(wo.str().c_str());	// 主巻位置書き込み
-wo.str(L""); wo << L"半径： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb << L"m";
+wo.str(L""); wo << L"半径： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb << L"m";
 pPanelBase->pgwinobjs->str_pos_bh->update(wo.str().c_str());	// 半径書き込み
-wo.str(L""); wo << L"旋回： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].pos_fb << L"°";
+wo.str(L""); wo << L"旋回： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].pos_fb << L"°";
 pPanelBase->pgwinobjs->str_pos_sl->update(wo.str().c_str());	// 旋回各書き込み
-wo.str(L""); wo << L"走行： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].pos_fb << L"m";
-pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 主巻位置書き込み
+wo.str(L""); wo << L"走行： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].pos_fb << L"m";
+pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 走行位置書き込み
+
+wo.str(L""); wo << L"("<<mouse_pos_main.X<< L"," << mouse_pos_main.Y <<L") " ;
+pPanelBase->pgwinobjs->str_pos_mouse->update(wo.str().c_str());	// マウス位置書き込み
+
+
 
 // クレーン画像を背景画像に書き込み
 Status drawStatus = pPanelBase->pgwinobjs->pgraphic_bk->DrawImage(
@@ -209,6 +219,12 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
 		InvalidateRect(hwnd, NULL, FALSE); // ウィンドウ全体を再描画
 	}
+	case WM_MOUSEMOVE: {
+		mouse_pos_main.X = GET_X_LPARAM(lParam);
+		mouse_pos_main.Y = GET_Y_LPARAM(lParam);
+		break;
+	}
+
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wParam, TRANSPARENT);
@@ -235,11 +251,9 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 		Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->pgwinobjs->hBmp_inf, NULL);
 		Rect destRect(0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H);
 
-		//背景画像描画
-		pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, UnitPixel);
 
 		//情報画像の背景を黒く塗りつぶしてメッセージ書き込み
-		PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, BLACKNESS);
+//		PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, BLACKNESS);
 
 		Status drawStatus = pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H, UnitPixel, &pPanelBase->pgwinobjs->attr);
 
@@ -282,12 +296,15 @@ LRESULT CALLBACK CGraphicWindow::GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wPa
 		//表示更新用タイマー
 		SetTimer(hwnd, ID_GMAIN_TIMER, ID_GMAIN_TIMER_MS, NULL);
 
-
-
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
 		InvalidateRect(hwnd, NULL, FALSE); // ウィンドウ全体を再描画
+	}
+	case WM_MOUSEMOVE: {
+		mouse_pos_main.X = GET_X_LPARAM(lParam);
+		mouse_pos_main.Y = GET_Y_LPARAM(lParam);
+		break;
 	}
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
@@ -350,28 +367,32 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 	gsubwin_count++; if (gsubwin_count > 1000) gsubwin_count = 0; // カウントをリセット
 
 	// 1. 背景画像の描画(pbmp_bk）
-	pPanelBase->pgsubwinobjs->lmg_bk_gsubwindow->set(0);		// 背景画像書き込み
+	pPanelBase->pgsubwinobjs->lmg_bk_gsubwindow->set(0);	// 背景画像書き込み
 	pPanelBase->pgsubwinobjs->lmg_bk_gsubwindow->update();	// 背景画像書き込み
 
 	// 2. クレーン画像の描画(pbmp_img） 
 
-	int x = 500; // クレーンフックのX座標
-	int y = 400 - gsubwin_count % 300; // クレーンフックのY座標
+	int x = GSUB_PNL_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのX座標
+	int y = GSUB_PNL_ORG_Y - INT(pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのY座標
+	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(0);
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->update(x,y);	// クレーンフック画像書き込み
 
-	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->set(0);
-	//pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145,340,-30.0- gsubwin_count * 0.5,5,50,0.9,0.9);	// クレーンブーム上面画像書き込み
-	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145, 340, -65.0, 5, 50, 0.9, 0.9);	// クレーンブーム上面画像書き込み
+	double angle = pCcIf->st_msg_pc_u_rcv.body.st.bh_angle * DEG1RAD; // 起伏角度をDegに変換
+	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145, 340, -angle, 5, 50, 0.9, 0.9);	// クレーンブーム上面画像書き込み
 
-	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(0);
+	pPanelBase->psubobjs->pgraphic_img->FillRectangle(pPanelBase->pdrawing_items->pbrush[ID_PANEL_COLOR_BLACK], pPanelBase->pgwinobjs->rc_panel);
 
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;
-	wo.str(L""); wo << L"揚程： " << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].pos_fb<<L"m";
+	wo.str(L""); wo << L"揚程： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].pos_fb<<L"m";
 	pPanelBase->pgsubwinobjs->str_pos_mh->update(wo.str().c_str());	// 主巻位置書き込み
 
-	wo.str(L""); wo << L"起伏角： "<< pCcIf->st_msg_pc_u_rcv.body.st.bh_angle * DEG1RAD << L"°";
+	wo.str(L""); wo << L"起伏角： "<<std::fixed<<std::setprecision(1)<< angle << L"°";
 	pPanelBase->pgsubwinobjs->str_angle_bh->update(wo.str().c_str());	// 起伏角
+
+	wo.str(L""); wo << L"(" << mouse_pos_sub.X << L"," << mouse_pos_sub.Y << L") ";
+	pPanelBase->pgsubwinobjs->str_pos_mouse->update(wo.str().c_str());	// マウス位置書き込み
+
 
 	// クレーン画像を背景画像に書き込み
 	Status drawStatus = pPanelBase->pgsubwinobjs->pgraphic_bk->DrawImage(
@@ -405,6 +426,11 @@ LRESULT CALLBACK CGraphicWindow::GSubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
 		InvalidateRect(hwnd, NULL, FALSE); // ウィンドウ全体を再描画
 	}
+	case WM_MOUSEMOVE: {
+		mouse_pos_sub.X = GET_X_LPARAM(lParam);
+		mouse_pos_sub.Y = GET_Y_LPARAM(lParam);
+		break;
+	}
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wParam, TRANSPARENT);
@@ -435,7 +461,7 @@ LRESULT CALLBACK CGraphicWindow::GSubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam
 		pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0, 0, GSUB_PNL_WND_W, GSUB_PNL_WND_H, UnitPixel);
 
 		//情報画像の背景を黒く塗りつぶしてメッセージ書き込み
-		PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, GSUB_PNL_WND_W, GSUB_PNL_WND_H, BLACKNESS);
+//		PatBlt(pPanelBase->pgwinobjs->hdc_inf, 0, 0, GSUB_PNL_WND_W, GSUB_PNL_WND_H, BLACKNESS);
 	
 
 		Status drawStatus = pPanelBase->pgwinobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, GSUB_PNL_WND_W, GSUB_PNL_WND_H, UnitPixel, &pPanelBase->pgwinobjs->attr);
@@ -483,6 +509,11 @@ LRESULT CALLBACK CGraphicWindow::GSubWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM 
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
 		InvalidateRect(hwnd, NULL, FALSE); // ウィンドウ全体を再描画
+	}
+	case WM_MOUSEMOVE: {
+		mouse_pos_sub.X = GET_X_LPARAM(lParam);
+		mouse_pos_sub.Y = GET_Y_LPARAM(lParam);
+		break;
 	}
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー

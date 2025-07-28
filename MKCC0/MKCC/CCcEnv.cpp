@@ -266,9 +266,10 @@ int CCcEnv::parse() {
 	
 	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
 	//揚程
-	pEnvInf->crane_stat.vm[ID_HOIST].p = (double)(pPlcRbuf->mh_z) / 10.0;
+	pEnvInf->crane_stat.vm[ID_HOIST].p = pPlcIo->h_mh;
 	//旋回角度
 	pEnvInf->crane_stat.vm[ID_SLEW].p = (double)(pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp ;//旋回角度
+
 	
 	//故障情報セット
 
