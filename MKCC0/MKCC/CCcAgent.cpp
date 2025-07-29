@@ -244,8 +244,8 @@ int CAgent::input() {
 	//‰×d
 	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH‰×d
 
-	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i16)/1000.0;	//—g’ö
-	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_mm).i16)/1000.0;				//”¼Œa
+	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32)/1000.0;	//—g’ö
+	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_mm).i32)/1000.0;		//”¼Œa
 	
 	return S_OK;
 }

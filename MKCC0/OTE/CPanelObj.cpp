@@ -170,11 +170,11 @@ HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
 	pbmp_inf		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//情報用メモリビットマップ
 	pgraphic_inf	= new Gdiplus::Graphics(pbmp_inf);							//情報書き込みオブジェクト
 	
-	pbmp_img = new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);			//画像書き込みオブジェクト
+	pbmp_img		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);			//画像書き込みオブジェクト
 	pgraphic_img	= new Gdiplus::Graphics(pbmp_img);							//画像用メモリビットマップ
 
 	pbmp_bk			= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//背景用メモリビットマップ
-	pgraphic_bk = new Gdiplus::Graphics(pbmp_bk);								//背景用オブジェクト
+	pgraphic_bk		= new Gdiplus::Graphics(pbmp_bk);								//背景用オブジェクト
 
 	if (pgraphic_img == NULL || pgraphic_bk == NULL || pgraphic_inf == NULL) return E_FAIL;
 	if (pbmp_img == NULL || pbmp_bk == NULL || pbmp_inf == NULL)return E_FAIL;

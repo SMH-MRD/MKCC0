@@ -84,8 +84,8 @@ typedef struct _ST_SIM_AXIS {//軸
     double  n_layer;				//ドラム現在層巻取数
     double  l_drum;					//ドラム巻取り量
 	INT32   brake;					//ブレーキ状態
-	double PGcnt01v;                //0.1%速度時のPG１秒カウント値
-    double ABSOcnt01v;              //0.1%速度時のアブソコーダ１秒カウント値
+	double RpsPGCntSec;             //1RPM時のPG１秒カウント値
+    double  RpsABSOCntSec;              //1RPM時のアブソコーダ１秒カウント値
 }ST_SIM_AXIS, * LPST_SIM_AXIS;
 
 typedef struct _ST_CC_SIM_WORK {

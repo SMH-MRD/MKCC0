@@ -203,13 +203,13 @@ HRESULT CCcEnv::set_drum_stat() {
 
 	//#回転速度セット ±0.1％単位 ベース速度が100％で inv fb/1000*定格回転数
 	//主巻
-	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.inv_fb_v * pspec->base_mh.Rpm_rated/1000.0;
+	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.inv_fb_v /60.0;//RPS
 	//起伏
-	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.inv_fb_v * pspec->base_bh.Rpm_rated / 1000.0;
+	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.inv_fb_v / 60.0;//RPS
 	//旋回
-	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.inv_fb_v * pspec->base_sl.Rpm_rated / 1000.0;
+	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.inv_fb_v / 60.0;//RPS
 	//走行
-	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.inv_fb_v * pspec->base_gt.Rpm_rated / 1000.0;
+	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.inv_fb_v / 60.0;//RPS
 
 	//#d ドラム層セット
 	double rd = pspec->base_bh.NdrmPgSet0 - pEnvInf->crane_stat.nd[ID_BOOM_H].p;	//上限からの回転量
