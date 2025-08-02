@@ -12,9 +12,9 @@
 #define CC_MC_ADDR_W_WRITE				10200
 #define CC_MC_SIZE_W_WRITE				128
 
-#define OTE_MC_ADDR_W_READ				10350
+#define OTE_MC_ADDR_W_READ				10650
 #define OTE_MC_SIZE_W_READ				50
-#define OTE_MC_ADDR_W_WRITE				10550
+#define OTE_MC_ADDR_W_WRITE				10600
 #define OTE_MC_SIZE_W_WRITE				50
 
 #define PLC_IF_REMOTE_OFF_MODE		    0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）

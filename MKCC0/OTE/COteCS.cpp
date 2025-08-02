@@ -237,9 +237,12 @@ int COteCS::parse() {           //メイン処理
 	return STAT_OK;
 }
 
+static INT16 ote_helthy = 0; //ヘルシー値
 int COteCS::output() {          
 		//送信バッファ内容を共有メモリにコピー
-		memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
+	//	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
+	pOteCsInf->buf_opeio_write[0] = ote_helthy++;
+
 	return STAT_OK;
 }
 
@@ -420,7 +423,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		if (is_write_req_turn) {//書き込み要求送信
 			st_mon2.wo_req_w.str(L"");
 			//3Eフォーマット Dデバイス書き込み要求送信
-			if (pMCSock->send_write_req_D_3E(pOteCsInf->buf_io_write) != S_OK) {
+			if (pMCSock->send_write_req_D_3E(pOteCsInf->buf_opeio_write) != S_OK) {
 				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
 			}
 			else snd_count_plc_w++;
@@ -440,7 +443,10 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#scom:" << pMCSock->mc_req_msg_w.scom << L"\n"
 					<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
 					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
-					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device;
+					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
+
+				st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opeio_write[0];
+
 
 					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
@@ -562,7 +568,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon2.wo_res_w.str(L"");
 		switch (nEvent) {
 		case FD_READ: {
-			UINT nRtn = pMCSock->rcv_msg_3E(pOteCsInf->buf_io_read);
+			UINT nRtn = pMCSock->rcv_msg_3E(pOteCsInf->buf_opeio_read);
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
 				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
@@ -576,6 +582,8 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 						<< L"#len:" << pMCSock->mc_res_msg_r.len
 						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n";
 
+
+					st_mon2.wo_res_r << L"PLC HEALTHY:" << pOteCsInf->buf_opeio_read[0] << L"\n";
 
 					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 

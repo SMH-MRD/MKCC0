@@ -2,7 +2,6 @@
 
 #include <string>
 #include "COMMON_DEF.h"
-#include "NET_DEF.h"
 #include "SPEC_DEF.h"
 #include "AUXEQ_DEF.h"
 #include "OTE_DEF.h"
@@ -784,8 +783,8 @@ typedef struct _ST_OTE_ENV_INF {
 #pragma region OTE_CS_INF
 
 typedef struct _ST_OTE_CS_INF {
-	INT16 buf_io_read[CC_MC_SIZE_W_READ];	//PLCからの読み取り信号生値
-	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
+	INT16 buf_opeio_read[CC_MC_SIZE_W_READ];	//操作卓PLCからの読み取り信号生値
+	INT16 buf_opeio_write[CC_MC_SIZE_W_WRITE];	//操作卓PLCへの書き込み信号生値
 	INT32 cc_ope_active = L_OFF;
 	ST_OTE_U_BODY st_body;					//OTE⇒PC送信メッセージボディ部
 	ST_GPAD_IN gpad_in;	//ゲームパッド入力

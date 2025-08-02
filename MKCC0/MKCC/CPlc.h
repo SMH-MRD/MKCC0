@@ -111,16 +111,28 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
+typedef struct _ST_PLC_WBUF_HHGG38 {
+	INT16   pc_healthy;				// D10500:主巻速度モード
+	INT16   spare[49];				// D10503:予備
+}ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
+typedef struct _ST_PLC_RBUF_HHGG38 {
+	INT16   pc_healthy;				// D10500:主巻速度モード
+	INT16   spare[49];				// D10503:予備
+}ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
+
+
 union UN_PLC_RBUF {
 	INT16 rbuf[CC_MC_SIZE_W_READ];
 	ST_PLC_RBUF			st;
 	ST_PLC_RBUF_HHGH29	st_hhgh29;
+	ST_PLC_RBUF_HHGG38	st_hhgg38;
 };
 
 union UN_PLC_WBUF {
 	INT16 wbuf[CC_MC_SIZE_W_WRITE];
 	ST_PLC_WBUF			st;
 	ST_PLC_WBUF_HHGH29	st_hhgh29;
+	ST_PLC_WBUF_HHGG38	st_hhgg38;
 };
 
 #pragma pack(pop)
