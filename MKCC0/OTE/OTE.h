@@ -34,7 +34,7 @@ namespace OTE
 
 
 #define ENV_SCAN_MS			    100
-#define CS_SCAN_MS				100
+#define CS_SCAN_MS				40
 #define AGENT_SCAN_MS			100
 #define POLICY_SCAN_MS			100
 #define SCADA_SCAN_MS			100

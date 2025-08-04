@@ -7,15 +7,15 @@
 /// </summary>
 /******************************************************************************************/
 
-#define CC_MC_ADDR_W_READ				10400
+#define CC_MC_ADDR_W_READ				10300
 #define CC_MC_SIZE_W_READ				128
 #define CC_MC_ADDR_W_WRITE				10200
-#define CC_MC_SIZE_W_WRITE				128
+#define CC_MC_SIZE_W_WRITE				100
 
-#define OTE_MC_ADDR_W_READ				10650
+#define OTE_MC_ADDR_W_READ				10600
 #define OTE_MC_SIZE_W_READ				50
-#define OTE_MC_ADDR_W_WRITE				10600
-#define OTE_MC_SIZE_W_WRITE				50
+#define OTE_MC_ADDR_W_WRITE				10650
+#define OTE_MC_SIZE_W_WRITE				150
 
 #define PLC_IF_REMOTE_OFF_MODE		    0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）
 #define PLC_IF_RMT_MODE_0			    0x00000001		//遠隔運転モード（PCからの出力有効　通常運用モード）

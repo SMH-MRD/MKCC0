@@ -111,15 +111,52 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
-typedef struct _ST_PLC_WBUF_HHGG38 {
-	INT16   pc_healthy;				// D10500:主巻速度モード
-	INT16   spare[49];				// D10503:予備
-}ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
-typedef struct _ST_PLC_RBUF_HHGG38 {
-	INT16   pc_healthy;				// D10500:主巻速度モード
-	INT16   spare[49];				// D10503:予備
-}ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 
+typedef struct _ST_GOT_AXIS_SET{
+	INT16   notch;				// ノッチ入力
+	INT16   v_ref_tg;			// 目標速度
+	INT16   v_fb;				// 速度FB
+	INT16   trq_fb;				// トルク指令
+	INT32   pg_count;			// PGカウンタ値
+	INT32   absocoder;			// アブソコーダ値
+	INT16   drum_phase;			// ドラム層
+	INT16   spare[6];			// 予備
+}ST_GOT_AXIS_SET, * LPST_GOT_AXIS_SET;
+
+typedef struct _ST_PLC_WBUF_HHGG38 {
+	INT16   pc_healthy;				// D10650　PCヘルシー出力信号
+	INT16   pc_status;				// D10651　PC Status
+	INT16   lamp[2];				// D10652　ランプ出力(B10-2F）
+	float   mh_hight;				// D10654　主巻揚程
+	float   r;						// D10656　補巻揚程
+	float   mh_load;				// D10658　主巻荷重
+	float   ah_load;				// D10660　補巻荷重
+	float   wind_spd;				// D10662　風速
+	INT16   spare1[2];				// D10664　予備
+	ST_GOT_AXIS_SET mh_set;			    // D10666　主巻
+	ST_GOT_AXIS_SET bh_set;			    // D10682　引込
+	ST_GOT_AXIS_SET sl_set;			    // D10698　旋回
+	ST_GOT_AXIS_SET gt_set;			    // D10714　走行
+	ST_GOT_AXIS_SET ah_set;			    // D10730　補巻
+	INT16   fault_code[10];			// D10746　故障コード
+}ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
+
+typedef struct _ST_PLC_RBUF_HHGG38 {
+	INT16   plc_healthy;			// D10600:PLCヘルシーカウンタ
+	INT16   plc_status;				// D10601: PLC運転モード
+	INT16	ai_sl_foot;				// D10602:
+	INT16	ai_spare[3];			// D10603:
+	INT16	b200;					// D10606:
+	INT16	b210;					// D10607:
+	INT16	b220;					// D10608:
+	INT16	b230;					// D10609:
+	INT16	b240;					// D10610:
+	INT16	b250;					// D10611:
+	INT16	b260;					// D10612:
+	INT16	b270;					// D10613:
+	INT16   spare0[2];				// D10614
+	INT16   spare1[34];				// D10616:運転室PLC→電気室PLC b出力
+}ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 
 union UN_PLC_RBUF {
 	INT16 rbuf[CC_MC_SIZE_W_READ];

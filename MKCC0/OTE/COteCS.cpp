@@ -205,11 +205,11 @@ int COteCS::parse() {           //メイン処理
 
 	//リモート操作有効化設定
 	if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])){//
-		if (st_work.st_body.remote == CODE_PNL_COM_SELECTED) 
+		if (st_work.st_body.remote == CODE_PNL_COM_SELECTED)		// 遠隔操作モード選択,未承認　⇒　遠隔モニターモード選択
 			st_work.st_body.remote = CODE_PNL_COM_OFF;
-		else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE) 
+		else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)		// 遠隔操作モード選択,承認済　⇒　遠隔モニターモード選択
 			st_work.st_body.remote = CODE_PNL_COM_OFF;
-		else													
+		else														// 遠隔モニターモード選択　⇒　遠隔操作モード選択
 			st_work.st_body.remote = CODE_PNL_COM_SELECTED;
 	}
 	if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) &&(pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
@@ -240,8 +240,16 @@ int COteCS::parse() {           //メイン処理
 static INT16 ote_helthy = 0; //ヘルシー値
 int COteCS::output() {          
 		//送信バッファ内容を共有メモリにコピー
-	//	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
-	pOteCsInf->buf_opeio_write[0] = ote_helthy++;
+	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
+	
+	LPST_PLC_WBUF_HHGG38 pPcWBuf = (LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opeio_write;
+	LPST_PLC_RBUF_HHGH29 pPlcRBuf = (LPST_PLC_RBUF_HHGH29)pOteCCInf->st_msg_pc_u_rcv.body.st.buf_io_read;
+	
+	//PLC出力バッファにセット
+	pPcWBuf->pc_healthy = ote_helthy++;
+	pPcWBuf->mh_set.v_ref_tg = pPlcRBuf->cv_tg[ID_HOIST];
+	pPcWBuf->mh_set.v_fb = pPlcRBuf->inv_vfb[ID_HOIST];
+	pPcWBuf->mh_set.trq_fb = pPlcRBuf->inv_trq[ID_HOIST];
 
 	return STAT_OK;
 }
@@ -407,7 +415,9 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				hWnd, (HMENU)(OTE_CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 
-		UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, OTE_CS_PRM_MON2_TIMER_MS, NULL);
+		//UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, OTE_CS_PRM_MON2_TIMER_MS, NULL);
+
+		UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, 10, NULL);
 
 		SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
 		SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
@@ -420,6 +430,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_TIMER: {
 		if (pMCSock == NULL)break;
+		//3Eフォーマット Dデバイス書き込み要求送信
 		if (is_write_req_turn) {//書き込み要求送信
 			st_mon2.wo_req_w.str(L"");
 			//3Eフォーマット Dデバイス書き込み要求送信
@@ -501,7 +512,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			SOCKADDR_IN	addr;
 			if (pMCSock != NULL) {
 				addr = pMCSock->get_addrin_rcv(); monwos.str(L"");
-				monwos << L"UNI>>IP R:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
+				monwos << L"IP R:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
 					<< htons(addr.sin_port) << L" ";
 				addr = pMCSock->get_addrin_snd();
 				monwos << L" S:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
