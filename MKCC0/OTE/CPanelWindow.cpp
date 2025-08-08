@@ -206,7 +206,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
 		//クレーン選択
-		ppb = pPanelBase->pmainobjs->pb_crane_sel_wnd;
+		ppb = pPanelBase->pmainobjs->pb_crane_release;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
 		//故障リセット
@@ -291,8 +291,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		case ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND: {
 			pPanelBase->pmainobjs->pb_ote_type_wnd->update(true);
 		}break;
-		case ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND: {
-			pPanelBase->pmainobjs->pb_crane_sel_wnd->update(true);
+		case ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE: {
+			pPanelBase->pmainobjs->pb_crane_release->update(true);
+			DestroyWindow(hWnd); //クレーン選択解除後	
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_AUTH: {
 			pPanelBase->pmainobjs->pb_auth->update(true);
@@ -415,7 +416,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		pPanelBase->pmainobjs->pb_remote->update(false);
 		pPanelBase->pmainobjs->pb_auth->update(false);
 		pPanelBase->pmainobjs->pb_assist_func->update(false);
-		pPanelBase->pmainobjs->pb_crane_sel_wnd->update(false);
+		pPanelBase->pmainobjs->pb_crane_release->update(false);
 		pPanelBase->pmainobjs->pb_ote_type_wnd->update(false);
 		pPanelBase->pmainobjs->pb_pad_mode->update(false);
 		pPanelBase->pmainobjs->pb_freset->update(false);
@@ -483,6 +484,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 	}return true;
 	case WM_DESTROY: {
 		hWnd = NULL;
+		pOteEnvInf->selected_crane = CRANE_ID_NULL; //選択クレーンIDを0にセット
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
@@ -584,7 +586,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
 		//クレーン選択
-		ppb = pPanelBase->pmainobjs->pb_crane_sel_wnd;
+		ppb = pPanelBase->pmainobjs->pb_crane_release;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
 		//故障リセット
@@ -669,8 +671,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		case ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND: {
 			pPanelBase->pmainobjs->pb_ote_type_wnd->update(true);
 		}break;
-		case ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND: {
-			pPanelBase->pmainobjs->pb_crane_sel_wnd->update(true);
+		case ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE: {
+			pPanelBase->pmainobjs->pb_crane_release->update(true);
+			DestroyWindow(hWnd); //クレーン選択解除後	
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_AUTH: {
 			pPanelBase->pmainobjs->pb_auth->update(true);
@@ -789,7 +792,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		pPanelBase->pmainobjs->pb_remote->update(false);
 		pPanelBase->pmainobjs->pb_auth->update(false);
 		pPanelBase->pmainobjs->pb_assist_func->update(false);
-		pPanelBase->pmainobjs->pb_crane_sel_wnd->update(false);
+		pPanelBase->pmainobjs->pb_crane_release->update(false);
 		pPanelBase->pmainobjs->pb_ote_type_wnd->update(false);
 		pPanelBase->pmainobjs->pb_pad_mode->update(false);
 		pPanelBase->pmainobjs->pb_freset->update(false);
@@ -858,6 +861,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_DESTROY: {
 		hWnd = NULL;
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
+		pOteEnvInf->selected_crane = CRANE_ID_NULL; //選択クレーンIDを0にセット
 //		if (pPanelBase != NULL) delete pPanelBase;
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();

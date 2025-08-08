@@ -170,6 +170,8 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_ENV_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
+		pOteEnvInf->selected_crane = st_work.selected_crane = crane_id_selected = CRANE_ID_NULL;
+
 		break;
 	}
 	case WM_COMMAND: {

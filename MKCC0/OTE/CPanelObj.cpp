@@ -34,7 +34,7 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		,Point(1780,735),Size(100,30)	,L"端末モード"		},
 		{ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND	,Point(1780,760),Size(100,40)	,L"端末モード"		},
 		{ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		,Point(1780,820),Size(100,30)	,L"未接続"			},
-		{ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND	,Point(1780,850),Size(100,40)	,L"接続選択"		},
+		{ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE	,Point(1780,850),Size(100,100)	,L"接続解除"		},
 
 		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		,Point(20,170)	,Size(100,40)	,L"MODE1"			},
 		{ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		,Point(20,215)	,Size(100,40)	,L"MODE2"			},
@@ -295,7 +295,7 @@ HRESULT CMainPanelObj::setup_obj() {
 
 //21-22 接続クレーン設定TXT/PB
 	i++;txt_link_crane		= new CStaticCtrl(ID_MAIN_PNL_OBJ_TXT_LINK_CRANE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt);
-	i++;pb_crane_sel_wnd	= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++;pb_crane_release	= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 
 	//23-25モード設定ラジオボタン
 	i++; cb_disp_mode1		= new CCbCtrl(ID_MAIN_PNL_OBJ_RDO_DISP_MODE1, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -350,7 +350,7 @@ void CMainPanelObj::delete_obj() {
 	delete pb_freset;
 	delete lmp_freset;
 	delete txt_link_crane;	
-	delete pb_crane_sel_wnd;
+	delete pb_crane_release;
 
 }
 void CMainPanelObj::refresh_obj_graphics() {
@@ -380,7 +380,7 @@ void CMainPanelObj::refresh_obj_graphics() {
 	txt_ote_type->refresh_graphics(pgraphic);
 	pb_ote_type_wnd->refresh_graphics(pgraphic);
 	txt_link_crane->refresh_graphics(pgraphic);
-	pb_crane_sel_wnd->refresh_graphics(pgraphic);
+	pb_crane_release->refresh_graphics(pgraphic);
 
 	cb_disp_mode1->refresh_graphics(pgraphic);
 	cb_disp_mode2->refresh_graphics(pgraphic);

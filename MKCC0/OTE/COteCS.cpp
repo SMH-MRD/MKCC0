@@ -239,14 +239,21 @@ int COteCS::parse() {           //メイン処理
 
 static INT16 ote_helthy = 0; //ヘルシー値
 int COteCS::output() {          
-		//送信バッファ内容を共有メモリにコピー
+	//制御PCの送信バッファ内容（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
 	
+
+	//遠隔操作卓PLCへの送信バッファ内容セット
 	LPST_PLC_WBUF_HHGG38 pPcWBuf = (LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opeio_write;
+	
+	//機上PLCの受信バッファ内容参照ポインタセット（書き込みデータ参照用）
 	LPST_PLC_RBUF_HHGH29 pPlcRBuf = (LPST_PLC_RBUF_HHGH29)pOteCCInf->st_msg_pc_u_rcv.body.st.buf_io_read;
 	
 	//PLC出力バッファにセット
 	pPcWBuf->pc_healthy = ote_helthy++;
+
+	pPcWBuf->crane_id = pOteEnvInf->selected_crane;
+
 	pPcWBuf->mh_set.v_ref_tg = pPlcRBuf->cv_tg[ID_HOIST];
 	pPcWBuf->mh_set.v_fb = pPlcRBuf->inv_vfb[ID_HOIST];
 	pPcWBuf->mh_set.trq_fb = pPlcRBuf->inv_trq[ID_HOIST];
@@ -268,7 +275,6 @@ int COteCS::close() {
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
 static wostringstream monwos;
-
 
 LRESULT CALLBACK COteCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)

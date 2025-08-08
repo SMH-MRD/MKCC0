@@ -28,7 +28,7 @@ using namespace std;
 #define ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		60022
 #define ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND		60023
 #define ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		60024
-#define ID_MAIN_PNL_OBJ_PB_CRANE_SEL_WND	60025
+#define ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE	60025
 
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		60030
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		60031
@@ -152,7 +152,7 @@ public:
 	CStaticCtrl	* txt_ote_type;		//端末タイプ表示テキスト
 	CPbCtrl		* pb_ote_type_wnd;	//端末タイプ設定ウィンドウ
 	CStaticCtrl	* txt_link_crane;	//接続先クレーン表示テキスト
-	CPbCtrl		* pb_crane_sel_wnd;	//接続先クレーン選択ウィンドウ
+	CPbCtrl		* pb_crane_release;	//接続先クレーン選択ウィンドウ
 
 	CCbCtrl		* cb_disp_mode1;	//表示モード選択ラジオボタン
 	CCbCtrl		* cb_disp_mode2;	//表示モード選択ラジオボタン
@@ -166,8 +166,8 @@ public:
 	CCbCtrl		* cb_opt_clr;	//オプションウィンドウラジオボタン
 	CRadioCtrl	* rdo_opt_wnd;	//オプションウィンドウラジオボタン
 
-	CPbCtrl		* pb_freset;			//故障リセットPB
-	CLampCtrl	* lmp_freset;		//故障リセットランプ
+	CPbCtrl		* pb_freset;	//故障リセットPB
+	CLampCtrl	* lmp_freset;	//故障リセットランプ
 	CStaticCtrl	* txt_freset;	//故障リセット表示テキスト
 
 	virtual HRESULT setup_obj();
