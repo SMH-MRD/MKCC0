@@ -5,6 +5,7 @@
 #include "framework.h"
 
 #include "CBasicControl.h"
+#include "LALANIO.h"
 
 #define LANIO_TMOUT_MS 3000
 #define LANIO_N_MODEL  16
