@@ -102,9 +102,6 @@
     <ClInclude Include="MKCC.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="AUXEQ_DEF.H">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CSpec.cpp">

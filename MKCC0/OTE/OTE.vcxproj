@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common;..\inc\lib;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\lib;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Common;..\inc\lib;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

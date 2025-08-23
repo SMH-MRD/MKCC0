@@ -21,6 +21,6 @@
 #include <commctrl.h>       //コモンコントロール用
 
 
-#include "common_def.h"
-#include "LALANIO.h"
+#include "Common_def.h"
+
 
