@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="ヘッダー ファイル">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
@@ -46,6 +42,10 @@
     <Filter Include="ValueObjects">
       <UniqueIdentifier>{5d0c141a-47df-4264-aeb0-f035775fcc50}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Kernel">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -76,7 +76,7 @@
       <Filter>Domain\Tasks</Filter>
     </ClInclude>
     <ClInclude Include="OTE.h">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Kernel</Filter>
     </ClInclude>
     <ClInclude Include="COpePanel.H">
       <Filter>UI\ViewModel</Filter>
@@ -108,7 +108,7 @@
       <Filter>Infrastructure</Filter>
     </ClCompile>
     <ClCompile Include="..\MKCC\CBasicControl.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Kernel</Filter>
     </ClCompile>
     <ClCompile Include="COteAgent.cpp">
       <Filter>Domain\Tasks</Filter>
@@ -126,10 +126,7 @@
       <Filter>Domain\Tasks</Filter>
     </ClCompile>
     <ClCompile Include="OTE.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\MKCC\CSharedMem.cpp">
-      <Filter>Domain\Entities</Filter>
+      <Filter>Kernel</Filter>
     </ClCompile>
     <ClCompile Include="OpePanel.cpp">
       <Filter>UI\ViewModel</Filter>
@@ -154,6 +151,9 @@
     </ClCompile>
     <ClCompile Include="CPanelIo.cpp">
       <Filter>UI\ViewModel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\MKCC\CSharedMem.cpp">
+      <Filter>Infrastructure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

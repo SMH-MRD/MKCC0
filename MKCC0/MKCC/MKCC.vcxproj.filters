@@ -24,18 +24,15 @@
     <Filter Include="Infrastructure">
       <UniqueIdentifier>{c27af0ce-0e96-4752-ba6c-93064e827711}</UniqueIdentifier>
     </Filter>
-    <Filter Include="UI">
-      <UniqueIdentifier>{fde729be-7aa6-40a9-851b-1b9de4f52d61}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Domain\Simulation">
       <UniqueIdentifier>{70d95710-a0a8-47a0-8e7d-8b5d685d4994}</UniqueIdentifier>
     </Filter>
     <Filter Include="Domain\Tasks">
       <UniqueIdentifier>{13c46847-bc50-4299-a112-6d3e04a4a1e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Kernel">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -46,15 +43,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="CValue.h">
-      <Filter>Domain\ValueObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="CVector3.h">
-      <Filter>Domain\ValueObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="OTE_DEF.H">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="CCcSim.h">
@@ -76,10 +64,10 @@
       <Filter>Domain\Tasks</Filter>
     </ClInclude>
     <ClInclude Include="CBasicControl.h">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Kernel</Filter>
     </ClInclude>
     <ClInclude Include="MKCC.h">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Kernel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -98,14 +86,8 @@
     <ClCompile Include="CValue.cpp">
       <Filter>Domain\ValueObjects</Filter>
     </ClCompile>
-    <ClCompile Include="CSharedMem.cpp">
-      <Filter>Domain\Entity</Filter>
-    </ClCompile>
     <ClCompile Include="CHelper.cpp">
       <Filter>Domain\Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="CVector3.cpp">
-      <Filter>Domain\ValueObjects</Filter>
     </ClCompile>
     <ClCompile Include="CCcSim.cpp">
       <Filter>Domain\Simulation</Filter>
@@ -126,10 +108,19 @@
       <Filter>Domain\Tasks</Filter>
     </ClCompile>
     <ClCompile Include="CBasicControl.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Kernel</Filter>
     </ClCompile>
     <ClCompile Include="MKCC.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="CSharedMem.cpp">
+      <Filter>Infrastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CRK4.cpp">
+      <Filter>Domain\ValueObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CVector3.cpp">
+      <Filter>Domain\ValueObjects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

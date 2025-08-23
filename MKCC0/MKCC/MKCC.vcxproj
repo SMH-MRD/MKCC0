@@ -146,15 +146,14 @@
     <ClInclude Include="CCcPol.h" />
     <ClInclude Include="CCcScad.h" />
     <ClInclude Include="CCcSim.h" />
-    <ClInclude Include="CValue.h" />
-    <ClInclude Include="CVector3.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MKCC.h" />
-    <ClInclude Include="OTE_DEF.H" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\src\CRK4.cpp" />
+    <ClCompile Include="..\Common\src\CVector3.cpp" />
     <ClCompile Include="CBasicControl.cpp" />
     <ClCompile Include="CCcAgent.cpp" />
     <ClCompile Include="CCcCS.cpp" />
@@ -169,7 +168,6 @@
     <ClCompile Include="CSharedMem.cpp" />
     <ClCompile Include="CSpec.cpp" />
     <ClCompile Include="CValue.cpp" />
-    <ClCompile Include="CVector3.cpp" />
     <ClCompile Include="MKCC.cpp" />
   </ItemGroup>
   <ItemGroup>
