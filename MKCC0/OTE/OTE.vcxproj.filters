@@ -39,9 +39,6 @@
     <Filter Include="Domain\Tasks">
       <UniqueIdentifier>{279ca668-91d6-4698-be44-246b07ddcd91}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ValueObjects">
-      <UniqueIdentifier>{5d0c141a-47df-4264-aeb0-f035775fcc50}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Kernel">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -140,9 +137,6 @@
     <ClCompile Include="..\MKCC\CHelper.cpp">
       <Filter>Domain\Helpers</Filter>
     </ClCompile>
-    <ClCompile Include="..\MKCC\CValue.cpp">
-      <Filter>ValueObjects</Filter>
-    </ClCompile>
     <ClCompile Include="..\MKCC\CPlc.cpp">
       <Filter>Domain\Entities</Filter>
     </ClCompile>
@@ -154,6 +148,9 @@
     </ClCompile>
     <ClCompile Include="..\MKCC\CSharedMem.cpp">
       <Filter>Infrastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\MKCC\CValue.cpp">
+      <Filter>Domain\ValueObjects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

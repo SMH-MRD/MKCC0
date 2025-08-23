@@ -71,38 +71,35 @@ typedef struct _ST_AUX_ENV_INF {
 
 }ST_AUX_ENV_INF, * LPST_AUX_ENV_INF;
 
-#define SENSOR_CAM_MAX				 2//カメラ数
-#define SENSOR_TARGET_MAX            4//検出ターゲット最大数
-#define TG_LAMP_NUM_MAX              3//ターゲット毎のランプ最大数
-#define SWAY_FAULT_ITEM_MAX			 4//異常検出項目数
+typedef struct _ST_SLBRK_COM {
+	INT16 PC_COM_BRK_LEVEL;
+	INT16 PC_COM_HW_BRK;
+	INT16 PC_COM_RESET;
+	INT16 PC_COM_EMG;
+	INT16 PC_COM_AUTO_SEL;
+	INT16 PC_HEALTHY;
+}ST_SLBRK_COM, * LPST_SLBRK_COM;
+
+typedef struct _ST_SLBRK_FB {
+	INT16 BRK_FB_BRK_LEVEL;
+	INT16 BRK_FB_HW_BRK;
+	INT16 BRK_FB_RESET;
+	INT16 BRK_FB_EMG;
+	INT16 BRK_FB_AUTO_SEL;
+	INT16 BRK_HEALTHY;
+	INT16 PLC_ERR_MAP;
+	INT16 PLC_ERR_CODE;
+}ST_SLBRK_FB, * LPST_SLBRK_FB;
 
 typedef struct _ST_AUX_AGENT_INF {
-	DWORD proc_mode;
-	DWORD helthy_cnt;
-
-	char sensorID[4];
-	WORD mode[SENSOR_TARGET_MAX];							//ターゲットサ検出モード
-	WORD status[SENSOR_TARGET_MAX];							//ターゲットサ検出状態
-	DWORD fault[SWAY_FAULT_ITEM_MAX];						//センサ異常状態
-	double pix_size[SENSOR_TARGET_MAX][TG_LAMP_NUM_MAX];	//ターゲット検出PIXEL数（面積）
-	double tilt[SENSOR_CAM_MAX][SID_N_AXIS];				//傾斜角
-	double dtilt[SENSOR_CAM_MAX][SID_N_AXIS];				//傾斜角
-	double th[SID_N_LOAD][MOTION_ID_MAX];					//吊荷振角			rad
-	double th0[SID_N_LOAD][MOTION_ID_MAX];					//吊荷振角			rad
-	double dth[SID_N_LOAD][MOTION_ID_MAX];					//吊荷振角速度		rad/s
-	double dthw[SID_N_LOAD][MOTION_ID_MAX];					//吊荷振角速度/ω　	rad
-	double ph[SID_N_LOAD][MOTION_ID_MAX];					//吊荷位相平面位相	rad
-	double rad_amp2[SID_N_LOAD][MOTION_ID_MAX];				//吊荷振角振幅の2乗		rad2
-	double cam_pix[SID_N_LOAD][MOTION_ID_MAX];				//振れセンサカメラPIX位置
+	ST_SLBRK_COM command_slbrk;
+	ST_SLBRK_FB fb_slbrk;
+	
 }ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 
 typedef struct _ST_AUX_CS_INF {
 	DWORD helthy_cnt;
-	ST_AUX_COM_SERV_MSG st_msg_u_snd;
-	ST_AUX_COM_CLI_MSG st_msg_u_rcv;
-	SOCKADDR_IN addrin_snd;
-	SOCKADDR_IN addrin_rcv;
-	SOCKADDR_IN addrin_from;
+
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 
 /****************************************************************************/

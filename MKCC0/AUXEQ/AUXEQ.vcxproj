@@ -156,6 +156,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\src\CMCProtocol.cpp" />
+    <ClCompile Include="..\Common\src\CSock.cpp" />
     <ClCompile Include="..\MKCC\CBasicControl.cpp" />
     <ClCompile Include="..\MKCC\CSharedMem.cpp" />
     <ClCompile Include="AUXEQ.cpp" />

@@ -1,5 +1,4 @@
-#include "pch.h"
-#include "CSockLib.h"
+#include "CSock.h"
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
