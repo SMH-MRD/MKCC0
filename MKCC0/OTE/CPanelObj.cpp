@@ -1,7 +1,8 @@
-//#include "pch.h"
 #include "framework.h"
 #include "CPanelObj.h"
-#include "CSHAREDMEM.H"
+
+#include "SmemMain.H"
+#include "SmemOte.H"
 
 using namespace Gdiplus;
 

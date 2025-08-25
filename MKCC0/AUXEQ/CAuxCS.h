@@ -122,13 +122,7 @@ public:
     static ST_CS_MON2 st_mon2;
 
     //タスク出力用構造体
-    static ST_CC_CS_INF st_work;
-
-    static HRESULT rcv_uni_main(LPST_AUX_COM_CLI_MSG pbuf);
-
-    static LPST_AUX_COM_SERV_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
-    static HRESULT snd_uni2main(LPST_AUX_COM_SERV_MSG pbuf, SOCKADDR_IN* p_addrin_to);
-  
+   
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
     //タブパネルのFunctionボタンのStaticテキストを設定

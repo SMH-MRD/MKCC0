@@ -6,6 +6,7 @@
 
 #include "CBasicControl.h"
 #include "CSharedMem.h"	    //共有メモリクラス
+#include "SmemAux.H"
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "CAuxAgent.h"

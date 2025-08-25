@@ -2,6 +2,7 @@
 #include "CAuxAgent.h"
 #include "resource.h"
 #include "CSHAREDMEM.H"
+#include "SmemAux.H"
 
 LPST_AUXEQ CAuxAgent::pst_work;
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
@@ -18,8 +19,6 @@ static LPST_AUX_CS_INF		pCS_Inf = NULL;
 static LPST_AUX_AGENT_INF	pAgent_Inf = NULL;
 
 static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
-static ST_PLC_IO_WIF* pPlcWIf = NULL;
-static ST_PLC_IO_RIF* pPlcRIf = NULL;
 
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;

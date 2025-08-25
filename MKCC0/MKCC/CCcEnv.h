@@ -2,6 +2,9 @@
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
+#include "SmemOte.H"
+
 
 #define ENV_MON1_WND_X     0
 #define ENV_MON1_WND_Y     0
@@ -123,9 +126,9 @@ public:
     static ST_CC_ENV_INF st_work;
 
     //補機通信用
-    static HRESULT rcv_uni_aux(LPST_AUX_COM_SERV_MSG pbuf);
-    static LPST_AUX_COM_CLI_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
-    static HRESULT snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to);
+  //  static HRESULT rcv_uni_aux(LPST_AUX_COM_SERV_MSG pbuf);
+   // static LPST_AUX_COM_CLI_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
+   // static HRESULT snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to);
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;

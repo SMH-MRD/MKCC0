@@ -3,6 +3,9 @@
 #include <windows.h>
 #include <string>
 #include "CSHAREDMEM.h"
+#include "SmemMain.H"
+#include "SmemOte.H"
+
 #include "CGraphicWindow.h"
 
 #define SUB_PNL_WND_X             125

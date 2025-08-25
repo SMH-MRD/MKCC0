@@ -106,6 +106,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
 
 	//##ソケットソケット生成・設定
+#if 0
 	//##ユニキャスト
 	if (pUSockCcEnv->init_sock(st_mon2.hwnd_mon, pUSockCcEnv->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
 		wos << L"CS U SockErr:" << pUSockCcEnv->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
@@ -120,6 +121,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
 		return hr;
 	};
+#endif
 
 	//###  オペレーションパネル設定
 	set_func_pb_txt();
@@ -380,6 +382,8 @@ void CCcEnv::refresh_faults_info() {
 /****************************************************************************/
 /*   通信関数											                    */
 /****************************************************************************/
+#if 0
+
 /// <summary>
 /// AUXEQユニキャスト電文受信処理
 /// </summary>
@@ -417,7 +421,7 @@ HRESULT CCcEnv::snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to)
 	return S_OK;
 }
 
-
+#endif
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
@@ -504,6 +508,7 @@ LRESULT CALLBACK CCcEnv::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 	case WM_TIMER: {
 		//UniCast送信
+#if 0
 		if ((pEnvInf->aux_mode != FUNC_DEACTIVE) && (pEnvInf->aux_mode != FUNC_PAUSE)) {
 			snd_uni2aux(set_msg_u(false, 0, 0), &pUSockCcEnv->addr_in_dst);
 		}
@@ -547,8 +552,9 @@ LRESULT CALLBACK CCcEnv::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 			SetWindowText(st_mon2.hctrl[ENV_ID_MON2_LABEL_SOCK], st_mon2.wo_uni.str().c_str());
 		}
+#endif
 	}break;
-
+#if 0
 	case ID_SOCK_EVENT_CC_ENV_UNI: {
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
@@ -560,7 +566,7 @@ LRESULT CALLBACK CCcEnv::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case FD_CLOSE: break;
 		}
 	}break;
-
+#endif
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
 		// 選択されたメニューの解析:

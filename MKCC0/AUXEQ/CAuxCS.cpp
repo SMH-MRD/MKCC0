@@ -3,14 +3,13 @@
 #include "resource.h"
 #include "framework.h"
 #include "AUXEQ_DEF.H"
+#include "SmemAux.H"
 
 //ソケット
 static CSockUDP* pUSockAuxCs;	//ユニキャストOTE通信受信用
 
 ST_CS_MON1 CAuxCS::st_mon1;
 ST_CS_MON2 CAuxCS::st_mon2;
-
-ST_CC_CS_INF CAuxCS::st_work;
 
 //共有メモリ参照用定義
 static CSharedMem* pEnvInfObj;
@@ -158,6 +157,8 @@ int CAuxCS::close() {
 /****************************************************************************/
 /*   通信関数											                    */
 /****************************************************************************/
+#if 0
+
 /// <summary>
 /// MKCCユニキャスト電文受信処理
 /// </summary>
@@ -179,7 +180,7 @@ HRESULT CAuxCS::rcv_uni_main(LPST_AUX_COM_CLI_MSG pbuf) {
 /// AUXEQユニキャスト電文送信処理 
 /// </summary>
 
-#if 0
+
 LPST_AUX_COM_SERV_MSG CAuxCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	return &pCsInf->st_msg_u_snd;
 }

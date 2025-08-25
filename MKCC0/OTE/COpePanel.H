@@ -5,6 +5,8 @@
 #include "PLC_DEF.h"
 #include "CPanelObj.H"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
+#include "SmemOte.H"
 
 /// <summary>
 /// CPanelBase クラスは、アプリケーションウィンドウに配置するオブジェクトを定義するベースクラスです。

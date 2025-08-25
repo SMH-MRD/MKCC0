@@ -4,6 +4,8 @@
 
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
+#include "SmemOte.H"
 
 #define SIM_MON1_WND_X     640
 #define SIM_MON1_WND_Y     0
@@ -96,11 +98,7 @@ typedef struct _ST_CC_SIM_WORK {
     double dt;
     INT32 sl_cnt_pg360;//旋回360°のPGカウント値
  
-    ST_AUX_ENV_INF sway_io;
 	ST_PLC_IO_WIF st_plc_w;			                //PLC IO書き込みIF
-
-    ST_SWAY_SERVER_MSG rcv_msg;
-    ST_SWAY_CLIENT_MSG snd_msg;
     
     ST_SIM_AXIS axis[MOTION_ID_MAX];				//軸計算値
     double weight_mh;					            //フック質量 

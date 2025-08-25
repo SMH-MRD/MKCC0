@@ -2,6 +2,9 @@
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
+
+
 
 #define SCAD_MON1_WND_X     1920
 #define SCAD_MON1_WND_Y     0

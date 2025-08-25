@@ -3,8 +3,6 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 
-
-
 class CPolicy : public CBasicControl
 {
 public:

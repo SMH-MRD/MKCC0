@@ -2,6 +2,8 @@
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
+#include "SmemOte.H"
 
 
 #define OTE_SCAD_ID_MON1_TIMER          63190

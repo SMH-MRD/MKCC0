@@ -2,6 +2,8 @@
 #include "CBasicControl.h"
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
+
 #include "PLC_DEF.h"
 
 //MON1----------------------------------------------------

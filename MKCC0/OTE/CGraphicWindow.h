@@ -3,6 +3,9 @@
 #include <windows.h>
 #include <string>
 #include "CSHAREDMEM.h"
+#include "SmemMain.H"
+#include "SmemOte.H"
+
 #include "COpePanel.H"
 
 #define CODE_OTE_GWIN_TYPE_MAIN				CRANE_ID_NULL

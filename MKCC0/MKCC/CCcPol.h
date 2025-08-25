@@ -3,6 +3,7 @@
 
 #include "framework.h"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
 
 #define POL_MON1_WND_X     640
 #define POL_MON1_WND_Y     0

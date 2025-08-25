@@ -1,6 +1,9 @@
 #pragma once
 #include "CBasicControl.h"
 #include "CSHAREDMEM.H"
+#include "SmemMain.H"
+
+
 #include "CValue.h"
 
 #define CS_SEMIAUTO_TG_SEL_DEFAULT      0
