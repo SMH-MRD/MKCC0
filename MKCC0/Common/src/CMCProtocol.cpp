@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include "pch.h"
 #include "CMCProtocol.h"
 #include "CSockLib.h"
 

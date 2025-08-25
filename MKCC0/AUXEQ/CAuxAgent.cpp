@@ -1,10 +1,32 @@
 
 #include "CAuxAgent.h"
 #include "resource.h"
+#include "CSHAREDMEM.H"
 
 LPST_AUXEQ CAuxAgent::pst_work;
-ST_TILT_MON1 CAuxAgent::st_mon1;
-ST_TILT_MON2 CAuxAgent::st_mon2;
+ST_AUXAG_MON1 CAuxAgent::st_mon1;
+ST_AUXAG_MON2 CAuxAgent::st_mon2;
+
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pAgInfObj;
+extern CSharedMem* pCsInfObj;
+
+
+//共有メモリ
+static LPST_AUX_ENV_INF		pEnv_Inf = NULL;
+static LPST_AUX_CS_INF		pCS_Inf = NULL;
+static LPST_AUX_AGENT_INF	pAgent_Inf = NULL;
+
+static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
+static ST_PLC_IO_WIF* pPlcWIf = NULL;
+static ST_PLC_IO_RIF* pPlcRIf = NULL;
+
+static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
+static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
+static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
+static LARGE_INTEGER frequency;				//システム周波数
+static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
+
 
 HRESULT CAuxAgent::initialize(LPVOID lpParam){
 
@@ -12,6 +34,37 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	set_item_chk_txt();
 	set_panel_tip_txt();
 
+	//### IFウィンドウOPEN
+	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+	LPARAM lp = BC_ID_MON2;
+	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+	Sleep(1000);
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Err(MON2 NULL Handle!!):";
+		msg2listview(wos.str()); wos.str(L"");
+		return S_FALSE;
+	}
+
+	//### 初期化
+	wos.str(L"");//初期化
+	if (st_mon2.hwnd_mon == NULL) {
+		wos << L"Initialize : MON NG"; msg2listview(wos.str());
+		return S_FALSE;
+	}
+	else {
+		//pMCSock = new CMCProtocol(ID_SOCK_MC_CC_AGENT);
+		//if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_CC) != S_OK) {
+		//	wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
+		//	wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
+		//	return S_FALSE;
+		//}
+		//else {
+		//	wos << L"MCProtocol Init OK"; msg2listview(wos.str());
+		//}
+	}
+	
+	
+	
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
 	for (int i = 1; i < 6; i++)
@@ -20,6 +73,8 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
+
+#if 0
 
 	CAuxAgent* pTiltObj = (CAuxAgent*)lpParam;
 	pst_work = &(pTiltObj->st_work);
@@ -112,6 +167,8 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 			}
 		}
 	}
+
+#endif
 	return S_OK;
 }
 
@@ -150,13 +207,13 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[TILT_ID_MON1_STATIC_INF] = CreateWindowW(TEXT("STATIC"), st_mon1.text[TILT_ID_MON1_STATIC_INF], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[TILT_ID_MON1_STATIC_INF].x, st_mon1.pt[TILT_ID_MON1_STATIC_INF].y, 
-			st_mon1.sz[TILT_ID_MON1_STATIC_INF].cx, st_mon1.sz[TILT_ID_MON1_STATIC_INF].cy, 
-			hWnd, (HMENU)(TILT_ID_MON1_CTRL_BASE + TILT_ID_MON1_STATIC_INF), hInst, NULL);
+		st_mon1.hctrl[AUXAG_ID_MON1_STATIC_INF] = CreateWindowW(TEXT("STATIC"), st_mon1.text[AUXAG_ID_MON1_STATIC_INF], WS_CHILD | WS_VISIBLE | SS_LEFT,
+			st_mon1.pt[AUXAG_ID_MON1_STATIC_INF].x, st_mon1.pt[AUXAG_ID_MON1_STATIC_INF].y, 
+			st_mon1.sz[AUXAG_ID_MON1_STATIC_INF].cx, st_mon1.sz[AUXAG_ID_MON1_STATIC_INF].cy, 
+			hWnd, (HMENU)(AUXAG_ID_MON1_CTRL_BASE + AUXAG_ID_MON1_STATIC_INF), hInst, NULL);
 
 		//表示更新用タイマー
-		SetTimer(hWnd, TILT_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
+		SetTimer(hWnd, AUXAG_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
@@ -182,7 +239,7 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			}
 		}
 
-		SetWindowText(st_mon1.hctrl[TILT_ID_MON1_STATIC_INF], monwos.str().c_str());
+		SetWindowText(st_mon1.hctrl[AUXAG_ID_MON1_STATIC_INF], monwos.str().c_str());
 	}break;
 
 	case WM_PAINT: {
@@ -192,7 +249,7 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	}break;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon= NULL;	
-		KillTimer(hWnd, TILT_ID_MON1_TIMER);
+		KillTimer(hWnd, AUXAG_ID_MON1_TIMER);
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -254,14 +311,14 @@ HWND CAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("TILT_MON1");
-		wcex.lpszClassName = TEXT("TILT_MON1");
+		wcex.lpszMenuName = TEXT("AUXAG_MON1");
+		wcex.lpszClassName = TEXT("AUXAG_MON1");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon1.hwnd_mon = CreateWindowW(TEXT("TILT_MON1"), TEXT("TILT_MON1"), WS_OVERLAPPEDWINDOW,
-			TILT_MON1_WND_X, TILT_MON1_WND_Y, TILT_MON1_WND_W, TILT_MON1_WND_H,
+		st_mon1.hwnd_mon = CreateWindowW(TEXT("AUXAG_MON1"), TEXT("AUXAG_MON1"), WS_OVERLAPPEDWINDOW,
+			AUXAG_MON1_WND_X, AUXAG_MON1_WND_Y, AUXAG_MON1_WND_W, AUXAG_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
 	}
@@ -275,14 +332,14 @@ HWND CAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("TILT_MON2");
-		wcex.lpszClassName = TEXT("TILT_MON2");
+		wcex.lpszMenuName = TEXT("AUXAG_MON2");
+		wcex.lpszClassName = TEXT("AUXAG_MON2");
 		wcex.hIconSm = NULL;
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon = CreateWindowW(TEXT("TILT_MON2"), TEXT("TILT_MON2"), WS_OVERLAPPEDWINDOW,
-			TILT_MON2_WND_X, TILT_MON2_WND_Y, TILT_MON2_WND_W, TILT_MON2_WND_H,
+		st_mon2.hwnd_mon = CreateWindowW(TEXT("AUXAG_MON2"), TEXT("SLBRK IF"), WS_OVERLAPPEDWINDOW,
+			AUXAG_MON2_WND_X, AUXAG_MON2_WND_Y, AUXAG_MON2_WND_W, AUXAG_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
 		show_monitor_wnd(id);
@@ -330,7 +387,7 @@ void CAuxAgent::hide_monitor_wnd(int id) {
 LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
-	case WM_COMMAND:
+	case WM_COMMAND: {
 		switch (LOWORD(wp)) {
 		case IDC_TASK_FUNC_RADIO1:
 		case IDC_TASK_FUNC_RADIO2:
@@ -362,7 +419,7 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = false;
 		}break;
 
-		case IDSET: 
+		case IDSET:
 		{
 			wstring wstr, wstr_tmp;
 
@@ -371,21 +428,21 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			msg2listview(wstr);
 
 		}break;
-		case IDRESET: 
+		case IDRESET:
 		{
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 		}break;
 
-		case IDC_TASK_MODE_RADIO0: 
+		case IDC_TASK_MODE_RADIO0:
 		{
 			inf.mode_id = BC_ID_MODE0;
 		}break;
-		case IDC_TASK_MODE_RADIO1: 
+		case IDC_TASK_MODE_RADIO1:
 		{
 			inf.mode_id = BC_ID_MODE1;
 		}break;
-		case IDC_TASK_MODE_RADIO2: 
+		case IDC_TASK_MODE_RADIO2:
 		{
 			inf.mode_id = BC_ID_MODE2;
 		}break;
@@ -393,7 +450,7 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case IDC_TASK_MON_CHECK1:
 		{
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK1) == BST_CHECKED) {
-				open_monitor_wnd(inf.hwnd_parent,BC_ID_MON1);
+				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON1);
 			}
 			else {
 				close_monitor_wnd(BC_ID_MON1);
@@ -409,6 +466,19 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 			}
 		}break;
 		}
+	}break;
+
+	case WM_USER_TASK_REQ: {
+		if (HIWORD(wp) == WM_USER_WPH_OPEN_IF_WND) {
+			wos.str(L"");
+			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, lp);
+			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, lp);
+		}
+		else if (wp == WM_USER_WPH_CLOSE_IF_WND) 	close_monitor_wnd(lp);
+		else;
+	}break;
+
+	default:break;
 	}
 	return 0;
 };

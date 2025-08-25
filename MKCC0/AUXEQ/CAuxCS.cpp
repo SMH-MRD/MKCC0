@@ -88,6 +88,8 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		msg2listview(wos.str()); wos.str(L"");
 		return S_FALSE;
 	}
+
+#if 0
 	//### 通信ソケット生成/初期化
 	//##WSA初期化
 	wos.str(L"");
@@ -111,7 +113,7 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
 		return hr;
 	};
-
+#endif
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -176,6 +178,8 @@ HRESULT CAuxCS::rcv_uni_main(LPST_AUX_COM_CLI_MSG pbuf) {
 /// <summary>
 /// AUXEQユニキャスト電文送信処理 
 /// </summary>
+
+#if 0
 LPST_AUX_COM_SERV_MSG CAuxCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	return &pCsInf->st_msg_u_snd;
 }
@@ -192,7 +196,7 @@ HRESULT CAuxCS::snd_uni2main(LPST_AUX_COM_SERV_MSG pbuf, SOCKADDR_IN* p_addrin_t
 	snd_count_u++;
 	return S_OK;
 }
-
+#endif
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
@@ -318,7 +322,7 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< htons(addr.sin_port) << L" ";
 				SetWindowText(st_mon2.hctrl[CS_ID_MON2_LABEL_UNI], st_mon2.wo_work.str().c_str());
 			}
-
+#if 0
 			st_mon2.wo_uni.str(L"");
 			if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
 				LPST_AUX_COM_MSG_HEAD	ph0 = &pCsInf->st_msg_u_rcv.head;
@@ -336,10 +340,12 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_mon2.wo_uni << L"No Message";
 			}
 			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
+#endif
 		}
 	}break;
 
 	case ID_SOCK_EVENT_AUXCS_UNI: {
+#if 0
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
@@ -357,6 +363,7 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
 		}
+#endif
 	}break;
 
 	case WM_PAINT: {

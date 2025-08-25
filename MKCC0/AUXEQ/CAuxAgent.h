@@ -68,62 +68,62 @@ typedef struct _ST_AUXEQ {
     };
 }ST_AUXEQ,*LPST_AUXEQ;
 
-#define TILT_MON1_WND_X     640
-#define TILT_MON1_WND_Y     0
-#define TILT_MON1_WND_W     320
-#define TILT_MON1_WND_H     240
-#define TILT_MON1_N_CTRL    32
-#define TILT_MON1_N_WCHAR   64
+#define AUXAG_MON1_WND_X     640+640
+#define AUXAG_MON1_WND_Y     0
+#define AUXAG_MON1_WND_W     320
+#define AUXAG_MON1_WND_H     240
+#define AUXAG_MON1_N_CTRL    32
+#define AUXAG_MON1_N_WCHAR   64
 
-#define TILT_ID_MON1_CTRL_BASE   75100
-#define TILT_ID_MON1_STATIC_INF     0
+#define AUXAG_ID_MON1_CTRL_BASE   75100
+#define AUXAG_ID_MON1_STATIC_INF     0
 
-#define TILT_ID_MON2_CTRL_BASE   75140
+#define AUXAG_ID_MON2_CTRL_BASE   75140
 
-#define TILT_ID_MON1_TIMER  75190
-#define TILT_ID_MON2_TIMER  75191
+#define AUXAG_ID_MON1_TIMER  75190
+#define AUXAG_ID_MON2_TIMER  75191
 
-#define TILT_PRM_MON1_TIMER_MS  200
-#define TILT_PRM_MON2_TIMER_MS  200
+#define AUXAG_PRM_MON1_TIMER_MS  100
+#define AUXAG_PRM_MON2_TIMER_MS  100
 
-typedef struct _TILT_MON1 {
-	int timer_ms = TILT_PRM_MON1_TIMER_MS;
+typedef struct _AUXAG_MON1 {
+	int timer_ms = AUXAG_PRM_MON1_TIMER_MS;
 	HWND hwnd_mon;
-    HWND hctrl[TILT_MON1_N_CTRL] = {
+    HWND hctrl[AUXAG_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
-    POINT pt[TILT_MON1_N_CTRL] = {
+    POINT pt[AUXAG_MON1_N_CTRL] = {
         5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    SIZE sz[TILT_MON1_N_CTRL] = {
+    SIZE sz[AUXAG_MON1_N_CTRL] = {
         295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
-    WCHAR text[TILT_MON1_N_CTRL][TILT_MON1_N_WCHAR] = {
+    WCHAR text[AUXAG_MON1_N_CTRL][AUXAG_MON1_N_WCHAR] = {
         L"INFOMATION", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
-}ST_TILT_MON1, * LPST_TILT_MON1;
+}ST_AUXAG_MON1, * LPST_AUXAG_MON1;
 
-#define TILT_MON2_WND_X     TILT_MON1_WND_X
-#define TILT_MON2_WND_Y     TILT_MON1_WND_Y + TILT_MON1_WND_H   
-#define TILT_MON2_WND_W     320
-#define TILT_MON2_WND_H     240
+#define AUXAG_MON2_WND_X     AUXAG_MON1_WND_X
+#define AUXAG_MON2_WND_Y     620   
+#define AUXAG_MON2_WND_W     640
+#define AUXAG_MON2_WND_H     400
 
-typedef struct _TILT_MON2 {
+typedef struct _AUXAG_MON2 {
     HWND hwnd_mon;
 
-}ST_TILT_MON2, * LPST_TILT_MON2;
+}ST_AUXAG_MON2, * LPST_AUXAG_MON2;
 
 class CAuxAgent :  public CBasicControl
 {
@@ -141,8 +141,8 @@ public:
 
     static LPST_AUXEQ pst_work;
 
-	static ST_TILT_MON1 st_mon1;
-    static ST_TILT_MON2 st_mon2;
+	static ST_AUXAG_MON1 st_mon1;
+    static ST_AUXAG_MON2 st_mon2;
 
     ST_AUXEQ st_work;
 
