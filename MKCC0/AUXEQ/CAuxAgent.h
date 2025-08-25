@@ -7,6 +7,9 @@
 #include "CBasicControl.h"
 #include "LALANIO.h"
 
+//LANIO関連定義
+#if 0
+
 #define LANIO_TMOUT_MS 3000
 #define LANIO_N_MODEL  16
 
@@ -44,7 +47,10 @@
 
 #define LANIO_N_CH_LA_5AI            5
 
+#endif
+
 typedef struct _ST_AUXEQ {
+#if 0
     hLANIO hlanio[LANIO_N_MAX] = { -1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1} ;
     int laniocount = 0;
     int timeout = LANIO_TMOUT_MS;
@@ -61,11 +67,12 @@ typedef struct _ST_AUXEQ {
     int tilt_x = 0;
     int tilt_y = 0;
     int tilt_z = 0;
-
     WCHAR model_text[LANIO_N_MODEL][16] = {
         L"",L"",L"",L"",L"",L"",L"",L"",
         L"LA-2R3A",L"LA-2A3P-P",L"LA-2R3A-V2",L"LA-3A2P-P",L"LA-5AI",L"",L"",L""
     };
+#endif
+	INT16 dummy = -1;
 }ST_AUXEQ,*LPST_AUXEQ;
 
 #define AUXAG_MON1_WND_X     640+640
@@ -78,13 +85,11 @@ typedef struct _ST_AUXEQ {
 #define AUXAG_ID_MON1_CTRL_BASE   75100
 #define AUXAG_ID_MON1_STATIC_INF     0
 
-#define AUXAG_ID_MON2_CTRL_BASE   75140
+#define AUXAG_ID_MON1_TIMER             75190
+#define AUXAG_ID_MON2_TIMER             75191
 
-#define AUXAG_ID_MON1_TIMER  75190
-#define AUXAG_ID_MON2_TIMER  75191
-
-#define AUXAG_PRM_MON1_TIMER_MS  100
-#define AUXAG_PRM_MON2_TIMER_MS  100
+#define AUXAG_PRM_MON1_TIMER_MS         100
+#define AUXAG_PRM_MON2_TIMER_MS         100
 
 typedef struct _AUXAG_MON1 {
 	int timer_ms = AUXAG_PRM_MON1_TIMER_MS;
@@ -119,9 +124,70 @@ typedef struct _AUXAG_MON1 {
 #define AUXAG_MON2_WND_Y     620   
 #define AUXAG_MON2_WND_W     640
 #define AUXAG_MON2_WND_H     400
+#define AUXAG_MON2_N_CTRL    32
+#define AUXAG_MON2_N_WCHAR   64
+
+//MON2---------------------------------------------------
+#define AUXAG_ID_MON2_CTRL_BASE         75140
+#define AUXAG_ID_MON2_STATIC_MSG        0   //メッセージ表示部
+#define AUXAG_ID_MON2_STATIC_INF        1   //接続情報表示部
+#define AUXAG_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
+#define AUXAG_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
+#define AUXAG_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
+#define AUXAG_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
+
+
+#define AGENT_ID_MON2_CB_COM_LEVEL_BIT0     16   //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_CB_COM_LEVEL_BIT1     17  //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_CB_COM_LEVEL_BIT2     18  //メッセージ表示/非表示切替PB
+#define AGENT_ID_MON2_CB_COM_LEVEL_BIT3     19 //10進/16進表示切替PB
+#define AGENT_ID_MON2_CB_COM_HW_BRK         20   //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_CB_COM_RST            21  //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_CB_COM_EMG            22  //メッセージ表示/非表示切替PB
+#define AGENT_ID_MON2_CB_COM_AUTOSEL        23 //10進/16進表示切替PB
+
+
+
+#define AUXAG_MON2_MSG_DISP_OFF 0
+#define AUXAG_MON2_MSG_DISP_HEX 1
+#define AUXAG_MON2_MSG_DISP_DEC 2
+
+
+#define AUXAG_MON2_MSG_DISP_N__DATAROW      4
+#define AUXAG_MON2_MSG_DISP_N_DATA_COLUMN   10
 
 typedef struct _AUXAG_MON2 {
     HWND hwnd_mon;
+    int timer_ms = AUXAG_PRM_MON2_TIMER_MS;
+    bool is_monitor_active = false;
+    int msg_disp_mode = AUXAG_MON2_MSG_DISP_HEX;
+
+    wostringstream wo_req_r, wo_res_r, wo_req_w, wo_res_w;
+
+    HWND hctrl[AUXAG_MON2_N_CTRL] = {
+        NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+        NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+        NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+        NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+    };
+    POINT pt[AUXAG_MON2_N_CTRL] = {
+        5,5, 5,30, 5,55, 5,100, 5,205, 5,330,0,0, 0,0,//Static
+        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        570,75, 570,330, 510,5, 565,5, 0,0, 0,0, 0,0, 0,0,//PB
+        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
+    };
+    SIZE sz[AUXAG_MON2_N_CTRL] = {
+        615,20, 615,20, 565,40, 615,100, 615,120,565,20, 0,0, 0,0,//Static
+        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
+        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
+    };
+    WCHAR text[AUXAG_MON2_N_CTRL][AUXAG_MON2_N_WCHAR] = {
+        L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
+        L"", L"", L"", L"", L"", L"", L"", L"",
+        L"次R", L"次W", L"非表示", L"10進", L"", L"", L"", L"",//PB
+        L"", L"", L"", L"", L"", L"", L"", L""
+    };
 
 }ST_AUXAG_MON2, * LPST_AUXAG_MON2;
 
@@ -136,7 +202,7 @@ public:
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-    static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
+     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
     static LPST_AUXEQ pst_work;

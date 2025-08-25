@@ -17,6 +17,13 @@
 #define OTE_MC_ADDR_W_WRITE				10650
 #define OTE_MC_SIZE_W_WRITE				150
 
+//#define SLBRK_MC_ADDR_W_READ			16
+#define SLBRK_MC_ADDR_W_READ			10350
+#define SLBRK_MC_SIZE_W_READ			3
+//#define SLBRK_MC_ADDR_W_WRITE			96
+#define SLBRK_MC_ADDR_W_WRITE			10300
+#define SLBRK_MC_SIZE_W_WRITE			1
+
 #define PLC_IF_REMOTE_OFF_MODE		    0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）
 #define PLC_IF_RMT_MODE_0			    0x00000001		//遠隔運転モード（PCからの出力有効　通常運用モード）
 #define PLC_IF_SIM_MODE_1			    0x00000003		//操作端末からの操作入力有効通常運用モード

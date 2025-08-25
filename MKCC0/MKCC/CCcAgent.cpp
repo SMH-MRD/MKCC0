@@ -64,7 +64,6 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	set_outbuf(pAgInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-
 	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
 	pEnv_Inf	= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPLC_IO		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
@@ -327,7 +326,6 @@ int CAgent::parse() {//メイン処理
 	//モーメントリミッタフック質量,半径
 	pCrane->pPlc->wval(pPlcWIf->mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
 	pCrane->pPlc->wval(pPlcWIf->mlim_r_ai, pSim_Inf->mlim_r_AI);//0.1m単位
-
 
 	return S_OK;
 }
@@ -705,6 +703,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_DESTROY: {
 		st_mon2.hwnd_mon = NULL;
+		KillTimer(hWnd, AGENT_ID_MON2_TIMER);
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
