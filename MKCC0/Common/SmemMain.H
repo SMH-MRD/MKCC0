@@ -6,7 +6,7 @@
 #include "OTE_DEF.h"
 #include "PLC_DEF.h"
 #include "CVector3.h"
-#include <dinput.h>
+//#include <dinput.h>
 #include "CCrane.h"
 
 
@@ -91,10 +91,7 @@ typedef struct _ST_CC_ENV_INF {
 	//Periodical Update	：定周期更新
 	DWORD env_act_count = 0;					//ヘルシー信号
 	WORD operation_mode;						//運転モード　機上,リモート
-	//補機通信
-//	SOCKADDR_IN addrin_snd;
-//	SOCKADDR_IN addrin_rcv;
-//	SOCKADDR_IN addrin_from;
+
 
 	//Parameters
 	int debug_mode;
@@ -580,9 +577,7 @@ typedef struct _ST_CC_OTE_CTRL {
 }ST_CC_OTE_CTRL, * LPST_CC_OTE_CTRL;
 // OTEからの要求コード                              　         　	
 
-#define OTE_STOP_REQ_MODE_OFF			L_OFF
-#define OTE_STOP_REQ_MODE_ESTOP			0x00000001
-#define OTE_STOP_REQ_MODE_CTRL_OFF		0x00000002
+
 
 typedef struct _ST_CC_OTE_INF {
 //CS作業バッファ

@@ -3,8 +3,6 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 #include "SmemMain.H"
-#include "SmemOte.H"
-
 
 #define ENV_MON1_WND_X     0
 #define ENV_MON1_WND_Y     0

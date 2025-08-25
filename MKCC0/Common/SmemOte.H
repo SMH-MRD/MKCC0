@@ -6,10 +6,11 @@
 //#include "SPEC_DEF.h"
 
 #include "OTE_DEF.h"
-//#include "PLC_DEF.h"
+#include "PLC_DEF.h"
 //#include "CVector3.h"
 //#include <dinput.h>
-//#include "CCrane.h"
+#include "CCrane.h"
+#include <dinput.h>
 
 using namespace std;
 

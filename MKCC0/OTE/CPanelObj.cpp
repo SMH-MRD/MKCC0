@@ -1,7 +1,6 @@
 #include "framework.h"
 #include "CPanelObj.h"
 
-#include "SmemMain.H"
 #include "SmemOte.H"
 
 using namespace Gdiplus;

@@ -35,6 +35,10 @@
 #define OTE_MASK_REQ_FAULT_RESET	0x00000400	//停止要求リセット要求
 #define OTE_MASK_REQ_STOP			0x00000300	//停止要求MASK
 
+#define OTE_STOP_REQ_MODE_OFF			L_OFF
+#define OTE_STOP_REQ_MODE_ESTOP			0x00000001
+#define OTE_STOP_REQ_MODE_CTRL_OFF		0x00000002
+
 /******* 共通メッセージヘッダ部 ***********/
 
 /// <summary>

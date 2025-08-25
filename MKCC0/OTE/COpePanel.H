@@ -4,8 +4,6 @@
 #include "COMMON_DEF.h"
 #include "PLC_DEF.h"
 #include "CPanelObj.H"
-#include "CSHAREDMEM.H"
-#include "SmemMain.H"
 #include "SmemOte.H"
 
 /// <summary>
