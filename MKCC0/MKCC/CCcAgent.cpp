@@ -90,14 +90,11 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}
 
 	//### IFウィンドウOPEN
-	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
-	LPARAM lp = BC_ID_MON2;
-	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
-	Sleep(1000);
 	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Err(MON2 NULL Handle!!):";
-		msg2listview(wos.str()); wos.str(L"");
-		return S_FALSE;
+		WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+		LPARAM lp = BC_ID_MON2;
+		SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+		Sleep(1000);
 	}
 
 	//### 初期化

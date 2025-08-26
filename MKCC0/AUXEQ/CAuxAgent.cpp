@@ -29,8 +29,11 @@ static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 
-
 HRESULT CAuxAgent::initialize(LPVOID lpParam){
+
+	HRESULT hr = S_OK;
+	//システム周波数読み込み
+	QueryPerformanceFrequency(&frequency);
 
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_AUX_AGENT_INF);
@@ -42,10 +45,12 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	pCS_Inf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
 
 	//### IFウィンドウOPEN
-	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
-	LPARAM lp = BC_ID_MON2;
-	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
-	Sleep(1000);
+	if (st_mon2.hwnd_mon == NULL) {
+		WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+		LPARAM lp = BC_ID_MON2;
+		SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+		Sleep(1000);
+	}
 	if (st_mon2.hwnd_mon == NULL) {
 		wos << L"Err(MON2 NULL Handle!!):";
 		msg2listview(wos.str()); wos.str(L"");
@@ -201,6 +206,22 @@ int CAuxAgent::input() {
 	return S_OK;
 }
 
+static INT16 pc_healthy = 0;
+
+int CAuxAgent::parse() {           //メイン処理
+
+	pc_healthy++;//PCヘルシーカウンタ
+	//PCヘルシー信号
+	//if (pc_healthy & 0x0002)	pAgent_Inf->slbrk_wbuf[0] |= 0x8000;
+	//else						pAgent_Inf->slbrk_wbuf[0] &= 0x7FFF;
+
+	//pAgent_Inf->slbrk_wbuf[0]++;
+
+	return STAT_OK;
+}
+int CAuxAgent::output() {          //出力処理
+	return STAT_OK;
+}
 int CAuxAgent::close() {
 	int error = LALanioEnd();
 	return 0;
@@ -257,6 +278,7 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	}break;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon= NULL;	
+		st_mon1.is_monitor_active = false;
 		KillTimer(hWnd, AUXAG_ID_MON1_TIMER);
 	}break;
 	default:
@@ -274,7 +296,18 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-
+		//STATIC,LABEL
+		for (int i = AUXAG_ID_MON2_STATIC_MSG; i <= AUXAG_ID_MON2_STATIC_RES_W; i++) {
+			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
+				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
+		}
+		//CB
+		for (int i = AUXAG_ID_MON2_CB_COM_LEVEL_BIT0; i <= AUXAG_ID_MON2_CB_COM_AUTOSEL; i++) {
+			st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
+		}
 
 		//タイマー起動
 		UINT rtn = SetTimer(hWnd, AUXAG_ID_MON2_TIMER, AUXAG_PRM_MON2_TIMER_MS, NULL);
@@ -308,13 +341,12 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
 					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
 					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
-				//データ部分1ページ10WORD　4行で切替表示
-				for (int i = 0; i < AUXAG_MON2_MSG_DISP_N__DATAROW; i++) {
+	
 					st_mon2.wo_req_w << L"D" << dec << L" |";
 					if (st_mon2.msg_disp_mode == AUXAG_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
 					st_mon2.wo_req_w << std::setw(4) << std::setfill(L'0') << pAgent_Inf->slbrk_wbuf[0] << L"|";
 					st_mon2.wo_req_w << L"\n";
-				}
+
 				SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
 
@@ -363,7 +395,9 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 			SetWindowText(hWnd, monwos.str().c_str());
 
-			monwos.str(L""); monwos << L" BRK RD0:" << pAgent_Inf->slbrk_rbuf[0] << L" BRK RD1:" << pAgent_Inf->slbrk_rbuf[1] << L" BRK RD2:" << pAgent_Inf->slbrk_rbuf[2];
+			monwos.str(L""); 
+			monwos << hex << std::setw(4) << std::setfill(L'0');
+			monwos << L" BRK D96:" << pAgent_Inf->slbrk_rbuf[0] << L"  D16:" << pAgent_Inf->slbrk_rbuf[0] << L" 17:" << pAgent_Inf->slbrk_rbuf[1] << L" 18:" << pAgent_Inf->slbrk_rbuf[2];
 			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MSG], monwos.str().c_str());
 
 			SOCKADDR_IN	addr;
@@ -384,14 +418,156 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
 		// 選択されたメニューの解析:
-		switch (wmId)
+		switch (wmId - AUXAG_ID_MON2_CTRL_BASE)
 		{
-		case 1:break;
+		case AUXAG_ID_MON2_CB_COM_LEVEL_BIT0: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT0], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFFE;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0001;
+			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_LEVEL_BIT1: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT1], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFFD;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0002;
+			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_LEVEL_BIT2: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT2], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFFB;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0004;
+			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_LEVEL_BIT3: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT3], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFF7;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0008;
+			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_HW_BRK: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_HW_BRK], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFEF;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0010;
+			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_RST: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_RST], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFDF;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0020;
+			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_EMG: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_EMG], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFBF;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0040;
+			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_AUTOSEL: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_AUTOSEL], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFF7F;
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x0080;
+			}
+		}break;
+
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
+	case ID_SOCK_MC_AUX_BRK://MCソケット受信イベント
+	{
+		if (pMCSock == NULL)break;
+		int nEvent = WSAGETSELECTEVENT(lp);
+		st_mon2.wo_res_r.str(L"");
+		st_mon2.wo_res_w.str(L"");
+		switch (nEvent) {
+		case FD_READ: {
+			UINT nRtn = pMCSock->rcv_msg_3E(pAgent_Inf->slbrk_rbuf);//読み出し応答の時はデータ部のみ指定バッファにコピー
+			if (nRtn == MC_RES_READ) {//読み出し応答
+				rcv_count_plc_r++;
 
+				//モニタWindow表示中ならば、モニタ表示出力処理
+				if ((st_mon2.msg_disp_mode != AUXAG_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
+					st_mon2.wo_res_r << L"Rr>>"
+						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_r.subcode
+						<< L"#serial:" << pMCSock->mc_res_msg_r.serial
+						<< L"#NW:" << pMCSock->mc_res_msg_r.nNW
+						<< L"#PC:" << pMCSock->mc_res_msg_r.nPC
+						<< L"#UIO:" << pMCSock->mc_res_msg_r.nUIO
+						<< L"#Ucd:" << pMCSock->mc_res_msg_r.nUcode
+						<< L"#len:" << pMCSock->mc_res_msg_r.len
+						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n";
+					if (st_mon2.msg_disp_mode == AUXAG_MON2_MSG_DISP_HEX) st_mon2.wo_res_r << hex << std::setw(4)<< std::setfill(L'0') ;
+					else st_mon2.wo_res_r <<dec << std::setw(6)<< std::setfill(L' ');
+	
+					st_mon2.wo_res_r << L"D" << L" |";
+							st_mon2.wo_res_r << hex << std::setw(4) << pAgent_Inf->slbrk_rbuf[0] << L"|" << pAgent_Inf->slbrk_rbuf[1] << L"|" << pAgent_Inf->slbrk_rbuf[2] << L"|";
+					st_mon2.wo_res_r << L"\n";
+
+					SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
+				}
+
+				/**************** 読み込み応答時間計測(400回の最大値）*************************************/
+				QueryPerformanceCounter(&end_count_r);    // 現在のカウント数
+				LONGLONG lspan = (end_count_r.QuadPart - start_count_r.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+				if (res_delay_max_r < lspan) res_delay_max_r = lspan;
+				if (rcv_count_plc_r % 400 == 0) res_delay_max_r = 0;
+				/******************************************************************************************/
+			}
+			else if (nRtn == MC_RES_WRITE) {
+				rcv_count_plc_w++;
+				if ((st_mon2.msg_disp_mode != AUXAG_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
+					st_mon2.wo_res_w << L"Rw>>"
+						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_w.subcode
+						<< L"#serial:" << pMCSock->mc_res_msg_w.serial
+						<< L"#NW:" << pMCSock->mc_res_msg_w.nNW
+						<< L"#PC:" << pMCSock->mc_res_msg_w.nPC
+						<< L"#UIO:" << pMCSock->mc_res_msg_w.nUIO
+						<< L"#Ucd:" << pMCSock->mc_res_msg_w.nUcode
+						<< L"#len:" << pMCSock->mc_res_msg_w.len
+						<< L"#end:" << pMCSock->mc_res_msg_w.endcode;
+					SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_RES_W], st_mon2.wo_res_w.str().c_str());
+				}
+
+				QueryPerformanceCounter(&end_count_w);    // 現在のカウント数
+				LONGLONG lspan = (end_count_w.QuadPart - start_count_w.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+				if (res_delay_max_w < lspan) res_delay_max_w = lspan;
+				if (rcv_count_plc_w % 400 == 0) {
+					res_delay_max_w = 0;
+				}
+			}
+			else {
+				int err_code = WSAGetLastError();
+				if (is_write_req_turn) {
+					st_mon2.wo_res_r << L"PLC READ RES_ERR  CODE:err_code" << err_code;
+					rcv_errcount_plc_r++;
+					SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
+				}
+				else {
+					st_mon2.wo_res_w << L"PLC WRITE RES_ERR  CODE:err_code" << err_code;
+					rcv_errcount_plc_w++;
+					SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_RES_W], st_mon2.wo_res_w.str().c_str());
+				}
+			}
+		}break;
+		default: break;
+		}
+	}break;
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
@@ -399,6 +575,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	}break;
 	case WM_DESTROY: {
 		st_mon2.hwnd_mon = NULL;
+		st_mon2.is_monitor_active = false;
 		KillTimer(hWnd, AUXAG_ID_MON2_TIMER);
 	}break;
 	default:
@@ -439,7 +616,7 @@ HWND CAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	else if (id == BC_ID_MON2) {
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Mon1Proc;
+		wcex.lpfnWndProc = Mon2Proc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInst;
@@ -475,13 +652,15 @@ void CAuxAgent::close_monitor_wnd(int id) {
 	return;
 }
 void CAuxAgent::show_monitor_wnd(int id) { 
-	if (id == BC_ID_MON1) {
+	if ((id == BC_ID_MON1) && (st_mon1.hwnd_mon != NULL)) {
 		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon1.hwnd_mon);
+		st_mon1.is_monitor_active = true;
 	}
-	else if (id == BC_ID_MON2) {
+	else if ((id == BC_ID_MON2) && (st_mon2.hwnd_mon != NULL)) {
 		ShowWindow(st_mon2.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon2.hwnd_mon);
+		st_mon2.is_monitor_active = true;
 	}
 	else;
 	return;

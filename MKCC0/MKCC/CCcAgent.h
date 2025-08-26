@@ -17,27 +17,8 @@
 #define AGENT_ID_MON1_CTRL_BASE     55500
 #define AGENT_ID_MON1_STATIC_MSG    0
 
-//MON2---------------------------------------------------
-#define AGENT_ID_MON2_CTRL_BASE         55540
-#define AGENT_ID_MON2_STATIC_MSG        0   //メッセージ表示部
-#define AGENT_ID_MON2_STATIC_INF        1   //接続情報表示部
-#define AGENT_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
-#define AGENT_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
-#define AGENT_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
-#define AGENT_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
-
-
-#define AGENT_ID_MON2_PB_R_BLOCK_SEL    16   //読み込み表示ブロック切替PB
-#define AGENT_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB
-#define AGENT_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
-#define AGENT_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
-
 #define AGENT_ID_MON1_TIMER         55590
-#define AGENT_ID_MON2_TIMER         55591
-
 #define AGENT_PRM_MON1_TIMER_MS     150
-#define AGENT_PRM_MON2_TIMER_MS     30
-
 
 typedef struct _ST_AGENT_MON1 {
     int timer_ms = AGENT_PRM_MON1_TIMER_MS;
@@ -70,12 +51,16 @@ typedef struct _ST_AGENT_MON1 {
     };
 }ST_AGENT_MON1, * LPST_AGENT_MON1;
 
-#define AGENT_MON2_WND_X     AGENT_MON1_WND_X
-#define AGENT_MON2_WND_Y     620   
-#define AGENT_MON2_WND_W     640
-#define AGENT_MON2_WND_H     400
-#define AGENT_MON2_N_CTRL    32
-#define AGENT_MON2_N_WCHAR   64
+//MON2---------------------------------------------------
+#define AGENT_MON2_WND_X            AGENT_MON1_WND_X
+#define AGENT_MON2_WND_Y            620   
+#define AGENT_MON2_WND_W            640
+#define AGENT_MON2_WND_H            400
+#define AGENT_MON2_N_CTRL           32
+#define AGENT_MON2_N_WCHAR          64
+
+#define AGENT_ID_MON2_TIMER         55591
+#define AGENT_PRM_MON2_TIMER_MS     30
 
 #define AGENT_MON2_MSG_DISP_OFF 0
 #define AGENT_MON2_MSG_DISP_HEX 1
@@ -83,6 +68,19 @@ typedef struct _ST_AGENT_MON1 {
 
 #define AGENT_MON2_MSG_DISP_N__DATAROW      4
 #define AGENT_MON2_MSG_DISP_N_DATA_COLUMN   10
+
+#define AGENT_ID_MON2_CTRL_BASE         55540
+#define AGENT_ID_MON2_STATIC_MSG        0   //メッセージ表示部
+#define AGENT_ID_MON2_STATIC_INF        1   //接続情報表示部
+#define AGENT_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
+#define AGENT_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
+#define AGENT_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
+#define AGENT_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
+
+#define AGENT_ID_MON2_PB_R_BLOCK_SEL    16   //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB
+#define AGENT_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
+#define AGENT_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
 
 typedef struct _ST_AGENT_MON2 {
     HWND hwnd_mon;

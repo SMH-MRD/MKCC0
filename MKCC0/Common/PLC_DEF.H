@@ -18,10 +18,10 @@
 #define OTE_MC_SIZE_W_WRITE				150
 
 //#define SLBRK_MC_ADDR_W_READ			16
-#define SLBRK_MC_ADDR_W_READ			10350
+#define SLBRK_MC_ADDR_W_READ			10460
 #define SLBRK_MC_SIZE_W_READ			3
 //#define SLBRK_MC_ADDR_W_WRITE			96
-#define SLBRK_MC_ADDR_W_WRITE			10300
+#define SLBRK_MC_ADDR_W_WRITE			10450
 #define SLBRK_MC_SIZE_W_WRITE			1
 
 #define PLC_IF_REMOTE_OFF_MODE		    0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）

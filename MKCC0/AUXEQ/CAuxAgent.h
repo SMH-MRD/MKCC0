@@ -75,24 +75,22 @@ typedef struct _ST_AUXEQ {
 	INT16 dummy = -1;
 }ST_AUXEQ,*LPST_AUXEQ;
 
-#define AUXAG_MON1_WND_X     640+640
+#define AUXAG_MON1_WND_X     1280
 #define AUXAG_MON1_WND_Y     0
 #define AUXAG_MON1_WND_W     320
 #define AUXAG_MON1_WND_H     240
 #define AUXAG_MON1_N_CTRL    32
 #define AUXAG_MON1_N_WCHAR   64
 
-#define AUXAG_ID_MON1_CTRL_BASE   75100
+#define AUXAG_ID_MON1_CTRL_BASE   5100
 #define AUXAG_ID_MON1_STATIC_INF     0
 
-#define AUXAG_ID_MON1_TIMER             75190
-#define AUXAG_ID_MON2_TIMER             75191
-
+#define AUXAG_ID_MON1_TIMER             5190
 #define AUXAG_PRM_MON1_TIMER_MS         100
-#define AUXAG_PRM_MON2_TIMER_MS         100
 
 typedef struct _AUXAG_MON1 {
 	int timer_ms = AUXAG_PRM_MON1_TIMER_MS;
+    bool is_monitor_active = false;
 	HWND hwnd_mon;
     HWND hctrl[AUXAG_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -120,41 +118,38 @@ typedef struct _AUXAG_MON1 {
     };
 }ST_AUXAG_MON1, * LPST_AUXAG_MON1;
 
-#define AUXAG_MON2_WND_X     AUXAG_MON1_WND_X
-#define AUXAG_MON2_WND_Y     620   
-#define AUXAG_MON2_WND_W     640
-#define AUXAG_MON2_WND_H     400
-#define AUXAG_MON2_N_CTRL    32
-#define AUXAG_MON2_N_WCHAR   64
 
 //MON2---------------------------------------------------
-#define AUXAG_ID_MON2_CTRL_BASE         75140
-#define AUXAG_ID_MON2_STATIC_MSG        0   //メッセージ表示部
-#define AUXAG_ID_MON2_STATIC_INF        1   //接続情報表示部
-#define AUXAG_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
-#define AUXAG_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
-#define AUXAG_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
-#define AUXAG_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
+#define AUXAG_MON2_WND_X                    AUXAG_MON1_WND_X
+#define AUXAG_MON2_WND_Y                    620   
+#define AUXAG_MON2_WND_W                    640
+#define AUXAG_MON2_WND_H                    400
+#define AUXAG_MON2_N_CTRL                   32
+#define AUXAG_MON2_N_WCHAR                  64
 
+#define AUXAG_ID_MON2_TIMER                 5191
+#define AUXAG_PRM_MON2_TIMER_MS             100
 
-#define AGENT_ID_MON2_CB_COM_LEVEL_BIT0     16   //読み込み表示ブロック切替PB
-#define AGENT_ID_MON2_CB_COM_LEVEL_BIT1     17  //読み込み表示ブロック切替PB
-#define AGENT_ID_MON2_CB_COM_LEVEL_BIT2     18  //メッセージ表示/非表示切替PB
-#define AGENT_ID_MON2_CB_COM_LEVEL_BIT3     19 //10進/16進表示切替PB
-#define AGENT_ID_MON2_CB_COM_HW_BRK         20   //読み込み表示ブロック切替PB
-#define AGENT_ID_MON2_CB_COM_RST            21  //読み込み表示ブロック切替PB
-#define AGENT_ID_MON2_CB_COM_EMG            22  //メッセージ表示/非表示切替PB
-#define AGENT_ID_MON2_CB_COM_AUTOSEL        23 //10進/16進表示切替PB
+#define AUXAG_ID_MON2_CTRL_BASE             5140
+#define AUXAG_ID_MON2_STATIC_MSG            0   //メッセージ表示部
+#define AUXAG_ID_MON2_STATIC_INF            1   //接続情報表示部
+#define AUXAG_ID_MON2_STATIC_REQ_R          2   //読込要求メッセージ
+#define AUXAG_ID_MON2_STATIC_RES_R          3   //読込応答メッセージ
+#define AUXAG_ID_MON2_STATIC_REQ_W          4   //書込要求メッセージ
+#define AUXAG_ID_MON2_STATIC_RES_W          5   //書込応答メッ    セージ
 
+#define AUXAG_ID_MON2_CB_COM_LEVEL_BIT0     16   //読み込み表示ブロック切替PB
+#define AUXAG_ID_MON2_CB_COM_LEVEL_BIT1     17  //読み込み表示ブロック切替PB
+#define AUXAG_ID_MON2_CB_COM_LEVEL_BIT2     18  //メッセージ表示/非表示切替PB
+#define AUXAG_ID_MON2_CB_COM_LEVEL_BIT3     19 //10進/16進表示切替PB
+#define AUXAG_ID_MON2_CB_COM_HW_BRK         20   //読み込み表示ブロック切替PB
+#define AUXAG_ID_MON2_CB_COM_RST            21  //読み込み表示ブロック切替PB
+#define AUXAG_ID_MON2_CB_COM_EMG            22  //メッセージ表示/非表示切替PB
+#define AUXAG_ID_MON2_CB_COM_AUTOSEL        23 //10進/16進表示切替PB
 
-
-#define AUXAG_MON2_MSG_DISP_OFF 0
-#define AUXAG_MON2_MSG_DISP_HEX 1
-#define AUXAG_MON2_MSG_DISP_DEC 2
-
-
-#define AUXAG_MON2_MSG_DISP_N__DATAROW      4
-#define AUXAG_MON2_MSG_DISP_N_DATA_COLUMN   10
+#define AUXAG_MON2_MSG_DISP_OFF             0
+#define AUXAG_MON2_MSG_DISP_HEX             1
+#define AUXAG_MON2_MSG_DISP_DEC             2
 
 typedef struct _AUXAG_MON2 {
     HWND hwnd_mon;
@@ -171,21 +166,21 @@ typedef struct _AUXAG_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[AUXAG_MON2_N_CTRL] = {
-        5,5, 5,30, 5,55, 5,100, 5,205, 5,330,0,0, 0,0,//Static
+        5,5, 5,30, 5,55, 5,80, 5,105, 5,130,0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        570,75, 570,330, 510,5, 565,5, 0,0, 0,0, 0,0, 0,0,//PB
+        20,160, 75,160, 140,160, 195,160, 270,160, 330,160, 390,160, 450,160,//CB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AUXAG_MON2_N_CTRL] = {
-        615,20, 615,20, 565,40, 615,100, 615,120,565,20, 0,0, 0,0,//Static
+        615,20, 615,20, 615,20, 615,20, 615,20,615,20, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
+        50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20,//CB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[AUXAG_MON2_N_CTRL][AUXAG_MON2_N_WCHAR] = {
         L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"次R", L"次W", L"非表示", L"10進", L"", L"", L"", L"",//PB
+        L"LV0", L"LV1", L"LV2", L"LV3", L"HWB", L"RST", L"EMG", L"AUT",//CB
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 
@@ -242,13 +237,8 @@ private:
     }                 
 
     int input();//入力処理
- 
-    int parse() {           //メイン処理
-        return STAT_NG;
-    }
-    int output() {          //出力処理
-        return STAT_NG;
-    }
+    int parse(); 
+    int output(); 
     int close();
 };
 

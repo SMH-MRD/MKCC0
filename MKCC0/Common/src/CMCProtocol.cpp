@@ -60,7 +60,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 			return S_FALSE;
 		}
 		else {
-			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_OTE, PORT_MC_CLIENT_SLBRK);
+			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_SLBRK, PORT_MC_CLIENT_SLBRK);
 			if (pMCSock->init_sock(hwnd, pMCSock->addr_in_rcv) != S_OK) {//受信ソケット設定
 				msg_wos.str() = pMCSock->err_msg.str();
 				return S_FALSE;
