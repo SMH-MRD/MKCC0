@@ -167,6 +167,25 @@ int COteCS::input() {
 		pOteCsInf->gpad_in.zoom_f		= pPad->chk_on(st_obj.zoom_f.set(pPad->get_shoulderr()));
 		pOteCsInf->gpad_in.zoom_n		= pPad->chk_on(st_obj.zoom_n.set(pPad->get_shoulderl()));
 
+
+		st_work.gpad_in.syukan_on = pPad->chk_on(st_obj.syukan_on.set(pPad->get_start()));
+		st_work.gpad_in.syukan_off = pPad->chk_on(st_obj.syukan_off.set(pPad->get_Y()));
+		st_work.gpad_in.remote = pPad->chk_on(st_obj.remote_pb.set(pPad->get_A()));
+		st_work.gpad_in.estop = pPad->chk_on(st_obj.estop.set(pPad->get_B()));
+		st_work.gpad_in.f_reset = pPad->chk_on(st_obj.f_reset.set(pPad->get_back()));
+		st_work.gpad_in.bypass = pPad->chk_on(st_obj.bypass.set(pPad->get_X()));
+		st_work.gpad_in.kidou_r = pPad->chk_on(st_obj.kidou_r.set(pPad->get_thumbr()));
+		st_work.gpad_in.kidou_l = pPad->chk_on(st_obj.kidou_l.set(pPad->get_thumbl()));
+		st_work.gpad_in.pan_l = pPad->chk_on(st_obj.pan_l.set(pPad->get_left()));
+		st_work.gpad_in.pan_r = pPad->chk_on(st_obj.pan_r.set(pPad->get_right()));
+		st_work.gpad_in.tilt_u = pPad->chk_on(st_obj.tilt_u.set(pPad->get_up()));
+		st_work.gpad_in.tilt_d = pPad->chk_on(st_obj.tilt_d.set(pPad->get_down()));
+		st_work.gpad_in.zoom_f = pPad->chk_on(st_obj.zoom_f.set(pPad->get_shoulderr()));
+		st_work.gpad_in.zoom_n = pPad->chk_on(st_obj.zoom_n.set(pPad->get_shoulderl()));
+
+
+
+
 		pOteCsInf->gpad_in.trig_l		= st_obj.trig_l.set(pPad->get_trig_L());
 		pOteCsInf->gpad_in.trig_r		= st_obj.trig_r.set(pPad->get_trig_R());
 
@@ -215,7 +234,7 @@ int COteCS::parse() {           //メイン処理
 	if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) &&(pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
 		st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
 
-	//GamePadmoモード設定
+	//GamePadモード設定
 	if (CODE_TRIG_ON == st_obj.game_pad_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::game_pad])) {
 		if (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE)
 			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
@@ -233,6 +252,9 @@ int COteCS::parse() {           //メイン処理
 	st_work.st_body.axis[ID_AXIS::sl].notch_ref = st_obj.pad_sl->get_notch();
 	st_work.st_body.axis[ID_AXIS::gt].notch_ref = st_obj.pad_gt->get_notch();
 	st_work.st_body.axis[ID_AXIS::ah].notch_ref = st_obj.pad_ah->get_notch();
+
+	//GamePadステータスを通信バッファにセット
+	st_work.st_body.gpad_in = pOteCsInf->gpad_in;
 
 	return STAT_OK;
 }

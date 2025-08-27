@@ -3,19 +3,23 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 #include "SmemMain.H"
+#include "SmemAux.H"
 
 #include "PLC_DEF.h"
 
 //MON1----------------------------------------------------
 #define AGENT_MON1_WND_X            0
-#define AGENT_MON1_WND_Y            0
-#define AGENT_MON1_WND_W            320
-#define AGENT_MON1_WND_H            280
+#define AGENT_MON1_WND_Y            620
+#define AGENT_MON1_WND_W            640
+#define AGENT_MON1_WND_H            400
 #define AGENT_MON1_N_CTRL           32
 #define AGENT_MON1_N_WCHAR          64
 
 #define AGENT_ID_MON1_CTRL_BASE     55500
-#define AGENT_ID_MON1_STATIC_MSG    0
+#define AGENT_ID_MON1_STATIC_LABEL          0
+#define AGENT_ID_MON1_STATIC_SLBRK_OTE      1
+#define AGENT_ID_MON1_STATIC_SLBRK_COM      2
+#define AGENT_ID_MON1_STATIC_SLBRK_FB       3
 
 #define AGENT_ID_MON1_TIMER         55590
 #define AGENT_PRM_MON1_TIMER_MS     150
@@ -24,6 +28,7 @@ typedef struct _ST_AGENT_MON1 {
     int timer_ms = AGENT_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
     bool is_monitor_active = false;
+    wostringstream wo;
 
     HWND hctrl[AGENT_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -32,21 +37,21 @@ typedef struct _ST_AGENT_MON1 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[AGENT_MON1_N_CTRL] = {
-        5,5, 5,30, 5,55, 5,50, 5,155, 5,260,0,0, 0,0,//Static
+        5,5, 5,30, 5,55, 5,80, 0,0, 0,0,0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        560,110, 560,195, 500,5, 555,5, 0,0, 0,0, 0,0, 0,0,//PB
+        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AGENT_MON1_N_CTRL] = {
-        615,20, 615,20, 565,40, 615,120, 615,100,565,20, 0,0, 0,0,//Static
+        120,20, 615,20, 615,20, 615,20, 0,0, 0,0, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
+        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[AGENT_MON1_N_CTRL][AGENT_MON1_N_WCHAR] = {
-        L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
+        L"旋回ブレーキ:", L"OTE:", L"COM:", L"FB:", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"次R", L"次W", L"非表示", L"10進", L"", L"", L"", L"",//PB
+        L"", L"", L"", L"", L"", L"", L"", L"",//PB
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_AGENT_MON1, * LPST_AGENT_MON1;
@@ -76,6 +81,7 @@ typedef struct _ST_AGENT_MON1 {
 #define AGENT_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
 #define AGENT_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
 #define AGENT_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
+#define AGENT_ID_MON2_STATIC_OTE_REF    6   //書込応答メッセージ
 
 #define AGENT_ID_MON2_PB_R_BLOCK_SEL    16   //読み込み表示ブロック切替PB
 #define AGENT_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB
@@ -169,6 +175,8 @@ private:
     int parse();            //メイン処理
     int output(); 
     int close();
+
+	int manage_slbrk();
 };
 
 

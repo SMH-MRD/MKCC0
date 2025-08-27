@@ -74,6 +74,10 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
 	}
+
+	//モニタウィンドウテキスト	
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"SL BRK");
 	
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
@@ -220,6 +224,10 @@ int CAuxAgent::parse() {           //メイン処理
 	return STAT_OK;
 }
 int CAuxAgent::output() {          //出力処理
+
+	pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
+	pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHW
+
 	return STAT_OK;
 }
 int CAuxAgent::close() {
@@ -396,7 +404,8 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			SetWindowText(hWnd, monwos.str().c_str());
 
 			monwos.str(L""); 
-			monwos << hex << std::setw(4) << std::setfill(L'0');
+			if(st_mon2.msg_disp_mode == AUXAG_MON2_MSG_DISP_HEX)monwos << hex << std::setw(4) << std::setfill(L'0');
+
 			monwos << L" BRK D96:" << pAgent_Inf->slbrk_rbuf[0] << L"  D16:" << pAgent_Inf->slbrk_rbuf[0] << L" 17:" << pAgent_Inf->slbrk_rbuf[1] << L" 18:" << pAgent_Inf->slbrk_rbuf[2];
 			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MSG], monwos.str().c_str());
 
@@ -632,8 +641,8 @@ HWND CAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		st_mon2.hwnd_mon = CreateWindowW(TEXT("AUXAG_MON2"), TEXT("SLBRK IF"), WS_OVERLAPPEDWINDOW,
 			AUXAG_MON2_WND_X, AUXAG_MON2_WND_Y, AUXAG_MON2_WND_W, AUXAG_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
-
-		show_monitor_wnd(id);
+		st_mon2.msg_disp_mode = AUXAG_MON2_MSG_DISP_OFF;
+//		show_monitor_wnd(id);
 		return st_mon2.hwnd_mon;
 	}
 	else
@@ -751,11 +760,14 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		}break;
 
 		case IDC_TASK_MON_CHECK2: {
+
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK2) == BST_CHECKED) {
-				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON2);
+				show_monitor_wnd(BC_ID_MON2);
+				st_mon2.msg_disp_mode = AUXAG_MON2_MSG_DISP_DEC;
 			}
 			else {
-				close_monitor_wnd(BC_ID_MON2);
+				hide_monitor_wnd(BC_ID_MON2);
+				st_mon2.msg_disp_mode = AUXAG_MON2_MSG_DISP_OFF;
 			}
 		}break;
 		}

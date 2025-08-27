@@ -155,7 +155,7 @@ typedef struct _AUXAG_MON2 {
     HWND hwnd_mon;
     int timer_ms = AUXAG_PRM_MON2_TIMER_MS;
     bool is_monitor_active = false;
-    int msg_disp_mode = AUXAG_MON2_MSG_DISP_HEX;
+    int msg_disp_mode = AUXAG_MON2_MSG_DISP_OFF;
 
     wostringstream wo_req_r, wo_res_r, wo_req_w, wo_res_w;
 

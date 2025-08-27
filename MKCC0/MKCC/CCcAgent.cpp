@@ -17,6 +17,8 @@ extern CSharedMem* pOteInfObj;
 
 extern CCrane* pCrane;
 
+CSharedMem* pAuxInfObj;
+
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
 
@@ -35,6 +37,8 @@ static LPST_CC_AGENT_INF	pAgent_Inf	= NULL;
 static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
 static LPST_CC_SIM_INF		pSim_Inf	= NULL;
 
+static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
+
 static PINT16				pOteCtrl	= NULL;	//OTE操作入力信号ポインタ
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
 static ST_PLC_IO_RIF* pPlcRIf = NULL;
@@ -45,12 +49,13 @@ static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w,res_delay_max_r;	//PLC応答時間
 
-
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
+	pAuxInfObj = new CSharedMem;
 }
 CAgent::~CAgent() {
-
+	delete pMCSock;
+	delete pAuxInfObj;
 }
 
 HRESULT CAgent::initialize(LPVOID lpParam) {
@@ -59,6 +64,9 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	//システム周波数読み込み
 	QueryPerformanceFrequency(&frequency);
 
+	///-共有メモリ割付&設定##################
+	if (OK_SHMEM != pAuxInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
+	
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_CC_AGENT_INF);
 	set_outbuf(pAgInfObj->get_pMap());
@@ -69,7 +77,9 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pPLC_IO		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
-	pSim_Inf	= (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();;
+	pSim_Inf	= (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
+
+	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
 	
 	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
@@ -125,6 +135,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 	//モニタウィンドウテキスト	
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"AUX IF");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"PLC IF");
 	set_item_chk_txt();
 	set_panel_tip_txt();
@@ -324,6 +335,7 @@ int CAgent::parse() {//メイン処理
 	pCrane->pPlc->wval(pPlcWIf->mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
 	pCrane->pPlc->wval(pPlcWIf->mlim_r_ai, pSim_Inf->mlim_r_AI);//0.1m単位
 
+	manage_slbrk();
 	return S_OK;
 }
 
@@ -350,6 +362,19 @@ int CAgent::close() {
 	return 0;
 }
 
+int CAgent::manage_slbrk() {
+
+	//旋回ブレーキ指令
+	pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.trig_l >> 4; //PCコントロールブレーキレベル
+	
+	if(pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.kidou_l)
+		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0x0010;
+	else
+		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0x0000;
+
+	return 0;
+}
+
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
@@ -365,10 +390,12 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[AGENT_ID_MON1_STATIC_MSG] = CreateWindowW(TEXT("STATIC"), st_mon1.text[AGENT_ID_MON1_STATIC_MSG], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[AGENT_ID_MON1_STATIC_MSG].x, st_mon1.pt[AGENT_ID_MON1_STATIC_MSG].y,
-			st_mon1.sz[AGENT_ID_MON1_STATIC_MSG].cx, st_mon1.sz[AGENT_ID_MON1_STATIC_MSG].cy,
-			hWnd, (HMENU)(AGENT_ID_MON1_CTRL_BASE + AGENT_ID_MON1_STATIC_MSG), hInst, NULL);
+		//STATIC,LABEL
+		for (int i = AGENT_ID_MON1_STATIC_LABEL; i <= AGENT_ID_MON1_STATIC_SLBRK_FB; i++) {
+			st_mon1.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
+				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+				hWnd, (HMENU)(AGENT_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		}
 
 		//表示更新用タイマー
 		SetTimer(hWnd, AGENT_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -386,6 +413,22 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 	}break;
 	case WM_TIMER: {
+
+		st_mon1.wo.str(L"");  
+		st_mon1.wo	<< L"GPAD trig_l:" << pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.trig_l 
+					<< L" kidou_l:" << pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.kidou_l;
+		SetWindowText(st_mon1.hctrl[AGENT_ID_MON1_STATIC_SLBRK_OTE], st_mon1.wo.str().c_str());
+
+		st_mon1.wo.str(L"");
+		st_mon1.wo << L"PC BRK COM : level " << pAUX_CS_Inf->com_slbrk.pc_com_brk_level
+			<< L" HW " << pAUX_CS_Inf->com_slbrk.pc_com_hw_brk;
+		SetWindowText(st_mon1.hctrl[AGENT_ID_MON1_STATIC_SLBRK_COM], st_mon1.wo.str().c_str());
+
+		st_mon1.wo.str(L"");
+		st_mon1.wo << L"AUX BRK FB : level " << pAUX_CS_Inf->fb_slbrk.brk_fb_level
+			<< L" HW " << pAUX_CS_Inf->fb_slbrk.brk_fb_hw_brk;
+		SetWindowText(st_mon1.hctrl[AGENT_ID_MON1_STATIC_SLBRK_FB], st_mon1.wo.str().c_str());
+
 	}break;
 
 	case WM_PAINT: {

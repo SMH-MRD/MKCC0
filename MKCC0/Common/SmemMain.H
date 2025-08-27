@@ -6,12 +6,9 @@
 #include "OTE_DEF.h"
 #include "PLC_DEF.h"
 #include "CVector3.h"
-//#include <dinput.h>
 #include "CCrane.h"
 
-
 using namespace std;
-
 
 /****************************************************************************/
 /*	クレーンコントローラ（CC）構造体定義									*/	
@@ -480,8 +477,10 @@ typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_status[MOTION_ID_MAX];
 	INT32		ote_remote_status;												//操作端末の状態　0bit：端末信号有効
 	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
-	INT16		ote_mh_spd_mode;													//主巻速度モード
-	INT16		ote_bh_r_mode;														//引込モード
+	INT16		ote_mh_spd_mode;												//主巻速度モード
+	INT16		ote_bh_r_mode;													//引込モード
+	ST_GPAD_IN gpad_in;															//ゲームパッド入力情報
+
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
 
 typedef struct _ST_CC_CS_INF {
@@ -576,8 +575,6 @@ typedef struct _ST_CC_OTE_CTRL {
 	SOCKADDR_IN	addr_in_active_ote;
 }ST_CC_OTE_CTRL, * LPST_CC_OTE_CTRL;
 // OTEからの要求コード                              　         　	
-
-
 
 typedef struct _ST_CC_OTE_INF {
 //CS作業バッファ
