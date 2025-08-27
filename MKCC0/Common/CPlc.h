@@ -121,7 +121,6 @@ typedef struct _ST_GOT_AXIS_SET{
 	INT32   pg_count;			// PGカウンタ値
 	INT32   absocoder;			// アブソコーダ値
 	INT16   drum_phase;			// ドラム層
-	INT16   spare[6];			// 予備
 }ST_GOT_AXIS_SET, * LPST_GOT_AXIS_SET;
 
 typedef struct _ST_PLC_WBUF_HHGG38 {
@@ -137,11 +136,12 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 	float   wind_spd;				// D10670　風速
 	INT16   spare1[8];				// D10672　予備
 	ST_GOT_AXIS_SET mh_set;			    // D10680　主巻
-	ST_GOT_AXIS_SET bh_set;			    // D10682　引込
-	ST_GOT_AXIS_SET sl_set;			    // D10698　旋回
-	ST_GOT_AXIS_SET gt_set;			    // D10714　走行
-	ST_GOT_AXIS_SET ah_set;			    // D10730　補巻
-	INT16   fault_code[10];			// D10746　故障コード
+	ST_GOT_AXIS_SET bh_set;			    // D10690　引込
+	ST_GOT_AXIS_SET sl_set;			    // D10700　旋回
+	ST_GOT_AXIS_SET gt_set;			    // D10710　走行
+	ST_GOT_AXIS_SET ah_set;			    // D10720　補巻
+	INT16   fault_code[20];				// D10730　故障コード
+	INT16   spare2[20];				// D10672　予備
 }ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
 
 typedef struct _ST_PLC_RBUF_HHGG38 {
