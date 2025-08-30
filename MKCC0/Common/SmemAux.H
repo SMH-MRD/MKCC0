@@ -27,7 +27,7 @@ typedef struct _ST_SLBRK_COM {
 	INT16 pc_com_brk_level;
 	INT16 pc_com_hw_brk;
 	INT16 pc_com_reset;
-	INT16 pc_com_eng;
+	INT16 pc_com_emg;
 	INT16 pc_com_autosel;
 }ST_SLBRK_COM, * LPST_SLBRK_COM;
 
@@ -40,11 +40,12 @@ typedef struct _ST_SLBRK_FB {
 	INT16 brk_fb_healthy;
 	INT16 brk_fb_err_map;
 	INT16 brk_fb_err_code;
+	INT16 brk_fb_rbsl_pos;
 }ST_SLBRK_FB, * LPST_SLBRK_FB;
 
 typedef struct _ST_AUX_AGENT_INF {
-	INT16 slbrk_wbuf[1];
-	INT16 slbrk_rbuf[3];
+	INT16 slbrk_wbuf[16];
+	INT16 slbrk_rbuf[16];
 	
 }ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 

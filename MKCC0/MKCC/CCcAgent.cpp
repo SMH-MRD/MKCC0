@@ -364,13 +364,20 @@ int CAgent::close() {
 
 int CAgent::manage_slbrk() {
 
-	//旋回ブレーキ指令
-	pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.trig_l >> 4; //PCコントロールブレーキレベル
+
+	//旋回ブレーキAUTO MODE
+	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080;
 	
+	//旋回ブレーキハードウェア指令
 	if(pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.kidou_l)
 		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0x0010;
 	else
 		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0x0000;
+
+	//旋回ブレーキ指令
+	pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.trig_l >> 4; //PCコントロールブレーキレベル
+	if ((pAUX_CS_Inf->com_slbrk.pc_com_autosel) && !(pAUX_CS_Inf->com_slbrk.pc_com_brk_level))
+		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 1;
 
 	return 0;
 }

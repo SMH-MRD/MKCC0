@@ -136,7 +136,8 @@ typedef struct _AUXAG_MON1 {
 #define AUXAG_ID_MON2_STATIC_REQ_R          2   //読込要求メッセージ
 #define AUXAG_ID_MON2_STATIC_RES_R          3   //読込応答メッセージ
 #define AUXAG_ID_MON2_STATIC_REQ_W          4   //書込要求メッセージ
-#define AUXAG_ID_MON2_STATIC_RES_W          5   //書込応答メッ    セージ
+#define AUXAG_ID_MON2_STATIC_RES_W          5   //書込応答メッセージ
+#define AUXAG_ID_MON2_STATIC_MAIN_INF      6   //MAINロジック指令情報
 
 #define AUXAG_ID_MON2_CB_COM_LEVEL_BIT0     16   //読み込み表示ブロック切替PB
 #define AUXAG_ID_MON2_CB_COM_LEVEL_BIT1     17  //読み込み表示ブロック切替PB
@@ -166,19 +167,19 @@ typedef struct _AUXAG_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[AUXAG_MON2_N_CTRL] = {
-        5,5, 5,30, 5,55, 5,80, 5,105, 5,130,0,0, 0,0,//Static
+        5,5, 5,30, 5,55, 5,80, 5,105, 5,130,5,200, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         20,160, 75,160, 140,160, 195,160, 270,160, 330,160, 390,160, 450,160,//CB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AUXAG_MON2_N_CTRL] = {
-        615,20, 615,20, 615,20, 615,20, 615,20,615,20, 0,0, 0,0,//Static
+        615,20, 615,20, 615,20, 615,20, 615,20,615,20,615,20, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20,//CB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[AUXAG_MON2_N_CTRL][AUXAG_MON2_N_WCHAR] = {
-        L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
+        L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"MAIN CS", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"LV0", L"LV1", L"LV2", L"LV3", L"HWB", L"RST", L"EMG", L"AUT",//CB
         L"", L"", L"", L"", L"", L"", L"", L""

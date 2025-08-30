@@ -228,6 +228,9 @@ int CAuxAgent::output() {          //出力処理
 	pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
 	pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHW
 
+	pAgent_Inf->slbrk_wbuf[0] = pCS_Inf->com_slbrk.pc_com_autosel | pCS_Inf->com_slbrk.pc_com_hw_brk |pCS_Inf->com_slbrk.pc_com_brk_level;
+	
+
 	return STAT_OK;
 }
 int CAuxAgent::close() {
@@ -305,7 +308,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
-		for (int i = AUXAG_ID_MON2_STATIC_MSG; i <= AUXAG_ID_MON2_STATIC_RES_W; i++) {
+		for (int i = AUXAG_ID_MON2_STATIC_MSG; i <= AUXAG_ID_MON2_STATIC_MAIN_INF; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
@@ -406,7 +409,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			monwos.str(L""); 
 			if(st_mon2.msg_disp_mode == AUXAG_MON2_MSG_DISP_HEX)monwos << hex << std::setw(4) << std::setfill(L'0');
 
-			monwos << L" BRK D96:" << pAgent_Inf->slbrk_rbuf[0] << L"  D16:" << pAgent_Inf->slbrk_rbuf[0] << L" 17:" << pAgent_Inf->slbrk_rbuf[1] << L" 18:" << pAgent_Inf->slbrk_rbuf[2];
+			monwos << L" BRK D96:" << pAgent_Inf->slbrk_wbuf[0] << L"  D16:" << pAgent_Inf->slbrk_rbuf[0] << L" 17:" << pAgent_Inf->slbrk_rbuf[1] << L" 18:" << pAgent_Inf->slbrk_rbuf[2];
 			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MSG], monwos.str().c_str());
 
 			SOCKADDR_IN	addr;
@@ -422,6 +425,11 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					<< htons(addr.sin_port) << L" ";
 				SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_INF], monwos.str().c_str());
 			}
+			
+			monwos.str(L"");
+			monwos << L" MAIN CS >> LEVEL:" << pCS_Inf->com_slbrk.pc_com_brk_level << L"  HW:" << pCS_Inf->com_slbrk.pc_com_hw_brk << L" RST:" << pCS_Inf ->com_slbrk.pc_com_reset << L" EMG:" << pCS_Inf->com_slbrk.pc_com_emg << L" AUTO:" << pCS_Inf->com_slbrk.pc_com_autosel;
+			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MAIN_INF], monwos.str().c_str());
+
 		}
 	}break;
 	case WM_COMMAND: {
