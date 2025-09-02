@@ -63,12 +63,12 @@
 #define PORT_MC_CLIENT				3020					//制御PCポート
 #define PORT_MC_SERVER				3010					//CPU本体の時のPLCポート
 
-//#define IP_ADDR_MC_CLIENT_OTE		OTE_IF_SUB_IP_OTE0		//PLC IF 遠隔操作卓PC　IPアドレス
-#define IP_ADDR_MC_CLIENT_OTE		CC_IF_CRANE_SUB_IP		//PLC IF 遠隔操作卓PC　IPアドレス
+#define IP_ADDR_MC_CLIENT_OTE		OTE_IF_SUB_IP_OTE0		//PLC IF 遠隔操作卓PC　IPアドレス
+//#define IP_ADDR_MC_CLIENT_OTE		CC_IF_CRANE_SUB_IP		//PLC IF 遠隔操作卓PC　IPアドレス
 #define IP_ADDR_MC_SERVER_OTE		"192.168.100.160"		//PLC IF 遠隔操作卓PLC	 IPアドレス
 #define PORT_MC_CLIENT_OTE			3040					//遠隔PCポート
-#define PORT_MC_SERVER_OTE			5000					//OTEの時のPLCポート
-//#define PORT_MC_SERVER_OTE			3010				//OTEの時のPLCポート
+//#define PORT_MC_SERVER_OTE			5011					//OTEの時のPLCポート
+#define PORT_MC_SERVER_OTE			3030				//OTEの時のPLCポート
 
 #define IP_ADDR_MC_CLIENT_SLBRK		CC_IF_CRANE_SUB_IP		//旋回BRK IF 遠隔PC	IPアドレス
 #define IP_ADDR_MC_SERVER_SLBRK		"192.168.100.120"		//旋回BRK IF PLC	IPアドレス

@@ -228,7 +228,8 @@ int CAuxAgent::output() {          //出力処理
 	pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
 	pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHW
 
-	pAgent_Inf->slbrk_wbuf[0] = pCS_Inf->com_slbrk.pc_com_autosel | pCS_Inf->com_slbrk.pc_com_hw_brk |pCS_Inf->com_slbrk.pc_com_brk_level;
+	if(!st_mon2.slbrk_dbg_mode)
+		pAgent_Inf->slbrk_wbuf[0] = pCS_Inf->com_slbrk.pc_com_autosel | pCS_Inf->com_slbrk.pc_com_hw_brk |pCS_Inf->com_slbrk.pc_com_brk_level;
 	
 
 	return STAT_OK;
@@ -314,7 +315,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 		//CB
-		for (int i = AUXAG_ID_MON2_CB_COM_LEVEL_BIT0; i <= AUXAG_ID_MON2_CB_COM_AUTOSEL; i++) {
+		for (int i = AUXAG_ID_MON2_CB_COM_LEVEL_BIT0; i <= AUXAG_ID_MON2_CB_MODE_SLBRK_DBG; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
@@ -501,7 +502,15 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				pAgent_Inf->slbrk_wbuf[0] |= 0x0080;
 			}
 		}break;
-
+		case AUXAG_ID_MON2_CB_MODE_SLBRK_DBG: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_MODE_SLBRK_DBG], BM_GETCHECK, 0, 0)) {
+				st_mon2.slbrk_dbg_mode = L_OFF;
+			}
+			else {
+				st_mon2.slbrk_dbg_mode = L_ON;
+			}
+		}break;
+										 
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
