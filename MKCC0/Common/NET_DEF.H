@@ -13,27 +13,18 @@
 #define DEFAULT_MY_PORT				10050
 
 //@ CRANE-------------------------------------------------------------------------------------
-#define OTE_IF_CRANE_IP_PC0			"192.168.100.100"	//PC単体デバッグ用
-#define OTE_IF_CRANE_IP_H6R602		"192.168.100.100"	//みらい（デフォルト）
-#define OTE_IF_CRANE_IP_HHGH29		"192.168.100.100"	//今造多度津JC70t(102号)
-#define OTE_IF_CRANE_IP_HHGQ18		"192.168.102.100"	//今造多度津JC300t(10号)
-#define OTE_IF_CRANE_IP_HHFR22		"192.168.103.100"	//今造丸亀GC1300t(1号)
+#define OTE_IF_CRANE_IP_PC0			"192.168.100.101"	//PC単体デバッグ用
+#define OTE_IF_CRANE_IP_H6R602		"192.168.100.101"	//みらい（デフォルト）
+#define OTE_IF_CRANE_IP_HHGH29		"192.168.100.101"	//今造多度津JC70t(102号)
+#define OTE_IF_CRANE_IP_HHGQ18		"192.168.102.101"	//今造多度津JC300t(10号)
+#define OTE_IF_CRANE_IP_HHFR22		"192.168.103.101"	//今造丸亀GC1300t(1号)
 
-#define CC_IF_CRANE_SUB_IP			"192.168.100.101"	//PC単体デバッグ用
-#define CC_IF_CRANE_SUB_IP_H6R602	"192.168.100.101"	//みらい（デフォルト）
-#define CC_IF_CRANE_SUB_IP_HHGH29	"192.168.100.101"	//今造多度津JC70t(102号)
-#define CC_IF_CRANE_SUB_IP_HHGQ18	"192.168.102.101"	//今造多度津JC300t(10号)
-#define CC_IF_CRANE_SUB_IP_HHFR22	"192.168.103.101"	//今造丸亀GC1300t(1号)
 //@ OTE---------------------------------------------------------------------------------------
-#ifndef _DEBUG_PC0
-#define OTE_IF_UNI_IP_PC			OTE_IF_CRANE_IP_H6R602 	//PCのOTE UNICAST　IF用IP	（受信,送信）
-#define OTE_IF_UNI_IP_OTE0			"192.168.100.112"		//デフォルトOTEのUNICAST用IP（受信,送信）
-#else
-#define OTE_IF_UNI_IP_PC			OTE_IF_CRANE_IP_PC0 	//PCのOTE UNICAST　IF用IP	（受信,送信）
-#define OTE_IF_UNI_IP_OTE0			"192.168.100.100"		//デフォルトOTEのUNICAST用IP（受信,送信）
+#define OTE_IF_UNI_IP_PC			"192.168.100.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
+#define OTE_IF_UNI_IP_OTE0			"192.168.100.151"		//デフォルトOTEのUNICAST用IP（受信,送信）
 #define OTE_IF_SUB_IP_OTE0			"192.168.100.151"		//デフォルトOTEのSUB IP（受信,送信）
-//#define OTE_IF_UNI_IP_OTE0			"10.130.7.226"		//デフォルトOTEのUNICAST用IP（受信,送信）
-#endif
+
+
 #define OTE_IF_UNI_IP_PC_WAN		"100.87.239.249" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 #define OTE_IF_UNI_IP_PC_VPN		"192.168.1.9" 			//PCのOTE UNICAST　IF用IP	（受信 VPN回線）
 
@@ -58,7 +49,7 @@
 #define PLC_IF_TYPE_CC				0
 #define PLC_IF_TYPE_OTE				1
 #define PLC_IF_TYPE_SLBRK			2
-#define IP_ADDR_MC_CLIENT			OTE_IF_UNI_IP_PC		//PLC IF 制御PC　IPアドレス
+#define IP_ADDR_MC_CLIENT			"192.168.100.100"		//PLC IF 制御PC　IPアドレス
 #define IP_ADDR_MC_SERVER			"192.168.100.110"		//PLC IF PLC IPアドレス
 #define PORT_MC_CLIENT				3020					//制御PCポート
 #define PORT_MC_SERVER				3010					//CPU本体の時のPLCポート
@@ -67,13 +58,12 @@
 //#define IP_ADDR_MC_CLIENT_OTE		CC_IF_CRANE_SUB_IP		//PLC IF 遠隔操作卓PC　IPアドレス
 #define IP_ADDR_MC_SERVER_OTE		"192.168.100.160"		//PLC IF 遠隔操作卓PLC	 IPアドレス
 #define PORT_MC_CLIENT_OTE			3040					//遠隔PCポート
-//#define PORT_MC_SERVER_OTE			5011					//OTEの時のPLCポート
 #define PORT_MC_SERVER_OTE			3030				//OTEの時のPLCポート
 
-#define IP_ADDR_MC_CLIENT_SLBRK		CC_IF_CRANE_SUB_IP		//旋回BRK IF 遠隔PC	IPアドレス
+#define IP_ADDR_MC_CLIENT_SLBRK		OTE_IF_CRANE_IP_PC0	//CC_IF_CRANE_SUB_IP		//旋回BRK IF 遠隔PC	IPアドレス
 #define IP_ADDR_MC_SERVER_SLBRK		"192.168.100.120"		//旋回BRK IF PLC	IPアドレス
 #define PORT_MC_CLIENT_SLBRK		3021					//遠隔PCポート
-#define PORT_MC_SERVER_SLBRK		5011					//旋回BRKのPLCポート
+#define PORT_MC_SERVER_SLBRK		3011					//旋回BRKのPLCポート
 
 #define IP_ADDR_MC_CLIENT_DEF		"127.0.0.1"
 #define IP_ADDR_MC_SERVER_DEF		"127.254.254.254"
