@@ -149,6 +149,12 @@ HRESULT COteCS::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int COteCS::input() {
+	//	操作台信号取り込み
+	
+
+	//	PCパネル信号取り込み
+
+
 	//	ゲームパッド取り込み
 	if ((pPad != NULL)&& st_work.st_body.game_pad_mode ){
 		if (pPad->PollController(pPad->controllerId)) {//GamePad状態取り込み
@@ -268,7 +274,7 @@ int COteCS::output() {
 	
 
 	//遠隔操作卓PLCへの送信バッファ内容セット
-	LPST_PLC_WBUF_HHGG38 pPcWBuf = (LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opeio_write;
+	LPST_PLC_WBUF_HHGG38 pPcWBuf = (LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opeio_write.wbuf;
 	
 	//機上PLCの受信バッファ内容参照ポインタセット（書き込みデータ参照用）
 	LPST_PLC_RBUF_HHGH29 pPlcRBuf = (LPST_PLC_RBUF_HHGH29)pOteCCInf->st_msg_pc_u_rcv.body.st.buf_io_read;
@@ -464,7 +470,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		if (is_write_req_turn) {//書き込み要求送信
 			st_mon2.wo_req_w.str(L"");
 			//3Eフォーマット Dデバイス書き込み要求送信
-			if (pMCSock->send_write_req_D_3E(pOteCsInf->buf_opeio_write) != S_OK) {
+			if (pMCSock->send_write_req_D_3E(pOteCsInf->buf_opeio_write.wbuf) != S_OK) {
 				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
 			}
 			else snd_count_plc_w++;
@@ -486,7 +492,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
 					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
 
-				st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opeio_write[0];
+				st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opeio_write.wbuf[0];
 
 
 					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
@@ -609,7 +615,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon2.wo_res_w.str(L"");
 		switch (nEvent) {
 		case FD_READ: {
-			UINT nRtn = pMCSock->rcv_msg_3E(pOteCsInf->buf_opeio_read);
+			UINT nRtn = pMCSock->rcv_msg_3E(pOteCsInf->st_body.ope_plc_rbuf);
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
 				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
@@ -624,7 +630,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 						<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n";
 
 
-					st_mon2.wo_res_r << L"PLC HEALTHY:" << pOteCsInf->buf_opeio_read[0] << L"\n";
+					st_mon2.wo_res_r << L"PLC HEALTHY:" << pOteCsInf->st_body.ope_plc_rbuf[0] << L"\n";
 
 					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 

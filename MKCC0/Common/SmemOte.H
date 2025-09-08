@@ -95,10 +95,9 @@ typedef struct _ST_OTE_ENV_INF {
 #pragma region OTE_CS_INF
 
 typedef struct _ST_OTE_CS_INF {
-	INT16 buf_opeio_read[OTE_MC_SIZE_W_READ];	//操作卓PLCからの読み取り信号生値
-	INT16 buf_opeio_write[OTE_MC_SIZE_W_WRITE];	//操作卓PLCへの書き込み信号生値
+	UN_OPE_PLC_WBUF buf_opeio_write;	//操作卓PLCへの書き込み信号生値
 	INT32 cc_ope_active = L_OFF;
-	ST_OTE_U_BODY st_body;					//OTE⇒PC送信メッセージボディ部
+	ST_OTE_U_BODY st_body;						//OTE⇒PC送信メッセージボディ部
 	ST_GPAD_IN gpad_in;	//ゲームパッド入力
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他

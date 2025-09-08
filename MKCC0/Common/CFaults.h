@@ -79,6 +79,10 @@ public:
 		pwbuf = _pwbuf;
 		setup(crane_id);
 	}
+	CFaults(int _crane_id) {
+		crane_id = _crane_id;
+		setup(crane_id);
+	}
 	virtual ~CFaults() {
 		;
 	}

@@ -14,13 +14,13 @@
 #define MASK_BIT_PC_CTRL_ACTIVE  0x00008000
 #define MASK_BIT_PC_SIM_MODE    0x00004000
 
-#define ID_PLC_HCOUNT_MH      0
-#define ID_PLC_HCOUNT_AH      1
-#define ID_PLC_HCOUNT_BH      2
-#define ID_PLC_HCOUNT_SL      3
-#define ID_PLC_ABSO_MH      0
-#define ID_PLC_ABSO_AH      1
-#define ID_PLC_ABSO_GT      2
+#define ID_PLC_HCOUNT_MH		0
+#define ID_PLC_HCOUNT_AH		1
+#define ID_PLC_HCOUNT_BH		2
+#define ID_PLC_HCOUNT_SL		3
+#define ID_PLC_ABSO_MH			0
+#define ID_PLC_ABSO_AH			1
+#define ID_PLC_ABSO_GT			2
 
 /*** PLC IFバッファ構造体定義 ***/
 //デフォルト（みらい）の定義
@@ -61,7 +61,6 @@ typedef struct _ST_PLC_RBUF {
 	INT16   inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
 	INT16   spare1[4];            //予備
 }ST_PLC_RBUF, * LPST_PLC_RBUF;
-
 //西多度津70tJC102号の定義
 typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC
 	INT16   helthy;						//D10200:PCヘルシー出力信号
@@ -111,8 +110,20 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
+union UN_PLC_RBUF {
+	INT16 rbuf[CC_MC_SIZE_W_READ];
+	ST_PLC_RBUF			st;
+	ST_PLC_RBUF_HHGH29	st_hhgh29;
+};
 
-typedef struct _ST_GOT_AXIS_SET{
+union UN_PLC_WBUF {
+	INT16 wbuf[CC_MC_SIZE_W_WRITE];
+	ST_PLC_WBUF			st;
+	ST_PLC_WBUF_HHGH29	st_hhgh29;
+};
+
+
+typedef struct _ST_GOT_AXIS_SET {
 	INT16   notch;				// ノッチ入力
 	INT16   v_ref_tg;			// 目標速度
 	INT16   v_ref;				// 速度指令
@@ -135,45 +146,43 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 	float   ah_load;				// D10668　補巻荷重
 	float   wind_spd;				// D10670　風速
 	INT16   spare1[8];				// D10672　予備
-	ST_GOT_AXIS_SET mh_set;			    // D10680　主巻
-	ST_GOT_AXIS_SET bh_set;			    // D10690　引込
-	ST_GOT_AXIS_SET sl_set;			    // D10700　旋回
-	ST_GOT_AXIS_SET gt_set;			    // D10710　走行
-	ST_GOT_AXIS_SET ah_set;			    // D10720　補巻
-	INT16   fault_code[20];				// D10730　故障コード
+	ST_GOT_AXIS_SET mh_set;			// D10680　主巻
+	ST_GOT_AXIS_SET bh_set;			// D10690　引込
+	ST_GOT_AXIS_SET sl_set;			// D10700　旋回
+	ST_GOT_AXIS_SET gt_set;			// D10710　走行
+	ST_GOT_AXIS_SET ah_set;			// D10720　補巻
+	INT16   fault_code[20];			// D10730　故障コード
 	INT16   spare2[20];				// D10672　予備
 }ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
 
 typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   plc_healthy;			// D10600:PLCヘルシーカウンタ
 	INT16   plc_status;				// D10601: PLC運転モード
-	INT16	ai_sl_foot;				// D10602:
-	INT16	ai_spare[3];			// D10603:
-	INT16	b200;					// D10606:
-	INT16	b210;					// D10607:
-	INT16	b220;					// D10608:
-	INT16	b230;					// D10609:
-	INT16	b240;					// D10610:
-	INT16	b250;					// D10611:
-	INT16	b260;					// D10612:
-	INT16	b270;					// D10613:
-	INT16   spare0[2];				// D10614
-	INT16   spare1[34];				// D10616:運転室PLC→電気室PLC b出力
+	UINT16  spare0[8];				// D10602:運転室PLC→電気室PLC W出力
+	INT16	ai_sl_foot;				// D10610:
+	INT16	ai_spare[3];			// D10611:
+	INT16	xin[10];				// D10614-23:
+	INT16   spare1[5];				// D10624: 
+	INT16   lamp_sw;				// D10629
+	INT16	nothc_LX0;				// D10630
+	INT16	nothc_LY0;				// D10631
+	INT16	nothc_RX0;				// D10632
+	INT16	nothc_RY0;				// D10633
+	INT16	nothc_L1;				// D10634
+	INT16	nothc_R1;				// D10635
+	INT16   spare2[14];				// D10636: 
 }ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 
-union UN_PLC_RBUF {
-	INT16 rbuf[CC_MC_SIZE_W_READ];
-	ST_PLC_RBUF			st;
-	ST_PLC_RBUF_HHGH29	st_hhgh29;
+union UN_OPE_PLC_RBUF {
+	INT16 rbuf[OTE_MC_SIZE_W_READ];
 	ST_PLC_RBUF_HHGG38	st_hhgg38;
 };
 
-union UN_PLC_WBUF {
-	INT16 wbuf[CC_MC_SIZE_W_WRITE];
-	ST_PLC_WBUF			st;
-	ST_PLC_WBUF_HHGH29	st_hhgh29;
-	ST_PLC_WBUF_HHGG38	st_hhgg38;
+union UN_OPE_PLC_WBUF {
+	INT16 wbuf[OTE_MC_SIZE_W_WRITE];
+	ST_PLC_WBUF_HHGG38	st_hhgh38;
 };
+
 
 #pragma pack(pop)
 
@@ -371,10 +380,14 @@ public:
 		set_wbuf(_pbuf_w);
 		setup(crane_id);
 	};
+
+	CPlc(int _crane_id) {
+		crane_id = _crane_id;
+		setup(crane_id);
+	};
+
 	virtual ~CPlc() {};
 
-	//static ST_PLC_IO_RIF plc_io_rif;
-	//static ST_PLC_IO_WIF plc_io_wif;
 	ST_PLC_IO_RIF plc_io_rif;
 	ST_PLC_IO_WIF plc_io_wif;
 

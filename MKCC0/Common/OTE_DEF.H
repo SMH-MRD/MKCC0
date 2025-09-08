@@ -87,12 +87,6 @@ typedef struct OteComHead {
 #define ID_OTE_NOTCH_POS_TRIG			1 //トリガ状態
 #define ID_OTE_NOTCH_POS_CNT			2 //状態保持カウント値
 
-//グリップスイッチ
-#define OTE_GRIP_ESTP					0x03
-#define OTE_GRIP_ENABLE					0x08
-#define OTE_GRIP_ACTIVE					0X14
-#define OTE_GRIP_DBG_ENABLE				0x80
-
 #endif
 
 #pragma endregion
@@ -143,7 +137,7 @@ typedef struct _ST_OTE_PC_FLTS_SET {
 	INT16 codes[N_OTE_PC_SET_FLT];		//発生中故障コード
 }ST_OTE_PC_FLTS_SET, * LPST_OTE_PC_FLTS_SET;
 
-enum OTE_PNL_CTRLS{
+enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	estop=0,
 	syukan_on,
 	syukan_off,
@@ -167,7 +161,7 @@ enum OTE_PNL_CTRLS{
 	MAX
 };
 
-enum OTE_PNL_NOTCH {
+enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 	R5 = 0,
 	R4, R3, R2, R1, N0, F1, F2, F3, F4, F5,
 	NOTCH_MAX
@@ -226,21 +220,23 @@ typedef struct _ST_GPAD_IN {
 #define CODE_OTE_FLT_INF_TRIG		BIT8	//PCからトリガ通知
 #define CODE_OTE_FLT_REQ_REFRESH	BIT8	//OTEからリスト更新要求（トリガクリア,表示選択変更時）
 
+#define N_OTE_OPEPNL_XIN			10		//重故障1	
+
 typedef struct OteUBody {
-	INT16		ope_mode;														//操作モード（自動/手動/ビギナー）
-	INT16		remote;															//
-	INT16		auto_mode;														//
-	INT16		ctrl_device_mode;												//操作デバイスモード（操作卓/JOYPAD/パネル）
-	INT16		opt_device_status;												//オプションデバイスモード
-	INT16		game_pad_mode;													//ゲームパッド操作モード
-	INT16		faults_disp_req;											//故障表示要求
-	INT16		notch_mode;														//ノッチモード
-	INT16		ctrl_ope[N_OTE_PNL_CTRL];										//操作卓PB入力
-	INT16		ote_type;
+	INT16		ope_mode;						//操作モード（自動/手動/ビギナー）
+	INT16		remote;							//
+	INT16		auto_mode;						//
+	INT16		ctrl_device_mode;				//操作デバイスモード（操作卓/JOYPAD/パネル）
+	INT16		opt_device_status;				//オプションデバイスモード
+	INT16		game_pad_mode;					//ゲームパッド操作モード
+	INT16		faults_disp_req;				//故障表示要求
+	INT16		notch_mode;						//ノッチモード
+	INT16		ctrl_ope[N_OTE_PNL_CTRL];		//操作卓PB入力
+	INT16		ote_type;						//操作卓タイプ　　
 	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
-	UINT32		target_seq_no;													//自動目標位置のシーケンス番号（トリガ検出用）
-	ST_GPAD_IN	gpad_in;														//ゲームパッド入力
-	INT16				buf_io_write[CC_MC_SIZE_W_WRITE];							//PLC WRITEデータ
+	UINT32		target_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
+	ST_GPAD_IN	gpad_in;						//ゲームパッド入力
+	INT16 ope_plc_rbuf[OTE_MC_SIZE_W_READ];
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
 
 //########################################################
