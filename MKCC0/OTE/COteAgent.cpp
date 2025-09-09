@@ -231,25 +231,19 @@ int COteAgent::input() {
 }
 
 int COteAgent::parse() {
-	//受信データ解析
+
+	//CC受信データ解析
 	st_work.cc_active_ote_id = pOteCCIf->st_msg_pc_u_rcv.head.tgid;
 
+
 	//送信データ解析
-		//操作ボタン類（SCADA共有メモリ部）
-	//memcpy_s(
-	//	st_work.st_msg_ote_u_snd.body.st.ctrl_ope, sizeof(st_work.st_msg_ote_u_snd.body.st.ctrl_ope),
-	//	pOteUI->ctrl_stat, sizeof(pOteUI->ctrl_stat)
-	//);
+	//操作ボタン類（SCADA共有メモリ部）
 
 	//##################### 送信バッファセット　############################################
 	// Game Pad信号（CS共有メモリ部）
-	memcpy_s(
-		&st_work.st_msg_ote_u_snd.body.st.gpad_in, sizeof(ST_GPAD_IN),	//出力先：送信バッファ
-		&(pOteCsInf->gpad_in), sizeof(ST_GPAD_IN)						//source: CS共有メモリ部のGame Pad入力信号
-	);
 
 	// パネル操作信号 !!!250526(当面SCADA共有メモリ部をセット）⇒操作台入力も折り込み改善必要
-	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.ctrl_ope;//送信バッファのOTE操作信号情報部のポインタ
+	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.pnl_ctrl;//送信バッファのOTE操作信号情報部のポインタ
 	//PBのGame Pad入力信号は、
 	pctrl[OTE_PNL_CTRLS::estop]			= pOteUI->ctrl_stat[OTE_PNL_CTRLS::estop];
 	pctrl[OTE_PNL_CTRLS::syukan_on]		= pOteUI->ctrl_stat[OTE_PNL_CTRLS::syukan_on];
@@ -729,10 +723,16 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 						}
 					}
 					else if (st_mon2.ipage_uni == 1) {
-	
+						st_mon2.wo_uni << L"@ PNL CTRL:";
+						for (int i = 0; i < 20; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
+						}
 					}
 					else if (st_mon2.ipage_uni == 2) {
-
+						st_mon2.wo_uni << L"@ PNL CTRL:";
+						for (int i = 21; i < 40; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
+						}
 					}
 					else {
 						st_mon2.wo_uni << L"No Page";
@@ -756,13 +756,13 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 					st_mon2.wo_uni << L"[BODY P" << st_mon2.ipage_uni << L"]" ;
 					if (st_mon2.ipage_uni == 0) {
-						st_mon2.wo_uni << L"@ESTOP:" << pb0->ctrl_ope[OTE_PNL_CTRLS::estop]
-							<< L"@主幹入:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_on]
-							<< L"@主幹切:" << pb0->ctrl_ope[OTE_PNL_CTRLS::syukan_off]
-							<< L"@RMT:" << pb0->ctrl_ope[OTE_PNL_CTRLS::remote]
-							<< L"@FRESET:" << pb0->ctrl_ope[OTE_PNL_CTRLS::fault_reset]
-							<< L"@MH_SPD:" << pb0->ctrl_ope[OTE_PNL_CTRLS::mh_spd_mode]
-							<< L"@BH_MODE:" << pb0->ctrl_ope[OTE_PNL_CTRLS::bh_r_mode]
+						st_mon2.wo_uni << L"@ESTOP:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::estop]
+							<< L"@主幹入:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]
+							<< L"@主幹切:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::syukan_off]
+							<< L"@RMT:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::remote]
+							<< L"@FRESET:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::fault_reset]
+							<< L"@MH_SPD:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]
+							<< L"@BH_MODE:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]
 							;
 					}
 					else if (st_mon2.ipage_uni == 1) {

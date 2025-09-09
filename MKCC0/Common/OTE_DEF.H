@@ -156,8 +156,22 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	notch_bh,
 	notch_sl,
 	notch_gt,
+	notch_ah,
+	notch_beam,
 	mh_spd_mode,
 	bh_r_mode,
+	alm_stop,
+	motor_siren,
+	hd_lamp,
+	hv_trolley,
+	hv_gantry,
+	hv_aux,
+	irisA,
+	irisB,
+	camA_adjust,
+	camB_adjust,	
+	camAselect,
+	camBselect,
 	MAX
 };
 
@@ -231,12 +245,10 @@ typedef struct OteUBody {
 	INT16		game_pad_mode;					//ゲームパッド操作モード
 	INT16		faults_disp_req;				//故障表示要求
 	INT16		notch_mode;						//ノッチモード
-	INT16		ctrl_ope[N_OTE_PNL_CTRL];		//操作卓PB入力
+	INT16		pnl_ctrl[N_OTE_PNL_CTRL];		//操作卓PB入力
 	INT16		ote_type;						//操作卓タイプ　　
 	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
 	UINT32		target_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
-	ST_GPAD_IN	gpad_in;						//ゲームパッド入力
-	INT16 ope_plc_rbuf[OTE_MC_SIZE_W_READ];
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
 
 //########################################################

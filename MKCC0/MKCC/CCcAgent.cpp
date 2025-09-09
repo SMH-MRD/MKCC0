@@ -87,7 +87,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}
 	else {
 		//OTE操作入力信号ポインタセット
-		pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.ctrl_ope;
+		pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl;
 	}
 
 	//### クレーンオブジェクト取得
@@ -294,7 +294,7 @@ int CAgent::parse() {//メイン処理
 	pCrane->pPlc->wval(pPlcWIf->pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
 
 	//### OTE操作信号書込セット
-	// CS受信のバッファ	pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.ctrl_ope;
+	// CS受信のバッファ	pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl;
 	// !!GamePadの入力はCSのinputでオブジェクトを直接セットしている
 	//PB,スイッチ類
 	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::syukan_on]);			//主幹ON
@@ -350,9 +350,11 @@ int CAgent::output() {
 
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
+
+
 	//PLC IO送信データ出力
 	//送信は 共有メモリに設定後、送信バッファにコピー（受信は直接共有メモリに読み込む）
-	memcpy_s(&st_work_plcio.buf_io_write,sizeof(pPLC_IO->buf_io_write),pPLC_IO->buf_io_write, sizeof(pPLC_IO->buf_io_write));
+	//memcpy_s(&st_work_plcio.buf_io_write,sizeof(pPLC_IO->buf_io_write),pPLC_IO->buf_io_write, sizeof(pPLC_IO->buf_io_write));
 
 	return S_OK;
 }
@@ -367,17 +369,7 @@ int CAgent::manage_slbrk() {
 
 	//旋回ブレーキAUTO MODE
 	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080;
-	
-	//旋回ブレーキハードウェア指令
-	if(pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.kidou_l)
-		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0x0010;
-	else
-		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0x0000;
 
-	//旋回ブレーキ指令
-	pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.trig_l >> 4; //PCコントロールブレーキレベル
-	if ((pAUX_CS_Inf->com_slbrk.pc_com_autosel) && !(pAUX_CS_Inf->com_slbrk.pc_com_brk_level))
-		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 1;
 
 	return 0;
 }
@@ -420,11 +412,6 @@ LRESULT CALLBACK CAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 	}break;
 	case WM_TIMER: {
-
-		st_mon1.wo.str(L"");  
-		st_mon1.wo	<< L"GPAD trig_l:" << pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.trig_l 
-					<< L" kidou_l:" << pOTE_Inf->st_msg_ote_u_rcv.body.st.gpad_in.kidou_l;
-		SetWindowText(st_mon1.hctrl[AGENT_ID_MON1_STATIC_SLBRK_OTE], st_mon1.wo.str().c_str());
 
 		st_mon1.wo.str(L"");
 		st_mon1.wo << L"PC BRK COM : level " << pAUX_CS_Inf->com_slbrk.pc_com_brk_level

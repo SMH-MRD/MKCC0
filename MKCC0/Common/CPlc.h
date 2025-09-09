@@ -138,7 +138,8 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 	INT16   pc_healthy;				// D10650　PCヘルシー出力信号
 	INT16   pc_status;				// D10651　PC Status
 	INT16   crane_id;				// D10652　接続クレーンID
-	INT16	spare0[7];
+	UINT16  auto_sw;				// D10653　自動関連スイッチ
+	INT16	spare0[6];				// D10654　予備
 	INT16   lamp[2];				// D10660　ランプ出力(B10-2F）
 	float   mh_hight;				// D10662　主巻揚程
 	float   r;						// D10664　補巻揚程
@@ -158,18 +159,21 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   plc_healthy;			// D10600:PLCヘルシーカウンタ
 	INT16   plc_status;				// D10601: PLC運転モード
-	UINT16  spare0[8];				// D10602:運転室PLC→電気室PLC W出力
+	INT16   auto_sw;				// D10602: PLC運転モード
+	UINT16  spare0[7];				// D10603:
 	INT16	ai_sl_foot;				// D10610:
 	INT16	ai_spare[3];			// D10611:
 	INT16	xin[10];				// D10614-23:
-	INT16   spare1[5];				// D10624: 
+	INT16   spare1[3];				// D10624: 
+	INT16   mh_mode_cs;				// D10627: 
+	INT16   bh_mode_cs;				// D10628: 
 	INT16   lamp_sw;				// D10629
-	INT16	nothc_LX0;				// D10630
-	INT16	nothc_LY0;				// D10631
-	INT16	nothc_RX0;				// D10632
-	INT16	nothc_RY0;				// D10633
-	INT16	nothc_L1;				// D10634
-	INT16	nothc_R1;				// D10635
+	INT16	notch_LX0;				// D10630
+	INT16	notch_LY0;				// D10631
+	INT16	notch_RX0;				// D10632
+	INT16	notch_RY0;				// D10633
+	INT16	notch_L1;				// D10634
+	INT16	notch_R1;				// D10635
 	INT16   spare2[14];				// D10636: 
 }ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 
