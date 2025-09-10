@@ -149,7 +149,7 @@ HRESULT COteCS::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int COteCS::input() {
-	//	操作台信号取り込み
+	
 	
 
 	//	PCパネル信号取り込み
@@ -174,99 +174,63 @@ int COteCS::input() {
 		pOteCsInf->gpad_in.tilt_d		= pPad->chk_on(st_obj.tilt_d.set(pPad->get_down()));
 		pOteCsInf->gpad_in.zoom_f		= pPad->chk_on(st_obj.zoom_f.set(pPad->get_shoulderr()));
 		pOteCsInf->gpad_in.zoom_n		= pPad->chk_on(st_obj.zoom_n.set(pPad->get_shoulderl()));
-
-
-		st_work.gpad_in.syukan_on = pPad->chk_on(st_obj.syukan_on.set(pPad->get_start()));
-		st_work.gpad_in.syukan_off = pPad->chk_on(st_obj.syukan_off.set(pPad->get_Y()));
-		st_work.gpad_in.remote = pPad->chk_on(st_obj.remote_pb.set(pPad->get_A()));
-		st_work.gpad_in.estop = pPad->chk_on(st_obj.estop.set(pPad->get_B()));
-		st_work.gpad_in.f_reset = pPad->chk_on(st_obj.f_reset.set(pPad->get_back()));
-		st_work.gpad_in.bypass = pPad->chk_on(st_obj.bypass.set(pPad->get_X()));
-		st_work.gpad_in.kidou_r = pPad->chk_on(st_obj.kidou_r.set(pPad->get_thumbr()));
-		st_work.gpad_in.kidou_l = pPad->chk_on(st_obj.kidou_l.set(pPad->get_thumbl()));
-		st_work.gpad_in.pan_l = pPad->chk_on(st_obj.pan_l.set(pPad->get_left()));
-		st_work.gpad_in.pan_r = pPad->chk_on(st_obj.pan_r.set(pPad->get_right()));
-		st_work.gpad_in.tilt_u = pPad->chk_on(st_obj.tilt_u.set(pPad->get_up()));
-		st_work.gpad_in.tilt_d = pPad->chk_on(st_obj.tilt_d.set(pPad->get_down()));
-		st_work.gpad_in.zoom_f = pPad->chk_on(st_obj.zoom_f.set(pPad->get_shoulderr()));
-		st_work.gpad_in.zoom_n = pPad->chk_on(st_obj.zoom_n.set(pPad->get_shoulderl()));
-
-
-
-
 		pOteCsInf->gpad_in.trig_l		= st_obj.trig_l.set(pPad->get_trig_L());
 		pOteCsInf->gpad_in.trig_r		= st_obj.trig_r.set(pPad->get_trig_R());
 
-		//GamePadのアナログ値をValueオブジェクトにセット⇒ノッチ信号を共有メモリにセット
-		st_obj.pad_mh->set(pPad->get_RY());pOteCsInf->gpad_in.pad_mh = st_obj.pad_mh->get_notch();
-		st_obj.pad_bh->set(pPad->get_LY());pOteCsInf->gpad_in.pad_bh = st_obj.pad_bh->get_notch();
-		st_obj.pad_sl->set(pPad->get_LX());pOteCsInf->gpad_in.pad_sl = st_obj.pad_sl->get_notch();
-		st_obj.pad_gt->set(pPad->get_RX());pOteCsInf->gpad_in.pad_gt = st_obj.pad_gt->get_notch();
+		st_work.gpad_in.syukan_on		= pPad->chk_on(st_obj.syukan_on.set(pPad->get_start()));
+		st_work.gpad_in.syukan_off		= pPad->chk_on(st_obj.syukan_off.set(pPad->get_Y()));
+		st_work.gpad_in.remote			= pPad->chk_on(st_obj.remote_pb.set(pPad->get_A()));
+		st_work.gpad_in.estop			= pPad->chk_on(st_obj.estop.set(pPad->get_B()));
+		st_work.gpad_in.f_reset			= pPad->chk_on(st_obj.f_reset.set(pPad->get_back()));
+		st_work.gpad_in.bypass			= pPad->chk_on(st_obj.bypass.set(pPad->get_X()));
+		st_work.gpad_in.kidou_r			= pPad->chk_on(st_obj.kidou_r.set(pPad->get_thumbr()));
+		st_work.gpad_in.kidou_l			= pPad->chk_on(st_obj.kidou_l.set(pPad->get_thumbl()));
+		st_work.gpad_in.pan_l			= pPad->chk_on(st_obj.pan_l.set(pPad->get_left()));
+		st_work.gpad_in.pan_r			= pPad->chk_on(st_obj.pan_r.set(pPad->get_right()));
+		st_work.gpad_in.tilt_u			= pPad->chk_on(st_obj.tilt_u.set(pPad->get_up()));
+		st_work.gpad_in.tilt_d			= pPad->chk_on(st_obj.tilt_d.set(pPad->get_down()));
+		st_work.gpad_in.zoom_f			= pPad->chk_on(st_obj.zoom_f.set(pPad->get_shoulderr()));
+		st_work.gpad_in.zoom_n			= pPad->chk_on(st_obj.zoom_n.set(pPad->get_shoulderl()));
+
+		//GamePadのアナログ値をValueオブジェクトにセット⇒Parseでノッチ信号を共有メモリにセット
+		//st_obj.pad_mh->set(pPad->get_RY());pOteCsInf->gpad_in.pad_mh = st_obj.pad_mh->get_notch();
+		//st_obj.pad_bh->set(pPad->get_LY());pOteCsInf->gpad_in.pad_bh = st_obj.pad_bh->get_notch();
+		//st_obj.pad_sl->set(pPad->get_LX());pOteCsInf->gpad_in.pad_sl = st_obj.pad_sl->get_notch();
+		//st_obj.pad_gt->set(pPad->get_RX());pOteCsInf->gpad_in.pad_gt = st_obj.pad_gt->get_notch();
 	}
-
-	// 操作パネル入力取り込み
-	st_work.st_body.pnl_ctrl[OTE_PNL_CTRLS::syukan_on] //SCAD PBの状態 or GamePad入力(↑でsetメソッド実行している）をセット 
-		= st_obj.syukan_on.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_on] | st_obj.syukan_on.get());
-	st_work.st_body.pnl_ctrl[OTE_PNL_CTRLS::syukan_off]
-		= st_obj.syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off] | st_obj.syukan_off.get());
-	st_work.st_body.pnl_ctrl[OTE_PNL_CTRLS::estop]
-		= st_obj.estop.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::estop] | st_obj.estop.get());
-	st_work.st_body.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]
-		= st_obj.f_reset.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::fault_reset] | st_obj.f_reset.get());
 	
-	
-	;
-	st_obj.bypass;
-	st_obj.kidou_r;
-	st_obj.kidou_l;
-	st_obj.pan_l;
-	st_obj.pan_r;
-	st_obj.tilt_u;
-	st_obj.tilt_d;
-	st_obj.zoom_f;
-	st_obj.zoom_n;
-
 	return S_OK;
 }
 int COteCS::parse() {           //メイン処理
 
 	//############### PC操作パネルパート ##################################
-	//モード設定
+	//### モード設定
 	{
-	//リモート操作有効化設定
-	if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])){//
-		if (st_work.st_body.remote == CODE_PNL_COM_SELECTED)		// 遠隔操作モード選択,未承認　	⇒　遠隔モニターモード選択
-			st_work.st_body.remote = CODE_PNL_COM_OFF;
-		else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)		// 遠隔操作モード選択,承認済　	⇒　遠隔モニターモード選択
-			st_work.st_body.remote = CODE_PNL_COM_OFF;
-		else														// 遠隔モニターモード選択　		⇒　遠隔操作モード選択
-			st_work.st_body.remote = CODE_PNL_COM_SELECTED;
-	}
-	if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) &&(pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
-		st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
-		
-	//GamePadモード設定
-	if (CODE_TRIG_ON == st_obj.game_pad_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::game_pad])) {
-		if (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE)
-			st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
-		else
-			st_work.st_body.game_pad_mode = CODE_PNL_COM_ACTIVE;
-	}
-	//操作卓タイプ変更
-	if (st_obj.ote_type.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::ote_type])) {
-		st_work.st_body.ote_type = st_obj.ote_type.get();
-	}
+		//リモート操作有効化設定
+		if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::remote])) {//
+			if (st_work.st_body.remote == CODE_PNL_COM_SELECTED)		// 遠隔操作モード選択,未承認　	⇒　遠隔モニターモード選択
+				st_work.st_body.remote = CODE_PNL_COM_OFF;
+			else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)		// 遠隔操作モード選択,承認済　	⇒　遠隔モニターモード選択
+				st_work.st_body.remote = CODE_PNL_COM_OFF;
+			else														// 遠隔モニターモード選択　		⇒　遠隔操作モード選択
+				st_work.st_body.remote = CODE_PNL_COM_SELECTED;
+		}
+		if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) && (pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
+			st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
+
+		//GamePadモード設定
+		if (CODE_TRIG_ON == st_obj.game_pad_pb.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::game_pad])) {
+			if (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE)
+				st_work.st_body.game_pad_mode = CODE_PNL_COM_OFF;
+			else
+				st_work.st_body.game_pad_mode = CODE_PNL_COM_ACTIVE;
+		}
+		//操作卓タイプ変更
+		if (st_obj.ote_type.chk_trig(pOteUi->ctrl_stat[OTE_PNL_CTRLS::ote_type])) {
+			st_work.st_body.ote_type = st_obj.ote_type.get();
+		}
 	}
 
-	//############### GamePadパート ##################################
-	//ノッチ指令値　!!！250526　とりあえずGpad入力を出力（直接送信バッファにセット）
-	{
-		st_work.st_body.axis[ID_AXIS::mh].notch_ref = st_obj.pad_mh->get_notch();
-		st_work.st_body.axis[ID_AXIS::bh].notch_ref = st_obj.pad_bh->get_notch();
-		st_work.st_body.axis[ID_AXIS::sl].notch_ref = st_obj.pad_sl->get_notch();
-		st_work.st_body.axis[ID_AXIS::gt].notch_ref = st_obj.pad_gt->get_notch();
-		st_work.st_body.axis[ID_AXIS::ah].notch_ref = st_obj.pad_ah->get_notch();
-	}
 
 	//############### 操作卓パート ##################################
 
@@ -275,44 +239,113 @@ int COteCS::parse() {           //メイン処理
 
 		LPST_PLC_RBUF_HHGG38 pin = (LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_io_read;//操作卓信号入力
 
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::estop] = pin->xin[4] & 0x0020;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on] = pin->xin[1] & 0x0200;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off] = pin->xin[1] & 0x0400;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote] = pin->auto_sw & 0x0001;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_mode] = pin->auto_sw & 0x0002;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset] = pin->xin[1] & 0x0100;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::bypass] = pin->xin[1] & 0xc000;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad] = pin->auto_sw & 0x0004;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_mh] = pin->auto_sw & 0x0010;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_bh] = pin->auto_sw & 0x0020;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_sl] = pin->auto_sw & 0x0040;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_gt] = pin->auto_sw & 0x0080;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_ah] = pin->auto_sw & 0x0100;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::ote_type] = pin->auto_sw & 0x0200;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_mh] = pin->notch_LY0;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_bh] = pin->notch_RY0;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_sl] = pin->notch_RX0;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = pin->notch_R1;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = pin->notch_LX0;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_beam] = pin->notch_L1;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pin->mh_mode_cs;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] = pin->bh_mode_cs;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::alm_stop] = pin->xin[1] & 0x0040;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::motor_siren] = pin->xin[1] & 0x8000;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp] = pin->lamp_sw;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::hv_trolley] = pin->xin[2] & 0x0300;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::hv_gantry] = pin->xin[3] & 0x3000;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::hv_aux] = pin->xin[3] & 0xc000;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::irisA] = pin->xin[0] & 0x3000;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::irisB] = pin->xin[4] & 0xc000;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::camA_adjust] = pin->xin[2] & 0x000f;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::camB_adjust] = pin->xin[2] & 0x00f0;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::camAselect] = pin->xin[2] & 0x1c00;
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::camBselect] = pin->xin[2] & 0xe000;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::estop]			= pin->xin[4] & 0x0020;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pin->xin[1] & 0x0200;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off]		= pin->xin[1] & 0x0400;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote]			= pin->auto_sw & 0x0001;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_mode]		= pin->auto_sw & 0x0002;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]	= pin->xin[1] & 0x0100;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::bypass]			= pin->xin[1] & 0xc000;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad]		= pin->auto_sw & 0x0004;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_mh]		= pin->auto_sw & 0x0010;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_bh]		= pin->auto_sw & 0x0020;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_sl]		= pin->auto_sw & 0x0040;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_gt]		= pin->auto_sw & 0x0080;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::asel_ah]		= pin->auto_sw & 0x0100;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::ote_type]		= pin->auto_sw & 0x0200;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_beam]		= pin->notch_L1;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pin->mh_mode_cs;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pin->bh_mode_cs;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::alm_stop]		= pin->xin[1] & 0x0040;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::motor_siren]	= pin->xin[1] & 0x8000;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp]		= pin->lamp_sw;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::hv_trolley]		= pin->xin[2] & 0x0300;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::hv_gantry]		= pin->xin[3] & 0x3000;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::hv_aux]			= pin->xin[3] & 0xc000;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::irisA]			= pin->xin[0] & 0x3000;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::irisB]			= pin->xin[4] & 0xc000;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::camA_adjust]	= pin->xin[2] & 0x000f;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::camB_adjust]	= pin->xin[2] & 0x00f0;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::camAselect]		= pin->xin[2] & 0x1c00;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::camBselect]		= pin->xin[2] & 0xe000;
+
+		//ノッチ指令値
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_mh]		= pin->notch_LY0;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_bh]		= pin->notch_RY0;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_sl]		= pin->notch_RX0;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_gt]		= pin->notch_R1;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_ah]		= pin->notch_LX0;
 	}
-	//操作卓出力内容設定
+	//###############　指令値セット　##################################
 	{
-		INT16 code = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code;
+		//###　PB ###
+		 //st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on] = st_obj.syukan_on.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_on] | st_obj.syukan_on.get() | st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on]);
+		 //st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off] = st_obj.syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off] | st_obj.syukan_off.get() | st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off]);
+		 //st_work.pnl_ctrl[OTE_PNL_CTRLS::estop] = st_obj.estop.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::estop] | st_obj.estop.get() | st_work.pnl_ctrl[OTE_PNL_CTRLS::estop]);
+		 //st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset] = st_obj.f_reset.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::fault_reset] | st_obj.f_reset.get() | st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]);
+		 st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on] = st_obj.syukan_on.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_on] | st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on]);
+		 st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off] = st_obj.syukan_off.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::syukan_off]  | st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off]);
+		 st_work.pnl_ctrl[OTE_PNL_CTRLS::estop] = st_obj.estop.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::estop]  | st_work.pnl_ctrl[OTE_PNL_CTRLS::estop]);
+		 st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset] = st_obj.f_reset.set(pOteUi->ctrl_stat[OTE_PNL_CTRLS::fault_reset] | st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]);
+
+		//###　ノッチ ###
+		// GamePad 
+		if (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE) {
+			st_work.st_body.axis[ID_AXIS::mh].notch_ref = st_obj.pad_mh->get_notch();
+			st_work.st_body.axis[ID_AXIS::bh].notch_ref = st_obj.pad_bh->get_notch();
+			st_work.st_body.axis[ID_AXIS::sl].notch_ref = st_obj.pad_sl->get_notch();
+			st_work.st_body.axis[ID_AXIS::gt].notch_ref = st_obj.pad_gt->get_notch();
+			st_work.st_body.axis[ID_AXIS::ah].notch_ref = st_obj.pad_ah->get_notch();
+		}
+		// 操作卓 
+		else {
+			st_work.st_body.axis[ID_AXIS::mh].notch_ref = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_io_read)->notch_RY0;
+			st_work.st_body.axis[ID_AXIS::bh].notch_ref = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_io_read)->notch_LY0;
+			st_work.st_body.axis[ID_AXIS::sl].notch_ref = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_io_read)->notch_LX0;
+			st_work.st_body.axis[ID_AXIS::gt].notch_ref = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_io_read)->notch_R1;
+			st_work.st_body.axis[ID_AXIS::ah].notch_ref = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_io_read)->notch_RX0;
+		}
+	}
+
+	//操作卓へのPCからの出力内容設定
+	{
+	//#操作卓ハードランプ
+		INT16 buf = 0;
+		//主幹ランプ
+		if(pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code)	buf |=  0x0040;
+		if(pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code)	buf |=  0x0080;
+	
+		//高圧ランプ
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_trolley].code)buf |= 0x0001;
+		else																		buf |= 0x0002;
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_gantry].code)	buf |= 0x0004;
+		else																		buf |= 0x0008;
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_aux].code)	buf |= 0x0010;
+		else																		buf |= 0x0020;
+
+		//故障ランプ
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::fault_lamp].code)buf |= 0x0100;
+		
+		//警報ランプ
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::alm_lamp].code)	buf |= 0x0200;
+
+		//ブザー
+		INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].st.com;
+		bz_code <<= 12;
+		buf |= bz_code;
+
+		//IFバッファにセット
+		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_io_write))->lamp[0] = buf;
+
+	//#操作卓GOTランプ
+		buf = 0;	
+		//動力確率ランプ
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::main_power].code)	buf |= 0x0001;
+		//自動給脂ランプ
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::sl_auto_gr].code)	buf |= 0x0002;
+
+		//IFバッファにセット
+		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_io_write))->lamp[1] = buf;
 	}
 	return STAT_OK;
 }
@@ -322,26 +355,23 @@ int COteCS::output() {
 	//制御PCの送信バッファ内容（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
 
-	
-		
 	//機上PLCの受信バッファ内容参照ポインタセット（書き込みデータ参照用）
 	LPST_PLC_RBUF_HHGH29 pPlcRBuf = (LPST_PLC_RBUF_HHGH29)pOteCCInf->st_msg_pc_u_rcv.body.st.buf_io_read;
 	
 	//遠隔操作卓PLCへの送信バッファ内容セット
 	LPST_PLC_WBUF_HHGG38 pPcWBuf = (LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_io_write;
-	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
-	
-//	memcpy_s(pOteCsInf->pnl_ctrl, sizeof(OTE_PNL_CTRLS::MAX * sizeof(INT16)), st_work.pnl_ctrl, sizeof(OTE_PNL_CTRLS::MAX * sizeof(INT16)));
-	memcpy_s(pOteCsInf->pnl_ctrl, 68, st_work.pnl_ctrl, 68);
-	
-	//PLC出力バッファにセット
 	pPcWBuf->pc_healthy = ote_helthy++;
-
 	pPcWBuf->crane_id			= pOteEnvInf->selected_crane;
-
 	pPcWBuf->mh_set.v_ref_tg	= pPlcRBuf->cv_tg[ID_HOIST];
 	pPcWBuf->mh_set.v_fb		= pPlcRBuf->inv_vfb[ID_HOIST];
 	pPcWBuf->mh_set.trq_fb		= pPlcRBuf->inv_trq[ID_HOIST];
+
+	//memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
+
+	//操作卓の入力内容共有メモリにセット
+	memcpy_s(pOteCsInf->pnl_ctrl, 128, st_work.pnl_ctrl, 128);
+	
+
 
 	return STAT_OK;
 }

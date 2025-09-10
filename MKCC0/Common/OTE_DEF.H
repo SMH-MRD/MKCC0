@@ -172,6 +172,12 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	camB_adjust,	
 	camAselect,
 	camBselect,
+	buzzer,		//ブザー
+	main_power,	//動力確率ランプ
+	sl_auto_gr,	//自動休止ランプ
+	ope_ready,	//運転準備完了ランプ
+	alm_lamp,	//警報ランプ
+	fault_lamp,	//故障ランプ
 	MAX
 };
 

@@ -426,17 +426,6 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 			pPanelBase->pmainobjs->str_message->update();
 			//	is_initial_draw_mon1 = false;
 		}
-
-		//GamePadチェック
-		if (pCsInf->gpad_in.syukan_on) pPanelBase->pmainobjs->pb_syukan_on->update(true);
-		if (pCsInf->gpad_in.syukan_off)pPanelBase->pmainobjs->pb_syukan_off->update(true);
-		if (pCsInf->gpad_in.remote)pPanelBase->pmainobjs->pb_remote->update(true);
-		if (pCsInf->gpad_in.estop)pPanelBase->pmainobjs->cb_estop->set(BST_CHECKED);
-		if (pCsInf->gpad_in.f_reset) {//ゲームパッドの非常停止クリアはResetPBで実行
-			pPanelBase->pmainobjs->pb_freset->update(true);
-			pPanelBase->pmainobjs->cb_estop->set(BST_UNCHECKED);
-		}
-
 	}break;
 
 	case WM_PAINT: {
@@ -803,16 +792,6 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 			//	is_initial_draw_mon1 = false;
 		}
 
-		//GamePadチェック
-		if (pCsInf->gpad_in.syukan_on) pPanelBase->pmainobjs->pb_syukan_on->update(true);
-		if (pCsInf->gpad_in.syukan_off)pPanelBase->pmainobjs->pb_syukan_off->update(true);
-		if (pCsInf->gpad_in.remote)pPanelBase->pmainobjs->pb_remote->update(true);
-		if (pCsInf->gpad_in.estop)pPanelBase->pmainobjs->cb_estop->set(BST_CHECKED);
-		if (pCsInf->gpad_in.f_reset) {//ゲームパッドの非常停止クリアはResetPBで実行
-			pPanelBase->pmainobjs->pb_freset->update(true);
-			pPanelBase->pmainobjs->cb_estop->set(BST_UNCHECKED);
-		}
-
 	}break;
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
@@ -851,7 +830,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		else return false;
 
 		image = plamp->pimg[plamp->get()];
-		gra.FillRectangle(pPanelBase->pmainobjs->pBrushBk, plamp->rc);											//背景色セット
+		gra.FillRectangle(pPanelBase->pmainobjs->pBrushBk, plamp->rc);										//背景色セット
 		if (image) gra.DrawImage(image, plamp->rc);															//イメージ描画
 		if (pfont != NULL)
 			gra.DrawString(plamp->txt.c_str(), -1, pfont, plamp->frc, plamp->pStrFormat, plamp->pTxtBrush);	//テキスト描画

@@ -153,13 +153,13 @@ void COteScad::set_panel_io() {
 		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_on]		= pPanelBase->pmainobjs->pb_syukan_on->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_off]	= pPanelBase->pmainobjs->pb_syukan_off->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::remote]		= pPanelBase->pmainobjs->pb_remote->get();
-		if (pPanelBase->pmainobjs->pb_remote->get() != 0)
-			int a = 0;
+//		if (pPanelBase->pmainobjs->pb_remote->get() != 0)
+//			int a = 0;
 		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pmainobjs->pb_pad_mode->get();
 		st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pmainobjs->pb_freset->get();
 
-		st_work.ctrl_stat[OTE_PNL_CTRLS::mh_spd_mode] = pPanelBase->psubobjs->rdo_mh_spd_mode->get(); //タスクのFunction ID
-		st_work.ctrl_stat[OTE_PNL_CTRLS::bh_r_mode] = pPanelBase->psubobjs->rdo_bh_r_mode->get(); //タスクのFunction ID
+		st_work.ctrl_stat[OTE_PNL_CTRLS::mh_spd_mode]	= pPanelBase->psubobjs->rdo_mh_spd_mode->get();	//タスクのFunction ID
+		st_work.ctrl_stat[OTE_PNL_CTRLS::bh_r_mode]		= pPanelBase->psubobjs->rdo_bh_r_mode->get();		//タスクのFunction ID
 		
 		//故障情報要求コード
 		st_work.flt_req_code = pPanelBase->psubobjs->flt_req_code;
