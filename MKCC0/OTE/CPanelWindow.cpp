@@ -386,7 +386,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 
 		//故障リセット
 	//	pPanelBase->pmainobjs->lmp_freset->set(pOteCsInf->st_body.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]);
-		if (pUi->ctrl_stat[OTE_PNL_CTRLS::fault_reset])
+		if (pUi->pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
 			pPanelBase->pmainobjs->lmp_freset->set(L_ON);
 		else
 			pPanelBase->pmainobjs->lmp_freset->set(L_OFF);
@@ -752,7 +752,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		pPanelBase->pmainobjs->lmp_pad_mode->update();
 
 		//故障リセット
-		if (pUi->ctrl_stat[OTE_PNL_CTRLS::fault_reset])
+		if (pUi->pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
 			pPanelBase->pmainobjs->lmp_freset->set(L_ON);
 		else
 			pPanelBase->pmainobjs->lmp_freset->set(L_OFF);

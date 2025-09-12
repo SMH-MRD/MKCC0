@@ -6,7 +6,7 @@
 
 
 //操作端末のテキスト,ボタン、ランプ数
-#define N_OTE_PNL_CTRL				64
+#define N_OTE_PNL_CTRL				128
 #define N_OTE_PC_MSG_WCHAR			64
 #define N_OTE_PC_SET_FLT			63//最初の要素にはセットされているタイプのコードが入る
 #define N_OTE_PNL_NOTCH_DEVICE		5
@@ -172,12 +172,14 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	camB_adjust,	
 	camAselect,
 	camBselect,
-	buzzer,		//ブザー
-	main_power,	//動力確率ランプ
-	sl_auto_gr,	//自動休止ランプ
-	ope_ready,	//運転準備完了ランプ
-	alm_lamp,	//警報ランプ
-	fault_lamp,	//故障ランプ
+	buzzer,			//ブザー
+	main_power,		//動力確率ランプ
+	sl_auto_gr,		//自動休止ランプ
+	ope_ready,		//運転準備完了ランプ
+	alm_lamp,		//警報ランプ
+	fault_lamp,		//故障ランプ
+	sl_brk_pedal,	//旋回ブレーキペダル
+	notch_aux,		//補機ノッチ
 	MAX
 };
 

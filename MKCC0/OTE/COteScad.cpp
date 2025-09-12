@@ -122,6 +122,12 @@ int COteScad::input() {
 }
 
 int COteScad::parse() {
+	//### PCパネル有効状態セット
+	if (st_mon1.hwnd_mon != NULL)
+		st_work.pc_pnl_active = L_ON;
+	else 
+		st_work.pc_pnl_active = L_OFF;
+
 	set_panel_io();
 	return S_OK;
 }
@@ -146,21 +152,17 @@ HRESULT COteScad::open_ope_window() {
 }
 
 void COteScad::set_panel_io() {
-	//st_workにセットしてoutputで共有メモリへ出力する
+	//st_workにセットしてoutput()で共有メモリへ出力する
 	// !!GamePadの入力はMON1ウィンドウのTIMERでCSの共有メモリのGPAD情報をみてPanelBaseのオブジェクトにセットしている
 	if (pPanelBase != NULL) {
-		st_work.ctrl_stat[OTE_PNL_CTRLS::estop]			= pPanelBase->pmainobjs->cb_estop->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_on]		= pPanelBase->pmainobjs->pb_syukan_on->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::syukan_off]	= pPanelBase->pmainobjs->pb_syukan_off->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::remote]		= pPanelBase->pmainobjs->pb_remote->get();
-//		if (pPanelBase->pmainobjs->pb_remote->get() != 0)
-//			int a = 0;
-		st_work.ctrl_stat[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pmainobjs->pb_pad_mode->get();
-		st_work.ctrl_stat[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pmainobjs->pb_freset->get();
-
-		st_work.ctrl_stat[OTE_PNL_CTRLS::mh_spd_mode]	= pPanelBase->psubobjs->rdo_mh_spd_mode->get();	//タスクのFunction ID
-		st_work.ctrl_stat[OTE_PNL_CTRLS::bh_r_mode]		= pPanelBase->psubobjs->rdo_bh_r_mode->get();		//タスクのFunction ID
-		
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::estop]			= pPanelBase->pmainobjs->cb_estop->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pPanelBase->pmainobjs->pb_syukan_on->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off]		= pPanelBase->pmainobjs->pb_syukan_off->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote]			= pPanelBase->pmainobjs->pb_remote->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pmainobjs->pb_pad_mode->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pmainobjs->pb_freset->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pPanelBase->psubobjs->rdo_mh_spd_mode->get();	//タスクのFunction ID
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pPanelBase->psubobjs->rdo_bh_r_mode->get();		//タスクのFunction ID
 		//故障情報要求コード
 		st_work.flt_req_code = pPanelBase->psubobjs->flt_req_code;
 	}
@@ -197,7 +199,6 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 			set_item_chk_txt();
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 		}break;
-
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
 			case IDC_TASK_FUNC_RADIO4:
@@ -218,7 +219,6 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 			else
 				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = false;
 		}break;
-
 		case IDSET:
 		{
 			wstring wstr, wstr_tmp;
@@ -233,7 +233,6 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 		}break;
-
 		case IDC_TASK_MODE_RADIO0:
 		{
 			inf.mode_id = BC_ID_MODE0;
@@ -246,7 +245,6 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 		{
 			inf.mode_id = BC_ID_MODE2;
 		}break;
-
 		case IDC_TASK_MON_CHECK1:
 		{
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK1) == BST_CHECKED) {
@@ -256,9 +254,7 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 				close_monitor_wnd(BC_ID_MON1);
 			}
 		}break;
-
 		case IDC_TASK_MON_CHECK2: {
-
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK2) == BST_CHECKED) {
 				show_monitor_wnd(BC_ID_MON2);
 			}

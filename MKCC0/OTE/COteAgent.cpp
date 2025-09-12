@@ -245,12 +245,12 @@ int COteAgent::parse() {
 	// パネル操作信号 !!!250526(当面SCADA共有メモリ部をセット）⇒操作台入力も折り込み改善必要
 	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.pnl_ctrl;//送信バッファのOTE操作信号情報部のポインタ
 	//PBのGame Pad入力信号は、
-	//pctrl[OTE_PNL_CTRLS::estop]			= pOteUI->ctrl_stat[OTE_PNL_CTRLS::estop];
+	//pctrl[OTE_PNL_CTRLS::estop]			= pOteUI->pnl_ctrl[OTE_PNL_CTRLS::estop];
 	pctrl[OTE_PNL_CTRLS::estop]			= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop];
 	pctrl[OTE_PNL_CTRLS::syukan_on]		= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on];
 	pctrl[OTE_PNL_CTRLS::syukan_off]	= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_off];
 	pctrl[OTE_PNL_CTRLS::remote]		= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote];
-	//pctrl[OTE_PNL_CTRLS::remote]		= pOteUI->ctrl_stat[OTE_PNL_CTRLS::remote];
+	//pctrl[OTE_PNL_CTRLS::remote]		= pOteUI->pnl_ctrl[OTE_PNL_CTRLS::remote];
 	pctrl[OTE_PNL_CTRLS::fault_reset]	= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::fault_reset];
 
 	pctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode];

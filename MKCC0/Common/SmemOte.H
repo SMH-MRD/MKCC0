@@ -94,12 +94,19 @@ typedef struct _ST_OTE_ENV_INF {
 //## OTE_CS_INF @CS
 #pragma region OTE_CS_INF
 
+#define OTE_OPE_SOURCE_CODE_OPEPNL	0x00000001	//操作卓有効
+#define OTE_OPE_SOURCE_CODE_GPAD	0x00000002	//ゲームパッド有効
+#define OTE_OPE_SOURCE_CODE_PCPNL	0x00000004	//PCパネル有効
+#define OTE_OPE_SOURCE_CODE_HANDY	0x00000008	//携帯パネル有効
+
 typedef struct _ST_OTE_CS_INF {
+	INT32 ope_plc_stat = L_OFF;						//PLCとの通信状態
 	INT32 cc_ope_active = L_OFF;
+	INT32 ope_source_mode=0;						//操作器具モード
 	ST_OTE_U_BODY st_body;							//OTE⇒PC送信メッセージボディ部
-	ST_GPAD_IN gpad_in;	//ゲームパッド入力
-	INT16 buf_io_read[OTE_MC_SIZE_W_READ];			//PLCからの読み取り信号生値
-	INT16 buf_io_write[OTE_MC_SIZE_W_WRITE];		//PLCへの書き込み信号生値
+	ST_GPAD_IN gpad_in;								//ゲームパッド入力
+	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ];		//PLCからの読み取り信号生値
+	INT16 buf_opepnl_write[OTE_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
 	INT16 pnl_ctrl[N_OTE_PNL_CTRL];					//操作卓入力仕分け
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他
@@ -141,8 +148,9 @@ typedef struct _ST_OTE_CC_IF {
 
 
 typedef struct _ST_OTE_UI {
-	INT16 ctrl_stat[N_OTE_PNL_CTRL];			
-	INT16 notch_pb_mh;//選択中のノッチ
+	INT16 pc_pnl_active;					//描画モード
+	INT16 pnl_ctrl[N_OTE_PNL_CTRL];			
+	INT16 notch_pb_mh;						//選択中のノッチ
 	INT16 notch_pb_bh;
 	INT16 notch_pb_sl;
 	INT16 notch_pb_gt;
