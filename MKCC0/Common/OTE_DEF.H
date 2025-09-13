@@ -157,7 +157,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	notch_sl,
 	notch_gt,
 	notch_ah,
-	notch_beam,
+	notch_aux,
 	mh_spd_mode,
 	bh_r_mode,
 	alm_stop,
@@ -179,7 +179,6 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	alm_lamp,		//警報ランプ
 	fault_lamp,		//故障ランプ
 	sl_brk_pedal,	//旋回ブレーキペダル
-	notch_aux,		//補機ノッチ
 	MAX
 };
 
@@ -232,6 +231,7 @@ typedef struct _ST_GPAD_IN {
 	INT16 pad_bh;
 	INT16 pad_sl;
 	INT16 pad_gt;
+	INT16 pad_ah;
 }ST_GPAD_IN, * LPST_GPAD_IN;
 
 #define CODE_OTE_FLT_SEL_HEAVY1		BIT1	//重故障1	

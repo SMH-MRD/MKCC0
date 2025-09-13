@@ -720,24 +720,27 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					st_mon2.wo_mote << L"[BODY P" << st_mon2.ipage_mot << L"]" << L"\n";
 					if (st_mon2.ipage_uni == 0) {
 						st_mon2.wo_uni << L"@LAMP:";
-						for (int i = 0; i < OTE_PNL_CTRLS::MAX; i++) {
+						for (int i = 0; i < 20; i++) {
 							st_mon2.wo_uni << " [" << i << "]" << pb0->lamp[i].code;
 						}
 					}
 					else if (st_mon2.ipage_uni == 1) {
+						st_mon2.wo_uni << L"@LAMP:";
+						for (int i = 21; i < 40; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pb0->lamp[i].code;
+						}
+					}
+					else if (st_mon2.ipage_uni == 2) {
 						st_mon2.wo_uni << L"@ PNL CTRL:";
 						for (int i = 0; i < 20; i++) {
 							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
 						}
 					}
-					else if (st_mon2.ipage_uni == 2) {
+					else {
 						st_mon2.wo_uni << L"@ PNL CTRL:";
 						for (int i = 21; i < 40; i++) {
 							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
 						}
-					}
-					else {
-						st_mon2.wo_uni << L"No Page";
 					}
 				}
 				else {

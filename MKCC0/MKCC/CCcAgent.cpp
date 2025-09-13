@@ -166,12 +166,14 @@ HRESULT CAgent::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 /// <summary>
-/// 
+/// PLCからのデバイス読込値を共有メモリに展開 
 /// </summary>
 /// <returns></returns>
+/// 
+
 int CAgent::input() {
 
-	//PG アブソコーダ
+	//### PG アブソコーダ
 	pPLC_IO->stat_mh.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_mh).i32;	//MH　PG
 	pPLC_IO->stat_bh.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_bh).i32;	//BH　PG
 	pPLC_IO->stat_sl.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_sl).i32;	//SL　PG
@@ -179,7 +181,7 @@ int CAgent::input() {
 	pPLC_IO->stat_mh.absocoder_fb = pCrane->pPlc->rval(pPlcRIf->absocoder_mh).i32;	//MHアブソコーダ
 	pPLC_IO->stat_gt.absocoder_fb = pCrane->pPlc->rval(pPlcRIf->absocoder_gt).i32;	//BHアブソコーダ
 
-	//ブレーキ状態FB
+	//###ブレーキ状態FB
 	pPLC_IO->stat_mh.brk_fb = pCrane->pPlc->rval(pPlcRIf->mh_brk1_fb).i16;		//MHブレーキ状態
 	pPLC_IO->stat_bh.brk_fb = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;		//BHブレーキ状態
 	pPLC_IO->stat_gt.brk_fb = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;		//GTブレーキ状態
@@ -188,7 +190,7 @@ int CAgent::input() {
 	pPLC_IO->stat_mh.hcount_fb;
 	pPLC_IO->stat_mh.absocoder_fb;
 
-	//ノッチ指令状態
+	//###ノッチ指令状態
 	INT16 notch = pCrane->pPlc->rval(pPlcRIf->mh_notch).i16;
 	pPLC_IO->stat_mh.notch_fb = CNotchHelper::get_notch4_by_code(&notch,0);	//MHノッチFB
 	notch = pCrane->pPlc->rval(pPlcRIf->bh_notch).i16;
@@ -198,8 +200,8 @@ int CAgent::input() {
 	notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
 	pPLC_IO->stat_gt.notch_fb = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
 
-	//インバータ指令状態
-	//インバータ運転指令方向 速度指令
+	//###インバータ指令状態
+	//##インバータ運転指令方向 速度指令
 	pPLC_IO->stat_mh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_mh).i16;//インバータ速度指令
 	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16) 
 		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;
@@ -233,7 +235,7 @@ int CAgent::input() {
 	}
 	else													pPLC_IO->stat_gt.inv_ref_dir = CODE_DIR_STP;
 	
-	//インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
+	//###インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
 	pPLC_IO->stat_mh.inv_fb_v = pCrane->pPlc->rval(pPlcRIf->inv_vfb_mh).i16;
 	pPLC_IO->stat_bh.inv_fb_v = pCrane->pPlc->rval(pPlcRIf->inv_vfb_bh).i16;
 	pPLC_IO->stat_sl.inv_fb_v = pCrane->pPlc->rval(pPlcRIf->inv_vfb_sl).i16;
@@ -242,13 +244,13 @@ int CAgent::input() {
 	pPLC_IO->stat_mh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_mh).i16;	
 	pPLC_IO->stat_bh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_bh).i16;
 	
-	//ブレーキ状態
+	//###ブレーキ状態
 	pPLC_IO->stat_mh.brk_fb = pCrane->pPlc->rval(pPlcRIf->mh_brk1_fb).i16;
 	pPLC_IO->stat_bh.brk_fb = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;
 	pPLC_IO->stat_sl.brk_fb = pCrane->pPlc->rval(pPlcRIf->sl_brake).i16;
 	pPLC_IO->stat_gt.brk_fb = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;
 	
-	//荷重
+	//###荷重
 	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH荷重
 
 	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32)/1000.0;	//揚程
@@ -257,53 +259,57 @@ int CAgent::input() {
 	return S_OK;
 }
 
-/// <summary>
-/// 
-/// </summary>
-/// <returns></returns>
-/// 
-
-
 static INT16 pc_healthy=0;
 static INT16 plc_healthy_chk_count = 0;
 static INT16 plc_healthy = 0;
-
-int CAgent::parse() {//メイン処理
-	pc_healthy++;//PCヘルシーカウンタ更新
-
-	if (plc_healthy == pPLC_IO->buf_io_read[0]) {				//PLCヘルシー状態が変化していない場合
-		plc_healthy_chk_count--;								//PLCヘルシー状態が変化している⇒チェックカウントダウン
-		if (plc_healthy_chk_count > 0)plc_healthy_chk_count--;
-		else plc_healthy_chk_count = 0;
+/// <summary>
+/// メイン処理
+/// </summary>
+/// <returns></returns>
+/// 
+int CAgent::parse() {
+	//### PLC受信信号処理
+	//### PLCヘルシーカウンタ読み出しチェック
+	{
+		if (plc_healthy == pPLC_IO->buf_io_read[0]) {				//PLCヘルシー状態が変化していない場合
+			plc_healthy_chk_count--;								//PLCヘルシー状態が変化している⇒チェックカウントダウン
+			if (plc_healthy_chk_count > 0)plc_healthy_chk_count--;
+			else plc_healthy_chk_count = 0;
+		}
+		else plc_healthy_chk_count = PRM_CC_PLC_CHK_COUNT;			//PLCヘルシー状態が変化している⇒チェックカウントリミットセット
+		plc_healthy = pPLC_IO->buf_io_read[0];						//PLCヘルシー前回値保持
 	}
-	else plc_healthy_chk_count = PRM_CC_PLC_CHK_COUNT;			//PLCヘルシー状態が変化している⇒チェックカウントリミットセット
-	plc_healthy = pPLC_IO->buf_io_read[0];						//PLCヘルシー前回値保持
 
-	//PCヘルシー書込セット
-	pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);	
-	//PCコントロール信号セット
-
-//	INT16 mask = 0xc000;	//PLC通信有効、デバッグモード
-	INT16 mask = MASK_BIT_PC_CTRL_ACTIVE; mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
-	if (plc_healthy) {
-		pAgent_Inf->pc_ctrl_mode2plc |= mask;
+	//### PLC書き込み信号処理
+	//## PCヘルシーカウン
+	{
+		pc_healthy++;
+		pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);
 	}
-	else {
-		pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
+	
+	//### PCコントロール信号
+	{
+		INT16 mask = MASK_BIT_PC_CTRL_ACTIVE; mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+		if (plc_healthy) {
+			pAgent_Inf->pc_ctrl_mode2plc |= mask;
+		}
+		else {
+			pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
+		}
+		pCrane->pPlc->wval(pPlcWIf->pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
 	}
-	pCrane->pPlc->wval(pPlcWIf->pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
 
-	//### OTE操作信号書込セット
+	//### OTE操作信号転送
 	// CS受信のバッファ	pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl;
-	// !!GamePadの入力はCSのinputでオブジェクトを直接セットしている
-	//PB,スイッチ類
-	pCrane->pPlc->wval(pPlcWIf->syukan_on, pOteCtrl[OTE_PNL_CTRLS::syukan_on]);			//主幹ON
-	pCrane->pPlc->wval(pPlcWIf->syukan_off, pOteCtrl[OTE_PNL_CTRLS::syukan_off]);		//主幹OFF
-	pCrane->pPlc->wval(pPlcWIf->estop, pOteCtrl[OTE_PNL_CTRLS::estop]);					//非常停止
+	
+	//## PB,スイッチ類
+	pCrane->pPlc->wval(pPlcWIf->syukan_on,		pOteCtrl[OTE_PNL_CTRLS::syukan_on]);	//主幹ON
+	pCrane->pPlc->wval(pPlcWIf->syukan_off,		pOteCtrl[OTE_PNL_CTRLS::syukan_off]);	//主幹OFF
+	pCrane->pPlc->wval(pPlcWIf->estop,			pOteCtrl[OTE_PNL_CTRLS::estop]);		//非常停止
 	pCrane->pPlc->wval(pPlcWIf->fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
 
-	pCrane->pPlc->wval(pPlcWIf->mh_spd_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE,0));
-	pCrane->pPlc->wval(pPlcWIf->bh_mode_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE,0));
+	pCrane->pPlc->wval(pPlcWIf->mh_spd_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE,0));
+	pCrane->pPlc->wval(pPlcWIf->bh_mode_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE,0));
 
 
 	//Notch信号
