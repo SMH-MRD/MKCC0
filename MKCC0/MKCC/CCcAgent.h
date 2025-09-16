@@ -81,7 +81,6 @@ typedef struct _ST_AGENT_MON1 {
 #define AGENT_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
 #define AGENT_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
 #define AGENT_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
-#define AGENT_ID_MON2_STATIC_OTE_REF    6   //書込応答メッセージ
 
 #define AGENT_ID_MON2_PB_R_BLOCK_SEL    16   //読み込み表示ブロック切替PB
 #define AGENT_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB

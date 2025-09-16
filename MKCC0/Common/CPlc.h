@@ -168,12 +168,12 @@ typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   mh_mode_cs;				// D10627: 
 	INT16   bh_mode_cs;				// D10628: 
 	INT16   lamp_sw;				// D10629
-	INT16	notch_LX0;				// D10630
-	INT16	notch_LY0;				// D10631
-	INT16	notch_RX0;				// D10632
-	INT16	notch_RY0;				// D10633
-	INT16	notch_L1;				// D10634
-	INT16	notch_R1;				// D10635
+	INT16	notch_RY0;				// D10630
+	INT16	notch_RX0;				// D10631
+	INT16	notch_LY0;				// D10632
+	INT16	notch_LX0;				// D10633
+	INT16	notch_R1;				// D10634
+	INT16	notch_L1;				// D10635
 	INT16   spare2[14];				// D10636: 
 }ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 

@@ -603,6 +603,8 @@ LRESULT CALLBACK COteCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 };
 
 static bool is_write_req_turn = false;//書き込み要求送信の順番でtrue
+static int n_page_w = 5, i_page_w = 0, i_ref_w = 0;//モニタ画面表示用
+static int n_page_r = 5, i_page_r = 0, i_ref_r = 0;//モニタ画面表示用
 
 LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
@@ -629,8 +631,18 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		//UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, 10, NULL);
 
+				//IFデータ表示ページ数計算
+		n_page_w = OTE_MC_SIZE_W_WRITE / (OTE_CS_MON2_MSG_DISP_N__DATAROW * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN);
+		if (OTE_MC_SIZE_W_WRITE % (OTE_CS_MON2_MSG_DISP_N__DATAROW * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN)) n_page_w++;
+		n_page_r = OTE_MC_SIZE_W_READ / (OTE_CS_MON2_MSG_DISP_N__DATAROW * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN);
+		if (OTE_MC_SIZE_W_READ % (OTE_CS_MON2_MSG_DISP_N__DATAROW * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN)) n_page_r++;
+
+		monwos.str(L""); monwos << L"R:" << i_page_r + 1 << L"/" << n_page_r;
 		SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
+
+		monwos.str(L""); monwos << L"W:" << i_page_w + 1 << L"/" << n_page_w;
 		SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
+
 
 		st_mon2.msg_disp_mode = OTE_CS_MON2_MSG_DISP_HEX;
 		monwos.str(L""); monwos << L"表示中";
@@ -666,10 +678,23 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
 					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
 
-				st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opepnl_write[0];
+				//st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opepnl_write[0];
+				//データ部分1ページ10WORD　4行で切替表示
+				for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
+					int no = OTE_MC_ADDR_W_WRITE + i_page_w * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
+					st_mon2.wo_req_w << L"D" << dec << no << L" |";
+					if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
+					for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
+						if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
+							st_mon2.wo_req_w << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+						else
+							st_mon2.wo_req_w << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+					}
+					st_mon2.wo_req_w << L"\n";
+				}
 
 
-					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
+				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
 
 			QueryPerformanceCounter(&start_count_w);  // 書き込み要求送信時カウント値取り込み
@@ -698,6 +723,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#d_no:" << pMCSock->mc_req_msg_r.d_no
 					<< L"#d_code:" << pMCSock->mc_req_msg_r.d_code
 					<< L"#n_dev:" << pMCSock->mc_req_msg_r.n_device;
+
 				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
 			}
 
@@ -740,12 +766,16 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (wmId - OTE_CS_ID_MON2_CTRL_BASE)
 		{
 		case OTE_CS_ID_MON2_PB_R_BLOCK_SEL: {
-
+			if (++i_page_r >= n_page_r)i_page_r = 0;
+			monwos.str(L""); monwos << L"R:" << i_page_r + 1 << L"/" << n_page_r;
 			SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_R_BLOCK_SEL], monwos.str().c_str());
+			i_ref_r = i_page_r * OTE_CS_MON2_MSG_DISP_N__DATAROW * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
 		}break;
 		case OTE_CS_ID_MON2_PB_W_BLOCK_SEL: {
-
+			if (++i_page_w >= n_page_w)i_page_w = 0;
+			monwos.str(L""); monwos << L"W:" << i_page_w + 1 << L"/" << n_page_w;
 			SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
+			i_ref_w = i_page_w * OTE_CS_MON2_MSG_DISP_N__DATAROW * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
 		}break;
 		case OTE_CS_ID_MON2_PB_MSG_DISP_SEL: {
 			if (st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) {
@@ -803,7 +833,19 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 						<< L"#len:"		<< pMCSock->mc_res_msg_r.len
 						<< L"#end:"		<< pMCSock->mc_res_msg_r.endcode << L"\n";
 
-					st_mon2.wo_res_r	<< L"PLC HEALTHY:" << pOteCsInf->buf_opepnl_read[0] << L"\n";
+	//				st_mon2.wo_res_r	<< L"PLC HEALTHY:" << pOteCsInf->buf_opepnl_read[0] << L"\n";
+					for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
+						int no = OTE_MC_ADDR_W_READ + i_page_r * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
+						st_mon2.wo_res_r << L"D" << dec << no << L" |";
+						if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_res_r << hex;
+						for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
+							if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
+								st_mon2.wo_res_r << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_read[i_ref_r + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+							else
+								st_mon2.wo_res_r << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_read[i_ref_r + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+						}
+						st_mon2.wo_res_r << L"\n";
+					}
 
 					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 

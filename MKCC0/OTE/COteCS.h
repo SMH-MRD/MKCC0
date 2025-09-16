@@ -21,20 +21,7 @@
 #define OTE_CS_ID_MON1_SLIDER_VIB_R  17
 #define OTE_CS_ID_MON1_SLIDER_VIB_L  18
 
-//MON2---------------------------------------------------
-#define OTE_CS_ID_MON2_CTRL_BASE         61540
-#define OTE_CS_ID_MON2_STATIC_MSG        0   //メッセージ表示部
-#define OTE_CS_ID_MON2_STATIC_INF        1   //接続情報表示部
-#define OTE_CS_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
-#define OTE_CS_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
-#define OTE_CS_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
-#define OTE_CS_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
 
-
-#define OTE_CS_ID_MON2_PB_R_BLOCK_SEL    16   //読み込み表示ブロック切替PB
-#define OTE_CS_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB
-#define OTE_CS_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
-#define OTE_CS_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
 
 #define OTE_CS_ID_MON1_TIMER         61590
 #define OTE_CS_ID_MON2_TIMER         61591
@@ -73,6 +60,7 @@ typedef struct _ST_OTE_CS_MON1 {
     };
 }ST_OTE_CS_MON1, * LPST_OTE_CS_MON1;
 
+//MON2---------------------------------------------------
 #define OTE_CS_MON2_WND_X     OTE_CS_MON1_WND_X
 #define OTE_CS_MON2_WND_Y     620   
 #define OTE_CS_MON2_WND_W     640
@@ -86,6 +74,24 @@ typedef struct _ST_OTE_CS_MON1 {
 
 #define N_OTE_CS_MON2_MSG_RBLK   8
 #define N_OTE_CS_MON2_MSG_WBLK   8
+
+
+#define OTE_CS_ID_MON2_CTRL_BASE         61540
+#define OTE_CS_ID_MON2_STATIC_MSG        0   //メッセージ表示部
+#define OTE_CS_ID_MON2_STATIC_INF        1   //接続情報表示部
+#define OTE_CS_ID_MON2_STATIC_REQ_R      2   //読込要求メッセージ
+#define OTE_CS_ID_MON2_STATIC_RES_R      3   //読込応答メッセージ
+#define OTE_CS_ID_MON2_STATIC_REQ_W      4   //書込要求メッセージ
+#define OTE_CS_ID_MON2_STATIC_RES_W      5   //書込応答メッセージ
+
+
+#define OTE_CS_ID_MON2_PB_R_BLOCK_SEL    16   //読み込み表示ブロック切替PB
+#define OTE_CS_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB
+#define OTE_CS_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
+#define OTE_CS_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
+
+#define OTE_CS_MON2_MSG_DISP_N__DATAROW      4
+#define OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN   10
 
 typedef struct _ST_OTE_CS_MON2 {
     HWND hwnd_mon;
@@ -104,13 +110,13 @@ typedef struct _ST_OTE_CS_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[OTE_CS_MON2_N_CTRL] = {
-        5,5, 5,30, 5,55, 5,80, 5,185, 5,290,0,0, 0,0,//Static
+        5,5, 5,30, 5,55, 5,80, 5,175, 5,290,0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         570,55, 570,290, 510,5, 565,5, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[OTE_CS_MON2_N_CTRL] = {
-        615,20, 615,20, 565,20, 615,100, 615,100,565,20, 0,0, 0,0,//Static
+        615,20, 615,20, 565,20, 615,90, 615,110,565,20, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0

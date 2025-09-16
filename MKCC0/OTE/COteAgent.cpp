@@ -235,31 +235,14 @@ int COteAgent::parse() {
 	//CC受信データ解析
 	st_work.cc_active_ote_id = pOteCCIf->st_msg_pc_u_rcv.head.tgid;
 
-
 	//送信データ解析
 	//操作ボタン類（SCADA共有メモリ部）
 
 	//##################### 送信バッファセット　############################################
 
-
 	// パネル操作信号 !!!250526(当面SCADA共有メモリ部をセット）⇒操作台入力も折り込み改善必要
 	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.pnl_ctrl;//送信バッファのOTE操作信号情報部のポインタ
-	//PBのGame Pad入力信号は、
-	//pctrl[OTE_PNL_CTRLS::estop]			= pOteUI->pnl_ctrl[OTE_PNL_CTRLS::estop];
-	pctrl[OTE_PNL_CTRLS::estop]			= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop];
-	pctrl[OTE_PNL_CTRLS::syukan_on]		= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on];
-	pctrl[OTE_PNL_CTRLS::syukan_off]	= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_off];
-	pctrl[OTE_PNL_CTRLS::remote]		= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote];
-	//pctrl[OTE_PNL_CTRLS::remote]		= pOteUI->pnl_ctrl[OTE_PNL_CTRLS::remote];
-	pctrl[OTE_PNL_CTRLS::fault_reset]	= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::fault_reset];
-
-	pctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode];
-	pctrl[OTE_PNL_CTRLS::bh_r_mode]		= pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode];
-
-	pctrl[OTE_PNL_CTRLS::notch_mh]		= pOteCsInf->gpad_in.pad_mh;
-	pctrl[OTE_PNL_CTRLS::notch_bh]		= pOteCsInf->gpad_in.pad_bh;
-	pctrl[OTE_PNL_CTRLS::notch_sl]		= pOteCsInf->gpad_in.pad_sl;
-	pctrl[OTE_PNL_CTRLS::notch_gt]		= pOteCsInf->gpad_in.pad_gt;
+	memcpy_s(pctrl, sizeof(INT16) * OTE_PNL_CTRLS::MAX, pOteCsInf->pnl_ctrl, sizeof(INT16)* OTE_PNL_CTRLS::MAX);
 
 	//故障信号要求コード
 	st_work.st_msg_ote_u_snd.body.st.faults_disp_req = pOteUI->flt_req_code;	//故障信号要求コード
@@ -748,8 +731,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					LPST_OTE_HEAD  ph1 = &(pOteCCIf->st_msg_pc_m_rcv.head); 
 					LPST_OTE_HEAD  ph2 = &(pOteCCIf->st_msg_ote_m_rcv.head);
 					st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
-						<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
-					st_mon2.wo_uni << L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
+						<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port);// << L"\n";
+					st_mon2.wo_uni << L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid<< L"\n";
 					st_mon2.wo_mpc << L"[HEAD]" << L" CODE:" << ph1->code << L"\n";
 					st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				}
@@ -762,13 +745,11 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					st_mon2.wo_uni << L"[BODY P" << st_mon2.ipage_uni << L"]" ;
 					if (st_mon2.ipage_uni == 0) {
 						st_mon2.wo_uni << L"@ESTOP:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::estop]
-							<< L"@主幹入:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]
-							<< L"@主幹切:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::syukan_off]
-							<< L"@RMT:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::remote]
-							<< L"@FRESET:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::fault_reset]
-							<< L"@MH_SPD:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]
-							<< L"@BH_MODE:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]
-							;
+							<< L"@主幹入:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::syukan_on] << L"@主幹切:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::syukan_off]
+							<< L"@RMT:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::remote] << L"@FRESET:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::fault_reset]
+							<< L"@MH_SPD:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] << L"@BH_MODE:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] << L"\n";
+						st_mon2.wo_uni << L"Notch: MH "<< pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] << L" AH " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]
+							<< L" BH " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] << L" SL " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] << L" GT " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
 					}
 					else if (st_mon2.ipage_uni == 1) {
 
