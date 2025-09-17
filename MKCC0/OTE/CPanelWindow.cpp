@@ -1062,12 +1062,8 @@ void CSubPanelWindow::OnPaintFlt(HDC hdc, HWND hwnd) {
 		&pPanelBase->psubobjs->attr
 	);
 
-
-	pPanelBase->psubobjs->pgraphic->DrawImage(pPanelBase->psubobjs->pbmp_bk, 0, 0);
 	// 集約バックバッファの内容を一度に画面に転送
-
-//	pPanelBase->psubobjs->pgraphic->DrawImage(pPanelBase->psubobjs->pbmp_bk, 0, 0);
-
+	pPanelBase->psubobjs->pgraphic->DrawImage(pPanelBase->psubobjs->pbmp_bk, 0, 0);
 	return;
 }
 
@@ -1228,7 +1224,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		int fltcode = 0, n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_count;
 		
-		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));							//項目数が同じ場合は何もしない
+		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
 		else if ((n < 0) || (n > N_OTE_PC_SET_FLT)) {	//項目数異常時はクリア
 			for (int i = 0; i < flt_cnt_hold; i++) ClearFltListView(hFltListView, false, i);
 		}

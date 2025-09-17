@@ -258,10 +258,10 @@ int CCcCS::parse() {
 		//クレーン状態セット
 		st_ote_work.st_body.st_load_stat->m = pEnv_Inf->crane_stat.m;									//荷重
 		st_ote_work.st_body.bh_angle = pEnv_Inf->crane_stat.th.p;										//起伏角度
-		st_ote_work.st_body.st_motion_stat[ID_BOOM_H].pos_fb = pEnv_Inf->crane_stat.r.p;				//旋回半径
-		st_ote_work.st_body.st_motion_stat[ID_SLEW].pos_fb = pEnv_Inf->crane_stat.vm[ID_SLEW].p;		//旋回角度
-		st_ote_work.st_body.st_motion_stat[ID_HOIST].pos_fb = pEnv_Inf->crane_stat.vm[ID_HOIST].p;		//主巻位置
-		st_ote_work.st_body.st_motion_stat[ID_GANTRY].pos_fb = pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//走行位置
+		st_ote_work.st_body.st_motion_stat[ID_BOOM_H].pos_fb	= pEnv_Inf->crane_stat.r.p;				//旋回半径
+		st_ote_work.st_body.st_motion_stat[ID_SLEW].pos_fb		= pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//旋回角度
+		st_ote_work.st_body.st_motion_stat[ID_HOIST].pos_fb		= pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
+		st_ote_work.st_body.st_motion_stat[ID_GANTRY].pos_fb	= pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//走行位置
 	}
 
 	//OTE故障情報セット

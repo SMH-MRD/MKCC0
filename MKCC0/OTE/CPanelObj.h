@@ -1,5 +1,6 @@
 #pragma once
 #include "CPanelIo.h"
+#include "CFaults.h"
 
 using namespace std;
 
@@ -304,8 +305,7 @@ public:
 	CCbCtrl* cb_disp_flt_heavy3;	//重故障3表示チェックボタン
 	CPbCtrl* pb_disp_flt_plcmap;	//PLC faulrmap表示チェックボタン
 	CListViewCtrl* lv_flt_list;		//故障リストビュー
-	INT16 flt_req_code = 0;			//故障リスト更新要求コード
-
+	INT16 flt_req_code =FAULT_HEAVY1|FAULT_HEAVY2|FAULT_HEAVY3|FAULT_LIGHT|FAULT_INTERLOCK;//故障リスト更新要求コード
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

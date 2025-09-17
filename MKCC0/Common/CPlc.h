@@ -134,26 +134,30 @@ typedef struct _ST_GOT_AXIS_SET {
 	INT16   drum_phase;			// ドラム層
 }ST_GOT_AXIS_SET, * LPST_GOT_AXIS_SET;
 
+#define N_OTE_OPE_PLC_FAULT_BUF  20
 typedef struct _ST_PLC_WBUF_HHGG38 {
-	INT16   pc_healthy;				// D10650　PCヘルシー出力信号
-	INT16   pc_status;				// D10651　PC Status
-	INT16   crane_id;				// D10652　接続クレーンID
-	UINT16  auto_sw;				// D10653　自動関連スイッチ
-	INT16	spare0[6];				// D10654　予備
-	INT16   lamp[2];				// D10660　ランプ出力(B10-2F）
-	float   mh_hight;				// D10662　主巻揚程
-	float   r;						// D10664　補巻揚程
-	float   mh_load;				// D10666　主巻荷重
-	float   ah_load;				// D10668　補巻荷重
-	float   wind_spd;				// D10670　風速
-	INT16   spare1[8];				// D10672　予備
-	ST_GOT_AXIS_SET mh_set;			// D10680　主巻
-	ST_GOT_AXIS_SET bh_set;			// D10690　引込
-	ST_GOT_AXIS_SET sl_set;			// D10700　旋回
-	ST_GOT_AXIS_SET gt_set;			// D10710　走行
-	ST_GOT_AXIS_SET ah_set;			// D10720　補巻
-	INT16   fault_code[20];			// D10730　故障コード
-	INT16   spare2[20];				// D10672　予備
+	INT16   pc_healthy;								// D10650　PCヘルシー出力信号
+	INT16   pc_status;								// D10651　PC Status
+	INT16   crane_id;								// D10652　接続クレーンID
+	UINT16  auto_sw;								// D10653　自動関連スイッチ
+	INT16	spare0[6];								// D10654　予備
+	INT16   lamp[2];								// D10660　ランプ出力(B10-2F）
+	float   mh_hight;								// D10662　主巻揚程
+	float   ah_hight;								// D10664　補巻揚程
+	float   mh_load;								// D10666　主巻荷重
+	float   ah_load;								// D10668　補巻荷重
+	float   r;										// D10670　半径
+	float   wind_spd;								// D10672　風速
+	INT16   spare1[5];								// D10674　予備
+	INT16   sl_brk_fb;								// D10679　旋回ブレーキFB
+	ST_GOT_AXIS_SET mh_set;							// D10680　主巻
+	ST_GOT_AXIS_SET bh_set;							// D10690　引込
+	ST_GOT_AXIS_SET sl_set;							// D10700　旋回
+	ST_GOT_AXIS_SET gt_set;							// D10710　走行
+	ST_GOT_AXIS_SET ah_set;							// D10720　補巻
+	INT16   fault_group;							// D10730　主巻モードセレクタ
+	INT16   fault_code[N_OTE_OPE_PLC_FAULT_BUF];	// D10731　故障コード
+	INT16   spare2[20];								// D10672　予備
 }ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
 
 typedef struct _ST_PLC_RBUF_HHGG38 {

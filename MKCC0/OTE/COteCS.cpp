@@ -460,8 +460,17 @@ static INT16 ote_helthy = 0; //ヘルシー値
 //#### 出力処理　
 int COteCS::output() {          
 
-
 	//### 遠隔操作卓PLCへの出力処理
+	//##故障コード
+	LPST_OTE_PC_FLTS_SET pFltSet = (LPST_OTE_PC_FLTS_SET)&pOteCCInf->st_msg_pc_u_rcv.body.st.faults_set;
+	for(int i=0; i< N_OTE_OPE_PLC_FAULT_BUF; i++){
+		if(i < pFltSet->set_count)
+			((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = pFltSet->codes[i] + 300;//codes[0]はセットされている故障のタイプ
+		else
+		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = 0;
+	}
+
+	
 	//機上PLCの受信バッファ内容参照ポインタセット（操作卓PLCへ転送書き込み用）
 	LPST_PLC_RBUF_HHGH29 pPlcRBuf = (LPST_PLC_RBUF_HHGH29)pOteCCInf->st_msg_pc_u_rcv.body.st.buf_io_read;
 	//操作卓PLCへ転送書き込み（送信バッファに内容セット）
@@ -471,6 +480,12 @@ int COteCS::output() {
 	pPcWBuf->mh_set.v_ref_tg	= pPlcRBuf->cv_tg[ID_HOIST];
 	pPcWBuf->mh_set.v_fb		= pPlcRBuf->inv_vfb[ID_HOIST];
 	pPcWBuf->mh_set.trq_fb		= pPlcRBuf->inv_trq[ID_HOIST];
+
+
+	pPcWBuf->mh_load = pOteCCInf->st_msg_pc_u_rcv.body.st.st_load_stat->m;
+	pPcWBuf->mh_hight = pOteCCInf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].pos_fb;
+	pPcWBuf->r = pOteCCInf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb;
+
 
 	//### 制御PCへの出力処理
 	//##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー

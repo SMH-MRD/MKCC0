@@ -240,7 +240,6 @@ int COteAgent::parse() {
 
 	//##################### 送信バッファセット　############################################
 
-	// パネル操作信号 !!!250526(当面SCADA共有メモリ部をセット）⇒操作台入力も折り込み改善必要
 	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.pnl_ctrl;//送信バッファのOTE操作信号情報部のポインタ
 	memcpy_s(pctrl, sizeof(INT16) * OTE_PNL_CTRLS::MAX, pOteCsInf->pnl_ctrl, sizeof(INT16)* OTE_PNL_CTRLS::MAX);
 
