@@ -1770,30 +1770,30 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 			wostringstream wos;
 
-			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].notch_ref > 0)
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].notch_ref > 0)
 				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"+");
-			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].notch_ref < 0)
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].notch_ref < 0)
 				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"-");
 			else
 				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"0");
 
-			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].notch_ref > 0)
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].notch_ref > 0)
 				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"+");
-			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].notch_ref < 0)
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].notch_ref < 0)
 				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"-");
 			else
 				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"0");
 
-			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].notch_ref > 0)
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].notch_ref > 0)
 				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"+");
-			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].notch_ref < 0)
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].notch_ref < 0)
 				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"-");
 			else
 				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"0");
 
-			if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].notch_ref > 0)
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].notch_ref > 0)
 				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"+");
-			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].notch_ref < 0)
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].notch_ref < 0)
 				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"-");
 			else
 				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"0");

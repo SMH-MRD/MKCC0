@@ -83,6 +83,12 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vfb_sl
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_vfb_gt
 
+	//目標速度％
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//target_v_m
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//target_v_b
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//target_v_s
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//target_v_g
+
 	//インバータトルク指令
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_trqref_mh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//inv_trqref_bh
@@ -268,10 +274,17 @@ int CPlc::setup(int crane_id) {
 			plc_io_rif.inv_vref_sl.pi16		= p + 72;	//旋回インバータ速度指令
 			plc_io_rif.inv_vref_gt.pi16		= p + 73;	//走行インバータ速度指令
 			//インバータ速度FB
-			plc_io_rif.inv_vfb_mh.pi16		= p + 74;	//主巻インバータ速度指令
-			plc_io_rif.inv_vfb_bh.pi16		= p + 75;	//引込インバータ速度指令
-			plc_io_rif.inv_vfb_sl.pi16		= p + 76;	//旋回インバータ速度指令
-			plc_io_rif.inv_vfb_gt.pi16		= p + 77;	//走行インバータ速度指令
+			plc_io_rif.inv_vfb_mh.pi16		= p + 74;	//主巻インバータ速度FB
+			plc_io_rif.inv_vfb_bh.pi16		= p + 75;	//引込インバータ速度FB
+			plc_io_rif.inv_vfb_sl.pi16		= p + 76;	//旋回インバータ速度FB
+			plc_io_rif.inv_vfb_gt.pi16		= p + 77;	//走行インバータ速度FB
+
+			//目標速度％
+			plc_io_rif.target_v_mh.pi16		= p + 33;	//主巻目標速度
+			plc_io_rif.target_v_bh.pi16		= p + 34;	//引込目標速度
+			plc_io_rif.target_v_sl.pi16		= p + 35;	//旋回目標速度
+			plc_io_rif.target_v_gt.pi16		= p + 36;	//走行目標速度	 
+			
 			//インバータトルク指令
 			plc_io_rif.inv_trqref_mh.pi16	= p + 78;	//主巻インバータトルク指令
 			plc_io_rif.inv_trqref_bh.pi16	= p + 79;	//引込インバータトルク指令

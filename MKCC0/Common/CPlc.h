@@ -82,31 +82,31 @@ typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC
 
 }ST_PLC_WBUF_HHGH29, * LPST_PLC_WBUF_HHGH29;
 typedef struct _ST_PLC_RBUF_HHGH29 {
-	INT16   helthy;						// D10400:PLCヘルシーカウンタ
-	INT16   plc_ctrl;					// D10401: PLC運転モード
-	UINT16  cab_ai[4];					// D10402:運転室PLC→電気室PLC W出力
-	INT16   cab_bi[4];					// D10406:運転室PLC→電気室PLC b出力
-	INT16   cab_xi[4];					// D10410:運転室PLC→電気室PLC b出力
-	INT16   cab_bo;						// D10414:b2b0-f = Y70-F
-	INT16   cab_yo;						// D10415:b160-f
-	INT16   erm_900;					// D10416:
-	INT16   erm_bo[8];					// D10417:電気室PLC b出力
-	INT32	mh_z;						// D10425:主巻揚程　D1010
-	INT32	r_01m;						// D10426:引込半径　D2772(W202)
-	INT16	spar0[4];					// D10427:予備
-	INT16	cv_tg[4];					// D10433:目標速度％
-	INT16	spar1[2];					// D10437:予備
-	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10439:故障信号
-	INT16   erm_y[5];					// D10457:電気室PLC Y出力
-	INT16   erm_x[7];					// D10462:電気室PLC X入力
+	INT16   helthy;						// D10300:PLCヘルシーカウンタ
+	INT16   plc_ctrl;					// D10301: PLC運転モード
+	UINT16  cab_ai[4];					// D10302:運転室PLC→電気室PLC W出力
+	INT16   cab_bi[4];					// D10306:運転室PLC→電気室PLC b出力
+	INT16   cab_xi[4];					// D10310:運転室PLC→電気室PLC b出力
+	INT16   cab_bo;						// D10314:b2b0-f = Y70-F
+	INT16   cab_yo;						// D10315:b160-f
+	INT16   erm_900;					// D10316:
+	INT16   erm_bo[8];					// D10317:電気室PLC b出力
+	INT32	mh_z;						// D10325:主巻揚程　D1010
+	INT32	r_01m;						// D10326:引込半径　D2772(W202)
+	INT16	spar0[4];					// D10327:予備
+	INT16	cv_tg[4];					// D10333:目標速度％
+	INT16	spar1[2];					// D10337:予備
+	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10339:故障信号
+	INT16   erm_y[5];					// D10357:電気室PLC Y出力
+	INT16   erm_x[7];					// D10362:電気室PLC X入力
 	INT16   spar2;						//
-	INT16   inv_vref[4];				// D10470:インバータ速度指令
-	INT16   inv_vfb[4];					// D10475:インバータ速度FB
-	INT16   inv_trq[2];					// D10478:インバータトルク指令
-	INT16   spar3[2];					// D10469:インバータPLC DO指令	
-	INT32   hcount_fb[4];				// D10480:高速カウンタユニット FB値
-	INT32   absocoder_fb[3];			// D10488:アブソコーダ FB値
-	INT16   spar4[4];					// D10496:予備
+	INT16   inv_vref[4];				// D10370:インバータ速度指令
+	INT16   inv_vfb[4];					// D10375:インバータ速度FB
+	INT16   inv_trq[2];					// D10378:インバータトルク指令
+	INT16   spar3[2];					// D10369:インバータPLC DO指令	
+	INT32   hcount_fb[4];				// D10380:高速カウンタユニット FB値
+	INT32   absocoder_fb[3];			// D10388:アブソコーダ FB値
+	INT16   spar4[4];					// D10396:予備
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
@@ -123,16 +123,21 @@ union UN_PLC_WBUF {
 };
 
 
-typedef struct _ST_GOT_AXIS_SET {
-	INT16   notch;				// ノッチ入力
+typedef struct _ST_PLC_AXIS_SET {
+	float	pos_fb;				//位置
+	INT16   notch_ref;			// ノッチ入力
 	INT16   v_ref_tg;			// 目標速度
 	INT16   v_ref;				// 速度指令
 	INT16   v_fb;				// 速度FB
-	INT16   trq_fb;				// トルク指令
-	INT32   pg_count;			// PGカウンタ値
-	INT32   absocoder;			// アブソコーダ値
-	INT16   drum_phase;			// ドラム層
-}ST_GOT_AXIS_SET, * LPST_GOT_AXIS_SET;
+	INT16   trq_ref;			// トルク指令
+	INT16   drum_layer;			// ドラム層
+	INT16	brake;				// ブレーキ状態
+	INT16	mode;				// モード
+	INT16   limit;				// 制限
+	INT16   fault;				// 故障
+	INT32   absocoder;			// アブソコーダ
+	INT32	pg_count;			// パルスジェネレータカウント
+}ST_PLC_AXIS_SET, * LPST_PLC_AXIS_SET;
 
 #define N_OTE_OPE_PLC_FAULT_BUF  20
 typedef struct _ST_PLC_WBUF_HHGG38 {
@@ -149,14 +154,13 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 	float   r;										// D10670　半径
 	float   wind_spd;								// D10672　風速
 	INT16   spare1[5];								// D10674　予備
-	INT16   sl_brk_fb;								// D10679　旋回ブレーキFB
-	ST_GOT_AXIS_SET mh_set;							// D10680　主巻
-	ST_GOT_AXIS_SET bh_set;							// D10690　引込
-	ST_GOT_AXIS_SET sl_set;							// D10700　旋回
-	ST_GOT_AXIS_SET gt_set;							// D10710　走行
-	ST_GOT_AXIS_SET ah_set;							// D10720　補巻
-	INT16   fault_group;							// D10730　主巻モードセレクタ
+	INT16   fault_group;							// D10679　故障コードグループ
 	INT16   fault_code[N_OTE_OPE_PLC_FAULT_BUF];	// D10731　故障コード
+	ST_PLC_AXIS_SET mh_set;							// D10700　主巻
+	ST_PLC_AXIS_SET bh_set;							// D10716　引込
+	ST_PLC_AXIS_SET sl_set;							// D10732　旋回
+	ST_PLC_AXIS_SET gt_set;							// D10748　走行
+	ST_PLC_AXIS_SET ah_set;							// D10764　補巻
 	INT16   spare2[20];								// D10672　予備
 }ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
 
@@ -292,6 +296,11 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
 	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
 	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
+
+	ST_PLC_IO_DEF target_v_mh;		//主巻目標速度
+	ST_PLC_IO_DEF target_v_bh;		//引込目標速度
+	ST_PLC_IO_DEF target_v_sl;		//旋回目標速度
+	ST_PLC_IO_DEF target_v_gt;		//走行目標速度
 
 	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
 	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令

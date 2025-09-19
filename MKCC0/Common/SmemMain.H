@@ -124,30 +124,30 @@ typedef struct _ST_CC_ENV_INF {
 //## PLC IO定義構造体　PLC通信の情報　
 #pragma region PLC IO
 
-typedef struct _ST_PLC_AXIS_STAT {
-	INT16	inv_fb_v;				//速度FB ADユニット値
-	INT16	brk_fb;					//ブレーキ状態FB 0閉
-	INT16	notch_fb;				//ノッチ位置
-	INT32   hcount_fb;				//高速カウンタFB値
-	INT32	absocoder_fb;			//アブソコーダFB値
-	INT32	endlim;					//極限センサ状態
-
-	INT16	inv_ref_dir;			//インバータ運転指令(FWD,REV)
-	INT16	inv_ref_v;				//インバータ速度指令(絶対値）
-	INT16	inv_ref_trq;			//インバータトルク指令
-
-} ST_PLC_AXIS_STAT, * LPST_PLC_AXIS_STAT;
+//typedef struct _ST_PLC_AXIS_STAT {
+//	float	pos;					//位置FB m,deg
+//	INT16	inv_fb_v;				//速度FB ADユニット値
+//	INT16	brk_fb;					//ブレーキ状態FB 0閉
+//	INT16	notch_fb;				//ノッチ位置
+//	INT16   target_v;				//目標速度
+//	INT32   hcount_fb;				//高速カウンタFB値
+//	INT32	absocoder_fb;			//アブソコーダFB値
+//	INT16	endlim;					//極限センサ状態
+//	INT16	inv_ref_dir;			//インバータ運転指令(FWD,REV)
+//	INT16	inv_ref_v;				//インバータ速度指令(絶対値）
+//	INT16	inv_ref_trq;			//インバータトルク指令
+//} ST_PLC_AXIS_STAT, * LPST_PLC_AXIS_STAT;
 
 #define PRM_CC_PLC_CHK_COUNT		20//PLCヘルシーチェック用 AGENT SCAN×カウントmsec
 typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;								//PC制御受付状態
 	INT16 plc_enable;								//PLC有効で端末権利有でOTEリモートモード
 	INT32 ctrl_source;								//主幹状態
-	ST_PLC_AXIS_STAT stat_mh;
-	ST_PLC_AXIS_STAT stat_bh;
-	ST_PLC_AXIS_STAT stat_sl;
-	ST_PLC_AXIS_STAT stat_gt;
-	ST_PLC_AXIS_STAT stat_ah;
+	ST_PLC_AXIS_SET stat_mh;
+	ST_PLC_AXIS_SET stat_bh;
+	ST_PLC_AXIS_SET stat_sl;
+	ST_PLC_AXIS_SET stat_gt;
+	ST_PLC_AXIS_SET stat_ah;
 
 	double	weight;									//主巻荷重FB
 	double	weight_ah;								//補巻荷重FB

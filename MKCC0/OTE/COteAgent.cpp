@@ -262,6 +262,7 @@ int COteAgent::output() {          //出力処理
 	//送信データの内容を共有バッファへコピー
 	memcpy_s(&(pOteCCIf->st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG), &(st_work.st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG));
 	memcpy_s(&(pOteCCIf->st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG), &(st_work.st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG));
+	
 	//CC通信状態ステータスセット（モニタ用）
 	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
 	//クレーン操作有効端末id
@@ -809,7 +810,6 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				res_delay_max = 0;
 				res_delay_min = 10000000;
 			}
-
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;

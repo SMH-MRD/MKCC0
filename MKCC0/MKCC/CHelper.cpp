@@ -27,17 +27,17 @@ INT16 CNotchHelper::set_code4_by_notch(PINT16 pdst, int notch, int bit_shift) {
 	return setval;
 }
 
-//code指定でノッチ取得
+//code指定でノッチ取得　4ノッチタイプ
 INT16 CNotchHelper::get_notch4_by_code(PINT16 pcodebuf, int bit_shift) {
 	INT16 ans,chk_code;
 	INT16 chk_mask = PTN_NOTCH4_MASK; 
 
-	chk_mask <<= bit_shift;
-	chk_code = *pcodebuf & chk_mask;
-	chk_code >>= bit_shift;
+	chk_mask <<= bit_shift;				//WORD内の信号配置に合わせてマスク調整
+	chk_code = *pcodebuf & chk_mask;	//信号抽出
+	chk_code >>= bit_shift;				//信号正規化
 
-	if (chk_code == code.f4[0])return 0;
-	for (int i = 1; i < N_NOTCH_MAX; i++) {
+	if (chk_code == code.f4[0])return 0;		// コード比較0ノッチ
+	for (int i = 1; i < N_NOTCH_MAX; i++) {		// コード比較各ノッチ
 		if (chk_code == code.f4[i])return i;
 		if (chk_code == code.r4[i])return -i;
 	}

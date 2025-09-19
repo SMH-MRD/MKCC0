@@ -18,16 +18,16 @@ public:
 	/// <param name="plc_wbuf"></param>
 	CCrane(int _crane_id, INT16* plc_rbuf, INT16* plc_wbuf) {//SCC—p
 		crane_id = _crane_id;
-		pSpec = new CSpec(crane_id);
-		pPlc = new CPlc(crane_id, plc_rbuf, plc_wbuf);
-		pFlt = new CFaults(crane_id, plc_rbuf, plc_wbuf);
+		pSpec	= new CSpec(crane_id);
+		pPlc	= new CPlc(crane_id, plc_rbuf, plc_wbuf);
+		pFlt	= new CFaults(crane_id, plc_rbuf, plc_wbuf);
 	};
 
 	CCrane(int _crane_id) {//OTE—p
 		crane_id = _crane_id;
-		pSpec = new CSpec(crane_id);
-		pPlc = new CPlc(crane_id);
-		pFlt = new CFaults(crane_id);
+		pSpec	= new CSpec(crane_id);
+		pPlc	= new CPlc(crane_id);
+		pFlt	= new CFaults(crane_id);
 	};
 
 	virtual ~CCrane() {

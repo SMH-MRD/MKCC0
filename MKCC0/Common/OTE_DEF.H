@@ -2,13 +2,14 @@
 
 #include <winsock.h>
 #include "PLC_DEF.h"
+#include "CPlc.h"
 #include "COMMON_DEF.h"
 
 
 //操作端末のテキスト,ボタン、ランプ数
 #define N_OTE_PNL_CTRL				128
 #define N_OTE_PC_MSG_WCHAR			64
-#define N_OTE_PC_SET_FLT			63//最初の要素にはセットされているタイプのコードが入る
+#define N_OTE_PC_SET_FLT			64//最初の要素にはセットされているタイプのコードが入る
 #define N_OTE_PNL_NOTCH_DEVICE		5
 #define N_OTE_PNL_NOTCH_PBL			N_NOTCH_TBL
 
@@ -54,40 +55,7 @@ typedef struct OteComHead {
 
 /******* 共通メッセージ定義 **************/
 #pragma region  構造体用define
-
 #define N_CRANE_PC_MAX					32
-
-#if 0
-#define OTE_N_LOAD						2	//吊荷数
-#define OTE_N_PC_MSG_WCHAR				128	//PCからのメッセージテキスト数
-#define OTE_ID_LOAD_MH					0
-#define OTE_ID_LOAD_AH					1
-
-//吊荷状態　INDEX（OTEアニメーション表示用）
-#define ID_PUC_BODY_LD_MHX				0
-#define ID_PUC_BODY_LD_MHY				1
-#define ID_PUC_BODY_LD_MHZ				2
-#define ID_PUC_BODY_LD_MHTH				3
-#define ID_PUC_BODY_LD_AHX				0
-#define ID_PUC_BODY_LD_AHY				1
-#define ID_PUC_BODY_LD_AHZ				2
-#define ID_PUC_BODY_LD_AHTH				3
-
-//半自動目標設定INDEX
-#define ID_PUC_BODY_TG_MAIN				0
-#define ID_PUC_BODY_TG_S1				1
-#define ID_PUC_BODY_TG_S2				2
-#define ID_PUC_BODY_TG_S3				3
-#define ID_PUC_BODY_TG_L1				4
-#define ID_PUC_BODY_TG_L2				5
-#define ID_PUC_BODY_TG_L3				6
-
-//ノッチ状態バッファ参照用インデックス
-#define ID_OTE_NOTCH_POS_HOLD			0 //現在値保持
-#define ID_OTE_NOTCH_POS_TRIG			1 //トリガ状態
-#define ID_OTE_NOTCH_POS_CNT			2 //状態保持カウント値
-
-#endif
 
 #pragma endregion
 
@@ -110,15 +78,6 @@ typedef struct OteMBody {
 }ST_OTE_M_BODY, * LPST_OTE_M_BODY;
 
 /******* PCユニキャストBody構造体 ***********/
-typedef struct _ST_OTE_MOTION_STAT {
-	double pos_fb;
-	double pos_tg;
-	double v_fb;
-	double nv_ref;
-	INT32 brake;
-	INT32 auto_sel;
-	INT32 notch_ref;
-}ST_OTE_MOTION_STAT,*LPST_OTE_MOTION_STAT;
 #define N_OTE_LOAD_TYPE		2
 #define ID_OTE_LOAD_MHOIST	0
 #define ID_OTE_LOAD_AHOIST	1
@@ -194,11 +153,12 @@ typedef struct PcUBody {//デフォルト
 	UN_LAMP_COM			lamp[N_OTE_PNL_CTRL];									//OTEパネルコントローラ表示指示データ
 	UN_LAMP_COM			notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//ノッチランプ
 	INT16				buf_io_read[CC_MC_SIZE_W_READ];							//PLC READデータ
-	ST_OTE_MOTION_STAT	st_motion_stat[ID_AXIS::Max];							//動作状態モニタ値
+	ST_PLC_AXIS_SET		st_axis_set[ID_AXIS::Max];								//動作状態モニタ値
 	ST_OTE_LOAD_STAT	st_load_stat[N_OTE_LOAD_TYPE];							//吊荷状態
 	ST_OTE_PC_MSG		pc_msg;													//メッセージを更新する毎にカウントアップ
 	ST_OTE_PC_FLTS_SET  faults_set;												//発生中故障コード
-	double 				bh_angle;												//起伏角度
+	float 				bh_angle;												//起伏角度
+	float				wind_spd;
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/

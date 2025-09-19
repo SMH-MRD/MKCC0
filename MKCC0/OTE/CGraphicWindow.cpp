@@ -159,8 +159,8 @@ pPanelBase->pgwinobjs->lmg_crane_gt_base->set(0);
 pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// クレーンポータル画像書き込み
 
 // 2. クレーン画像の描画(pbmp_img） 
-double angle = pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].pos_fb;
-double k = pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb/62.0*0.9;
+double angle = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].pos_fb;
+double k = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb/62.0*0.9;
 
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->set(0);
 //pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(500,550, (float)(gwin_count%360),35,0,1.0,0.8);	// クレーンブーム上面画像書き込み
@@ -175,11 +175,11 @@ pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y,
 wostringstream wo; 
 wo.str(L""); wo << L"荷重： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m / 10.0<<L"t";
 pPanelBase->pgwinobjs->str_load_mh->update(wo.str().c_str());	// 主巻位置書き込み
-wo.str(L""); wo << L"半径： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb << L"m";
+wo.str(L""); wo << L"半径： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb << L"m";
 pPanelBase->pgwinobjs->str_pos_bh->update(wo.str().c_str());	// 半径書き込み
-wo.str(L""); wo << L"旋回： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_SLEW].pos_fb << L"°";
+wo.str(L""); wo << L"旋回： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].pos_fb << L"°";
 pPanelBase->pgwinobjs->str_pos_sl->update(wo.str().c_str());	// 旋回各書き込み
-wo.str(L""); wo << L"走行： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_GANTRY].pos_fb << L"m";
+wo.str(L""); wo << L"走行： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].pos_fb << L"m";
 pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 走行位置書き込み
 
 wo.str(L""); wo << L"("<<mouse_pos_main.X<< L"," << mouse_pos_main.Y <<L") " ;
@@ -375,8 +375,8 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 //	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->pgraphics->FillRectangle(pPanelBase->pdrawing_items->pbrush[ID_PANEL_COLOR_BLACK], pPanelBase->pgsubwinobjs->rc_panel);
 	pPanelBase->pgsubwinobjs->pgraphic_img->FillRectangle(pPanelBase->pdrawing_items->pbrush[ID_PANEL_COLOR_BLACK], pPanelBase->pgsubwinobjs->rc_panel);
 
-	int x = GSUB_PNL_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_BOOM_H].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのX座標
-	int y = GSUB_PNL_ORG_Y - INT(pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのY座標
+	int x = GSUB_PNL_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのX座標
+	int y = GSUB_PNL_ORG_Y - INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのY座標
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(0);
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->update(x,y);	// クレーンフック画像書き込み
 
@@ -385,7 +385,7 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;
-	wo.str(L""); wo << L"揚程： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_motion_stat[ID_HOIST].pos_fb<<L"m";
+	wo.str(L""); wo << L"揚程： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].pos_fb<<L"m";
 	pPanelBase->pgsubwinobjs->str_pos_mh->update(wo.str().c_str());	// 主巻位置書き込み
 
 	wo.str(L""); wo << L"起伏角： "<<std::fixed<<std::setprecision(1)<< angle << L"°";

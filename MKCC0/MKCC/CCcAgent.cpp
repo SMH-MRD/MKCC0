@@ -173,82 +173,101 @@ static UINT32	gpad_mode_last = L_OFF;
 
 int CAgent::input() {
 
-	//### PG アブソコーダ
-	pPLC_IO->stat_mh.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_mh).i32;	//MH　PG
-	pPLC_IO->stat_bh.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_bh).i32;	//BH　PG
-	pPLC_IO->stat_sl.hcount_fb = pCrane->pPlc->rval(pPlcRIf->hcounter_sl).i32;	//SL　PG
-	
-	pPLC_IO->stat_mh.absocoder_fb = pCrane->pPlc->rval(pPlcRIf->absocoder_mh).i32;	//MHアブソコーダ
-	pPLC_IO->stat_gt.absocoder_fb = pCrane->pPlc->rval(pPlcRIf->absocoder_gt).i32;	//BHアブソコーダ
+//### PLC信号を共有メモリに展開
+	//## 位置（Environmentの計算値）
+	pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
+	pPLC_IO->stat_bh.pos_fb = (float)pEnv_Inf->crane_stat.r.p;				//旋回半径
+	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//旋回角度
+	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//走行位置 
 
-	//###ブレーキ状態FB
-	pPLC_IO->stat_mh.brk_fb = pCrane->pPlc->rval(pPlcRIf->mh_brk1_fb).i16;		//MHブレーキ状態
-	pPLC_IO->stat_bh.brk_fb = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;		//BHブレーキ状態
-	pPLC_IO->stat_gt.brk_fb = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;		//GTブレーキ状態
-	pPLC_IO->stat_sl.brk_fb = pCrane->pPlc->rval(pPlcRIf->sl_hydr_press_sw).i16;//SLブレーキ状態
-
-	pPLC_IO->stat_mh.hcount_fb;
-	pPLC_IO->stat_mh.absocoder_fb;
-
-	//###ノッチ指令状態
+	//## ノッチ指令状態
 	INT16 notch = pCrane->pPlc->rval(pPlcRIf->mh_notch).i16;
-	pPLC_IO->stat_mh.notch_fb = CNotchHelper::get_notch4_by_code(&notch,0);	//MHノッチFB
+	pPLC_IO->stat_mh.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
 	notch = pCrane->pPlc->rval(pPlcRIf->bh_notch).i16;
-	pPLC_IO->stat_bh.notch_fb = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
+	pPLC_IO->stat_bh.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//BHノッチFB
 	notch = pCrane->pPlc->rval(pPlcRIf->sl_notch).i16;
-	pPLC_IO->stat_sl.notch_fb = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
+	pPLC_IO->stat_sl.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//SLノッチFB
 	notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
-	pPLC_IO->stat_gt.notch_fb = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
+	pPLC_IO->stat_gt.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//GTノッチFB
 
-	//###インバータ指令状態
-	//##インバータ運転指令方向 速度指令
-	pPLC_IO->stat_mh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_mh).i16;//インバータ速度指令
-	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16) 
-		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_FWD;
-	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16) { 
-		pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_REV; 
-		pPLC_IO->stat_mh.inv_ref_v *= -1;
-	}
-	else  pPLC_IO->stat_mh.inv_ref_dir = CODE_DIR_STP; 
+	//## 目標速度
+	pPLC_IO->stat_mh.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->target_v_mh).i16;
+	pPLC_IO->stat_bh.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->target_v_bh).i16;
+	pPLC_IO->stat_sl.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->target_v_sl).i16;
+	pPLC_IO->stat_gt.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->target_v_gt).i16;
+
+	//## インバータ速度指令
+	//主巻
+	pPLC_IO->stat_mh.v_ref = pCrane->pPlc->rval(pPlcRIf->inv_vref_mh).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_mh).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_mh).i16) pPLC_IO->stat_mh.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_mh.v_ref = 0;														//インバータ指令（無し）
+	//引込
+	pPLC_IO->stat_bh.v_ref = pCrane->pPlc->rval(pPlcRIf->inv_vref_bh).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_bh).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_bh).i16) pPLC_IO->stat_bh.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_bh.v_ref = 0;														//インバータ指令（無し）
+	//旋回
+	pPLC_IO->stat_sl.v_ref = pCrane->pPlc->rval(pPlcRIf->inv_vref_sl).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_sl).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_sl).i16) pPLC_IO->stat_sl.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_sl.v_ref = 0;														//インバータ指令（無し）
+	//走行
+	pPLC_IO->stat_gt.v_ref = pCrane->pPlc->rval(pPlcRIf->inv_vref_gt).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_gt).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_gt).i16) pPLC_IO->stat_gt.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_gt.v_ref = 0;														//インバータ指令（無し）
+
+	//## インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
+	pPLC_IO->stat_mh.v_fb = pCrane->pPlc->rval(pPlcRIf->inv_vfb_mh).i16;
+	pPLC_IO->stat_bh.v_fb = pCrane->pPlc->rval(pPlcRIf->inv_vfb_bh).i16;
+	pPLC_IO->stat_sl.v_fb = pCrane->pPlc->rval(pPlcRIf->inv_vfb_sl).i16;
+	pPLC_IO->stat_gt.v_fb = pCrane->pPlc->rval(pPlcRIf->inv_vfb_gt).i16;
+
+	//## インバータリトルク指令
+	pPLC_IO->stat_mh.trq_ref = pCrane->pPlc->rval(pPlcRIf->inv_trqref_mh).i16;
+	pPLC_IO->stat_bh.trq_ref = pCrane->pPlc->rval(pPlcRIf->inv_trqref_bh).i16;
+
+	//## ドラム層数
+	pPLC_IO->stat_mh.drum_layer;
+	pPLC_IO->stat_bh.drum_layer;
+	pPLC_IO->stat_gt.drum_layer;
+	pPLC_IO->stat_sl.drum_layer;
+		
+	//## ブレーキ状態FB
+	pPLC_IO->stat_mh.brake = pCrane->pPlc->rval(pPlcRIf->mh_brk1_fb).i16;		//MHブレーキ状態
+	pPLC_IO->stat_bh.brake = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;		//BHブレーキ状態
+	pPLC_IO->stat_gt.brake = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;		//GTブレーキ状態
+	pPLC_IO->stat_sl.brake = pCrane->pPlc->rval(pPlcRIf->sl_hydr_press_sw).i16;	//SLブレーキ状態
+	//# 旋回ブレーキ有効時（遠隔端末有効+旋回ブレーキenableの時）は旋回ブレーキFBをセット	
+	if (0); pPLC_IO->stat_sl.brake;
+
+	//## MODE
+	pPLC_IO->stat_mh.mode;
+	pPLC_IO->stat_bh.mode;
+	pPLC_IO->stat_gt.mode;
+	pPLC_IO->stat_sl.mode;
+
+	//## limit	
+	pPLC_IO->stat_mh.limit;
+	pPLC_IO->stat_bh.limit;
+	pPLC_IO->stat_gt.limit;
+	pPLC_IO->stat_sl.limit;
+
+	//## fault
+	pPLC_IO->stat_mh.fault;
+	pPLC_IO->stat_bh.fault;
+	pPLC_IO->stat_gt.fault;
+	pPLC_IO->stat_sl.fault;
+
+	//## アブソコーダ
+	pPLC_IO->stat_mh.absocoder = pCrane->pPlc->rval(pPlcRIf->absocoder_mh).i32;	//MHアブソコーダ
+	pPLC_IO->stat_gt.absocoder = pCrane->pPlc->rval(pPlcRIf->absocoder_gt).i32;	//BHアブソコーダ
 	
-	pPLC_IO->stat_bh.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_bh).i16;		
-	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_bh).i16)		pPLC_IO->stat_bh.inv_ref_dir = CODE_DIR_FWD;
-	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_bh).i16) {
-		pPLC_IO->stat_bh.inv_ref_dir = CODE_DIR_REV;
-		pPLC_IO->stat_bh.inv_ref_v *= -1;
-	}
-	else													pPLC_IO->stat_bh.inv_ref_dir = CODE_DIR_STP;
-	
-	pPLC_IO->stat_sl.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_sl).i16;	
-	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_sl).i16)		pPLC_IO->stat_sl.inv_ref_dir = CODE_DIR_FWD;
-	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_sl).i16) {
-		pPLC_IO->stat_sl.inv_ref_dir = CODE_DIR_REV;
-		pPLC_IO->stat_sl.inv_ref_v *= -1;
-	}
-	else													pPLC_IO->stat_sl.inv_ref_dir = CODE_DIR_STP;
-	
-	pPLC_IO->stat_gt.inv_ref_v = pCrane->pPlc->rval(pPlcRIf->inv_vref_gt).i16;	
-	if (pCrane->pPlc->rval(pPlcRIf->inv_fwd_gt).i16)		pPLC_IO->stat_gt.inv_ref_dir = CODE_DIR_FWD;
-	else if (pCrane->pPlc->rval(pPlcRIf->inv_rev_gt).i16) {
-		pPLC_IO->stat_gt.inv_ref_dir = CODE_DIR_REV;
-		pPLC_IO->stat_gt.inv_ref_v *= -1;
-	}
-	else													pPLC_IO->stat_gt.inv_ref_dir = CODE_DIR_STP;
-	
-	//###インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
-	pPLC_IO->stat_mh.inv_fb_v = pCrane->pPlc->rval(pPlcRIf->inv_vfb_mh).i16;
-	pPLC_IO->stat_bh.inv_fb_v = pCrane->pPlc->rval(pPlcRIf->inv_vfb_bh).i16;
-	pPLC_IO->stat_sl.inv_fb_v = pCrane->pPlc->rval(pPlcRIf->inv_vfb_sl).i16;
-	pPLC_IO->stat_gt.inv_fb_v = pCrane->pPlc->rval(pPlcRIf->inv_vfb_gt).i16;
-	//インバータリトルク指令
-	pPLC_IO->stat_mh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_mh).i16;	
-	pPLC_IO->stat_bh.inv_ref_trq = pCrane->pPlc->rval(pPlcRIf->inv_trqref_bh).i16;
-	
-	//###ブレーキ状態
-	pPLC_IO->stat_mh.brk_fb = pCrane->pPlc->rval(pPlcRIf->mh_brk1_fb).i16;
-	pPLC_IO->stat_bh.brk_fb = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;
-	pPLC_IO->stat_sl.brk_fb = pCrane->pPlc->rval(pPlcRIf->sl_brake).i16;
-	pPLC_IO->stat_gt.brk_fb = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;
+	//## PG
+	pPLC_IO->stat_mh.pg_count = pCrane->pPlc->rval(pPlcRIf->hcounter_mh).i32;	//MH　PG
+	pPLC_IO->stat_bh.pg_count = pCrane->pPlc->rval(pPlcRIf->hcounter_bh).i32;	//BH　PG
+	pPLC_IO->stat_sl.pg_count = pCrane->pPlc->rval(pPlcRIf->hcounter_sl).i32;	//SL　PG
 	
 	//###荷重
 	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH荷重
@@ -314,7 +333,7 @@ int CAgent::parse() {
 
 	//Notch信号
 	//!!! 主巻と引込はPAD入力の＋が下,出(逆転）
-	pCrane->pPlc->wval(pPlcWIf->mh_notch, CNotchHelper::get_code4_by_notch(-pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
+	pCrane->pPlc->wval(pPlcWIf->mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
 	pCrane->pPlc->wval(pPlcWIf->bh_notch, CNotchHelper::get_code4_by_notch(-pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
 
 	pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));

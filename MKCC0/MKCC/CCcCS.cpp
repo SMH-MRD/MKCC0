@@ -198,11 +198,13 @@ int CCcCS::input() {
 }
 
 int CCcCS::parse() {
-	//操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
+//#### 制御状態監視
+	//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
 	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
 	
-	//PLCデータ解析
-	//st_ote_work.st_bodyの内容が送信バッファにコピーされる
+//### OTE送信データ設定
+	//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
+	//## ランプ表示指令
 	UN_LAMP_COM *plamp_com = st_ote_work.st_body.lamp;
 	if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
 		st_ote_work.st_ote_ctrl.id_ope_active	= OTE_NON_OPEMODE_ACTIVE;
@@ -215,12 +217,6 @@ int CCcCS::parse() {
 	else {
 		//PLC受信バッファをコピー
 		memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
-
-		//ノッチ指令信号
-		st_ote_work.st_body.st_motion_stat[ID_HOIST].notch_ref	= pPLC_IO->stat_mh.notch_fb;
-		st_ote_work.st_body.st_motion_stat[ID_BOOM_H].notch_ref = pPLC_IO->stat_bh.notch_fb;
-		st_ote_work.st_body.st_motion_stat[ID_SLEW].notch_ref	= pPLC_IO->stat_sl.notch_fb;
-		st_ote_work.st_body.st_motion_stat[ID_GANTRY].notch_ref = pPLC_IO->stat_gt.notch_fb;
 
 		//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
 		plamp_com[OTE_PNL_CTRLS::estop].st.com		= (UINT8)pCrane->pPlc->rval(pPlcRIf->estop).i16;
@@ -246,32 +242,32 @@ int CCcCS::parse() {
 			= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
 
 		//ノッチ信号FB
-		INT16 notch = pCrane->pPlc->rval(pPlcRIf->mh_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_mh].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
-		notch = pCrane->pPlc->rval(pPlcRIf->bh_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_bh].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
-		notch = pCrane->pPlc->rval(pPlcRIf->sl_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_sl].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
-		notch = pCrane->pPlc->rval(pPlcRIf->gt_notch).i16;
-		plamp_com[OTE_PNL_CTRLS::notch_gt].st.com	= (UINT8)CNotchHelper::get_notch4_by_code(&notch,0);
-
-		//クレーン状態セット
-		st_ote_work.st_body.st_load_stat->m = pEnv_Inf->crane_stat.m;									//荷重
-		st_ote_work.st_body.bh_angle = pEnv_Inf->crane_stat.th.p;										//起伏角度
-		st_ote_work.st_body.st_motion_stat[ID_BOOM_H].pos_fb	= pEnv_Inf->crane_stat.r.p;				//旋回半径
-		st_ote_work.st_body.st_motion_stat[ID_SLEW].pos_fb		= pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//旋回角度
-		st_ote_work.st_body.st_motion_stat[ID_HOIST].pos_fb		= pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
-		st_ote_work.st_body.st_motion_stat[ID_GANTRY].pos_fb	= pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//走行位置
+		plamp_com[OTE_PNL_CTRLS::notch_mh].st.com	= pPLC_IO->stat_mh.notch_ref;
+		plamp_com[OTE_PNL_CTRLS::notch_bh].st.com	= pPLC_IO->stat_bh.notch_ref;
+		plamp_com[OTE_PNL_CTRLS::notch_sl].st.com	= pPLC_IO->stat_sl.notch_ref;
+		plamp_com[OTE_PNL_CTRLS::notch_gt].st.com	= pPLC_IO->stat_gt.notch_ref;
 	}
 
-	//OTE故障情報セット
+	//##　故障情報セット
 	set_ote_flt_info();
+	
+	//## クレーン状態セット
+	st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m;								//荷重
+	st_ote_work.st_body.bh_angle = (float)pEnv_Inf->crane_stat.th.p;									//起伏角度
+
+
+	//## 各軸状態
+	st_ote_work.st_body.st_axis_set[ID_HOIST]	= pPLC_IO->stat_mh;	//主巻
+	st_ote_work.st_body.st_axis_set[ID_BOOM_H]	= pPLC_IO->stat_bh;	//引込
+	st_ote_work.st_body.st_axis_set[ID_SLEW]	= pPLC_IO->stat_sl;	//旋回
+	st_ote_work.st_body.st_axis_set[ID_GANTRY]	= pPLC_IO->stat_gt;	//走行
 
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
 	//共有メモリ出力処理
 	//CS_INF 制御コントロール情報（モード等）
+	
 	memcpy_s(&(pCS_Inf->cs_ctrl), sizeof(ST_CC_CS_CTRL), &st_cs_work.cs_ctrl, sizeof(ST_CC_CS_CTRL));
 	
 	//OTE接続情報（モード等）
@@ -290,6 +286,8 @@ int CCcCS::close() {
 /****************************************************************************/
 void CCcCS::set_ote_flt_info() {
 	INT16 com_ote;
+	
+	//故障表示内容要求コード設定(OTEからの受信データ)
 	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {//操作権獲得端末が無い時はモニタモードの端末の要求を受付
 		com_ote = pOTE_Inf->st_msg_ote_u_rcv_mon.body.st.faults_disp_req;
 	}
