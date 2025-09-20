@@ -26,8 +26,6 @@ ST_OTE_AG_MON2 COteAgent::st_mon2;
 
 ST_OTE_CC_IF COteAgent::st_work;
 
-
-
 //‹¤—Lƒƒ‚ƒŠ
 
 static LPST_OTE_ENV_INF	pOteEnvInf;

@@ -198,14 +198,7 @@ HRESULT CAuxAgent::routine_work(void* pObj){
 
 int CAuxAgent::input() {
 		
-	//for (int i = 0; i < st_work.laniocount; i++) {
-	//	switch (st_work.lanio_model[i]) {
-	//	case LANIO_MODEL_LA_5AI: {
-	//		pst_work->lanio_stat[i] = LALanioAIAll(st_work.hlanio[i], st_work.lanio_ai_data);
-	//	}break;
-	//	default:break;
-	//	}
-	//}
+
 
 	return S_OK;
 }
@@ -224,10 +217,11 @@ int CAuxAgent::parse() {           //メイン処理
 	return STAT_OK;
 }
 int CAuxAgent::output() {          //出力処理
-
+	//### MAINプロセスへ出力
 	pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
 	pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHW
 
+	//### 旋回ブレーキシステムへ出力
 	if(!st_mon2.slbrk_dbg_mode)
 		pAgent_Inf->slbrk_wbuf[0] = pCS_Inf->com_slbrk.pc_com_autosel | pCS_Inf->com_slbrk.pc_com_hw_brk |pCS_Inf->com_slbrk.pc_com_brk_level;
 	

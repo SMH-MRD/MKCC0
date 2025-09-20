@@ -80,6 +80,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pSim_Inf	= (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
 
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
+
+	pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl;
 	
 	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
@@ -274,6 +276,9 @@ int CAgent::input() {
 
 	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32)/1000.0;	//揚程
 	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_mm).i32)/1000.0;		//半径
+
+	//### PB,SW,LAMP,etc
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren] = pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
 	
 	return S_OK;
 }
@@ -330,6 +335,10 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->mh_spd_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE,0));
 	pCrane->pPlc->wval(pPlcWIf->bh_mode_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE,0));
 
+	pCrane->pPlc->wval(pPlcWIf->siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);		//モータサイレンスイッチ
+	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw1, pOteCtrl[OTE_PNL_CTRLS::hd_lamp1]);	//水銀ランプ切替スイッチ
+	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw2, pOteCtrl[OTE_PNL_CTRLS::hd_lamp2]);	//水銀ランプ切替スイッチ
+	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw3, pOteCtrl[OTE_PNL_CTRLS::hd_lamp3]);	//水銀ランプ切替スイッチ
 
 	//Notch信号
 	//!!! 主巻と引込はPAD入力の＋が下,出(逆転）
@@ -347,9 +356,9 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->absocoder_mh, pSim_Inf->absocoder_mh);
 	pCrane->pPlc->wval(pPlcWIf->absocoder_gt, pSim_Inf->absocoder_gt);
 
-	//速度FB(INV出力）
+	//速度FB(INVの出力）
 	pCrane->pPlc->wval(pPlcWIf->vfb_mh,INT16((double)pSim_Inf->vfb_mh * 1.254));//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
-	pCrane->pPlc->wval(pPlcWIf->vfb_bh, INT16((double)pSim_Inf->vfb_bh* 3.2));//4000/1200 ： 速度FBは4000が120％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_bh, INT16((double)pSim_Inf->vfb_bh* 3.2));	//4000/1200 ： 速度FBは4000が120％　vfbは0.1%単位
 	pCrane->pPlc->wval(pPlcWIf->vfb_sl, INT16((double)pSim_Inf->vfb_sl*3.2));	//4000/2000 ： 速度FBは4000が200％　vfbは0.1%単位
 	pCrane->pPlc->wval(pPlcWIf->vfb_gt, INT16((double)pSim_Inf->vfb_gt*3.2));	//3200/1000 ： 速度FBは3200が100％　vfbは0.1%単位
 	//トルク指令(INV出力）
@@ -360,6 +369,8 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
 	pCrane->pPlc->wval(pPlcWIf->mlim_r_ai, pSim_Inf->mlim_r_AI);//0.1m単位
 
+	
+	//旋回ブレーキ制御
 	manage_slbrk();
 	return S_OK;
 }
@@ -391,11 +402,15 @@ int CAgent::close() {
 
 int CAgent::manage_slbrk() {
 
-
 	//旋回ブレーキAUTO MODE
-	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080;
+	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //pOteCtrl[OTE_PNL_CTRLS::sl_brk_com] & 0x0000;
 
-
+	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
+		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk_pedal];
+		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk	= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
+		pAUX_CS_Inf->com_slbrk.pc_com_reset		= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
+		pAUX_CS_Inf->com_slbrk.pc_com_mode		= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
+	}
 	return 0;
 }
 

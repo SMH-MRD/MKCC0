@@ -164,6 +164,9 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 bh_ope_mode;
 	INT16 spare;
 	double v_ratio[MOTION_ID_MAX] = { 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0 };
+
+	INT16 plc_pnl_io_fb[N_OTE_PNL_CTRL];				//PLC IO コントロールパネルFB信号
+
 }ST_CC_PLC_IO, * LPST_CC_PLC_IO;
 
 #pragma endregion PLC IO定義構造体

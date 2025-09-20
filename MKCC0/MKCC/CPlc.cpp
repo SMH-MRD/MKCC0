@@ -44,6 +44,9 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0},	//sl_brake;
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0},	//sl_notch;
 	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0},	//sl_hydr_press_sw;	旋回油圧圧力スイッチ
+	//B2B0
+	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	// fault_bz;			//故障ブザー	
+	{NULL,BIT4,					CODE_PLCIO_BIT,		0,0},	//auto_kyusi	旋回自動給脂装置ランプ
 	//B160
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//syukan_comp_bz;	//主幹投入完了  Bz
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},	//syukan_mc_comp;	//主幹MC投入完了
@@ -51,10 +54,12 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BIT3,					CODE_PLCIO_BIT,		0,0},	//syukairo_comp;    //主回路準備完了
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0},	//takamaki_mode;	//高巻モード
 	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0},	//bh_rest_mode;		//引込レストモード
-	{NULL,BIT10,				CODE_PLCIO_BIT,		0,0},	//sl_fix_pl;		//旋回固定PL
-	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0},	//ah_ari_jc
-	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0},	//sl_fix_pl2;		//旋回固定PL
-	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0},	//douryoku_ok;		//動力電源確立
+	{NULL,BIT11,				CODE_PLCIO_BIT,		0,0},	//mercury_lamp_sw1;	水銀灯スイッチ1sl_fix_pl;L
+	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0},	//mercury_lamp_sw2;	水銀灯スイッチ2ah_ari_jc
+	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0},	//mercury_lamp_sw3;	水銀灯スイッチ3sl_fix_pl2;
+	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0},	//douryoku_ok;		//動力電源確立;
+	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0},	//siren_sw;			モータサイレンスイッチ
+
 	//X0C0
 	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0},	//brk_mc3_fb;		//ブレーキ主幹アンサーバック
 	{NULL,BIT10,				CODE_PLCIO_BIT,		0,0},	//mh_brk1_fb;		//主巻ブレーキアンサーバック
@@ -113,6 +118,12 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_healthy;
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_ctrl_mode;
 	//運転室操作台
+	//B160
+	{NULL,BIT11,				CODE_PLCIO_BIT,		0,0},	//mercury_lamp_sw1;	水銀灯スイッチ1
+	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0 },	//mercury_lamp_sw2;	水銀灯スイッチ2
+	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0 },	//mercury_lamp_sw3;	水銀灯スイッチ3
+	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0 },	//siren_sw;			モータサイレンスイッチ
+
 	//B220
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//syukan_on;
 	{NULL,BIT1,					CODE_PLCIO_BIT_NC,	0,0},	//syukan_off;
@@ -228,6 +239,10 @@ int CPlc::setup(int crane_id) {
 			= plc_io_rif.sl_hydr_press_sw.pi16
 			= p + i;
 
+			i = 14;
+			plc_io_rif.fault_bz.pi16
+				= p + i;
+
 			i = 15;
 			plc_io_rif.syukan_comp_bz.pi16
 			= plc_io_rif.syukan_mc_comp.pi16
@@ -235,11 +250,17 @@ int CPlc::setup(int crane_id) {
 			= plc_io_rif.syukairo_comp.pi16
 			= plc_io_rif.takamaki_mode.pi16
 			= plc_io_rif.bh_rest_mode.pi16
-			= plc_io_rif.sl_fix_pl.pi16
-			= plc_io_rif.ah_ari_jc.pi16
-			= plc_io_rif.sl_fix_pl2.pi16
+			= plc_io_rif.mercury_lamp_sw1.pi16
+			= plc_io_rif.mercury_lamp_sw2.pi16
+			= plc_io_rif.mercury_lamp_sw3.pi16
 			= plc_io_rif.douryoku_ok.pi16
+			= plc_io_rif.siren_sw.pi16
 			= p + i;
+
+			i = 22;
+			plc_io_rif.auto_kyusi.pi16
+			= p + i;
+
 			//電気室
 			//X0C0
 			i = 66;
@@ -313,6 +334,13 @@ int CPlc::setup(int crane_id) {
 			i = 0;plc_io_wif.pc_healthy.pi16 = p + i;
 			i = 1;plc_io_wif.pc_ctrl_mode.pi16 = p + i;
 			//運転室
+			i = 15;//遠隔追加スイッチ
+			plc_io_wif.mercury_lamp_sw1.pi16
+				= plc_io_wif.mercury_lamp_sw2.pi16
+				= plc_io_wif.mercury_lamp_sw3.pi16
+				= plc_io_wif.siren_sw.pi16
+				= p + i;
+
 			i = 6;
 			plc_io_wif.syukan_on.pi16
 				= plc_io_wif.syukan_off.pi16

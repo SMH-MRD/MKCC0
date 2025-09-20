@@ -121,7 +121,9 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	bh_r_mode,
 	alm_stop,
 	motor_siren,
-	hd_lamp,
+	hd_lamp1,
+	hd_lamp2,
+	hd_lamp3,
 	hv_trolley,
 	hv_gantry,
 	hv_aux,
@@ -138,6 +140,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	alm_lamp,		//警報ランプ
 	fault_lamp,		//故障ランプ
 	sl_brk_pedal,	//旋回ブレーキペダル
+
 	MAX
 };
 

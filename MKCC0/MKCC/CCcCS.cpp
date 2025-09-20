@@ -241,6 +241,14 @@ int CCcCS::parse() {
 		plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com
 			= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
 
+		//自動給脂　動力確立ランプ
+		plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->douryoku_ok).i16;
+		plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->auto_kyusi).i16;
+		plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
+		plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw1).i16;
+		plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
+		plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
+				
 		//ノッチ信号FB
 		plamp_com[OTE_PNL_CTRLS::notch_mh].st.com	= pPLC_IO->stat_mh.notch_ref;
 		plamp_com[OTE_PNL_CTRLS::notch_bh].st.com	= pPLC_IO->stat_bh.notch_ref;

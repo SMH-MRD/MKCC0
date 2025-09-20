@@ -197,11 +197,12 @@ int COteCS::input(){
 	//## 遠隔操作台信号取り込み（モメンタリ & 非常停止 & 遠隔操作台優先）
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {
 		
-		//旋回フットブレーキ
+	
 		//非常停止
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]			= (pin_opepnl->xin[4] & 0x0020);
-		//旋回フットブレーキ
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal]	= pin_opepnl->ai_sl_foot;
+	
+		//旋回フットブレーキ(0-15)
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal]	= (pin_opepnl->ai_sl_foot)/0x100;
 
 		//モメンタリスイッチ （ハードSW）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pin_opepnl->xin[1] & 0x0200;
@@ -232,16 +233,20 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		= pin_opepnl->auto_sw & 0x0200;
 
 		//遠隔操作台優先（オルタネートSW）
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp]			= pin_opepnl->lamp_sw;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1]		= pin_opepnl->lamp_sw & 0x0001;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2]		= pin_opepnl->lamp_sw & 0x0002;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3]		= pin_opepnl->lamp_sw & 0x0004;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]		= pin_opepnl->mh_mode_cs;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pin_opepnl->bh_mode_cs;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pin_opepnl->notch_L1;
 	}
 	else {//オルタネートSWは操作台無効時のみPCパネル指令受付（GpadはオルタネートSW無し）
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]	= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_aux];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] ;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_aux];
 	}
 	
 	//## ゲームパッド信号取り込み（モメンタリ）
@@ -253,8 +258,6 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bypass]			|= pOteCsInf->gpad_in.bypass;
 		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote]			|= pOteCsInf->gpad_in.remote;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote]			|= pOteCsInf->gpad_in.trig_l;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote]			|= pOteCsInf->gpad_in.trig_r;
 
 		pOteCsInf->gpad_in.kidou_r;
 		pOteCsInf->gpad_in.kidou_l;
@@ -265,6 +268,8 @@ int COteCS::input(){
 		pOteCsInf->gpad_in.zoom_f;
 		pOteCsInf->gpad_in.zoom_n;
 
+		//旋回ブレーキペダル(0-15)
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] = (pOteCsInf->gpad_in.trig_l+ pOteCsInf->gpad_in.trig_r) / 0x10;
 	}
 	
 	//## PC Winパネル信号取り込み（モメンタリ）
@@ -312,6 +317,7 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl]	= pin_opepnl->notch_LX0;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt]	= pin_opepnl->notch_R1;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]	= pin_opepnl->notch_RX0;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	= pin_opepnl->notch_L1;
 	}
 	//ノッチ指令値は、GPAD Modeの時は、GPAD > 操作台
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_GPAD) {
@@ -323,13 +329,17 @@ int COteCS::input(){
 	}
 	//PCパネルのノッチPB入力は操作台またはGPAD指令OFFの時のみ有効
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_PCPNL) {
-		if(!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh]))	 pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
-		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh])) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_bh];
-		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl])) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_sl];
-		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt])) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
-		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah])) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_ah];
+		if(!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh]))		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
+		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_bh];
+		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_sl];
+		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
+		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_ah];
+		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_aux];
 	}
-		
+
+	//### 旋回ブレーキ信号整形
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] < 0) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] = 0;
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] > 15) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] = 15;
 	return S_OK;
 }
 
@@ -406,6 +416,8 @@ int COteCS::parse()
 
 	//### PCへの出力指令値設定　
 	{
+	
+		//????? 以下不要???
 		//##コントロール
 		memcpy_s(st_work.st_body.pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl),pOteCsInf->pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl));
 		

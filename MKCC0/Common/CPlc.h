@@ -260,6 +260,11 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
 	ST_PLC_IO_DEF sl_notch;
 	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
+
+	//B2B0
+	ST_PLC_IO_DEF fault_bz;			//故障ブザー	
+	ST_PLC_IO_DEF auto_kyusi;		//旋回自動給脂装置ランプ	
+
 	//B160
 	ST_PLC_IO_DEF syukan_comp_bz;	//主幹投入完了  Bz
 	ST_PLC_IO_DEF syukan_mc_comp;	//主幹MC投入完了
@@ -267,10 +272,12 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF syukairo_comp;    //主回路準備完了
 	ST_PLC_IO_DEF takamaki_mode;	//高巻モード
 	ST_PLC_IO_DEF bh_rest_mode;		//引込レストモード
-	ST_PLC_IO_DEF sl_fix_pl;		//旋回固定PL
-	ST_PLC_IO_DEF ah_ari_jc;		//補巻有JC
-	ST_PLC_IO_DEF sl_fix_pl2;		//旋回固定PL
-	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立
+	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
+	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
+	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
+	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立ランプ
+	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
+	
 	//X0C0
 	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
 	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
@@ -327,6 +334,11 @@ typedef struct _ST_PLC_IO_WIF {
 	ST_PLC_IO_DEF pc_healthy;
 	ST_PLC_IO_DEF pc_ctrl_mode;
 	//運転室操作台
+	//B160　遠隔追加スイッチ
+	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
+	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
+	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
+	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
 	//B220
 	ST_PLC_IO_DEF syukan_on;
 	ST_PLC_IO_DEF syukan_off;
