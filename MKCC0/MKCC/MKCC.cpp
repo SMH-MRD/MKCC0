@@ -36,6 +36,8 @@ CSharedMem* pCsInfObj;
 CSharedMem* pSimuStatObj;
 CSharedMem* pOteInfObj;
 
+CSharedMem* pAuxInfObj;
+
 CCrane* pCrane;
 ST_DEVICE_CODE g_my_code;
 
@@ -93,6 +95,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     pCsInfObj       = new CSharedMem;
     pSimuStatObj    = new CSharedMem;
     pOteInfObj       = new CSharedMem;
+
+    pAuxInfObj      = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -186,6 +190,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pSimuStatObj->create_smem(   SMEM_SIM_INF_CC_NAME,   sizeof(ST_CC_SIM_INF),  MUTEX_SIM_INF_CC_NAME)) return(FALSE);
    if (OK_SHMEM != pOteInfObj->create_smem(      SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),  MUTEX_OTE_INF_NAME)) return(FALSE);
   
+   if (OK_SHMEM != pAuxInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
+
    //  クレーンオブジェクトセットアップ
    LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
    pCrane = new CCrane(CARNE_ID_HHGH29,pPlcIo->buf_io_read,pPlcIo->buf_io_write);
@@ -463,7 +469,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
            return((DWORD)FALSE);
        }
    }
-     
    return TRUE;
 }
 
@@ -477,6 +482,8 @@ VOID CloseApp()
     delete pCsInfObj;
     delete pSimuStatObj;
     delete pOteInfObj;
+
+    delete pAuxInfObj;
     return;
 }
 

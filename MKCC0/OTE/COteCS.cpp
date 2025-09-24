@@ -148,7 +148,12 @@ HRESULT COteCS::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
-//#### 信号の内容によってSource(操作台,PC Winパネル,GPadを選択して取り込み
+
+/// <summary>
+/// #### 操作入力内容の取り込み
+/// #### 信号の内容によってSource(操作台,PC Winパネル,GPadを選択して取り込み
+/// </summary>
+/// <returns></returns>
 int COteCS::input(){
 
 	memset(pOteCsInf->pnl_ctrl, 0, sizeof(pOteCsInf->pnl_ctrl));//パネル入力クリア
@@ -196,13 +201,12 @@ int COteCS::input(){
 	
 	//## 遠隔操作台信号取り込み（モメンタリ & 非常停止 & 遠隔操作台優先）
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {
-		
 	
 		//非常停止
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]			= (pin_opepnl->xin[4] & 0x0020);
 	
 		//旋回フットブレーキ(0-15)
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal]	= (pin_opepnl->ai_sl_foot)/0x100;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	= pin_opepnl->ai_sl_foot;
 
 		//モメンタリスイッチ （ハードSW）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pin_opepnl->xin[1] & 0x0200;
@@ -269,16 +273,16 @@ int COteCS::input(){
 		pOteCsInf->gpad_in.zoom_n;
 
 		//旋回ブレーキペダル(0-15)
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] = (pOteCsInf->gpad_in.trig_l+ pOteCsInf->gpad_in.trig_r) / 0x10;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = (pOteCsInf->gpad_in.trig_l+ pOteCsInf->gpad_in.trig_r) / 0x10;
 	}
 	
 	//## PC Winパネル信号取り込み（モメンタリ）
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_PCPNL) {
-		//旋回フットブレーキ
+	
 		//非常停止
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::estop];
 		//旋回フットブレーキ
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal]	|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::sl_brk];
 
 		//モメンタリスイッチ （ハードSW）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]	;
@@ -338,8 +342,12 @@ int COteCS::input(){
 	}
 
 	//### 旋回ブレーキ信号整形
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] < 0) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] = 0;
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] > 15) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_pedal] = 15;
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	< 0	) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 0;
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	> 15) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 15;
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		> 0	) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT4; //HWブレーキ
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	   == -1) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT5; //リセット
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	   == -2) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT6; //フリー
+
 	return S_OK;
 }
 
@@ -453,7 +461,7 @@ int COteCS::parse()
 		plc_yo_buf |= bz_code;
 
 		//#IFバッファにセット
-		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp[0] = plc_yo_buf;
+		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 = plc_yo_buf;
 
 	//##操作卓GOTランプ
 		plc_yo_buf = 0;
@@ -463,7 +471,7 @@ int COteCS::parse()
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::sl_auto_gr].code)	plc_yo_buf |= 0x0002;
 
 		//#IFバッファにセット
-		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp[1] = plc_yo_buf;
+		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp2 = plc_yo_buf;
 	}
 	return STAT_OK;
 }
@@ -502,7 +510,13 @@ int COteCS::output() {
 	pPcWBuf->sl_set		= pBody->st_axis_set[ID_SLEW];			//旋回
 	pPcWBuf->gt_set		= pBody->st_axis_set[ID_GANTRY];		//走行
 
+	//##旋回ブレーキFB信号セット
+	pPcWBuf->sl_brk_fb1 = pBody->sl_brk_fb[0];				//旋回ブレーキFB1
+	pPcWBuf->sl_brk_fb2 = pBody->sl_brk_fb[1];				//旋回ブレーキFB2
+	pPcWBuf->sl_brk_fb3 = pBody->sl_brk_fb[2];				//旋回ブレーキFB2
+
 //### 制御PCへの出力処理
+
 	//##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
 

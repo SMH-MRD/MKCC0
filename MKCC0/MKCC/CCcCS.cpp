@@ -15,6 +15,8 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
+extern CSharedMem* pAuxInfObj;
+
 extern CCrane* pCrane;
 extern ST_DEVICE_CODE g_my_code;
 
@@ -39,6 +41,8 @@ static LPST_CC_CS_INF		pCS_Inf;
 static LPST_CC_PLC_IO		pPLC_IO;
 static LPST_CC_AGENT_INF	pAgent_Inf;
 static LPST_CC_OTE_INF		pOTE_Inf;
+
+static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;	
 
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
 static ST_PLC_IO_RIF* pPlcRIf = NULL;
@@ -70,6 +74,8 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
+
+	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
 
 	//### クレーンオブジェクト取得
 	if (pCrane == NULL) {
@@ -193,82 +199,88 @@ HRESULT CCcCS::routine_work(void* pObj) {
 
 int CCcCS::input() {
 
-
 	return S_OK;
 }
 
 int CCcCS::parse() {
-//#### 制御状態監視
-	//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
+	//#### 制御状態監視
+		//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
 	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
-	
-//### OTE送信データ設定
-	//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
-	//## ランプ表示指令
-	UN_LAMP_COM *plamp_com = st_ote_work.st_body.lamp;
-	if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
-		st_ote_work.st_ote_ctrl.id_ope_active	= OTE_NON_OPEMODE_ACTIVE;
-		st_ote_work.st_ote_ctrl.gpad_mode		= L_OFF;
-		st_ote_work.st_ote_ctrl.auto_sel		= L_OFF;
-		st_ote_work.st_ote_ctrl.auto_mode		= L_OFF;
-		//ランプクリア
-		memset(plamp_com, 0, sizeof(UN_LAMP_COM) * N_OTE_PNL_CTRL);	
-	}
-	else {
-		//PLC受信バッファをコピー
-		memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
 
-		//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
-		plamp_com[OTE_PNL_CTRLS::estop].st.com		= (UINT8)pCrane->pPlc->rval(pPlcRIf->estop).i16;
-
-		if (pCrane->pPlc->rval(pPlcRIf->syukan_mc_comp).i16 ) {
-			plamp_com[OTE_PNL_CTRLS::syukan_on].st.com  = CODE_PNL_COM_OFF;
-			plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
+	//### OTE送信データ設定
+		//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
+		//## ランプ表示指令
+	{
+		UN_LAMP_COM* plamp_com = st_ote_work.st_body.lamp;
+		if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
+			st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;
+			st_ote_work.st_ote_ctrl.gpad_mode = L_OFF;
+			st_ote_work.st_ote_ctrl.auto_sel = L_OFF;
+			st_ote_work.st_ote_ctrl.auto_mode = L_OFF;
+			//ランプクリア
+			memset(plamp_com, 0, sizeof(UN_LAMP_COM) * N_OTE_PNL_CTRL);
 		}
 		else {
-			plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_ON;
-			plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
+			//# PLC受信バッファをコピー
+			memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
+
+			//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
+			plamp_com[OTE_PNL_CTRLS::estop].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->estop).i16;
+
+			if (pCrane->pPlc->rval(pPlcRIf->syukan_mc_comp).i16) {
+				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_OFF;
+				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
+			}
+			else {
+				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_ON;
+				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
+			}
+			pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
+			pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
+
+			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
+			plamp_com[OTE_PNL_CTRLS::bypass].st.com = CODE_PNL_COM_ON;
+
+			//#PLC側CSスイッチの状態
+			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com
+				= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, g_my_code.serial_no);
+			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com
+				= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
+
+			//#自動給脂　動力確立ランプ
+			plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->douryoku_ok).i16;
+			plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->auto_kyusi).i16;
+			plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
+			plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw1).i16;
+			plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
+			plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
+
+			//#ノッチ信号FB
+			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = pPLC_IO->stat_mh.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = pPLC_IO->stat_bh.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = pPLC_IO->stat_sl.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = pPLC_IO->stat_gt.notch_ref;
 		}
-		 pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
-		 pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
 
-		plamp_com[OTE_PNL_CTRLS::fault_reset].st.com= (UINT8)pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
-		plamp_com[OTE_PNL_CTRLS::bypass].st.com		= CODE_PNL_COM_ON;
+		//##　故障情報セット
+		set_ote_flt_info();
 
-		//PLC側CSスイッチの状態
-		plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com 
-			= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, g_my_code.serial_no);
-		plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com
-			= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
-
-		//自動給脂　動力確立ランプ
-		plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->douryoku_ok).i16;
-		plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->auto_kyusi).i16;
-		plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
-		plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw1).i16;
-		plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
-		plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
-				
-		//ノッチ信号FB
-		plamp_com[OTE_PNL_CTRLS::notch_mh].st.com	= pPLC_IO->stat_mh.notch_ref;
-		plamp_com[OTE_PNL_CTRLS::notch_bh].st.com	= pPLC_IO->stat_bh.notch_ref;
-		plamp_com[OTE_PNL_CTRLS::notch_sl].st.com	= pPLC_IO->stat_sl.notch_ref;
-		plamp_com[OTE_PNL_CTRLS::notch_gt].st.com	= pPLC_IO->stat_gt.notch_ref;
-	}
-
-	//##　故障情報セット
-	set_ote_flt_info();
-	
-	//## クレーン状態セット
-	st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m;								//荷重
-	st_ote_work.st_body.bh_angle = (float)pEnv_Inf->crane_stat.th.p;									//起伏角度
+		//## クレーン状態セット
+		st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m;								//荷重
+		st_ote_work.st_body.bh_angle = (float)pEnv_Inf->crane_stat.th.p;									//起伏角度
 
 
-	//## 各軸状態
-	st_ote_work.st_body.st_axis_set[ID_HOIST]	= pPLC_IO->stat_mh;	//主巻
-	st_ote_work.st_body.st_axis_set[ID_BOOM_H]	= pPLC_IO->stat_bh;	//引込
-	st_ote_work.st_body.st_axis_set[ID_SLEW]	= pPLC_IO->stat_sl;	//旋回
-	st_ote_work.st_body.st_axis_set[ID_GANTRY]	= pPLC_IO->stat_gt;	//走行
+		//## 各軸状態
+		st_ote_work.st_body.st_axis_set[ID_HOIST] = pPLC_IO->stat_mh;	//主巻
+		st_ote_work.st_body.st_axis_set[ID_BOOM_H] = pPLC_IO->stat_bh;	//引込
+		st_ote_work.st_body.st_axis_set[ID_SLEW] = pPLC_IO->stat_sl;	//旋回
+		st_ote_work.st_body.st_axis_set[ID_GANTRY] = pPLC_IO->stat_gt;	//走行
+
+		//## 旋回ブレーキFB
+		st_ote_work.st_body.sl_brk_fb[0] = pAUX_CS_Inf->fb_slbrk.d16;
+		st_ote_work.st_body.sl_brk_fb[1] = pAUX_CS_Inf->fb_slbrk.d17;
+		st_ote_work.st_body.sl_brk_fb[2] = pAUX_CS_Inf->fb_slbrk.d18;
+}
 
 	return S_OK;
 }
@@ -276,11 +288,17 @@ int CCcCS::output() {          //出力処理
 	//共有メモリ出力処理
 	//CS_INF 制御コントロール情報（モード等）
 	
+	//### CCCsで判定した内容を共有メモリへコピー
 	memcpy_s(&(pCS_Inf->cs_ctrl), sizeof(ST_CC_CS_CTRL), &st_cs_work.cs_ctrl, sizeof(ST_CC_CS_CTRL));
 	
-	//OTE接続情報（モード等）
-	//CS_INF 制御コントロール情報（モード等）
+	//### OTEからの接続情報（接続要求内容,モード等）を共有メモリへセット
 	memcpy_s(&(pOTE_Inf->st_ote_ctrl), sizeof(ST_CC_OTE_CTRL), &st_ote_work.st_ote_ctrl, sizeof(ST_CC_OTE_CTRL));
+	
+	//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
+	pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & 0x000f;
+	pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & BIT4;
+	pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & BIT5;
+		
 	return STAT_OK;
 }
 

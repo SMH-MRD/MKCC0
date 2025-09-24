@@ -41,18 +41,23 @@ typedef struct _ST_SLBRK_FB {
 	INT16 brk_fb_err_map;
 	INT16 brk_fb_err_code;
 	INT16 brk_fb_rbsl_pos;
+	INT16 d16;
+	INT16 d17;
+	INT16 d18;
 }ST_SLBRK_FB, * LPST_SLBRK_FB;
 
-typedef struct _ST_AUX_AGENT_INF {
+typedef struct _ST_AUX_AGENT_INF {	//MCprotocolの送受信バッファ
 	INT16 slbrk_wbuf[16];
 	INT16 slbrk_rbuf[16];
 	
 }ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 
-typedef struct _ST_AUX_CS_INF {
+typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
+	//MAINプロセスからAUXEQへ
 	DWORD main_helthy_cnt;
 	ST_SLBRK_COM com_slbrk;
 
+	//AUXEQからMAINプロセスへ
 	DWORD aux_helthy_cnt;
 	ST_SLBRK_FB fb_slbrk;
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;

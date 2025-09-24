@@ -105,11 +105,11 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	fault_reset,
 	bypass,
 	game_pad,
-	asel_mh,//自動選択主巻
-	asel_bh,//自動選択引込
-	asel_sl,//自動選択旋回
-	asel_gt,//自動選択走行
-	asel_ah,//自動選択補巻
+	asel_mh,		//自動選択主巻
+	asel_bh,		//自動選択引込
+	asel_sl,		//自動選択旋回
+	asel_gt,		//自動選択走行
+	asel_ah,		//自動選択補巻
 	ote_type,
 	notch_mh,
 	notch_bh,
@@ -117,8 +117,8 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	notch_gt,
 	notch_ah,
 	notch_aux,
-	mh_spd_mode,
-	bh_r_mode,
+	mh_spd_mode,	//主巻モード
+	bh_r_mode,		//引込モード
 	alm_stop,
 	motor_siren,
 	hd_lamp1,
@@ -139,7 +139,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	ope_ready,		//運転準備完了ランプ
 	alm_lamp,		//警報ランプ
 	fault_lamp,		//故障ランプ
-	sl_brk_pedal,	//旋回ブレーキペダル
+	sl_brk,			//旋回ブレーキペダル
 
 	MAX
 };
@@ -162,6 +162,7 @@ typedef struct PcUBody {//デフォルト
 	ST_OTE_PC_FLTS_SET  faults_set;												//発生中故障コード
 	float 				bh_angle;												//起伏角度
 	float				wind_spd;
+	INT16				sl_brk_fb[4];											//遠隔旋回ブレーキFB
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/
@@ -217,9 +218,10 @@ typedef struct OteUBody {
 	INT16		faults_disp_req;				//故障表示要求
 	INT16		notch_mode;						//ノッチモード
 	INT16		pnl_ctrl[N_OTE_PNL_CTRL];		//操作卓PB入力
-	INT16		ote_type;						//操作卓タイプ　　
-	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
+	INT16		ote_type;						//操作卓タイプ
+	INT16       spar;							//バウンダリ合わせスペア
 	UINT32		target_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
+	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
 
 //########################################################

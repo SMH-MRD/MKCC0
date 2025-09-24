@@ -124,19 +124,19 @@ union UN_PLC_WBUF {
 
 
 typedef struct _ST_PLC_AXIS_SET {
-	float	pos_fb;				//位置
-	INT16   notch_ref;			// ノッチ入力
-	INT16   v_ref_tg;			// 目標速度
-	INT16   v_ref;				// 速度指令
-	INT16   v_fb;				// 速度FB
-	INT16   trq_ref;			// トルク指令
-	INT16   drum_layer;			// ドラム層
-	INT16	brake;				// ブレーキ状態
-	INT16	mode;				// モード
-	INT16   limit;				// 制限
-	INT16   fault;				// 故障
-	INT32   absocoder;			// アブソコーダ
-	INT32	pg_count;			// パルスジェネレータカウント
+	float	pos_fb;									// 位置
+	INT16   notch_ref;								// ノッチ入力
+	INT16   v_ref_tg;								// 目標速度
+	INT16   v_ref;									// 速度指令
+	INT16   v_fb;									// 速度FB
+	INT16   trq_ref;								// トルク指令
+	INT16   drum_layer;								// ドラム層
+	INT16	brake;									// ブレーキ状態
+	INT16	mode;									// モード
+	INT16   limit;									// 制限
+	INT16   fault;									// 故障
+	INT32   absocoder;								// アブソコーダ
+	INT32	pg_count;								// パルスジェネレータカウント
 }ST_PLC_AXIS_SET, * LPST_PLC_AXIS_SET;
 
 #define N_OTE_OPE_PLC_FAULT_BUF  20
@@ -144,16 +144,20 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 	INT16   pc_healthy;								// D10650　PCヘルシー出力信号
 	INT16   pc_status;								// D10651　PC Status
 	INT16   crane_id;								// D10652　接続クレーンID
-	UINT16  auto_sw;								// D10653　自動関連スイッチ
+	INT16  rmt_status;								// D10653　遠隔ステータス
 	INT16	spare0[6];								// D10654　予備
-	INT16   lamp[2];								// D10660　ランプ出力(B10-2F）
+	INT16   lamp1;									// D10660　ランプ出力(Y80-8F）
+	INT16   lamp2;									// D10661　ランプ出力(タッチパネル）
 	float   mh_hight;								// D10662　主巻揚程
 	float   ah_hight;								// D10664　補巻揚程
 	float   mh_load;								// D10666　主巻荷重
 	float   ah_load;								// D10668　補巻荷重
 	float   r;										// D10670　半径
 	float   wind_spd;								// D10672　風速
-	INT16   spare1[5];								// D10674　予備
+	INT16   sl_brk_fb1;								// D10674　旋回ブレーキFB（ブレーキレベル,ステータス）
+	INT16   sl_brk_fb2;								// D10675　旋回ブレーキFB（エラー）
+	INT16   sl_brk_fb3;								// D10676　旋回ブレーキFB（エラーコード）
+	INT16   spare1[2];								// D10677　予備
 	INT16   fault_group;							// D10679　故障コードグループ
 	INT16   fault_code[N_OTE_OPE_PLC_FAULT_BUF];	// D10731　故障コード
 	ST_PLC_AXIS_SET mh_set;							// D10700　主巻
@@ -165,24 +169,28 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 }ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
 
 typedef struct _ST_PLC_RBUF_HHGG38 {
-	INT16   plc_healthy;			// D10600:PLCヘルシーカウンタ
-	INT16   plc_status;				// D10601: PLC運転モード
-	INT16   auto_sw;				// D10602: PLC運転モード
-	UINT16  spare0[7];				// D10603:
-	INT16	ai_sl_foot;				// D10610:
-	INT16	ai_spare[3];			// D10611:
-	INT16	xin[10];				// D10614-23:
-	INT16   spare1[3];				// D10624: 
-	INT16   mh_mode_cs;				// D10627: 
-	INT16   bh_mode_cs;				// D10628: 
-	INT16   lamp_sw;				// D10629
-	INT16	notch_RY0;				// D10630
-	INT16	notch_RX0;				// D10631
-	INT16	notch_LY0;				// D10632
-	INT16	notch_LX0;				// D10633
-	INT16	notch_R1;				// D10634
-	INT16	notch_L1;				// D10635
-	INT16   spare2[14];				// D10636: 
+	INT16   plc_healthy;							// D10600: PLCヘルシーカウンタ
+	INT16   plc_status;								// D10601: PLC運転モード
+	INT16   auto_sw;								// D10602: 運転室PLC→電気室PLC W出力
+	INT16   got_mode;								// D10603: GOTモード
+	INT16   got_crane_assigned;						// D10604: GOT Crane
+	INT16  spare0[5];								// D10605:
+	INT16	ai_sl_foot;								// D10610:
+	INT16	ai_spare[3];							// D10611:
+	INT16	xin[10];								// D10614-23:
+	INT16   spare1[3];								// D10624: 
+	INT16   mh_mode_cs;								// D10627: 
+	INT16   bh_mode_cs;								// D10628: 
+	INT16   lamp_sw;								// D10629
+	INT16	notch_RY0;								// D10630
+	INT16	notch_RX0;								// D10631
+	INT16	notch_LY0;								// D10632
+	INT16	notch_LX0;								// D10633
+	INT16	notch_R1;								// D10634
+	INT16	notch_L1;								// D10635
+	INT16   spare2[4];								// D10636: 
+	INT16   function_SW;							// D10640:
+	INT16   spare3[9];								// D10636: 
 }ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 
 union UN_OPE_PLC_RBUF {

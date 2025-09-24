@@ -17,7 +17,7 @@ extern CSharedMem* pOteInfObj;
 
 extern CCrane* pCrane;
 
-CSharedMem* pAuxInfObj;
+extern CSharedMem* pAuxInfObj;
 
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
@@ -51,11 +51,11 @@ static LONGLONG res_delay_max_w,res_delay_max_r;	//PLC応答時間
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
-	pAuxInfObj = new CSharedMem;
+	
 }
 CAgent::~CAgent() {
 	delete pMCSock;
-	delete pAuxInfObj;
+	
 }
 
 HRESULT CAgent::initialize(LPVOID lpParam) {
@@ -406,7 +406,7 @@ int CAgent::manage_slbrk() {
 	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //pOteCtrl[OTE_PNL_CTRLS::sl_brk_com] & 0x0000;
 
 	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
-		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk_pedal];
+		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk];
 		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk	= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
 		pAUX_CS_Inf->com_slbrk.pc_com_reset		= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
 		pAUX_CS_Inf->com_slbrk.pc_com_mode		= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;

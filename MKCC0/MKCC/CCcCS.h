@@ -2,6 +2,7 @@
 #include "CBasicControl.h"
 #include "CSHAREDMEM.H"
 #include "SmemMain.H"
+#include "SmemAux.H"
 
 
 #include "CValue.h"
