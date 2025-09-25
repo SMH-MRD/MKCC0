@@ -344,9 +344,9 @@ int COteCS::input(){
 	//### 旋回ブレーキ信号整形
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	< 0	) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 0;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	> 15) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 15;
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		> 0	) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT4; //HWブレーキ
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	   == -1) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT5; //リセット
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	   == -2) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT6; //フリー
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	> 0	)  pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT4; //HWブレーキ
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT5; //リセット
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT7; //フリー(AUTO/MANUAL)
 
 	return S_OK;
 }

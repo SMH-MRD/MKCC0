@@ -275,10 +275,11 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_mon2.sock_inf_id = CS_ID_MON2_RADIO_RCV;
 				SendMessage(st_mon2.hctrl[i], BM_SETCHECK, BST_CHECKED, 0L);
 			}
-			else
+			else {
 				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
 					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 					hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
+			}
 		}
 
 		UINT rtn = SetTimer(hWnd, CS_ID_MON2_TIMER, CS_PRM_MON2_TIMER_MS, NULL);

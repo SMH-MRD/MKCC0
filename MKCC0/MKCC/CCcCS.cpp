@@ -174,6 +174,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 	//モニタウィンドウテキスト	
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"CS_INF");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"OTE IF");
 	set_item_chk_txt();
 	set_panel_tip_txt();
@@ -580,6 +581,13 @@ LRESULT CALLBACK CCcCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 	}break;
 	case WM_TIMER: {
+		st_mon1.wo_work.str(L"");
+		st_mon1.wo_work << L"##CS_Inf  SLBRK COM: LEVEL " << pAUX_CS_Inf->com_slbrk.pc_com_brk_level
+			<< L" HW " << pAUX_CS_Inf->com_slbrk.pc_com_hw_brk
+			<< L" RESET" << pAUX_CS_Inf->com_slbrk.pc_com_reset
+			<< L" FREE" << pAUX_CS_Inf->com_slbrk.pc_com_autosel;
+
+			SetWindowText(st_mon1.hctrl[CS_ID_MON1_STATIC_1], st_mon1.wo_work.str().c_str());
 	}break;
 
 	case WM_PAINT: {
@@ -757,7 +765,8 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 							<< L"\n@notch mh:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_mh]
 							<< L" bh:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_bh]
 							<< L" sl:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_sl]
-							<< L" gt:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
+							<< L" gt:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_gt]
+							<< L" sl_brk:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::sl_brk];
 					}
 					else if (st_mon2.ipage_uni == 1) {
 					}
@@ -799,7 +808,9 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 							<< L"@FRESET:" << pb0->lamp[OTE_PNL_CTRLS::fault_reset].code
 							<< L"@BYPASS:" << pb0->lamp[OTE_PNL_CTRLS::bypass].code
 							<< L"@MH_MODE:" << pb0->lamp[OTE_PNL_CTRLS::mh_spd_mode].code
-							<< L"@BH_MODE:" << pb0->lamp[OTE_PNL_CTRLS::bh_r_mode].code;
+							<< L"@BH_MODE:" << pb0->lamp[OTE_PNL_CTRLS::bh_r_mode].code
+							<< L"@SLBRK_FB: D16 " << pb0->sl_brk_fb[0] << L"D17 " << pb0->sl_brk_fb[1] << L"@SLBRK_FB: D18 " << pb0->sl_brk_fb[1];
+
 
 						st_mon2.wo_mpc << L"[BODY P" << st_mon2.ipage_mpc << L"]" << L"\n";
 						st_mon2.wo_mote << L"[BODY P" << st_mon2.ipage_mot << L"]" << L"\n";

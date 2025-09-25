@@ -28,9 +28,9 @@
 #define CS_PRM_MON2_TIMER_MS  200
 
 #define CS_MON1_WND_X     0
-#define CS_MON1_WND_Y     0
-#define CS_MON1_WND_W     320
-#define CS_MON1_WND_H     240
+#define CS_MON1_WND_Y     620
+#define CS_MON1_WND_W     500
+#define CS_MON1_WND_H     300
 #define CS_MON1_N_CTRL    32
 #define CS_MON1_N_WCHAR   64
 
@@ -45,6 +45,8 @@ typedef struct _ST_CS_MON1 {
     HWND hwnd_mon;
     bool is_monitor_active = false; //ソケット情報を表示する内容コード
 
+    wostringstream wo_work;
+
     HWND hctrl[CS_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -58,7 +60,7 @@ typedef struct _ST_CS_MON1 {
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[CS_MON1_N_CTRL] = {
-        295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        490,250, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0

@@ -428,7 +428,6 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			monwos.str(L"");
 			monwos << L" MAIN CS >> LEVEL:" << pCS_Inf->com_slbrk.pc_com_brk_level << L"  HW:" << pCS_Inf->com_slbrk.pc_com_hw_brk << L" RST:" << pCS_Inf ->com_slbrk.pc_com_reset << L" EMG:" << pCS_Inf->com_slbrk.pc_com_emg << L" AUTO:" << pCS_Inf->com_slbrk.pc_com_autosel;
 			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MAIN_INF], monwos.str().c_str());
-
 		}
 	}break;
 	case WM_COMMAND: {

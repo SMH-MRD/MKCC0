@@ -387,7 +387,6 @@ int CAgent::output() {
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
 
-
 	//PLC IO送信データ出力
 	//送信は 共有メモリに設定後、送信バッファにコピー（受信は直接共有メモリに読み込む）
 	//memcpy_s(&st_work_plcio.buf_io_write,sizeof(pPLC_IO->buf_io_write),pPLC_IO->buf_io_write, sizeof(pPLC_IO->buf_io_write));
@@ -404,12 +403,15 @@ int CAgent::manage_slbrk() {
 
 	//旋回ブレーキAUTO MODE
 	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //pOteCtrl[OTE_PNL_CTRLS::sl_brk_com] & 0x0000;
+	if(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT7)	pAUX_CS_Inf->com_slbrk.pc_com_autosel = L_OFF;
 
 	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
-		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk];
-		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk	= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
-		pAUX_CS_Inf->com_slbrk.pc_com_reset		= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
-		pAUX_CS_Inf->com_slbrk.pc_com_mode		= pOteCtrl[OTE_PNL_CTRLS::notch_aux] & 0x0000;
+		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
+		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk	= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT4;
+		pAUX_CS_Inf->com_slbrk.pc_com_reset		= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT5;
+	}
+	else {
+		pAUX_CS_Inf->com_slbrk.pc_com_brk_level =0;
 	}
 	return 0;
 }

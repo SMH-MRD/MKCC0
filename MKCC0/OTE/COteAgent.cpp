@@ -712,9 +712,9 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 						}
 					}
 					else if (st_mon2.ipage_uni == 2) {
-						st_mon2.wo_uni << L"@ PNL CTRL:";
-						for (int i = 0; i < 20; i++) {
-							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
+						st_mon2.wo_uni << L"@SL_BRK_FB:";
+						for (int i = 0; i < 3; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pb0->sl_brk_fb[i];
 						}
 					}
 					else {
@@ -747,10 +747,14 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 							<< L"@RMT:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::remote] << L"@FRESET:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::fault_reset]
 							<< L"@MH_SPD:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] << L"@BH_MODE:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] << L"\n";
 						st_mon2.wo_uni << L"Notch: MH "<< pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] << L" AH " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]
-							<< L" BH " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] << L" SL " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] << L" GT " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
+							<< L" BH " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] << L" SL " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] << L" GT " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] << L"\n";
+						st_mon2.wo_uni << L"@SL BRK COM:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] << L"\n";
 					}
 					else if (st_mon2.ipage_uni == 1) {
-
+						st_mon2.wo_uni << L"@ PNL CTRL:";
+						for (int i = 0; i < 20; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
+						}
 					}
 					else if (st_mon2.ipage_uni == 2) {
 
@@ -816,8 +820,6 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		if (pOteCCIf->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
 			st_work.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
 		}
-
-
 	}break;
 	case ID_SOCK_EVENT_OTE_MUL: {
 		int nEvent = WSAGETSELECTEVENT(lp);
@@ -853,7 +855,6 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
 	}
-
 	return S_OK;
 }
 
