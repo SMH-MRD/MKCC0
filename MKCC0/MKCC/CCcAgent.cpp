@@ -403,7 +403,7 @@ int CAgent::manage_slbrk() {
 
 	//ù‰ñƒuƒŒ[ƒLAUTO MODE
 	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //pOteCtrl[OTE_PNL_CTRLS::sl_brk_com] & 0x0000;
-	if(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT7)	pAUX_CS_Inf->com_slbrk.pc_com_autosel = L_OFF;
+	//if(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT7)	pAUX_CS_Inf->com_slbrk.pc_com_autosel = L_OFF;
 
 	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
 		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;

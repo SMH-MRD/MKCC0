@@ -281,6 +281,7 @@ int CCcCS::parse() {
 		st_ote_work.st_body.sl_brk_fb[0] = pAUX_CS_Inf->fb_slbrk.d16;
 		st_ote_work.st_body.sl_brk_fb[1] = pAUX_CS_Inf->fb_slbrk.d17;
 		st_ote_work.st_body.sl_brk_fb[2] = pAUX_CS_Inf->fb_slbrk.d18;
+		st_ote_work.st_body.sl_brk_fb[3] = pAUX_CS_Inf->fb_slbrk.d19 / 600;//9000->15
 }
 
 	return S_OK;
@@ -809,7 +810,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 							<< L"@BYPASS:" << pb0->lamp[OTE_PNL_CTRLS::bypass].code
 							<< L"@MH_MODE:" << pb0->lamp[OTE_PNL_CTRLS::mh_spd_mode].code
 							<< L"@BH_MODE:" << pb0->lamp[OTE_PNL_CTRLS::bh_r_mode].code
-							<< L"@SLBRK_FB: D16 " << pb0->sl_brk_fb[0] << L"D17 " << pb0->sl_brk_fb[1] << L"@SLBRK_FB: D18 " << pb0->sl_brk_fb[1];
+							<< L"@SLBRK_FB: D16 " << pb0->sl_brk_fb[0] << L" D17 " << pb0->sl_brk_fb[1] << L" D18 " << pb0->sl_brk_fb[2] << L" D19 " << pb0->sl_brk_fb[3];
 
 
 						st_mon2.wo_mpc << L"[BODY P" << st_mon2.ipage_mpc << L"]" << L"\n";

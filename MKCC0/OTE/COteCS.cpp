@@ -341,7 +341,7 @@ int COteCS::input(){
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_aux];
 	}
 
-	//### 旋回ブレーキ信号整形
+	//### 旋回ブレーキ指令信号整形
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	< 0	) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 0;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	> 15) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 15;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	> 0	)  pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT4; //HWブレーキ
@@ -460,8 +460,13 @@ int COteCS::parse()
 		bz_code <<= 12;
 		plc_yo_buf |= bz_code;
 
-		//#IFバッファにセット
+		//#↑でセットした内容をIFバッファにセット
 		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 = plc_yo_buf;
+
+		//主巻、引込モードスイッチ
+		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->mh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
+		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->bh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
+
 
 	//##操作卓GOTランプ
 		plc_yo_buf = 0;
@@ -513,7 +518,8 @@ int COteCS::output() {
 	//##旋回ブレーキFB信号セット
 	pPcWBuf->sl_brk_fb1 = pBody->sl_brk_fb[0];				//旋回ブレーキFB1
 	pPcWBuf->sl_brk_fb2 = pBody->sl_brk_fb[1];				//旋回ブレーキFB2
-	pPcWBuf->sl_brk_fb3 = pBody->sl_brk_fb[2];				//旋回ブレーキFB2
+	pPcWBuf->sl_brk_fb3 = pBody->sl_brk_fb[2];				//旋回ブレーキFB3
+	pPcWBuf->sl_brk_fb4 = pBody->sl_brk_fb[3];				//旋回ブレーキFB4
 
 //### 制御PCへの出力処理
 

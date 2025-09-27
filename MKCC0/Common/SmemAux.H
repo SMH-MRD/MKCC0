@@ -44,6 +44,10 @@ typedef struct _ST_SLBRK_FB {
 	INT16 d16;
 	INT16 d17;
 	INT16 d18;
+	INT16 d19;
+	INT16 d20;
+	INT16 d21;
+	INT16 d22;
 }ST_SLBRK_FB, * LPST_SLBRK_FB;
 
 typedef struct _ST_AUX_AGENT_INF {	//MCprotocolの送受信バッファ

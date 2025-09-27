@@ -157,7 +157,8 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 	INT16   sl_brk_fb1;								// D10674　旋回ブレーキFB（ブレーキレベル,ステータス）
 	INT16   sl_brk_fb2;								// D10675　旋回ブレーキFB（エラー）
 	INT16   sl_brk_fb3;								// D10676　旋回ブレーキFB（エラーコード）
-	INT16   spare1[2];								// D10677　予備
+	INT16   sl_brk_fb4;								// D10677　予備
+	INT16   spare1[1];								// D10677　予備
 	INT16   fault_group;							// D10679　故障コードグループ
 	INT16   fault_code[N_OTE_OPE_PLC_FAULT_BUF];	// D10731　故障コード
 	ST_PLC_AXIS_SET mh_set;							// D10700　主巻
