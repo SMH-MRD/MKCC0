@@ -245,8 +245,8 @@ int CAgent::input() {
 	if (0); pPLC_IO->stat_sl.brake;
 
 	//## MODE
-	pPLC_IO->stat_mh.mode;
-	pPLC_IO->stat_bh.mode;
+	pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, CARNE_ID_HHGH29);
+	pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, CARNE_ID_HHGH29);
 	pPLC_IO->stat_gt.mode;
 	pPLC_IO->stat_sl.mode;
 
@@ -279,6 +279,9 @@ int CAgent::input() {
 
 	//### PB,SW,LAMP,etc
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren] = pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1] = pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw1).i16;
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp2] = pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp3] = pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw3).i16;
 	
 	return S_OK;
 }
@@ -331,6 +334,7 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->syukan_off,		pOteCtrl[OTE_PNL_CTRLS::syukan_off]);	//主幹OFF
 	pCrane->pPlc->wval(pPlcWIf->estop,			pOteCtrl[OTE_PNL_CTRLS::estop]);		//非常停止
 	pCrane->pPlc->wval(pPlcWIf->fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
+	pCrane->pPlc->wval(pPlcWIf->alarm_stp_pb,	pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
 
 	pCrane->pPlc->wval(pPlcWIf->mh_spd_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE,0));
 	pCrane->pPlc->wval(pPlcWIf->bh_mode_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE,0));
@@ -357,7 +361,7 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->absocoder_gt, pSim_Inf->absocoder_gt);
 
 	//速度FB(INVの出力）
-	pCrane->pPlc->wval(pPlcWIf->vfb_mh,INT16((double)pSim_Inf->vfb_mh * 1.254));//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_mh, INT16((double)pSim_Inf->vfb_mh * 1.254));//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
 	pCrane->pPlc->wval(pPlcWIf->vfb_bh, INT16((double)pSim_Inf->vfb_bh* 3.2));	//4000/1200 ： 速度FBは4000が120％　vfbは0.1%単位
 	pCrane->pPlc->wval(pPlcWIf->vfb_sl, INT16((double)pSim_Inf->vfb_sl*3.2));	//4000/2000 ： 速度FBは4000が200％　vfbは0.1%単位
 	pCrane->pPlc->wval(pPlcWIf->vfb_gt, INT16((double)pSim_Inf->vfb_gt*3.2));	//3200/1000 ： 速度FBは3200が100％　vfbは0.1%単位
@@ -407,8 +411,8 @@ int CAgent::manage_slbrk() {
 
 	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
 		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
-		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk	= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT4;
-		pAUX_CS_Inf->com_slbrk.pc_com_reset		= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT5;
+		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk	= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+		pAUX_CS_Inf->com_slbrk.pc_com_reset		= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
 	}
 	else {
 		pAUX_CS_Inf->com_slbrk.pc_com_brk_level =0;

@@ -15,6 +15,10 @@ using namespace std;
 #define MUTEX_AUX_AGENT_INF_NAME		L"MU_AUX_AGENT_INF"
 #define MUTEX_AUX_CS_INF_NAME			L"MU_AUX_CS_INF"
 
+#define AUX_SLBRK_COM_HW_BRK			BIT4	//HaerWare Brake
+#define AUX_SLBRK_COM_RESET				BIT5	//Reset
+#define AUX_SLBRK_COM_FREE			BIT7	//Auto Select Mode
+
 typedef struct _ST_AUX_ENV_INF {
 
 	ST_DEVICE_CODE device_code;

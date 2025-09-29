@@ -1450,23 +1450,24 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		//ウィンドウにコントロール追加
 		//RADIO BUTTON
-		CCbCtrl* pcb = pPanelBase->psubobjs->cb_mh_spd_mode0;
+		CCbCtrl* pcb = pPanelBase->psubobjs->cb_mh_spd_mode1;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pPanelBase->psubobjs->cb_mh_spd_mode1;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pPanelBase->psubobjs->cb_mh_spd_mode2;
+		//HHGH29は2モード
+		//pcb = pPanelBase->psubobjs->cb_mh_spd_mode2;
+		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_mh_spd_mode3;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 
-		pcb = pPanelBase->psubobjs->cb_bh_r_mode0;
+		pcb = pPanelBase->psubobjs->cb_bh_r_mode1;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pPanelBase->psubobjs->cb_bh_r_mode1;
+		pcb = pPanelBase->psubobjs->cb_bh_r_mode2;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pPanelBase->psubobjs->cb_bh_r_mode2;
+		pcb = pPanelBase->psubobjs->cb_bh_r_mode3;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 
@@ -1537,12 +1538,14 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		{
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0: 
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1: 
-		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2: {
-			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);
+		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2:
+		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_3: {
+			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);//non owner draw(枠表示のみ）
 		}break;
 		case ID_SUB_PNL_SET_OBJ_RDO_BHR_0: 
-		case ID_SUB_PNL_SET_OBJ_RDO_BHR_1: 
-		case ID_SUB_PNL_SET_OBJ_RDO_BHR_2: {
+		case ID_SUB_PNL_SET_OBJ_RDO_BHR_1:
+		case ID_SUB_PNL_SET_OBJ_RDO_BHR_2:
+		case ID_SUB_PNL_SET_OBJ_RDO_BHR_3: {
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
 			}break;
 

@@ -748,7 +748,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 							<< L"@MH_SPD:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] << L"@BH_MODE:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] << L"\n";
 						st_mon2.wo_uni << L"Notch: MH "<< pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] << L" AH " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]
 							<< L" BH " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] << L" SL " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] << L" GT " << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] << L"\n";
-						st_mon2.wo_uni << L"@SL BRK COM:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] << L"\n";
+						st_mon2.wo_uni << L"@SL BRK COM:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] << L"@Bypass:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::bypass] << L"@Alm Stp:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::alm_stop] << L"@Siren:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::motor_siren]
+							<< L"@MLamp:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1]+ pb0->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2]+ pb0->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3] << L"\n";
 					}
 					else if (st_mon2.ipage_uni == 1) {
 						st_mon2.wo_uni << L"@ PNL CTRL:";

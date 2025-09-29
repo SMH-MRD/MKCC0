@@ -122,7 +122,6 @@ union UN_PLC_WBUF {
 	ST_PLC_WBUF_HHGH29	st_hhgh29;
 };
 
-
 typedef struct _ST_PLC_AXIS_SET {
 	float	pos_fb;									// 位置
 	INT16   notch_ref;								// ノッチ入力
@@ -169,6 +168,14 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 	INT16   spare2[20];								// D10672　予備
 }ST_PLC_WBUF_HHGG38, * LPST_PLC_WBUF_HHGG38;
 
+#define OTE_CODE_OPEPLC_REMOTE_PB		0x0001
+#define OTE_CODE_OPEPLC_AUTOMODE_PB		0x0002
+#define OTE_CODE_OPEPLC_AUTO_SEL_MH_PB	0x0004
+#define OTE_CODE_OPEPLC_AUTO_SEL_BH_PB	0x0008
+#define OTE_CODE_OPEPLC_AUTO_SEL_SL_PB	0x0010
+#define OTE_CODE_OPEPLC_AUTO_SEL_GT_PB	0x0020
+#define OTE_CODE_OPEPLC_AUTO_SEL_AH_PB	0x0040
+
 typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   plc_healthy;							// D10600: PLCヘルシーカウンタ
 	INT16   plc_status;								// D10601: PLC運転モード
@@ -189,9 +196,7 @@ typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16	notch_LX0;								// D10633
 	INT16	notch_R1;								// D10634
 	INT16	notch_L1;								// D10635
-	INT16   spare2[4];								// D10636: 
-	INT16   function_SW;							// D10640:
-	INT16   spare3[9];								// D10636: 
+	INT16   spare2[14];								// D10636: 
 }ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 
 union UN_OPE_PLC_RBUF {

@@ -159,7 +159,7 @@ public:
 		set_base(ppt, psz, ptext);
 		value = BST_UNCHECKED;
 		rc = { pt.X,pt.Y,sz.Width,sz.Height };
-		frc = { (REAL)rc.X,(REAL)rc.X,(REAL)rc.Width,(REAL)rc.Height };
+		frc = { (REAL)rc.X,(REAL)rc.Y,(REAL)rc.Width,(REAL)rc.Height };
 		pPenOn = ppenON; pPenOff = ppenOFF;
 		//オーナードローの時、グラフィックスのポインタはNULL
 		if (_pgraphics == NULL) {

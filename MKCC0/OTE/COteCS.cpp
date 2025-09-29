@@ -3,6 +3,7 @@
 #include "resource.h"
 #include "CGamePad.h"
 #include "CCrane.h"
+#include "SmemAux.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
@@ -212,8 +213,8 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pin_opepnl->xin[1] & 0x0200;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_off]		= pin_opepnl->xin[1] & 0x0400;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::fault_reset]		= pin_opepnl->xin[1] & 0x0100;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bypass]			= pin_opepnl->xin[1] & 0xc000;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::alm_stop]		= pin_opepnl->xin[1] & 0x0040;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bypass]			= pin_opepnl->xin[1] & 0x6000;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::alm_stop]		= pin_opepnl->xin[1] & 0x0080;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::motor_siren]		= pin_opepnl->xin[1] & 0x8000;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_trolley]		= pin_opepnl->xin[2] & 0x0300;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_gantry]		= pin_opepnl->xin[3] & 0x3000;
@@ -243,6 +244,11 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]		= pin_opepnl->mh_mode_cs;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pin_opepnl->bh_mode_cs;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pin_opepnl->notch_L1;
+
+		//照明
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] = pin_opepnl->lamp_sw & 0x0001;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2] = pin_opepnl->lamp_sw & 0x0002;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3] = pin_opepnl->lamp_sw & 0x0004;
 	}
 	else {//オルタネートSWは操作台無効時のみPCパネル指令受付（GpadはオルタネートSW無し）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] ;
@@ -342,17 +348,18 @@ int COteCS::input(){
 	}
 
 	//### 旋回ブレーキ指令信号整形
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	< 0	) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 0;
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	> 15) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = 15;
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	> 0	)  pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT4; //HWブレーキ
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT5; //リセット
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2) pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= BIT7; //フリー(AUTO/MANUAL)
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		< 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 0;
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		> 15)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 15;
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	> 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_HW_BRK; //HWブレーキ
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_RESET; //リセット
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_FREE; //フリー(AUTO/MANUAL)
 
 	return S_OK;
 }
 
 static INT16 ope_plc_cnt;
 static UINT16 ope_plc_chk_cnt=0;
+static INT16 pnl_ctrl_last[N_OTE_PNL_CTRL];
 //#### モード,指令値設定　
 int COteCS::parse() 
 {           
@@ -373,18 +380,23 @@ int COteCS::parse()
 		ope_plc_cnt = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy;
 	
 		//### 遠隔リモート操作有効化設定
-		//## 遠隔PBトリガ検出
-		if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->pnl_ctrl[OTE_PNL_CTRLS::remote])) {
-			if (st_work.st_body.remote == CODE_PNL_COM_SELECTED)		// 遠隔操作モード選択,承認待ち　
+		//遠隔PBトリガ検出
+//		if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->pnl_ctrl[OTE_PNL_CTRLS::remote])) {
+		if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote] &&
+			(pnl_ctrl_last[OTE_PNL_CTRLS::remote] != pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote])) {
+			if (st_work.st_body.remote == CODE_PNL_COM_SELECTED)			// 遠隔操作モード選択,承認待ち　
 				st_work.st_body.remote = CODE_PNL_COM_OFF;					//		⇒　遠隔操作モード選択要求OFF
-			else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)		// 遠隔操作モード選択,承認済
+			else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)			// 遠隔操作モード選択,承認済
 				st_work.st_body.remote = CODE_PNL_COM_OFF;					//		⇒　遠隔操作モード選択要求OFF
-			else														// 遠隔モニターモード選択　		⇒　遠隔操作モード選択
+			else															// 遠隔モニターモード選択　		⇒　遠隔操作モード選択
 				st_work.st_body.remote = CODE_PNL_COM_SELECTED;				//		⇒　遠隔操作モード選択,承認待ち
 		}
-		//## 制御PCからの承認確認（通信ヘッダのIDが自IDと同じ場合に承認）
+		//制御PCからの承認確認（通信ヘッダのIDが自IDと同じ場合に承認）
 		if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) && (pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
 			st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
+
+		//前回値保持
+		pnl_ctrl_last[OTE_PNL_CTRLS::remote] = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote];
 
 		//### GamePadモード設定
 		if (CODE_TRIG_ON == st_obj.game_pad_pb.chk_trig(pOteUi->pnl_ctrl[OTE_PNL_CTRLS::game_pad])) {
@@ -404,7 +416,7 @@ int COteCS::parse()
 		if (pOteCsInf->ope_plc_stat)
 			pOteCsInf->ope_source_mode |= OTE_OPE_SOURCE_CODE_OPEPNL;
 		else
-			pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_GPAD;
+			pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_OPEPNL;
 		//#GamePad
 		if ((pPad != NULL) && (st_work.st_body.game_pad_mode == CODE_PNL_COM_ACTIVE))
 			pOteCsInf->ope_source_mode |= OTE_OPE_SOURCE_CODE_GPAD;
@@ -427,14 +439,14 @@ int COteCS::parse()
 	
 		//????? 以下不要???
 		//##コントロール
-		memcpy_s(st_work.st_body.pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl),pOteCsInf->pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl));
+//		memcpy_s(st_work.st_body.pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl),pOteCsInf->pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl));
 		
 		//##ノッチ 
-		st_work.st_body.axis[ID_AXIS::mh].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
-		st_work.st_body.axis[ID_AXIS::bh].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh];
-		st_work.st_body.axis[ID_AXIS::sl].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl];
-		st_work.st_body.axis[ID_AXIS::gt].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
-		st_work.st_body.axis[ID_AXIS::ah].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah];
+//		st_work.st_body.axis[ID_AXIS::mh].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
+//		st_work.st_body.axis[ID_AXIS::bh].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh];
+//		st_work.st_body.axis[ID_AXIS::sl].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl];
+//		st_work.st_body.axis[ID_AXIS::gt].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
+//		st_work.st_body.axis[ID_AXIS::ah].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah];
 	}
 
 	//###操作卓へのPCからの出力内容設定
@@ -474,9 +486,10 @@ int COteCS::parse()
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::main_power].code)	plc_yo_buf |= 0x0001;
 		//自動給脂ランプ
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::sl_auto_gr].code)	plc_yo_buf |= 0x0002;
-
 		//#IFバッファにセット
 		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp2 = plc_yo_buf;
+		//##操作卓遠隔モード表示
+		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->rmt_status = st_work.st_body.remote;
 	}
 	return STAT_OK;
 }

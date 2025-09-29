@@ -243,18 +243,23 @@ int CCcCS::parse() {
 			plamp_com[OTE_PNL_CTRLS::bypass].st.com = CODE_PNL_COM_ON;
 
 			//#PLC側CSスイッチの状態
-			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com
-				= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, g_my_code.serial_no);
-			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com
-				= (UINT8)CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, g_my_code.serial_no);
-
+			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com	= (UINT8)pPLC_IO->stat_mh.mode;
+			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com		= (UINT8)pPLC_IO->stat_bh.mode;
 			//#自動給脂　動力確立ランプ
 			plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->douryoku_ok).i16;
 			plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->auto_kyusi).i16;
-			plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
-			plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw1).i16;
-			plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
-			plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw2).i16;
+
+			if(pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren])	plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_OFF;
+			
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1])	plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = L_OFF;
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp2])	plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = L_OFF;
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp3])	plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_OFF;
 
 			//#ノッチ信号FB
 			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = pPLC_IO->stat_mh.notch_ref;
@@ -267,21 +272,21 @@ int CCcCS::parse() {
 		set_ote_flt_info();
 
 		//## クレーン状態セット
-		st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m;								//荷重
-		st_ote_work.st_body.bh_angle = (float)pEnv_Inf->crane_stat.th.p;									//起伏角度
+		st_ote_work.st_body.st_load_stat[0].m		= (float)pEnv_Inf->crane_stat.m;								//荷重
+		st_ote_work.st_body.bh_angle				= (float)pEnv_Inf->crane_stat.th.p;									//起伏角度
 
 
 		//## 各軸状態
-		st_ote_work.st_body.st_axis_set[ID_HOIST] = pPLC_IO->stat_mh;	//主巻
-		st_ote_work.st_body.st_axis_set[ID_BOOM_H] = pPLC_IO->stat_bh;	//引込
-		st_ote_work.st_body.st_axis_set[ID_SLEW] = pPLC_IO->stat_sl;	//旋回
-		st_ote_work.st_body.st_axis_set[ID_GANTRY] = pPLC_IO->stat_gt;	//走行
+		st_ote_work.st_body.st_axis_set[ID_HOIST]	= pPLC_IO->stat_mh;	//主巻
+		st_ote_work.st_body.st_axis_set[ID_BOOM_H]	= pPLC_IO->stat_bh;	//引込
+		st_ote_work.st_body.st_axis_set[ID_SLEW]	= pPLC_IO->stat_sl;	//旋回
+		st_ote_work.st_body.st_axis_set[ID_GANTRY]	= pPLC_IO->stat_gt;	//走行
 
 		//## 旋回ブレーキFB
-		st_ote_work.st_body.sl_brk_fb[0] = pAUX_CS_Inf->fb_slbrk.d16;
-		st_ote_work.st_body.sl_brk_fb[1] = pAUX_CS_Inf->fb_slbrk.d17;
-		st_ote_work.st_body.sl_brk_fb[2] = pAUX_CS_Inf->fb_slbrk.d18;
-		st_ote_work.st_body.sl_brk_fb[3] = pAUX_CS_Inf->fb_slbrk.d19 / 600;//9000->15
+		st_ote_work.st_body.sl_brk_fb[0]			= pAUX_CS_Inf->fb_slbrk.d16;
+		st_ote_work.st_body.sl_brk_fb[1]			= pAUX_CS_Inf->fb_slbrk.d17;
+		st_ote_work.st_body.sl_brk_fb[2]			= pAUX_CS_Inf->fb_slbrk.d18;
+		st_ote_work.st_body.sl_brk_fb[3]			= pAUX_CS_Inf->fb_slbrk.d19 / 600;//9000->15
 }
 
 	return S_OK;
@@ -767,7 +772,9 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 							<< L" bh:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_bh]
 							<< L" sl:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_sl]
 							<< L" gt:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::notch_gt]
-							<< L" sl_brk:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::sl_brk];
+							<< L" sl_brk:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]
+							<< L" Mlamp:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] + pb0->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2] + pb0->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3]
+							<< L" alm stp:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::alm_stop] ;
 					}
 					else if (st_mon2.ipage_uni == 1) {
 					}

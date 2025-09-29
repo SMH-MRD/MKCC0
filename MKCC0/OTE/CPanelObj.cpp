@@ -57,20 +57,22 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 #define N_SUB_PNL_OBJ		64
 static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	//設定サブウィンドウ
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(85,110)	,Size(30,30)	,L"7"			},//i=0
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(155,80)	,Size(30,30)	,L"14"			},
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(225,110)	,Size(30,30)	,L"21"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(85,80)	,Size(30,30)	,L"-"			},//i=0
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(85,110)	,Size(30,30)	,L"14"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(155,80)	,Size(30,30)	,L"-"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_3	,Point(225,110)	,Size(30,30)	,L"36"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD	,Point(20,110)	,Size(30,30)	,L"主巻モード"	},
 	{ID_SUB_PNL_SET_OBJ_LMP_MHSPD	,Point(130,120)	,Size(80,80)	,L"主巻モード"	},
 
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_0	,Point(85,280)	,Size(30,30)	,L"57"			},//i=5
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(155,250)	,Size(30,30)	,L"62"			},
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(225,280)	,Size(35,30)	,L"ﾚｽﾄ"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_0	,Point(85,280)	,Size(30,30)	,L"-"			},//i=6
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(85,280)	,Size(30,30)	,L"75"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(155,250)	,Size(30,30)	,L"80"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_3	,Point(225,280)	,Size(35,30)	,L"ﾚｽﾄ"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,280)	,Size(30,30)	,L"引込モード"	},
 	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(130,290)	,Size(80,80)	,L"引込モード"	},
 
 	//状態サブウィンドウ
-	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=10
+	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=12
 	{ID_SUB_PNL_STAT_OBJ_PB_BACK	,Point(285,420)	,Size(50,30)	,L"BACK"		},
 
 	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR		,Point(35, 70 )	,Size(50,30)	,L"-"	},
@@ -401,27 +403,29 @@ void CMainPanelObj::refresh_obj_graphics() {
 }
 
 HRESULT CSubPanelObj::setup_obj() {
-	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png");	
+	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png"), img_cs_mode3(L"../Img/HHGH29/cs_mode2.png");
 	static Image img_flt_bk_gr(L"../Img/HHGH29/bk_sub_gr.png"), img_flt_bk_rd(L"../Img/HHGH29/bk_sub_rd.png"), img_flt_bk_yl(L"../Img/HHGH29/bk_sub_yl.png"), img_flt_bk_bl(L"../Img/HHGH29/bk_sub_bl.png") ;
 	//画像ポインタ配列
-	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX] = { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
-	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX] = { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
-	Image* pimg_flt_bk[N_IMG_SWITCH_MAX] = { &img_flt_bk_gr, &img_flt_bk_bl , &img_flt_bk_yl, &img_flt_bk_rd, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr };
+	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX]	= { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode3, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
+	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX]		= { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
+	Image* pimg_flt_bk[N_IMG_SWITCH_MAX]			= { &img_flt_bk_gr, &img_flt_bk_bl , &img_flt_bk_yl, &img_flt_bk_rd, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr };
 
 	//設定ウィンドウオブジェクト
 	int i = 0;	cb_mh_spd_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_mh_spd_mode1 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_mh_spd_mode2 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	CCbCtrl* pcb_opt[8] = { cb_mh_spd_mode0,cb_mh_spd_mode1,cb_mh_spd_mode2, };
-	i++; rdo_mh_spd_mode = new CRadioCtrl(3, pcb_opt);
-	i++; lmp_mh_spd_mode = new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_MHSPD, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_mh_spd_mode, 3, 3, pgraphic);
+	i++; cb_mh_spd_mode1		= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_mh_spd_mode2		= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_mh_spd_mode3		= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_3, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	CCbCtrl* pcb_opt[8]			= { cb_mh_spd_mode0,cb_mh_spd_mode1,cb_mh_spd_mode2,cb_mh_spd_mode3 };
+	i++; rdo_mh_spd_mode		= new CRadioCtrl(4, pcb_opt);
+	i++; lmp_mh_spd_mode		= new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_MHSPD, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_mh_spd_mode, 4, 3, pgraphic);
 
-	i++; cb_bh_r_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_bh_r_mode1 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_bh_r_mode2 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	CCbCtrl* pcb_opt2[8] = { cb_bh_r_mode0,cb_bh_r_mode1,cb_bh_r_mode2, };
-	i++; rdo_bh_r_mode = new CRadioCtrl(3, pcb_opt2);
-	i++; lmp_bh_r_mode = new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 3, 3, pgraphic);
+	i++; cb_bh_r_mode0			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_bh_r_mode1			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_bh_r_mode2			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_bh_r_mode3			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_3, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	CCbCtrl* pcb_opt2[8]		= { cb_bh_r_mode0,cb_bh_r_mode1,cb_bh_r_mode2,cb_bh_r_mode3, };
+	i++; rdo_bh_r_mode			= new CRadioCtrl(4, pcb_opt2);
+	i++; lmp_bh_r_mode			= new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 4, 3, pgraphic);
 
 
 	//# 状態表示ウィンドウオブジェクト
