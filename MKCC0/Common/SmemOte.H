@@ -103,6 +103,7 @@ typedef struct _ST_OTE_CS_INF {
 	INT32 ope_plc_stat = L_OFF;						//PLCとの通信状態
 	INT32 cc_ope_active = L_OFF;
 	INT32 ope_source_mode=0;						//操作器具モード
+	INT32 pc_pnl_active;
 	ST_OTE_U_BODY st_body;							//OTE⇒PC送信メッセージボディ部
 	ST_GPAD_IN gpad_in;								//ゲームパッド入力
 	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ];		//PLCからの読み取り信号生値
@@ -148,7 +149,7 @@ typedef struct _ST_OTE_CC_IF {
 
 
 typedef struct _ST_OTE_UI {
-	INT16 pc_pnl_active;					//描画モード
+	INT16 pc_pnl_active;					
 	INT16 pnl_ctrl[N_OTE_PNL_CTRL];			
 	INT16 notch_pb_mh;						//選択中のノッチ
 	INT16 notch_pb_bh;

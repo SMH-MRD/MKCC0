@@ -37,6 +37,10 @@ public:
 	}
 	virtual ~CPanelBase(void) {
 		close_drawing_base();
+		delete pmainobjs;
+		delete psubobjs;
+		delete pgwinobjs;
+		delete pgsubwinobjs;
 	}
 
 	HRESULT set_crane_id(int crane_id) {  _crane_id = crane_id; return S_OK; }

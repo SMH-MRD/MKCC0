@@ -244,9 +244,9 @@ int CAgent::input() {
 	//# 旋回ブレーキ有効時（遠隔端末有効+旋回ブレーキenableの時）は旋回ブレーキFBをセット	
 	if (0); pPLC_IO->stat_sl.brake;
 
-	//## MODE
-	pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, CARNE_ID_HHGH29);
-	pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, CARNE_ID_HHGH29);
+	//## MODE(主巻速度、引込、旋回)
+	pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A);
+	pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
 	pPLC_IO->stat_gt.mode;
 	pPLC_IO->stat_sl.mode;
 
@@ -336,8 +336,8 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
 	pCrane->pPlc->wval(pPlcWIf->alarm_stp_pb,	pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
 
-	pCrane->pPlc->wval(pPlcWIf->mh_spd_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE,0));
-	pCrane->pPlc->wval(pPlcWIf->bh_mode_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE,0));
+	pCrane->pPlc->wval(pPlcWIf->mh_spd_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A));
+	pCrane->pPlc->wval(pPlcWIf->bh_mode_cs,		CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A));
 
 	pCrane->pPlc->wval(pPlcWIf->siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);		//モータサイレンスイッチ
 	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw1, pOteCtrl[OTE_PNL_CTRLS::hd_lamp1]);	//水銀ランプ切替スイッチ

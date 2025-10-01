@@ -140,6 +140,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	alm_lamp,		//警報ランプ
 	fault_lamp,		//故障ランプ
 	sl_brk,			//旋回ブレーキペダル
+	pcpnl_active,	//PCパネル有効
 
 	MAX
 };

@@ -473,6 +473,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 	}return true;
 	case WM_DESTROY: {
 		hWnd = NULL;
+//		delete pPanelBase; pPanelBase = NULL; *ppPanelBase = NULL;
 		pOteEnvInf->selected_crane = CRANE_ID_NULL; //選択クレーンIDを0にセット
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
 		//### オープニング画面を再表示
@@ -489,6 +490,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	switch (msg)
 	{
 	case WM_CREATE: {
+		pUi->pc_pnl_active = L_ON;
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN_HHGH29, hWnd);
@@ -841,10 +843,11 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		hWnd = NULL;
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
 		pOteEnvInf->selected_crane = CRANE_ID_NULL; //選択クレーンIDを0にセット
+		pUi->pc_pnl_active = L_OFF;
 //		if (pPanelBase != NULL) delete pPanelBase;
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
-
+//		delete pPanelBase; pPanelBase = NULL; *ppPanelBase = NULL;
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);

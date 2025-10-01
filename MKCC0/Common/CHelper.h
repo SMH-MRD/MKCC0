@@ -105,9 +105,15 @@ public:
 #define PLC_IO_CS_MH_SPD_MODE	20
 #define PLC_IO_CS_BH_R_MODE		21
 
+//CSの出力パターン
+#define PLC_IO_CS_TYPE_A		0	//HHGH29
+#define PLC_IO_CS_TYPE_B		1	//
+#define PLC_IO_CS_TYPE_C		2	//
+#define PLC_IO_CS_TYPE_D		3	//
+
 #define PLC_IO_CS_MH_SPD_MODE0 BITOFF
 #define PLC_IO_CS_MH_SPD_MODE1 BIT2
-#define PLC_IO_CS_MH_SPD_MODE2 BIT3
+#define PLC_IO_CS_MH_SPD_MODE2 BIT2
 #define PLC_IO_CS_MH_SPD_MODE3 BIT3 //HHGH29は中速まで
 #define PLC_IO_CS_BH_R_MODE0   BITOFF
 #define PLC_IO_CS_BH_R_MODE1   BIT4
@@ -117,6 +123,6 @@ public:
 class CPlcCSHelper
 {
 public:
-	static INT16 get_mode_by_code(INT16 value,int cs_code, int crane_id);
-	static INT16 get_code_by_mode(INT16 mode, int cs_code, int crane_id);
+	static INT16 get_mode_by_code(INT16 value,int cs_code, int type);
+	static INT16 get_code_by_mode(INT16 mode, int cs_code, int type);
 };

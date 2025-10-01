@@ -14,7 +14,7 @@
 #define ID_PANEL_POINT_SRC_ON	1
 #define ID_PANEL_POINT_SRC_OFF	2
 
-#define VAL_PB_OFF_DELAY_COUNT	0x000A	//ボタンOFFディレイカウント値
+#define VAL_PB_OFF_DELAY_COUNT	0x0005	//ボタンOFFディレイカウント値
 
 #define VAL_TRIGGER_NON			0		//トリガ無し
 #define VAL_TRIGGER_VALUE		3		//数値変更トリガ

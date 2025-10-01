@@ -80,7 +80,7 @@ HRESULT COteScad::initialize(LPVOID lpParam) {
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 
 	//### パネル関連セットアップ
-	CPanelBase::hr_init_setting = CPanelBase::setup_common_base(pOteUI);//ベースクラス初期化
+	CPanelBase::hr_init_setting = CPanelBase::setup_common_base(pOteUI);					//ベースクラス初期化
 	CMainPanelWindow::set_up(pOteUI, pOteCsInf, pOteCCIf, pOteEnvInf);						//メインパネルセットアップ
 
 	//###  オペレーションパネル設定
@@ -133,7 +133,10 @@ int COteScad::parse() {
 }
 
 int COteScad::output() {          //出力処理
-	memcpy_s(pOteUI, sizeof(ST_OTE_UI), &st_work, sizeof(ST_OTE_UI));
+//	memcpy_s(pOteUI, sizeof(ST_OTE_UI), &st_work, sizeof(ST_OTE_UI));
+	memcpy(pOteUI->pnl_ctrl, st_work.pnl_ctrl, sizeof(pOteUI->pnl_ctrl));
+	pOteUI->flt_req_code = st_work.flt_req_code;
+
 	return STAT_OK;
 }
 

@@ -218,32 +218,58 @@ void CPhaseHelper::fit_ph_range_upto_pi(double* pd) {
 PlcCSHelper
 *****************************************************************************/
 
-INT16 CPlcCSHelper::get_mode_by_code(INT16 value, int cs_code, int crane_id) {
+INT16 CPlcCSHelper::get_mode_by_code(INT16 value, int cs_code, int type) {
 	switch (cs_code) {
 	case PLC_IO_CS_MH_SPD_MODE: {
-		if (value & PLC_IO_CS_MH_SPD_MODE0) return CODE_MODE0;
-		if (value & PLC_IO_CS_MH_SPD_MODE1) return CODE_MODE1;
-		if (value & PLC_IO_CS_MH_SPD_MODE2) return CODE_MODE3;
-		if (value & PLC_IO_CS_MH_SPD_MODE3) return CODE_MODE3;
+		if(type == PLC_IO_CS_TYPE_A) {
+			if (value & PLC_IO_CS_MH_SPD_MODE0) return CODE_MODE0;
+			if (value & PLC_IO_CS_MH_SPD_MODE1) return CODE_MODE1;
+			if (value & PLC_IO_CS_MH_SPD_MODE2) return CODE_MODE3;//2接点タイプはMODE2のビットパターンがMODE3表示
+			if (value & PLC_IO_CS_MH_SPD_MODE3) return CODE_MODE3;
+		}
+		else{
+			if (value & PLC_IO_CS_MH_SPD_MODE0) return CODE_MODE0;
+			if (value & PLC_IO_CS_MH_SPD_MODE1) return CODE_MODE1;
+			if (value & PLC_IO_CS_MH_SPD_MODE2) return CODE_MODE2;
+			if (value & PLC_IO_CS_MH_SPD_MODE3) return CODE_MODE3;
+		}
+
 	}break;
 	case PLC_IO_CS_BH_R_MODE: {
-		if (value & PLC_IO_CS_BH_R_MODE0) return CODE_MODE0;
-		if (value & PLC_IO_CS_BH_R_MODE1) return CODE_MODE1;
-		if (value & PLC_IO_CS_BH_R_MODE2) return CODE_MODE2;
-		if (value & PLC_IO_CS_BH_R_MODE3) return CODE_MODE3;
+		if (type == PLC_IO_CS_TYPE_A) {
+			if (value & PLC_IO_CS_BH_R_MODE0) return CODE_MODE0;
+			if (value & PLC_IO_CS_BH_R_MODE1) return CODE_MODE1;
+			if (value & PLC_IO_CS_BH_R_MODE2) return CODE_MODE2;
+			if (value & PLC_IO_CS_BH_R_MODE3) return CODE_MODE3;
+		}
+		else{
+			if (value & PLC_IO_CS_BH_R_MODE0) return CODE_MODE0;
+			if (value & PLC_IO_CS_BH_R_MODE1) return CODE_MODE1;
+			if (value & PLC_IO_CS_BH_R_MODE2) return CODE_MODE2;
+			if (value & PLC_IO_CS_BH_R_MODE3) return CODE_MODE3;
+		}
 	}break;
 	default:
 		break;
 	}
 	return 0;
 }
-INT16 CPlcCSHelper::get_code_by_mode(INT16 mode, int cs_code, int crane_id) {
+INT16 CPlcCSHelper::get_code_by_mode(INT16 mode, int cs_code, int type) {
 	switch (cs_code) {
 	case PLC_IO_CS_MH_SPD_MODE: {
-		if (mode == CODE_MODE0) return PLC_IO_CS_MH_SPD_MODE0;
-		if (mode == CODE_MODE1) return PLC_IO_CS_MH_SPD_MODE1;
-		if (mode == CODE_MODE2) return PLC_IO_CS_MH_SPD_MODE2;
-		if (mode == CODE_MODE3) return PLC_IO_CS_MH_SPD_MODE3;
+		if (type == PLC_IO_CS_TYPE_A) {
+			if (mode == CODE_MODE0) return PLC_IO_CS_MH_SPD_MODE0;
+			if (mode == CODE_MODE1) return PLC_IO_CS_MH_SPD_MODE1;
+			if (mode == CODE_MODE2) return PLC_IO_CS_MH_SPD_MODE2;
+			if (mode == CODE_MODE3) return PLC_IO_CS_MH_SPD_MODE3;
+		}
+		else
+		{
+			if (mode == CODE_MODE0) return PLC_IO_CS_MH_SPD_MODE0;
+			if (mode == CODE_MODE1) return PLC_IO_CS_MH_SPD_MODE1;
+			if (mode == CODE_MODE2) return PLC_IO_CS_MH_SPD_MODE2;
+			if (mode == CODE_MODE3) return PLC_IO_CS_MH_SPD_MODE3;
+		}
 	}break;
 	case PLC_IO_CS_BH_R_MODE: {
 		if (mode == CODE_MODE0) return PLC_IO_CS_BH_R_MODE0;

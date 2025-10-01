@@ -139,6 +139,9 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 HRESULT COteCS::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		wos << L"  OPE SRC CODE:" << hex << pOteCsInf->ope_source_mode;
+		wos << L"  RMT_MODE:" << st_work.st_body.remote;
+
 		msg2host(wos.str());
 	}
 	input();
@@ -381,9 +384,7 @@ int COteCS::parse()
 	
 		//### 遠隔リモート操作有効化設定
 		//遠隔PBトリガ検出
-//		if (CODE_TRIG_ON == st_obj.remote_pb.chk_trig(pOteUi->pnl_ctrl[OTE_PNL_CTRLS::remote])) {
-		if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote] &&
-			(pnl_ctrl_last[OTE_PNL_CTRLS::remote] != pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote])) {
+		if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote] && (pnl_ctrl_last[OTE_PNL_CTRLS::remote] == L_OFF)) {
 			if (st_work.st_body.remote == CODE_PNL_COM_SELECTED)			// 遠隔操作モード選択,承認待ち　
 				st_work.st_body.remote = CODE_PNL_COM_OFF;					//		⇒　遠隔操作モード選択要求OFF
 			else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)			// 遠隔操作モード選択,承認済
@@ -394,6 +395,11 @@ int COteCS::parse()
 		//制御PCからの承認確認（通信ヘッダのIDが自IDと同じ場合に承認）
 		if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) && (pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
 			st_work.st_body.remote = CODE_PNL_COM_ACTIVE;
+		//遠隔操作接続解除でOFF
+		if((pOteCCInf->cc_active_ote_id != g_my_code.serial_no)&&(st_work.st_body.remote == CODE_PNL_COM_ACTIVE))
+			st_work.st_body.remote = CODE_PNL_COM_OFF;
+		if (!(pOteUi->pc_pnl_active))
+			 st_work.st_body.remote = CODE_PNL_COM_OFF;
 
 		//前回値保持
 		pnl_ctrl_last[OTE_PNL_CTRLS::remote] = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote];
@@ -486,6 +492,13 @@ int COteCS::parse()
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::main_power].code)	plc_yo_buf |= 0x0001;
 		//自動給脂ランプ
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::sl_auto_gr].code)	plc_yo_buf |= 0x0002;
+		//サイレンランプ
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::motor_siren].code)	plc_yo_buf |= 0x8000;
+		//照明ランプ
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp1].code)	plc_yo_buf |= 0x0800;
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp2].code)	plc_yo_buf |= 0x1010;
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp3].code)	plc_yo_buf |= 0x2000;
+
 		//#IFバッファにセット
 		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp2 = plc_yo_buf;
 		//##操作卓遠隔モード表示
@@ -514,7 +527,7 @@ int COteCS::output() {
 		if(i < pFltSet->set_count)
 			((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = pFltSet->codes[i] + 300;//codes[0]はセットされている故障のタイプ
 		else
-		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = 0;
+			((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = 0;
 	}
 	//##GOT運転監視
 	pPcWBuf->mh_hight	= pBody->st_axis_set[ID_HOIST].pos_fb;	//揚程

@@ -403,11 +403,11 @@ void CMainPanelObj::refresh_obj_graphics() {
 }
 
 HRESULT CSubPanelObj::setup_obj() {
-	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png"), img_cs_mode3(L"../Img/HHGH29/cs_mode2.png");
+	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png"), img_cs_mode3(L"../Img/HHGH29/cs_mode3.png");
 	static Image img_flt_bk_gr(L"../Img/HHGH29/bk_sub_gr.png"), img_flt_bk_rd(L"../Img/HHGH29/bk_sub_rd.png"), img_flt_bk_yl(L"../Img/HHGH29/bk_sub_yl.png"), img_flt_bk_bl(L"../Img/HHGH29/bk_sub_bl.png") ;
 	//画像ポインタ配列
 	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX]	= { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode3, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
-	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX]		= { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
+	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX]		= { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode3, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
 	Image* pimg_flt_bk[N_IMG_SWITCH_MAX]			= { &img_flt_bk_gr, &img_flt_bk_bl , &img_flt_bk_yl, &img_flt_bk_rd, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr };
 
 	//設定ウィンドウオブジェクト
@@ -511,6 +511,7 @@ void CSubPanelObj::refresh_obj_graphics() {
 	cb_mh_spd_mode0->refresh_graphics(pgraphic);
 	cb_mh_spd_mode1->refresh_graphics(pgraphic);
 	cb_mh_spd_mode2->refresh_graphics(pgraphic);
+	cb_mh_spd_mode3->refresh_graphics(pgraphic);
 
 	rdo_mh_spd_mode->refresh_graphics(pgraphic);
 	lmp_mh_spd_mode->refresh_graphics(pgraphic);
@@ -518,6 +519,7 @@ void CSubPanelObj::refresh_obj_graphics() {
 	cb_bh_r_mode0->refresh_graphics(pgraphic);
 	cb_bh_r_mode1->refresh_graphics(pgraphic);
 	cb_bh_r_mode2->refresh_graphics(pgraphic);
+	cb_bh_r_mode3->refresh_graphics(pgraphic);
 	rdo_bh_r_mode->refresh_graphics(pgraphic);
 	lmp_bh_r_mode->refresh_graphics(pgraphic);
 
