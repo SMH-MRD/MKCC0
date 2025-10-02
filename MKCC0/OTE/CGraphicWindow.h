@@ -36,6 +36,8 @@ class CGraphicWindow
 private:
 
 public:
+	HINSTANCE hInstance;//インスタンスハンドル
+	
 	static HWND hGWnd	;//生成したパネルのウィンドウハンドル
 	static HWND hGSubWnd;//生成したパネルのウィンドウハンドル
 	static HWND hParentWnd;//親ウィンドウハンドル

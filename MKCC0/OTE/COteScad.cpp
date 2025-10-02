@@ -47,6 +47,7 @@ static wostringstream wos_msg;
 COteScad::COteScad() {
 }
 COteScad::~COteScad() {
+	CPanelBase::close_drawing_base();
 }
 
 HRESULT COteScad::initialize(LPVOID lpParam) {

@@ -29,12 +29,12 @@ LPST_OTE_ENV_INF CGraphicWindow::pOteEnvInf;
 
 Point CGraphicWindow::mouse_pos_main, CGraphicWindow::mouse_pos_sub;
 
-CGraphicWindow::CGraphicWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, CPanelBase* _pPanelBase) {
-	
-	
+CGraphicWindow::CGraphicWindow(HINSTANCE _hInstance, HWND hParent, int _crane_id, CPanelBase* _pPanelBase) {
 	
 	pPanelBase = _pPanelBase;
 	hParentWnd = hParent;
+	crane_id = _crane_id; //クレーンIDをセット
+	hInstance = _hInstance;
 	
 	const wchar_t CLASS_NAME[]				= L"GWindowClass";
 	const wchar_t CLASS_NAME_HHGH29[]		= L"GWindowHHGH29Class";
@@ -46,7 +46,7 @@ CGraphicWindow::CGraphicWindow(HINSTANCE hInstance, HWND hParent, int _crane_id,
 
 	WNDCLASS wc = { };
 	WNDCLASS wc2 = { };
-	switch (_crane_id) {
+	switch (crane_id) {
 
 	case CARNE_ID_HHGH29:
 		wc.lpfnWndProc = GWndProcHHGH29;
@@ -85,21 +85,6 @@ CGraphicWindow::CGraphicWindow(HINSTANCE hInstance, HWND hParent, int _crane_id,
 	}
 
 
-
-	hGWnd = CreateWindowEx(
-		0,																// Optional window styles
-		pClassName,														// Window class
-		L"MAIN GRAPHIC",												// Window text
-		WS_CHILD | WS_BORDER,											// Window style
-		GMAIN_PNL_WND_X, GMAIN_PNL_WND_Y, GMAIN_PNL_WND_W, GMAIN_PNL_WND_H,
-		hParent, nullptr, hInstance, nullptr
-	);
-
-	if (hGWnd) {
-		ShowWindow(hGWnd, SW_SHOW);
-		UpdateWindow(hGWnd);
-	}
-
 	hGSubWnd = CreateWindowEx(
 		0,																// Optional window styles
 		pClassNameSub,														// Window class
@@ -122,6 +107,10 @@ CGraphicWindow::~CGraphicWindow()
 int CGraphicWindow::close()
 {
 	DestroyWindow(hGWnd);
+	DestroyWindow(hGSubWnd);
+
+	hGWnd = NULL;
+	hGSubWnd = NULL;
 	return 0;
 }
 void CGraphicWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF _pOteEnvInf, int _crane_id) {
@@ -282,6 +271,11 @@ LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
 LRESULT CALLBACK CGraphicWindow::GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
+		InitCommonControls();//コモンコントロール初期化
+		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+		CreateWindowW(TEXT("STATIC"), L"Dummy", WS_CHILD | WS_VISIBLE | SS_LEFT,0,0,100,100,hwnd,(HMENU)(1), hInst, NULL);
+
+
 		//グラフィックオブジェクトの初期化
 		pPanelBase->pgwinobjs->setup_graphics(hwnd);
 		pPanelBase->pgwinobjs->refresh_obj_graphics();
@@ -295,6 +289,8 @@ LRESULT CALLBACK CGraphicWindow::GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wPa
 
 		//表示更新用タイマー
 		SetTimer(hwnd, ID_GMAIN_TIMER, ID_GMAIN_TIMER_MS, NULL);
+
+
 
 	}break;
 

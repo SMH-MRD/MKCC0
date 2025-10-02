@@ -36,7 +36,6 @@ public:
 		pgsubwinobjs = new CGSubWindowObj(hwnd_parent, crane_id);
 	}
 	virtual ~CPanelBase(void) {
-		close_drawing_base();
 		delete pmainobjs;
 		delete psubobjs;
 		delete pgwinobjs;
@@ -49,7 +48,7 @@ public:
 	int get_panel_id() { return _panel_id; }
 
 	static HRESULT setup_common_base(LPST_OTE_UI pui);
-	void	close_drawing_base();
+	static void	close_drawing_base();
 	HRESULT setup_graphic();
 	void	close_graphic();
 	HRESULT setup_panel();

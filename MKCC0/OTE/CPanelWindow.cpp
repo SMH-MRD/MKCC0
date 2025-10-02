@@ -626,6 +626,12 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 
 		//表示更新用タイマー
 		SetTimer(hWnd, ID_MAIN_PANEL_TIMER, ID_MAIN_PANEL_TIMER_MS, NULL);
+
+
+		if (pSubPanelWnd == NULL) {
+			pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, crane_id, ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT, pPanelBase);
+		}
+
 		break;
 	}
 	case WM_COMMAND: {
@@ -848,6 +854,13 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
 //		delete pPanelBase; pPanelBase = NULL; *ppPanelBase = NULL;
+
+		delete pSubPanelWnd;
+		pSubPanelWnd = NULL;
+
+		delete pGWnd;
+		pGWnd = NULL;
+
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
@@ -920,7 +933,8 @@ CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_i
         0,																// Optional window styles
         pClassName,														// Window class
         L"サブウィンドウ",												// Window text
-        WS_CHILD | WS_BORDER | WS_THICKFRAME | WS_CAPTION,               // Window style
+ //       WS_CHILD | WS_BORDER | WS_THICKFRAME | WS_CAPTION,               // Window style
+		WS_CHILD | WS_BORDER ,
         SUB_PNL_WND_X, SUB_PNL_WND_Y, SUB_PNL_WND_W, SUB_PNL_WND_H,
         hParent, nullptr, hInstance, nullptr
     );
@@ -1430,6 +1444,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_DESTROY: {
 		//表示更新用タイマー
 		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+		flt_cnt_hold = 0;
 		// PostQuitMessage(0);
 	}return 0;
 	case WM_CLOSE: {
