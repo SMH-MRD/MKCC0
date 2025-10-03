@@ -124,20 +124,6 @@ typedef struct _ST_CC_ENV_INF {
 //## PLC IO定義構造体　PLC通信の情報　
 #pragma region PLC IO
 
-//typedef struct _ST_PLC_AXIS_STAT {
-//	float	pos;					//位置FB m,deg
-//	INT16	inv_fb_v;				//速度FB ADユニット値
-//	INT16	brk_fb;					//ブレーキ状態FB 0閉
-//	INT16	notch_fb;				//ノッチ位置
-//	INT16   target_v;				//目標速度
-//	INT32   hcount_fb;				//高速カウンタFB値
-//	INT32	absocoder_fb;			//アブソコーダFB値
-//	INT16	endlim;					//極限センサ状態
-//	INT16	inv_ref_dir;			//インバータ運転指令(FWD,REV)
-//	INT16	inv_ref_v;				//インバータ速度指令(絶対値）
-//	INT16	inv_ref_trq;			//インバータトルク指令
-//} ST_PLC_AXIS_STAT, * LPST_PLC_AXIS_STAT;
-
 #define PRM_CC_PLC_CHK_COUNT		20//PLCヘルシーチェック用 AGENT SCAN×カウントmsec
 typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;								//PC制御受付状態
@@ -474,17 +460,22 @@ typedef struct _ST_CC_AGENT_INF {
 //## CS状態定義構造体
 #pragma region CSInfo_CC
 
+#define CC_CS_CODE_OPEPNL_DEACTIVE	0
+#define CC_CS_CODE_OPEPNL_ACTIVE	1
+
 typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_mode;														//自動モード
 	INT32		antisway_mode;													//振れ止めモード
 	INT32		auto_status[MOTION_ID_MAX];
 	INT32		ote_remote_status;												//操作端末の状態　0bit：端末信号有効
+	INT32 ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;//ゲームパッド入力情報
 	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
 	INT16		ote_mh_spd_mode;												//主巻速度モード
 	INT16		ote_bh_r_mode;													//引込モード
-	ST_GPAD_IN gpad_in;															//ゲームパッド入力情報
-
+	ST_GPAD_IN gpad_in;	
+	INT32		remote_estop;													//操作端末停止信号
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
+
 
 typedef struct _ST_CC_CS_INF {
 	//自動,遠隔設定（モード）
@@ -504,6 +495,7 @@ typedef struct _ST_CC_CS_INF {
 	LPST_JOB_SET p_active_job;
 	int job_control_status;
 	int grip_status;
+
 }ST_CC_CS_INF, * LPST_CC_CS_INF;
 
 #define N_JOB_TARGET_MAX	10

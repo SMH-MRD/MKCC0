@@ -208,6 +208,16 @@ int CCcCS::parse() {
 		//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
 	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
 
+
+	if (st_ote_work.st_ote_ctrl.id_ope_active) {
+		st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_ACTIVE;
+	}
+	else {
+		st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;
+	}
+
+
+
 	//### OTE送信データ設定
 		//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
 		//## ランプ表示指令
@@ -440,6 +450,7 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 	//# ヘッダ情報の緊急停止指令は無条件に取り込み
 	if (chkbuf_u_msg.head.code & OTE_MASK_REQ_STOP)
 		st_ote_work.st_ote_ctrl.stop_req_mode |= OTE_MASK_REQ_STOP;
+
 	if (chkbuf_u_msg.head.code & OTE_MASK_REQ_FAULT_RESET)
 		st_ote_work.st_ote_ctrl.stop_req_mode &= ~OTE_MASK_REQ_STOP;
 

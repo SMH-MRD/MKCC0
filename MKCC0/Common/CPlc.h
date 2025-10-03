@@ -6,21 +6,24 @@
 //######!!!!!!!! 構造体のポインタで参照したときにずれる 	#######################
 #pragma pack(push,2)
 
-#define MASK_BIT_MH             0x00000001
-#define MASK_BIT_BH             0x00000002
-#define MASK_BIT_SL             0x00000004
-#define MASK_BIT_GT             0x00000008
-#define MASK_BIT_AH             0x00000010
-#define MASK_BIT_PC_CTRL_ACTIVE  0x00008000
-#define MASK_BIT_PC_SIM_MODE    0x00004000
+#define MASK_BIT_MH					0x00000001
+#define MASK_BIT_BH					0x00000002
+#define MASK_BIT_SL					0x00000004
+#define MASK_BIT_GT					0x00000008
+#define MASK_BIT_AH					0x00000010
+#define MASK_BIT_PC_CTRL_ACTIVE		0x00008000
+#define MASK_BIT_PC_SIM_MODE		0x00004000
+#define MASK_BIT_PC_OPEPNL_ACTIVE   0x00002000
+#define MASK_BIT_PC_AUTO_ACTIVE		0x00001000
+#define MASK_BIT_RMT_ESTP_ACTIVE	0x00000800
 
-#define ID_PLC_HCOUNT_MH		0
-#define ID_PLC_HCOUNT_AH		1
-#define ID_PLC_HCOUNT_BH		2
-#define ID_PLC_HCOUNT_SL		3
-#define ID_PLC_ABSO_MH			0
-#define ID_PLC_ABSO_AH			1
-#define ID_PLC_ABSO_GT			2
+#define ID_PLC_HCOUNT_MH			0
+#define ID_PLC_HCOUNT_AH			1
+#define ID_PLC_HCOUNT_BH			2
+#define ID_PLC_HCOUNT_SL			3
+#define ID_PLC_ABSO_MH				0
+#define ID_PLC_ABSO_AH				1
+#define ID_PLC_ABSO_GT				2
 
 /*** PLC IFバッファ構造体定義 ***/
 //デフォルト（みらい）の定義

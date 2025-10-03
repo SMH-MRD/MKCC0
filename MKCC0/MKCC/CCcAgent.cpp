@@ -78,6 +78,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 	pSim_Inf	= (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
+		
 
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
 
@@ -316,13 +317,23 @@ int CAgent::parse() {
 	
 	//### PCコントロール信号
 	{
-		INT16 mask = MASK_BIT_PC_CTRL_ACTIVE; mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+		INT16 mask = MASK_BIT_PC_CTRL_ACTIVE;	mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+		
+		if (pCS_Inf->cs_ctrl.ope_pnl_status)	mask |= MASK_BIT_PC_OPEPNL_ACTIVE;	//操作有効端末有
+		else									mask &= ~MASK_BIT_PC_OPEPNL_ACTIVE;
+
+		if (pCS_Inf->cs_ctrl.remote_estop)		mask |= MASK_BIT_RMT_ESTP_ACTIVE;	//操作有効端末有
+		else									mask &= ~MASK_BIT_RMT_ESTP_ACTIVE;
+
+
 		if (plc_healthy) {
 			pAgent_Inf->pc_ctrl_mode2plc |= mask;
 		}
 		else {
 			pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
 		}
+
+
 		pCrane->pPlc->wval(pPlcWIf->pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
 	}
 
