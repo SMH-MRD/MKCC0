@@ -104,7 +104,16 @@ int COteEnv::input() {
 	return S_OK;
 }
 
+static int got_command_last = CRANE_ID_NULL;
 int COteEnv::parse() {
+	//GOT 接続コマンド処理
+	if (pOteCsInf->GOT_command > got_command_last) {
+		int command = pOteCsInf->GOT_command ^ got_command_last;
+		if (command & OTE_OPE_GOT_COM_CONNECT_CRANE) {
+			if (pOteCCIf->id_conected_crane == CRANE_ID_NULL)//クレーン接続済でなければ
+				open_ope_window(pOteCsInf->GOT_crane_select);
+		}
+	}
 
 	return STAT_OK;
 }
@@ -125,6 +134,38 @@ HRESULT COteEnv::open_opening_window() {
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 	return S_OK;
 }
+
+HRESULT COteEnv::open_ope_window(int crane_id_selected) {
+	delete pCrane;
+	if (!(NULL == (pCrane = new CCrane(crane_id_selected))))
+	{
+
+		Sleep(100);
+
+		if (S_OK == pAgentObj->setup_crane_if(crane_id_selected))
+		{
+			pOteEnvInf->selected_crane = st_work.selected_crane = crane_id_selected;
+			pScadObj->open_ope_window();
+			crane_id_selected = CRANE_ID_NULL;
+
+			close_monitor_wnd(BC_ID_MON1);
+		}
+		else {
+			pAgentObj->close_crane_if();
+			pOteEnvInf->selected_crane = st_work.selected_crane = CRANE_ID_NULL;
+			MessageBox(st_mon1.hwnd_mon, TEXT("通信回線を確立出来ません"), TEXT("Error"), MB_OK | MB_ICONERROR);
+		}
+	}
+	return S_OK;
+}
+
+void COteEnv::clear_crane_if() {
+	pAgentObj->close_crane_if();
+	pOteEnvInf->selected_crane = st_work.selected_crane = CRANE_ID_NULL;
+	return;
+}
+
+
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
@@ -195,18 +236,7 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case OTE_ENV_ID_MON1_PB_START: {
 			if (crane_id_selected != CRANE_ID_NULL) {
-				delete pCrane;
-				if (!(NULL == (pCrane= new CCrane(crane_id_selected))))
-				{
-					pCrane->pSpec->base_mh;
-					close_monitor_wnd(BC_ID_MON1);
-					Sleep(100);
-					pAgentObj->setup_crane_if(crane_id_selected);
-
-					pOteEnvInf->selected_crane = st_work.selected_crane = crane_id_selected;
-					pScadObj->open_ope_window();
-					crane_id_selected = CRANE_ID_NULL;
-				}
+				open_ope_window(crane_id_selected);
 			}
 			else {
 				MessageBox(hWnd, TEXT("クレーンを選択して下さい！"), TEXT("Error"), MB_OK | MB_ICONERROR);
@@ -360,6 +390,7 @@ HWND COteEnv::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
+
 void COteEnv::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
 		DestroyWindow(st_mon1.hwnd_mon);

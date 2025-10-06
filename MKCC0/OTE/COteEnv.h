@@ -101,6 +101,8 @@ public:
     static ST_OTE_ENV_INF st_work;
 
     HRESULT open_opening_window();
+    static HRESULT open_ope_window(int crane_id_selected);
+	void clear_crane_if();
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;

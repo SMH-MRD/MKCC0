@@ -153,7 +153,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		
 	st_work.aux_mode = FUNC_ACTIVE;
 
-	st_work.device_code = g_my_code;
+	pEnvInf->device_code = st_work.device_code = g_my_code;
 
 	plc_enable_hold = 0;
 

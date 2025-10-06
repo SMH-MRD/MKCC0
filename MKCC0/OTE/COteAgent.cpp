@@ -118,7 +118,7 @@ int COteAgent::setup_crane_if(int crane_id) {
 	if (st_mon2.hwnd_mon == NULL) {
 		wos << L"Err(MON2 NULL Handle!!):";
 		msg2listview(wos.str()); wos.str(L"");
-		return -1;
+		return S_FALSE;
 	}
 
 	//##ソケットソケット生成・設定
@@ -150,15 +150,16 @@ int COteAgent::setup_crane_if(int crane_id) {
 		close_crane_if();
 		close_monitor_wnd(BC_ID_MON2);	//通信モニタクローズ
 		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
-		return -1;
+		return S_FALSE;
 	};
-	return STAT_OK;
+	return hr;
 }
 
 int COteAgent::close_crane_if() {
-	pUSockPC->Close();				//ソケットクローズ
-	pMSockPC->Close();				//ソケットクローズ
-	pMSockOte->Close();				//ソケットクローズ
+	
+	if (pUSockPC != NULL)	pUSockPC->Close();	//ソケットクローズ
+	if (pMSockPC != NULL)	pMSockPC->Close();				//ソケットクローズ
+	if (pMSockOte!= NULL)	pMSockOte->Close();				//ソケットクローズ
 	return STAT_OK;
 }
 
@@ -244,7 +245,22 @@ int COteAgent::parse() {
 	//故障信号要求コード
 	st_work.st_msg_ote_u_snd.body.st.faults_disp_req = pOteUI->flt_req_code;	//故障信号要求コード
 
-	//##################### 送信バッファセット　############################################
+	//##################### クレーンとの通信チェック　############################################
+	//CC通信状態ステータスセット（モニタ用）
+	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
+
+	pOteCCIf->cc_comm_chk_cnt--;//カウンタは、受信時にMAX値セット
+	if (pOteCCIf->cc_comm_chk_cnt < 0) pOteCCIf->cc_comm_chk_cnt = 0;
+	if( pOteCCIf->cc_comm_chk_cnt == 0) {
+		//クレーン操作有効端末id
+		pOteCCIf->cc_active_ote_id = CRANE_ID_NULL;
+		pOteCCIf->id_conected_crane = CRANE_ID_NULL;
+	}
+	else {
+		//クレーン操作有効端末id
+		pOteCCIf->cc_active_ote_id = st_work.cc_active_ote_id;
+		pOteCCIf->id_conected_crane = st_work.id_conected_crane;
+	}
 
 	return S_OK;
 }
@@ -261,10 +277,7 @@ int COteAgent::output() {          //出力処理
 	memcpy_s(&(pOteCCIf->st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG), &(st_work.st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG));
 	memcpy_s(&(pOteCCIf->st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG), &(st_work.st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG));
 	
-	//CC通信状態ステータスセット（モニタ用）
-	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
-	//クレーン操作有効端末id
-	pOteCCIf->cc_active_ote_id = st_work.cc_active_ote_id;
+
 
 	return STAT_OK;
 }
@@ -387,6 +400,7 @@ HRESULT COteAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 		return S_FALSE;
 	}
 	rcv_count_pc_u++;
+	pOteCCIf->cc_comm_chk_cnt = PRM_OTE_PC_COM_RESET_CNT; //CC通信チェックカウンタリセット
 	return S_OK;
 }
 /****************************************************************************/
@@ -804,7 +818,12 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
-			rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv));
+			if (S_OK == rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv)) ){
+				st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);
+			}
+			else {
+				st_work.id_conected_crane = CRANE_ID_NULL;
+			}
 			QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
 			LONGLONG lspan = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
 			if (res_delay_max < lspan) res_delay_max = lspan;

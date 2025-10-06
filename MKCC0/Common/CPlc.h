@@ -183,8 +183,8 @@ typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   plc_healthy;							// D10600: PLCヘルシーカウンタ
 	INT16   plc_status;								// D10601: PLC運転モード
 	INT16   auto_sw;								// D10602: 運転室PLC→電気室PLC W出力
-	INT16   got_mode;								// D10603: GOTモード
-	INT16   got_crane_assigned;						// D10604: GOT Crane
+	INT16   got_command;							// D10603: GOTモード
+	INT16   got_crane_selected;						// D10604: GOT Crane
 	INT16  spare0[5];								// D10605:
 	INT16	ai_sl_foot;								// D10610:
 	INT16	ai_spare[3];							// D10611:

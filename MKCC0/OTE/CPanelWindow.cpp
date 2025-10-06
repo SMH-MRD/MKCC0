@@ -426,6 +426,12 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 			pPanelBase->pmainobjs->str_message->update();
 			//	is_initial_draw_mon1 = false;
 		}
+
+		//GOTコマンドチェック
+		if(pCsInf->GOT_command & OTE_OPE_GOT_COM_RELEASE_CRANE) {
+			DestroyWindow(hWnd); //クレーン選択解除後	
+		}
+
 	}break;
 
 	case WM_PAINT: {
@@ -800,6 +806,11 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 			//	is_initial_draw_mon1 = false;
 		}
 
+		//GOTコマンドチェック
+		if (pCsInf->GOT_command & OTE_OPE_GOT_COM_RELEASE_CRANE) {
+			DestroyWindow(hWnd); //クレーン選択解除後	
+		}
+
 	}break;
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
@@ -848,12 +859,10 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_DESTROY: {
 		hWnd = NULL;
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
-		pOteEnvInf->selected_crane = CRANE_ID_NULL; //選択クレーンIDを0にセット
 		pUi->pc_pnl_active = L_OFF;
-//		if (pPanelBase != NULL) delete pPanelBase;
+		pEnvObj->clear_crane_if();
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
-//		delete pPanelBase; pPanelBase = NULL; *ppPanelBase = NULL;
 
 		delete pSubPanelWnd;
 		pSubPanelWnd = NULL;

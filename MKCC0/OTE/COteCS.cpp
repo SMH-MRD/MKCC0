@@ -4,6 +4,7 @@
 #include "CGamePad.h"
 #include "CCrane.h"
 #include "SmemAux.h"
+#include "COteEnv.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
@@ -12,6 +13,9 @@ extern CSharedMem* pOteUiObj;
 extern ST_DEVICE_CODE g_my_code; //端末コード
 
 extern CCrane* pCrane;
+
+extern vector<CBasicControl*>	VectCtrlObj;
+extern BC_TASK_ID st_task_id;
 
 
 //ソケット
@@ -23,6 +27,8 @@ ST_OTE_CS_MON2 COteCS::st_mon2;
 
 ST_OTE_CS_INF COteCS::st_work;
 ST_OTE_CS_OBJ COteCS::st_obj;
+
+static COteEnv* pEnvObj;
 
 //共有メモリ参照用定義
 
@@ -63,6 +69,9 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	}
 	set_outbuf(pOteCsInfObj->get_pMap());
 
+	//### Environmentのインスタンスポインタ取得
+	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
+	
 	//### 入力用共有メモリ取得
 	pOteCCInf = (LPST_OTE_CC_IF)pOteCcInfObj->get_pMap();
 	pOteEnvInf = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
@@ -350,12 +359,21 @@ int COteCS::input(){
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_aux];
 	}
 
+	//## GOT指令値取り込み（クレーン接続）
+	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {
+		pOteCsInf->GOT_command = pin_opepnl->got_command;	
+		pOteCsInf->GOT_crane_select = pin_opepnl->got_crane_selected;
+	}
+
 	//### 旋回ブレーキ指令信号整形
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		< 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 0;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		> 15)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 15;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	> 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_HW_BRK; //HWブレーキ
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_RESET; //リセット
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_FREE; //フリー(AUTO/MANUAL)
+
+
+
 
 	return S_OK;
 }
@@ -440,23 +458,9 @@ int COteCS::parse()
 		//	pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_PCPNL;
 	}
 
-	//### PCへの出力指令値設定　
-	{
-	
-		//????? 以下不要???
-		//##コントロール
-//		memcpy_s(st_work.st_body.pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl),pOteCsInf->pnl_ctrl, sizeof(pOteCsInf->pnl_ctrl));
-		
-		//##ノッチ 
-//		st_work.st_body.axis[ID_AXIS::mh].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
-//		st_work.st_body.axis[ID_AXIS::bh].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh];
-//		st_work.st_body.axis[ID_AXIS::sl].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl];
-//		st_work.st_body.axis[ID_AXIS::gt].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
-//		st_work.st_body.axis[ID_AXIS::ah].notch_ref = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah];
-	}
-
 	//###操作卓へのPCからの出力内容設定
 	{
+
 	//##操作卓ハードランプ
 		INT16 plc_yo_buf = 0;
 		//主幹ランプ
@@ -518,7 +522,9 @@ int COteCS::output() {
 
 	//##制御情報　操作台用信号
 	pPcWBuf->pc_healthy = ote_helthy++;					//PCヘルシー値
-	pPcWBuf->crane_id	= pOteEnvInf->selected_crane;	//接続先クレーンID	
+	//接続中クレーンID
+	pPcWBuf->crane_id = (INT16)(pOteCCInf->id_conected_crane & 0x0000FFFF);	//接続先クレーンID	
+	
 		
 
 	//##GOT故障監視
