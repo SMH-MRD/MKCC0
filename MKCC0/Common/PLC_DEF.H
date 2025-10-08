@@ -126,3 +126,6 @@
 #define PLC_IF_CCID_MH1             4
 #define PLC_IF_CCID_MH2             5
 
+#define PLC_IF_RINDEX_RMTSW_HHGH29 15		//遠隔スイッチ情報の読み出し位置
+#define PLC_IF_RMASK_RMTSW_HHGH29  0x0800	//遠隔スイッチ情報のマスク
+

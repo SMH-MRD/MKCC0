@@ -530,7 +530,7 @@ int COteCS::output() {
 	//##GOT故障監視
 	LPST_OTE_PC_FLTS_SET pFltSet = (LPST_OTE_PC_FLTS_SET)&pBody->faults_set;
 	for(int i=0; i< N_OTE_OPE_PLC_FAULT_BUF; i++){
-		if(i < pFltSet->set_count)
+		if(i < pFltSet->set_plc_count)
 			((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = pFltSet->codes[i] + 300;//codes[0]はセットされている故障のタイプ
 		else
 			((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = 0;

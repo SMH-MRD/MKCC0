@@ -1023,7 +1023,7 @@ void CSubPanelWindow::SetFltToListView(HWND hlv, int code, int i) {
 	_stprintf_s(numStr, _T("%d"), code + 300);
 	ListView_SetItemText(hlv, i, 1, numStr);
 	// 故障項目
-	ListView_SetItemText(hlv, i, 2, pCrane->pFlt->flt_list.faults[code].item);
+	ListView_SetItemText(hlv, i, 2, pCrane->pFlt->flt_list.plc_faults[code].item);
 	return;
 }
 void CSubPanelWindow::ClearFltListView(HWND hlv, bool is_init, int i) {
@@ -1031,7 +1031,7 @@ void CSubPanelWindow::ClearFltListView(HWND hlv, bool is_init, int i) {
 	if (is_init) {
 		//初期化時は空白行追加して背景セット
 		ListView_DeleteAllItems(hlv);
-		for (int i = 0; i < N_OTE_PC_SET_FLT; i++) {
+		for (int i = 0; i < N_OTE_PC_SET_PLC_FLT; i++) {
 			LVITEM item = { };
 			item.mask = LVIF_TEXT | LVIF_IMAGE;
 			item.iItem = i;
@@ -1201,7 +1201,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		SendMessage(pPanelBase->psubobjs->cb_disp_flt_light->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 		SendMessage(pPanelBase->psubobjs->cb_disp_interlock->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 
-		pPanelBase->psubobjs->flt_req_code |= FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3 | FAULT_LIGHT | FAULT_INTERLOCK;
+		pPanelBase->psubobjs->flt_req_code |= FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3 | FAULT_LIGHT | FAULT_INTERLOCK | FAULT_PC_CTRL;
 
 		//バイパスは初期値OFF
 		SendMessage(pPanelBase->psubobjs->cb_flt_bypass->hWnd, BM_SETCHECK, BST_UNCHECKED, 0); 
@@ -1248,10 +1248,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			(is_flt_bk_update_required == false)	//背景更新必要な時はすぐに実行できるように
 			)break; 
 
-		int fltcode = 0, n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_count;
+		int fltcode = 0, n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count;
 		
 		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
-		else if ((n < 0) || (n > N_OTE_PC_SET_FLT)) {	//項目数異常時はクリア
+		else if ((n < 0) || (n > N_OTE_PC_SET_PLC_FLT)) {	//項目数異常時はクリア
 			for (int i = 0; i < flt_cnt_hold; i++) ClearFltListView(hFltListView, false, i);
 		}
 		else if (n >= flt_cnt_hold) {					//項目数が増えた時は今回値書き込みのみ
@@ -1278,7 +1278,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		else{
 			for (int i = 0; i < n; i++) {
 				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes[i];
-				flttype = pCrane->pFlt->flt_list.faults[fltcode].type;
+				flttype = pCrane->pFlt->flt_list.plc_faults[fltcode].type;
 				if (flttype & 3) {//重故障 =1 or 2 or 3
 					bk_checked = 3; //重故障
 					break;

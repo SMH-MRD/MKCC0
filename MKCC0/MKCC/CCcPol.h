@@ -113,14 +113,10 @@ private:
         return STAT_NG;
     }
 
-    int input();//入力処理
+    int input();    //入力処理
 
-    int parse() {           //メイン処理
-        return STAT_NG;
-    }
-    int output() {          //出力処理
-        return STAT_NG;
-    }
+	int parse();   //メイン処理
+	int output();   //出力処理
     int close();
 };
 

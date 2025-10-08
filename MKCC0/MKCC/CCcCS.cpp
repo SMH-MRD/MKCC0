@@ -342,11 +342,11 @@ void CCcCS::set_ote_flt_info() {
 		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
 			disp_mask[i] = 0;
 			if (com_ote & FAULT_CLEAR)break; //クリア要求なら全てクリア
-			if (com_ote & FAULT_HEAVY1) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::HEVY1][i];
-			if (com_ote & FAULT_HEAVY2) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::HEVY2][i];
-			if (com_ote & FAULT_HEAVY3) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::HEVY3][i];
-			if (com_ote & FAULT_LIGHT) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::LIGHT][i];
-			if (com_ote & FAULT_INTERLOCK) disp_mask[i] |= pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::IL][i];
+			if (com_ote & FAULT_HEAVY1) disp_mask[i] |= pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::HEVY1][i];
+			if (com_ote & FAULT_HEAVY2) disp_mask[i] |= pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::HEVY2][i];
+			if (com_ote & FAULT_HEAVY3) disp_mask[i] |= pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::HEVY3][i];
+			if (com_ote & FAULT_LIGHT) disp_mask[i] |= pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::LIGHT][i];
+			if (com_ote & FAULT_INTERLOCK) disp_mask[i] |= pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::IL][i];
 		}
 		st_ote_work.st_body.faults_set.set_type = com_ote;//表示要求タイプアンサバックセット
 	}
@@ -355,24 +355,24 @@ void CCcCS::set_ote_flt_info() {
 	INT16 i16work;
 	if (com_ote & FAULT_HISTORY) {	//履歴表示要求時
 		i16work = pEnv_Inf->crane_stat.fault_list.iw_history ;	//履歴書き込みポインタ
-		for (int i = 0; i < N_OTE_PC_SET_FLT;i++) {
+		for (int i = 0; i < N_OTE_PC_SET_PLC_FLT;i++) {
 			i16work--;
 			if (i16work < 0) i16work= N_FAULTS_HISTORY_BUF-1;
 			st_ote_work.st_body.faults_set.codes[i] = pEnv_Inf->crane_stat.fault_list.history[i16work].code;	//履歴コードセット
 			st_ote_work.st_body.faults_set.codes[i] *= pEnv_Inf->crane_stat.fault_list.history[i16work].status;	//クリアは-コード
 		
 		}
-		flt_count = N_OTE_PC_SET_FLT;
+		flt_count = N_OTE_PC_SET_PLC_FLT;
 	}
 	else {							//現在発生分要求時
-		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
+		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {//PLC IOの故障バッファ数ループ
 			i16work = disp_mask[i] & pEnv_Inf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][i];
 
 			//表示カウント数オーバーまたは故障無しでスキップ
-			if ((flt_count >= N_OTE_PC_SET_FLT) || (i16work == 0)) continue;
+			if ((flt_count >= N_OTE_PC_SET_PLC_FLT) || (i16work == 0)) continue;
 
 			for (int j = 0; j < 16; j++) {
-				if (flt_count >= N_OTE_PC_SET_FLT) break;	//表示故障数上限
+				if (flt_count >= N_OTE_PC_SET_PLC_FLT) break;	//表示故障数上限
 
 				if (i16work & (1 << j)) {	//検出ありの時
 					st_ote_work.st_body.faults_set.codes[flt_count] = 16 * i + j;
@@ -382,8 +382,11 @@ void CCcCS::set_ote_flt_info() {
 				}
 			}
 		}
+
+
+
 	}
-	st_ote_work.st_body.faults_set.set_count = flt_count;	//表示故障数セット
+	st_ote_work.st_body.faults_set.set_plc_count = flt_count;	//表示故障数セット
 	ote_disp_com_hold = com_ote;						//表示内容要求前回値保持
 
 	return; 

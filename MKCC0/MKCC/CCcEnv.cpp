@@ -306,7 +306,7 @@ void CCcEnv::set_faults_info() {
 	//毎周期更新
 	for (int i = FAULT_TYPE::BASE; i <= FAULT_TYPE::IL; i++) {
 		for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-			pEnvInf->crane_stat.fault_list.faults_detected_map[i][j] = pflt_rbuf[j]& pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::BASE][j];
+			pEnvInf->crane_stat.fault_list.faults_detected_map[i][j] = pflt_rbuf[j]& pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::BASE][j];
 		}
 	}
 
@@ -365,7 +365,7 @@ void CCcEnv::refresh_faults_info() {
 
 	for (int i = FAULT_TYPE::BASE; i <= FAULT_TYPE::IL; i++) {
 		for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-			pEnvInf->crane_stat.fault_list.faults_detected_map[i][j] = pflt_rbuf[j] & pCrane->pFlt->flt_list.fault_mask[FAULT_TYPE::BASE][j];
+			pEnvInf->crane_stat.fault_list.faults_detected_map[i][j] = pflt_rbuf[j] & pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::BASE][j];
 		}
 	}
 	//前回値=今回値,トリガ検出無し

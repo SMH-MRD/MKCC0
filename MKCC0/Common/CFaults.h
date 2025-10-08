@@ -3,8 +3,9 @@
 #include "COMMON_DEF.h"
 
 #define N_PLC_FAULT_BUF				18
-#define N_ALL_FAULT_BUF				N_PLC_FAULT_BUF
-#define N_ALL_FAULTS				(N_PLC_FAULT_BUF)*16
+#define N_PC_FAULT_BUF				4
+#define N_ALL_FAULTS				(N_PLC_FAULT_BUF + N_PC_FAULT_BUF)*16
+
 
 //故障種別ビット
 #define FAULT_CLEAR					BIT0
@@ -13,7 +14,8 @@
 #define FAULT_HEAVY3				BIT3
 #define FAULT_LIGHT					BIT4
 #define FAULT_INTERLOCK				BIT5
-#define FAULT_HISTORY				BIT6//履歴
+#define FAULT_PC_CTRL				BIT6
+#define FAULT_HISTORY				BIT7//履歴
 
 
 //動作制限ビット
@@ -41,7 +43,7 @@ enum FAULT_TYPE {
 	HEVY3,		//重故障3
 	LIGHT,		//軽故障
 	IL,			//渋滞
-	RMT,		//リモート
+	PC,			//PC
 	AUTO,		//自動
 	ALL			//全体
 };
@@ -57,8 +59,9 @@ typedef struct _ST_FAULT_ITEM {
 }ST_FAULT_ITEM, * LPST_FAULT_ITEM;
 
 typedef struct _ST_FAULT_LIST {
-	ST_FAULT_ITEM faults[N_ALL_FAULTS];	//登録フォルト数
-	INT16 fault_mask[FAULT_TYPE::ALL][N_ALL_FAULT_BUF];	//登録フォルト数
+	ST_FAULT_ITEM plc_faults[N_PLC_FAULT_BUF * 16];	//登録フォルト数
+	INT16 plc_fault_mask[FAULT_TYPE::ALL][N_PLC_FAULT_BUF];	//登録フォルト数
+	ST_FAULT_ITEM pc_faults[N_PC_FAULT_BUF * 16];	//登録フォルト数
 }ST_FAULT_LIST, * LPST_FAULT_LIST;
 
 
@@ -101,4 +104,20 @@ public:
 	int set_disp_buf(int code);//表示用フォルトビット列セット
 
 };
+
+#define FLTS_ID_ERR_CPC_PLC_COMM		0
+#define FLTS_MASK_ERR_CPC_PLC_COMM		0x0001
+#define FLTS_ID_ERR_CPC_RPC_COMM		0
+#define FLTS_MASK_ERR_CPC_RPC_COMM		0x0002
+#define FLTS_ID_ERR_CPC_SLBRK_COMM		0
+#define FLTS_MASK_ERR_CPC_SLBRK_COMM	0x0004
+#define FLTS_ID_RMTSW_OFF				0
+#define FLTS_MASK_RMTSW_OFF				0x0008
+#define FLTS_ID_ERR_RPC_RPLC_COMM		0
+#define FLTS_MASK_ERR_RPC_RPLC_COMM		0x0020
+#define FLTS_ID_RMT_OPE_DEACTIVE		0
+#define FLTS_MASK_RMT_OPE_DEACTIVE		0x0040
+
+
+
 

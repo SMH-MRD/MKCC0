@@ -9,7 +9,8 @@
 //操作端末のテキスト,ボタン、ランプ数
 #define N_OTE_PNL_CTRL				128
 #define N_OTE_PC_MSG_WCHAR			64
-#define N_OTE_PC_SET_FLT			64//最初の要素にはセットされているタイプのコードが入る
+#define N_OTE_PC_SET_PLC_FLT		48//最初の要素にはセットされているタイプのコードが入る
+#define N_OTE_PC_SET_PC_FLT			15//最初の要素にはセットされているタイプのコードが入る
 #define N_OTE_PNL_NOTCH_DEVICE		5
 #define N_OTE_PNL_NOTCH_PBL			N_NOTCH_TBL
 
@@ -92,8 +93,10 @@ typedef struct _ST_OTE_PC_MSG {
 }ST_OTE_PC_MSG, * LPST_OTE_PC_MSG;
 typedef struct _ST_OTE_PC_FLTS_SET {
 	INT16 set_type;						//セットされている故障の内容
-	INT16 set_count;					//セットされている故障コード数
-	INT16 codes[N_OTE_PC_SET_FLT];		//発生中故障コード
+	INT16 set_plc_count;					//セットされている故障コード数
+	INT16 codes[N_OTE_PC_SET_PLC_FLT];		//発生中故障コード
+	INT16 set_pc_count;					//セットされている故障コード数
+	INT16 codes_pc[N_OTE_PC_SET_PC_FLT];		//発生中故障コード
 }ST_OTE_PC_FLTS_SET, * LPST_OTE_PC_FLTS_SET;
 
 enum OTE_PNL_CTRLS {//OTEパネルPB INDEX

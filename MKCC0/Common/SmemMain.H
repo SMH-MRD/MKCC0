@@ -7,6 +7,7 @@
 #include "PLC_DEF.h"
 #include "CVector3.h"
 #include "CCrane.h"
+#include "CFaults.h"
 
 using namespace std;
 
@@ -54,7 +55,8 @@ typedef struct _ST_FAULT_RECORD {
 
 typedef struct _ST_FAULTS_LIST {
 	INT16 faults_detected_map[FAULT_TYPE::ALL][N_PLC_FAULT_BUF];	//検出中故障リスト
-	INT16 codes[N_OTE_PC_SET_FLT];									//発生中故障コード
+	INT16 codes_plc[N_OTE_PC_SET_PLC_FLT];							//発生中PLC故障コード
+	INT16 codes_pc[N_OTE_PC_SET_PC_FLT];							//発生中PC故障コード
 	ST_FAULT_RECORD history[N_FAULTS_HISTORY_BUF];					//故障履歴
 	INT16 history_count=0;											//故障履歴数
 	INT16 iw_history=0;												//書き込みポインタ
@@ -395,7 +397,7 @@ typedef struct _ST_JOB_IO {
 #define FAULT_MAP_W_SIZE	64	//フォルトマップサイズ
 typedef struct _ST_CC_POL_INF {
 
-	WORD fault_map[FAULT_MAP_W_SIZE];
+	WORD pc_fault_map[N_PC_FAULT_BUF];
 
 }ST_CC_POL_INF, * LPST_CC_POL_INF;
 #pragma endregion Policy情報定義構造体

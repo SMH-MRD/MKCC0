@@ -275,7 +275,7 @@ ST_FAULT_LIST flt_list_H6R602 ={
 }
 };
 //HHGH29
-ST_FAULT_LIST flt_list_HHGH29 = {
+ST_FAULT_LIST plc_flt_list_HHGH29 = {
 {
 {0,00,L"0",L"0"},
 {1,0xF800,L"運転室非常停止",L"運転室非常停止PBが操作された"},
@@ -544,6 +544,17 @@ ST_FAULT_LIST flt_list_HHGH29 = {
 0x0300,0x1C40,0x0000,0x0001,0x0000,0x8000,0x0000,0x0080,0x0000,0x0040,0xC010,0x0010,0x0000,0x0000,0x0000,0x7400,0x0000,0x0000,
 0x2000,0x8008,0x01A0,0x0080,0x0000,0x1506,0x0800,0x0010,0x0680,0x0000,0x0008,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
 
+},
+//PC Faults
+{
+{6,00,L"0",L"0"},
+{6,0x0000,L"制御PC-機上PLC通信異常",L"ヘルシー信号更新停止"},
+{6,0x0000,L"制御PC-遠隔PC通信異常",L"ヘルシー信号更新停止"},
+{6,0x0000,L"制御PC-旋回ブレーキPLC通信異常",L"ヘルシー信号更新停止"},
+{6,0x0000,L"機上遠隔モードOFF",L"機上遠隔モードSW　OFF"},
+{0,0x0000,L"",L""},
+{6,0xF800,L"遠隔PC-遠隔PLC通信異常",L"ヘルシー信号更新停止"},
+{6,0xF800,L"遠隔操作権未取得",L"端末操作権未獲得"},
 }
 };
 //HHGQ18
@@ -1373,7 +1384,7 @@ int CFaults::setup(int crane_id) {
 	}break;
 	case CARNE_ID_HHGH29: {
 		//フォルトリスト
-		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGH29, sizeof(flt_list_HHGH29));
+		memcpy_s(&flt_list, sizeof(flt_list), &plc_flt_list_HHGH29, sizeof(plc_flt_list_HHGH29));
 
 		LPST_PLC_RBUF_HHGH29 _prbuf = (LPST_PLC_RBUF_HHGH29)prbuf;
 		LPST_PLC_WBUF_HHGH29 _pwbuf = (LPST_PLC_WBUF_HHGH29)pwbuf;
@@ -1401,11 +1412,11 @@ void CFaults::set_flt_mask(int code) {
 	INT16 imask;
 	for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
 		imask = 0;
-		if(code & FAULT_HEAVY1)imask	|= flt_list.fault_mask[1][i];
-		if(code & FAULT_HEAVY2)imask	|= flt_list.fault_mask[2][i]; 
-		if(code & FAULT_HEAVY3)imask	|= flt_list.fault_mask[3][i];
-		if (code & FAULT_LIGHT)imask	|= flt_list.fault_mask[4][i];
-		if (code & FAULT_INTERLOCK)imask|= flt_list.fault_mask[5][i];
+		if(code & FAULT_HEAVY1)imask	|= flt_list.plc_fault_mask[1][i];
+		if(code & FAULT_HEAVY2)imask	|= flt_list.plc_fault_mask[2][i]; 
+		if(code & FAULT_HEAVY3)imask	|= flt_list.plc_fault_mask[3][i];
+		if (code & FAULT_LIGHT)imask	|= flt_list.plc_fault_mask[4][i];
+		if (code & FAULT_INTERLOCK)imask|= flt_list.plc_fault_mask[5][i];
 		faults_chkmask[i] = imask;
 	}
 	return;

@@ -1,5 +1,7 @@
 #include "CCcPol.h"
 #include "resource.h"
+#include "CCrane.H"
+#include "CFaults.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -9,6 +11,17 @@ extern CSharedMem* pAgInfObj;
 extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
+
+//‹¤—Lƒƒ‚ƒŠ
+static LPST_CC_ENV_INF		pEnvInf;
+static LPST_CC_PLC_IO		pPlcIo;
+static LPST_JOB_IO			pJobIo;
+static LPST_CC_POL_INF		pPolInf;
+static LPST_CC_AGENT_INF	pAgentInf;
+static LPST_CC_CS_INF		pCsInf;
+static LPST_CC_SIM_INF		pSimInf;
+static LPST_CC_OTE_INF		pOteInf;
+
 
 ST_POL_MON1 CPolicy::st_mon1;
 ST_POL_MON2 CPolicy::st_mon2;
@@ -24,6 +37,18 @@ CPolicy::~CPolicy() {
 
 HRESULT CPolicy::initialize(LPVOID lpParam) {
 
+
+	HRESULT hr = S_OK;
+
+	pEnvInf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
+	pPlcIo = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
+	pJobIo = (LPST_JOB_IO)(pJobIoObj->get_pMap());
+	pPolInf = (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
+	pAgentInf = (LPST_CC_AGENT_INF)(pAgInfObj->get_pMap());
+	pCsInf = (LPST_CC_CS_INF)(pCsInfObj->get_pMap());
+	pSimInf = (LPST_CC_SIM_INF)(pSimuStatObj->get_pMap());
+	pOteInf = (LPST_CC_OTE_INF)(pOteInfObj->get_pMap());
+
 	set_func_pb_txt();
 	set_item_chk_txt();
 	set_panel_tip_txt();
@@ -36,7 +61,7 @@ HRESULT CPolicy::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-	CPolicy* pEnvObj = (CPolicy*)lpParam;
+	CPolicy* pPolObj = (CPolicy*)lpParam;
 	int code = 0;
 	return S_OK;
 }
@@ -58,6 +83,21 @@ int CPolicy::input() {
 
 
 	return S_OK;
+}
+
+int CPolicy::parse() {           //ƒƒCƒ“ˆ—
+
+	INT16 XB0 = pPlcIo->buf_io_read[PLC_IF_RINDEX_RMTSW_HHGH29];
+	if (XB0 & PLC_IF_RMASK_RMTSW_HHGH29) {
+		pPolInf->pc_fault_map[FLTS_ID_RMTSW_OFF] |= FLTS_MASK_RMTSW_OFF;
+	}
+	else {
+		pPolInf->pc_fault_map[FLTS_ID_RMTSW_OFF] &= ~FLTS_MASK_RMTSW_OFF;
+	}
+	return STAT_OK;
+}
+int CPolicy::output() {          //o—Íˆ—
+	return STAT_OK;
 }
 
 int CPolicy::close() {

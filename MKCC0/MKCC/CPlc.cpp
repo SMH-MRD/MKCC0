@@ -241,6 +241,7 @@ int CPlc::setup(int crane_id) {
 
 			i = 14;
 			plc_io_rif.fault_bz.pi16
+				= plc_io_rif.auto_kyusi.pi16
 				= p + i;
 
 			i = 15;
@@ -255,10 +256,6 @@ int CPlc::setup(int crane_id) {
 			= plc_io_rif.mercury_lamp_sw3.pi16
 			= plc_io_rif.douryoku_ok.pi16
 			= plc_io_rif.siren_sw.pi16
-			= p + i;
-
-			i = 22;
-			plc_io_rif.auto_kyusi.pi16
 			= p + i;
 
 			//“d‹CŽº

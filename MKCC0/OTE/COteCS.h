@@ -27,7 +27,7 @@
 #define OTE_CS_ID_MON2_TIMER         61591
 
 #define OTE_CS_PRM_MON1_TIMER_MS     150
-#define OTE_CS_PRM_MON2_TIMER_MS     40
+#define OTE_CS_PRM_MON2_TIMER_MS     20
 
 typedef struct _ST_OTE_CS_MON1 {
     int timer_ms = OTE_CS_PRM_MON1_TIMER_MS;
