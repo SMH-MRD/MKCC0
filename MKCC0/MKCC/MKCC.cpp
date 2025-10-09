@@ -181,14 +181,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    pszInifile = dstpath;
 
    ///-共有メモリ割付&設定##################
-   if (OK_SHMEM != pEnvInfObj->create_smem(  SMEM_CRANE_STAT_CC_NAME,sizeof(ST_CC_ENV_INF),  MUTEX_CRANE_STAT_CC_NAME)) return(FALSE);
-   if (OK_SHMEM != pPlcIoObj->create_smem(      SMEM_PLC_IO_NAME,       sizeof(ST_CC_PLC_IO),  MUTEX_PLC_IO_NAME)) return(FALSE);
-   if (OK_SHMEM != pJobIoObj->create_smem(      SMEM_JOB_IO_NAME,       sizeof(ST_JOB_IO),  MUTEX_JOB_IO_NAME)) return(FALSE);
-   if (OK_SHMEM != pPolInfObj->create_smem(     SMEM_POL_INF_CC_NAME,   sizeof(ST_CC_POL_INF),  MUTEX_POL_INF_CC_NAME)) return(FALSE);
-   if (OK_SHMEM != pAgInfObj->create_smem(      SMEM_AGENT_INF_CC_NAME, sizeof(ST_CC_AGENT_INF),  MUTEX_AGENT_INF_CC_NAME)) return(FALSE);
-   if (OK_SHMEM != pCsInfObj->create_smem(      SMEM_CS_INF_CC_NAME,    sizeof(ST_CC_CS_INF),  MUTEX_CS_INF_CC_NAME)) return(FALSE);
-   if (OK_SHMEM != pSimuStatObj->create_smem(   SMEM_SIM_INF_CC_NAME,   sizeof(ST_CC_SIM_INF),  MUTEX_SIM_INF_CC_NAME)) return(FALSE);
-   if (OK_SHMEM != pOteInfObj->create_smem(      SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),  MUTEX_OTE_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pEnvInfObj->create_smem(  SMEM_CRANE_STAT_CC_NAME,sizeof(ST_CC_ENV_INF),     MUTEX_CRANE_STAT_CC_NAME)) return(FALSE);
+   if (OK_SHMEM != pPlcIoObj->create_smem(   SMEM_PLC_IO_NAME,       sizeof(ST_CC_PLC_IO),      MUTEX_PLC_IO_NAME       )) return(FALSE);
+   if (OK_SHMEM != pJobIoObj->create_smem(   SMEM_JOB_IO_NAME,       sizeof(ST_JOB_IO),         MUTEX_JOB_IO_NAME       )) return(FALSE);
+   if (OK_SHMEM != pPolInfObj->create_smem(  SMEM_POL_INF_CC_NAME,   sizeof(ST_CC_POL_INF),     MUTEX_POL_INF_CC_NAME   )) return(FALSE);
+   if (OK_SHMEM != pAgInfObj->create_smem(   SMEM_AGENT_INF_CC_NAME, sizeof(ST_CC_AGENT_INF),   MUTEX_AGENT_INF_CC_NAME )) return(FALSE);
+   if (OK_SHMEM != pCsInfObj->create_smem(   SMEM_CS_INF_CC_NAME,    sizeof(ST_CC_CS_INF),      MUTEX_CS_INF_CC_NAME    )) return(FALSE);
+   if (OK_SHMEM != pSimuStatObj->create_smem(SMEM_SIM_INF_CC_NAME,   sizeof(ST_CC_SIM_INF),     MUTEX_SIM_INF_CC_NAME   )) return(FALSE);
+   if (OK_SHMEM != pOteInfObj->create_smem(  SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),     MUTEX_OTE_INF_NAME      )) return(FALSE);
   
    if (OK_SHMEM != pAuxInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 

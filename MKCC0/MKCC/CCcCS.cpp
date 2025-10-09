@@ -36,11 +36,12 @@ ST_CC_CS_INF CCcCS::st_cs_work;
 ST_CC_OTE_INF CCcCS::st_ote_work;
 
 //共有メモリ
-static LPST_CC_ENV_INF		pEnv_Inf;
-static LPST_CC_CS_INF		pCS_Inf;
-static LPST_CC_PLC_IO		pPLC_IO;
-static LPST_CC_AGENT_INF	pAgent_Inf;
-static LPST_CC_OTE_INF		pOTE_Inf;
+static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
+static LPST_CC_CS_INF		pCS_Inf		= NULL;
+static LPST_CC_PLC_IO		pPLC_IO		= NULL;
+static LPST_CC_AGENT_INF	pAgent_Inf	= NULL;
+static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
+static LPST_CC_POL_INF		pPolInf		= NULL;
 
 static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;	
 
@@ -74,6 +75,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
+	pPolInf		= (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
 
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
 
@@ -134,6 +136,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	//##ユニキャスト
 	if (pUSockOte->init_sock(st_mon2.hwnd_mon, pUSockOte->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
 		wos << L"OTE U SockErr:" << pUSockOte->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
+		pUSockOte = NULL;
 	}
 	else wos << L"OTE U Socket init OK";msg2listview(wos.str()); wos.str(L"");
 	
@@ -142,12 +145,14 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pMSockPC->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_PC, NULL);//PCマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
 	if (pMSockPC->init_sock(st_mon2.hwnd_mon, pMSockPC->addr_in_rcv, addr_buf) != S_OK) {//init_sock_m():bind()まで実施 + マルチキャストグループへ登録
 		wos << L"PC M SockErr:"<< pMSockPC->err_msg.str(); hr = S_FALSE;
+		pMSockPC = NULL;
 	}
 	else wos << L"PC M Socket init OK";	msg2listview(wos.str()); wos.str(L"");
 
 	pMSockOte->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_OTE, NULL);//OTEマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
 	if (pMSockOte->init_sock(st_mon2.hwnd_mon, pMSockOte->addr_in_rcv, addr_buf) != S_OK) {
 		wos << L"OTE M SockErr:" << pMSockOte->err_msg.str(); hr = S_FALSE;
+		pMSockOte = NULL;
 	}	
 	else  wos << L"OTE M Socket init OK"; msg2listview(wos.str()); wos.str(L"");
 
@@ -208,16 +213,24 @@ int CCcCS::parse() {
 		//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
 	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
 
-
+	//### 操作有効端末有無判定　異常,警報フラグ設定
 	if (st_ote_work.st_ote_ctrl.id_ope_active) {
 		st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_ACTIVE;
+		pPolInf->pc_fault_map[FLTS_ID_RMT_OPE_DEACTIVE] &= ~FLTS_MASK_RMT_OPE_DEACTIVE;
 	}
 	else {
 		st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;
+		pPolInf->pc_fault_map[FLTS_ID_RMT_OPE_DEACTIVE] |= FLTS_MASK_RMT_OPE_DEACTIVE;
 	}
 
-
-
+	//### OTE通信異常フラグ設定
+	if (pUSockOte == NULL)	st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SOCK;	//ソケット生成失敗
+	else					st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SOCK;
+	//受信、送信エラーは通信ウィンドウ処理部でフラグセット,リセット
+	//CC_POL管理共有メモリにセット
+	if(st_ote_work.err_ote_comm) pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] |= FLTS_ID_ERR_CPC_RPC_COMM;
+	else                         pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] &= ~FLTS_ID_ERR_CPC_RPC_COMM;
+	
 	//### OTE送信データ設定
 		//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
 		//## ランプ表示指令
@@ -383,7 +396,26 @@ void CCcCS::set_ote_flt_info() {
 			}
 		}
 
+		if (com_ote & FAULT_PC_CTRL) {//PC制御系故障表示要求時
+			for (int i = 0; i < N_PC_FAULT_BUF; i++) {//PCの故障バッファ数ループ
 
+				i16work = pPolInf->pc_fault_map[i];
+				//表示カウント数オーバーまたは故障無しでスキップ
+				if ((flt_count >= N_OTE_PC_SET_PLC_FLT) || (i16work == 0)) continue;
+
+
+				for (int j = 0; j < 16; j++) {
+					if (flt_count >= N_OTE_PC_SET_PLC_FLT) break;	//表示故障数上限
+
+					if (i16work & (1 << j)) {	//検出ありの時
+						st_ote_work.st_body.faults_set.codes[flt_count] = 16 * i + j;
+						//最初の故障0bit目の故障コードが550なのでリスト参照用に+550を入れる
+						st_ote_work.st_body.faults_set.codes[flt_count]+= N_PC_FLT_CODE_OFFSET;
+						flt_count++;
+					}
+				}
+			}
+		}
 
 	}
 	st_ote_work.st_body.faults_set.set_plc_count = flt_count;	//表示故障数セット
@@ -878,10 +910,20 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				pUSockOte->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
 				pUSockOte->addr_in_dst.sin_addr = pUSockOte->addr_in_from.sin_addr;
 
+				HRESULT hr;
 				if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
-					snd_uni2ote(set_msg_u(true, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
+					hr = snd_uni2ote(set_msg_u(true, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
 				else 
-					snd_uni2ote(set_msg_u(false, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
+					hr = snd_uni2ote(set_msg_u(false, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
+				
+				if (hr == S_OK) st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SND;//送信エラークリア
+				else            st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SND;//送信エラー
+
+				st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラークリア
+
+			}
+			else {
+				st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラー
 			}
 
 		}break;

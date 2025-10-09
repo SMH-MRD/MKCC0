@@ -102,6 +102,9 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_OPE_GOT_COM_CONNECT_CRANE	0x00000001	//GOTクレーン接続コマンド
 #define OTE_OPE_GOT_COM_RELEASE_CRANE	0x00000002	//GOTクレーン解放コマンド
 
+#define OTE_ERR_CODE_CPC_COMM			0x0001		//制御PC通信異常
+#define OTE_ERR_CODE_PLC_COMM			0x0002		//操作卓PLC通信異常
+
 typedef struct _ST_OTE_CS_INF {
 	INT32 ope_plc_stat = L_OFF;						//PLCとの通信状態
 	INT32 cc_ope_active = L_OFF;
@@ -110,6 +113,7 @@ typedef struct _ST_OTE_CS_INF {
 	ST_OTE_U_BODY st_body;							//OTE⇒PC送信メッセージボディ部
 	ST_GPAD_IN gpad_in;	
 	INT16 GOT_command;								//GOTのコマンド
+	INT16 ote_error;								//OTEのエラーコード
 	INT32 GOT_crane_select;							//GOTのクレーン選択状態
 	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ];		//PLCからの読み取り信号生値
 	INT16 buf_opepnl_write[OTE_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値

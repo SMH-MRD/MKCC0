@@ -832,6 +832,12 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				res_delay_max = 0;
 				res_delay_min = 10000000;
 			}
+
+
+			//###通信異常チェック
+			if (res_delay_max > 1000000) pOteCsInf->ote_error |= OTE_ERR_CODE_CPC_COMM;
+			else                         pOteCsInf->ote_error &= ~OTE_ERR_CODE_CPC_COMM;
+
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;

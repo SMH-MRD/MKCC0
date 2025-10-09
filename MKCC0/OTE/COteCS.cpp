@@ -391,12 +391,16 @@ int COteCS::parse()
 			
 			if (ope_plc_chk_cnt)		//PLC通信異常検出ディレイ	
 				ope_plc_chk_cnt--;
-			else 						//PLC通信異常
+			else { 						//PLC通信異常
 				pOteCsInf->ope_plc_stat = L_OFF;
+				pOteCsInf->ote_error |= OTE_ERR_CODE_PLC_COMM;
+			}
+
 		}
 		else {//PLC通信正常
 			pOteCsInf->ope_plc_stat		= L_ON;
 			ope_plc_chk_cnt=10;
+			pOteCsInf->ote_error &= ~OTE_ERR_CODE_PLC_COMM;
 		}
 		ope_plc_cnt = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy;
 	

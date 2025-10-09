@@ -106,22 +106,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
 
 	//##ソケットソケット生成・設定
-#if 0
-	//##ユニキャスト
-	if (pUSockCcEnv->init_sock(st_mon2.hwnd_mon, pUSockCcEnv->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
-		wos << L"CS U SockErr:" << pUSockCcEnv->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
-	}
-	else wos << L"CS U Socket init OK"; msg2listview(wos.str()); wos.str(L"");
 
-	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
-	pEnvInf->st_msg_u_snd.head.sockaddr = pUSockCcEnv->addr_in_rcv;
-	if (hr == S_FALSE) {
-		pUSockCcEnv->Close();				//ソケットクローズ
-		close_monitor_wnd(BC_ID_MON2);		//通信モニタクローズ
-		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
-		return hr;
-	};
-#endif
 
 	//###  オペレーションパネル設定
 	set_func_pb_txt();
@@ -134,10 +119,10 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 	//モニタウィンドウテキスト	
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"AUX IF");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Emulator");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Simulator");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2,	L"AUX IF");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0,	L"Product");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1,	L"Emulator");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2,	L"Simulator");
 
 	set_item_chk_txt();
 	set_panel_tip_txt();
@@ -303,25 +288,29 @@ int CCcEnv::close() {
 void CCcEnv::set_faults_info() {
 	PINT16 pflt_rbuf = pCrane->pFlt->prfltbuf;
 
-	//毎周期更新
+	//####	PLCフォルト
+	//###	毎周期更新
+	//##	PLC故障検出情報現在値を取り込み
 	for (int i = FAULT_TYPE::BASE; i <= FAULT_TYPE::IL; i++) {
 		for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
 			pEnvInf->crane_stat.fault_list.faults_detected_map[i][j] = pflt_rbuf[j]& pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::BASE][j];
 		}
 	}
 
-	if (inf.act_count % 50 == 0){//1秒に1回トリガ検出更新	
+	//### 1秒に1回トリガ検出更新
+	if (inf.act_count % 50 == 0){	
 		SYSTEMTIME systime; GetSystemTime(&systime);
-
+		//トリガ検出ロジック　	(前回値　XOR　現在値）AND　現在値でトリガON検出
+		//						(前回値　XOR　現在値）AND　前回値でトリガOFF検出
 		for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-			falt_detected_trig_on[j] = (falt_detected_hold[j]^ pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j])& pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
-			falt_detected_trig_off[j] = falt_detected_hold[j] ^ pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j]& falt_detected_hold[j];
+			plc_falt_detected_trig_on[j] = (plc_falt_detected_hold[j]^ pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j])& pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
+			plc_falt_detected_trig_off[j] = plc_falt_detected_hold[j] ^ pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j]& plc_falt_detected_hold[j];
 	
 			INT16 chk_bit;
-			if (falt_detected_trig_on[j]) {
+			if (plc_falt_detected_trig_on[j]) {
 				for (int k = 0; k < 16; k++) {
 					chk_bit = 1 << k;	//チェックビット
-					if (falt_detected_trig_on[j] & chk_bit) {
+					if (plc_falt_detected_trig_on[j] & chk_bit) {
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;	//時間
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j*16+k;		//故障コード
 						++pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code;				//++故障コードは１から開始
@@ -334,10 +323,10 @@ void CCcEnv::set_faults_info() {
 					}
 				}
 			}
-			if (falt_detected_trig_off[j]) {
+			if (plc_falt_detected_trig_off[j]) {
 				for (int k = 0; k < 16; k++) {
 					chk_bit = 1 << k;	//チェックビット
-					if (falt_detected_trig_off[j] & chk_bit) {
+					if (plc_falt_detected_trig_off[j] & chk_bit) {
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;	//時間
 						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;	//故障コード
 						++pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code;				//++故障コードは１から開始
@@ -353,8 +342,49 @@ void CCcEnv::set_faults_info() {
 			}
 		}
 
+		//####	PCフォルト
+		for (int j = 0; j < N_PC_FAULT_BUF; j++) {
+			pc_falt_detected_trig_on[j] = (pc_falt_detected_hold[j] ^ pPolInf->pc_fault_map[j]) & pPolInf->pc_fault_map[j];
+			pc_falt_detected_trig_off[j] = pc_falt_detected_hold[j] ^ pPolInf->pc_fault_map[j] & pc_falt_detected_hold[j];
+
+			INT16 chk_bit;
+			if (pc_falt_detected_trig_on[j]) {
+				for (int k = 0; k < 16; k++) {
+					chk_bit = 1 << k;	//チェックビット
+					if (pc_falt_detected_trig_on[j] & chk_bit) {
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;			//時間
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;			//故障コード
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code + N_PC_FLT_CODE_OFFSET;	//故障コードは550から開始
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_ON;//種別
+
+						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新
+						pEnvInf->crane_stat.fault_list.history_count++;	//レコード数更新
+						if (pEnvInf->crane_stat.fault_list.iw_history >= N_FAULTS_HISTORY_BUF)	pEnvInf->crane_stat.fault_list.iw_history = 0;
+						if (pEnvInf->crane_stat.fault_list.history_count > N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.history_count = N_FAULTS_HISTORY_BUF;
+					}
+				}
+			}
+			if (pc_falt_detected_trig_off[j]) {
+				for (int k = 0; k < 16; k++) {
+					chk_bit = 1 << k;	//チェックビット
+					if (pc_falt_detected_trig_off[j] & chk_bit) {
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;			//時間
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;			//故障コード
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code + N_PC_FLT_CODE_OFFSET;	//故障コードは550から開始
+						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_OFF;		//種別
+
+						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新
+						pEnvInf->crane_stat.fault_list.history_count++;	//レコード数更新
+						if (pEnvInf->crane_stat.fault_list.iw_history >= N_FAULTS_HISTORY_BUF)	pEnvInf->crane_stat.fault_list.iw_history = 0;
+						if (pEnvInf->crane_stat.fault_list.history_count > N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.history_count = N_FAULTS_HISTORY_BUF;
+					}
+				}
+			}
+		}
+
 		//トリガ検出前回値保持
-		for (int j = 0; j < N_PLC_FAULT_BUF; j++) falt_detected_hold[j] = pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
+		for (int j = 0; j < N_PLC_FAULT_BUF; j++) plc_falt_detected_hold[j] = pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
+		for (int j = 0; j < N_PC_FAULT_BUF; j++) pc_falt_detected_hold[j]	= pPolInf->pc_fault_map[j];
 	}
 
 	return;
@@ -370,12 +400,15 @@ void CCcEnv::refresh_faults_info() {
 	}
 	//前回値=今回値,トリガ検出無し
 	for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-		falt_detected_hold[j] = pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
-		falt_detected_trig_on[j] = 0;	//トリガON無し
-		falt_detected_trig_off[j] = 0;	//トリガOFF無し
+		plc_falt_detected_hold[j] = pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
+		plc_falt_detected_trig_on[j] = 0;	//トリガON無し
+		plc_falt_detected_trig_off[j] = 0;	//トリガOFF無し
 	}
 
-
+	for (int j = 0; j < N_PC_FAULT_BUF; j++) {
+		pc_falt_detected_trig_on[j] = 0;	//トリガON無し
+		pc_falt_detected_trig_off[j] = 0;	//トリガOFF無し
+	}
 	return;
 }
 

@@ -146,10 +146,16 @@ public:
 private:
     static CSpec* pspec;
 
-    INT16 falt_detected_hold[N_PLC_FAULT_BUF];
-    INT16 falt_detected_trig_on[N_PLC_FAULT_BUF];
-    INT16 falt_detected_trig_off[N_PLC_FAULT_BUF];
+    INT16 plc_falt_detected_hold[N_PLC_FAULT_BUF];
+    INT16 plc_falt_detected_trig_on[N_PLC_FAULT_BUF];
+    INT16 plc_falt_detected_trig_off[N_PLC_FAULT_BUF];
     INT16 plc_enable_hold = 0;
+
+    INT16 pc_falt_detected_hold[N_PC_FAULT_BUF];
+    INT16 pc_falt_detected_trig_on[N_PC_FAULT_BUF];
+    INT16 pc_falt_detected_trig_off[N_PC_FAULT_BUF];
+    INT16 pc_enable_hold = 0;
+
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
 

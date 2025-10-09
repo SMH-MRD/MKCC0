@@ -5,7 +5,11 @@
 #define N_PLC_FAULT_BUF				18
 #define N_PC_FAULT_BUF				4
 #define N_ALL_FAULTS				(N_PLC_FAULT_BUF + N_PC_FAULT_BUF)*16
+#define N_PLC_FAULT_ITEM			N_PLC_FAULT_BUF * 16
+#define N_PC_FAULT_ITEM				N_PC_FAULT_BUF * 16
 
+#define N_PC_FLT_CODE_OFFSET		550
+#define N_FLT_DISP_CODE_OFFSET		300
 
 //故障種別ビット
 #define FAULT_CLEAR					BIT0
@@ -59,9 +63,9 @@ typedef struct _ST_FAULT_ITEM {
 }ST_FAULT_ITEM, * LPST_FAULT_ITEM;
 
 typedef struct _ST_FAULT_LIST {
-	ST_FAULT_ITEM plc_faults[N_PLC_FAULT_BUF * 16];	//登録フォルト数
+	ST_FAULT_ITEM plc_faults[N_PLC_FAULT_ITEM];	//登録フォルト数
 	INT16 plc_fault_mask[FAULT_TYPE::ALL][N_PLC_FAULT_BUF];	//登録フォルト数
-	ST_FAULT_ITEM pc_faults[N_PC_FAULT_BUF * 16];	//登録フォルト数
+	ST_FAULT_ITEM pc_faults[N_PC_FAULT_ITEM];	//登録フォルト数
 }ST_FAULT_LIST, * LPST_FAULT_LIST;
 
 
@@ -105,6 +109,7 @@ public:
 
 };
 
+//## 制御PC検出フォルトマップ定義
 #define FLTS_ID_ERR_CPC_PLC_COMM		0
 #define FLTS_MASK_ERR_CPC_PLC_COMM		0x0001
 #define FLTS_ID_ERR_CPC_RPC_COMM		0
@@ -118,6 +123,15 @@ public:
 #define FLTS_ID_RMT_OPE_DEACTIVE		0
 #define FLTS_MASK_RMT_OPE_DEACTIVE		0x0040
 
-
-
-
+#define FLTS_ID_ERR_SLBRK_ESTOP			0
+#define FLTS_MASK_ERR_SLBRK_ESTOP		0x0400
+#define FLTS_ID_ERR_SLBRK_TIME_OV		0
+#define FLTS_MASK_ERR_SLBRK_TIME_OV		0x0800
+#define FLTS_ID_ERR_SLBRK_PLC_ERR		0
+#define FLTS_MASK_ERR_SLBRK_PLC_ERR		0x1000
+#define FLTS_ID_ERR_SLBRK_HW_ERR		0
+#define FLTS_MASK_ERR_SLBRK_HW_ERR		0x2000
+#define FLTS_ID_ERR_SLBRK_LOCAL_MODE	0
+#define FLTS_MASK_ERR_SLBRK_LOCAL_MODE	0x4000
+#define FLTS_ID_ERR_SLBRK_HEALTHY_ERR	0
+#define FLTS_MASK_ERR_SLBRK_HEALTHY_ERR	0x8000

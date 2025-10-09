@@ -9,7 +9,7 @@
 //操作端末のテキスト,ボタン、ランプ数
 #define N_OTE_PNL_CTRL				128
 #define N_OTE_PC_MSG_WCHAR			64
-#define N_OTE_PC_SET_PLC_FLT		48//最初の要素にはセットされているタイプのコードが入る
+#define N_OTE_PC_SET_PLC_FLT		63//最初の要素にはセットされているタイプのコードが入る
 #define N_OTE_PC_SET_PC_FLT			15//最初の要素にはセットされているタイプのコードが入る
 #define N_OTE_PNL_NOTCH_DEVICE		5
 #define N_OTE_PNL_NOTCH_PBL			N_NOTCH_TBL
@@ -200,6 +200,8 @@ typedef struct _ST_GPAD_IN {
 	INT16 pad_sl;
 	INT16 pad_gt;
 	INT16 pad_ah;
+	INT16 spare[3];
+
 }ST_GPAD_IN, * LPST_GPAD_IN;
 
 #define CODE_OTE_FLT_SEL_HEAVY1		BIT1	//重故障1	

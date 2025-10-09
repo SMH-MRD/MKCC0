@@ -41,10 +41,10 @@ typedef struct _ST_SLBRK_FB {
 	INT16 brk_fb_reset;
 	INT16 brk_fb_emg;
 	INT16 brk_fb_autosel;
-	INT16 brk_fb_healthy;
 	INT16 brk_fb_err_map;
 	INT16 brk_fb_err_code;
 	INT16 brk_fb_rbsl_pos;
+	INT16 healthy_err;
 	INT16 d16;
 	INT16 d17;
 	INT16 d18;

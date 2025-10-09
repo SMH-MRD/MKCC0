@@ -469,13 +469,14 @@ typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_mode;														//自動モード
 	INT32		antisway_mode;													//振れ止めモード
 	INT32		auto_status[MOTION_ID_MAX];
-	INT32		ote_remote_status;												//操作端末の状態　0bit：端末信号有効
-	INT32 ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;//ゲームパッド入力情報
+	INT32		ote_remote_status;												//
+	INT32		ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;					//操作端末の状態　0bit：端末信号有効
 	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
 	INT16		ote_mh_spd_mode;												//主巻速度モード
 	INT16		ote_bh_r_mode;													//引込モード
+	INT32		remote_estop;
 	ST_GPAD_IN gpad_in;	
-	INT32		remote_estop;													//操作端末停止信号
+
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
 
 
@@ -573,6 +574,11 @@ typedef struct _ST_CC_OTE_CTRL {
 }ST_CC_OTE_CTRL, * LPST_CC_OTE_CTRL;
 // OTEからの要求コード                              　         　	
 
+
+#define CODE_CC_CS_OTE_COM_ERR_SOCK  0x0001	//通信エラー
+#define CODE_CC_CS_OTE_COM_ERR_RCV   0x0002	//メッセージエラー
+#define CODE_CC_CS_OTE_COM_ERR_SND   0x0004	//シーケンスエラー
+
 typedef struct _ST_CC_OTE_INF {
 //CS作業バッファ
 	ST_OTE_U_MSG    st_msg_ote_u_rcv;
@@ -583,6 +589,9 @@ typedef struct _ST_CC_OTE_INF {
 	ST_PC_U_MSG     st_msg_pc_u_snd;
 	ST_PC_M_MSG     st_msg_pc_m_snd;
 
+	INT16		err_ote_comm;
+	INT16		err_stat1;
+	
 	SOCKADDR_IN		addr_in_to_oteu;
 	SOCKADDR_IN		addr_in_from_oteu;
 	SOCKADDR_IN		addr_in_from_pcm;	

@@ -151,7 +151,8 @@ int CAuxCS::parse() {
 }
 
 int CAuxCS::output() {          //o—Íˆ—
-	return STAT_NG;
+
+	return S_OK;
 }
 
 int CAuxCS::close() {

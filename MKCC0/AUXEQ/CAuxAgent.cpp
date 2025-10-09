@@ -203,21 +203,27 @@ int CAuxAgent::input() {
 	return S_OK;
 }
 
-static INT16 pc_healthy = 0;
+static INT16 slbrk_healthy_hold, slbrk_healthy_cnt;
 
 int CAuxAgent::parse() {           //メイン処理
 
-	pc_healthy++;//PCヘルシーカウンタ
-	//PCヘルシー信号
-	//if (pc_healthy & 0x0002)	pAgent_Inf->slbrk_wbuf[0] |= 0x8000;
-	//else						pAgent_Inf->slbrk_wbuf[0] &= 0x7FFF;
+	//旋回ブレーキヘルシーチェック
+	if (slbrk_healthy_hold == pAgent_Inf->slbrk_rbuf[0]) {
+		if(! (slbrk_healthy_cnt & 0xF000)) slbrk_healthy_cnt++;
+	}
+	else slbrk_healthy_cnt = 0;
+	slbrk_healthy_hold = pAgent_Inf->slbrk_rbuf[0];
 
-	//pAgent_Inf->slbrk_wbuf[0]++;
+	//ヘルシー異常検出
+	if (slbrk_healthy_cnt >= 50) pCS_Inf->fb_slbrk.healthy_err = L_ON;	
+	else                          pCS_Inf->fb_slbrk.healthy_err = L_OFF;
 
 	return STAT_OK;
 }
 int CAuxAgent::output() {          //出力処理
 	//### MAINプロセスへ出力
+	pCS_Inf->aux_helthy_cnt++;
+
 	pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
 	pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHW
 
@@ -234,9 +240,6 @@ int CAuxAgent::output() {          //出力処理
 		pCS_Inf->com_slbrk.pc_com_reset		| 
 		pCS_Inf->com_slbrk.pc_com_hw_brk ;
 	}
-
-	
-
 	return STAT_OK;
 }
 int CAuxAgent::close() {

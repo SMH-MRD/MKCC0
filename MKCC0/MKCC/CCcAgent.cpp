@@ -36,6 +36,7 @@ static LPST_CC_PLC_IO		pPLC_IO		= NULL;
 static LPST_CC_AGENT_INF	pAgent_Inf	= NULL;
 static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
 static LPST_CC_SIM_INF		pSim_Inf	= NULL;
+static LPST_CC_POL_INF		pPolInf		= NULL;
 
 static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 
@@ -78,7 +79,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pOTE_Inf	= (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
 	pSim_Inf	= (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
-		
+	pPolInf		= (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
 
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
 
@@ -297,7 +298,7 @@ static INT16 plc_healthy = 0;
 /// 
 int CAgent::parse() {
 	//### PLC受信信号処理
-	//### PLCヘルシーカウンタ読み出しチェック
+	//## PLCヘルシーカウンタ読み出しチェック
 	{
 		if (plc_healthy == pPLC_IO->buf_io_read[0]) {				//PLCヘルシー状態が変化していない場合
 			plc_healthy_chk_count--;								//PLCヘルシー状態が変化している⇒チェックカウントダウン
@@ -306,10 +307,18 @@ int CAgent::parse() {
 		}
 		else plc_healthy_chk_count = PRM_CC_PLC_CHK_COUNT;			//PLCヘルシー状態が変化している⇒チェックカウントリミットセット
 		plc_healthy = pPLC_IO->buf_io_read[0];						//PLCヘルシー前回値保持
+	
+		//#異常判定/報告
+		if (plc_healthy_chk_count == 0) {
+			pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_PLC_COMM] |= FLTS_MASK_ERR_CPC_PLC_COMM;
+		}
+		else {
+			pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_PLC_COMM] &= ~FLTS_MASK_ERR_CPC_PLC_COMM;
+		}
 	}
 
 	//### PLC書き込み信号処理
-	//## PCヘルシーカウン
+	//## PCヘルシーカウント
 	{
 		pc_healthy++;
 		pCrane->pPlc->wval(pPlcWIf->pc_healthy, pc_healthy);
@@ -414,9 +423,25 @@ int CAgent::close() {
 	return 0;
 }
 
+static DWORD slbrk_healthy_last = 0, slbrk_healthy_cnt;
 int CAgent::manage_slbrk() {
 
-	//旋回ブレーキAUTO MODE
+	//### ヘルシーチェック
+	if (slbrk_healthy_last == pAUX_CS_Inf->aux_helthy_cnt) {
+		slbrk_healthy_cnt++;
+	}
+	else {
+		slbrk_healthy_cnt=0;
+	}
+
+	if (slbrk_healthy_cnt >10)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_SLBRK_COMM] |= FLTS_MASK_ERR_CPC_SLBRK_COMM;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_SLBRK_COMM] &= ~FLTS_MASK_ERR_CPC_SLBRK_COMM;
+
+	slbrk_healthy_last = pAUX_CS_Inf->aux_helthy_cnt;
+
+	//### 旋回ブレーキ制御
 	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //pOteCtrl[OTE_PNL_CTRLS::sl_brk_com] & 0x0000;
 	//if(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT7)	pAUX_CS_Inf->com_slbrk.pc_com_autosel = L_OFF;
 
@@ -428,6 +453,41 @@ int CAgent::manage_slbrk() {
 	else {
 		pAUX_CS_Inf->com_slbrk.pc_com_brk_level =0;
 	}
+	pAUX_CS_Inf->main_helthy_cnt++;
+
+	//### 旋回ブレーキ異常信号処理
+		//#異常判定/報告
+
+	if (pAUX_CS_Inf->fb_slbrk.brk_fb_emg)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_ESTOP]		|= FLTS_MASK_ERR_SLBRK_ESTOP;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_ESTOP]		&= ~FLTS_MASK_ERR_SLBRK_ESTOP;
+
+	if (pAUX_CS_Inf->fb_slbrk.d17 & 0x0010)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TIME_OV]	|= FLTS_MASK_ERR_SLBRK_TIME_OV;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TIME_OV]	&= ~FLTS_MASK_ERR_SLBRK_TIME_OV;
+
+	if (pAUX_CS_Inf->fb_slbrk.d17 & 0x0003)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_PLC_ERR]	|= FLTS_MASK_ERR_SLBRK_PLC_ERR;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_PLC_ERR]	&= ~FLTS_MASK_ERR_SLBRK_PLC_ERR;
+
+	if (pAUX_CS_Inf->fb_slbrk.d17 & 0x000C)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HW_ERR]		|= FLTS_MASK_ERR_SLBRK_HW_ERR;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HW_ERR]		&= ~FLTS_MASK_ERR_SLBRK_HW_ERR;
+
+	if ((pAUX_CS_Inf->fb_slbrk.d16 & 0x8000) || !(pAUX_CS_Inf->fb_slbrk.d16 & 0x4000))
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] |= FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] &= ~FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
+
+	if (pAUX_CS_Inf->fb_slbrk.healthy_err) 
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HEALTHY_ERR] |= FLTS_MASK_ERR_SLBRK_HEALTHY_ERR;
+	else 
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HEALTHY_ERR] &= ~FLTS_MASK_ERR_SLBRK_HEALTHY_ERR;
+
 	return 0;
 }
 

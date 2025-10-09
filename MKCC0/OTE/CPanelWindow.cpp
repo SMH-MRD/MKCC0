@@ -1010,8 +1010,11 @@ static HIMAGELIST hImageList;
 
 void CSubPanelWindow::SetFltToListView(HWND hlv, int code, int i) {
 	int icon = 0;
-	if (code < 0) {
-		code *= -1;
+	int i_flist=0;
+
+	i_flist = code;
+	if (i_flist < 0) {
+		i_flist *= -1;
 		icon = 1;
 	}
 
@@ -1020,10 +1023,25 @@ void CSubPanelWindow::SetFltToListView(HWND hlv, int code, int i) {
 
 	// 故障コード
 	TCHAR numStr[16];
-	_stprintf_s(numStr, _T("%d"), code + 300);
-	ListView_SetItemText(hlv, i, 1, numStr);
-	// 故障項目
-	ListView_SetItemText(hlv, i, 2, pCrane->pFlt->flt_list.plc_faults[code].item);
+
+	if (i_flist >= N_PC_FLT_CODE_OFFSET) {		//PC故障 codeは配列インデックス+550でCC_ENVが格納している
+		int index = i_flist - N_PC_FLT_CODE_OFFSET;
+		if (index >= N_PC_FAULT_ITEM) return; //範囲外
+
+		_stprintf_s(numStr, _T("%d"), i_flist + N_FLT_DISP_CODE_OFFSET);
+		ListView_SetItemText(hlv, i, 1, numStr);
+		// 故障項目
+		ListView_SetItemText(hlv, i, 2, pCrane->pFlt->flt_list.pc_faults[index].item);
+	}
+	else {										//PLC故障
+
+		if (i_flist >= N_PLC_FAULT_ITEM) return; //範囲外
+
+		_stprintf_s(numStr, _T("%d"), i_flist + N_FLT_DISP_CODE_OFFSET);
+		ListView_SetItemText(hlv, i, 1, numStr);
+		// 故障項目
+		ListView_SetItemText(hlv, i, 2, pCrane->pFlt->flt_list.plc_faults[i_flist].item);
+	}
 	return;
 }
 void CSubPanelWindow::ClearFltListView(HWND hlv, bool is_init, int i) {

@@ -11,17 +11,19 @@ extern CSharedMem* pAgInfObj;
 extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
+extern CSharedMem* pAuxInfObj;
 
 //共有メモリ
-static LPST_CC_ENV_INF		pEnvInf;
-static LPST_CC_PLC_IO		pPlcIo;
-static LPST_JOB_IO			pJobIo;
-static LPST_CC_POL_INF		pPolInf;
-static LPST_CC_AGENT_INF	pAgentInf;
-static LPST_CC_CS_INF		pCsInf;
-static LPST_CC_SIM_INF		pSimInf;
-static LPST_CC_OTE_INF		pOteInf;
+static LPST_CC_ENV_INF		pEnvInf		= NULL;
+static LPST_CC_PLC_IO		pPlcIo		= NULL;
+static LPST_JOB_IO			pJobIo		= NULL;
+static LPST_CC_POL_INF		pPolInf		= NULL;
+static LPST_CC_AGENT_INF	pAgentInf	= NULL;
+static LPST_CC_CS_INF		pCsInf		= NULL;
+static LPST_CC_SIM_INF		pSimInf		= NULL;
+static LPST_CC_OTE_INF		pOteInf		= NULL;
 
+static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 
 ST_POL_MON1 CPolicy::st_mon1;
 ST_POL_MON2 CPolicy::st_mon2;
@@ -86,14 +88,32 @@ int CPolicy::input() {
 }
 
 int CPolicy::parse() {           //メイン処理
-
+//### 制御PC検出異常、警報状態設定処理
+ 
+	//## 機上PLC通信異常
+	//CC_AGENTでセットされる　PLCヘルシーチェック
+	 
+	//## 操作端末通信異常
+	//CC_CSでセットされる　	ソケット未生成,送受信時のエラー
+	 
+	//## 旋回ブレーキ通信異常
+	//CC_AGENTでセットされる　	AUX_CSとのヘルシーチェック
+	 
+	//## 遠隔モードスイッチ警報
 	INT16 XB0 = pPlcIo->buf_io_read[PLC_IF_RINDEX_RMTSW_HHGH29];
 	if (XB0 & PLC_IF_RMASK_RMTSW_HHGH29) {
-		pPolInf->pc_fault_map[FLTS_ID_RMTSW_OFF] |= FLTS_MASK_RMTSW_OFF;
-	}
-	else {
 		pPolInf->pc_fault_map[FLTS_ID_RMTSW_OFF] &= ~FLTS_MASK_RMTSW_OFF;
 	}
+	else {
+		pPolInf->pc_fault_map[FLTS_ID_RMTSW_OFF] |= FLTS_MASK_RMTSW_OFF;
+	}
+
+	//## 有効操作端末無し警報
+	//CC_CSでセットされる　有効操作端末無し
+	// 
+	//## 旋回ブレーキ関連
+	//CC_AGENTでセットされる
+
 	return STAT_OK;
 }
 int CPolicy::output() {          //出力処理
