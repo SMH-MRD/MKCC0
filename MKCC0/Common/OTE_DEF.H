@@ -14,6 +14,62 @@
 #define N_OTE_PNL_NOTCH_DEVICE		5
 #define N_OTE_PNL_NOTCH_PBL			N_NOTCH_TBL
 
+enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
+	estop = 0,
+	syukan_on,
+	syukan_off,
+	remote,
+	auto_mode,
+	fault_reset,
+	bypass,
+	game_pad,
+	asel_mh,		//自動選択主巻
+	asel_bh,		//自動選択引込
+	asel_sl,		//自動選択旋回
+	asel_gt,		//自動選択走行
+	asel_ah,		//自動選択補巻
+	ote_type,
+	notch_mh,
+	notch_bh,
+	notch_sl,
+	notch_gt,
+	notch_ah,
+	notch_aux,
+	mh_spd_mode,	//主巻モード
+	bh_r_mode,		//引込モード
+	alm_stop,
+	motor_siren,
+	hd_lamp1,
+	hd_lamp2,
+	hd_lamp3,
+	hv_trolley,
+	hv_gantry,
+	hv_aux,
+	irisA,
+	irisB,
+	camA_adjust,
+	camB_adjust,
+	camAselect,
+	camBselect,
+	buzzer,			//ブザー
+	main_power,		//動力確率ランプ
+	sl_auto_gr,		//自動休止ランプ
+	ope_ready,		//運転準備完了ランプ
+	alm_lamp,		//警報ランプ
+	fault_lamp,		//故障ランプ
+	sl_brk,			//旋回ブレーキペダル
+	pcpnl_active,	//PCパネル有効
+
+	MAX
+};
+
+enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
+	R5 = 0,
+	R4, R3, R2, R1, N0, F1, F2, F3, F4, F5,
+	NOTCH_MAX
+};
+
+
 //**************************************************************************************
 //通信電文フォーマット
 //**************************************************************************************
@@ -92,67 +148,13 @@ typedef struct _ST_OTE_PC_MSG {
 	INT16 id;							//固定メッセージのID
 }ST_OTE_PC_MSG, * LPST_OTE_PC_MSG;
 typedef struct _ST_OTE_PC_FLTS_SET {
-	INT16 set_type;						//セットされている故障の内容
+	INT16 set_type;							//セットされている故障の内容
 	INT16 set_plc_count;					//セットされている故障コード数
-	INT16 codes[N_OTE_PC_SET_PLC_FLT];		//発生中故障コード
-	INT16 set_pc_count;					//セットされている故障コード数
-	INT16 codes_pc[N_OTE_PC_SET_PC_FLT];		//発生中故障コード
+	INT16 codes_plc[N_OTE_PC_SET_PLC_FLT];		//発生中故障コード
+	INT16 set_pc_count;						//セットされている故障コード数
+	INT16 codes_pc[N_OTE_PC_SET_PC_FLT];	//発生中故障コード
 }ST_OTE_PC_FLTS_SET, * LPST_OTE_PC_FLTS_SET;
 
-enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
-	estop=0,
-	syukan_on,
-	syukan_off,
-	remote,
-	auto_mode,
-	fault_reset,
-	bypass,
-	game_pad,
-	asel_mh,		//自動選択主巻
-	asel_bh,		//自動選択引込
-	asel_sl,		//自動選択旋回
-	asel_gt,		//自動選択走行
-	asel_ah,		//自動選択補巻
-	ote_type,
-	notch_mh,
-	notch_bh,
-	notch_sl,
-	notch_gt,
-	notch_ah,
-	notch_aux,
-	mh_spd_mode,	//主巻モード
-	bh_r_mode,		//引込モード
-	alm_stop,
-	motor_siren,
-	hd_lamp1,
-	hd_lamp2,
-	hd_lamp3,
-	hv_trolley,
-	hv_gantry,
-	hv_aux,
-	irisA,
-	irisB,
-	camA_adjust,
-	camB_adjust,	
-	camAselect,
-	camBselect,
-	buzzer,			//ブザー
-	main_power,		//動力確率ランプ
-	sl_auto_gr,		//自動休止ランプ
-	ope_ready,		//運転準備完了ランプ
-	alm_lamp,		//警報ランプ
-	fault_lamp,		//故障ランプ
-	sl_brk,			//旋回ブレーキペダル
-	pcpnl_active,	//PCパネル有効
-
-	MAX
-};
-
-enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
-	R5 = 0,
-	R4, R3, R2, R1, N0, F1, F2, F3, F4, F5,
-	NOTCH_MAX
-};
 
 //デフォルト
 /******* PCユニキャスト通信BODY構造体 ***********/
@@ -227,6 +229,7 @@ typedef struct OteUBody {
 	INT16		ote_type;						//操作卓タイプ
 	INT16       spar;							//バウンダリ合わせスペア
 	UINT32		target_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
+	INT16		ote_err[4];						//OTE検出異常
 	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
 

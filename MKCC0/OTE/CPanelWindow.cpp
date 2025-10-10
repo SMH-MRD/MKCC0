@@ -1165,6 +1165,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		pcb = pPanelBase->psubobjs->cb_disp_flt_heavy3;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_disp_flt_pc;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		
 		//ListView
 		CListViewCtrl * plv = pPanelBase->psubobjs->lv_flt_list;
@@ -1218,6 +1221,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy3->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 		SendMessage(pPanelBase->psubobjs->cb_disp_flt_light->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 		SendMessage(pPanelBase->psubobjs->cb_disp_interlock->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessage(pPanelBase->psubobjs->cb_disp_flt_pc->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 
 		pPanelBase->psubobjs->flt_req_code |= FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3 | FAULT_LIGHT | FAULT_INTERLOCK | FAULT_PC_CTRL;
 
@@ -1266,36 +1270,41 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			(is_flt_bk_update_required == false)	//背景更新必要な時はすぐに実行できるように
 			)break; 
 
-		int fltcode = 0, n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count;
+		int fltcode = 0, n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count + pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count;
 		
 		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
-		else if ((n < 0) || (n > N_OTE_PC_SET_PLC_FLT)) {	//項目数異常時はクリア
+		else if ((n < 0) || (n > (N_OTE_PC_SET_PLC_FLT+ N_OTE_PC_SET_PC_FLT))) {	//項目数異常時はクリア
 			for (int i = 0; i < flt_cnt_hold; i++) ClearFltListView(hFltListView, false, i);
 		}
-		else if (n >= flt_cnt_hold) {					//項目数が増えた時は今回値書き込みのみ
-			for (int i = 0; i < n; i++) {
-				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes[i];
-				SetFltToListView(hFltListView, fltcode, i);
+		else{
+			int index = 0;
+			for (int i = 0; i < pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count; i++,index++) {
+				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_plc[i];
+				SetFltToListView(hFltListView, fltcode, index);
+			}
+			for (int i = 0; i < pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count; i++, index++) {
+				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_pc[i];
+				SetFltToListView(hFltListView, fltcode, index);
+			}
+
+			if (n < flt_cnt_hold) {
+				for (int i = n; i < flt_cnt_hold; i++) {
+					ClearFltListView(hFltListView, false, i);
+				}
 			}
 		}
-		else {											//項目数が減った今回値書き込み＋減った分クリア
-			for (int i = 0; i < n; i++) {
-				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes[i];
-				SetFltToListView(hFltListView, fltcode, i);
-			}
-			for (int i = n; i < flt_cnt_hold; i++) {
-				ClearFltListView(hFltListView, false, i);
-			}
-		}
+	
 		flt_cnt_hold = n;
 
+
+		//### 背景色更新チェック
 		int flttype = 0,bk_checked=0;
 		if (pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_type & FAULT_HISTORY) {
 			bk_checked = 0;
 		}
 		else{
 			for (int i = 0; i < n; i++) {
-				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes[i];
+				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_plc[i];
 				flttype = pCrane->pFlt->flt_list.plc_faults[fltcode].type;
 				if (flttype & 3) {//重故障 =1 or 2 or 3
 					bk_checked = 3; //重故障
@@ -1341,6 +1350,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))wos_flt << L"|重故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) wos_flt << L"|軽故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) wos_flt << L"|PC";
 				wos_flt << L"|";
 				pPanelBase->psubobjs->str_flt_message->update(wos_flt.str().c_str());
 			}
@@ -1353,12 +1363,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			}
 			wos_flt.str(L"");
 			if (!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY) ){
-				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))
-					wos_flt << L"|重故障";
-				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) 
-					wos_flt << L"|軽故障";
-				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) 
-					wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))	wos_flt << L"|重故障";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) 		wos_flt << L"|軽故障";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK)	wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL)		wos_flt << L"|PC";
 				wos_flt << L"|";
 				pPanelBase->psubobjs->str_flt_message->update(wos_flt.str().c_str());
 			}
@@ -1371,12 +1379,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			}
 			wos_flt.str(L"");
 			if (!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY)) {
-				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))
-					wos_flt << L"|重故障";
-				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) 
-					wos_flt << L"|軽故障";
-				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) 
-					wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))wos_flt << L"|重故障";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) wos_flt << L"|軽故障";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) wos_flt << L"|PC";
 				wos_flt << L"|";
 				pPanelBase->psubobjs->str_flt_message->update(wos_flt.str().c_str());
 			}
@@ -1392,6 +1398,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))wos_flt << L"|重故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) wos_flt << L"|軽故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) wos_flt << L"|PC";
 				wos_flt << L"|";
 				pPanelBase->psubobjs->str_flt_message->update(wos_flt.str().c_str());
 			}
@@ -1407,6 +1414,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))wos_flt << L"|重故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) wos_flt << L"|軽故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) wos_flt << L"|PC";
 				wos_flt << L"|";
 				pPanelBase->psubobjs->str_flt_message->update(wos_flt.str().c_str());
 			}
@@ -1422,6 +1430,23 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))wos_flt << L"|重故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) wos_flt << L"|軽故障";
 				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) wos_flt << L"|PC";
+				wos_flt << L"|";
+				pPanelBase->psubobjs->str_flt_message->update(wos_flt.str().c_str());
+			}
+			InvalidateRect(hwnd, NULL, FALSE); // ウィンドウ全体を再描画
+		}break;
+		case ID_SUB_PNL_FLT_OBJ_CB_PCFLT: {
+			pPanelBase->psubobjs->flt_req_code &= ~FAULT_PC_CTRL;
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_disp_flt_pc->hWnd, BM_GETCHECK, 0, 0)) {
+				pPanelBase->psubobjs->flt_req_code |= FAULT_PC_CTRL;
+			}
+			wos_flt.str(L"");
+			if (!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY)) {
+				if (pPanelBase->psubobjs->flt_req_code & (FAULT_HEAVY1 | FAULT_HEAVY2 | FAULT_HEAVY3))wos_flt << L"|重故障";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_LIGHT) wos_flt << L"|軽故障";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_INTERLOCK) wos_flt << L"|渋滞";
+				if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) wos_flt << L"|PC";
 				wos_flt << L"|";
 				pPanelBase->psubobjs->str_flt_message->update(wos_flt.str().c_str());
 			}
@@ -1447,20 +1472,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		HDC hdc = BeginPaint(hwnd, &ps);
 		
 		OnPaintFlt(hdc,hwnd);
-
-		//Gdiplus::Bitmap* pbmp_bk = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_bk, NULL);
-		//Gdiplus::Bitmap* pbmp_inf = Gdiplus::Bitmap::FromHBITMAP(pPanelBase->psubobjs->hBmp_inf, NULL);
-		//Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
-
-		//pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_bk, destRect, 0,0,SUB_PNL_WND_W, SUB_PNL_WND_H,UnitPixel);
-
-		//PatBlt(pPanelBase->psubobjs->hdc_inf, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
-		//pPanelBase->psubobjs->str_flt_message->update(); //故障表示内容表示更新
-
-		//Status drawStatus = pPanelBase->psubobjs->pgraphic->DrawImage(pbmp_inf, destRect, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, UnitPixel, &pPanelBase->psubobjs->attr);
-		//if (drawStatus != Ok){
-		//	drawStatus = drawStatus;
-		//}
 		EndPaint(hwnd, &ps);
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し

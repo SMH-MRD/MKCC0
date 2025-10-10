@@ -371,11 +371,11 @@ void CCcCS::set_ote_flt_info() {
 		for (int i = 0; i < N_OTE_PC_SET_PLC_FLT;i++) {
 			i16work--;
 			if (i16work < 0) i16work= N_FAULTS_HISTORY_BUF-1;
-			st_ote_work.st_body.faults_set.codes[i] = pEnv_Inf->crane_stat.fault_list.history[i16work].code;	//履歴コードセット
-			st_ote_work.st_body.faults_set.codes[i] *= pEnv_Inf->crane_stat.fault_list.history[i16work].status;	//クリアは-コード
+			st_ote_work.st_body.faults_set.codes_plc[i] = pEnv_Inf->crane_stat.fault_list.history[i16work].code;	//履歴コードセット
+			st_ote_work.st_body.faults_set.codes_plc[i] *= pEnv_Inf->crane_stat.fault_list.history[i16work].status;	//クリアは-コード
 		
 		}
-		flt_count = N_OTE_PC_SET_PLC_FLT;
+		flt_count = N_OTE_PC_SET_PLC_FLT + N_OTE_PC_SET_PC_FLT;
 	}
 	else {							//現在発生分要求時
 		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {//PLC IOの故障バッファ数ループ
@@ -388,37 +388,42 @@ void CCcCS::set_ote_flt_info() {
 				if (flt_count >= N_OTE_PC_SET_PLC_FLT) break;	//表示故障数上限
 
 				if (i16work & (1 << j)) {	//検出ありの時
-					st_ote_work.st_body.faults_set.codes[flt_count] = 16 * i + j;
+					st_ote_work.st_body.faults_set.codes_plc[flt_count] = 16 * i + j;
 					//最初の故障0bit目の故障コードが301なのでリスト参照用に+１を入れる
-					st_ote_work.st_body.faults_set.codes[flt_count]++;
+					st_ote_work.st_body.faults_set.codes_plc[flt_count]++;
 					flt_count++;
 				}
 			}
 		}
+		st_ote_work.st_body.faults_set.set_plc_count = flt_count;	//表示PLC故障数セット
+
+		st_ote_work.st_body.faults_set.set_pc_count = 0;
 
 		if (com_ote & FAULT_PC_CTRL) {//PC制御系故障表示要求時
+			flt_count = 0;	//PC故障数カウント用クリア
 			for (int i = 0; i < N_PC_FAULT_BUF; i++) {//PCの故障バッファ数ループ
 
 				i16work = pPolInf->pc_fault_map[i];
 				//表示カウント数オーバーまたは故障無しでスキップ
-				if ((flt_count >= N_OTE_PC_SET_PLC_FLT) || (i16work == 0)) continue;
+				if ((flt_count >= N_OTE_PC_SET_PC_FLT) || (i16work == 0)) continue;
 
 
 				for (int j = 0; j < 16; j++) {
-					if (flt_count >= N_OTE_PC_SET_PLC_FLT) break;	//表示故障数上限
+					if (flt_count >= N_OTE_PC_SET_PC_FLT) break;	//表示故障数上限
 
 					if (i16work & (1 << j)) {	//検出ありの時
-						st_ote_work.st_body.faults_set.codes[flt_count] = 16 * i + j;
+						st_ote_work.st_body.faults_set.codes_pc[flt_count] = 16 * i + j;
 						//最初の故障0bit目の故障コードが550なのでリスト参照用に+550を入れる
-						st_ote_work.st_body.faults_set.codes[flt_count]+= N_PC_FLT_CODE_OFFSET;
+						st_ote_work.st_body.faults_set.codes_pc[flt_count]+= N_PC_FLT_CODE_OFFSET;
 						flt_count++;
+						st_ote_work.st_body.faults_set.set_pc_count++;	//PC故障数カウントアップ
 					}
 				}
 			}
+			st_ote_work.st_body.faults_set.set_pc_count = flt_count;	//PC故障数セット
 		}
-
 	}
-	st_ote_work.st_body.faults_set.set_plc_count = flt_count;	//表示故障数セット
+	//st_ote_work.st_body.faults_set.set_plc_count = flt_count;	//表示故障数セット
 	ote_disp_com_hold = com_ote;						//表示内容要求前回値保持
 
 	return; 

@@ -110,8 +110,11 @@ int COteEnv::parse() {
 	if (pOteCsInf->GOT_command > got_command_last) {
 		int command = pOteCsInf->GOT_command ^ got_command_last;
 		if (command & OTE_OPE_GOT_COM_CONNECT_CRANE) {
-			if (pOteCCIf->id_conected_crane == CRANE_ID_NULL)//クレーン接続済でなければ
-				open_ope_window(pOteCsInf->GOT_crane_select);
+			if (pOteCCIf->id_conected_crane == CRANE_ID_NULL) {//クレーン接続済でなければ
+				HRESULT hr=open_ope_window(pOteCsInf->GOT_crane_select);
+				close_monitor_wnd(BC_ID_MON1);
+			}
+
 		}
 	}
 
@@ -129,6 +132,8 @@ int COteEnv::output() {
 }
 
 HRESULT COteEnv::open_opening_window() {
+	if (st_mon1.hwnd_mon != NULL) return S_FALSE;
+
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 	LPARAM lp = BC_ID_MON1;
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
@@ -235,7 +240,10 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}break;
 
 		case OTE_ENV_ID_MON1_PB_START: {
-			if (crane_id_selected != CRANE_ID_NULL) {
+			if (pOteUI->pc_pnl_active) {
+				MessageBox(hWnd, TEXT("既にクレーンが接続されています！"), TEXT("Error"), MB_OK | MB_ICONERROR);
+			}
+			else if (crane_id_selected != CRANE_ID_NULL) {
 				open_ope_window(crane_id_selected);
 			}
 			else {

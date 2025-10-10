@@ -234,6 +234,7 @@ public:
 #define ID_SUB_PNL_FLT_OBJ_CB_HEAVY3			60349
 #define ID_SUB_PNL_FLT_OBJ_PB_PLCMAP			60350
 #define ID_SUB_PNL_FLT_OBJ_LV_FAULTS			60351
+#define ID_SUB_PNL_FLT_OBJ_CB_PCFLT				60352
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -307,7 +308,8 @@ public:
 	CStringGdi* str_flt_message;	//故障表示メッセージラベル
 	CCbCtrl* cb_disp_flt_heavy2;	//重故障2表示チェックボタン
 	CCbCtrl* cb_disp_flt_heavy3;	//重故障3表示チェックボタン
-	CPbCtrl* pb_disp_flt_plcmap;	//PLC faulrmap表示チェックボタン
+	CCbCtrl* cb_disp_flt_pc;		//PC故障表示チェックボタン
+	CPbCtrl* pb_disp_flt_plcmap;	//PLC faulrmap表示ボタン
 	CListViewCtrl* lv_flt_list;		//故障リストビュー
 	INT16 flt_req_code =FAULT_HEAVY1|FAULT_HEAVY2|FAULT_HEAVY3|FAULT_LIGHT|FAULT_INTERLOCK;//故障リスト更新要求コード
 

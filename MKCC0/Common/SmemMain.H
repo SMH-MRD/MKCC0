@@ -91,7 +91,6 @@ typedef struct _ST_CC_ENV_INF {
 	DWORD env_act_count = 0;					//ヘルシー信号
 	WORD operation_mode;						//運転モード　機上,リモート
 
-
 	//Parameters
 	int debug_mode;
 	double Cdrm[MOTION_ID_MAX][N_DRUM_LAYER];	//ドラム1層円周　[0]はドラム1層目の円周

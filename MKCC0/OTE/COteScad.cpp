@@ -456,7 +456,7 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 		ATOM fb = RegisterClassExW(&wcex);
 
-		st_mon2.hwnd_mon = CreateWindowW(TEXT("OTE_SCAD_MON2"), TEXT("OTE_SCAD_MON2"), WS_OVERLAPPEDWINDOW,
+		st_mon2.hwnd_mon  = CreateWindowW(TEXT("OTE_SCAD_MON2"), TEXT("OTE_SCAD_MON2"), WS_OVERLAPPEDWINDOW,
 			OTE_SCAD_MON2_WND_X, OTE_SCAD_MON2_WND_Y, OTE_SCAD_MON2_WND_W, OTE_SCAD_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 
