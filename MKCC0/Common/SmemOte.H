@@ -102,6 +102,8 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_OPE_GOT_COM_CONNECT_CRANE	0x00000001	//GOTクレーン接続コマンド
 #define OTE_OPE_GOT_COM_RELEASE_CRANE	0x00000002	//GOTクレーン解放コマンド
 
+#define OTE_PC_FLT_DETECT_MAX			15
+
 typedef struct _ST_OTE_CS_INF {
 	INT32 ope_plc_stat = L_OFF;						//PLCとの通信状態
 	INT32 cc_ope_active = L_OFF;
@@ -115,6 +117,8 @@ typedef struct _ST_OTE_CS_INF {
 	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ];		//PLCからの読み取り信号生値
 	INT16 buf_opepnl_write[OTE_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
 	INT16 pnl_ctrl[N_OTE_PNL_CTRL];					//操作卓入力仕分け
+	INT16 rpc_flt_codes[OTE_PC_FLT_DETECT_MAX];		//操作卓故障検出バッファ
+	INT16 rpc_flt_count;							//操作卓故障検出バッファカウント
 
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他
@@ -127,7 +131,7 @@ typedef struct _ST_OTE_CS_INF {
 #define CODE_OTE_PC_COM_STAT_SOCK_OK	1	//ソケット初期化OK　通信無し
 #define CODE_OTE_PC_COM_STAT_LINK_OK	2	//通信中
 
-#define PRM_OTE_PC_COM_RESET_CNT		25	//通信チェックカウント中
+#define PRM_OTE_PC_COM_TMOV_CNT			20	//通信チェックカウント
 
 typedef struct _ST_OTE_CC_IF {
 	INT32			cc_com_stat_r;		//制御PCとの通信状態（受信）

@@ -443,7 +443,7 @@ int CAgent::manage_slbrk() {
 
 	//### ù‰ñƒuƒŒ[ƒL§Œä
 	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //pOteCtrl[OTE_PNL_CTRLS::sl_brk_com] & 0x0000;
-	//if(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & BIT7)	pAUX_CS_Inf->com_slbrk.pc_com_autosel = L_OFF;
+	if(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_FREE) pAUX_CS_Inf->com_slbrk.pc_com_autosel=0;
 
 	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
 		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
@@ -478,7 +478,7 @@ int CAgent::manage_slbrk() {
 	else
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HW_ERR]		&= ~FLTS_MASK_ERR_SLBRK_HW_ERR;
 
-	if ((pAUX_CS_Inf->fb_slbrk.d16 & 0x8000) || !(pAUX_CS_Inf->fb_slbrk.d16 & 0x4000))
+	if ((pAUX_CS_Inf->fb_slbrk.d16 & 0x0100) || !(pAUX_CS_Inf->fb_slbrk.d16 & 0x0080))
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] |= FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
 	else
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] &= ~FLTS_MASK_ERR_SLBRK_LOCAL_MODE;

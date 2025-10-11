@@ -1024,7 +1024,16 @@ void CSubPanelWindow::SetFltToListView(HWND hlv, int code, int i) {
 	// 故障コード
 	TCHAR numStr[16];
 
-	if (i_flist >= N_PC_FLT_CODE_OFFSET) {		//PC故障 codeは配列インデックス+550でCC_ENVが格納している
+	if (i_flist >= N_RPC_FLT_CODE_OFFSET) {		//RPC故障 codeは850から
+		int index = i_flist - N_RPC_FLT_CODE_OFFSET;
+		if (index >= N_PC_FAULT_ITEM) return; //範囲外
+
+		_stprintf_s(numStr, _T("%d"), i_flist);
+		ListView_SetItemText(hlv, i, 1, numStr);
+		// 故障項目
+		ListView_SetItemText(hlv, i, 2, pCrane->pFlt->flt_list.pc_faults[index].item);
+	}
+	else if (i_flist >= N_PC_FLT_CODE_OFFSET) {		//PC故障 codeは配列インデックス+550でCC_ENVが格納している
 		int index = i_flist - N_PC_FLT_CODE_OFFSET;
 		if (index >= N_PC_FAULT_ITEM) return; //範囲外
 
@@ -1270,7 +1279,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			(is_flt_bk_update_required == false)	//背景更新必要な時はすぐに実行できるように
 			)break; 
 
-		int fltcode = 0, n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count + pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count;
+		int fltcode = 0;
+		int n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count 
+				+ pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count
+				+ pCsInf->rpc_flt_count;
 		
 		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
 		else if ((n < 0) || (n > (N_OTE_PC_SET_PLC_FLT+ N_OTE_PC_SET_PC_FLT))) {	//項目数異常時はクリア
@@ -1278,14 +1290,22 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		}
 		else{
 			int index = 0;
+			//MPLC故障
 			for (int i = 0; i < pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count; i++,index++) {
 				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_plc[i];
 				SetFltToListView(hFltListView, fltcode, index);
 			}
+			//CPC故障
 			for (int i = 0; i < pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count; i++, index++) {
 				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_pc[i];
 				SetFltToListView(hFltListView, fltcode, index);
 			}
+			//RPC故障
+			for (int i = 0; i < pCsInf->rpc_flt_count; i++, index++) {
+				fltcode = pCsInf->rpc_flt_codes[i];
+				SetFltToListView(hFltListView, fltcode, index);
+			}
+
 
 			if (n < flt_cnt_hold) {
 				for (int i = n; i < flt_cnt_hold; i++) {
@@ -1584,6 +1604,22 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pPanelBase->psubobjs->lmp_bh_r_mode->set(code);
 		pPanelBase->psubobjs->lmp_bh_r_mode->update();
 
+		if (pCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {//操作台モード時はラジオボタンクリア
+			//モード設定ラジオボタンクリア
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+
+			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);//(枠表示なし）
+			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
+		}
+
 	}break;
 
 	case WM_COMMAND: {
@@ -1596,6 +1632,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1: 
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2:
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_3: {
+
 			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);//non owner draw(枠表示のみ）
 		}break;
 		case ID_SUB_PNL_SET_OBJ_RDO_BHR_0: 

@@ -158,6 +158,7 @@ typedef struct _ST_OTE_CS_OBJ {
     CPadNotch* pad_ah;
 } ST_OTE_CS_OBJ, * LPST_OTE_CS_OBJ;
 
+
 class COteCS :public CBasicControl
 {
 public:
@@ -178,7 +179,7 @@ public:
     static ST_OTE_CS_INF st_work;
     static ST_OTE_CS_OBJ st_obj;
 
-    //PLC IFŠÖ˜A
+      //PLC IFŠÖ˜A
     static HRESULT rcv_uni_ote(LPST_PC_U_MSG pbuf);
     static HRESULT rcv_mul_pc(LPST_PC_M_MSG pbuf);
     static HRESULT rcv_mul_ote(LPST_OTE_M_MSG pbuf);

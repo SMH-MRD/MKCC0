@@ -351,7 +351,7 @@ int COteCS::input(){
 	}
 	//PCパネルのノッチPB入力は操作台またはGPAD指令OFFの時のみ有効
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_PCPNL) {
-		if(!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh]))		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
+		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_bh];
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_sl];
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
@@ -372,9 +372,6 @@ int COteCS::input(){
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_RESET; //リセット
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_FREE; //フリー(AUTO/MANUAL)
 
-
-
-
 	return S_OK;
 }
 
@@ -384,26 +381,51 @@ static INT16 pnl_ctrl_last[N_OTE_PNL_CTRL];
 //#### モード,指令値設定　
 int COteCS::parse() 
 {           
-	//### モード設定
+	
+	//### 異常チェック
 	{
-		//### 操作卓ヘルシーチェック
-		if (ope_plc_cnt == ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy){//前回値から変化なし
-			
-			if (ope_plc_chk_cnt)		//PLC通信異常検出ディレイ	
-				ope_plc_chk_cnt--;
-			else { 						//PLC通信異常
+		//## 操作卓ヘルシーチェック
+		if (ope_plc_cnt == ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy) {//前回値から変化なし
+			ope_plc_chk_cnt++;
+			if(ope_plc_chk_cnt > 10) {					//PLC通信異常
 				pOteCsInf->ope_plc_stat = L_OFF;
 				pOteCsInf->ote_error |= FLTS_MASK_ERR_RPC_RPLC_COMM;
 			}
-
 		}
 		else {//PLC通信正常
-			pOteCsInf->ope_plc_stat		= L_ON;
-			ope_plc_chk_cnt=10;
+			pOteCsInf->ope_plc_stat = L_ON;
+			ope_plc_chk_cnt = 0;
 			pOteCsInf->ote_error &= ~FLTS_MASK_ERR_RPC_RPLC_COMM;
 		}
 		ope_plc_cnt = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy;
+
+		//## 制御PC通信異常チェック
+		if(pOteCCInf->cc_comm_chk_cnt >= PRM_OTE_PC_COM_TMOV_CNT)
+			pOteCsInf->ote_error |= FLTS_MASK_ERR_CPC_RPC_COMM;
+		else
+			pOteCsInf->ote_error &= ~FLTS_MASK_ERR_CPC_RPC_COMM;
+
+		//## 非常停止チェック
+		if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]) {
+			pOteCsInf->ote_error |= FLTS_MASK_ERR_RPC_ESTP;
+		}
+		else {
+			pOteCsInf->ote_error &= ~FLTS_MASK_ERR_RPC_ESTP;
+		}
+
+		pOteCsInf->rpc_flt_count = 0;
+		for (int j = 0; j < 16; j++) {
+			if (pOteCsInf->rpc_flt_count >= OTE_PC_FLT_DETECT_MAX) break;	//表示故障数上限
+
+			if (pOteCsInf->ote_error & (1 << j)) {	//検出ありの時
+				pOteCsInf->rpc_flt_codes[pOteCsInf->rpc_flt_count] = 850 + j;
+				pOteCsInf->rpc_flt_count++;	//PC故障数カウントアップ
+			}
+		}
+	}
 	
+	//### モード設定
+	{
 		//### 遠隔リモート操作有効化設定
 		//遠隔PBトリガ検出
 		if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote] && (pnl_ctrl_last[OTE_PNL_CTRLS::remote] == L_OFF)) {
@@ -548,40 +570,14 @@ int COteCS::output() {
 			((LPST_PLC_WBUF_HHGG38)	pOteCsInf->buf_opepnl_write)->fault_code[index] = pFltSet->codes_pc[i] + 300;
 	}
 	//遠隔PC フォルト
-	INT16 ote_bit_count = 0;
-	if (pOteCsInf->ote_error) {
-		for (int j = ote_bit_count; j < 16; j++) {
-			if (pOteCsInf->ote_error & (1 << j)) {
-				if (index >= N_OTE_OPE_PLC_FAULT_BUF)break;
-				index++;
-				((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[13] = 850 + j+2;
-			}
-		}
+	for (int i = 0; i < pOteCsInf->rpc_flt_count; i++, index++) {
+		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[index] = pOteCsInf->rpc_flt_codes[index];
 	}
 
 	//残りは0クリア
-	index++;
 	for(;index< N_OTE_OPE_PLC_FAULT_BUF;index++) 
 		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[index] = 0;
-#if 0
-	for(int i=0; i< N_OTE_OPE_PLC_FAULT_BUF; i++){
 
-		if (i < (pFltSet->set_plc_count + pFltSet->set_pc_count))		//制御PC登録故障
-			((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = pFltSet->codes_plc[i] + 300;
-		else if((pOteCsInf->ote_error)&&(ote_bit_count<16)){			//遠隔操作PC登録故障
-			for(int j = ote_bit_count; j < 16; j++) {
-				if (pOteCsInf->ote_error & (1 << j)) {
-					((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = 850 + j;
-					ote_bit_count++;
-					break;
-				}
-			}
-		}
-		else {
-			((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[i] = 0;
-		}
-	}
-#endif
 	//##GOT運転監視
 	pPcWBuf->mh_hight	= pBody->st_axis_set[ID_HOIST].pos_fb;	//揚程
 	pPcWBuf->mh_load	= pBody->st_load_stat->m;				//荷重

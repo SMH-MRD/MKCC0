@@ -249,11 +249,15 @@ int COteAgent::parse() {
 	//CC通信状態ステータスセット（モニタ用）
 	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
 
-	pOteCCIf->cc_comm_chk_cnt--;//カウンタは、受信時にMAX値セット
-	if (pOteCCIf->cc_comm_chk_cnt < 0) pOteCCIf->cc_comm_chk_cnt = 0;
-	if( pOteCCIf->cc_comm_chk_cnt == 0) {
-		//クレーン操作有効端末id
-		pOteCCIf->cc_active_ote_id = CRANE_ID_NULL;
+	//カウンタは、受信時0値セット カウンタ値0より大でカウントアップ
+	if(st_work.cc_comm_chk_cnt) st_work.cc_comm_chk_cnt++;
+
+	if (st_work.cc_comm_chk_cnt > PRM_OTE_PC_COM_TMOV_CNT) 
+		st_work.cc_comm_chk_cnt = PRM_OTE_PC_COM_TMOV_CNT;
+
+	if (st_work.cc_comm_chk_cnt == PRM_OTE_PC_COM_TMOV_CNT){//通信異常
+		//クレーン操作有効端末idクリア
+		pOteCCIf->cc_active_ote_id	= CRANE_ID_NULL;
 		pOteCCIf->id_conected_crane = CRANE_ID_NULL;
 	}
 	else {
@@ -277,7 +281,8 @@ int COteAgent::output() {          //出力処理
 	memcpy_s(&(pOteCCIf->st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG), &(st_work.st_msg_ote_u_snd), sizeof(ST_OTE_U_MSG));
 	memcpy_s(&(pOteCCIf->st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG), &(st_work.st_msg_ote_m_snd), sizeof(ST_OTE_M_MSG));
 	
-
+	//CC通信状態ステータスセット（CSモニタ用）
+	pOteCCIf->cc_comm_chk_cnt = st_work.cc_comm_chk_cnt;
 
 	return STAT_OK;
 }
@@ -399,8 +404,10 @@ HRESULT COteAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 		}
 		return S_FALSE;
 	}
-	rcv_count_pc_u++;
-	pOteCCIf->cc_comm_chk_cnt = PRM_OTE_PC_COM_RESET_CNT; //CC通信チェックカウンタリセット
+	
+	//CC通信チェックカウンタリセット
+	//ユニキャスト送信時に1をセットしておき、定周期でカウントアップ
+	st_work.cc_comm_chk_cnt = 0; 
 	return S_OK;
 }
 /****************************************************************************/
@@ -651,10 +658,16 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	}
 	case WM_TIMER: {
 		//UniCast送信
+		HRESULT hr;
 		if(pOteCsInf->st_body.remote)
-			snd_uni2pc(set_msg_u(true, OTE_CODE_REQ_OPE_ACTIVE, OTE_STAT_MODE_OPE), &pUSockPC->addr_in_dst);
+			hr = snd_uni2pc(set_msg_u(true, OTE_CODE_REQ_OPE_ACTIVE, OTE_STAT_MODE_OPE), &pUSockPC->addr_in_dst);
 		else 
-			snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_MON, OTE_STAT_MODE_MON), &pUSockPC->addr_in_dst);
+			hr = snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_MON, OTE_STAT_MODE_MON), &pUSockPC->addr_in_dst);
+
+		//送信成功 AND 正常受信後
+		if((hr==S_OK) && (st_work.cc_comm_chk_cnt == 0))
+			st_work.cc_comm_chk_cnt = 1; //開始カウントセット
+
 
 		QueryPerformanceCounter(&start_count_s);  // 送信時カウント値取り込み
 
