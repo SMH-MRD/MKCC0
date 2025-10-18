@@ -266,7 +266,7 @@ int CAgent::input() {
 
 	//## アブソコーダ
 	pPLC_IO->stat_mh.absocoder = pCrane->pPlc->rval(pPlcRIf->absocoder_mh).i32;	//MHアブソコーダ
-	pPLC_IO->stat_gt.absocoder = pCrane->pPlc->rval(pPlcRIf->absocoder_gt).i32;	//BHアブソコーダ
+	pPLC_IO->stat_gt.absocoder = pCrane->pPlc->rval(pPlcRIf->absocoder_gt).i32;	//走行アブソコーダ
 	
 	//## PG
 	pPLC_IO->stat_mh.pg_count = pCrane->pPlc->rval(pPlcRIf->hcounter_mh).i32;	//MH　PG

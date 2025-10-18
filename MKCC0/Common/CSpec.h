@@ -46,70 +46,71 @@ typedef struct _ST_AXIS_ITEMS {
 	INT32 Axis_id;
 	double	Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 	double	Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-	INT16	Notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
-	INT16	Notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+	INT16	Notch_pad_f[N_NOTCH_MAX];					//GamePadのノッチ配分
+	INT16	Notch_pad_r[N_NOTCH_MAX];					//GamePadのノッチ配分
 	
-	double V_rated;					// 定格速度（m/s, rad/s：100％)
-	double Rpm_rated;				// 定格回転数（rpm：100％)
-	double Kw_rated;				// 定格出力（kW：100％)
-	double Gear_ratio;				// 減速比(モータ回転 /ドラム回転 ）
-	double Ddrm0;					// ドラム径0
-	double Ddrm1;					// ドラム径1
-	double Nwire0;					// ロープ掛数
-	double Nwire1;					// ロープ掛数
-	double Ta0;						// 加速時間0
-	double Ta1;						// 加速時間1
-	double Td0;						// 減速時間0
-	double Td1;						// 減速時間1
-	double Ndmizo0;					// ドラム溝数0
-	double Ndmizo1;					// ドラム溝数1
-	double CntPgR;					// PG1回転カウント数×逓倍
-	double CntPgDrumR;				// ドラム1回転PGカウント数
-	double CntPgSet0;				// PGプリセット0カウント値
-	double NdrmPgSet0;				// PGプリセット0ドラム回転数
-	double CntAbsR;					// アブソコーダ1回転カウント数×入力軸ギア比
-	double CntAbsSet0;				// アブソコーダプリセット0カウント値
-	double NdrmAbsSet0;				// アブソコーダプリセット0ドラム回転数
-	double Kp;						// 位置変換係数
+	double V_rated;						// 定格速度（m/s, rad/s：100％)
+	double Rpm_rated;					// 定格回転数（rpm：100％)
+	double Kw_rated;					// 定格出力（kW：100％)
+	double Gear_ratio;					// 減速比(モータ回転 /ドラム回転 ）
+	double Ddrm0;						// ドラム径0
+	double Ddrm1;						// ドラム径1
+	double Nwire0;						// ロープ掛数
+	double Nwire1;						// ロープ掛数
+	double Ta0;							// 加速時間0
+	double Ta1;							// 加速時間1
+	double Td0;							// 減速時間0
+	double Td1;							// 減速時間1
+	double Ndmizo0;						// ドラム溝数0
+	double Ndmizo1;						// ドラム溝数1
+	double CntPgR;						// PG1回転カウント数×逓倍
+	double CntPgDrumR;					// ドラム1回転PGカウント数
+	double CntPgSet0;					// PGプリセット0カウント値
+	double NdrmPgSet0;					// PGプリセット0ドラム回転数
+	double CntAbsR;						// アブソコーダ1回転カウント数×入力軸ギア比
+	double CntAbsSet0;					// アブソコーダプリセット0カウント値
+	double NdrmAbsSet0;					// アブソコーダプリセット0ドラム回転数
+	double Kp;							// 位置変換係数
 
-	double dDdrm;					// ドラム1層追加半径
-	double Trq_rated;				// 定格トルク（モータ軸）
-	double Pwr_base;				// 定格必要出力
-	double Trq_base;				// 定格必要トルク
-	double Ia;						// 慣性モーメント
-	double Lfull;					// フルスパン（m）
+	double dDdrm;						// ドラム1層追加半径
+	double Trq_rated;					// 定格トルク（モータ軸）
+	double Pwr_base;					// 定格必要出力
+	double Trq_base;					// 定格必要トルク
+	double Ia;							// 慣性モーメント
+	double Lfull;						// フルスパン（m）
+	double PosPreset;					// プリセット時の設定位置（m）
 
 
 } ST_AXIS_ITEMS, * LPST_AXIS_ITEMS;
 
-#define N_SWAY_LEVEL				3	//完了,トリガ,制限
-#define N_POS_LEVEL					3	//完了,トリガ,制限
-#define ID_SWAY_LV_COMP				0	//完了,トリガ,制限
-#define ID_SWAY_LV_TRIG				1	//完了,トリガ,制限
-#define ID_SWAY_LV_LIMIT			2	//完了,トリガ,制限
+#define N_SWAY_LEVEL				3					//完了,トリガ,制限
+#define N_POS_LEVEL					3					//完了,トリガ,制限
+#define ID_SWAY_LV_COMP				0					//完了,トリガ,制限
+#define ID_SWAY_LV_TRIG				1					//完了,トリガ,制限
+#define ID_SWAY_LV_LIMIT			2					//完了,トリガ,制限
 
-#define N_DELAY_PTN					5	//加減速時FB遅れ時間評価パターン数
-#define ID_DLY_0START				0	//停止からの加速
-#define ID_DLY_ACC_DEC				1	//加速中の減速切替時
-#define ID_DLY_DEC_ACC				2	//減速中の加速切替時
-#define ID_DLY_CNT_ACC				3	//定速からの加速時
-#define ID_DLY_CNT_DEC				4	//定速からの減速時	
+#define N_DELAY_PTN					5					//加減速時FB遅れ時間評価パターン数
+#define ID_DLY_0START				0					//停止からの加速
+#define ID_DLY_ACC_DEC				1					//加速中の減速切替時
+#define ID_DLY_DEC_ACC				2					//減速中の加速切替時
+#define ID_DLY_CNT_ACC				3					//定速からの加速時
+#define ID_DLY_CNT_DEC				4					//定速からの減速時	
 
-#define N_MEM_TARGET				8	//半自動目標ホールド数
+#define N_MEM_TARGET				8					//半自動目標ホールド数
 
 typedef struct _ST_AUTO_SPEC
 {
-	double as_rad_level[N_SWAY_LEVEL];	//振れ止め判定　振れ角レベル(rad)
-	double as_rad2_level[N_SWAY_LEVEL];	//振れ止め判定　振れ角レベル(rad^2) 
-	double as_m_level[N_SWAY_LEVEL];	//振れ止め判定　振れ幅レベル(m)
-	double as_m2_level[N_SWAY_LEVEL];	//振れ止め判定　振れ幅レベル(m^2)
+	double as_rad_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad)
+	double as_rad2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad^2) 
+	double as_m_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m)
+	double as_m2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m^2)
 
-	double as_pos_level[N_POS_LEVEL];	//位置決め制御判定　位置ずれレベル(m,rad)
-	double pos_check_limit[N_POS_LEVEL];//位置到達判定範囲(m,rad) 
+	double as_pos_level[N_POS_LEVEL];					//位置決め制御判定　位置ずれレベル(m,rad)
+	double pos_check_limit[N_POS_LEVEL];				//位置到達判定範囲(m,rad) 
 
-	double sway_ph_chk_margin;			//振れ位相到達判定範囲
-	double delay_time[N_DELAY_PTN];		//遅れ時間,無駄時間定義
-	double default_target[N_MEM_TARGET];//デフォルトの登録目標位置
+	double sway_ph_chk_margin;							//振れ位相到達判定範囲
+	double delay_time[N_DELAY_PTN];						//遅れ時間,無駄時間定義
+	double default_target[N_MEM_TARGET];				//デフォルトの登録目標位置
 
 }ST_AUTO_SPEC, * LPST_AUTO_SPEC;
 

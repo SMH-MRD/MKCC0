@@ -108,6 +108,9 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	//##ソケットソケット生成・設定
 
 
+	//##計算用パラメータ設定
+	pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY] = (INT32)(pCrane->pSpec->base_gt.PosPreset/ pCrane->pSpec->base_gt.Ddrm0/PI180* pCrane->pSpec->base_gt.CntAbsR);
+
 	//###  オペレーションパネル設定
 	set_func_pb_txt();
 
@@ -239,24 +242,28 @@ int CCcEnv::input() {
 	return S_OK;
 }
 
-int CCcEnv::parse() { 
+int CCcEnv::parse() {
 
 	//ドラム状態セット
 	fp_set_drum_stat();
 	//起伏角,旋回半径
-	double d=pEnvInf->crane_stat.d.p,	Lb = pspec->st_struct.Lb,	Ha = pspec->st_struct.Ha;
-	pEnvInf->crane_stat.th.p = PI90 - acos((d*d - Lb*Lb - Ha*Ha)/(-2.0*Lb*Ha));	//起伏角度
-	pEnvInf->crane_stat.r.p = Lb*cos(pEnvInf->crane_stat.th.p);					//旋回半径
+	double d = pEnvInf->crane_stat.d.p, Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
+	pEnvInf->crane_stat.th.p = PI90 - acos((d * d - Lb * Lb - Ha * Ha) / (-2.0 * Lb * Ha));	//起伏角度
+	pEnvInf->crane_stat.r.p = Lb * cos(pEnvInf->crane_stat.th.p);					//旋回半径
 
-	
+
 	pEnvInf->crane_stat.m = pPlcIo->weight;//荷重
-	
+
 	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
 	//揚程
 	pEnvInf->crane_stat.vm[ID_HOIST].p = pPlcIo->h_mh;
 	//旋回角度
-	pEnvInf->crane_stat.vm[ID_SLEW].p = (double)(pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp ;//旋回角度
+	pEnvInf->crane_stat.vm[ID_SLEW].p = (double)(pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;//旋回角度
+	//走行位置
+	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
+			dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
 
+			pEnvInf->crane_stat.vm[ID_GANTRY].p = pCrane->pSpec->base_gt.PosPreset + dL;	
 	
 	//故障情報セット
 

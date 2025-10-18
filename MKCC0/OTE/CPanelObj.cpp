@@ -98,6 +98,7 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG	,Point(335,105)	,Size(100,30)	,L"BH PG CNT"	},
 	{ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG	,Point(335,140)	,Size(100,30)	,L"SL PG CNT"	},
 	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS	,Point(445,70)	,Size(100,30)	,L"MH ABS CNT"	},
+	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_ABS	,Point(445,175)	,Size(100,30)	,L"GT ABS CNT"	},
 
 	//故障表示サブウィンドウ
 	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(640,500)	,L"背景"		},	//i=30	CSwitchImg* img_flt_bk;
@@ -457,6 +458,7 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; st_bh_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_BH_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_sl_fb_pg			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_mh_fb_abs			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_gt_fb_abs			= new CStaticCtrl(ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_ABS, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
 	//# 故障表示ウィンドウオブジェクト
 	

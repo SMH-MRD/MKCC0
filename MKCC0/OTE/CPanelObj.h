@@ -218,8 +218,8 @@ public:
 #define ID_SUB_PNL_STAT_OBJ_STATIC_SL_FB_PG		60322
 #define ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_PG		60323
 #define ID_SUB_PNL_STAT_OBJ_STATIC_MH_FB_ABS	60324
-#define ID_SUB_PNL_STAT_OBJ_STATIC_AH_FB_ABS	60325
-#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_ABS	60326
+#define ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_ABS	60325
+#define ID_SUB_PNL_STAT_OBJ_STATIC_AH_FB_ABS	60326
 
 #define ID_SUB_PNL_FLT_OBJ_BASE					60340
 #define ID_SUB_PNL_FLT_OBJ_IMG_BK				60340
@@ -294,8 +294,8 @@ public:
 	CStaticCtrl* st_sl_fb_pg;
 	CStaticCtrl* st_gt_fb_pg;
 	CStaticCtrl* st_mh_fb_abs;
-	CStaticCtrl* st_ah_fb_abs;
 	CStaticCtrl* st_gt_fb_abs;
+	CStaticCtrl* st_ah_fb_abs;
 
 	//故障表示サブウィンドウのオブジェクト
 	CSwitchImg* img_flt_bk;			//PLC通信インジケータ

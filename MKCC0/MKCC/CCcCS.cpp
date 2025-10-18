@@ -295,8 +295,8 @@ int CCcCS::parse() {
 		set_ote_flt_info();
 
 		//## クレーン状態セット
-		st_ote_work.st_body.st_load_stat[0].m		= (float)pEnv_Inf->crane_stat.m;								//荷重
-		st_ote_work.st_body.bh_angle				= (float)pEnv_Inf->crane_stat.th.p;									//起伏角度
+		st_ote_work.st_body.st_load_stat[0].m		= (float)pEnv_Inf->crane_stat.m;		//荷重
+		st_ote_work.st_body.bh_angle				= (float)pEnv_Inf->crane_stat.th.p;		//起伏角度
 
 
 		//## 各軸状態

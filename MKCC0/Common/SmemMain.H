@@ -74,7 +74,8 @@ typedef struct _ST_CRANE_STAT {
 	ST_MOVE_SET th;								//起伏角度
 	ST_MOVE_SET	lrm;							//主巻ロープ
 	double		m;								//吊荷質量
-	ST_FAULTS_LIST fault_list;				//故障検出リスト
+	ST_FAULTS_LIST fault_list;					//故障検出リスト
+	INT32		abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値	
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
 typedef struct _ST_CC_ENV_INF {

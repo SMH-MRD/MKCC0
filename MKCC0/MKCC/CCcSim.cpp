@@ -207,9 +207,9 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360) 
 		st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
 
-	if(pPLC_IO->stat_gt.brake)
+	if (pPLC_IO->stat_gt.brake) {
 		st_sim_inf.absocoder_gt += (INT32)(pEnv_Inf->crane_stat.nd[ID_GANTRY].v * inf.dt * st_work.axis[ID_GANTRY].RpsABSOCntSec);	//他は未使用なので0
-		
+	}
 	//荷重
 	st_work.weight_mh=pspec->st_struct.Whook;								//フック質量
 	st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh/80000.0 * 1600);	//フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
