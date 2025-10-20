@@ -59,6 +59,9 @@ using namespace std;
 
 #define N_MAIN_PNL_WCHAR	128
 
+#define PRM_GWIN_SIZE_W		1000
+#define PRM_GWIN_SIZE_H		1000
+
 //各クレーン用のオブジェクト初期化用プロパティ値保持用構造体
 struct ST_OBJ_PROPERTY {
 	INT32 id;	//ID
@@ -109,6 +112,7 @@ public:
 	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
 	virtual HRESULT setup_graphics(HWND hwnd);
 	virtual void clear_graghics();
+	virtual void reset_graghic_img(Graphics* pg);//グラフィックオブジェクトの描画をクリア
 
 	virtual HRESULT setup_obj() = 0;
 	virtual void delete_obj() = 0;
@@ -318,17 +322,17 @@ public:
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
 
-#define ID_GWIN_MAIN_OBJ_BASE				60800
-#define ID_GWIN_MAIN_OBJ_IMG_BK				60800
-#define ID_GWIN_MAIN_OBJ_IMG_BOOM_XY		60801
-#define ID_GWIN_MAIN_OBJ_IMG_GT_BASE		60802
-#define ID_GWIN_MAIN_OBJ_IMG_POTAL			60803
+#define ID_GWIN_MAIN_OBJ_BASE					60800
+#define ID_GWIN_MAIN_OBJ_IMG_BK					60800
+#define ID_GWIN_MAIN_OBJ_IMG_BOOM_XY			60801
+#define ID_GWIN_MAIN_OBJ_IMG_GT_BASE			60802
+#define ID_GWIN_MAIN_OBJ_IMG_POTAL				60803
 
-#define ID_GWIN_MAIN_OBJ_STR_POS_MH			60820		
-#define ID_GWIN_MAIN_OBJ_STR_POS_BH			60821		
-#define ID_GWIN_MAIN_OBJ_STR_POS_SL			60822		
-#define ID_GWIN_MAIN_OBJ_STR_POS_GT			60823
-#define ID_GWIN_MAIN_OBJ_STR_POS_MOUSE		60824	
+#define ID_GWIN_MAIN_OBJ_STR_POS_MH				60820		
+#define ID_GWIN_MAIN_OBJ_STR_POS_BH				60821		
+#define ID_GWIN_MAIN_OBJ_STR_POS_SL				60822		
+#define ID_GWIN_MAIN_OBJ_STR_POS_GT				60823
+#define ID_GWIN_MAIN_OBJ_STR_POS_MOUSE			60824	
 
 class CGWindowObj :public CPanelObjBase
 {

@@ -303,28 +303,8 @@ public:
 		INT32 _id, Point* ppt, Size* psz, LPWSTR ptext,
 		Image** _ppimg, INT32 _n_switch, INT32 _fcount, Gdiplus::Graphics* _pgraphic
 	);
-	//{
-	//	set_id(_id);
-	//	set_base(ppt, psz, ptext);
-	//	for (int i = 0; i < N_IMG_SWITCH_MAX; i++) {
-	//		if (i < _n_switch) pimg[i] = _ppimg[i];
-	//		else pimg[i] = NULL;
-	//	}
-	//	n_switch = _n_switch;
-	//	fcount = _fcount;
-	//	Rect _rc(pt.X, pt.Y, sz.Width, sz.Height); rc = _rc;
-	//	RectF _frc((REAL)pt.X, (REAL)pt.Y, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
-	//	rect = { pt.X,pt.Y,pt.X + sz.Width,pt.Y + sz.Height };
-	//	pgraphics = _pgraphic;
-	//	value = ID_PANEL_LAMP_OFF;
-	//}
 
 	virtual ~CSwitchImg();
-		// {
-		//for (int i = 0; i < N_IMG_SWITCH_MAX; i++) {
-		//	delete pimg[i];
-		//}
-	//}
 
 	Image* pimg[N_IMG_SWITCH_MAX];
 	INT32 n_switch = 2;	//スイッチ数
@@ -346,14 +326,6 @@ public:
 	Image* pimg_disp;
 
 	HRESULT setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid);
-	//{
-	//	fcount = _fcount;
-	//	n_flick = _n_flick;
-	//	for (int i = 0; i < n_flick; i++) {//フリッカさせる画像の順序取り込み
-	//		if (i < N_IMG_SWITCH_MAX) list_flick_id[i] = pid[i];
-	//	}
-	//	return S_OK;
-	//}
 
 	virtual int chk_trig(INT16 id) {//トリガは表示イメージのid
 		if (id_disp != id) {
@@ -371,31 +343,12 @@ public:
 		return;
 	}
 
-	HRESULT update();
-	//{
-	//	INT16 id = 0;
-	//	if (value != ID_PANEL_LAMP_FLICK) {
-	//		if (value < 0) return S_FALSE;			//-1は無効値
-	//		if (value >= n_switch) return S_FALSE;	//n_switch以上は無効値
-	//		id_disp = value;
-	//		pgraphics->DrawImage(pimg[id_disp], rc);
-	//		InvalidateRect(hWnd, &rect, FALSE);
-	//		return S_OK;
-	//	}
-	//	else {
-	//		count++; if (count > fcount) {
-	//			count = 0;
-	//			id_disp++; if (id_disp >= n_flick) id_disp = 0;
-	//			pgraphics->DrawImage(pimg[list_flick_id[id_disp]], rc);
-	//			InvalidateRect(hWnd, &rect, FALSE);
-	//		}
-	//		return S_OK;
-	//	}
-	//	return S_FALSE;
-	//}
-	HRESULT update(int x, int y);
-
+	HRESULT update();							//indexの画像を初期設定領域に描画
+	HRESULT update(int dest_x, int desst_y);	//indexの画像を初期設定領域をX,Y方向にシフトして描画
+	//indexの画像を回転,拡大/縮小して初期設定領域をX,Y方向にシフトして描画
 	HRESULT update(int x_center, int y_center, float angle,int offset_x,int offset_y,float scale_w, float scale_h);
+	//indexの画像の切り取り範囲を指定して初期設定領域をX,Y方向にシフトして描画
+	HRESULT update(int dest_x, int dest_y, int srcx,int srcy,int srcwidth,int srcheight);
 };
 
 /// <summary>

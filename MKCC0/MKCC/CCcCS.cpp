@@ -156,6 +156,10 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	}	
 	else  wos << L"OTE M Socket init OK"; msg2listview(wos.str()); wos.str(L"");
 
+	if((pUSockOte==NULL)||(pMSockPC==NULL)||(pMSockOte==NULL))
+		hr = S_FALSE;
+
+
 	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
 	st_ote_work.st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
 	st_ote_work.st_msg_pc_m_snd.head.addr = pMSockOte->addr_in_rcv;

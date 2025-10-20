@@ -17,7 +17,8 @@ CSwitchImg::CSwitchImg(
 	fcount = _fcount;
 
 	Rect _rc(pt.X, pt.Y, sz.Width, sz.Height); rc = _rc;
-	rc_clear = { rc.X- rc.Width/2 , rc.Y - rc.Height / 2, rc.Width*2, rc.Height*2}; //背景色セット用の矩形
+	//背景色セット用の矩形 書き込みイメージの2倍サイズをクリアして前回描画の残像を消す
+	rc_clear = { rc.X- rc.Width/2 , rc.Y - rc.Height / 2, rc.Width*2, rc.Height*2}; 
 	RectF _frc((REAL)pt.X, (REAL)pt.Y, (REAL)sz.Width, (REAL)sz.Height); frc = _frc;
 
 	rect = { pt.X,pt.Y,pt.X + sz.Width,pt.Y + sz.Height };
@@ -133,5 +134,28 @@ HRESULT CSwitchImg::update(int x_center, int y_center, float angle, int offset_x
 
 	pgraphics->ResetTransform();
 
+	return S_OK;
+}
+
+/// <summary>
+/// indexの画像の切り取り範囲を指定して初期設定領域をX,Y方向にシフトして描画
+/// </summary>
+/// <param name="dest_x">描画先X座標</param>
+/// <param name="dest_y">描画先Y座標</param>
+/// <param name="srcx">描画元切り取りX座標</param>
+/// <param name="srcy">描画元切り取りY座標</param>
+/// <param name="srcwidth">描画元切り取り画像幅</param>
+/// <param name="srcheight">描画元切り取り画像高さ</param>
+/// <returns></returns>
+HRESULT CSwitchImg::update(int dest_x, int dest_y, int srcx, int srcy, int srcwidth, int srcheight) {
+
+//	rc_clear.X = dest_x; rc_clear.Y = dest_y;
+//	pgraphics->FillRectangle(&blackBrush, rc_clear); // 背景色セット
+
+	if (value < 0) return S_FALSE;					//-1は無効値
+	if (value >= n_switch) return S_FALSE;			//n_switch以上は無効値
+	id_disp = value;
+
+	pgraphics->DrawImage(pimg[id_disp], dest_x, dest_y, srcx, srcy, srcwidth,srcheight,UnitPixel);
 	return S_OK;
 }

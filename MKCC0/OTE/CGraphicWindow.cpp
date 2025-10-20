@@ -134,18 +134,24 @@ static int gwin_count = 0;
 /// <param name="hdc">描画対象ウィンドウのデバイスコンテキストハンドル。</param>
 /// <param name="hWnd">描画対象ウィンドウのハンドル。</param>
 /// ########################################################################
+
 void CGraphicWindow::OnPaint(HDC hdc, HWND hWnd){
 
-int width = GMAIN_PNL_WND_W;
-int height = GMAIN_PNL_WND_H;
+int width	= GMAIN_PNL_WND_W;
+int height	= GMAIN_PNL_WND_H;
+
+INT bk_pt_x = GMAIN_PNL_BK_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].pos_fb / GMAIN_PNL_PIX2M);
+INT bk_pt_y = GMAIN_PNL_BK_ORG_Y;
 
 gwin_count++; if (gwin_count > 1000) gwin_count = 0; // カウントをリセット
 
 // 1. 背景画像の描画(pbmp_bk）
 pPanelBase->pgwinobjs->lmg_bk_gwindow->set(0);		// 背景画像選択(Main)
-pPanelBase->pgwinobjs->lmg_bk_gwindow->update();	// 背景画像書き込み(Main)
+//pPanelBase->pgwinobjs->lmg_bk_gwindow->update();	// 背景画像書き込み(Main)
+
+pPanelBase->pgwinobjs->lmg_bk_gwindow->update(0,0, bk_pt_x,bk_pt_y,width,height);
 pPanelBase->pgwinobjs->lmg_crane_gt_base->set(0);
-pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// クレーンポータル画像書き込み
+pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// クレーン走行装置画像書き込み
 
 // 2. クレーン画像の描画(pbmp_img） 
 double angle = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].pos_fb;

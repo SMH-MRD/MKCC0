@@ -1326,14 +1326,14 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			for (int i = 0; i < n; i++) {
 				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_plc[i];
 				flttype = pCrane->pFlt->flt_list.plc_faults[fltcode].type;
-				if (flttype & 3) {//重故障 =1 or 2 or 3
+				if ((flttype <=  3) && flttype) {//重故障 =1 or 2 or 3
 					bk_checked = 3; //重故障
 					break;
 				}
-				if (flttype == 4) {
+				if((flttype == 4)||(flttype == 6)) {
 					bk_checked = 2; //軽故障
 				}
-				if ((flttype ==5)&&(bk_checked <=1)) {
+				if ((flttype ==5)&&(bk_checked <=1)) {//軽故障以上未検出時
 					bk_checked = 1; //インターロック
 				}
 			}

@@ -120,11 +120,10 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 #define N_GWIN_OBJ			32
 static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 	//グラフィックMAINウィンドウ
-	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(1000,1000)	,L"背景"		},//i=0
-	//{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(28,400)	,L"ブーム上面"	},
+	{ID_GWIN_MAIN_OBJ_IMG_BK		,Point(0,0)			,Size(PRM_GWIN_SIZE_W,PRM_GWIN_SIZE_H),L"背景"		},//i=0
 	{ID_GWIN_MAIN_OBJ_IMG_BOOM_XY	,Point(500,550)		,Size(70,500)	,L"ブーム上面"	},
-	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(445,522)		,Size(120,62)	,L"走行装置"	},
-	{ID_GWIN_MAIN_OBJ_IMG_POTAL		,Point(490,500)		,Size(50,100)	,L"ポータル"	},
+	{ID_GWIN_MAIN_OBJ_IMG_GT_BASE	,Point(445,470)		,Size(120,62)	,L"走行装置"	},
+	{ID_GWIN_MAIN_OBJ_IMG_POTAL		,Point(490,450)		,Size(50,100)	,L"ポータル"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_MH	,Point(20,20)		,Size(400,40)	,L"主巻位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_BH	,Point(20,60)		,Size(400,40)	,L"引込位置"	},
 	{ID_GWIN_MAIN_OBJ_STR_POS_SL	,Point(20,100)		,Size(400,40)	,L"旋回位置"	},
@@ -228,6 +227,12 @@ void CPanelObjBase::clear_graghics() {
 	ReleaseDC(hPnlWnd, hdc);
 	return;
 }
+void CPanelObjBase::reset_graghic_img(Graphics* pg) {
+	pg->Clear(Color(0, 0, 0, 0));
+	return;
+}
+
+
 
 HRESULT CMainPanelObj::setup_obj() { 
 	
@@ -543,7 +548,7 @@ static Image img_crane_potal(L"../Img/HHGH29/hhgh29_post_top.png");
 Image* pimg_gwin_bk[N_IMG_SWITCH_MAX]	= { &img_gwin_bk, &img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk };
 Image* pimg_boom_xy[N_IMG_SWITCH_MAX]	= { &img_boom_xy, &img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy };
 Image* pimg_gt_base[N_IMG_SWITCH_MAX]	= { &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base};
-Image* pimg_post[N_IMG_SWITCH_MAX] = { &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal };
+Image* pimg_post[N_IMG_SWITCH_MAX]		= { &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal };
 
 
 	//設定ウィンドウオブジェクト
