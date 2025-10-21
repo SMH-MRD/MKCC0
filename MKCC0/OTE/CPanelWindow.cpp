@@ -1280,9 +1280,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			)break; 
 
 		int fltcode = 0;
-		int n = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count 
-				+ pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count
-				+ pCsInf->rpc_flt_count;
+		int ncc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count
+			+ pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count;
+		int n = ncc + pCsInf->rpc_flt_count;
 		
 		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
 		else if ((n < 0) || (n > (N_OTE_PC_SET_PLC_FLT+ N_OTE_PC_SET_PC_FLT))) {	//項目数異常時はクリア
@@ -1300,15 +1300,17 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_pc[i];
 				SetFltToListView(hFltListView, fltcode, index);
 			}
-			//RPC故障
-			for (int i = 0; i < pCsInf->rpc_flt_count; i++, index++) {
-				fltcode = pCsInf->rpc_flt_codes[i];
-				SetFltToListView(hFltListView, fltcode, index);
+			//RPC故障 OTE側分はPC故障要求がある時のみ表示
+			if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) {
+				for (int i = 0; i < pCsInf->rpc_flt_count; i++, index++) {
+					fltcode = pCsInf->rpc_flt_codes[i];
+					SetFltToListView(hFltListView, fltcode, index);
+				}
 			}
 
 
 			if (n < flt_cnt_hold) {
-				for (int i = n; i < flt_cnt_hold; i++) {
+				for (int i = n-1; i < flt_cnt_hold; i++) {
 					ClearFltListView(hFltListView, false, i);
 				}
 			}
@@ -1323,19 +1325,23 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			bk_checked = 0;
 		}
 		else{
-			for (int i = 0; i < n; i++) {
+			for (int i = 0; i < ncc; i++) {//クレーン側セット分チェック
 				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_plc[i];
 				flttype = pCrane->pFlt->flt_list.plc_faults[fltcode].type;
-				if ((flttype <=  3) && flttype) {//重故障 =1 or 2 or 3
+				if ((flttype <= 3) && flttype) {//重故障 =1 or 2 or 3
 					bk_checked = 3; //重故障
 					break;
 				}
-				if((flttype == 4)||(flttype == 6)) {
+				if ((flttype == 4) || (flttype == 6)) {
 					bk_checked = 2; //軽故障
 				}
 				if ((flttype ==5)&&(bk_checked <=1)) {//軽故障以上未検出時
 					bk_checked = 1; //インターロック
 				}
+			}
+			//PC故障チェック有　&　軽故障以上が無い時　&　RPC故障有
+			if ((pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) && !(bk_checked & 0x07) && (pCsInf->rpc_flt_count > 0)) {
+				bk_checked = 2; //軽故障
 			}
 		}
 		
@@ -1552,32 +1558,48 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pPanelBase->psubobjs->lmp_mh_spd_mode->set_wnd(hwnd);
 
 		//初期値セット
+		//巻速度モード
 		if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE0) {
 			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 		else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE1) {
 			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 		else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE2) {
 			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 		else {
-			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_CHECKED, 0);;
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 		//起伏モード
 		if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com == CODE_MODE0) {
 			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 		else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com == CODE_MODE1) {
 			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 		else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com == CODE_MODE2) {
 			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 		else {
-			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_CHECKED, 0);;
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
-
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
@@ -1604,17 +1626,70 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pPanelBase->psubobjs->lmp_bh_r_mode->set(code);
 		pPanelBase->psubobjs->lmp_bh_r_mode->update();
 
-		if (pCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {//操作台モード時はラジオボタンクリア
-			//モード設定ラジオボタンクリア
-			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-
-			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+		//操作台モード時または遠隔操作権無効時は、クレーン状態にラジオボタンセット
+		if ((pCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)||(pCsInf->st_body.remote != CODE_PNL_COM_ACTIVE)) {
+			//巻速度モード
+			if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE0) {
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE1) {
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE2) {
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE3) {
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else {
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			//起伏モード
+			if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com == CODE_MODE0) {
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com == CODE_MODE1) {
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com == CODE_MODE2) {
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com == CODE_MODE3) {
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode3->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else {
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_bh_r_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
 
 			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);//(枠表示なし）
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
@@ -1659,31 +1734,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		Font* pfont = NULL;
 		CSubPanelObj* pos = pPanelBase->psubobjs;
 		CLampCtrl* plamp = NULL;
-
-		//if (pDIS->CtlID == pos->cb_bh_r_mode0->id) {
-		//	plamp = pos->lmp_bh_r_mode;	pfont = plamp->pFont;
-		//}
-		//if (pDIS->CtlID == pos->cb_bh_r_mode1->id) {
-		//	plamp = pos->lmp_bh_r_mode;	pfont = plamp->pFont;
-		//}
-		//if (pDIS->CtlID == pos->cb_bh_r_mode2->id) {
-		//	plamp = pos->lmp_bh_r_mode;	pfont = plamp->pFont;
-		//}
-		//if (pDIS->CtlID == pos->cb_mh_spd_mode0->id) {
-		//	plamp = pos->lmp_mh_spd_mode;	pfont = plamp->pFont;
-		//}
-		//if (pDIS->CtlID == pos->cb_mh_spd_mode0->id) {
-		//	plamp = pos->lmp_mh_spd_mode;	pfont = plamp->pFont;
-		//}
-		//if (pDIS->CtlID == pos->cb_mh_spd_mode0->id) {
-		//	plamp = pos->lmp_mh_spd_mode;	pfont = plamp->pFont;
-		//}
-
-		//image = plamp->pimg[plamp->get()];
-		//gra.FillRectangle(pPanelBase->psubobjs->pBrushBk, plamp->rc);	//背景色セット
-		//if (image) gra.DrawImage(image, plamp->rc);						//イメージ描画
-		//if (pfont != NULL)
-		//	gra.DrawString(plamp->txt.c_str(), -1, pfont, plamp->frc, plamp->pStrFormat, plamp->pTxtBrush);	//テキスト描画
 
 	}return true;
 	case WM_DESTROY:

@@ -212,7 +212,7 @@ int COteCS::input(){
 		pOteCsInf->gpad_in.pad_gt = st_obj.pad_gt->get_notch();
 	}
 	
-	//## ‰“Šu‘€ì‘äM†Žæ‚èž‚Ýiƒ‚ƒƒ“ƒ^ƒŠ & ”ñí’âŽ~ & ‰“Šu‘€ì‘ä—Dæj
+	//## ‰“Šu‘€ì‘äM†Žæ‚èž‚Ýiƒ‚ƒƒ“ƒ^ƒŠ & ”ñí’âŽ~‚Í ‰“Šu‘€ì‘ä—Dæj
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {
 	
 		//”ñí’âŽ~
@@ -349,7 +349,7 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt]	= pOteCsInf->gpad_in.pad_gt;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]	= pOteCsInf->gpad_in.pad_ah;
 	}
-	//PCƒpƒlƒ‹‚Ìƒmƒbƒ`PB“ü—Í‚Í‘€ì‘ä‚Ü‚½‚ÍGPADŽw—ßOFF‚ÌŽž‚Ì‚Ý—LŒø
+	//PCƒpƒlƒ‹‚Ìƒmƒbƒ`PB“ü—Í‚Í‘€ì‘ä‚Ü‚½‚ÍGPADŽw—ßOFF‚ÌŽž‚Ì‚Ý—LŒø(‘¼Ý’è’l‚ª0‚ÌŽž‚Ì‚Ýã‘‚«
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_PCPNL) {
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_bh];

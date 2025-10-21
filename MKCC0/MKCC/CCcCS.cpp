@@ -256,18 +256,18 @@ int CCcCS::parse() {
 			plamp_com[OTE_PNL_CTRLS::estop].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->estop).i16;
 
 			if (pCrane->pPlc->rval(pPlcRIf->syukan_mc_comp).i16) {
-				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_OFF;
+				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_OFF;
 				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
 			}
 			else {
-				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_ON;
+				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_ON;
 				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
 			}
 			pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
 			pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
 
-			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
-			plamp_com[OTE_PNL_CTRLS::bypass].st.com = CODE_PNL_COM_ON;
+			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com	= (UINT8)pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
+			plamp_com[OTE_PNL_CTRLS::bypass].st.com			= CODE_PNL_COM_ON;
 
 			//#PLC側CSスイッチの状態
 			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com	= (UINT8)pPLC_IO->stat_mh.mode;
