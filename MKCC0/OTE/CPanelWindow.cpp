@@ -1648,7 +1648,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 			}
 			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE3) {
-				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_CHECKED, 0);  
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);

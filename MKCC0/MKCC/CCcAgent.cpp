@@ -381,14 +381,13 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->absocoder_gt, pSim_Inf->absocoder_gt);
 
 	//速度FB(INVの出力）
-	pCrane->pPlc->wval(pPlcWIf->vfb_mh, INT16((double)pSim_Inf->vfb_mh * 1.254));//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
-	pCrane->pPlc->wval(pPlcWIf->vfb_bh, INT16((double)pSim_Inf->vfb_bh* 3.2));	//4000/1200 ： 速度FBは4000が120％　vfbは0.1%単位
-	pCrane->pPlc->wval(pPlcWIf->vfb_sl, INT16((double)pSim_Inf->vfb_sl*3.2));	//4000/2000 ： 速度FBは4000が200％　vfbは0.1%単位
-	pCrane->pPlc->wval(pPlcWIf->vfb_gt, INT16((double)pSim_Inf->vfb_gt*3.2));	//3200/1000 ： 速度FBは3200が100％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_mh, INT16((double)pSim_Inf->vfb_mh * 1.254));	//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_bh, INT16((double)pSim_Inf->vfb_bh* 3.2));		//4000/1200 ： 速度FBは4000が120％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_sl, INT16((double)pSim_Inf->vfb_sl*3.2));		//4000/2000 ： 速度FBは4000が200％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->vfb_gt, INT16((double)pSim_Inf->vfb_gt*3.2));		//3200/1000 ： 速度FBは3200が100％　vfbは0.1%単位
 	//トルク指令(INV出力）
 	pCrane->pPlc->wval(pPlcWIf->trqref_mh, pSim_Inf->trq_ref_mh);
 	pCrane->pPlc->wval(pPlcWIf->trqref_bh, pSim_Inf->trq_ref_bh);
-
 	//モーメントリミッタフック質量,半径
 	pCrane->pPlc->wval(pPlcWIf->mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
 	pCrane->pPlc->wval(pPlcWIf->mlim_r_ai, pSim_Inf->mlim_r_AI);//0.1m単位
@@ -396,6 +395,7 @@ int CAgent::parse() {
 	
 	//旋回ブレーキ制御
 	manage_slbrk();
+
 	return S_OK;
 }
 
@@ -407,13 +407,13 @@ static INT16 healthy_count = 0;
 int CAgent::output() {
 	//ヘルシー出力
 	pPLC_IO->plc_enable = plc_healthy_chk_count;
-
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
 
 	//PLC IO送信データ出力
 	//送信は 共有メモリに設定後、送信バッファにコピー（受信は直接共有メモリに読み込む）
 	//memcpy_s(&st_work_plcio.buf_io_write,sizeof(pPLC_IO->buf_io_write),pPLC_IO->buf_io_write, sizeof(pPLC_IO->buf_io_write));
+
 
 	return S_OK;
 }

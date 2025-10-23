@@ -174,8 +174,8 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//trqref_bh
 
 	//モーメントリミッタ
-	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//h_mh_mm	//モーメントリミッタ荷重AI
-	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},//r_bh_mm	//モーメントリミッタ旋回半径AI
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//h_mh_mm	//モーメントリミッタ荷重AI
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//r_bh_mm	//モーメントリミッタ旋回半径AI
 
 };
 
@@ -328,8 +328,8 @@ int CPlc::setup(int crane_id) {
 			plc_io_wif = plc_io_wdef0;	//IOデータインスタンスバッファ先頭アドレス
 			p = pbuf_w;					//書き込みバッファ先頭アドレス
 			//PLC制御
-			i = 0;plc_io_wif.pc_healthy.pi16 = p + i;
-			i = 1;plc_io_wif.pc_ctrl_mode.pi16 = p + i;
+			i = 0;	plc_io_wif.pc_healthy.pi16 = p + i;
+			i = 1;	plc_io_wif.pc_ctrl_mode.pi16 = p + i;
 			//運転室
 			i = 15;//遠隔追加スイッチ
 			plc_io_wif.mercury_lamp_sw1.pi16
@@ -393,6 +393,7 @@ int CPlc::setup(int crane_id) {
 			plc_io_wif.trqref_mh.pi16		= p + 74;
 			plc_io_wif.trqref_bh.pi16		= p + 75;
 
+			//モーメントリミッタAI
 			plc_io_wif.mlim_r_ai.pi16		= p + 3;
 			plc_io_wif.mlim_weight_ai.pi16	= p + 4;
 		}

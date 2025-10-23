@@ -75,10 +75,6 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0 * pspec->base_sl.Gear_ratio);
 
 	//operation panel　初期設定
-	set_func_pb_txt();
-	set_item_chk_txt();
-	set_panel_tip_txt();
-
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
 	for (int i = 1; i < 6; i++)
@@ -86,6 +82,10 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	//モード設定0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
+
+	set_func_pb_txt();
+	set_item_chk_txt();
+	set_panel_tip_txt();
 
 	return S_OK;
 }
@@ -110,10 +110,10 @@ int CSim::input() {
 }
 
 int CSim::parse() {					//メイン処理
-	set_sensor_fb();						// センサフィードバック設定
-	calc_axis_motion();						// 軸動作計算
-	calc_load_motion();						// 吊荷動作計算
-	calc_plc_output();						// PLC出力計算
+	set_sensor_fb();				// センサフィードバック設定
+	calc_axis_motion();				// 軸動作計算
+	calc_load_motion();				// 吊荷動作計算
+	calc_plc_output();				// PLC出力計算
 	return S_OK;
 }
 int CSim::output() {						//出力処理
@@ -211,10 +211,10 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		st_sim_inf.absocoder_gt += (INT32)(pEnv_Inf->crane_stat.nd[ID_GANTRY].v * inf.dt * st_work.axis[ID_GANTRY].RpsABSOCntSec);	//他は未使用なので0
 	}
 	//荷重
-	st_work.weight_mh=pspec->st_struct.Whook;								//フック質量
-	st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh/80000.0 * 1600);	//フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
-	
-	st_sim_inf.mlim_r_AI = (INT16)(pEnv_Inf->crane_stat.r.p/50000 * 1600);	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
+	st_work.weight_mh=pspec->st_struct.Whook + st_work.axis[ID_HOIST].load.m;	//フック質量
+	st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh/80000.0 * 1600);		//フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
+	//旋回半径	
+	st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.r.p-30.0)/50.0*1600.0);	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
 	return S_OK;
 }            
 
@@ -430,6 +430,7 @@ LRESULT CALLBACK CSim::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg) {
 	case WM_COMMAND:
 		switch (LOWORD(wp)) {
+		//### Function Radio Button 処理
 		case IDC_TASK_FUNC_RADIO1:
 		case IDC_TASK_FUNC_RADIO2:
 		case IDC_TASK_FUNC_RADIO3:
@@ -443,8 +444,16 @@ LRESULT CALLBACK CSim::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 		}break;
 
+		//### Item Check Box 処理
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1: {
+				wstring wstr;
+				int n = GetDlgItemText(hDlg, IDC_TASK_EDIT1, (LPTSTR)wstr.c_str(), 128);
+				if(n) st_work.axis[ID_HOIST].load.m = (double)stof(wstr.c_str());
+				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+
+			}break;
 			case IDC_TASK_FUNC_RADIO4:
 				set_item_chk_txt();
 				break;
@@ -593,7 +602,7 @@ void CSim::set_panel_tip_txt() {
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
 void CSim::set_func_pb_txt() {
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"Param");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
@@ -613,7 +622,14 @@ void CSim::set_item_chk_txt() {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
 	}break;
-	case IDC_TASK_FUNC_RADIO1:
+	case IDC_TASK_FUNC_RADIO1: {
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"MH LOAD");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
+	}break;
 	case IDC_TASK_FUNC_RADIO2:
 	case IDC_TASK_FUNC_RADIO3:
 	case IDC_TASK_FUNC_RADIO5:
