@@ -109,7 +109,7 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//â◊èd
 	//ógíˆÅ@ê˘âÒîºåa
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//h_mh_mm
-	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//r_bh_mm
+	{NULL,BITFF,				CODE_PLCIO_FLOAT,	0,0},	//r_bh_mm
 
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 

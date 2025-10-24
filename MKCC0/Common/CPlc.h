@@ -95,7 +95,7 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   erm_900;					// D10316:
 	INT16   erm_bo[8];					// D10317:電気室PLC b出力
 	INT32	mh_z;						// D10325:主巻揚程　D1010
-	INT32	r_01m;						// D10326:引込半径　D2772(W202)
+	float	r_mm;						// D10327:引込半径　D2774
 	INT16	spar0[4];					// D10327:予備
 	INT16	cv_tg[4];					// D10333:目標速度％
 	INT16	spar1[2];					// D10337:予備

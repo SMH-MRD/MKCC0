@@ -580,7 +580,7 @@ int COteCS::output() {
 
 	//##GOT‰^“]ŠÄŽ‹
 	pPcWBuf->mh_hight	= pBody->st_axis_set[ID_HOIST].pos_fb;	//—g’ö
-	pPcWBuf->mh_load	= pBody->st_load_stat->m;				//‰×d
+	pPcWBuf->mh_load	= pBody->st_load_stat[0].m/10.0;				//‰×d0.1t’PˆÊ¨t’PˆÊ
 	pPcWBuf->r			= pBody->st_axis_set[ID_BOOM_H].pos_fb;	//”¼Œa
 	pPcWBuf->wind_spd	= pBody->wind_spd;						//•—‘¬
 	

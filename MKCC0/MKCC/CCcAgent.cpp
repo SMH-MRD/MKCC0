@@ -180,7 +180,8 @@ int CAgent::input() {
 //### PLCM†‚ð‹¤—Lƒƒ‚ƒŠ‚É“WŠJ
 	//## ˆÊ’uiEnvironment‚ÌŒvŽZ’lj
 	pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//ŽåŠªˆÊ’u
-	pPLC_IO->stat_bh.pos_fb = (float)pEnv_Inf->crane_stat.r.p;				//ù‰ñ”¼Œa
+	//pPLC_IO->stat_bh.pos_fb = (float)pEnv_Inf->crane_stat.r.p;			//ù‰ñ”¼Œa
+	pPLC_IO->stat_bh.pos_fb = pPLC_IO->r;									//ù‰ñ”¼Œa
 	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//ù‰ñŠp“x
 	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//‘–sˆÊ’u 
 
@@ -277,7 +278,7 @@ int CAgent::input() {
 	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH‰×d
 
 	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32)/1000.0;	//—g’ö
-	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_mm).i32)/1000.0;		//”¼Œa
+	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_mm).f)/1000.0;		//”¼Œa
 
 	//### PB,SW,LAMP,etc
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren] = pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
