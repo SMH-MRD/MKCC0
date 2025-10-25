@@ -74,6 +74,9 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	//旋回360°回転PGカウント= ピニオン1回転カウント×TTB径/ピニオン径*減速比
 	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0 * pspec->base_sl.Gear_ratio);
 
+	//風速AI値
+	st_sim_inf.wind_spd_AI = (INT16)(5.5 * 4000 / 60);//0-4000 0-60m/s
+
 	//operation panel　初期設定
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
@@ -213,8 +216,13 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 	//荷重
 	st_work.weight_mh=pspec->st_struct.Whook + st_work.axis[ID_HOIST].load.m;	//フック質量
 	st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh/80000.0 * 1600);		//フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
+
 	//旋回半径	
 	st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.r.p-30.0)/50.0*1600.0);	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
+	
+	//風速 オペレーションパネルで入力
+	
+	
 	return S_OK;
 }            
 
@@ -451,7 +459,24 @@ LRESULT CALLBACK CSim::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 				wstring wstr;
 				int n = GetDlgItemText(hDlg, IDC_TASK_EDIT1, (LPTSTR)wstr.c_str(), 128);
 				if(n) st_work.axis[ID_HOIST].load.m = (double)stof(wstr.c_str());
+				//チェックを外す
 				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+
+			}break;
+			case IDC_TASK_FUNC_RADIO4:
+				set_item_chk_txt();
+				break;
+			default:break;
+			}
+		}break;
+		case IDC_TASK_ITEM_CHECK2: {
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1: {
+				wstring wstr;
+				int n = GetDlgItemText(hDlg, IDC_TASK_EDIT2, (LPTSTR)wstr.c_str(), 128);
+				if (n) st_sim_inf.wind_spd_AI = (INT16)stoi(wstr.c_str()) * 4000/600;
+				//チェックを外す
+				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2), BM_SETCHECK, BST_UNCHECKED, 0L);
 
 			}break;
 			case IDC_TASK_FUNC_RADIO4:
@@ -461,7 +486,6 @@ LRESULT CALLBACK CSim::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 
 		}break;
-		case IDC_TASK_ITEM_CHECK2:
 		case IDC_TASK_ITEM_CHECK3:
 		case IDC_TASK_ITEM_CHECK4:
 		case IDC_TASK_ITEM_CHECK5:
@@ -577,7 +601,12 @@ void CSim::set_panel_tip_txt() {
 		wstr = L"6:-";
 		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM8), wstr.c_str());
 	}break;
-	case IDC_TASK_FUNC_RADIO1:
+	case IDC_TASK_FUNC_RADIO1: {
+		wstr = L"1:0.1トン単位";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM3), wstr.c_str());
+		wstr = L"2:-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM4), wstr.c_str());
+	}break;
 	case IDC_TASK_FUNC_RADIO2:
 	case IDC_TASK_FUNC_RADIO3:
 	case IDC_TASK_FUNC_RADIO5:
@@ -624,7 +653,7 @@ void CSim::set_item_chk_txt() {
 	}break;
 	case IDC_TASK_FUNC_RADIO1: {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"MH LOAD");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"WIND_SPD");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");

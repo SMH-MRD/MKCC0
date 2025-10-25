@@ -143,6 +143,7 @@ typedef struct _ST_CC_PLC_IO {
 	double	dth_bh;									//起伏角速度
 	double	h_mh;									//揚程
 	double  r;										//半径
+	double  wind_spd;								//風速
 
 	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLCからの読み取り信号生値
 	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLCへの書き込み信号生値
@@ -558,6 +559,7 @@ typedef struct _ST_CC_SIM_INF {
 	INT16 trq_ref_mh;					//主巻トルク指令計算値
 	INT16 trq_ref_bh;					//引込トルク指令計算値
 
+	INT16 wind_spd_AI;					//モーメントリミッタ半径AI入力計算値
 }ST_CC_SIM_INF, * LPST_CC_SIM_INF;
 #pragma endregion シミュレーション信号定義構造体
 

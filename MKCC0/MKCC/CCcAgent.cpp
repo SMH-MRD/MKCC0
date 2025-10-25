@@ -179,7 +179,8 @@ int CAgent::input() {
 
 //### PLC信号を共有メモリに展開
 	//## 位置（Environmentの計算値）
-	pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
+	pPLC_IO->stat_mh.pos_fb = pPLC_IO->h_mh;
+	//pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
 	//pPLC_IO->stat_bh.pos_fb = (float)pEnv_Inf->crane_stat.r.p;			//旋回半径
 	pPLC_IO->stat_bh.pos_fb = pPLC_IO->r;									//旋回半径
 	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//旋回角度
@@ -279,6 +280,9 @@ int CAgent::input() {
 
 	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32)/1000.0;	//揚程
 	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_mm).f)/1000.0;		//半径
+
+	//###風速
+	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->wind_spd_01m).i16)/10.0;	//風速m/s単位
 
 	//### PB,SW,LAMP,etc
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren] = pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
@@ -392,6 +396,8 @@ int CAgent::parse() {
 	//モーメントリミッタフック質量,半径
 	pCrane->pPlc->wval(pPlcWIf->mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
 	pCrane->pPlc->wval(pPlcWIf->mlim_r_ai, pSim_Inf->mlim_r_AI);//0.1m単位
+	//風速
+	pCrane->pPlc->wval(pPlcWIf->wind_spd_ai, pSim_Inf->wind_spd_AI);//0.1m単位
 
 	
 	//旋回ブレーキ制御

@@ -344,6 +344,9 @@ typedef struct _ST_PLC_IO_RIF {
 	ST_PLC_IO_DEF h_mh_mm;
 	ST_PLC_IO_DEF r_bh_mm;
 
+	//風速
+	ST_PLC_IO_DEF wind_spd_01m;
+
 }ST_PLC_IO_RIF, * LPST_PLC_IO_RIF;
 
 typedef struct _ST_PLC_IO_WIF {
@@ -409,6 +412,9 @@ typedef struct _ST_PLC_IO_WIF {
 	//モーメントリミッタ
 	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
 	ST_PLC_IO_DEF mlim_r_ai;		//モーメントリミッタ旋回半径AI
+
+	//風速
+	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
 
 }ST_PLC_IO_WIF, * LPST_PLC_IO_WIF;
 
