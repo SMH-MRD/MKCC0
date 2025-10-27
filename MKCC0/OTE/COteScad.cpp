@@ -283,6 +283,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+		pOteUI->hWnd_crane_ope_panel = hWnd;
 		break;
 	}
 
@@ -293,6 +294,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}break;
 	case WM_DESTROY: {
 		st_mon1.hwnd_mon = NULL;
+		pOteUI->hWnd_crane_ope_panel = NULL;
 		KillTimer(hWnd, OTE_SCAD_ID_MON1_TIMER);
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();

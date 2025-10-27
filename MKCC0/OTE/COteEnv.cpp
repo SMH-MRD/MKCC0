@@ -109,10 +109,15 @@ int COteEnv::parse() {
 	//GOT 接続コマンド処理
 	if (pOteCsInf->GOT_command > got_command_last) {
 		int command = pOteCsInf->GOT_command ^ got_command_last;
+
+
 		if (command & OTE_OPE_GOT_COM_CONNECT_CRANE) {
 			if (pOteCCIf->id_conected_crane == CRANE_ID_NULL) {//クレーン接続済でなければ
-				HRESULT hr=open_ope_window(pOteCsInf->GOT_crane_select);
-				close_monitor_wnd(BC_ID_MON1);
+				//HRESULT hr=open_ope_window(pOteCsInf->GOT_crane_select);
+
+				WPARAM wp = pOteCsInf->GOT_crane_select;
+				LPARAM lp = BC_ID_MON1;
+				SendMessage(st_mon1.hwnd_mon, WM_USER_OPEN_CRANE_WND, wp, lp);
 			}
 
 		}
@@ -152,7 +157,6 @@ HRESULT COteEnv::open_ope_window(int crane_id_selected) {
 			pOteEnvInf->selected_crane = st_work.selected_crane = crane_id_selected;
 			pScadObj->open_ope_window();
 			crane_id_selected = CRANE_ID_NULL;
-
 			close_monitor_wnd(BC_ID_MON1);
 		}
 		else {
@@ -266,7 +270,9 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
-
+	case WM_USER_OPEN_CRANE_WND: {//クレーン操作ウィンドウオープン要求
+		open_ope_window(LOWORD(wp));
+	}break;
 	case WM_CTLCOLORSTATIC:
 		SetTextColor((HDC)wp, RGB(0, 150, 220)); // ダークブルー
 		SetBkMode((HDC)wp, TRANSPARENT);

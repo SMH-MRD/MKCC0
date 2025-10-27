@@ -139,6 +139,8 @@ using namespace Gdiplus;
 #define WM_USER_TASK_REQ         0x0405         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD  
 #define WM_USER_SET_BK_COLOR_REQ 0x0406         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD
 #define WM_USER_GOT_COMMAND      0x0407         // wp コマンドコード　lp パラメータ
+#define WM_USER_OPEN_CRANE_WND   0x0408         // クレーン操作パネルOPEN要求
+
 
 #define WM_USER_WPH_OPEN_IF_WND  0x0001         // wp HWORD　code IFウィンドウOPEN 
 #define WM_USER_WPH_CLOSE_IF_WND 0x0002         // wp HWORD  code IFウィンドウCLOSE

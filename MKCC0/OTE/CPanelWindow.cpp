@@ -496,6 +496,8 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	switch (msg)
 	{
 	case WM_CREATE: {
+		pUi->hWnd_crane_ope_panel = hWnd;//操作パネルウィンドウハンドルセット
+
 		pUi->pc_pnl_active = L_ON;
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
@@ -857,8 +859,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	}return true;
 
 	case WM_DESTROY: {
-		hWnd = NULL;
+		//hWnd = NULL;
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
+		pUi->hWnd_crane_ope_panel = NULL;//操作パネルウィンドウハンドルセット
 		pUi->pc_pnl_active = L_OFF;
 		pEnvObj->clear_crane_if();
 		//### オープニング画面を再表示

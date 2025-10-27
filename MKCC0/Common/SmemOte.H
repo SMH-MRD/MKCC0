@@ -170,7 +170,8 @@ typedef struct _ST_OTE_UI {
 	INT16 notch_pb_sl;
 	INT16 notch_pb_gt;
 	INT16 notch_pb_ah;
-	INT16 flt_req_code;		//フォルト要求コード
+	INT16 flt_req_code;						//フォルト要求コード
+	HWND  hWnd_crane_ope_panel = NULL;		//操作パネルウィンドウハンドル  
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 

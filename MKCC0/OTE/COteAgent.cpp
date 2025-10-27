@@ -283,6 +283,9 @@ int COteAgent::output() {          //出力処理
 	
 	//CC通信状態ステータスセット（CSモニタ用）
 	pOteCCIf->cc_comm_chk_cnt = st_work.cc_comm_chk_cnt;
+	
+	if (pOteUI->hWnd_crane_ope_panel == NULL)
+		pOteCCIf->id_conected_crane = NULL;
 
 	return STAT_OK;
 }
