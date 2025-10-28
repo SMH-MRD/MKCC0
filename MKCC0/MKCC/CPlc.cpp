@@ -45,8 +45,8 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0},	//sl_notch;
 	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0},	//sl_hydr_press_sw;	旋回油圧圧力スイッチ
 	//B2B0
-	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	// fault_bz;			//故障ブザー	
-	{NULL,BIT4,					CODE_PLCIO_BIT,		0,0},	//auto_kyusi	旋回自動給脂装置ランプ
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},	// fault_bz;		故障ブザー	
+	{NULL,BIT4,					CODE_PLCIO_BIT,		0,0},	//auto_kyusi		旋回自動給脂装置ランプ
 	//B160
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//syukan_comp_bz;	//主幹投入完了  Bz
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0},	//syukan_mc_comp;	//主幹MC投入完了
@@ -327,7 +327,8 @@ int CPlc::setup(int crane_id) {
 			plc_io_rif.r_bh_mm.pi16 = p+27;
 			//風速
 			plc_io_rif.wind_spd_01m.pi16 = p + 5;
-
+			//ブザー
+			plc_io_rif.fault_bz.pi16 = p + 38;
 		}
 		//WRITE
 		{

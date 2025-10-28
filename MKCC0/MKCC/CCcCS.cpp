@@ -237,7 +237,7 @@ int CCcCS::parse() {
 	
 	//### OTE送信データ設定
 		//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
-		//## ランプ表示指令
+		//## ランプ,ブザー表示指令
 	{
 		UN_LAMP_COM* plamp_com = st_ote_work.st_body.lamp;
 		if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
@@ -293,6 +293,9 @@ int CCcCS::parse() {
 			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = pPLC_IO->stat_bh.notch_ref;
 			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = pPLC_IO->stat_sl.notch_ref;
 			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = pPLC_IO->stat_gt.notch_ref;
+
+			//#ブザー,故障、警報ランプ
+			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->fault_bz).i16;
 		}
 
 		//##　故障情報セット
@@ -302,7 +305,6 @@ int CCcCS::parse() {
 		st_ote_work.st_body.st_load_stat[0].m		= (float)pEnv_Inf->crane_stat.m;		//荷重
 		st_ote_work.st_body.bh_angle				= (float)pEnv_Inf->crane_stat.th.p;		//起伏角度
 		st_ote_work.st_body.wind_spd				= (float)pPLC_IO->wind_spd;		//起伏角度
-
 
 		//## 各軸状態
 		st_ote_work.st_body.st_axis_set[ID_HOIST]	= pPLC_IO->stat_mh;	//主巻
@@ -382,7 +384,8 @@ void CCcCS::set_ote_flt_info() {
 		}
 		flt_count = N_OTE_PC_SET_PLC_FLT + N_OTE_PC_SET_PC_FLT;
 	}
-	else {							//現在発生分要求時
+	else {	
+		flt_count = 0;
 		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {//PLC IOの故障バッファ数ループ
 			i16work = disp_mask[i] & pEnv_Inf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][i];
 

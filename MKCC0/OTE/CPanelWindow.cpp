@@ -1285,6 +1285,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		int fltcode = 0;
 		int ncc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count
 			+ pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count;
+		int nplc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count;
 		int n = ncc + pCsInf->rpc_flt_count;
 		
 		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
@@ -1328,7 +1329,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			bk_checked = 0;
 		}
 		else{
-			for (int i = 0; i < ncc; i++) {//クレーン側セット分チェック
+			for (int i = 0; i < nplc; i++) {//クレーン側セット分チェック
 				fltcode = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.codes_plc[i];
 				flttype = pCrane->pFlt->flt_list.plc_faults[fltcode].type;
 				if ((flttype <= 3) && flttype) {//重故障 =1 or 2 or 3

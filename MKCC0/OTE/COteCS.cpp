@@ -504,10 +504,16 @@ int COteCS::parse()
 		//警報ランプ
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::alm_lamp].code)	plc_yo_buf |= 0x0200;
 		//ブザー
-		INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].st.com;
-		bz_code <<= 12;
-		plc_yo_buf |= bz_code;
-
+		INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].code;
+		plc_yo_buf &= 0x0FFF;
+		if (bz_code) {
+			if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//故障
+			else if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//重故障
+			else if (bz_code & 0x0002)plc_yo_buf |= 0x2000;	//主幹投入
+			else if (bz_code & 0x0004)plc_yo_buf |= 0x4000;	//渋滞
+			else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//軽故障
+			else;
+		}
 		//#↑でセットした内容をIFバッファにセット
 		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 = plc_yo_buf;
 
