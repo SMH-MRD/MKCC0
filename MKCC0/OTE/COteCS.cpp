@@ -503,6 +503,8 @@ int COteCS::parse()
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::fault_lamp].code)plc_yo_buf |= 0x0100;
 		//Œx•ñƒ‰ƒ“ƒv
 		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::alm_lamp].code)	plc_yo_buf |= 0x0200;
+		//‰^“]€”õŠ®—¹ƒ‰ƒ“ƒv
+		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code)	plc_yo_buf |= 0x0800;
 		//ƒuƒU[
 		INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].code;
 		plc_yo_buf &= 0x0FFF;

@@ -295,7 +295,12 @@ int CCcCS::parse() {
 			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = pPLC_IO->stat_gt.notch_ref;
 
 			//#ブザー,故障、警報ランプ
-			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->fault_bz).i16;
+			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->fault_bz).i16 & 0x000F;
+			plamp_com[OTE_PNL_CTRLS::fault_lamp].code = pCrane->pPlc->rval(pPlcRIf->fault_pl).i16;
+
+			plamp_com[OTE_PNL_CTRLS::alm_lamp].code = plamp_com[OTE_PNL_CTRLS::fault_lamp].code;
+			plamp_com[OTE_PNL_CTRLS::ope_ready].code = pCrane->pPlc->rval(pPlcRIf->syukairo_comp).i16;
+
 		}
 
 		//##　故障情報セット

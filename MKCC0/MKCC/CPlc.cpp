@@ -243,10 +243,12 @@ int CPlc::setup(int crane_id) {
 			= plc_io_rif.sl_hydr_press_sw.pi16
 			= p + i;
 
+			//自動給脂ランプ
 			i = 14;
-			plc_io_rif.fault_bz.pi16
-				= plc_io_rif.auto_kyusi.pi16
+			plc_io_rif.auto_kyusi.pi16
 				= p + i;
+			//ブザー
+			plc_io_rif.fault_bz.pi16 = p + 38;
 
 			i = 15;
 			plc_io_rif.syukan_comp_bz.pi16
@@ -327,8 +329,7 @@ int CPlc::setup(int crane_id) {
 			plc_io_rif.r_bh_mm.pi16 = p+27;
 			//風速
 			plc_io_rif.wind_spd_01m.pi16 = p + 5;
-			//ブザー
-			plc_io_rif.fault_bz.pi16 = p + 38;
+
 		}
 		//WRITE
 		{
