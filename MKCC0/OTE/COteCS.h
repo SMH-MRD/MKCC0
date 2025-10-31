@@ -7,6 +7,10 @@
 #include "CValue.h"
 
 
+#define MODE_OTE_CS_APP_PRODUCT     0
+#define MODE_OTE_CS_APP_DEBUG       1
+#define MODE_OTE_CS_APP_DEBUG2      2
+
 //MON1----------------------------------------------------
 #define OTE_CS_MON1_WND_X            640
 #define OTE_CS_MON1_WND_Y            0
@@ -71,6 +75,8 @@ typedef struct _ST_OTE_CS_MON1 {
 #define OTE_CS_MON2_MSG_DISP_OFF 0
 #define OTE_CS_MON2_MSG_DISP_HEX 1
 #define OTE_CS_MON2_MSG_DISP_DEC 2
+#define OTE_CS_MON2_MSG_DISP_IO  3
+
 
 #define N_OTE_CS_MON2_MSG_RBLK   8
 #define N_OTE_CS_MON2_MSG_WBLK   8
@@ -89,6 +95,7 @@ typedef struct _ST_OTE_CS_MON1 {
 #define OTE_CS_ID_MON2_PB_W_BLOCK_SEL    17  //読み込み表示ブロック切替PB
 #define OTE_CS_ID_MON2_PB_MSG_DISP_SEL   18  //メッセージ表示/非表示切替PB
 #define OTE_CS_ID_MON2_PB_DISP_DEC_SEL   19 //10進/16進表示切替PB
+#define OTE_CS_ID_MON2_CB_DISP_IO        20 //10進/16進表示切替PB
 
 #define OTE_CS_MON2_MSG_DISP_N__DATAROW      4
 #define OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN   10
@@ -112,19 +119,19 @@ typedef struct _ST_OTE_CS_MON2 {
     POINT pt[OTE_CS_MON2_N_CTRL] = {
         5,5, 5,30, 5,55, 5,80, 5,175, 5,290,0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        570,55, 570,290, 510,5, 565,5, 0,0, 0,0, 0,0, 0,0,//PB
+        570,55, 570,290, 510,5, 565,5, 455,5, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[OTE_CS_MON2_N_CTRL] = {
         615,20, 615,20, 565,20, 615,90, 615,110,565,20, 0,0, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,//PB
+        50,20, 50,20, 50,20, 50,20, 50,20, 0,0, 0,0, 0,0,//PB
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[OTE_CS_MON2_N_CTRL][OTE_CS_MON2_N_WCHAR] = {
         L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"次R", L"次W", L"非表示", L"10進", L"", L"", L"", L"",//PB
+        L"次R", L"次W", L"非表示", L"10進", L"IO", L"", L"", L"",//PB
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_OTE_CS_MON2, * LPST_OTE_CS_MON2;

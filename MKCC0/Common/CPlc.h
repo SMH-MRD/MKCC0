@@ -189,7 +189,7 @@ typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16	ai_sl_foot;								// D10610:
 	INT16	ai_spare[3];							// D10611:
 	INT16	xin[10];								// D10614-23:
-	INT16   spare1[3];								// D10624: 
+	INT16   Yout[3];								// D10624: 
 	INT16   mh_mode_cs;								// D10627: 
 	INT16   bh_mode_cs;								// D10628: 
 	INT16   lamp_sw;								// D10629

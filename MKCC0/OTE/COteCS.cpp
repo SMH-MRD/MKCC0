@@ -49,6 +49,9 @@ static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
 static ST_PLC_IO_RIF* pPlcRIf = NULL;
 
+static LPST_PLC_RBUF_HHGG38 pin_opepnl;
+static INT16 dbg_plc_yout[4];
+
 COteCS::COteCS() {
 	st_obj.remote_pb.set(0); st_obj.remote_mode.set(0); st_obj.game_pad_pb.set(0);
 }
@@ -86,6 +89,8 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
+
+
 	//### IFウィンドウ  MON2 OPEN PLC通信
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 	LPARAM lp = BC_ID_MON2;
@@ -120,17 +125,20 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	//モード設定0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
+		
 	//モニタウィンドウテキスト	
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Debug");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Debug2");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"PLC IF");
-	//モニタウィンドウテキスト	
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"GPAD IF");
 	set_item_chk_txt();
 	set_panel_tip_txt();
 	//モニタ２ CB状態セット	
-	if (st_mon2.hwnd_mon != NULL)
-		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
-	else
-		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+	//if (st_mon2.hwnd_mon != NULL)
+	//	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
+	//else
+	//	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
 	st_obj.pad_mh=new CPadNotch(pCrane->get_base_mh(), ID_HOIST);
 	st_obj.pad_bh=new CPadNotch(pCrane->get_base_bh(), ID_BOOM_H);
@@ -161,18 +169,21 @@ HRESULT COteCS::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
-
 /// <summary>
 /// #### 操作入力内容の取り込み
 /// #### 信号の内容によってSource(操作台,PC Winパネル,GPadを選択して取り込み
 /// </summary>
 /// <returns></returns>
+
+
 int COteCS::input(){
 
 	memset(pOteCsInf->pnl_ctrl, 0, sizeof(pOteCsInf->pnl_ctrl));//パネル入力クリア
 
+
 	//### 操作卓PLC信号取り込み(pOteCsInf->buf_opepnl_readにMCプロトコルで読込)
-	LPST_PLC_RBUF_HHGG38 pin_opepnl = (LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read;//操作卓信号入力// 
+	if(pin_opepnl==NULL)
+		pin_opepnl = (LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read;//操作卓信号入力// 
 
 	//### PCWindowパネル信号取り込み(pOteUi->pnl_ctrl[])
 	//## ScadでpOteUi->pnl_ctrl[]にセットされている	
@@ -236,7 +247,7 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camAselect]		= pin_opepnl->xin[2] & 0x1c00;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camBselect]		= pin_opepnl->xin[2] & 0xe000;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::irisA]			= pin_opepnl->xin[0] & 0x3000;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::irisB]			= pin_opepnl->xin[4] & 0xc000;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::irisB]			= pin_opepnl->xin[0] & 0xc000;
 
 		//自動,、遠隔（タッチパネル）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote]			= pin_opepnl->auto_sw & 0x0001;
@@ -250,17 +261,16 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		= pin_opepnl->auto_sw & 0x0200;
 
 		//遠隔操作台優先（オルタネートSW）
+		//照明
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1]		= pin_opepnl->lamp_sw & 0x0001;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2]		= pin_opepnl->lamp_sw & 0x0002;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3]		= pin_opepnl->lamp_sw & 0x0004;
+		//CS
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]		= pin_opepnl->mh_mode_cs;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pin_opepnl->bh_mode_cs;
+		//旋回ブレーキ
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pin_opepnl->notch_L1;
-
-		//照明
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] = pin_opepnl->lamp_sw & 0x0001;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2] = pin_opepnl->lamp_sw & 0x0002;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3] = pin_opepnl->lamp_sw & 0x0004;
+	
 	}
 	else {//オルタネートSWは操作台無効時のみPCパネル指令受付（GpadはオルタネートSW無し）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] ;
@@ -516,6 +526,12 @@ int COteCS::parse()
 			else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//軽故障
 			else;
 		}
+
+		//デバッグ用　opepanのMode1スイッチでFunc1のチェックBOX1のトリガでEDIT BOXにセットしたビットのみ強制出力
+		if(inf.mode_id == MODE_OTE_CS_APP_DEBUG){
+				plc_yo_buf = dbg_plc_yout[0];
+		}
+
 		//#↑でセットした内容をIFバッファにセット
 		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 = plc_yo_buf;
 
@@ -760,6 +776,11 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(OTE_CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
+		//CB
+		int i = OTE_CS_ID_MON2_CB_DISP_IO;
+		st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX ,
+			st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
+			hWnd, (HMENU)(OTE_CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
 
 		UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, OTE_CS_PRM_MON2_TIMER_MS, NULL);
 
@@ -796,37 +817,47 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			else snd_count_plc_w++;
 
 			if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
-
-				st_mon2.wo_req_w << L"Sw>>"
-					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
-					<< L"#serial:" << pMCSock->mc_req_msg_w.serial
-					<< L"#NW:" << pMCSock->mc_req_msg_w.nNW
-					<< L"#PC:" << pMCSock->mc_req_msg_w.nPC
-					<< L"#UIO:" << pMCSock->mc_req_msg_w.nUIO
-					<< L"#Ucd:" << pMCSock->mc_req_msg_w.nUcode
-					<< L"#len:" << pMCSock->mc_req_msg_w.len
-					<< L"#tm:" << pMCSock->mc_req_msg_w.timer
-					<< L"#com:" << pMCSock->mc_req_msg_w.com
-					<< L"#scom:" << pMCSock->mc_req_msg_w.scom << L"\n"
-					<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
-					<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
-					<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
-
-				//st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opepnl_write[0];
-				//データ部分1ページ10WORD　4行で切替表示
-				for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
-					int no = OTE_MC_ADDR_W_WRITE + i_page_w * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
-					st_mon2.wo_req_w << L"D" << dec << no << L" |";
-					if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
-					for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
-						if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
-							st_mon2.wo_req_w << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
-						else
-							st_mon2.wo_req_w << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
-					}
-					st_mon2.wo_req_w << L"\n";
+				if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_IO) {
+					st_mon2.wo_req_w << L"送信内容\n";
+					st_mon2.wo_req_w << L"Y80-8F【" << ((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 << L"】";
+					st_mon2.wo_req_w << L"0,1:主高 2,3:走高 4,5:補高 6,7:主幹 8:故障 9:警報 B:運準 C-F:Buzzer\n";
 				}
+				else {
 
+					if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
+						st_mon2.wo_req_w << std::hex;
+					else
+						st_mon2.wo_req_w << std::dec;
+					st_mon2.wo_req_w << L"Sw>>"
+						<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
+						<< L"#serial:" << pMCSock->mc_req_msg_w.serial
+						<< L"#NW:" << pMCSock->mc_req_msg_w.nNW
+						<< L"#PC:" << pMCSock->mc_req_msg_w.nPC
+						<< L"#UIO:" << pMCSock->mc_req_msg_w.nUIO
+						<< L"#Ucd:" << pMCSock->mc_req_msg_w.nUcode
+						<< L"#len:" << pMCSock->mc_req_msg_w.len
+						<< L"#tm:" << pMCSock->mc_req_msg_w.timer
+						<< L"#com:" << pMCSock->mc_req_msg_w.com
+						<< L"#scom:" << pMCSock->mc_req_msg_w.scom << L"\n"
+						<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
+						<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
+						<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
+
+					//st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opepnl_write[0];
+					//データ部分1ページ10WORD　4行で切替表示
+					for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
+						int no = OTE_MC_ADDR_W_WRITE + i_page_w * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
+						st_mon2.wo_req_w << L"D" << dec << no << L" |";
+						if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
+						for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
+							if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
+								st_mon2.wo_req_w << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+							else
+								st_mon2.wo_req_w << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+						}
+						st_mon2.wo_req_w << L"\n";
+					}
+				}
 
 				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
@@ -844,10 +875,10 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 			if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 				st_mon2.wo_req_r << L"Sr>>"
-					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_r.subcode
+					<< L"#sub:"		<< std::hex << pMCSock->mc_req_msg_r.subcode
 					<< L"#serial:" << pMCSock->mc_req_msg_r.serial
-					<< L"#NW:" << pMCSock->mc_req_msg_r.nNW
-					<< L"#PC:" << pMCSock->mc_req_msg_r.nPC
+					<< L"#NW:"		<< pMCSock->mc_req_msg_r.nNW
+					<< L"#PC:"		<< pMCSock->mc_req_msg_r.nPC
 					<< L"#UIO:" << pMCSock->mc_req_msg_r.nUIO
 					<< L"#Ucd:" << pMCSock->mc_req_msg_r.nUcode
 					<< L"#len:" << pMCSock->mc_req_msg_r.len
@@ -941,7 +972,15 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				}
 			}
 		}break;
-		default:
+		case OTE_CS_ID_MON2_CB_DISP_IO: {
+
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[OTE_CS_ID_MON2_CB_DISP_IO], BM_GETCHECK, 0, 0))
+				st_mon2.msg_disp_mode = OTE_CS_MON2_MSG_DISP_HEX;
+			else 
+				st_mon2.msg_disp_mode = OTE_CS_MON2_MSG_DISP_IO;
+	
+		}break;
+ 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
@@ -954,33 +993,62 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (nEvent) {
 		case FD_READ: {
 			UINT nRtn = pMCSock->rcv_msg_3E(pOteCsInf->buf_opepnl_read);
+			
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
 				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
-					st_mon2.wo_res_r	<< L"Rr>>"
-						<< L"#sub:"		<< std::hex << pMCSock->mc_res_msg_r.subcode
-						<< L"#serial:"	<< pMCSock->mc_res_msg_r.serial
-						<< L"#NW:"		<< pMCSock->mc_res_msg_r.nNW
-						<< L"#PC:"		<< pMCSock->mc_res_msg_r.nPC
-						<< L"#UIO:"		<< pMCSock->mc_res_msg_r.nUIO
-						<< L"#Ucd:"		<< pMCSock->mc_res_msg_r.nUcode
-						<< L"#len:"		<< pMCSock->mc_res_msg_r.len
-						<< L"#end:"		<< pMCSock->mc_res_msg_r.endcode << L"\n";
 
-	//				st_mon2.wo_res_r	<< L"PLC HEALTHY:" << pOteCsInf->buf_opepnl_read[0] << L"\n";
-					for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
-						int no = OTE_MC_ADDR_W_READ + i_page_r * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
-						st_mon2.wo_res_r << L"D" << dec << no << L" |";
-						if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_res_r << hex;
-						for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
-							if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
-								st_mon2.wo_res_r << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_read[i_ref_r + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
-							else
-								st_mon2.wo_res_r << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_read[i_ref_r + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
-						}
-						st_mon2.wo_res_r << L"\n";
+					if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_IO) {
+						st_mon2.wo_res_r << L"受信内容\n";
+						st_mon2.wo_res_r <<dec<< L"Notch RX0:" << pin_opepnl->notch_RX0 << L" RY0:" << pin_opepnl->notch_RY0 << L" LX0:" << pin_opepnl->notch_LX0 << L" LY0:" << pin_opepnl->notch_LY0 << L" R1:" << pin_opepnl->notch_R1 << L" L1:" << pin_opepnl->notch_L1 << L" SLBLK:" << pin_opepnl->ai_sl_foot;
+						st_mon2.wo_res_r << hex << L" ESTP:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]
+							<< L" 主幹ON:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]
+							<< L" 主幹OFF:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_off]
+							<< L" ﾘｾｯﾄ:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::fault_reset]
+							<< L" ﾊﾞｲﾊﾟｽ:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bypass]
+							<< L" 警報停止:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::alm_stop]
+							<< L" ｻｲﾚﾝ:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::motor_siren]
+							<< L" 高圧ﾄﾛﾘ:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_trolley]
+							<< L" 高圧走行:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_gantry]
+							<< L" 高圧補機:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_aux]
+							<< L" camAadj:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camA_adjust]
+							<< L" camBadj:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camB_adjust]
+							<< L" camAsel:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camAselect]
+							<< L" camBsel:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camBselect]
+							<< L" irisA:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::irisA]
+							<< L" irisB:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::irisB]
+							<< L" lamp1:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1]
+							<< L" lamp2:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2]
+							<< L" lamp3:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3]
+							<< L" mh_spd:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]
+							<< L" bh_r:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode];
+
 					}
+					else {
+						st_mon2.wo_res_r << L"Rr>>"
+							<< L"#sub:" << std::hex << pMCSock->mc_res_msg_r.subcode
+							<< L"#serial:" << pMCSock->mc_res_msg_r.serial
+							<< L"#NW:" << pMCSock->mc_res_msg_r.nNW
+							<< L"#PC:" << pMCSock->mc_res_msg_r.nPC
+							<< L"#UIO:" << pMCSock->mc_res_msg_r.nUIO
+							<< L"#Ucd:" << pMCSock->mc_res_msg_r.nUcode
+							<< L"#len:" << pMCSock->mc_res_msg_r.len
+							<< L"#end:" << pMCSock->mc_res_msg_r.endcode << L"\n";
 
+						//				st_mon2.wo_res_r	<< L"PLC HEALTHY:" << pOteCsInf->buf_opepnl_read[0] << L"\n";
+						for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
+							int no = OTE_MC_ADDR_W_READ + i_page_r * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
+							st_mon2.wo_res_r << L"D" << dec << no << L" |";
+							if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_res_r << hex;
+							for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
+								if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
+									st_mon2.wo_res_r << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_read[i_ref_r + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+								else
+									st_mon2.wo_res_r << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_read[i_ref_r + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+							}
+							st_mon2.wo_res_r << L"\n";
+						}
+					}
 					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 
 					QueryPerformanceCounter(&end_count_r);    // 現在のカウント数
@@ -989,6 +1057,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					if (rcv_count_plc_r % 40 == 0) {
 						res_delay_max_r = 0;
 					}
+
 				}
 			}
 			else if (nRtn == MC_RES_WRITE) {
@@ -1191,9 +1260,17 @@ LRESULT CALLBACK COteCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
-			case IDC_TASK_FUNC_RADIO4:
-				set_item_chk_txt();
-				break;
+			case IDC_TASK_FUNC_RADIO1: {
+				wstring wstr;
+				int n = GetDlgItemText(hDlg, IDC_TASK_EDIT1, (LPTSTR)wstr.c_str(), 128);
+				if (n) {
+					int shift = stoi(wstr.c_str());
+					if((shift >= 0) &&(shift <= 15)) dbg_plc_yout[0] = 1<<shift;
+				}
+				else  dbg_plc_yout[0] = 0;
+				//チェックを外す
+				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+			}break;
 			default:break;
 			}
 
@@ -1225,19 +1302,6 @@ LRESULT CALLBACK COteCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		}break;
 
-		case IDC_TASK_MODE_RADIO0:
-		{
-			inf.mode_id = BC_ID_MODE0;
-		}break;
-		case IDC_TASK_MODE_RADIO1:
-		{
-			inf.mode_id = BC_ID_MODE1;
-		}break;
-		case IDC_TASK_MODE_RADIO2:
-		{
-			inf.mode_id = BC_ID_MODE2;
-		}break;
-
 		case IDC_TASK_MON_CHECK1:
 		{
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK1) == BST_CHECKED) {
@@ -1257,8 +1321,20 @@ LRESULT CALLBACK COteCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 				hide_monitor_wnd(BC_ID_MON2);
 			}
 		}break;
+		case IDC_TASK_MODE_RADIO0:
+		{
+			inf.mode_id = MODE_OTE_CS_APP_PRODUCT;
+		}break;
+		case IDC_TASK_MODE_RADIO1:
+		{
+			inf.mode_id = MODE_OTE_CS_APP_DEBUG;
+		}break;
+		case IDC_TASK_MODE_RADIO2:
+		{
+			inf.mode_id = MODE_OTE_CS_APP_DEBUG2;
+		}break;
 		}
-	}
+		}
 	return 0;
 };
 
@@ -1360,7 +1436,14 @@ void COteCS::set_item_chk_txt() {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
 	}break;
-	case IDC_TASK_FUNC_RADIO1:
+	case IDC_TASK_FUNC_RADIO1: {
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"Y80 OUT");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
+	}break;
 	case IDC_TASK_FUNC_RADIO2:
 	case IDC_TASK_FUNC_RADIO3:
 	case IDC_TASK_FUNC_RADIO5:
