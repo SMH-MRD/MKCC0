@@ -460,6 +460,7 @@ LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat
 	return &st_work.st_msg_ote_u_snd;
 }
 HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
+	if (pUSockPC == NULL) return S_FALSE;
 	if (pUSockPC->snd_msg((char*)pbuf, sizeof(ST_PC_U_MSG), *p_addrin_to) == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockPC->err_msg.str();
@@ -480,6 +481,7 @@ LPST_OTE_M_MSG COteAgent::set_msg_m() {
 }
 //PC‚Ö‘—M
 HRESULT COteAgent::snd_mul2pc(LPST_OTE_M_MSG pbuf) {
+	if (pMSockPC == NULL) return S_FALSE;
 	if (pMSockPC->snd_msg((char*)pbuf, sizeof(ST_OTE_M_MSG), addrin_ote_m2pc_snd) == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
 			st_mon2.wo_mpc.str(L""); st_mon2.wo_mpc << L"ERR snd:" << pMSockPC->err_msg.str();
@@ -492,6 +494,7 @@ HRESULT COteAgent::snd_mul2pc(LPST_OTE_M_MSG pbuf) {
 }
 //OTE‚Ö‘—M
 HRESULT COteAgent::snd_mul2ote(LPST_OTE_M_MSG pbuf) {
+	if (pMSockOte == NULL) return S_FALSE;
 	if (pMSockOte->snd_msg((char*)pbuf, sizeof(ST_OTE_M_MSG), addrin_ote_m2ote_snd) == SOCKET_ERROR) {
 		st_mon2.wo_mote.str(L""); st_mon2.wo_mote << L"ERR snd:" << pMSockOte->err_msg.str();
 		SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MUL_PC], st_mon2.wo_mpc.str().c_str());

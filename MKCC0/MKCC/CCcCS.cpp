@@ -159,19 +159,20 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	if((pUSockOte==NULL)||(pMSockPC==NULL)||(pMSockOte==NULL))
 		hr = S_FALSE;
 
+	if (hr == S_FALSE) {
+		if(pUSockOte != NULL)pUSockOte->Close();				//ソケットクローズ
+		if (pMSockPC != NULL)pMSockPC->Close();				//ソケットクローズ
+		if (pMSockOte != NULL)pMSockOte->Close();				//ソケットクローズ
+		close_monitor_wnd(BC_ID_MON2);	//通信モニタクローズ
+		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
+		return hr;
+	};
+
 
 	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
 	st_ote_work.st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
 	st_ote_work.st_msg_pc_m_snd.head.addr = pMSockOte->addr_in_rcv;
 
-	if (hr == S_FALSE) {
-		pUSockOte->Close();				//ソケットクローズ
-		pMSockPC->Close();				//ソケットクローズ
-		pMSockOte->Close();				//ソケットクローズ
-		close_monitor_wnd(BC_ID_MON2);	//通信モニタクローズ
-		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
-		return hr;
-	};
 
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -570,7 +571,8 @@ LPST_PC_U_MSG CCcCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 }
 
 HRESULT CCcCS::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
-
+	 
+	if (pUSockOte == NULL) return S_FALSE;
 	if (pUSockOte->snd_msg((char*)pbuf, sizeof(ST_PC_U_MSG), *p_addrin_to) == SOCKET_ERROR) {
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockOte->err_msg.str();
@@ -593,6 +595,7 @@ LPST_PC_M_MSG CCcCS::set_msg_m(INT32 code, INT32 stat) {
 
 //PCへ送信
 HRESULT CCcCS::snd_mul2pc(LPST_PC_M_MSG pbuf) {
+	if (pMSockPC == NULL) return S_FALSE;
 	if (pMSockPC->snd_msg((char*)pbuf, sizeof(ST_PC_M_MSG), addrin_pc_m2pc_snd) == SOCKET_ERROR) {
 	
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
@@ -607,6 +610,7 @@ HRESULT CCcCS::snd_mul2pc(LPST_PC_M_MSG pbuf) {
 
 //OTEへ送信
 HRESULT CCcCS::snd_mul2ote(LPST_PC_M_MSG pbuf) {
+	if (pMSockOte == NULL) return S_FALSE;
 	if (pMSockOte->snd_msg((char*)pbuf, sizeof(ST_PC_M_MSG), addrin_pc_m2ote_snd) == SOCKET_ERROR) {
 
 		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
