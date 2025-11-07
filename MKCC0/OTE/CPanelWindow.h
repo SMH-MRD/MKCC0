@@ -55,7 +55,7 @@ public:
 #define CODE_OTE_PNL_TYPE_MAIN			  CRANE_ID_NULL
 #define CODE_OTE_PNL_TYPE_MAIN_HHGH29     CARNE_ID_HHGH29
 
-#define MAIN_PNL_WND_X             1920
+#define MAIN_PNL_WND_X             0//1920
 #define MAIN_PNL_WND_Y             0
 #define MAIN_PNL_WND_W             1920
 #define MAIN_PNL_WND_H             1080
