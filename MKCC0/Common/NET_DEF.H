@@ -15,7 +15,7 @@
 //@ CRANE-------------------------------------------------------------------------------------
 #define OTE_IF_CRANE_IP_PC0			"192.168.100.101"	//PC単体デバッグ用
 #define OTE_IF_CRANE_IP_H6R602		"192.168.100.101"	//みらい（デフォルト）
-#define OTE_IF_CRANE_IP_HHGH29		"192.168.100.101"	//今造多度津JC70t(102号)
+#define OTE_IF_CRANE_IP_HHGH29		"192.168.101.101"	//今造多度津JC70t(102号)
 #define OTE_IF_CRANE_IP_HHGQ18		"192.168.102.101"	//今造多度津JC300t(10号)
 #define OTE_IF_CRANE_IP_HHFR22		"192.168.103.101"	//今造丸亀GC1300t(1号)
 
