@@ -12,6 +12,7 @@
 #define OTE_SCAD_PRM_MON2_TIMER_MS      200
 
 #define OTE_SCAD_MON1_WND_X             1920
+//#define OTE_SCAD_MON1_WND_X             0
 #define OTE_SCAD_MON1_WND_Y             0
 #define OTE_SCAD_MON1_WND_W             1920
 #define OTE_SCAD_MON1_WND_H             1080

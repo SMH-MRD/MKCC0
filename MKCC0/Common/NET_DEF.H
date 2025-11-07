@@ -20,7 +20,7 @@
 #define OTE_IF_CRANE_IP_HHFR22		"192.168.103.101"	//今造丸亀GC1300t(1号)
 
 //@ OTE---------------------------------------------------------------------------------------
-#define OTE_IF_UNI_IP_PC			"192.168.100.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
+#define OTE_IF_UNI_IP_PC			"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
 #define OTE_IF_UNI_IP_OTE0			"192.168.100.151"		//デフォルトOTEのUNICAST用IP（受信,送信）
 #define OTE_IF_SUB_IP_OTE0			"192.168.100.151"		//デフォルトOTEのSUB IP（受信,送信）
 
@@ -54,8 +54,8 @@
 #define PORT_MC_CLIENT				3020					//制御PCポート
 #define PORT_MC_SERVER				3010					//CPU本体の時のPLCポート
 
-#define IP_ADDR_MC_CLIENT_OTE		OTE_IF_SUB_IP_OTE0		//PLC IF 遠隔操作卓PC　IPアドレス
-//#define IP_ADDR_MC_CLIENT_OTE		CC_IF_CRANE_SUB_IP		//PLC IF 遠隔操作卓PC　IPアドレス
+//#define IP_ADDR_MC_CLIENT_OTE		OTE_IF_SUB_IP_OTE0		//PLC IF 遠隔操作卓PC　IPアドレス
+#define IP_ADDR_MC_CLIENT_OTE		"192.168.101.150"		//PLC IF 遠隔操作卓PC　IPアドレス
 #define IP_ADDR_MC_SERVER_OTE		"192.168.101.160"		//PLC IF 遠隔操作卓PLC	 IPアドレス
 //#define IP_ADDR_MC_SERVER_OTE		"192.168.100.160"		//PLC IF 遠隔操作卓PLC	 IPアドレス
 #define PORT_MC_CLIENT_OTE			3040					//遠隔PCポート
