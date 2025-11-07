@@ -21,9 +21,8 @@
 
 //@ OTE---------------------------------------------------------------------------------------
 #define OTE_IF_UNI_IP_PC			"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
-#define OTE_IF_UNI_IP_OTE0			"192.168.100.151"		//デフォルトOTEのUNICAST用IP（受信,送信）
-#define OTE_IF_SUB_IP_OTE0			"192.168.100.151"		//デフォルトOTEのSUB IP（受信,送信）
-
+#define OTE_IF_UNI_IP_OTE0			"192.168.101.151"	//デフォルトOTEのUNICAST用IP（受信,送信）
+#define OTE_IF_SUB_IP_OTE			"192.168.101.151"	//デフォルトOTEのSUB IP（受信,送信）
 
 #define OTE_IF_UNI_IP_PC_WAN		"100.87.239.249" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 #define OTE_IF_UNI_IP_PC_VPN		"192.168.1.9" 			//PCのOTE UNICAST　IF用IP	（受信 VPN回線）
