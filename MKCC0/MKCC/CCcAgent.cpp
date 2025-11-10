@@ -377,7 +377,7 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
 	pCrane->pPlc->wval(pPlcWIf->gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
 
-	//### SIMULATOR計算値セット
+	//### SIMULATOR計算値セット(シミュレータモードでないときはPLCロジック内で反映されない）
 	//高速カウンタ・アブソコーダ
 	pCrane->pPlc->wval(pPlcWIf->hcounter_mh, pSim_Inf->hcount_mh);
 	pCrane->pPlc->wval(pPlcWIf->hcounter_bh, pSim_Inf->hcount_bh);
