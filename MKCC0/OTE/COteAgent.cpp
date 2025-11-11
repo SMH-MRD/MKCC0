@@ -407,7 +407,7 @@ HRESULT COteAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 		}
 		return S_FALSE;
 	}
-	
+	rcv_count_pc_u++;
 	//CC通信チェックカウンタリセット
 	//ユニキャスト送信時に1をセットしておき、定周期でカウントアップ
 	st_work.cc_comm_chk_cnt = 0; 

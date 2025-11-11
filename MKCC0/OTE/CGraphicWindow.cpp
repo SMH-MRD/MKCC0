@@ -379,7 +379,11 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 
 	int x = GSUB_PNL_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのX座標
 	int y = GSUB_PNL_ORG_Y - INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのY座標
-	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(0);
+	if(pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m > 15.0)	// 荷重がある場合はフック画像を変える
+		pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(1);
+	else
+		pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(0);
+
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->update(x,y);	// クレーンフック画像書き込み
 
 	double angle = pCcIf->st_msg_pc_u_rcv.body.st.bh_angle * DEG1RAD; // 起伏角度をDegに変換

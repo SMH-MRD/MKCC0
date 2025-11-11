@@ -178,6 +178,14 @@ static UINT32	gpad_mode_last = L_OFF;
 int CAgent::input() {
 
 //### PLC信号を共有メモリに展開
+
+	//###荷重, 揚程,
+	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH荷重
+	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32) / 1000.0;	//揚程
+	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_m).f);		//半径
+
+	//###風速
+	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->wind_spd_01m).i16) / 10.0;	//風速m/s単位
 	//## 位置（Environmentの計算値）
 	pPLC_IO->stat_mh.pos_fb = pPLC_IO->h_mh;
 	//pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
@@ -275,15 +283,6 @@ int CAgent::input() {
 	pPLC_IO->stat_bh.pg_count = pCrane->pPlc->rval(pPlcRIf->hcounter_bh).i32;	//BH　PG
 	pPLC_IO->stat_sl.pg_count = pCrane->pPlc->rval(pPlcRIf->hcounter_sl).i32;	//SL　PG
 	
-	//###荷重
-	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH荷重
-
-	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32)/1000.0;	//揚程
-	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->r_bh_mm).f)/1000.0;		//半径
-
-	//###風速
-	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->wind_spd_01m).i16)/10.0;	//風速m/s単位
-
 	//### PB,SW,LAMP,etc
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren] = pCrane->pPlc->rval(pPlcRIf->siren_sw).i16;
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1] = pCrane->pPlc->rval(pPlcRIf->mercury_lamp_sw1).i16;

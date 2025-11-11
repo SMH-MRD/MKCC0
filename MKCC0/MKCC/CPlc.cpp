@@ -109,7 +109,7 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//荷重
 	//揚程　旋回半径
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0},	//h_mh_mm
-	{NULL,BITFF,				CODE_PLCIO_FLOAT,	0,0},	//r_bh_mm
+	{NULL,BITFF,				CODE_PLCIO_FLOAT,	0,0},	//r_bh_m
 
 	//風速
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0 },	//wind_spd_01m
@@ -178,7 +178,7 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 
 	//モーメントリミッタ
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//h_mh_mm	//モーメントリミッタ荷重AI
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//r_bh_mm	//モーメントリミッタ旋回半径AI
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//r_bh_m	//モーメントリミッタ旋回半径AI
 	//風速AI
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//wind_spd_ai 
 };
@@ -326,7 +326,7 @@ int CPlc::setup(int crane_id) {
 
 			//揚程　旋回半径
 			plc_io_rif.h_mh_mm.pi16 = p+25;
-			plc_io_rif.r_bh_mm.pi16 = p+27;
+			plc_io_rif.r_bh_m.pi16 = p+27;
 			//風速
 			plc_io_rif.wind_spd_01m.pi16 = p + 5;
 

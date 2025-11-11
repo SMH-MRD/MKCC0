@@ -342,7 +342,7 @@ typedef struct _ST_PLC_IO_RIF {
 
 	//—g’öAù‰ñ”¼Œa
 	ST_PLC_IO_DEF h_mh_mm;
-	ST_PLC_IO_DEF r_bh_mm;
+	ST_PLC_IO_DEF r_bh_m;
 
 	//•—‘¬
 	ST_PLC_IO_DEF wind_spd_01m;
