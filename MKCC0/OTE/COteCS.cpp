@@ -219,7 +219,7 @@ int COteCS::input(){
 		st_obj.pad_gt->set(pPad->get_RX());
 
 		pOteCsInf->gpad_in.pad_mh = -st_obj.pad_mh->get_notch();
-		pOteCsInf->gpad_in.pad_bh = -st_obj.pad_bh->get_notch();
+		pOteCsInf->gpad_in.pad_bh = st_obj.pad_bh->get_notch();
 		pOteCsInf->gpad_in.pad_sl = st_obj.pad_sl->get_notch();
 		pOteCsInf->gpad_in.pad_gt = st_obj.pad_gt->get_notch();
 	}

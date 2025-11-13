@@ -164,7 +164,7 @@ HRESULT CSim::set_sensor_fb() {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 		else {//ブレーキ開
 			st_sim_inf.trq_ref_bh = 2000;	//100%トルク指令
 			//inv_ref(ベース100%で0.1%単位表現)
-			st_sim_inf.vfb_bh = (INT16)pPLC_IO->stat_bh.v_ref;
+			st_sim_inf.vfb_bh = -(INT16)pPLC_IO->stat_bh.v_ref;
 		}
 	}
 	else {
