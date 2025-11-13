@@ -99,6 +99,34 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		//送信先アドレスセット
 		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER_OTE, PORT_MC_SERVER_OTE);
 	}break;
+	case PLC_IF_TYPE_OTE_DEBUG: //OTE IF
+	{
+		//読み書きデバイス設定
+		set_access_D_r(OTE_MC_ADDR_W_READ, OTE_MC_SIZE_W_READ);  //読み出しDデバイス先頭アドレスセット
+		set_access_D_w(OTE_MC_ADDR_W_WRITE, OTE_MC_SIZE_W_WRITE);//書き込みDデバイス先頭アドレスセット
+
+		//送信バッファフォーマット（ヘッダ部）設定
+		set_sndbuf_read_D_3E();		//3E　Dデバイス読み込み用要求送信フォーマットセット
+		set_sndbuf_write_D_3E();	//3E　Dデバイス書き込み用要求送信フォーマットセット
+
+		//クライアントUDPソケット　アドレス設定　インスタンス化　初期化
+
+		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, eventID);
+		if (pMCSock->Initialize() != S_OK) {							//受信ソケット生成
+			msg_wos.str() = pMCSock->err_msg.str();
+			return S_FALSE;
+		}
+		else {
+			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_OTE_DBG, PORT_MC_CLIENT_OTE);
+			if (pMCSock->init_sock(hwnd, pMCSock->addr_in_rcv) != S_OK) {//受信ソケット設定
+				msg_wos.str() = pMCSock->err_msg.str();
+				return S_FALSE;
+			}
+		}
+
+		//送信先アドレスセット
+		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER_OTE, PORT_MC_SERVER_OTE);
+	}break;
 	case PLC_IF_TYPE_CC: //CC IF
 	default:
 	{

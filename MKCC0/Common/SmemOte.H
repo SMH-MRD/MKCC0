@@ -76,6 +76,11 @@ typedef struct _ST_DRAWING_BASE {
 #pragma endregion
 
 #pragma region OTE_INF ENV
+#define OTE_ENV_APP_PRODUCT			0	//実機モード
+#define OTE_ENV_APP_DEBUG_TYPE1		1	//PC1台デバッグモード
+#define OTE_ENV_APP_DEBUG_TYPE2		2	//PC1台+操作卓PLCデバッグモード
+
+
 typedef struct _ST_OTE_ENV_INF {
 	ST_DEVICE_CODE device_code;
 
@@ -87,6 +92,7 @@ typedef struct _ST_OTE_ENV_INF {
 	DIJOYSTATE		pad_data;
 
 	INT32			selected_crane;
+	UINT32			app_mode= OTE_ENV_APP_PRODUCT;
 
 }ST_OTE_ENV_INF, * LPST_OTE_ENV_INF;
 #pragma endregion 

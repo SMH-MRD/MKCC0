@@ -26,7 +26,7 @@
 #define GSUB_PNL_WND_W				640
 #define GSUB_PNL_WND_H				510
 
-#define GSUB_PNL_ORG_X				118
+#define GSUB_PNL_ORG_X				138
 #define GSUB_PNL_ORG_Y				500
 #define GSUB_PNL_PIX2M				0.234756//グラフィックm/PIXEL(Hp35.8/164)
 #define GSUB_PNL_PIX2MM				234//グラフィックm/PIXEL(Hp35.8/164)

@@ -78,6 +78,10 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Debug1");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Debug2");
+
 	COteEnv* pEnvObj = (COteEnv*)lpParam;
 	int code = 0;
 
@@ -89,6 +93,10 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 HRESULT COteEnv::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		if (pOteEnvInf->app_mode == OTE_ENV_APP_PRODUCT)		wos << L" MODE>>PRODUCT";
+		else if (pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE1)	wos << L" MODE>>DEBUG1";
+		else if (pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE2)	wos << L" MODE>>DEBUG2";
+		else											wos << L" MODE>>??";
 		msg2host(wos.str());
 	}
 	input();
@@ -494,15 +502,15 @@ LRESULT CALLBACK COteEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_MODE_RADIO0:
 		{
-			inf.mode_id = BC_ID_MODE0;
+			inf.mode_id = st_work.app_mode = OTE_ENV_APP_PRODUCT;
 		}break;
 		case IDC_TASK_MODE_RADIO1:
 		{
-			inf.mode_id = BC_ID_MODE1;
+			inf.mode_id = st_work.app_mode = OTE_ENV_APP_DEBUG_TYPE1;
 		}break;
 		case IDC_TASK_MODE_RADIO2:
 		{
-			inf.mode_id = BC_ID_MODE2;
+			inf.mode_id = st_work.app_mode = OTE_ENV_APP_DEBUG_TYPE2;
 		}break;
 
 		case IDC_TASK_MON_CHECK1:

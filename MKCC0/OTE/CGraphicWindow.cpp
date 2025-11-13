@@ -374,7 +374,6 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 
 	// 2. クレーン画像の描画(pbmp_img） 
 	//前回画像クリア
-//	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->pgraphics->FillRectangle(pPanelBase->pdrawing_items->pbrush[ID_PANEL_COLOR_BLACK], pPanelBase->pgsubwinobjs->rc_panel);
 	pPanelBase->pgsubwinobjs->pgraphic_img->FillRectangle(pPanelBase->pdrawing_items->pbrush[ID_PANEL_COLOR_BLACK], pPanelBase->pgsubwinobjs->rc_panel);
 
 	int x = GSUB_PNL_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb/ GSUB_PNL_PIX2M); // クレーンフックのX座標
@@ -387,7 +386,7 @@ void CGraphicWindow::OnPaintSub(HDC hdc, HWND hWnd) {
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->update(x,y);	// クレーンフック画像書き込み
 
 	double angle = pCcIf->st_msg_pc_u_rcv.body.st.bh_angle * DEG1RAD; // 起伏角度をDegに変換
-	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145, 340, -angle, 5, 50, 0.9, 0.9);	// クレーンブーム上面画像書き込み
+	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145, 340, -angle, 5, 50, 0.9, 0.9);	// クレーンブーム側面画像書き込み
 
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;

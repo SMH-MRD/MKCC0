@@ -103,14 +103,15 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	}
 	else {
 		pMCSock = new CMCProtocol(ID_SOCK_MC_OTE_CS);
+
 		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE) != S_OK) {
-			wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
-			wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
-			return S_FALSE;
+			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG) != S_OK) {
+				wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
+				wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
+				return S_FALSE;
+			}
 		}
-		else {
-			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
-		}
+		wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 	}
 	//### GamePadインスタンス
 	pPad = new CGamePad();
@@ -443,7 +444,7 @@ int COteCS::parse()
 				st_work.st_body.remote = CODE_PNL_COM_OFF;					//		⇒　遠隔操作モード選択要求OFF
 			else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)			// 遠隔操作モード選択,承認済
 				st_work.st_body.remote = CODE_PNL_COM_OFF;					//		⇒　遠隔操作モード選択要求OFF
-			else															// 遠隔モニターモード選択　		⇒　遠隔操作モード選択
+			else															// 遠隔モニターモード選択
 				st_work.st_body.remote = CODE_PNL_COM_SELECTED;				//		⇒　遠隔操作モード選択,承認待ち
 		}
 		//制御PCからの承認確認（通信ヘッダのIDが自IDと同じ場合に承認）

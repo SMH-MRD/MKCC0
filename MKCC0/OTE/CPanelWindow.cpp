@@ -735,6 +735,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
 		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
 	}
+	case WM_EXITSIZEMOVE: {//モニタウィンドウ移動完了で描画更新
+		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wp, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wp, TRANSPARENT);
@@ -1242,7 +1245,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
-		InvalidateRect(hwnd, NULL, FALSE); // ウィンドウ全体を再描画
+		InvalidateRect(hwnd, NULL, TRUE); // ウィンドウ全体を再描画
 	}
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
