@@ -398,7 +398,7 @@ int COteCS::parse()
 		//## 操作卓ヘルシーチェック
 		if (ope_plc_cnt == ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy) {//前回値から変化なし
 			ope_plc_chk_cnt++;
-			if(ope_plc_chk_cnt > 20) {					//PLC通信異常
+			if(ope_plc_chk_cnt > 40) {					//PLC通信異常
 				pOteCsInf->ope_plc_stat = L_OFF;
 				pOteCsInf->ote_error |= FLTS_MASK_ERR_RPC_RPLC_COMM;
 			}
