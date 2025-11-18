@@ -638,6 +638,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					<< L"#d_no:"	<< pMCSock->mc_req_msg_w.d_no
 					<< L"#d_code:"	<< pMCSock->mc_req_msg_w.d_code
 					<< L"#n_dev:"	<< pMCSock->mc_req_msg_w.n_device << L"\n";
+				
 				//データ部分1ページ10WORD　4行で切替表示
 				for (int i = 0; i < AGENT_MON2_MSG_DISP_N__DATAROW; i++) {
 					int no = CC_MC_ADDR_W_WRITE + i_page_w * AGENT_MON2_MSG_DISP_N_DATA_COLUMN * AGENT_MON2_MSG_DISP_N__DATAROW + i * AGENT_MON2_MSG_DISP_N_DATA_COLUMN;

@@ -15,7 +15,8 @@
 //#define OTE_SCAD_MON1_WND_X             0
 #define OTE_SCAD_MON1_WND_Y             0
 #define OTE_SCAD_MON1_WND_W             1920
-#define OTE_SCAD_MON1_WND_H             1080
+//#define OTE_SCAD_MON1_WND_H             1080
+#define OTE_SCAD_MON1_WND_H             1200
 
 #define OTE_SCAD_MON1_N_CTRL            64
 #define OTE_SCAD_MON1_N_WCHAR           64

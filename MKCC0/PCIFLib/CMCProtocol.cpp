@@ -503,3 +503,8 @@ SOCKADDR_IN CMCProtocol::get_addrin_snd() {
 SOCKADDR_IN CMCProtocol::get_addrin_from() {
 	return pMCSock->addr_in_from;
 }
+
+INT32 CMCProtocol::get_sock_status() {
+	if(pMCSock != NULL) return pMCSock->status;
+	return 0;
+}

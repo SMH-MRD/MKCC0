@@ -1,10 +1,12 @@
 #include "CMCProtocol.h"
+#include "CSockLib.H"
 #include "COteCS.h"
 #include "resource.h"
 #include "CGamePad.h"
 #include "CCrane.h"
 #include "SmemAux.h"
 #include "COteEnv.h"
+#include "CPanelObj.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
@@ -392,7 +394,6 @@ static INT16 pnl_ctrl_last[N_OTE_PNL_CTRL];
 //#### モード,指令値設定　
 int COteCS::parse() 
 {           
-	
 	//### 異常チェック
 	{
 		//## 操作卓ヘルシーチェック
@@ -638,6 +639,36 @@ int COteCS::close() {
 	delete st_obj.pad_gt;
 	delete st_obj.pad_ah;
 	return 0;
+}
+
+
+/// <summary>
+/// SCADA パネル通信状態ランプ表示用ステータス更新関数
+/// </summary>
+void COteCS::update_sock_stat() {
+	INT32 sock_stat = pMCSock->get_sock_status();
+	if (sock_stat & CSOCK_STAT_STANDBY) {
+		st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_STANDBY;
+		st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_STANDBY;
+
+		if (sock_stat & CSOCK_STAT_ACT_RCV)
+			st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_ACT_RCV;
+		else if (sock_stat & CSOCK_STAT_RCV_ERR)
+			st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_RCV_ERR;
+		else;
+
+		if (sock_stat & CSOCK_STAT_ACT_SND)
+			st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_ACT_SND;
+		else if (sock_stat & CSOCK_STAT_SND_ERR)
+			st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_SND_ERR;
+		else;
+	}
+	else if (sock_stat == CSOCK_STAT_CLOSED)	st_work.plc_com_stat_r = st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_CLOSED;
+	else if (sock_stat == CSOCK_STAT_INIT)		st_work.plc_com_stat_r = st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_INIT;
+	else if (sock_stat == CSOCK_STAT_INIT_ERROR)st_work.plc_com_stat_r = st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_INIT_ERROR;
+	else;
+	
+	return ;
 }
 
 /****************************************************************************/
@@ -925,6 +956,10 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_INF], monwos.str().c_str());
 			}
 		}
+
+		//通信ステータス
+		update_sock_stat();
+
 	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);

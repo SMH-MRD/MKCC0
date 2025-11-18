@@ -283,3 +283,18 @@ INT16 CPlcCSHelper::get_code_by_mode(INT16 mode, int cs_code, int type) {
 	return 0;
 }
 
+/*****************************************************************************
+UIHelper
+*****************************************************************************/
+wstring CUIHelper::crane_txt;
+LPCWSTR CUIHelper::get_crane_txt_by_code(INT32 value) {
+	switch (value) {
+	case CRANE_ID_H6R602:	crane_txt = CRANE_TXT_H6R602; break;
+	case CARNE_ID_HHGH29:	crane_txt = CARNE_TXT_HHGH29; break;
+	case CARNE_ID_HHGQ18:	crane_txt = CARNE_TXT_HHGQ18; break;
+	case CARNE_ID_HHFR22:	crane_txt = CARNE_TXT_HHFR22; break;
+	default:				crane_txt = CRANE_TXT_NULL; break;
+	}
+	return crane_txt.c_str();
+
+}

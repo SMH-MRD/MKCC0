@@ -922,9 +922,9 @@ void COteAgent::update_sock_stat() {
 		else;
 
 		if (sock_stat & CSOCK_STAT_ACT_SND) 
-			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_ACT_RCV;
+			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_ACT_SND;
 		else if (sock_stat & CSOCK_STAT_SND_ERR) 
-			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_RCV_ERR;
+			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_SND_ERR;
 		else;
 	}
 	else if (sock_stat == CSOCK_STAT_CLOSED)	st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_CLOSED;

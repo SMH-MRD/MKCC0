@@ -279,7 +279,7 @@ LRESULT CALLBACK CGraphicWindow::GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wPa
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-		CreateWindowW(TEXT("STATIC"), L"Dummy", WS_CHILD | WS_VISIBLE | SS_LEFT,0,0,100,100,hwnd,(HMENU)(1), hInst, NULL);
+	//	CreateWindowW(TEXT("STATIC"), L"Dummy", WS_CHILD | WS_VISIBLE | SS_LEFT,0,0,100,100,hwnd,(HMENU)(1), hInst, NULL);
 
 
 		//グラフィックオブジェクトの初期化

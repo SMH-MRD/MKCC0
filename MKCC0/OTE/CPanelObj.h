@@ -30,6 +30,7 @@ using namespace std;
 #define ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND		60023
 #define ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		60024
 #define ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE	60025
+#define ID_MAIN_PNL_OBJ_STR_CRANE_TXT		60026
 
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		60030
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		60031
@@ -105,8 +106,8 @@ public:
 
 	SolidBrush* pBrushBk;	//背景塗りつぶし用ブラシ
 
-	Color colorkey;				//画像を重ね合わせる時の透過色
-	ImageAttributes attr;		//カラーキーを透過させる設定
+	Color colorkey;			//画像を重ね合わせる時の透過色
+	ImageAttributes attr;	//カラーキーを透過させる設定
 
 	int set_panel_code(int code) { panel_code = code; return panel_code; };
 	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
@@ -133,6 +134,7 @@ public:
 	}
 
 	CStringGdi	* str_message;
+	CStringGdi	* str_crane_txt;
 	CPbCtrl		* pb_remote;
 	CLampCtrl	* lmp_remote;		//遠隔設定ランプ
 	CStaticCtrl	* txt_uid;

@@ -344,15 +344,14 @@ int CCcCS::output() {          //出力処理
 		
 	return STAT_OK;
 }
-
 int CCcCS::close() {
-
 	return 0;
 }
 
 /****************************************************************************/
 /*   通信関数											                    */
 /****************************************************************************/
+
 void CCcCS::set_ote_flt_info() {
 	INT16 com_ote;
 	
@@ -442,7 +441,6 @@ void CCcCS::set_ote_flt_info() {
 
 	return; 
 }
-
 
 /// <summary>
 /// OTEユニキャスト電文受信処理
@@ -620,6 +618,7 @@ HRESULT CCcCS::snd_mul2ote(LPST_PC_M_MSG pbuf) {
 		return S_FALSE;
 	}
 	snd_count_m2ote++;
+	
 	return S_OK;
 }
 

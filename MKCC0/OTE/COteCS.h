@@ -165,7 +165,6 @@ typedef struct _ST_OTE_CS_OBJ {
     CPadNotch* pad_ah;
 } ST_OTE_CS_OBJ, * LPST_OTE_CS_OBJ;
 
-
 class COteCS :public CBasicControl
 {
 public:
@@ -190,6 +189,8 @@ public:
     static HRESULT rcv_uni_ote(LPST_PC_U_MSG pbuf);
     static HRESULT rcv_mul_pc(LPST_PC_M_MSG pbuf);
     static HRESULT rcv_mul_ote(LPST_OTE_M_MSG pbuf);
+
+    static void update_sock_stat();
 
     static LPST_OTE_U_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
     static HRESULT snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to);

@@ -92,8 +92,6 @@ public:
 	UINT8 rcv_buf[MAX_MC_DATA * 2];
 	UINT8 snd_buf[MAX_MC_DATA * 2];
 
-	UINT32 aaa;
-
 	std::wostringstream msg_wos;
 
 	//通信メッセージバッファ

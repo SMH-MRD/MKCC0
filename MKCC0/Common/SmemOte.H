@@ -115,6 +115,9 @@ typedef struct _ST_OTE_CS_INF {
 	INT32 cc_ope_active = L_OFF;
 	INT32 ope_source_mode=0;						//操作器具モード
 	INT32 pc_pnl_active;
+	INT32 plc_com_stat_r = L_OFF;						//PLCとの通信状態
+	INT32 plc_com_stat_s = L_OFF;						//PLCとの通信状態
+
 	ST_OTE_U_BODY st_body;							//OTE⇒PC送信メッセージボディ部
 	ST_GPAD_IN gpad_in;	
 	INT16 GOT_command;								//GOTのコマンド

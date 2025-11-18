@@ -126,3 +126,10 @@ public:
 	static INT16 get_mode_by_code(INT16 value,int cs_code, int type);
 	static INT16 get_code_by_mode(INT16 mode, int cs_code, int type);
 };
+
+class CUIHelper
+{
+public:
+	static wstring crane_txt;
+	static LPCWSTR get_crane_txt_by_code(INT32 value);
+};

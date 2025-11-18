@@ -58,7 +58,8 @@ public:
 #define MAIN_PNL_WND_X             0//1920
 #define MAIN_PNL_WND_Y             0
 #define MAIN_PNL_WND_W             1920
-#define MAIN_PNL_WND_H             1080
+//#define MAIN_PNL_WND_H             1080
+#define MAIN_PNL_WND_H             1200
 
 #define ID_MAIN_PANEL_TIMER		  60264
 #define ID_MAIN_PANEL_TIMER_MS	  100

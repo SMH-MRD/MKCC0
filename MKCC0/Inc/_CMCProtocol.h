@@ -18,7 +18,6 @@
 #define ID_SOCK_MC_CC_AGENT		PORT_MC_CLIENT
 #define ID_SOCK_MC_OTE_AGENT    PORT_MC_CLIENT
 #define ID_SOCK_MC_OTE_CS		PORT_MC_CLIENT
-#define ID_SOCK_MC_AUX_BRK		PORT_MC_CLIENT
 
 #define CODE_3E_FORMAT		0x50
 #define CODE_4E_FORMAT		0x54
@@ -122,6 +121,8 @@ public:
 	SOCKADDR_IN get_addrin_rcv();
 	SOCKADDR_IN get_addrin_snd();
 	SOCKADDR_IN get_addrin_from();
+
+	UINT32 get_sock_status();
 
 private:
 	INT32 eventID;

@@ -7,6 +7,7 @@
 #include "COteEnv.h"
 #include <windows.h>
 #include "CFaults.h"
+#include "CHelper.h"
 
 
 extern vector<CBasicControl*>	VectCtrlObj;
@@ -405,9 +406,16 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 			pPanelBase->pmainobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
 		else pPanelBase->pmainobjs->lmp_pcs->set(pCcIf->cc_com_stat_s);
 		pPanelBase->pmainobjs->lmp_pcs->update();
+	
+		
 		//PLCとの通信状態表示(受信）
+		if (pCsInf->plc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
+			pPanelBase->pmainobjs->lmp_plcr->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_plcr->set(pCsInf->plc_com_stat_r);
 		pPanelBase->pmainobjs->lmp_plcr->update();
 		//PLCとの通信状態表示(送信）
+		if (pCsInf->plc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
+			pPanelBase->pmainobjs->lmp_plcs->set(ID_PANEL_LAMP_FLICK);
 		pPanelBase->pmainobjs->lmp_plcs->update();
 
 		//PB状態更新(オフディレイカウントダウン)
@@ -789,9 +797,15 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 			pPanelBase->pmainobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
 		else pPanelBase->pmainobjs->lmp_pcs->set(pCcIf->cc_com_stat_s);
 		pPanelBase->pmainobjs->lmp_pcs->update();
+
 		//PLCとの通信状態表示(受信）
+		if (pCsInf->plc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
+			pPanelBase->pmainobjs->lmp_plcr->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_plcr->set(pCsInf->plc_com_stat_r);
 		pPanelBase->pmainobjs->lmp_plcr->update();
 		//PLCとの通信状態表示(送信）
+		if (pCsInf->plc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
+			pPanelBase->pmainobjs->lmp_plcs->set(ID_PANEL_LAMP_FLICK);
 		pPanelBase->pmainobjs->lmp_plcs->update();
 
 		//PB状態更新(オフディレイカウントダウン)
@@ -808,7 +822,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		//String更新
 		if (is_initial_draw_main) {
 			pPanelBase->pmainobjs->str_message->update();
-			//	is_initial_draw_mon1 = false;
+			pPanelBase->pmainobjs->str_crane_txt->update(CUIHelper::get_crane_txt_by_code((pCcIf->st_msg_pc_u_rcv.head.myid.serial_no& CRANE_ID_CODE_MASK)));
+	
+			is_initial_draw_main = false;
 		}
 
 		//GOTコマンドチェック

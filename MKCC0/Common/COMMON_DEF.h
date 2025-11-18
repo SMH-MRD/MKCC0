@@ -17,18 +17,24 @@ using namespace Gdiplus;
 #define CRANE_TYPE_GC           2   //ゴライアスクレーン
 
 //クレーン製番 コード JC 0x100～　GC 0x200～
-#define CRANE_ID_CODE_MASK      0x0000FF00           
+#define PC_ID_CODE_MASK         0xFFFF0000 
+#define CRANE_ID_CODE_MASK      0x0000FFFF           
 #define CRANE_ID_MAX            255          //
+
 #define CRANE_ID_NULL           0x0000      //未定
 #define CRANE_ID_H6R602         0x0101      //みらい
 #define CARNE_ID_HHGH29         0x0102      //今造西多度津70t　102号  
 #define CARNE_ID_HHGQ18         0x0103      //今造西多度津300t 10号
 #define CARNE_ID_HHFR22         0x0201      //今造丸亀1200t 1号
-//#define CRANE_ID_H6R602         0x0000      //みらい
-//#define CARNE_ID_HHGH29         0x0001      //今造西多度津70t　102号  
-//#define CARNE_ID_HHGQ18         0x0002      //今造西多度津300t 10号
-//#define CARNE_ID_HHFR22         0x0003      //今造丸亀1200t 1号
+
 #define CARNE_ID_PC0            0xFF00      //PC単体
+
+#define CRANE_TXT_NULL          L"不明"
+#define CRANE_TXT_H6R602        L"みらい"
+#define CARNE_TXT_HHGH29        L"西多度津70tJC 102号"   
+#define CARNE_TXT_HHGQ18        L"西多度津300tJC 10号" 
+#define CARNE_TXT_HHFR22        L"丸亀1200tGC 1号" 
+
 #pragma endregion 識別ID
 
 #pragma region STATUS
