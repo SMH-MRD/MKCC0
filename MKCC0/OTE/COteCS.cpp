@@ -519,6 +519,7 @@ int COteCS::output() {
 
 	//##操作卓遠隔モード表示
 	pPcWBuf->rmt_status = st_work.st_body.remote;
+	pPcWBuf->spare0[3] = st_work.st_body.remote;
 
 	//##操作卓ハードランプ
 	INT16 plc_yo_buf = 0;
