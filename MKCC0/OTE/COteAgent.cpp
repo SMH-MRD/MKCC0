@@ -420,8 +420,7 @@ HRESULT COteAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 	}
 	rcv_count_pc_u++;
 
-	rcv_chk_cc = snd_chk_cc - snd_chk_cc_last;
-	snd_chk_cc_last = snd_chk_cc;
+	snd_chk_cc=0;
 
 	//CC通信チェックカウンタリセット
 	//ユニキャスト送信時に1をセットしておき、定周期でカウントアップ
@@ -485,6 +484,7 @@ HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 		return S_FALSE;
 	}
 	snd_count_ote_u++;
+	
 	snd_chk_cc++;
 	
 	return S_OK;
@@ -925,8 +925,14 @@ void COteAgent::update_sock_stat() {
 		st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_STANDBY;
 		st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_STANDBY;
 
-		if (rcv_chk_cc > 5) {
-			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_RCV_ERR;
+		if (sock_stat & CSOCK_STAT_ACT_SND) 
+			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_ACT_SND;
+		else if (sock_stat & CSOCK_STAT_SND_ERR) 
+			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_SND_ERR;
+		else;
+
+		if (snd_chk_cc > 5){
+			st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_RCV_ERR;
 		}
 		else if (sock_stat & CSOCK_STAT_ACT_RCV) 
 			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_ACT_RCV;
@@ -934,11 +940,7 @@ void COteAgent::update_sock_stat() {
 			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_RCV_ERR;
 		else;
 
-		if (sock_stat & CSOCK_STAT_ACT_SND) 
-			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_ACT_SND;
-		else if (sock_stat & CSOCK_STAT_SND_ERR) 
-			st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_SND_ERR;
-		else;
+
 	}
 	else if (sock_stat == CSOCK_STAT_CLOSED)	st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_CLOSED;
 	else if (sock_stat == CSOCK_STAT_INIT)		st_work.cc_com_stat_r = st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_INIT;
