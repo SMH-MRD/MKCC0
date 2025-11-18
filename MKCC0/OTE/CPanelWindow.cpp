@@ -1333,7 +1333,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 
 
 			if (n < flt_cnt_hold) {
-				for (int i = n-1; i < flt_cnt_hold; i++) {
+				//for (int i = n-1; i < flt_cnt_hold; i++) {
+				for (int i = n; i < flt_cnt_hold; i++) {
 					ClearFltListView(hFltListView, false, i);
 				}
 			}

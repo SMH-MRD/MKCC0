@@ -18,6 +18,7 @@
 #define ID_SOCK_MC_CC_AGENT		PORT_MC_CLIENT
 #define ID_SOCK_MC_OTE_AGENT    PORT_MC_CLIENT
 #define ID_SOCK_MC_OTE_CS		PORT_MC_CLIENT
+#define ID_SOCK_MC_AUX_BRK		PORT_MC_CLIENT
 
 #define CODE_3E_FORMAT		0x50
 #define CODE_4E_FORMAT		0x54
@@ -91,6 +92,8 @@ public:
 	UINT8 rcv_buf[MAX_MC_DATA * 2];
 	UINT8 snd_buf[MAX_MC_DATA * 2];
 
+	UINT32 aaa;
+
 	std::wostringstream msg_wos;
 
 	//通信メッセージバッファ
@@ -122,7 +125,7 @@ public:
 	SOCKADDR_IN get_addrin_snd();
 	SOCKADDR_IN get_addrin_from();
 
-	UINT32 get_sock_status();
+	INT32 get_sock_status();
 
 private:
 	INT32 eventID;

@@ -335,7 +335,7 @@ int CAgent::parse() {
 		if (pCS_Inf->cs_ctrl.ope_pnl_status)	mask |= MASK_BIT_PC_OPEPNL_ACTIVE;	//操作有効端末有
 		else									mask &= ~MASK_BIT_PC_OPEPNL_ACTIVE;
 
-		if (pCS_Inf->cs_ctrl.remote_estop)		mask |= MASK_BIT_RMT_ESTP_ACTIVE;	//操作有効端末有
+		if (pCS_Inf->cs_ctrl.remote_estop)		mask |= MASK_BIT_RMT_ESTP_ACTIVE;	//遠隔非常停止有
 		else									mask &= ~MASK_BIT_RMT_ESTP_ACTIVE;
 
 

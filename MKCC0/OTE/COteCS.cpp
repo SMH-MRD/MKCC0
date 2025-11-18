@@ -496,70 +496,7 @@ int COteCS::parse()
 		//	pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_PCPNL;
 	}
 
-	//###操作卓への制御PCからの出力内容設定
-	{
 
-	//##操作卓ハードランプ
-		INT16 plc_yo_buf = 0;
-		//主幹ランプ
-		if(pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code)	plc_yo_buf |=  0x0040;
-		if(pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code)	plc_yo_buf |=  0x0080;
-		//高圧ランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_trolley].code)plc_yo_buf |= 0x0001;
-		else																		plc_yo_buf |= 0x0002;
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_gantry].code)	plc_yo_buf |= 0x0004;
-		else																		plc_yo_buf |= 0x0008;
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_aux].code)	plc_yo_buf |= 0x0010;
-		else																		plc_yo_buf |= 0x0020;
-		//故障ランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::fault_lamp].code)plc_yo_buf |= 0x0100;
-		//警報ランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::alm_lamp].code)	plc_yo_buf |= 0x0200;
-		//運転準備完了ランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code)	plc_yo_buf |= 0x0800;
-		//ブザー
-		INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].code;
-		plc_yo_buf &= 0x0FFF;
-		if (bz_code) {
-			if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//故障
-			else if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//重故障
-			else if (bz_code & 0x0002)plc_yo_buf |= 0x2000;	//主幹投入
-			else if (bz_code & 0x0004)plc_yo_buf |= 0x4000;	//渋滞
-			else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//軽故障
-			else;
-		}
-
-		//デバッグ用　opepanのMode1スイッチでFunc1のチェックBOX1のトリガでEDIT BOXにセットしたビットのみ強制出力
-		if(inf.mode_id == MODE_OTE_CS_APP_DEBUG){
-				plc_yo_buf = dbg_plc_yout[0];
-		}
-
-		//#↑でセットした内容をIFバッファにセット
-		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 = plc_yo_buf;
-
-		//主巻、引込モードスイッチ
-		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->mh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
-		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->bh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
-
-
-	//##操作卓GOTランプ
-		plc_yo_buf = 0;
-		//動力確立ランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::main_power].code)	plc_yo_buf |= 0x0001;
-		//自動給脂ランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::sl_auto_gr].code)	plc_yo_buf |= 0x0002;
-		//サイレンランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::motor_siren].code)	plc_yo_buf |= 0x8000;
-		//照明ランプ
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp1].code)	plc_yo_buf |= 0x0800;
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp2].code)	plc_yo_buf |= 0x1010;
-		if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp3].code)	plc_yo_buf |= 0x2000;
-
-		//#IFバッファにセット
-		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp2 = plc_yo_buf;
-		//##操作卓遠隔モード表示
-		((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->rmt_status = st_work.st_body.remote;
-	}
 	return STAT_OK;
 }
 
@@ -567,15 +504,86 @@ static INT16 ote_helthy = 0; //ヘルシー値
 //#### 出力処理　
 int COteCS::output() {          
 
-//### 遠隔操作卓PLCへの出力処理
+//### 遠隔操作卓PLCへの出力処理	   	
+{
 	//##アクセス用ポインタセット
 	LPST_PLC_WBUF_HHGG38 pPcWBuf = (LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write;//書き込みバッファポインタ
 	LPST_PC_U_BODY pBody = (LPST_PC_U_BODY)&pOteCCInf->st_msg_pc_u_rcv.body;
 
-	//##制御情報　操作台用信号
+	//##PC Healthy
 	pPcWBuf->pc_healthy = ote_helthy++;					//PCヘルシー値
+	//##PC Status
+	
 	//接続中クレーンID
 	pPcWBuf->crane_id = (INT16)(pOteCCInf->id_conected_crane & 0x0000FFFF);	//接続先クレーンID	
+
+	//##操作卓遠隔モード表示
+	pPcWBuf->rmt_status = st_work.st_body.remote;
+
+	//##操作卓ハードランプ
+	INT16 plc_yo_buf = 0;
+	//主幹ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code)	plc_yo_buf |= 0x0040;
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code)	plc_yo_buf |= 0x0080;
+	//高圧ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_trolley].code)plc_yo_buf |= 0x0001;
+	else																		plc_yo_buf |= 0x0002;
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_gantry].code)	plc_yo_buf |= 0x0004;
+	else																		plc_yo_buf |= 0x0008;
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hv_aux].code)	plc_yo_buf |= 0x0010;
+	else																		plc_yo_buf |= 0x0020;
+	//故障ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::fault_lamp].code)plc_yo_buf |= 0x0100;
+	//警報ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::alm_lamp].code)	plc_yo_buf |= 0x0200;
+	//運転準備完了ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code)	plc_yo_buf |= 0x0800;
+	//ブザー
+	INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].code;
+	plc_yo_buf &= 0x0FFF;
+	if (bz_code) {
+		if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//故障
+		else if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//重故障
+		else if (bz_code & 0x0002)plc_yo_buf |= 0x2000;	//主幹投入
+		else if (bz_code & 0x0004)plc_yo_buf |= 0x4000;	//渋滞
+		else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//軽故障
+		else;
+	}
+	//デバッグ用　opepanのMode1スイッチでFunc1のチェックBOX1のトリガでEDIT BOXにセットしたビットのみ強制出力
+	if (inf.mode_id == MODE_OTE_CS_APP_DEBUG) {
+		plc_yo_buf = dbg_plc_yout[0];
+	}
+	//#↑でセットした内容をIFバッファにセット
+	pPcWBuf->lamp1 = plc_yo_buf;
+
+	//##操作卓GOTランプ
+	plc_yo_buf = 0;
+	//動力確立ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::main_power].code)	plc_yo_buf |= 0x0001;
+	//自動給脂ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::sl_auto_gr].code)	plc_yo_buf |= 0x0002;
+	//サイレンランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::motor_siren].code)	plc_yo_buf |= 0x8000;
+	//照明ランプ
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp1].code)	plc_yo_buf |= 0x0800;
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp2].code)	plc_yo_buf |= 0x1010;
+	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::hd_lamp3].code)	plc_yo_buf |= 0x2000;
+
+	//#IFバッファにセット
+	pPcWBuf->lamp2 = plc_yo_buf;
+	
+	//##GOT運転監視
+	pPcWBuf->mh_hight = pBody->st_axis_set[ID_HOIST].pos_fb;	//揚程
+	pPcWBuf->mh_load = pBody->st_load_stat[0].m / 10.0;			//荷重0.1t単位→t単位
+	pPcWBuf->r = pBody->st_axis_set[ID_BOOM_H].pos_fb;			//半径
+	pPcWBuf->wind_spd = pBody->wind_spd;						//風速
+	
+	//##旋回ブレーキFB信号セット
+	pPcWBuf->sl_brk_fb1 = pBody->sl_brk_fb[0];				//旋回ブレーキFB1
+	pPcWBuf->sl_brk_fb2 = pBody->sl_brk_fb[1];				//旋回ブレーキFB2
+	pPcWBuf->sl_brk_fb3 = pBody->sl_brk_fb[2];				//旋回ブレーキFB3
+	pPcWBuf->sl_brk_fb4 = pBody->sl_brk_fb[3];				//旋回ブレーキFB4
+	
 	
 	//##GOT故障監視
 	LPST_OTE_PC_FLTS_SET pFltSet = (LPST_OTE_PC_FLTS_SET)&pBody->faults_set;
@@ -604,11 +612,7 @@ int COteCS::output() {
 	for(;index< N_OTE_OPE_PLC_FAULT_BUF;index++) 
 		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[index] = 0;
 
-	//##GOT運転監視
-	pPcWBuf->mh_hight	= pBody->st_axis_set[ID_HOIST].pos_fb;	//揚程
-	pPcWBuf->mh_load	= pBody->st_load_stat[0].m/10.0;		//荷重0.1t単位→t単位
-	pPcWBuf->r			= pBody->st_axis_set[ID_BOOM_H].pos_fb;	//半径
-	pPcWBuf->wind_spd	= pBody->wind_spd;						//風速
+
 	
 	//##GOT状態監視
 	pPcWBuf->mh_set		= pBody->st_axis_set[ID_HOIST];			//主巻
@@ -616,12 +620,11 @@ int COteCS::output() {
 	pPcWBuf->sl_set		= pBody->st_axis_set[ID_SLEW];			//旋回
 	pPcWBuf->gt_set		= pBody->st_axis_set[ID_GANTRY];		//走行
 
-	//##旋回ブレーキFB信号セット
-	pPcWBuf->sl_brk_fb1 = pBody->sl_brk_fb[0];				//旋回ブレーキFB1
-	pPcWBuf->sl_brk_fb2 = pBody->sl_brk_fb[1];				//旋回ブレーキFB2
-	pPcWBuf->sl_brk_fb3 = pBody->sl_brk_fb[2];				//旋回ブレーキFB3
-	pPcWBuf->sl_brk_fb4 = pBody->sl_brk_fb[3];				//旋回ブレーキFB4
+	//主巻、引込モードスイッチ
+	pPcWBuf->mh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
+	pPcWBuf->bh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
 
+	}
 //### 制御PCへの出力処理
 
 	pOteCsInf->st_body.ote_err[0] = pOteCsInf->ote_error;	//遠隔操作PC検出故障セット
