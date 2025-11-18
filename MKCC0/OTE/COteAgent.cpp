@@ -37,6 +37,8 @@ static LONG rcv_count_pc_u = 0,	 snd_count_ote_u = 0;
 static LONG rcv_count_pc_m = 0,  snd_count_m2pc = 0;
 static LONG rcv_count_ote_m = 0, snd_count_m2ote = 0;
 
+static INT32 rcv_chk_cc = 0, snd_chk_cc = 0, snd_chk_cc_last = 0;
+
 static LARGE_INTEGER start_count_s, end_count_r;			//システムカウント
 static LARGE_INTEGER frequency;								//システム周波数
 static LONGLONG res_delay_max, res_delay_min = 10000000;	//C応答時間
@@ -71,7 +73,7 @@ int COteAgent::setup_crane_if(int crane_id) {
 	switch (crane_id) {
 	case CARNE_ID_HHGH29: {
 		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
-		if(pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
+		if((pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE1)||(pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE2)) {
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_OTE);
 			pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
@@ -413,9 +415,14 @@ HRESULT COteAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR rcv:" << pUSockPC->err_msg.str();
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
 		}
+		rcv_chk_cc = 0;
 		return S_FALSE;
 	}
 	rcv_count_pc_u++;
+
+	rcv_chk_cc = snd_chk_cc - snd_chk_cc_last;
+	snd_chk_cc_last = snd_chk_cc;
+
 	//CC通信チェックカウンタリセット
 	//ユニキャスト送信時に1をセットしておき、定周期でカウントアップ
 	st_work.cc_comm_chk_cnt = 0; 
@@ -474,9 +481,12 @@ HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockPC->err_msg.str();
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
 		}
+		snd_chk_cc = 0;
 		return S_FALSE;
 	}
 	snd_count_ote_u++;
+	snd_chk_cc++;
+	
 	return S_OK;
 }
 /****************************************************************************/
@@ -915,7 +925,10 @@ void COteAgent::update_sock_stat() {
 		st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_STANDBY;
 		st_work.cc_com_stat_s = ID_PNL_SOCK_STAT_STANDBY;
 
-		if (sock_stat & CSOCK_STAT_ACT_RCV) 
+		if (rcv_chk_cc > 5) {
+			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_RCV_ERR;
+		}
+		else if (sock_stat & CSOCK_STAT_ACT_RCV) 
 			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_ACT_RCV;
 		else if (sock_stat & CSOCK_STAT_RCV_ERR) 
 			st_work.cc_com_stat_r = ID_PNL_SOCK_STAT_RCV_ERR;

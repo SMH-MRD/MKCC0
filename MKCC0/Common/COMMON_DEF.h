@@ -101,6 +101,12 @@ using namespace Gdiplus;
 #define CODE_TRIG_OFF			-1  //トリガOFF
 #define CODE_TRIG_NA			0   //トリガ無し
 
+#define CODE_COMCHK_STANDBY		0  //通信待機状態
+#define CODE_COMCHK_RES_OK		1  //レスポンスOK
+#define CODE_COMCHK_SND_OK		2  //通信送信OK
+#define CODE_COMCHK_RCV_OK		3  //通信受信OK
+
+
 #pragma endregion ステータスコード
 
 #pragma region TYPE

@@ -45,8 +45,9 @@ static CGamePad* pPad = NULL;
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
 static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
-static LARGE_INTEGER frequency;				//システム周波数
+static LARGE_INTEGER frequency;						//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
+static INT32 read_chk_plc = 0, write_chk_plc = 0;
 
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
 static ST_PLC_IO_RIF* pPlcRIf = NULL;
@@ -161,6 +162,7 @@ HRESULT COteCS::routine_work(void* pObj) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 		wos << L"  OPE SRC CODE:" << hex << pOteCsInf->ope_source_mode;
 		wos << L"  RMT_MODE:" << st_work.st_body.remote;
+		wos << L"  MC COM:R " << st_work.plc_com_stat_r << L"S" << st_work.plc_com_stat_s;
 
 		msg2host(wos.str());
 	}
@@ -402,7 +404,9 @@ int COteCS::parse()
 			if(ope_plc_chk_cnt > 40) {					//PLC通信異常
 				pOteCsInf->ope_plc_stat = L_OFF;
 				pOteCsInf->ote_error |= FLTS_MASK_ERR_RPC_RPLC_COMM;
+
 			}
+			
 		}
 		else {//PLC通信正常
 			pOteCsInf->ope_plc_stat = L_ON;
@@ -519,7 +523,6 @@ int COteCS::output() {
 
 	//##操作卓遠隔モード表示
 	pPcWBuf->rmt_status = st_work.st_body.remote;
-	pPcWBuf->spare0[3] = st_work.st_body.remote;
 
 	//##操作卓ハードランプ
 	INT16 plc_yo_buf = 0;
@@ -613,8 +616,6 @@ int COteCS::output() {
 	for(;index< N_OTE_OPE_PLC_FAULT_BUF;index++) 
 		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[index] = 0;
 
-
-	
 	//##GOT状態監視
 	pPcWBuf->mh_set		= pBody->st_axis_set[ID_HOIST];			//主巻
 	pPcWBuf->bh_set		= pBody->st_axis_set[ID_BOOM_H];		//引込
@@ -626,11 +627,17 @@ int COteCS::output() {
 	pPcWBuf->bh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
 
 	}
-//### 制御PCへの出力処理
 
+//### パネルウィンドウ用
+	pOteCsInf->plc_com_stat_r = st_work.plc_com_stat_r;	//PLC受信通信状態
+	pOteCsInf->plc_com_stat_s = st_work.plc_com_stat_s;	//PLC送信通信状態
+
+//### 制御PCへの出力処理
 	pOteCsInf->st_body.ote_err[0] = pOteCsInf->ote_error;	//遠隔操作PC検出故障セット
+
 //##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
+
 
 	return STAT_OK;
 }
@@ -655,22 +662,19 @@ void COteCS::update_sock_stat() {
 		st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_STANDBY;
 		st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_STANDBY;
 
-		if (sock_stat & CSOCK_STAT_ACT_RCV)
-			st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_ACT_RCV;
-		else if (sock_stat & CSOCK_STAT_RCV_ERR)
-			st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_RCV_ERR;
-		else;
+		if (write_chk_plc == 0) st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_STANDBY;
+		else if (write_chk_plc < 3) st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_ACT_RCV;
+		else st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_RCV_ERR;
 
-		if (sock_stat & CSOCK_STAT_ACT_SND)
-			st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_ACT_SND;
-		else if (sock_stat & CSOCK_STAT_SND_ERR)
-			st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_SND_ERR;
-		else;
+		if (read_chk_plc == 0) st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_STANDBY;
+		else if (read_chk_plc < 3) st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_ACT_SND;
+		else st_work.plc_com_stat_r = ID_PNL_SOCK_STAT_SND_ERR;
+
 	}
 	else if (sock_stat == CSOCK_STAT_CLOSED)	st_work.plc_com_stat_r = st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_CLOSED;
 	else if (sock_stat == CSOCK_STAT_INIT)		st_work.plc_com_stat_r = st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_INIT;
 	else if (sock_stat == CSOCK_STAT_INIT_ERROR)st_work.plc_com_stat_r = st_work.plc_com_stat_s = ID_PNL_SOCK_STAT_INIT_ERROR;
-	else;
+	else; 
 	
 	return ;
 }
@@ -844,92 +848,100 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_TIMER: {
 		if (pMCSock == NULL)break;
 		//3Eフォーマット Dデバイス書き込み要求送信
-		if (is_write_req_turn) {//書き込み要求送信
-			st_mon2.wo_req_w.str(L"");
-			//3Eフォーマット Dデバイス書き込み要求送信
-			if (pMCSock->send_write_req_D_3E(pOteCsInf->buf_opepnl_write) != S_OK) {
-				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
-			}
-			else snd_count_plc_w++;
-
-			if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
-				if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_IO) {
-					st_mon2.wo_req_w << L"送信内容\n";
-					st_mon2.wo_req_w << L"Y80-8F【" << ((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 << L"】";
-					st_mon2.wo_req_w << L"0,1:主高 2,3:走高 4,5:補高 6,7:主幹 8:故障 9:警報 B:運準 C-F:Buzzer\n";
+		if(pOteEnvInf->app_mode != OTE_ENV_APP_DEBUG_TYPE1){
+			if (is_write_req_turn) {//書き込み要求送信
+				st_mon2.wo_req_w.str(L"");
+				//3Eフォーマット Dデバイス書き込み要求送信
+				if (pMCSock->send_write_req_D_3E(pOteCsInf->buf_opepnl_write) != S_OK) {
+					st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
 				}
 				else {
-
-					if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
-						st_mon2.wo_req_w << std::hex;
-					else
-						st_mon2.wo_req_w << std::dec;
-					st_mon2.wo_req_w << L"Sw>>"
-						<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
-						<< L"#serial:" << pMCSock->mc_req_msg_w.serial
-						<< L"#NW:" << pMCSock->mc_req_msg_w.nNW
-						<< L"#PC:" << pMCSock->mc_req_msg_w.nPC
-						<< L"#UIO:" << pMCSock->mc_req_msg_w.nUIO
-						<< L"#Ucd:" << pMCSock->mc_req_msg_w.nUcode
-						<< L"#len:" << pMCSock->mc_req_msg_w.len
-						<< L"#tm:" << pMCSock->mc_req_msg_w.timer
-						<< L"#com:" << pMCSock->mc_req_msg_w.com
-						<< L"#scom:" << pMCSock->mc_req_msg_w.scom << L"\n"
-						<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
-						<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
-						<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
-
-					//st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opepnl_write[0];
-					//データ部分1ページ10WORD　4行で切替表示
-					for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
-						int no = OTE_MC_ADDR_W_WRITE + i_page_w * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
-						st_mon2.wo_req_w << L"D" << dec << no << L" |";
-						if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
-						for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
-							if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
-								st_mon2.wo_req_w << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
-							else
-								st_mon2.wo_req_w << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
-						}
-						st_mon2.wo_req_w << L"\n";
-					}
+					snd_count_plc_w++;
+					write_chk_plc ++;
 				}
 
-				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
+				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
+					if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_IO) {
+						st_mon2.wo_req_w << L"送信内容\n";
+						st_mon2.wo_req_w << L"Y80-8F【" << ((LPST_PLC_WBUF_HHGG38)(pOteCsInf->buf_opepnl_write))->lamp1 << L"】";
+						st_mon2.wo_req_w << L"0,1:主高 2,3:走高 4,5:補高 6,7:主幹 8:故障 9:警報 B:運準 C-F:Buzzer\n";
+					}
+					else {
+
+						if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
+							st_mon2.wo_req_w << std::hex;
+						else
+							st_mon2.wo_req_w << std::dec;
+						st_mon2.wo_req_w << L"Sw>>"
+							<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
+							<< L"#serial:" << pMCSock->mc_req_msg_w.serial
+							<< L"#NW:" << pMCSock->mc_req_msg_w.nNW
+							<< L"#PC:" << pMCSock->mc_req_msg_w.nPC
+							<< L"#UIO:" << pMCSock->mc_req_msg_w.nUIO
+							<< L"#Ucd:" << pMCSock->mc_req_msg_w.nUcode
+							<< L"#len:" << pMCSock->mc_req_msg_w.len
+							<< L"#tm:" << pMCSock->mc_req_msg_w.timer
+							<< L"#com:" << pMCSock->mc_req_msg_w.com
+							<< L"#scom:" << pMCSock->mc_req_msg_w.scom << L"\n"
+							<< L"#d_no:" << pMCSock->mc_req_msg_w.d_no
+							<< L"#d_code:" << pMCSock->mc_req_msg_w.d_code
+							<< L"#n_dev:" << pMCSock->mc_req_msg_w.n_device << L"\n";
+
+						//st_mon2.wo_req_w << L"PC Helthy:" << pOteCsInf->buf_opepnl_write[0];
+						//データ部分1ページ10WORD　4行で切替表示
+						for (int i = 0; i < OTE_CS_MON2_MSG_DISP_N__DATAROW; i++) {
+							int no = OTE_MC_ADDR_W_WRITE + i_page_w * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN * OTE_CS_MON2_MSG_DISP_N__DATAROW + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN;
+							st_mon2.wo_req_w << L"D" << dec << no << L" |";
+							if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)	st_mon2.wo_req_w << hex;
+							for (int j = 0; j < OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN; j++) {
+								if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_HEX)
+									st_mon2.wo_req_w << std::setw(4) << std::setfill(L'0') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+								else
+									st_mon2.wo_req_w << std::setw(6) << std::setfill(L' ') << pOteCsInf->buf_opepnl_write[i_ref_w + i * OTE_CS_MON2_MSG_DISP_N_DATA_COLUMN + j] << L"|";
+							}
+							st_mon2.wo_req_w << L"\n";
+						}
+					}
+
+					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
+				}
+
+				QueryPerformanceCounter(&start_count_w);  // 書き込み要求送信時カウント値取り込み
+				is_write_req_turn = false;
 			}
+			else {
+				st_mon2.wo_req_r.str(L"");
+				//読み出し要求送信
+				if (pMCSock->send_read_req_D_3E() != S_OK) {
+					st_mon2.wo_req_r << L"ERROR : send_read_req_D_3E()";
+				}
+				else {
+					snd_count_plc_r++;
+					read_chk_plc++;
+				}
 
-			QueryPerformanceCounter(&start_count_w);  // 書き込み要求送信時カウント値取り込み
-			is_write_req_turn = false;
-		}
-		else {
-			st_mon2.wo_req_r.str(L"");
-			//読み出し要求送信
-			if (pMCSock->send_read_req_D_3E() != S_OK) {
-				st_mon2.wo_req_r << L"ERROR : send_read_req_D_3E()";
+				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
+					st_mon2.wo_req_r << L"Sr>>"
+						<< L"#sub:" << std::hex << pMCSock->mc_req_msg_r.subcode
+						<< L"#serial:" << pMCSock->mc_req_msg_r.serial
+						<< L"#NW:" << pMCSock->mc_req_msg_r.nNW
+						<< L"#PC:" << pMCSock->mc_req_msg_r.nPC
+						<< L"#UIO:" << pMCSock->mc_req_msg_r.nUIO
+						<< L"#Ucd:" << pMCSock->mc_req_msg_r.nUcode
+						<< L"#len:" << pMCSock->mc_req_msg_r.len
+						<< L"#tm:" << pMCSock->mc_req_msg_r.timer
+						<< L"#com:" << pMCSock->mc_req_msg_r.com
+						<< L"#scom:" << pMCSock->mc_req_msg_r.scom
+						<< L"#d_no:" << pMCSock->mc_req_msg_r.d_no
+						<< L"#d_code:" << pMCSock->mc_req_msg_r.d_code
+						<< L"#n_dev:" << pMCSock->mc_req_msg_r.n_device;
+
+					SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
+				}
+
+				QueryPerformanceCounter(&start_count_r);  // 書き込み要求送信時カウント値取り込み
+				is_write_req_turn = true;
 			}
-			else snd_count_plc_r++;
-
-			if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
-				st_mon2.wo_req_r << L"Sr>>"
-					<< L"#sub:"		<< std::hex << pMCSock->mc_req_msg_r.subcode
-					<< L"#serial:" << pMCSock->mc_req_msg_r.serial
-					<< L"#NW:"		<< pMCSock->mc_req_msg_r.nNW
-					<< L"#PC:"		<< pMCSock->mc_req_msg_r.nPC
-					<< L"#UIO:" << pMCSock->mc_req_msg_r.nUIO
-					<< L"#Ucd:" << pMCSock->mc_req_msg_r.nUcode
-					<< L"#len:" << pMCSock->mc_req_msg_r.len
-					<< L"#tm:" << pMCSock->mc_req_msg_r.timer
-					<< L"#com:" << pMCSock->mc_req_msg_r.com
-					<< L"#scom:" << pMCSock->mc_req_msg_r.scom
-					<< L"#d_no:" << pMCSock->mc_req_msg_r.d_no
-					<< L"#d_code:" << pMCSock->mc_req_msg_r.d_code
-					<< L"#n_dev:" << pMCSock->mc_req_msg_r.n_device;
-
-				SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
-			}
-
-			QueryPerformanceCounter(&start_count_r);  // 書き込み要求送信時カウント値取り込み
-			is_write_req_turn = true;
 		}
 
 		//共通表示
@@ -1036,6 +1048,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			
 			if (nRtn == MC_RES_READ) {//読み出し応答
 				rcv_count_plc_r++;
+				read_chk_plc = CODE_COMCHK_RES_OK;
 				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 
 					if (st_mon2.msg_disp_mode == OTE_CS_MON2_MSG_DISP_IO) {
@@ -1103,6 +1116,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			else if (nRtn == MC_RES_WRITE) {
 
 				rcv_count_plc_w++;
+				write_chk_plc = CODE_COMCHK_RES_OK;
 				if ((st_mon2.msg_disp_mode != OTE_CS_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 
 					st_mon2.wo_res_w << L"Rw>>"

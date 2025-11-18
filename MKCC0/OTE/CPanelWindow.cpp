@@ -806,6 +806,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcHHGH29(HWND hWnd, UINT msg, WPARAM wp,
 		//PLCとの通信状態表示(送信）
 		if (pCsInf->plc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
 			pPanelBase->pmainobjs->lmp_plcs->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_plcs->set(pCsInf->plc_com_stat_s);
 		pPanelBase->pmainobjs->lmp_plcs->update();
 
 		//PB状態更新(オフディレイカウントダウン)

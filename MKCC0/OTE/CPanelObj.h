@@ -50,12 +50,12 @@ using namespace std;
 
 #define ID_PNL_SOCK_STAT_CLOSED				0//OFF
 #define ID_PNL_SOCK_STAT_INIT				1//ê¬
-#define ID_PNL_SOCK_STAT_INIT_ERROR			2//ûÚ
-#define ID_PNL_SOCK_STAT_STANDBY			3//â©
+#define ID_PNL_SOCK_STAT_RCV_ERR			2//â©
+#define ID_PNL_SOCK_STAT_SND_ERR			2//â©
+#define ID_PNL_SOCK_STAT_STANDBY			1//ê¬
 #define ID_PNL_SOCK_STAT_ACT_RCV			4//óŒ
 #define ID_PNL_SOCK_STAT_ACT_SND			4//óŒ
-#define ID_PNL_SOCK_STAT_RCV_ERR			5//ê‘
-#define ID_PNL_SOCK_STAT_SND_ERR			5//ê‘
+#define ID_PNL_SOCK_STAT_INIT_ERROR			3//ê‘
 
 
 #define N_MAIN_PNL_WCHAR	128
