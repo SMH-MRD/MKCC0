@@ -123,7 +123,7 @@ typedef struct _ST_OTE_CS_INF {
 	INT16 GOT_command;								//GOTのコマンド
 	INT16 ote_error;								//OTEのエラーコード
 	INT32 GOT_crane_select;							//GOTのクレーン選択状態
-	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ];		//PLCからの読み取り信号生値
+	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ+2];		//PLCからの読み取り信号生値
 	INT16 buf_opepnl_write[OTE_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
 	INT16 pnl_ctrl[N_OTE_PNL_CTRL];					//操作卓入力仕分け
 	INT16 rpc_flt_codes[OTE_PC_FLT_DETECT_MAX];		//操作卓故障検出バッファ
