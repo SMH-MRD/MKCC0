@@ -212,6 +212,47 @@ union UN_OPE_PLC_WBUF {
 	ST_PLC_WBUF_HHGG38	st_hhgh38;
 };
 
+typedef struct _ST_PLC_WBUF_SBRK {
+	INT16   pc_ref_D96;		// D96
+	INT16	spare[15];		// D97-D111　予備
+}ST_PLC_WBUF_SBRK, * LPST_PLC_WBUF_SBRK;
+
+#define SBRK_CODE_FB_WF_POSITIONING_OK		0x0001
+#define SBRK_CODE_FB_WF_BACK_TO_ORIGIN		0x0002
+#define SBRK_CODE_FB_WF_ON_MOVING			0x0004
+#define SBRK_CODE_FB_WF_ALARM				0x0008
+#define SBRK_CODE_FB_WF_SV_READY			0x0010
+#define SBRK_CODE_FB_WF_KARABURI			0x0020	//空振り
+#define SBRK_CODE_FB_WF_PUSHS				0x0040	//押し付け動作中
+#define SBRK_CODE_FB_WF_GOING_TO_ORG		0x0080	//原点復帰中
+#define SBRK_CODE_FB_WF_TRQS				0x0100  //トルクレベル到達
+#define SBRK_CODE_FB_WF_TRQS				0x0200
+#define SBRK_CODE_FB_WF_LOAW				0x0400
+#define SBRK_CODE_FB_WF_PZONE				0x0800
+#define SBRK_CODE_FB_WF_ZONE1				0x1000
+#define SBRK_CODE_FB_WF_ZONE2				0x2000	
+#define SBRK_CODE_FB_WF_CONTROL_READY		0x4000	
+#define SBRK_CODE_FB_WF_EMGS				0x8000	//異常停止
+
+typedef struct _ST_PLC_RBUF_SBRK {
+	INT16   fb_main_D16;					// 
+	INT16   fb_err_D17;						// 
+	INT16   fb_err_code_D18;				// 
+	INT16   pos_robo_D19;					// 
+	INT16   fb_WF_D20;						// 
+	INT16  spare0[5];						// 
+}ST_PLC_RBUF_SBRK, * LPST_PLC_RBUF_SBRK;
+
+union UN_SBRK_PLC_RBUF {
+	INT16 rbuf[SLBRK_MC_ADDR_W_READ];
+	ST_PLC_RBUF_SBRK	st_sbrk_r;
+};
+
+union UN_SBRK_PLC_WBUF {
+	INT16 wbuf[SLBRK_MC_ADDR_W_WRITE];
+	ST_PLC_WBUF_SBRK	st_sbrk_w;
+};
+
 
 #pragma pack(pop)
 

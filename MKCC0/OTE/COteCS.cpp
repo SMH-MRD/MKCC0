@@ -517,6 +517,7 @@ int COteCS::output() {
 	//##PC Healthy
 	pPcWBuf->pc_healthy = ote_helthy++;					//PCヘルシー値
 	//##PC Status
+	pPcWBuf->pc_status = ote_helthy;	
 	
 	//接続中クレーンID
 	pPcWBuf->crane_id = (INT16)(pOteCCInf->id_conected_crane & 0x0000FFFF);	//接続先クレーンID	

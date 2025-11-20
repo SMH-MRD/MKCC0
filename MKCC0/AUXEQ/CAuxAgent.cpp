@@ -4,6 +4,7 @@
 #include "CSHAREDMEM.H"
 #include "SmemAux.H"
 #include "CMCProtocol.h"
+#include "CPlc.h"
 
 LPST_AUXEQ CAuxAgent::pst_work;
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
@@ -198,8 +199,6 @@ HRESULT CAuxAgent::routine_work(void* pObj){
 
 int CAuxAgent::input() {
 		
-
-
 	return S_OK;
 }
 
@@ -227,10 +226,13 @@ int CAuxAgent::output() {          //出力処理
 	pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
 	pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHW
 
+	LPST_PLC_RBUF_SBRK pfb = (LPST_PLC_RBUF_SBRK)pAgent_Inf->slbrk_rbuf;
+
 	pCS_Inf->fb_slbrk.d16 = pAgent_Inf->slbrk_rbuf[0];						//旋回ブレーキフィードバックD16
 	pCS_Inf->fb_slbrk.d17 = pAgent_Inf->slbrk_rbuf[1];						//旋回ブレーキフィードバックD17
 	pCS_Inf->fb_slbrk.d18 = pAgent_Inf->slbrk_rbuf[2];						//旋回ブレーキフィードバックD18
-	pCS_Inf->fb_slbrk.d19 = pAgent_Inf->slbrk_rbuf[3];						//旋回ブレーキフィードバックD18
+	pCS_Inf->fb_slbrk.d19 = pAgent_Inf->slbrk_rbuf[3];						//旋回ブレーキフィードバックD19
+	pCS_Inf->fb_slbrk.d20 = pfb->fb_WF_D20;									//旋回ブレーキフィードバックD20
 
 	//### 旋回ブレーキシステムへ出力
 	if (!st_mon2.slbrk_dbg_mode) {
