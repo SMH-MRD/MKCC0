@@ -381,11 +381,14 @@ int COteCS::input(){
 	}
 
 	//### 旋回ブレーキ指令信号整形
+	//フットペダル値 0-15に補正
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		< 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 0;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		> 15)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 15;
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	> 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_HW_BRK; //HWブレーキ
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_RESET; //リセット
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		|= AUX_SLBRK_COM_FREE; //フリー(AUTO/MANUAL)
+	//補助ノッチ値により、ブレーキ指令付加
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	==  1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_HW_BRK;	//HWブレーキ
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	==  2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_PARKING;	//サイドブレーキ
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_RESET;		//リセット
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_CHK;		//機能チェック
 
 	return S_OK;
 }

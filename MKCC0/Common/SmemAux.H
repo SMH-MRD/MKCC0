@@ -17,7 +17,9 @@ using namespace std;
 
 #define AUX_SLBRK_COM_HW_BRK			BIT4	//HaerWare Brake
 #define AUX_SLBRK_COM_RESET				BIT5	//Reset
-#define AUX_SLBRK_COM_FREE				BIT7	//Auto Select Mode
+#define AUX_SLBRK_COM_PARKING			BIT6	//Reset
+//#define AUX_SLBRK_COM_FREE				BIT7	//Auto Select Mode
+#define AUX_SLBRK_COM_CHK				BIT7	//Auto Select Mode
 
 typedef struct _ST_AUX_ENV_INF {
 
@@ -38,13 +40,17 @@ typedef struct _ST_SLBRK_COM {
 typedef struct _ST_SLBRK_FB {
 	INT16 brk_fb_level;
 	INT16 brk_fb_hw_brk;
-	INT16 brk_fb_reset;
+	INT16 brk_fb_org_pt;
 	INT16 brk_fb_emg;
 	INT16 brk_fb_autosel;
 	INT16 brk_fb_err_map;
 	INT16 brk_fb_err_code;
 	INT16 brk_fb_rbsl_pos;
 	INT16 healthy_err;
+	INT16 brk_fb_karaburi;
+	INT16 brk_fb_time_over;
+	INT16 brk_fb_release;
+	INT16 brk_fb_sys_err;
 	INT16 d16;
 	INT16 d17;
 	INT16 d18;

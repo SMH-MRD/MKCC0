@@ -225,8 +225,8 @@ typedef struct _ST_PLC_WBUF_SBRK {
 #define SBRK_CODE_FB_WF_KARABURI			0x0020	//空振り
 #define SBRK_CODE_FB_WF_PUSHS				0x0040	//押し付け動作中
 #define SBRK_CODE_FB_WF_GOING_TO_ORG		0x0080	//原点復帰中
-#define SBRK_CODE_FB_WF_TRQS				0x0100  //トルクレベル到達
-#define SBRK_CODE_FB_WF_TRQS				0x0200
+#define SBRK_CODE_FB_WF_RMWS				0x0100  //運転モード
+#define SBRK_CODE_FB_WF_TRQS				0x0200  //トルクレベル到達
 #define SBRK_CODE_FB_WF_LOAW				0x0400
 #define SBRK_CODE_FB_WF_PZONE				0x0800
 #define SBRK_CODE_FB_WF_ZONE1				0x1000

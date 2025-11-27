@@ -221,18 +221,26 @@ int CAuxAgent::parse() {           //メイン処理
 }
 int CAuxAgent::output() {          //出力処理
 	//### MAINプロセスへ出力
-	pCS_Inf->aux_helthy_cnt++;
-
-	pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
-	pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHW
-
 	LPST_PLC_RBUF_SBRK pfb = (LPST_PLC_RBUF_SBRK)pAgent_Inf->slbrk_rbuf;
 
-	pCS_Inf->fb_slbrk.d16 = pAgent_Inf->slbrk_rbuf[0];						//旋回ブレーキフィードバックD16
-	pCS_Inf->fb_slbrk.d17 = pAgent_Inf->slbrk_rbuf[1];						//旋回ブレーキフィードバックD17
-	pCS_Inf->fb_slbrk.d18 = pAgent_Inf->slbrk_rbuf[2];						//旋回ブレーキフィードバックD18
-	pCS_Inf->fb_slbrk.d19 = pAgent_Inf->slbrk_rbuf[3];						//旋回ブレーキフィードバックD19
-	pCS_Inf->fb_slbrk.d20 = pfb->fb_WF_D20;									//旋回ブレーキフィードバックD20
+	pCS_Inf->fb_slbrk.d16				= pAgent_Inf->slbrk_rbuf[0];			//旋回ブレーキフィードバックD16
+	pCS_Inf->fb_slbrk.d17				= pAgent_Inf->slbrk_rbuf[1];			//旋回ブレーキフィードバックD17
+	pCS_Inf->fb_slbrk.d18				= pAgent_Inf->slbrk_rbuf[2];			//旋回ブレーキフィードバックD18
+	pCS_Inf->fb_slbrk.d19				= pAgent_Inf->slbrk_rbuf[3];			//旋回ブレーキフィードバックD19
+	pCS_Inf->fb_slbrk.d20				= pfb->fb_WF_D20;						//旋回ブレーキフィードバックD20
+
+	pCS_Inf->aux_helthy_cnt++;
+
+	pCS_Inf->fb_slbrk.brk_fb_level		= pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
+	pCS_Inf->fb_slbrk.brk_fb_hw_brk		= pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHWブレーキ
+	pCS_Inf->fb_slbrk.brk_fb_autosel	= pAgent_Inf->slbrk_rbuf[0] & 0x0080;	//旋回ブレーキフィードバックAutoMode
+	pCS_Inf->fb_slbrk.brk_fb_emg		= pAgent_Inf->slbrk_rbuf[0] & 0x0040;	//旋回ブレーキフィードバック非常停止
+	pCS_Inf->fb_slbrk.brk_fb_time_over	= pAgent_Inf->slbrk_rbuf[1] & 0x0010;	//旋回ブレーキフィードバックタイムオーバー
+	pCS_Inf->fb_slbrk.brk_fb_release	= pAgent_Inf->slbrk_rbuf[0] & 0x0100;	//旋回ブレーキフィードバック解除
+	pCS_Inf->fb_slbrk.brk_fb_sys_err	= pCS_Inf->fb_slbrk.d17		& 0x000F;	//旋回ブレーキフィードバックシステム異常
+	pCS_Inf->fb_slbrk.brk_fb_karaburi	= pCS_Inf->fb_slbrk.d20		& 0x0020;	//旋回ブレーキフィードバック空振
+	pCS_Inf->fb_slbrk.brk_fb_org_pt		= pCS_Inf->fb_slbrk.d20		& 0x0002;	//旋回ブレーキフィードバック原点復帰
+	pCS_Inf->fb_slbrk.brk_fb_rbsl_pos	= pCS_Inf->fb_slbrk.d19;				//旋回ブレーキフィードバック位置
 
 	//### 旋回ブレーキシステムへ出力
 	if (!st_mon2.slbrk_dbg_mode) {
@@ -438,7 +446,10 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			}
 			
 			monwos.str(L"");
-			monwos << L" MAIN CS >> LEVEL:" << pCS_Inf->com_slbrk.pc_com_brk_level << L"  HW:" << pCS_Inf->com_slbrk.pc_com_hw_brk << L" RST:" << pCS_Inf ->com_slbrk.pc_com_reset << L" EMG:" << pCS_Inf->com_slbrk.pc_com_emg << L" AUTO:" << pCS_Inf->com_slbrk.pc_com_autosel;
+			monwos << L" MAIN CS >> LEVEL:" << pCS_Inf->com_slbrk.pc_com_brk_level << L"  HW:" << pCS_Inf->com_slbrk.pc_com_hw_brk << L" RST:" << pCS_Inf ->com_slbrk.pc_com_reset << L" EMG:" << pCS_Inf->com_slbrk.pc_com_emg << L" AUTO:" << pCS_Inf->com_slbrk.pc_com_autosel << L" \n";
+
+			monwos <<L"SLBR FB >> LV:"<< pCS_Inf->fb_slbrk.brk_fb_level	<<L" HW:"<< pCS_Inf->fb_slbrk.brk_fb_hw_brk<<L" EMG:"<< pCS_Inf->fb_slbrk.brk_fb_emg<<L" AUTO:"<< pCS_Inf->fb_slbrk.brk_fb_autosel<<L" ERR MAP:"<< pCS_Inf->fb_slbrk.brk_fb_err_map << L" ERR CODE:" << pCS_Inf->fb_slbrk.brk_fb_err_code << L" ERR HTHY:" << pCS_Inf->fb_slbrk.healthy_err << L" \n";
+			monwos <<L" POS"<< pCS_Inf->fb_slbrk.brk_fb_rbsl_pos<<L" 空振:"<< pCS_Inf->fb_slbrk.brk_fb_karaburi<<L" ORG PT:"<< pCS_Inf->fb_slbrk.brk_fb_org_pt<<L" TMOV:"<< pCS_Inf->fb_slbrk.brk_fb_time_over<<L" RELEASE:"<< pCS_Inf->fb_slbrk.brk_fb_release<<L" SYS ERR:"<< pCS_Inf->fb_slbrk.brk_fb_sys_err;
 			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MAIN_INF], monwos.str().c_str());
 		}
 	}break;

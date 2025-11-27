@@ -65,7 +65,7 @@ typedef struct _ST_AGENT_MON1 {
 #define AGENT_MON2_N_WCHAR          64
 
 #define AGENT_ID_MON2_TIMER         55591
-#define AGENT_PRM_MON2_TIMER_MS     30
+#define AGENT_PRM_MON2_TIMER_MS     20
 
 #define AGENT_MON2_MSG_DISP_OFF 0
 #define AGENT_MON2_MSG_DISP_HEX 1
@@ -120,6 +120,12 @@ typedef struct _ST_AGENT_MON2 {
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_AGENT_MON2, * LPST_AGENT_MON2;
+
+
+
+#define AGENT_PRM_SLBK_CHK_COUNT_STANDBY   20   //スレーブブレーキチェックシーケンスカウント値　400msec
+#define AGENT_PRM_SLBK_CHK_COUNT_RUNNING   500  //スレーブブレーキチェックシーケンスカウント値　10sec
+
 
 class CAgent : public CBasicControl
 {

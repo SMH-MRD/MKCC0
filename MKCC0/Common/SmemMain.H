@@ -349,7 +349,7 @@ typedef struct _ST_COMMAND_SET {
 typedef struct _ST_JOB_SET {
 	//CS 構成 JOBセット
 	int list_id;								//登録されているJOB list配列のインデックスid
-	int job_id;										//登録されているJOB list内job配列のインデックスid
+	int job_id;									//登録されているJOB list内job配列のインデックスid
 	int type;									//JOB種別（JOB,半自動,OPERATION））
 	int code;									//JOB識別コード
 	int n_com;
@@ -428,6 +428,12 @@ typedef struct _ST_CC_POL_INF {
 #define AG_AXIS_STAT_AUTO_ENABLE		0x100000000	 //自動可
 #define AG_AXIS_STAT_ANTISWAY_ENABLE	0x200000000	 //振れ止め可
 
+#define AG_MODE_SLBK_NORMAL				0x000000000
+#define AG_MODE_SLBK_CHECK_STANDBY		0x000000001
+#define AG_MODE_SLBK_CHECK_RUNNING		0x000000002
+#define AG_MODE_SLBK_CHECK_FIN			0x000000004
+#define AG_MODE_SLBK_DBG				0x000000008
+
 typedef struct _ST_CC_AXIS_CTRL {
 	double dist_for_target;
 	int auto_active;
@@ -454,6 +460,10 @@ typedef struct _ST_CC_AGENT_INF {
 	LPST_POS_TARGETS	auto_pos_target;			//自動目標位置
 	LPST_COMMAND_SET    pCom_hot;					//実行中コマンドセット
 	LPST_JOB_SET		pJob_hot;
+
+	//旋回ブレーキ制御
+	int slew_brake_ctrl_mode;//0:通常 1:機能チェックモード
+	int slew_brake_chk_enable;
 
 }ST_CC_AGENT_INF, * LPST_CC_AGENT_INF;
 

@@ -290,10 +290,10 @@ int CCcCS::parse() {
 			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_OFF;
 
 			//#ノッチ信号FB
-			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = pPLC_IO->stat_mh.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = pPLC_IO->stat_bh.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = pPLC_IO->stat_sl.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = pPLC_IO->stat_gt.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = (UINT8)pPLC_IO->stat_mh.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = (UINT8)pPLC_IO->stat_bh.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = (UINT8)pPLC_IO->stat_sl.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = (UINT8)pPLC_IO->stat_gt.notch_ref;
 
 			//#ブザー,故障、警報ランプ
 			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->fault_bz).i16 & 0x000F;
@@ -723,7 +723,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 
-		UINT rtn = SetTimer(hWnd, CS_ID_MON2_TIMER, CS_PRM_MON2_TIMER_MS,NULL);
+		SetTimer(hWnd, CS_ID_MON2_TIMER, CS_PRM_MON2_TIMER_MS,NULL);
 
 	}break;
 	case WM_COMMAND: {

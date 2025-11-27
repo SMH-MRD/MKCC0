@@ -129,6 +129,10 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
 	}
+
+	//旋回ブレーキモード
+	pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
+	pAgent_Inf->slew_brake_chk_enable = L_OFF;
 	
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -254,8 +258,7 @@ int CAgent::input() {
 	pPLC_IO->stat_bh.brake = pCrane->pPlc->rval(pPlcRIf->bh_brk_fb).i16;		//BHブレーキ状態
 	pPLC_IO->stat_gt.brake = pCrane->pPlc->rval(pPlcRIf->gt_brk_fb).i16;		//GTブレーキ状態
 	pPLC_IO->stat_sl.brake = pCrane->pPlc->rval(pPlcRIf->sl_hydr_press_sw).i16;	//SLブレーキ状態
-	//# 旋回ブレーキ有効時（遠隔端末有効+旋回ブレーキenableの時）は旋回ブレーキFBをセット	
-	if (0); pPLC_IO->stat_sl.brake;
+	
 
 	//## MODE(主巻速度、引込、旋回)
 	pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A);
@@ -430,10 +433,12 @@ int CAgent::close() {
 	return 0;
 }
 
-static DWORD slbrk_healthy_last = 0, slbrk_healthy_cnt;
+static DWORD slbrk_healthy_last = 0, slbrk_healthy_cnt,slblk_chk_cnt;
+
 int CAgent::manage_slbrk() {
 
-	//### ヘルシーチェック
+	//### 旋回ブレーキ異常信号処理
+	//## ヘルシーチェック
 	if (slbrk_healthy_last == pAUX_CS_Inf->aux_helthy_cnt) {
 		slbrk_healthy_cnt++;
 	}
@@ -448,52 +453,130 @@ int CAgent::manage_slbrk() {
 
 	slbrk_healthy_last = pAUX_CS_Inf->aux_helthy_cnt;
 
-	//### 旋回ブレーキ制御
-	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //pOteCtrl[OTE_PNL_CTRLS::sl_brk_com] & 0x0000;
-	if(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_FREE) pAUX_CS_Inf->com_slbrk.pc_com_autosel=0;
+	//## 空振りチェック
+	if( pAUX_CS_Inf->fb_slbrk.brk_fb_karaburi)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_KARABURI] |= FLTS_MASK_ERR_SLBRK_KARABURI;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_KARABURI] &= ~FLTS_MASK_ERR_SLBRK_KARABURI;
 
-	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
-		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
-		pAUX_CS_Inf->com_slbrk.pc_com_hw_brk	= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
-		pAUX_CS_Inf->com_slbrk.pc_com_reset		= pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
-	}
-	else {
-		pAUX_CS_Inf->com_slbrk.pc_com_brk_level =0;
-	}
-	pAUX_CS_Inf->main_helthy_cnt++;
+	//## タイムオーバーチェック
+	if (pAUX_CS_Inf->fb_slbrk.brk_fb_karaburi)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TMOV] |= FLTS_MASK_ERR_SLBRK_TMOV;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TMOV] &= ~FLTS_MASK_ERR_SLBRK_TMOV;
 
-	//### 旋回ブレーキ異常信号処理
-		//#異常判定/報告
+	//## システムエラーチェック
+	if (pAUX_CS_Inf->fb_slbrk.brk_fb_err_code || pAUX_CS_Inf->fb_slbrk.brk_fb_sys_err|| pAUX_CS_Inf->fb_slbrk.healthy_err)
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_SYS_ERR] |= FLTS_MASK_ERR_SLBRK_SYS_ERR;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_SYS_ERR] &= ~FLTS_MASK_ERR_SLBRK_SYS_ERR;
 
 	if (pAUX_CS_Inf->fb_slbrk.brk_fb_emg)
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_ESTOP]		|= FLTS_MASK_ERR_SLBRK_ESTOP;
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_ESTOP] |= FLTS_MASK_ERR_SLBRK_ESTOP;
 	else
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_ESTOP]		&= ~FLTS_MASK_ERR_SLBRK_ESTOP;
-
-	if (pAUX_CS_Inf->fb_slbrk.d17 & 0x0010)
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TIME_OV]	|= FLTS_MASK_ERR_SLBRK_TIME_OV;
-	else
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TIME_OV]	&= ~FLTS_MASK_ERR_SLBRK_TIME_OV;
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_ESTOP] &= ~FLTS_MASK_ERR_SLBRK_ESTOP;
 
 	if (pAUX_CS_Inf->fb_slbrk.d17 & 0x0003)
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_PLC_ERR]	|= FLTS_MASK_ERR_SLBRK_PLC_ERR;
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_PLC_ERR] |= FLTS_MASK_ERR_SLBRK_PLC_ERR;
 	else
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_PLC_ERR]	&= ~FLTS_MASK_ERR_SLBRK_PLC_ERR;
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_PLC_ERR] &= ~FLTS_MASK_ERR_SLBRK_PLC_ERR;
 
 	if (pAUX_CS_Inf->fb_slbrk.d17 & 0x000C)
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HW_ERR]		|= FLTS_MASK_ERR_SLBRK_HW_ERR;
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HW_ERR] |= FLTS_MASK_ERR_SLBRK_HW_ERR;
 	else
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HW_ERR]		&= ~FLTS_MASK_ERR_SLBRK_HW_ERR;
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HW_ERR] &= ~FLTS_MASK_ERR_SLBRK_HW_ERR;
 
 	if ((pAUX_CS_Inf->fb_slbrk.d16 & 0x0100) || !(pAUX_CS_Inf->fb_slbrk.d16 & 0x0080))
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] |= FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
 	else
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] &= ~FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
 
-	if (pAUX_CS_Inf->fb_slbrk.healthy_err) 
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HEALTHY_ERR] |= FLTS_MASK_ERR_SLBRK_HEALTHY_ERR;
-	else 
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_HEALTHY_ERR] &= ~FLTS_MASK_ERR_SLBRK_HEALTHY_ERR;
+	//### 旋回ブレーキ制御
+	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //自動モード;
+
+	//機能チェックモード
+	if (pCS_Inf->cs_ctrl.ope_pnl_status == CC_CS_CODE_OPEPNL_ACTIVE) {
+		//チェック起動条件
+		if (pAgent_Inf->slew_brake_chk_enable == L_OFF) {
+			if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_CHK) {      //遠隔操作卓ノッチレバー入
+				pAgent_Inf->slew_brake_chk_enable = L_ON;
+				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_STANDBY;
+			}
+			else if (pOTE_Inf->st_body.lamp[OTE_PNL_CTRLS::ope_ready].code) {//運転準備完ランプON
+				pAgent_Inf->slew_brake_chk_enable = L_ON;
+				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_STANDBY;
+			}
+			else {
+				pAgent_Inf->slew_brake_chk_enable = L_OFF;
+				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
+			}
+
+			slblk_chk_cnt = AGENT_PRM_SLBK_CHK_COUNT_STANDBY;
+		}
+
+		if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_STANDBY) {//トリガ状態時
+			if (slblk_chk_cnt-- < 0) {
+				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_RUNNING;
+				slblk_chk_cnt = AGENT_PRM_SLBK_CHK_COUNT_RUNNING;
+			}
+		}
+		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_RUNNING) {//チェックシーケンス実行中時
+			if(slblk_chk_cnt-- < 0){
+				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
+			}
+		}
+		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_FIN) {//チェックシーケンス完了時
+			//チェック異常判定
+			if ((pAUX_CS_Inf->fb_slbrk.brk_fb_level < 15)||(pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_KARABURI] & FLTS_MASK_ERR_SLBRK_KARABURI)) {
+				pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] |= FLTS_MASK_ERR_SLBRK_CHK_NG;
+			}
+			if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F) {//遠隔操作卓ペダル入力有で解除
+				pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL;
+			}
+		}	
+		else{
+			pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL;
+		}
+	}
+	else {
+		pAgent_Inf->slew_brake_chk_enable = L_OFF;
+		pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL;
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
+	}
+
+	if (pOteCtrl[OTE_PNL_CTRLS::fault_reset]) {//故障リセットでクリア
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
+	}
+
+	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
+		if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET) {		//ブレーキリセット指令
+			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
+			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 0;
+		}
+		else if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_PARKING) {	//サイドブレーキ指令
+			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
+			//フィードバックレベルが15以上でブレーキアクチュエータが移動中で無い時　ハードウェアブレーキ指令ON
+			if ((pAUX_CS_Inf->fb_slbrk.brk_fb_level >= 15) && !(pAUX_CS_Inf->fb_slbrk.d20 & 0x0004)) {
+				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
+			}
+		}
+		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_STANDBY) {//ブレーキチェックシーケンス中
+			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 14;
+			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
+		}
+		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_RUNNING) {//ブレーキチェックシーケンス中
+			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
+			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
+		}
+		else {	//通常指令
+			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
+			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+		}
+	}
+	else {
+		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 0;
+	}
+	pAUX_CS_Inf->main_helthy_cnt++;
 
 	return 0;
 }
