@@ -449,7 +449,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			monwos << L" MAIN CS >> LEVEL:" << pCS_Inf->com_slbrk.pc_com_brk_level << L"  HW:" << pCS_Inf->com_slbrk.pc_com_hw_brk << L" RST:" << pCS_Inf ->com_slbrk.pc_com_reset << L" EMG:" << pCS_Inf->com_slbrk.pc_com_emg << L" AUTO:" << pCS_Inf->com_slbrk.pc_com_autosel << L" \n";
 
 			monwos <<L"SLBR FB >> LV:"<< pCS_Inf->fb_slbrk.brk_fb_level	<<L" HW:"<< pCS_Inf->fb_slbrk.brk_fb_hw_brk<<L" EMG:"<< pCS_Inf->fb_slbrk.brk_fb_emg<<L" AUTO:"<< pCS_Inf->fb_slbrk.brk_fb_autosel<<L" ERR MAP:"<< pCS_Inf->fb_slbrk.brk_fb_err_map << L" ERR CODE:" << pCS_Inf->fb_slbrk.brk_fb_err_code << L" ERR HTHY:" << pCS_Inf->fb_slbrk.healthy_err << L" \n";
-			monwos <<L" POS"<< pCS_Inf->fb_slbrk.brk_fb_rbsl_pos<<L" ‹óU:"<< pCS_Inf->fb_slbrk.brk_fb_karaburi<<L" ORG PT:"<< pCS_Inf->fb_slbrk.brk_fb_org_pt<<L" TMOV:"<< pCS_Inf->fb_slbrk.brk_fb_time_over<<L" RELEASE:"<< pCS_Inf->fb_slbrk.brk_fb_release<<L" SYS ERR:"<< pCS_Inf->fb_slbrk.brk_fb_sys_err;
+			monwos <<L" POS:"<< pCS_Inf->fb_slbrk.brk_fb_rbsl_pos<<L" ‹óU:"<< pCS_Inf->fb_slbrk.brk_fb_karaburi<<L" ORG PT:"<< pCS_Inf->fb_slbrk.brk_fb_org_pt<<L" TMOV:"<< pCS_Inf->fb_slbrk.brk_fb_time_over<<L" RELEASE:"<< pCS_Inf->fb_slbrk.brk_fb_release<<L" SYS ERR:"<< pCS_Inf->fb_slbrk.brk_fb_sys_err;
 			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MAIN_INF], monwos.str().c_str());
 		}
 	}break;
@@ -813,8 +813,8 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	case WM_USER_TASK_REQ: {
 		if (HIWORD(wp) == WM_USER_WPH_OPEN_IF_WND) {
 			wos.str(L"");
-			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, lp);
-			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, lp);
+			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
+			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
 		}
 		else if (wp == WM_USER_WPH_CLOSE_IF_WND) 	close_monitor_wnd(lp);
 		else;

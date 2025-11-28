@@ -283,7 +283,7 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 		}
 
-		UINT rtn = SetTimer(hWnd, CS_ID_MON2_TIMER, CS_PRM_MON2_TIMER_MS, NULL);
+		SetTimer(hWnd, CS_ID_MON2_TIMER, CS_PRM_MON2_TIMER_MS, NULL);
 
 	}break;
 	case WM_COMMAND: {
@@ -510,8 +510,8 @@ LRESULT CALLBACK CAuxCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg) {
 	case WM_USER_TASK_REQ: {
 		if (HIWORD(wp) == WM_USER_WPH_OPEN_IF_WND) {
-			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, lp);
-			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, lp);
+			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
+			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
 		}
 		else if (wp == WM_USER_WPH_CLOSE_IF_WND) close_monitor_wnd(lp);
 		else;

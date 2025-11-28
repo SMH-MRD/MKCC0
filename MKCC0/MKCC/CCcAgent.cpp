@@ -50,6 +50,8 @@ static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w,res_delay_max_r;	//PLC応答時間
 
+static DWORD slbrk_healthy_last = 0, slbrk_healthy_cnt;
+static INT32 slblk_chk_cnt;
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
@@ -131,8 +133,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}
 
 	//旋回ブレーキモード
-	pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
-	pAgent_Inf->slew_brake_chk_enable = L_OFF;
+	st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
+	st_work.slew_brake_chk_enable = L_OFF;
 	
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -164,6 +166,10 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 HRESULT CAgent::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+
+		wos << L"  SRBK CHK ENABLE:" << st_work.slew_brake_chk_enable;
+		wos << L"  SRBK MODE:" << st_work.slew_brake_ctrl_mode;
+		wos << L"  SRBK CNT:" << slblk_chk_cnt;
 		msg2host(wos.str());
 	}
 	input();
@@ -183,7 +189,8 @@ static UINT32	gpad_mode_last = L_OFF;
 int CAgent::input() {
 
 //### PLC信号を共有メモリに展開
-
+	//###モード
+	pPLC_IO ->plc_mode_fb = pCrane->pPlc->rval(pPlcRIf->plc_ctrl_fb).i16;
 	//###荷重, 揚程,
 	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->m).i16;	//MH荷重
 	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->h_mh_mm).i32) / 1000.0;	//揚程
@@ -192,10 +199,10 @@ int CAgent::input() {
 	//###風速
 	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->wind_spd_01m).i16) / 10.0;	//風速m/s単位
 	//## 位置（Environmentの計算値）
-	pPLC_IO->stat_mh.pos_fb = pPLC_IO->h_mh;
+	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
 	//pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
 	//pPLC_IO->stat_bh.pos_fb = (float)pEnv_Inf->crane_stat.r.p;			//旋回半径
-	pPLC_IO->stat_bh.pos_fb = pPLC_IO->r;									//旋回半径
+	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;									//旋回半径
 	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//旋回角度
 	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//走行位置 
 
@@ -433,7 +440,6 @@ int CAgent::close() {
 	return 0;
 }
 
-static DWORD slbrk_healthy_last = 0, slbrk_healthy_cnt,slblk_chk_cnt;
 
 int CAgent::manage_slbrk() {
 
@@ -460,7 +466,7 @@ int CAgent::manage_slbrk() {
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_KARABURI] &= ~FLTS_MASK_ERR_SLBRK_KARABURI;
 
 	//## タイムオーバーチェック
-	if (pAUX_CS_Inf->fb_slbrk.brk_fb_karaburi)
+	if (pAUX_CS_Inf->fb_slbrk.brk_fb_time_over)
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TMOV] |= FLTS_MASK_ERR_SLBRK_TMOV;
 	else
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TMOV] &= ~FLTS_MASK_ERR_SLBRK_TMOV;
@@ -491,60 +497,69 @@ int CAgent::manage_slbrk() {
 	else
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] &= ~FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
 
-	//### 旋回ブレーキ制御
-	pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //自動モード;
 
+	//### 旋回ブレーキ制御
+	//PLCリモートモードのときAuto有効
+	if(pPLC_IO->plc_mode_fb & CODE_PLC_CTRL_PLC_REMOTE){//シミュレータモード時
+		pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0x0080; //自動モード;
+	}
+	else{
+		pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0;		//手動モード;
+	}
+		
 	//機能チェックモード
 	if (pCS_Inf->cs_ctrl.ope_pnl_status == CC_CS_CODE_OPEPNL_ACTIVE) {
 		//チェック起動条件
-		if (pAgent_Inf->slew_brake_chk_enable == L_OFF) {
+		if (st_work.slew_brake_chk_enable == L_OFF) {
 			if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_CHK) {      //遠隔操作卓ノッチレバー入
-				pAgent_Inf->slew_brake_chk_enable = L_ON;
-				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_STANDBY;
+				st_work.slew_brake_chk_enable = L_ON;
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_STANDBY;
 			}
-			else if (pOTE_Inf->st_body.lamp[OTE_PNL_CTRLS::ope_ready].code) {//運転準備完ランプON
-				pAgent_Inf->slew_brake_chk_enable = L_ON;
-				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_STANDBY;
+			else if (pCrane->pPlc->rval(pPlcRIf->syukairo_comp).i16) {//運転準備完ランプON
+				st_work.slew_brake_chk_enable = L_ON;
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_STANDBY;
 			}
-			else {
-				pAgent_Inf->slew_brake_chk_enable = L_OFF;
-				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
-			}
+			else;
 
 			slblk_chk_cnt = AGENT_PRM_SLBK_CHK_COUNT_STANDBY;
 		}
+		else {
+			//チェック中断条件
+			if (!(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_CHK) && !(pCrane->pPlc->rval(pPlcRIf->syukairo_comp).i16)) {
+				st_work.slew_brake_chk_enable = L_OFF;
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
+			}
+		}
 
-		if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_STANDBY) {//トリガ状態時
-			if (slblk_chk_cnt-- < 0) {
-				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_RUNNING;
+		if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_STANDBY) {//トリガ状態時
+			slblk_chk_cnt--;
+			if (slblk_chk_cnt < 0) {
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_RUNNING;
 				slblk_chk_cnt = AGENT_PRM_SLBK_CHK_COUNT_RUNNING;
 			}
 		}
-		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_RUNNING) {//チェックシーケンス実行中時
-			if(slblk_chk_cnt-- < 0){
-				pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
+		else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_RUNNING) {//チェックシーケンス実行中時
+			slblk_chk_cnt--;
+			if(slblk_chk_cnt < 0){
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
 			}
 		}
-		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_FIN) {//チェックシーケンス完了時
+		else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_FIN) {//チェックシーケンス完了時
 			//チェック異常判定
 			if ((pAUX_CS_Inf->fb_slbrk.brk_fb_level < 15)||(pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_KARABURI] & FLTS_MASK_ERR_SLBRK_KARABURI)) {
 				pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] |= FLTS_MASK_ERR_SLBRK_CHK_NG;
 			}
 			if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F) {//遠隔操作卓ペダル入力有で解除
-				pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL;
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 			}
 		}	
 		else{
-			pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL;
+			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 		}
 	}
 	else {
-		pAgent_Inf->slew_brake_chk_enable = L_OFF;
-		pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL;
-		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
-	}
-
-	if (pOteCtrl[OTE_PNL_CTRLS::fault_reset]) {//故障リセットでクリア
+		st_work.slew_brake_chk_enable = L_OFF;
+		st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
 	}
 
@@ -568,14 +583,25 @@ int CAgent::manage_slbrk() {
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
 			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
 		}
-		else {	//通常指令
-			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
-			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+		else if(pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL){	//通常指令
+			//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
+			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
+			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
 		}
+		else;//AG_MODE_SLBK_CHECK_FIN
 	}
 	else {
 		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 0;
 	}
+
+	//故障リセットでクリア 重故障はリセットを入れる
+	if (pOteCtrl[OTE_PNL_CTRLS::fault_reset]) {
+		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
+		if (pPolInf->pc_fault_map[0] & (FLTS_MASK_ERR_SLBRK_ESTOP | FLTS_ID_ERR_SLBRK_TMOV| FLTS_MASK_ERR_SLBRK_PLC_ERR| FLTS_MASK_ERR_SLBRK_HW_ERR| FLTS_MASK_ERR_SLBRK_SYS_ERR));
+			pAUX_CS_Inf->com_slbrk.pc_com_reset = AUX_SLBRK_COM_RESET;
+	}
+
 	pAUX_CS_Inf->main_helthy_cnt++;
 
 	return 0;
@@ -674,7 +700,7 @@ LRESULT CALLBACK CAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				hWnd, (HMENU)(AGENT_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 	
-		UINT rtn = SetTimer(hWnd, AGENT_ID_MON2_TIMER, AGENT_PRM_MON2_TIMER_MS, NULL);
+		SetTimer(hWnd, AGENT_ID_MON2_TIMER, AGENT_PRM_MON2_TIMER_MS, NULL);
 
 		//IFデータ表示ページ数計算
 		n_page_w = CC_MC_SIZE_W_WRITE / (AGENT_MON2_MSG_DISP_N__DATAROW * AGENT_MON2_MSG_DISP_N_DATA_COLUMN);
@@ -1079,8 +1105,8 @@ LRESULT CALLBACK CAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_USER_TASK_REQ: {
 		if (HIWORD(wp) == WM_USER_WPH_OPEN_IF_WND) {
 			wos.str(L"");
-			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, lp);
-			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, lp);
+			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
+			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
 		}
 		else if (wp == WM_USER_WPH_CLOSE_IF_WND) 	close_monitor_wnd(lp);
 		else;

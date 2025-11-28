@@ -29,7 +29,7 @@ INT16 CNotchHelper::set_code4_by_notch(PINT16 pdst, int notch, int bit_shift) {
 
 //code指定でノッチ取得　4ノッチタイプ
 INT16 CNotchHelper::get_notch4_by_code(PINT16 pcodebuf, int bit_shift) {
-	INT16 ans,chk_code;
+	INT16 chk_code;
 	INT16 chk_mask = PTN_NOTCH4_MASK; 
 
 	chk_mask <<= bit_shift;				//WORD内の信号配置に合わせてマスク調整
@@ -46,7 +46,7 @@ INT16 CNotchHelper::get_notch4_by_code(PINT16 pcodebuf, int bit_shift) {
 
 //速度指定でノッチ取得
 INT16 CNotchHelper::get_notch4_by_v(double v, double* vtbl_f, double* vtbl_r) {
-	INT16 ans, i;
+	INT16 i;
 	double* pd;
 	if (v == 0.0) return 0;
 	else if (v < 0.0) {
@@ -106,12 +106,10 @@ INT16 CNotchHelper::get_notch_by_pad(INT16 val, PINT16 vtbl_f,PINT16 vtbl_r) {
 }
 
 INT16 CNotchHelper::get_code4_by_v(double v, double* vtbl_f, double* vtbl_r, int bit_shift) {
-	INT16 ans;
 	INT16 notch = get_notch4_by_v(v, vtbl_f, vtbl_r);
 	return get_code4_by_notch(notch, bit_shift);
 }
 INT16 CNotchHelper::set_code4_by_v(PINT16 pdst, double v, double* vtbl_f, double* vtbl_r, int bit_shift) {
-	INT16 ans;
 	INT16 notch = get_notch4_by_v(v, vtbl_f, vtbl_r);
 	return set_code4_by_notch(pdst, notch, bit_shift);
 }

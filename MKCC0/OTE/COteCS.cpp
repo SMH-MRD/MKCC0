@@ -826,7 +826,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 			hWnd, (HMENU)(OTE_CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
 
-		UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, OTE_CS_PRM_MON2_TIMER_MS, NULL);
+		SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, OTE_CS_PRM_MON2_TIMER_MS, NULL);
 
 		//UINT rtn = SetTimer(hWnd, OTE_CS_ID_MON2_TIMER, 10, NULL);
 
@@ -1294,8 +1294,8 @@ LRESULT CALLBACK COteCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_USER_TASK_REQ: {
 		if (HIWORD(wp) == WM_USER_WPH_OPEN_IF_WND) {
 			wos.str(L"");
-			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, lp);
-			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, lp);
+			if (lp == BC_ID_MON1) st_mon1.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
+			if (lp == BC_ID_MON2) st_mon2.hwnd_mon = open_monitor_wnd(hDlg, (int)lp);
 		}
 		else if (wp == WM_USER_WPH_CLOSE_IF_WND) 	close_monitor_wnd(lp);
 		else;
