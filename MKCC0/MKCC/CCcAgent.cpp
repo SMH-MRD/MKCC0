@@ -507,8 +507,14 @@ int CAgent::manage_slbrk() {
 		pAUX_CS_Inf->com_slbrk.pc_com_autosel = 0;		//手動モード;
 	}
 		
-	//機能チェックモード
+	
 	if (pCS_Inf->cs_ctrl.ope_pnl_status == CC_CS_CODE_OPEPNL_ACTIVE) {
+		//サイドブレーキモード
+		if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_PARKING) {      //遠隔操作卓ノッチレバー入
+			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_SIDE_BRK;
+		}
+
+		//機能チェックモード
 		//チェック起動条件
 		if (st_work.slew_brake_chk_enable == L_OFF) {
 			if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_CHK) {      //遠隔操作卓ノッチレバー入
@@ -559,7 +565,7 @@ int CAgent::manage_slbrk() {
 	}
 	else {
 		st_work.slew_brake_chk_enable = L_OFF;
-		st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
+		st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
 	}
 
@@ -588,6 +594,15 @@ int CAgent::manage_slbrk() {
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
 			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
 			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
+
+			if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_SIDE_BRK) {
+				pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
+
+				if(pAUX_CS_Inf->fb_slbrk.brk_fb_level >= 15) {
+					pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
+				}
+
+			}
 		}
 		else;//AG_MODE_SLBK_CHECK_FIN
 	}
