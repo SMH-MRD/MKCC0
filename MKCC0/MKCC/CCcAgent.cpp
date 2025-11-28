@@ -560,11 +560,11 @@ int CAgent::manage_slbrk() {
 				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
 			}
 		}
-		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_STANDBY) {//ブレーキチェックシーケンス中
+		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_STANDBY) {//ブレーキチェックシーケンス中
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 14;
 			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
 		}
-		else if (pAgent_Inf->slew_brake_ctrl_mode | AG_MODE_SLBK_CHECK_RUNNING) {//ブレーキチェックシーケンス中
+		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_RUNNING) {//ブレーキチェックシーケンス中
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
 			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
 		}
