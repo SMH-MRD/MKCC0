@@ -296,17 +296,21 @@ int COteCS::input(){
 		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote]			|= pOteCsInf->gpad_in.remote;
 
+
 		pOteCsInf->gpad_in.kidou_r;
 		pOteCsInf->gpad_in.kidou_l;
-		pOteCsInf->gpad_in.pan_l;
-		pOteCsInf->gpad_in.pan_r;
-		pOteCsInf->gpad_in.tilt_u;
-		pOteCsInf->gpad_in.tilt_d;
+
 		pOteCsInf->gpad_in.zoom_f;
 		pOteCsInf->gpad_in.zoom_n;
 
-		//旋回ブレーキペダル(0-15)
+		//旋回ブレーキ
+		// ペダル(0-15)
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = (pOteCsInf->gpad_in.trig_l+ pOteCsInf->gpad_in.trig_r) / 0x10;
+		// レバーノッチ
+		if (pOteCsInf->gpad_in.pan_l)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = 1;
+		if (pOteCsInf->gpad_in.pan_r)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = 2;
+		if (pOteCsInf->gpad_in.tilt_u)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = -1;
+		if (pOteCsInf->gpad_in.tilt_d)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = -2;
 	}
 	
 	//## PC Winパネル信号取り込み（モメンタリ）
@@ -655,7 +659,6 @@ int COteCS::close() {
 	delete st_obj.pad_ah;
 	return 0;
 }
-
 
 /// <summary>
 /// SCADA パネル通信状態ランプ表示用ステータス更新関数

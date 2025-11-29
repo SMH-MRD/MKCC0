@@ -322,7 +322,9 @@ int CCcCS::parse() {
 		st_ote_work.st_body.sl_brk_fb[0]			= pAUX_CS_Inf->fb_slbrk.d16;
 		st_ote_work.st_body.sl_brk_fb[1]			= pAUX_CS_Inf->fb_slbrk.d17;
 		st_ote_work.st_body.sl_brk_fb[2]			= pAUX_CS_Inf->fb_slbrk.d18;
-		st_ote_work.st_body.sl_brk_fb[3]			= pAUX_CS_Inf->fb_slbrk.d19 / 600;//9000->15
+		st_ote_work.st_body.sl_brk_fb[3]			= pAUX_CS_Inf->fb_slbrk.d19 / 600;			//9000->15
+		st_ote_work.st_body.sl_brk_fb[4]			= pAUX_CS_Inf->fb_slbrk.d20;				//WF
+		st_ote_work.st_body.sl_brk_fb[5]			= (INT16)pAgent_Inf->slew_brake_ctrl_mode;
 }
 
 	return S_OK;

@@ -168,7 +168,7 @@ typedef struct PcUBody {//デフォルト
 	ST_OTE_PC_FLTS_SET  faults_set;												//発生中故障コード
 	float 				bh_angle;												//起伏角度
 	float				wind_spd;
-	INT16				sl_brk_fb[4];											//遠隔旋回ブレーキFB
+	INT16				sl_brk_fb[8];											//遠隔旋回ブレーキFB
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/
