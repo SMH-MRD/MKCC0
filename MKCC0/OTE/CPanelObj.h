@@ -334,7 +334,10 @@ public:
 #define ID_GWIN_MAIN_OBJ_STR_POS_BH				60821		
 #define ID_GWIN_MAIN_OBJ_STR_POS_SL				60822		
 #define ID_GWIN_MAIN_OBJ_STR_POS_GT				60823
-#define ID_GWIN_MAIN_OBJ_STR_POS_MOUSE			60824	
+#define ID_GWIN_MAIN_OBJ_STR_POS_MOUSE			60824
+
+#define ID_GWIN_MAIN_OBJ_STR_SLBK_MODE			60825		
+#define ID_GWIN_MAIN_OBJ_STR_SLBK_LEVEL			60826		
 
 class CGWindowObj :public CPanelObjBase
 {
@@ -361,6 +364,8 @@ public:
 	CStringGdi* str_pos_gt;			//走行位置
 	CStringGdi* str_pos_mouse;		//マウス位置
 
+	CStringGdi* str_slbk_mode;		//旋回ブレーキmode
+	CStringGdi* str_slbk_level;		//旋回ブレーキレベル
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

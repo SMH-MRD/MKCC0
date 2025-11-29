@@ -180,7 +180,16 @@ pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 走行位置書き込み
 wo.str(L""); wo << L"("<<mouse_pos_main.X<< L"," << mouse_pos_main.Y <<L") " ;
 pPanelBase->pgwinobjs->str_pos_mouse->update(wo.str().c_str());	// マウス位置書き込み
 
+wo.str(L""); wo << L"SLBK MODE： " << std::fixed << std::setprecision(1);
+if(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 0) wo << L"通常";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 1)||(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 2))wo << L"CHECK";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 4))wo << L"STAND BY";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 8))wo << L"サイドブレーキ";
+else wo << L"UNKNOWN";
 
+pPanelBase->pgwinobjs->str_slbk_mode->update(wo.str().c_str());	// 主巻位置書き込み
+wo.str(L""); wo << L"SLBK LEVEL： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[3];
+pPanelBase->pgwinobjs->str_slbk_level->update(wo.str().c_str());	// 半径書き込み
 
 // クレーン画像を背景画像に書き込み
 Status drawStatus = pPanelBase->pgwinobjs->pgraphic_bk->DrawImage(

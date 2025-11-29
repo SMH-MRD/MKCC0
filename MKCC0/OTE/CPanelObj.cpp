@@ -131,6 +131,11 @@ static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 	{ID_GWIN_MAIN_OBJ_STR_POS_GT	,Point(20,140)		,Size(400,40)	,L"走行位置"	},//i=6
 
 	{ID_GWIN_MAIN_OBJ_STR_POS_MOUSE	,Point(900,960)		,Size(100,20)	,L"マウス位置"	},//i=7
+
+
+	{ID_GWIN_MAIN_OBJ_STR_SLBK_MODE,Point(700,830)		,Size(400,20)	,L"SLBK MODE"	},//i=8
+	{ID_GWIN_MAIN_OBJ_STR_SLBK_LEVEL,Point(700,860)		,Size(400,20)	,L"SLBK LEVEL"	},//i=9
+
 };
 
 #define N_GSUBWIN_OBJ			32
@@ -232,7 +237,6 @@ void CPanelObjBase::reset_graghic_img(Graphics* pg) {
 	pg->Clear(Color(0, 0, 0, 0));
 	return;
 }
-
 
 
 HRESULT CMainPanelObj::setup_obj() { 
@@ -563,15 +567,19 @@ Image* pimg_post[N_IMG_SWITCH_MAX]		= { &img_crane_potal,  &img_crane_potal,  &i
 		i++;	lmg_crane_potal = new CSwitchImg(ID_GWIN_MAIN_OBJ_IMG_POTAL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt, pimg_post, 3, 3, pgraphic);
 
 		i++;	str_load_mh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_bh = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_BH, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_sl = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_SL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_gt = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_GT, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_pos_mouse = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_POS_MOUSE, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
-											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+		i++;	str_slbk_mode = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_SLBK_MODE, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+		i++;	str_slbk_level = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_SLBK_LEVEL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 
 	return S_OK;
 }
@@ -583,6 +591,12 @@ void CGWindowObj::delete_obj() {
 	delete str_pos_bh;
 	delete str_pos_sl;
 	delete str_pos_gt;
+
+	delete str_pos_mouse;
+
+	delete str_slbk_mode;
+	delete str_slbk_level;
+
 	return;
 }
 void CGWindowObj::refresh_obj_graphics() {
@@ -598,6 +612,9 @@ void CGWindowObj::refresh_obj_graphics() {
 	str_pos_sl->refresh_graphics(pgraphic_inf);
 	str_pos_gt->refresh_graphics(pgraphic_inf);
 	str_pos_mouse->refresh_graphics(pgraphic_inf);
+
+	str_slbk_mode->refresh_graphics(pgraphic_inf);
+	str_slbk_level->refresh_graphics(pgraphic_inf);
 	return;
 }
 
@@ -618,11 +635,11 @@ HRESULT CGSubWindowObj::setup_obj() {
 
 
 	i++;	str_pos_mh = new CStringGdi(ID_GWIN_SUB_OBJ_STR_POS_MH, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt,
-		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 	i++;	str_angle_bh = new CStringGdi(ID_GWIN_SUB_OBJ_STR_POS_MH, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt,
-		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 	i++;	str_pos_mouse = new CStringGdi(ID_GWIN_SUB_OBJ_STR_POS_MOUSE, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt,
-		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+		pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
 		
 	return S_OK;
 }
