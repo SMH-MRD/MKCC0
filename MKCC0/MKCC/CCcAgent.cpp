@@ -623,7 +623,7 @@ int CAgent::manage_slbrk() {
 	//故障リセットでクリア 旋回ブレーキの重故障が発生しているときはリセットを入れる
 	if (pOteCtrl[OTE_PNL_CTRLS::fault_reset]) {
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
-		if (pPolInf->pc_fault_map[0] & (FLTS_MASK_ERR_SLBRK_ESTOP | FLTS_ID_ERR_SLBRK_TMOV| FLTS_MASK_ERR_SLBRK_PLC_ERR| FLTS_MASK_ERR_SLBRK_HW_ERR| FLTS_MASK_ERR_SLBRK_SYS_ERR));
+		if (pPolInf->pc_fault_map[0] & (FLTS_MASK_ERR_SLBRK_ESTOP | FLTS_ID_ERR_SLBRK_TMOV| FLTS_MASK_ERR_SLBRK_PLC_ERR| FLTS_MASK_ERR_SLBRK_HW_ERR| FLTS_MASK_ERR_SLBRK_SYS_ERR))
 			pAUX_CS_Inf->com_slbrk.pc_com_reset = AUX_SLBRK_COM_RESET;
 	}
 
