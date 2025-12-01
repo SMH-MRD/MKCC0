@@ -217,6 +217,9 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 					hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
+				
+				//!!!! ñ¢é¿ëïÉNÉåÅ[ÉìÇÕñ≥å¯âª
+				EnableWindow(st_mon1.hctrl[i], FALSE);
 			}
 		}
 		//PB
@@ -423,7 +426,8 @@ void COteEnv::close_monitor_wnd(int id) {
 }
 void COteEnv::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
-		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		//ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		ShowWindow(st_mon1.hwnd_mon, SW_MAXIMIZE);
 		UpdateWindow(st_mon1.hwnd_mon);
 		InvalidateRect(st_mon1.hwnd_mon, NULL, TRUE);
 	}
