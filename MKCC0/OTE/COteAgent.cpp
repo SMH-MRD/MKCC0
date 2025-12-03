@@ -876,7 +876,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 		//OTE’ÊMƒwƒbƒ_‚É‹Ù‹}’âŽ~—v‹—L
 		if (pOteCCIf->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
-			st_work.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
+			st_work.ote_command |= OTE_STOP_REQ_MODE_ESTOP;
 		}
 	}break;
 	case ID_SOCK_EVENT_OTE_MUL: {

@@ -86,16 +86,13 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 #define OTE_STAT_TYPE_ROOM			2	//操作室
 #define OTE_STAT_TYPE_REMOTE		3	//遠隔地
 
-#define OTE_CODE_REQ_MON			0x00000000	//モニタ要求
-#define OTE_CODE_REQ_OPE_ACTIVE		0x00000001	//操作有効化要求
-#define OTE_CODE_REQ_ESTP			0x00000100	//緊急停止要求
-#define OTE_CODE_REQ_STOP			0x00000200	//減速停止要求
-#define OTE_MASK_REQ_FAULT_RESET	0x00000400	//停止要求リセット要求
-#define OTE_MASK_REQ_STOP			0x00000300	//停止要求MASK
+#define OTE_CODE_REQ_MON			0x0000	//モニタ要求
+#define OTE_CODE_REQ_OPE_ACTIVE		0x0001	//操作有効化要求
 
-#define OTE_STOP_REQ_MODE_OFF		L_OFF
-#define OTE_STOP_REQ_MODE_ESTOP		0x00000001
-#define OTE_STOP_REQ_MODE_CTRL_OFF	0x00000002
+#define OTE_CODE_COM_ESTP			0x0100	//緊急停止コマンド
+#define OTE_CODE_COM_STOP			0x0200	//減速停止コマンド
+#define OTE_CODE_COM_SOURCE_OFF 	0x0400	//主幹切コマンド
+#define OTE_CODE_COM_CLR 			0x0000	//主幹切コマンド
 
 /******* 共通メッセージヘッダ部 ***********/
 
@@ -105,7 +102,8 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 typedef struct OteComHead {
 	ST_DEVICE_CODE	myid;		//装置ID
 	SOCKADDR_IN		addr;		//送信元受信アドレス
-	INT32			code;		//要求内容コード OTE:操作有効化,停止要求　CC：NA
+	INT16			code;		//要求内容コード OTE:操作有効化　	CC：NA
+	INT16			command;	//コマンドコード OTE:停止要求　		CC：NA
 	INT32			status;		//状態　OTE:操作/モニタモード　CC：操作/モニタモード
 	INT32			tgid;		//接続中機器ID	OTE:操作端末タイプ　CC：接続中端末ID
 }ST_OTE_HEAD, * LPST_OTE_HEAD;

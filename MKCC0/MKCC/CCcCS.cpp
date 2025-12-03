@@ -327,6 +327,11 @@ int CCcCS::parse() {
 		st_ote_work.st_body.sl_brk_fb[5]			= (INT16)pAgent_Inf->slew_brake_ctrl_mode;
 }
 
+
+	//### OTE受信ヘッダコマンドリセット（コマンドセットは受信処理部で実施）
+	//操作有効端末の故障リセット入力でクリアコマンドセット
+	if (pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
+		st_ote_work.st_ote_ctrl.ote_command = OTE_CODE_COM_CLR;
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
@@ -466,19 +471,22 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 			return S_FALSE;
 		}
 	}
+	else {//ヘッダのコマンド取り込み
+			st_ote_work.st_ote_ctrl.ote_command |= chkbuf_u_msg.head.command;
+	}
 
 	//# 操作有効/無効切り分け処理
 	//## 受信電文ヘッダ部に操作モード接続要求があれば登録、なければモニタ用バッファに受信電文コピー
 	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {	//操作有効端末無し
 		//送信元の端末がモニタモードから操作モードへの要求有で端末セット
-		if ((chkbuf_u_msg.head.status == OTE_STAT_MODE_OPE) && (chkbuf_u_msg.head.code == OTE_CODE_REQ_OPE_ACTIVE)
+		if ((chkbuf_u_msg.head.status == OTE_STAT_MODE_OPE) && (chkbuf_u_msg.head.code & OTE_CODE_REQ_OPE_ACTIVE)
 			&& pPLC_IO->plc_enable) {//送信元がリモート要求でPLCヘルシーOK
 			st_ote_work.st_ote_ctrl.id_ope_active = chkbuf_u_msg.head.myid.serial_no;
 			st_ote_work.st_ote_ctrl.addr_in_active_ote = pUSockOte->addr_in_from;	//運転有効IP保持
 			*pbuf = chkbuf_u_msg;													//運転用バッファにコピー
 			st_ote_work.ope_ote_silent_cnt = 0;										//サイレントカウンタクリア
 		}
-		else pOTE_Inf->st_msg_ote_u_rcv_mon = chkbuf_u_msg;						//モニタ要求対象用バッファにコピー
+		else pOTE_Inf->st_msg_ote_u_rcv_mon = chkbuf_u_msg;							//モニタ要求対象用バッファにコピー
 	}
 
 	//操作有効端末が登録済で送信元アドレスが登録内容と一致の時
@@ -488,7 +496,7 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 		//操作モードの端末だんまりカウンタクリア
 		st_ote_work.ope_ote_silent_cnt = 0;
 		//送信元がモニタ要求か端末のモードがモニタの時
-		if ((chkbuf_u_msg.head.code == OTE_CODE_REQ_MON) || (chkbuf_u_msg.head.status == OTE_STAT_MODE_MON)) {
+		if ((chkbuf_u_msg.head.code == OTE_CODE_REQ_MON) || !(chkbuf_u_msg.head.code & OTE_CODE_REQ_OPE_ACTIVE)) {
 			st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//有効ID無し
 			pUSockOte->addr_in_from.sin_addr.S_un.S_addr = 0;				//保持IPアドレスクリア
 			pOTE_Inf->st_msg_ote_u_rcv_mon = chkbuf_u_msg;				//モニタ要求対象用バッファにコピー
@@ -502,13 +510,6 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 		st_ote_work.st_msg_ote_u_rcv_mon = chkbuf_u_msg;					//モニタ要求対象用バッファにコピー
 	}
 	
-	//# ヘッダ情報の緊急停止指令は無条件に取り込み
-	if (chkbuf_u_msg.head.code & OTE_MASK_REQ_STOP)
-		st_ote_work.st_ote_ctrl.stop_req_mode |= OTE_MASK_REQ_STOP;
-
-	if (chkbuf_u_msg.head.code & OTE_MASK_REQ_FAULT_RESET)
-		st_ote_work.st_ote_ctrl.stop_req_mode &= ~OTE_MASK_REQ_STOP;
-
 	rcv_count_ote_u++;
 	return S_OK;
 }
@@ -954,12 +955,6 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
 		}
-
-		//OTE通信ヘッダに緊急停止要求有
-		if (st_ote_work.st_msg_ote_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
-			st_ote_work.st_ote_ctrl.stop_req_mode |= OTE_STOP_REQ_MODE_ESTOP;
-		}
-
 	}break;
 	case ID_SOCK_EVENT_OTE_MUL: {
 		int nEvent = WSAGETSELECTEVENT(lp);

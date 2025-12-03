@@ -581,7 +581,7 @@ typedef struct _ST_CC_OTE_CTRL {
 	INT16		auto_mode;								//オートモード
 	INT16		auto_sel;								//オートSEL
 	INT32		id_ope_active = OTE_NON_OPEMODE_ACTIVE;	//ノッチ操作が有効な接続端末ID
-	INT16		stop_req_mode;							//OTE停止要求モード	非常停止,主幹切
+	INT16		ote_command;							//OTE停止要求モード	非常停止,主幹切
 	INT16		active_ote_type;						//操作有効OTEのタイプ
 	SOCKADDR_IN	addr_in_active_ote;
 }ST_CC_OTE_CTRL, * LPST_CC_OTE_CTRL;

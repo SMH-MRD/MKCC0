@@ -162,7 +162,7 @@ typedef struct _ST_OTE_CC_IF {
 
 	UINT32	ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
 	UINT32	mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
-	UINT32	stop_req_mode;		//停止OTE要求モード	非常停止,主幹切
+	UINT32	ote_command;		//停止OTE要求モード	非常停止,主幹切
 
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体
