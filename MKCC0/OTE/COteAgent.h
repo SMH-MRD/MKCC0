@@ -193,7 +193,7 @@ public:
 
 private:
     static void update_sock_stat();
-
+  
     //オーバーライド
 
     virtual HRESULT routine_work(void* pObj) override;

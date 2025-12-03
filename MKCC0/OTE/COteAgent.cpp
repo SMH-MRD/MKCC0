@@ -471,6 +471,18 @@ LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat
 	st_work.st_msg_ote_u_snd.head.status = stat;
 	st_work.st_msg_ote_u_snd.head.tgid = 0;
 
+	if(is_monitor_mode) {
+		st_work.st_msg_ote_u_snd.head.command = 0;
+		if(st_work.st_msg_ote_u_snd.body.st.pnl_ctrl[OTE_PNL_CTRLS::estop]) 
+			st_work.st_msg_ote_u_snd.head.command |= OTE_CODE_COM_ESTP;
+		if (st_work.st_msg_ote_u_snd.body.st.pnl_ctrl[OTE_PNL_CTRLS::syukan_off]) 
+			st_work.st_msg_ote_u_snd.head.command |= OTE_CODE_COM_SOURCE_OFF;
+	}
+	else {
+		st_work.st_msg_ote_u_snd.head.command &= ~OTE_CODE_COM_ESTP;
+		st_work.st_msg_ote_u_snd.head.command &= ~OTE_CODE_COM_SOURCE_OFF;
+	}
+
 	return &st_work.st_msg_ote_u_snd;
 }
 HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
@@ -684,9 +696,9 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		//UniCast送信
 		HRESULT hr;
 		if(pOteCsInf->st_body.remote)
-			hr = snd_uni2pc(set_msg_u(true, OTE_CODE_REQ_OPE_ACTIVE, OTE_STAT_MODE_OPE), &pUSockPC->addr_in_dst);
+			hr = snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_OPE_ACTIVE, OTE_STAT_MODE_OPE), &pUSockPC->addr_in_dst);
 		else 
-			hr = snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_MON, OTE_STAT_MODE_MON), &pUSockPC->addr_in_dst);
+			hr = snd_uni2pc(set_msg_u(true, OTE_CODE_REQ_MON, OTE_STAT_MODE_MON), &pUSockPC->addr_in_dst);
 
 		//送信成功 AND 正常受信後
 		if((hr==S_OK) && (st_work.cc_comm_chk_cnt == 0))
@@ -781,7 +793,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					LPST_OTE_HEAD  ph2 = &(pOteCCIf->st_msg_ote_m_rcv.head);
 					st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
 						<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port);// << L"\n";
-					st_mon2.wo_uni << L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid<< L"\n";
+					st_mon2.wo_uni << L"        CODE:" << ph0->code << L" COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid<< L"\n";
 					st_mon2.wo_mpc << L"[HEAD]" << L" CODE:" << ph1->code << L"\n";
 					st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				}
@@ -824,7 +836,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 					st_mon2.wo_uni << L"[HEAD]" << L" ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
 						<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << "\n"
-						<< L"        CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
+						<< L"        CODE:" << ph0->code << L" COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 					st_mon2.wo_mpc << L"[HEAD] -\n";
 					st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 				}
@@ -873,10 +885,6 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}break;
 		case FD_WRITE: break;
 		case FD_CLOSE: break;
-		}
-		//OTE通信ヘッダに緊急停止要求有
-		if (pOteCCIf->st_msg_pc_u_rcv.head.code == OTE_CODE_REQ_ESTP) {
-			st_work.ote_command |= OTE_STOP_REQ_MODE_ESTOP;
 		}
 	}break;
 	case ID_SOCK_EVENT_OTE_MUL: {

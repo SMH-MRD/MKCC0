@@ -181,6 +181,9 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//r_bh_m	//モーメントリミッタ旋回半径AI
 	//風速AI
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},//wind_spd_ai 
+
+	//OTEヘッダコマンド
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},// 
 };
 
 int CPlc::setup(int crane_id) {
@@ -406,6 +409,9 @@ int CPlc::setup(int crane_id) {
 			plc_io_wif.mlim_weight_ai.pi16	= p + 4;
 			//風速AI
 			plc_io_wif.wind_spd_ai.pi16 = p + 5;
+
+			//OTE HEADER COMMAND
+			plc_io_wif.ote_head_command.pi16 = p + 16;
 		}
 	}break;
 	case CARNE_ID_HHGQ18:{
@@ -515,6 +521,10 @@ HRESULT CPlc::wval(ST_PLC_IO_DEF st_w_def, INT32 val) {
 	case CODE_PLCIO_BIT: {
 		if (val) *(st_w_def.pi16) |= st_w_def.mask;
 		else	 *(st_w_def.pi16) &= ~st_w_def.mask;
+	}break;
+	case CODE_PLCIO_BIT_NC: {
+		if (val) *(st_w_def.pi16) &= ~st_w_def.mask;
+		else	 *(st_w_def.pi16) |= st_w_def.mask;
 	}break;
 	case CODE_PLCIO_WORD: {
 		*(st_w_def.pi16) = (INT16)val;

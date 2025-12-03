@@ -367,7 +367,11 @@ int CAgent::parse() {
 	//## PB,スイッチ類
 	pCrane->pPlc->wval(pPlcWIf->syukan_on,		pOteCtrl[OTE_PNL_CTRLS::syukan_on]);	//主幹ON
 	pCrane->pPlc->wval(pPlcWIf->syukan_off,		pOteCtrl[OTE_PNL_CTRLS::syukan_off]);	//主幹OFF
+
 	pCrane->pPlc->wval(pPlcWIf->estop,			pOteCtrl[OTE_PNL_CTRLS::estop]);		//非常停止
+	if (pOTE_Inf->st_ote_ctrl.ote_command & OTE_CODE_COM_ESTP)
+		pCrane->pPlc->wval(pPlcWIf->estop, L_ON);		//非常停止
+
 	pCrane->pPlc->wval(pPlcWIf->fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
 	pCrane->pPlc->wval(pPlcWIf->alarm_stp_pb,	pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
 
@@ -409,7 +413,9 @@ int CAgent::parse() {
 	//風速
 	pCrane->pPlc->wval(pPlcWIf->wind_spd_ai, pSim_Inf->wind_spd_AI);//0.1m単位
 
-	
+	//OTE HEAD COMMAND
+	pCrane->pPlc->wval(pPlcWIf->ote_head_command, pOTE_Inf->st_ote_ctrl.ote_command);
+		
 	//旋回ブレーキ制御
 	manage_slbrk();
 
@@ -430,7 +436,6 @@ int CAgent::output() {
 	//PLC IO送信データ出力
 	//送信は 共有メモリに設定後、送信バッファにコピー（受信は直接共有メモリに読み込む）
 	//memcpy_s(&st_work_plcio.buf_io_write,sizeof(pPLC_IO->buf_io_write),pPLC_IO->buf_io_write, sizeof(pPLC_IO->buf_io_write));
-
 
 	return S_OK;
 }

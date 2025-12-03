@@ -465,6 +465,8 @@ typedef struct _ST_PLC_IO_WIF {
 
 	//風速
 	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
+	//OTEヘッダコマンド
+	ST_PLC_IO_DEF ote_head_command;	
 
 }ST_PLC_IO_WIF, * LPST_PLC_IO_WIF;
 

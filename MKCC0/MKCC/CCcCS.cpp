@@ -471,7 +471,7 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 			return S_FALSE;
 		}
 	}
-	else {//ヘッダのコマンド取り込み
+	else {//!!!!!ヘッダのコマンド取り込み
 			st_ote_work.st_ote_ctrl.ote_command |= chkbuf_u_msg.head.command;
 	}
 
@@ -823,7 +823,12 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			st_mon2.wo_uni.str(L""); st_mon2.wo_mpc.str(L""); st_mon2.wo_mote.str(L"");
 			if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
 				if (st_mon2.is_body_disp_mode) {
-					LPST_OTE_U_BODY pb0 = &pOTE_Inf->st_msg_ote_u_rcv.body.st;
+					LPST_OTE_U_BODY pb0;
+					if (pCS_Inf->cs_ctrl.ope_pnl_status == CC_CS_CODE_OPEPNL_DEACTIVE)
+						pb0 = &pOTE_Inf->st_msg_ote_u_rcv_mon.body.st;
+					else
+						pb0 = &pOTE_Inf->st_msg_ote_u_rcv.body.st;
+
 					LPST_PC_M_BODY	pb1 = &pOTE_Inf->st_msg_pc_m_rcv.body.st;
 					LPST_OTE_M_BODY pb2 = &pOTE_Inf->st_msg_ote_m_rcv.body.st;
 
@@ -862,12 +867,17 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					st_mon2.wo_mote<< L"[BODY P"<< st_mon2.ipage_mot <<L"]" << L"\n";
 				}
 				else {
-					LPST_OTE_HEAD ph0 = &pOTE_Inf->st_msg_ote_u_rcv.head;
+					LPST_OTE_HEAD ph0;
+					if(pCS_Inf->cs_ctrl.ope_pnl_status== CC_CS_CODE_OPEPNL_DEACTIVE)
+						ph0 = &pOTE_Inf->st_msg_ote_u_rcv_mon.head;
+					else
+						ph0 = &pOTE_Inf->st_msg_ote_u_rcv.head;
+
 					LPST_OTE_HEAD ph1 = &pOTE_Inf->st_msg_pc_m_rcv.head;
 					LPST_OTE_HEAD ph2 = &pOTE_Inf->st_msg_ote_m_rcv.head;
 					st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option 
 								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port)<<L"\n"
-								<< L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
+								<< L"       CODE:" << ph0->code << L" COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
 					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 					st_mon2.wo_mote<< L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
 				}
@@ -905,7 +915,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					LPST_OTE_HEAD ph1 = &st_ote_work.st_msg_pc_m_snd.head;
 					st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option;
 					st_mon2.wo_uni << L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
-					st_mon2.wo_uni << L"       CODE:" << ph0->code << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
+					st_mon2.wo_uni << L"       CODE:" << ph0->code << L"  COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
 
 					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
 					st_mon2.wo_mote << L"[HEAD] -\n";
