@@ -398,7 +398,7 @@ int COteCS::input(){
 }
 
 static INT16 ope_plc_cnt;
-static UINT16 ope_plc_chk_cnt=0;
+static UINT16 ope_plc_chk_cnt=0,remote_req_time_count = 0;
 static INT16 pnl_ctrl_last[N_OTE_PNL_CTRL];
 //#### モード,指令値設定　
 int COteCS::parse() 
@@ -456,8 +456,10 @@ int COteCS::parse()
 				st_work.st_body.remote = CODE_PNL_COM_OFF;					//		⇒　遠隔操作モード選択要求OFF
 			else if (st_work.st_body.remote == CODE_PNL_COM_ACTIVE)			// 遠隔操作モード選択,承認済
 				st_work.st_body.remote = CODE_PNL_COM_OFF;					//		⇒　遠隔操作モード選択要求OFF
-			else															// 遠隔モニターモード選択
+			else {															// 遠隔モニターモード選択
 				st_work.st_body.remote = CODE_PNL_COM_SELECTED;				//		⇒　遠隔操作モード選択,承認待ち
+				remote_req_time_count = 50;									//	遠隔操作モード選択要求時間カウントセット(5秒)
+			}
 		}
 		//制御PCからの承認確認（通信ヘッダのIDが自IDと同じ場合に承認）
 		if ((st_work.st_body.remote == CODE_PNL_COM_SELECTED) && (pOteCCInf->cc_active_ote_id == g_my_code.serial_no))
@@ -467,6 +469,14 @@ int COteCS::parse()
 			st_work.st_body.remote = CODE_PNL_COM_OFF;
 		if (!(pOteUi->pc_pnl_active))
 			 st_work.st_body.remote = CODE_PNL_COM_OFF;
+
+		if (remote_req_time_count > 0) {
+			remote_req_time_count--;
+			if((remote_req_time_count == 0)&&(st_work.st_body.remote == CODE_PNL_COM_SELECTED)) {
+				//タイムアウトでOFF
+				st_work.st_body.remote = CODE_PNL_COM_OFF;
+			}
+		}
 
 		//前回値保持
 		pnl_ctrl_last[OTE_PNL_CTRLS::remote] = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote];
