@@ -306,11 +306,6 @@ int COteCS::input(){
 		//旋回ブレーキ
 		// ペダル(0-15)
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = (pOteCsInf->gpad_in.trig_l+ pOteCsInf->gpad_in.trig_r) / 0x10;
-		// レバーノッチ
-		if (pOteCsInf->gpad_in.pan_l)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = 1;
-		if (pOteCsInf->gpad_in.pan_r)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = 2;
-		if (pOteCsInf->gpad_in.tilt_u)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = -1;
-		if (pOteCsInf->gpad_in.tilt_d)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = -2;
 	}
 	
 	//## PC Winパネル信号取り込み（モメンタリ）
@@ -367,6 +362,12 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl]	= pOteCsInf->gpad_in.pad_sl;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt]	= pOteCsInf->gpad_in.pad_gt;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]	= pOteCsInf->gpad_in.pad_ah;
+
+		// レバーノッチ
+		if (pOteCsInf->gpad_in.pan_l)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = 1;
+		if (pOteCsInf->gpad_in.pan_r)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = 2;
+		if (pOteCsInf->gpad_in.tilt_u)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = -1;
+		if (pOteCsInf->gpad_in.tilt_d)		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = -2;
 	}
 	//PCパネルのノッチPB入力は操作台またはGPAD指令OFFの時のみ有効(他設定値が0の時のみ上書き
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_PCPNL) {
