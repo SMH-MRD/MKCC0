@@ -330,6 +330,20 @@ int CAgent::parse() {
 		else {
 			pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_PLC_COMM] &= ~FLTS_MASK_ERR_CPC_PLC_COMM;
 		}
+
+		if (pOTE_Inf->st_ote_ctrl.ote_command & OTE_CODE_COM_ESTP) {
+			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_ESTP] |= FLTS_MASK_ERR_OTE_ESTP;
+		}
+		else {
+			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_ESTP] &= ~FLTS_MASK_ERR_OTE_ESTP;
+		}
+		if (pOTE_Inf->st_ote_ctrl.ote_command & OTE_CODE_COM_SOURCE_OFF) {
+			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_SOURCE_OFF] |= FLTS_MASK_ERR_OTE_SOURCE_OFF;
+		}
+		else {
+			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_SOURCE_OFF] &= ~FLTS_MASK_ERR_OTE_SOURCE_OFF;
+		}
+
 	}
 
 	//### PLC‘‚«ž‚ÝM†ˆ—

@@ -482,6 +482,11 @@ LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat
 		st_work.st_msg_ote_u_snd.head.command &= ~OTE_CODE_COM_ESTP;
 		st_work.st_msg_ote_u_snd.head.command &= ~OTE_CODE_COM_SOURCE_OFF;
 	}
+	if (st_work.st_msg_ote_u_snd.body.st.pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
+		st_work.st_msg_ote_u_snd.head.command |= OTE_CODE_COM_RESET;
+	else
+		st_work.st_msg_ote_u_snd.head.command &= ~OTE_CODE_COM_RESET;
+
 
 	return &st_work.st_msg_ote_u_snd;
 }

@@ -332,6 +332,10 @@ int CCcCS::parse() {
 	//操作有効端末の故障リセット入力でクリアコマンドセット
 	if (pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
 		st_ote_work.st_ote_ctrl.ote_command = OTE_CODE_COM_CLR;
+
+	if(st_ote_work.st_ote_ctrl.ote_command & OTE_CODE_COM_RESET)
+		st_ote_work.st_ote_ctrl.ote_command = OTE_CODE_COM_CLR;
+	
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
@@ -473,6 +477,9 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 	}
 	else {//!!!!!ヘッダのコマンド取り込み
 			st_ote_work.st_ote_ctrl.ote_command |= chkbuf_u_msg.head.command;
+			//リセット信号はホールドしない
+			if (!(chkbuf_u_msg.head.command & OTE_CODE_COM_RESET))
+				st_ote_work.st_ote_ctrl.ote_command &= ~OTE_CODE_COM_RESET;
 	}
 
 	//# 操作有効/無効切り分け処理

@@ -92,7 +92,8 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 #define OTE_CODE_COM_ESTP			0x0100	//緊急停止コマンド
 #define OTE_CODE_COM_STOP			0x0200	//減速停止コマンド
 #define OTE_CODE_COM_SOURCE_OFF 	0x0400	//主幹切コマンド
-#define OTE_CODE_COM_CLR 			0x0000	//主幹切コマンド
+#define OTE_CODE_COM_RESET 			0x0800	//リセットコマンド
+#define OTE_CODE_COM_CLR 			0x0000	//コマンドクリア
 
 /******* 共通メッセージヘッダ部 ***********/
 
