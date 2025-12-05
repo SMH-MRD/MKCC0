@@ -74,9 +74,14 @@ int COteAgent::setup_crane_if(int crane_id) {
 	case CARNE_ID_HHGH29: {
 		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
 		if((pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE1)||(pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE2)) {
+			//pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_OTE);
+			//pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
+			//pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
+
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_UNI_PORT_OTE);
 			pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_OTE0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
+				
 		}
 		else
 		{

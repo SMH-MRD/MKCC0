@@ -22,7 +22,7 @@
 //@ OTE---------------------------------------------------------------------------------------
 #define OTE_IF_UNI_IP_PC			"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
 #define OTE_IF_UNI_IP_PC_HHGG8200	"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
-#define OTE_IF_UNI_IP_OTE0			"192.168.100.151"	//デフォルトOTEのUNICAST用IP（受信,送信）
+#define OTE_IF_UNI_IP_OTE0			"192.168.101.102"	//デフォルトOTEのUNICAST用IP（受信,送信）
 #define OTE_IF_UNI_IP_OTE_HHGG3801	"192.168.101.151"	//デフォルトOTEのUNICAST用IP（受信,送信）
 #define OTE_IF_SUB_IP_OTE			"192.168.101.151"	//デフォルトOTEのSUB IP（受信,送信）
 
@@ -58,7 +58,7 @@
 
 //#define IP_ADDR_MC_CLIENT_OTE		OTE_IF_SUB_IP_OTE0		//PLC IF 遠隔操作卓PC　IPアドレス
 #define IP_ADDR_MC_CLIENT_OTE		"192.168.101.150"		//PLC IF 遠隔操作卓PC　IPアドレス
-#define IP_ADDR_MC_CLIENT_OTE_DBG	"192.168.100.151"		//PLC IF 遠隔操作卓PC　IPアドレス デバッグ用
+#define IP_ADDR_MC_CLIENT_OTE_DBG	OTE_IF_UNI_IP_OTE0		//PLC IF 遠隔操作卓PC　IPアドレス デバッグ用
 #define IP_ADDR_MC_SERVER_OTE		"192.168.101.160"		//PLC IF 遠隔操作卓PLC	 IPアドレス
 #define PORT_MC_CLIENT_OTE			3040					//遠隔PCポート
 #define PORT_MC_SERVER_OTE			3030				//OTEの時のPLCポート
