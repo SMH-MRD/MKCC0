@@ -66,7 +66,7 @@ typedef struct _ST_OTE_ENV_MON1 {
         L"今治造船/SHIMH　クレーン遠隔システム", L"JC", L"GC", L"TEST", L"クレーン未選択", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"西多度津102号", L"-", L"-", L"-", L"-", L"-", L"-", L"-",
-        L"-", L"-", L"", L"", L"", L"", L"", L"START"
+        L"CHECK",L"-", L"", L"", L"", L"", L"", L"START"
     };
 }ST_OTE_ENV_MON1, * LPST_OTE_ENV_MON1;
 

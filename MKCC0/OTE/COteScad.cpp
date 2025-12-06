@@ -5,6 +5,7 @@
 #include "COteEnv.h"
 #include "COpePanel.h"
 #include "CPanelWindow.h"
+#include "CHelper.h"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -252,6 +253,8 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 		case IDC_TASK_MON_CHECK1:
 		{
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK1) == BST_CHECKED) {
+
+				pOteEnvInf->selected_crane = 0xFFFF;
 				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON1);
 			}
 			else {
@@ -275,6 +278,413 @@ LRESULT CALLBACK COteScad::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) 
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
 static bool is_initial_draw_mon1 = false;
+
+static CPanelBase** ppPanelBase;
+static bool is_initial_draw_main = false;
+static CSubPanelWindow* pSubPanelWnd;
+
+#if 0
+LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+
+	switch (msg)
+	{
+	case WM_CREATE: {
+		pOteUI->hWnd_crane_ope_panel = hWnd;//操作パネルウィンドウハンドルセット
+
+		pOteUI->pc_pnl_active = L_ON;
+		InitCommonControls();//コモンコントロール初期化
+		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+		pPanelBase = *ppPanelBase = new CPanelBase(CARNE_ID_HHGH29, CODE_OTE_PNL_TYPE_MAIN_HHGH29, hWnd);
+		//オブジェクトのグラフィックを設定
+		pPanelBase->pmainobjs->setup_graphics(hWnd);
+		pPanelBase->pmainobjs->refresh_obj_graphics();
+
+		//グラフィックウィンドウ生成、表示
+		//if (pGWnd == NULL) {
+		//	pGWnd = new CGraphicWindow(hInst, hWnd, crane_id, pPanelBase);
+		//}
+
+		//ウィンドウにコントロール追加
+		//STATIC,LABEL
+		CStaticCtrl* pst = pPanelBase->pmainobjs->txt_uid;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
+
+		pst = pPanelBase->pmainobjs->txt_ote_type;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->pmainobjs->txt_link_crane;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->pmainobjs->txt_freset;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->pmainobjs->str_pc_com_stat;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->pmainobjs->str_plc_com_stat;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
+		//CB
+		CCbCtrl* pcb = pPanelBase->pmainobjs->cb_estop;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE | BS_OWNERDRAW,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_estop->set_ctrl(pcb);//ランプにボタンのボタンコントロールをセット
+
+		//操作器
+		pcb = pPanelBase->pmainobjs->cb_pnl_notch;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+
+		//# PBL !!OWNER DRAW
+		//主幹
+		CPbCtrl* ppb = pPanelBase->pmainobjs->pb_syukan_on;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_syukan_on->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+		ppb = pPanelBase->pmainobjs->pb_syukan_off;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_syukan_off->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+		//Remote
+		ppb = pPanelBase->pmainobjs->pb_remote;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_remote->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+
+		//PAD MODE
+		ppb = pPanelBase->pmainobjs->pb_pad_mode;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_pad_mode->set_ctrl(ppb);//ランプにボタンのウィンドウハンドルをセット
+
+		//PB
+		//認証
+		ppb = pPanelBase->pmainobjs->pb_auth;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		//端末設定
+		ppb = pPanelBase->pmainobjs->pb_ote_type_wnd;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		//アシスト
+		ppb = pPanelBase->pmainobjs->pb_assist_func;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		//クレーン選択
+		ppb = pPanelBase->pmainobjs->pb_crane_release;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		//故障リセット
+		ppb = pPanelBase->pmainobjs->pb_freset;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_freset->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+
+		//RADIO BUTTON
+		pcb = pPanelBase->pmainobjs->cb_disp_mode1;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->pmainobjs->cb_disp_mode2;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+
+		pcb = pPanelBase->pmainobjs->cb_opt_flt;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->pmainobjs->cb_opt_set;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->pmainobjs->cb_opt_com;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->pmainobjs->cb_opt_cam;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->pmainobjs->cb_opt_stat;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->pmainobjs->cb_opt_clr;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hWnd, (HMENU)(pcb->id), hInst, NULL));
+
+		//String 初回書き込みフラグをセットしてTIMERイベントで書き込み
+		is_initial_draw_main = true;
+
+		//Lamp ウィンドウハンドルセット,フリッカ設定
+		//CCとの通信状態表示
+		INT32 id_list[2] = { 4,0 };//2種フリッカ　緑/暗青
+		pPanelBase->pmainobjs->lmp_pcr->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_pcr->setup_flick(2, 3, id_list);
+		pPanelBase->pmainobjs->lmp_pcs->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_pcs->setup_flick(2, 3, id_list);
+		pPanelBase->pmainobjs->lmp_plcr->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_plcr->setup_flick(2, 3, id_list);
+		pPanelBase->pmainobjs->lmp_plcs->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_plcs->setup_flick(2, 3, id_list);
+
+		//表示更新用タイマー
+		SetTimer(hWnd, ID_MAIN_PANEL_TIMER, ID_MAIN_PANEL_TIMER_MS, NULL);
+
+
+		if (pSubPanelWnd == NULL) {
+			pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, CARNE_ID_HHGH29, ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT, pPanelBase);
+		}
+
+		break;
+	}
+	case WM_COMMAND: {
+		int wmId = LOWORD(wp);
+		// 選択されたメニューの解析:
+		switch (wmId)
+		{
+		case ID_MAIN_PNL_OBJ_CB_ESTOP: {
+			if (pPanelBase->pmainobjs->cb_estop->get() == BST_CHECKED) {
+				pPanelBase->pmainobjs->cb_estop->set(BST_UNCHECKED);
+				pPanelBase->pmainobjs->lmp_estop->set(L_OFF);
+			}
+			else {
+				pPanelBase->pmainobjs->cb_estop->set(BST_CHECKED);
+				pPanelBase->pmainobjs->lmp_estop->set(L_ON);
+			}
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_SYUKAN_ON: {
+			pPanelBase->pmainobjs->pb_syukan_on->update(true);
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_SYUKAN_OFF: {
+			pPanelBase->pmainobjs->pb_syukan_off->update(true);
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_REMOTE: {
+			pPanelBase->pmainobjs->pb_remote->update(true);
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_PAD_MODE: {
+
+			pPanelBase->pmainobjs->pb_pad_mode->update(true);
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC: {
+			pPanelBase->pmainobjs->pb_assist_func->update(true);
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND: {
+			pPanelBase->pmainobjs->pb_ote_type_wnd->update(true);
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE: {
+			pPanelBase->pmainobjs->pb_crane_release->update(true);
+			DestroyWindow(hWnd); //クレーン選択解除後	
+		}break;
+		case ID_MAIN_PNL_OBJ_PB_AUTH: {
+			pPanelBase->pmainobjs->pb_auth->update(true);
+		}break;
+		case ID_MAIN_PNL_OBJ_CB_PNL_NOTCH: {
+			pPanelBase->pmainobjs->cb_pnl_notch->update();
+		}break;
+
+		case ID_MAIN_PNL_OBJ_RDO_DISP_MODE1:
+		case ID_MAIN_PNL_OBJ_RDO_DISP_MODE2:
+		{
+			pPanelBase->pmainobjs->rdo_disp_mode->update(true);
+		}break;
+
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT:
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_SET:
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_COM:
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CAM:
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_STAT:
+		{
+			HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+
+			if (pSubPanelWnd == NULL) {
+				pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, CRANE_ID_NULL, wmId, pPanelBase);
+			}
+			else {
+				if (pSubPanelWnd->wnd_code == wmId) {
+					delete pSubPanelWnd;
+					pSubPanelWnd = NULL;
+				}
+				else {
+					delete pSubPanelWnd;
+					pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, CRANE_ID_NULL, wmId, pPanelBase);
+				}
+			}
+			InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
+
+		}break;
+		case ID_MAIN_PNL_OBJ_RDO_OPT_WND_CLR:
+		{
+			delete pSubPanelWnd;
+			pSubPanelWnd = NULL;
+			InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
+		}break;
+
+		case ID_MAIN_PNL_OBJ_PB_FRESET: {
+			pPanelBase->pmainobjs->pb_freset->update(true);
+		}break;
+
+		default:
+			return DefWindowProc(hWnd, msg, wp, lp);
+		}
+	}break;
+	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
+		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
+	case WM_EXITSIZEMOVE: {//モニタウィンドウ移動完了で描画更新
+		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
+	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
+		SetTextColor((HDC)wp, RGB(220, 220, 220)); // ライトグレー
+		SetBkMode((HDC)wp, TRANSPARENT);
+	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
+	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
+		pPanelBase->pmainobjs->pgraphic->FillRectangle(pPanelBase->pmainobjs->pBrushBk, pPanelBase->pmainobjs->rc_panel);
+
+	}return 1; // 背景を処理したことを示す
+	case WM_TIMER: {
+		//# LAMP(CTRL)更新
+		//e-stop : PLCの認識がESTOPの時枠有表示
+		INT16 code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::estop].code;//制御PC受信バッファの指令内容
+		int val = pPanelBase->pmainobjs->cb_estop->get();									//CBの状態
+		//CB状態で制御PCのON表示があれば表示画像を切替
+		if (val == BST_CHECKED) { if (code) val = 3; }
+		else { if (code)val = 2; }
+		pPanelBase->pmainobjs->lmp_estop->set(val);
+		pPanelBase->pmainobjs->lmp_estop->update();
+
+		//主幹
+		code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_on].code;
+		pPanelBase->pmainobjs->lmp_syukan_on->set(code); pPanelBase->pmainobjs->lmp_syukan_on->update();
+		code = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::syukan_off].code;
+		pPanelBase->pmainobjs->lmp_syukan_off->set(code); pPanelBase->pmainobjs->lmp_syukan_off->update();
+
+		//遠隔
+		pPanelBase->pmainobjs->lmp_remote->set(pOteCsInf->st_body.remote);
+		pPanelBase->pmainobjs->lmp_remote->update();
+
+		pPanelBase->pmainobjs->lmp_pad_mode->set(pOteCsInf->st_body.game_pad_mode);
+		pPanelBase->pmainobjs->lmp_pad_mode->update();
+
+		//故障リセット
+		if (pOteUI->pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
+			pPanelBase->pmainobjs->lmp_freset->set(L_ON);
+		else
+			pPanelBase->pmainobjs->lmp_freset->set(L_OFF);
+
+		pPanelBase->pmainobjs->lmp_freset->update();
+
+		//# SwitchImg更新(ランプ）
+		//CCとの通信状態表示(受信）
+		if (pOteCCIf->cc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
+			pPanelBase->pmainobjs->lmp_pcr->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_pcr->set(pOteCCIf->cc_com_stat_r);
+		pPanelBase->pmainobjs->lmp_pcr->update();
+		//CCとの通信状態表示(送信）
+		if (pOteCCIf->cc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
+			pPanelBase->pmainobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_pcs->set(pOteCCIf->cc_com_stat_s);
+		pPanelBase->pmainobjs->lmp_pcs->update();
+
+		//PLCとの通信状態表示(受信）
+		if (pOteCsInf->plc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
+			pPanelBase->pmainobjs->lmp_plcr->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_plcr->set(pOteCsInf->plc_com_stat_r);
+		pPanelBase->pmainobjs->lmp_plcr->update();
+		//PLCとの通信状態表示(送信）
+		if (pOteCsInf->plc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
+			pPanelBase->pmainobjs->lmp_plcs->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_plcs->set(pOteCsInf->plc_com_stat_s);
+		pPanelBase->pmainobjs->lmp_plcs->update();
+
+		//PB状態更新(オフディレイカウントダウン)
+		pPanelBase->pmainobjs->pb_syukan_on->update(false);
+		pPanelBase->pmainobjs->pb_syukan_off->update(false);
+		pPanelBase->pmainobjs->pb_remote->update(false);
+		pPanelBase->pmainobjs->pb_auth->update(false);
+		pPanelBase->pmainobjs->pb_assist_func->update(false);
+		pPanelBase->pmainobjs->pb_crane_release->update(false);
+		pPanelBase->pmainobjs->pb_ote_type_wnd->update(false);
+		pPanelBase->pmainobjs->pb_pad_mode->update(false);
+		pPanelBase->pmainobjs->pb_freset->update(false);
+
+		//String更新
+		if (is_initial_draw_main) {
+			pPanelBase->pmainobjs->str_message->update();
+			pPanelBase->pmainobjs->str_crane_txt->update(CUIHelper::get_crane_txt_by_code((pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & CRANE_ID_CODE_MASK)));
+
+			is_initial_draw_main = false;
+		}
+
+		//GOTコマンドチェック
+		if (pOteCsInf->GOT_command & OTE_OPE_GOT_COM_RELEASE_CRANE) {
+			DestroyWindow(hWnd); //クレーン選択解除後	
+		}
+
+	}break;
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+
+		//PatBlt(hdc, 0, 0, OTE_SCAD_MON1_WND_W, OTE_SCAD_MON1_WND_H, RGB(64, 64, 64));
+
+		EndPaint(hWnd, &ps);
+	}break;
+	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
+		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lp;
+		Image* image;
+		Gdiplus::Graphics gra(pDIS->hDC);
+		Font* pfont = NULL;
+		CMainPanelObj* pos = pPanelBase->pmainobjs;
+		CLampCtrl* plamp = NULL;
+
+		if (pDIS->CtlID == pos->cb_estop->id) {
+			plamp = pos->lmp_estop;	pfont = NULL;
+		}
+		else if (pDIS->CtlID == pos->pb_remote->id) {//リモートランプ
+			plamp = pos->lmp_remote; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_syukan_on->id) {//主幹入ランプ
+			plamp = pos->lmp_syukan_on; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_syukan_off->id) {//主幹切ランプ
+			plamp = pos->lmp_syukan_off; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_pad_mode->id) {//PADランプ
+			plamp = pos->lmp_pad_mode; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_freset->id) {//FAULTランプ
+			plamp = pos->lmp_freset; pfont = plamp->pFont;
+		}
+		else return false;
+
+		image = plamp->pimg[plamp->get()];
+		gra.FillRectangle(pPanelBase->pmainobjs->pBrushBk, plamp->rc);										//背景色セット
+		if (image) gra.DrawImage(image, plamp->rc);															//イメージ描画
+		if (pfont != NULL)
+			gra.DrawString(plamp->txt.c_str(), -1, pfont, plamp->frc, plamp->pStrFormat, plamp->pTxtBrush);	//テキスト描画
+
+	}return true;
+
+	case WM_DESTROY: {
+		//hWnd = NULL;
+		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
+		pOteUI->hWnd_crane_ope_panel = NULL;//操作パネルウィンドウハンドルセット
+		pOteUI->pc_pnl_active = L_OFF;
+		pEnvObj->clear_crane_if();
+		//### オープニング画面を再表示
+		pEnvObj->open_opening_window();
+
+		delete pSubPanelWnd;
+		pSubPanelWnd = NULL;
+
+		//delete pGWnd;
+		//pGWnd = NULL;
+
+	}break;
+	default:
+		return DefWindowProc(hWnd, msg, wp, lp);
+	}
+	return S_OK;
+};
+#else
 
 LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	
@@ -305,6 +715,7 @@ LRESULT CALLBACK COteScad::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}
 	return S_OK;
 };
+#endif
 
 //static wostringstream mon2wos;
 LRESULT CALLBACK COteScad::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
@@ -393,7 +804,7 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 			pOteEnvInf->selected_crane,
 			&pPanelBase
 		);
-		
+
 		SetLayeredWindowAttributes(pMainWnd->hPnlWnd, 0, 200, LWA_ALPHA);
 		
 		//show_monitor_wnd(id);

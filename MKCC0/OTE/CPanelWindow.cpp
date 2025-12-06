@@ -59,14 +59,15 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("OTE MAIN PANEL");
+		wcex.lpszMenuName = TEXT("OTE MAIN PANEL HHGH29");
 		wcex.lpszClassName = pClassName = CLASS_NAME_HHGH29;
 		wcex.hIconSm = NULL;
 		break;
 	default:
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = WndProcHHGH29;
+	//	wcex.lpfnWndProc = WndProcHHGH29;
+		wcex.lpfnWndProc = WndProc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInstance;
@@ -124,14 +125,20 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 	switch (msg)
 	{
 	case WM_CREATE: {
+		pUi->hWnd_crane_ope_panel = hWnd;//操作パネルウィンドウハンドルセット
+
+		pUi->pc_pnl_active = L_ON;
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-
-		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN, hWnd);
-
+		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN_HHGH29, hWnd);
 		//オブジェクトのグラフィックを設定
 		pPanelBase->pmainobjs->setup_graphics(hWnd);
 		pPanelBase->pmainobjs->refresh_obj_graphics();
+
+		//グラフィックウィンドウ生成、表示
+		if (pGWnd == NULL) {
+			pGWnd = new CGraphicWindow(hInst, hWnd, crane_id, pPanelBase);
+		}
 
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
@@ -155,10 +162,10 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		pst = pPanelBase->pmainobjs->str_pc_com_stat;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
+
 		pst = pPanelBase->pmainobjs->str_plc_com_stat;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hWnd, (HMENU)(pst->id), hInst, NULL));
-
 
 		//CB
 		CCbCtrl* pcb = pPanelBase->pmainobjs->cb_estop;
@@ -249,13 +256,19 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		//Lamp ウィンドウハンドルセット,フリッカ設定
 		//CCとの通信状態表示
 		INT32 id_list[2] = { 4,0 };//2種フリッカ　緑/暗青
-		pPanelBase->pmainobjs->lmp_pcr->set_wnd(hWnd);		pPanelBase->pmainobjs->lmp_pcr->setup_flick(2, 3, id_list);
-		pPanelBase->pmainobjs->lmp_pcs->set_wnd(hWnd);		pPanelBase->pmainobjs->lmp_pcs->setup_flick(2, 3, id_list);
-		pPanelBase->pmainobjs->lmp_plcr->set_wnd(hWnd);		pPanelBase->pmainobjs->lmp_plcr->setup_flick(2, 3, id_list);
-		pPanelBase->pmainobjs->lmp_plcs->set_wnd(hWnd);		pPanelBase->pmainobjs->lmp_plcs->setup_flick(2, 3, id_list);
+		pPanelBase->pmainobjs->lmp_pcr->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_pcr->setup_flick(2, 3, id_list);
+		pPanelBase->pmainobjs->lmp_pcs->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_pcs->setup_flick(2, 3, id_list);
+		pPanelBase->pmainobjs->lmp_plcr->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_plcr->setup_flick(2, 3, id_list);
+		pPanelBase->pmainobjs->lmp_plcs->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_plcs->setup_flick(2, 3, id_list);
 
 		//表示更新用タイマー
 		SetTimer(hWnd, ID_MAIN_PANEL_TIMER, ID_MAIN_PANEL_TIMER_MS, NULL);
+
+
+		if (pSubPanelWnd == NULL) {
+			pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, crane_id, ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT, pPanelBase);
+		}
+
 		break;
 	}
 	case WM_COMMAND: {
@@ -327,10 +340,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 				}
 				else {
 					delete pSubPanelWnd;
-					pSubPanelWnd = new CSubPanelWindow(hInst, hWnd,crane_id, wmId,pPanelBase);
+					pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, crane_id, wmId, pPanelBase);
 				}
 			}
-
 			InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
 
 		}break;
@@ -349,8 +361,10 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
-
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
+		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
+	case WM_EXITSIZEMOVE: {//モニタウィンドウ移動完了で描画更新
 		InvalidateRect(hWnd, NULL, TRUE); // ウィンドウ全体を再描画
 	}
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
@@ -386,14 +400,12 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		pPanelBase->pmainobjs->lmp_pad_mode->update();
 
 		//故障リセット
-	//	pPanelBase->pmainobjs->lmp_freset->set(pOteCsInf->st_body.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]);
 		if (pUi->pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
 			pPanelBase->pmainobjs->lmp_freset->set(L_ON);
 		else
 			pPanelBase->pmainobjs->lmp_freset->set(L_OFF);
 
 		pPanelBase->pmainobjs->lmp_freset->update();
-
 
 		//# SwitchImg更新(ランプ）
 		//CCとの通信状態表示(受信）
@@ -406,8 +418,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 			pPanelBase->pmainobjs->lmp_pcs->set(ID_PANEL_LAMP_FLICK);
 		else pPanelBase->pmainobjs->lmp_pcs->set(pCcIf->cc_com_stat_s);
 		pPanelBase->pmainobjs->lmp_pcs->update();
-	
-		
+
 		//PLCとの通信状態表示(受信）
 		if (pCsInf->plc_com_stat_r == ID_PNL_SOCK_STAT_ACT_RCV)
 			pPanelBase->pmainobjs->lmp_plcr->set(ID_PANEL_LAMP_FLICK);
@@ -416,6 +427,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		//PLCとの通信状態表示(送信）
 		if (pCsInf->plc_com_stat_s == ID_PNL_SOCK_STAT_ACT_SND)
 			pPanelBase->pmainobjs->lmp_plcs->set(ID_PANEL_LAMP_FLICK);
+		else pPanelBase->pmainobjs->lmp_plcs->set(pCsInf->plc_com_stat_s);
 		pPanelBase->pmainobjs->lmp_plcs->update();
 
 		//PB状態更新(オフディレイカウントダウン)
@@ -432,16 +444,17 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		//String更新
 		if (is_initial_draw_main) {
 			pPanelBase->pmainobjs->str_message->update();
-			//	is_initial_draw_mon1 = false;
+			pPanelBase->pmainobjs->str_crane_txt->update(CUIHelper::get_crane_txt_by_code((pCcIf->st_msg_pc_u_rcv.head.myid.serial_no & CRANE_ID_CODE_MASK)));
+
+			is_initial_draw_main = false;
 		}
 
 		//GOTコマンドチェック
-		if(pCsInf->GOT_command & OTE_OPE_GOT_COM_RELEASE_CRANE) {
+		if (pCsInf->GOT_command & OTE_OPE_GOT_COM_RELEASE_CRANE) {
 			DestroyWindow(hWnd); //クレーン選択解除後	
 		}
 
 	}break;
-
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
@@ -479,19 +492,27 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		else return false;
 
 		image = plamp->pimg[plamp->get()];
-		gra.FillRectangle(pPanelBase->pmainobjs->pBrushBk, plamp->rc);											//背景色セット
+		gra.FillRectangle(pPanelBase->pmainobjs->pBrushBk, plamp->rc);										//背景色セット
 		if (image) gra.DrawImage(image, plamp->rc);															//イメージ描画
 		if (pfont != NULL)
 			gra.DrawString(plamp->txt.c_str(), -1, pfont, plamp->frc, plamp->pStrFormat, plamp->pTxtBrush);	//テキスト描画
 
 	}return true;
+
 	case WM_DESTROY: {
-		hWnd = NULL;
-//		delete pPanelBase; pPanelBase = NULL; *ppPanelBase = NULL;
-		pOteEnvInf->selected_crane = CRANE_ID_NULL; //選択クレーンIDを0にセット
+		//hWnd = NULL;
 		KillTimer(hWnd, ID_MAIN_PANEL_TIMER);
+		pUi->hWnd_crane_ope_panel = NULL;//操作パネルウィンドウハンドルセット
+		pUi->pc_pnl_active = L_OFF;
+		pEnvObj->clear_crane_if();
 		//### オープニング画面を再表示
 		pEnvObj->open_opening_window();
+
+		delete pSubPanelWnd;
+		pSubPanelWnd = NULL;
+
+		delete pGWnd;
+		pGWnd = NULL;
 
 	}break;
 	default:

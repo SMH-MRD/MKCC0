@@ -22,6 +22,7 @@ using namespace Gdiplus;
 #define CRANE_ID_MAX            255          //
 
 #define CRANE_ID_NULL           0x0000      //未定
+#define CRANE_ID_PC             0xFFFF      //制御PC端末
 #define CRANE_ID_H6R602         0x0101      //みらい
 #define CARNE_ID_HHGH29         0x0102      //今造西多度津70t　102号  
 #define CARNE_ID_HHGQ18         0x0103      //今造西多度津300t 10号
