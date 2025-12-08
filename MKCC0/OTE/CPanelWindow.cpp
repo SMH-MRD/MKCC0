@@ -135,11 +135,13 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		pPanelBase->pmainobjs->setup_graphics(hWnd);
 		pPanelBase->pmainobjs->refresh_obj_graphics();
 
+		//コンテックPCはGdi+のグラフィック表示と相性が悪いのでグラフィックウィンドウは生成しない
+#if 0
 		//グラフィックウィンドウ生成、表示
 		if (pGWnd == NULL) {
 			pGWnd = new CGraphicWindow(hInst, hWnd, crane_id, pPanelBase);
 		}
-
+#endif
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
 		CStaticCtrl* pst = pPanelBase->pmainobjs->txt_uid;
@@ -260,15 +262,12 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		pPanelBase->pmainobjs->lmp_pcs->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_pcs->setup_flick(2, 3, id_list);
 		pPanelBase->pmainobjs->lmp_plcr->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_plcr->setup_flick(2, 3, id_list);
 		pPanelBase->pmainobjs->lmp_plcs->set_wnd(hWnd);	pPanelBase->pmainobjs->lmp_plcs->setup_flick(2, 3, id_list);
-
 		//表示更新用タイマー
 		SetTimer(hWnd, ID_MAIN_PANEL_TIMER, ID_MAIN_PANEL_TIMER_MS, NULL);
-
 
 		if (pSubPanelWnd == NULL) {
 			pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, crane_id, ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT, pPanelBase);
 		}
-
 		break;
 	}
 	case WM_COMMAND: {

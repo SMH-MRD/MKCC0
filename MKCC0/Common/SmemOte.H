@@ -110,7 +110,14 @@ typedef struct _ST_OTE_ENV_INF {
 
 #define OTE_PC_FLT_DETECT_MAX			15
 
+#define OTE_CS_CODE_OPEPNL_PC			0	//制御PC端末
+#define OTE_CS_CODE_OPEPNLLOCAL_		1	//操作室端末
+#define OTE_CS_CODE_OPEPNL_ROOM			2	//機側端末
+
 typedef struct _ST_OTE_CS_INF {
+	INT32 ote_type	 = OTE_CS_CODE_OPEPNL_PC;		//PLCとの通信状態
+	INT32 ote_option = 0;							//予備
+
 	INT32 ope_plc_stat = L_OFF;						//PLCとの通信状態
 	INT32 cc_ope_active = L_OFF;
 	INT32 ope_source_mode=0;						//操作器具モード

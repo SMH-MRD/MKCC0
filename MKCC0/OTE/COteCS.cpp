@@ -92,30 +92,35 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
-
+	//### 端末タイプセット
+	st_work.ote_type = pOteCsInf->ote_type = g_my_code.option;
 
 	//### IFウィンドウ  MON2 OPEN PLC通信
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 	LPARAM lp = BC_ID_MON2;
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 	Sleep(100);
-	wos.str(L"");//初期化
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Initialize : MON NG"; msg2listview(wos.str());
-		return S_FALSE;
-	}
-	else {
-		pMCSock = new CMCProtocol(ID_SOCK_MC_OTE_CS);
 
-		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE) != S_OK) {
-			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG) != S_OK) {
-				wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
-				wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
-				return S_FALSE;
-			}
+	if (st_work.ote_type == OTE_CS_CODE_OPEPNL_ROOM) {
+		wos.str(L"");//初期化
+		if (st_mon2.hwnd_mon == NULL) {
+			wos << L"Initialize : MON NG"; msg2listview(wos.str());
+			return S_FALSE;
 		}
-		wos << L"MCProtocol Init OK"; msg2listview(wos.str());
+		else {
+			pMCSock = new CMCProtocol(ID_SOCK_MC_OTE_CS);
+
+			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE) != S_OK) {
+				if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG) != S_OK) {
+					wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
+					wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
+					return S_FALSE;
+				}
+			}
+			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
+		}
 	}
+
 	//### GamePadインスタンス
 	pPad = new CGamePad();
 	pPad->set_id(0);
@@ -160,6 +165,7 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 HRESULT COteCS::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		wos << L"  OPE TYPE:" << pOteCsInf->ote_type;
 		wos << L"  OPE SRC CODE:" << hex << pOteCsInf->ope_source_mode;
 		wos << L"  RMT_MODE:" << st_work.st_body.remote;
 		wos << L"  MC COM:R " << st_work.plc_com_stat_r << L"S" << st_work.plc_com_stat_s;
@@ -866,7 +872,7 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_TIMER: {
 		if (pMCSock == NULL)break;
 		//3Eフォーマット Dデバイス書き込み要求送信
-		if(pOteEnvInf->app_mode != OTE_ENV_APP_DEBUG_TYPE1){
+		if(pOteCsInf->ote_type & OTE_CS_CODE_OPEPNL_ROOM){
 			if (is_write_req_turn) {//書き込み要求送信
 				st_mon2.wo_req_w.str(L"");
 				//3Eフォーマット Dデバイス書き込み要求送信

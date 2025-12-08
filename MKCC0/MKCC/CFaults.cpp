@@ -1414,7 +1414,7 @@ int CFaults::setup(int crane_id) {
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHFR22, sizeof(flt_list_HHFR22));
 	}break;
 	default: {
-		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_H6R602, sizeof(flt_list_H6R602));
+		memcpy_s(&flt_list, sizeof(flt_list), &plc_flt_list_HHGH29, sizeof(flt_list_H6R602));
 	}break;
 	};
 	return 0;

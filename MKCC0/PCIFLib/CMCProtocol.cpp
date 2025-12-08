@@ -117,7 +117,8 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 			return S_FALSE;
 		}
 		else {
-			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_OTE_DBG, PORT_MC_CLIENT_OTE);
+//			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_OTE_DBG, PORT_MC_CLIENT_OTE);
+			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, DEFAULT_MY_IP3, PORT_MC_CLIENT_OTE);
 			if (pMCSock->init_sock(hwnd, pMCSock->addr_in_rcv) != S_OK) {//受信ソケット設定
 				msg_wos.str() = pMCSock->err_msg.str();
 				return S_FALSE;

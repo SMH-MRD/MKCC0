@@ -486,7 +486,8 @@ typedef struct _ST_CC_CS_CTRL {
 	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
 	INT16		ote_mh_spd_mode;												//主巻速度モード
 	INT16		ote_bh_r_mode;													//引込モード
-	INT32		remote_estop;
+	INT16		remote_estop;
+	INT16		ote_type;
 	ST_GPAD_IN gpad_in;	
 
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
