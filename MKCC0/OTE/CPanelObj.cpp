@@ -116,6 +116,11 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_FLT_OBJ_PB_PLCMAP	,Point(330,440)	,Size(35,30)	,L"MAP"			},	//		CCbCtrl* cb_disp_plcmap;
 	{ID_SUB_PNL_FLT_OBJ_LV_FAULTS	,Point(5,65)	,Size(620,365)	,L"LIST VIEW"	},	//		CCbCtrl* cb_disp_flt_heavy;
 
+	//通信サブウィンドウ
+	{ID_SUB_PNL_SET_OBJ_RDO_IF_LINE	,Point(50,40)	,Size(60,30)	,L"有線"		},
+	{ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI	,Point(150,40)	,Size(60,30)	,L"WiFi"		},
+	{ID_SUB_PNL_SET_OBJ_RDO_IF_MODE	,Point(50,40)	,Size(200,30)	,L"IFモード"	},
+
 };
 
 #define N_GWIN_OBJ			32
@@ -495,6 +500,13 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; pb_disp_flt_plcmap = new CPbCtrl(ID_SUB_PNL_FLT_OBJ_PB_PLCMAP	, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; lv_flt_list		= new CListViewCtrl(ID_SUB_PNL_FLT_OBJ_LV_FAULTS, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
+	//# 通信サブウィンドウオブジェクト
+
+	i++; cb_if_line = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_IF_LINE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_if_wifi = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	CCbCtrl* pcb_opt3[8] = { cb_if_line,cb_if_wifi };
+	i++; rdo_ote_if_mode = new CRadioCtrl(2, pcb_opt3);
+
 
 	return S_OK;
 }
@@ -523,6 +535,12 @@ void CSubPanelObj::delete_obj() {
 	delete cb_disp_flt_heavy3;
 	delete pb_disp_flt_plcmap;
 	delete lv_flt_list;
+
+	delete cb_if_line;
+	delete cb_if_wifi;
+	delete rdo_ote_if_mode;
+
+
 	return;
 
 }

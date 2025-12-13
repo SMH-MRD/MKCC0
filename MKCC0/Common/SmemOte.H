@@ -76,16 +76,15 @@ typedef struct _ST_DRAWING_BASE {
 #pragma endregion
 
 #pragma region OTE_INF ENV
-#define OTE_ENV_APP_PRODUCT			0	//実機モード
-#define OTE_ENV_APP_DEBUG_TYPE1		1	//PC1台デバッグモード
-#define OTE_ENV_APP_DEBUG_TYPE2		2	//PC1台+操作卓PLCデバッグモード
-
+#define OTE_ENV_APP_PRODUCT				0	//実機モード
+#define OTE_ENV_APP_DEBUG_TYPE1			1	//PC1台デバッグモード
+#define OTE_ENV_APP_DEBUG_TYPE2			2	//PC1台+操作卓PLCデバッグモード
 
 typedef struct _ST_OTE_ENV_INF {
 	ST_DEVICE_CODE device_code;
 
 	UINT32			target_crane;			//接続対象クレーン
-	UINT32			ote_mode;				//操作端末モード
+	UINT32			ote_type;				//操作端末タイプ
 	UINT32			ote_id;					//端末ID
 	UINT32			grip_mode;				//グリップスイッチモード
 	UINT32			gpad_mode = L_OFF;		//ゲームパッドモード
@@ -111,8 +110,8 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_PC_FLT_DETECT_MAX			15
 
 #define OTE_CS_CODE_OPEPNL_PC			0	//制御PC端末
-#define OTE_CS_CODE_OPEPNLLOCAL_		1	//操作室端末
-#define OTE_CS_CODE_OPEPNL_ROOM			2	//機側端末
+#define OTE_CS_CODE_OPEPNL_LOCAL		1	//機側端末
+#define OTE_CS_CODE_OPEPNL_ROOM			2	//操作室端末
 
 typedef struct _ST_OTE_CS_INF {
 	INT32 ote_type	 = OTE_CS_CODE_OPEPNL_PC;		//PLCとの通信状態
@@ -149,6 +148,12 @@ typedef struct _ST_OTE_CS_INF {
 
 #define PRM_OTE_PC_COM_TMOV_CNT			20	//通信チェックカウント
 
+#define OTE_AGENT_MODE_OTE_PORT_0			0	//有線LAN接続モード(PORT0）
+#define OTE_AGENT_MODE_OTE_PORT_WIFI		1	//端末種別：遠隔操作室端末（有線LAN）
+#define OTE_AGENT_MODE_OTE_PORT_1			2	//有線LAN接続モード(PORT1）
+#define OTE_AGENT_MODE_OTE_PORT_ERR			-1	//ソケットアドレス未定
+
+
 typedef struct _ST_OTE_CC_IF {
 	INT32			cc_com_stat_r;		//制御PCとの通信状態（受信）
 	INT32			cc_com_stat_s;		//制御PCとの通信状態（送信）
@@ -170,6 +175,7 @@ typedef struct _ST_OTE_CC_IF {
 	UINT32	ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
 	UINT32	mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
 	UINT32	ote_command;		//停止OTE要求モード	非常停止,主幹切
+	UINT32	ote_mode;				//操作端末接続モード
 
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体

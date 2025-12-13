@@ -86,6 +86,8 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 	int code = 0;
 
 	st_work.device_code = g_my_code;
+	st_work.ote_type = g_my_code.option;
+
 
 	return S_OK;
 }

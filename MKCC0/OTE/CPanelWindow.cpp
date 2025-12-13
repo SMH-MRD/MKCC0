@@ -5,6 +5,7 @@
 #include "CBasicControl.h"
 #include <vector>
 #include "COteEnv.h"
+#include "COteAgent.h"
 #include <windows.h>
 #include "CFaults.h"
 #include "CHelper.h"
@@ -16,6 +17,7 @@ extern BC_TASK_ID st_task_id;
 extern CCrane* pCrane;
 
 static COteEnv* pEnvObj;
+static COteAgent* pAgentObj;
 
 HWND				CMainPanelWindow::hPnlWnd;
 HWND				CMainPanelWindow::hParentWnd;
@@ -111,6 +113,7 @@ void CMainPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OT
 	pOteEnvInf	= _pOteEnvInf;
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
+	pAgentObj = (COteAgent*)VectCtrlObj[st_task_id.AGENT];
 	return;
 };
 int CMainPanelWindow::close()
@@ -1797,8 +1800,59 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_CREATE: {
+		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
         SetWindowText(hwnd, L"通信");
-    }break;
+		//RADIO BUTTON
+		CCbCtrl* pcb = pPanelBase->psubobjs->cb_if_line;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_if_wifi;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON |  BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+ 
+		//初期値セット
+		//通信IFモード
+		if (pCcIf->ote_mode == OTE_AGENT_MODE_OTE_PORT_WIFI) {
+			SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+		}
+		else {
+			SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		}
+		
+	}break;
+
+	case WM_COMMAND: {
+		INT32 code = 0;
+		int wmId = LOWORD(wParam);
+		// 選択されたメニューの解析:
+		switch (wmId)
+		{
+		case ID_SUB_PNL_SET_OBJ_RDO_IF_LINE:
+		case ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI:
+		{
+			code = pAgentObj->update_ccif_sock_addr(pPanelBase->psubobjs->rdo_ote_if_mode->update(true));
+
+			if (code == OTE_AGENT_MODE_OTE_PORT_ERR) {
+				SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else if (code == OTE_AGENT_MODE_OTE_PORT_WIFI) {
+				SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else {
+				SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+			}
+
+		}break;
+
+		default:
+			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);
+		}
+	}break;
 
     case WM_DESTROY:
         // PostQuitMessage(0);
@@ -2117,4 +2171,3 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
-

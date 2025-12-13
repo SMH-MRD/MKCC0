@@ -242,6 +242,10 @@ public:
 #define ID_SUB_PNL_FLT_OBJ_LV_FAULTS			60351
 #define ID_SUB_PNL_FLT_OBJ_CB_PCFLT				60352
 
+#define ID_SUB_PNL_SET_OBJ_RDO_IF_LINE			60353
+#define ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI			60354
+#define ID_SUB_PNL_SET_OBJ_RDO_IF_MODE			60355
+
 
 class CSubPanelObj :public CPanelObjBase
 {
@@ -318,6 +322,11 @@ public:
 	CPbCtrl* pb_disp_flt_plcmap;	//PLC faulrmap表示ボタン
 	CListViewCtrl* lv_flt_list;		//故障リストビュー
 	INT16 flt_req_code =FAULT_HEAVY1|FAULT_HEAVY2|FAULT_HEAVY3|FAULT_LIGHT|FAULT_INTERLOCK;//故障リスト更新要求コード
+	
+	//通信サブウィンドウ
+	CCbCtrl* cb_if_line;			//有線選択ラジオボタン
+	CCbCtrl* cb_if_wifi;			//Wifi If選択ラジオボタン
+	CRadioCtrl* rdo_ote_if_mode;	//インターフェースモード選択ラジオボタン
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

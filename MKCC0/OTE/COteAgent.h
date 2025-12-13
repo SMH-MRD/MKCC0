@@ -173,8 +173,9 @@ public:
     static HRESULT snd_mul2pc(LPST_OTE_M_MSG pbuf);
     static HRESULT snd_mul2ote(LPST_OTE_M_MSG pbuf);
     
-    int setup_crane_if(int crane_id);
+           int setup_crane_if(int crane_id);
     static int close_crane_if();
+            INT32 update_ccif_sock_addr(int code);//
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
