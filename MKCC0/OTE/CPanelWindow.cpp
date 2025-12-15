@@ -1812,7 +1812,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
  
 		//初期値セット
 		//通信IFモード
-		if (pCcIf->ote_mode == OTE_AGENT_MODE_OTE_PORT_WIFI) {
+		if (pOteEnvInf->ote_com_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
 			SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 			SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
@@ -1832,7 +1832,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		case ID_SUB_PNL_SET_OBJ_RDO_IF_LINE:
 		case ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI:
 		{
-			code = pAgentObj->update_ccif_sock_addr(pPanelBase->psubobjs->rdo_ote_if_mode->update(true));
+			code = pAgentObj->update_ccif_sock_addr(pOteEnvInf->ote_com_mode);
 
 			if (code == OTE_AGENT_MODE_OTE_PORT_ERR) {
 				SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);

@@ -30,6 +30,9 @@
 #define OTE_ENV_ID_MON1_RADIO_CRANE08   23
 #define OTE_ENV_ID_MON1_RADIO_CRANE09   24
 #define OTE_ENV_ID_MON1_RADIO_CRANE10   25
+#define OTE_ENV_ID_MON1_RADIO_COM_LINE  26
+#define OTE_ENV_ID_MON1_RADIO_COM_WIFI  27
+
 
 #define OTE_ENV_ID_MON1_PB_START        31
 
@@ -54,19 +57,19 @@ typedef struct _ST_OTE_ENV_MON1 {
         20,20, 20,140, 20,240, 20,340, 180,60, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         80,110, 180,110, 280,110, 380,110, 480,110, 80,210, 180,210, 280,210,
-        80,310, 180,310, 0,0, 0,0, 0,0, 0,0, 0,0, 80,60
+        80,310, 180,310, 400,30, 480,30, 0,0, 0,0, 0,0, 80,60
     };
     SIZE sz[OTE_ENV_MON1_N_CTRL] = {
         600,20, 80,20, 80,20, 80,20, 160,20, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         80,80, 80,80, 80,80, 80,80, 80,80, 80,80, 80,80, 80,80,
-        80,80, 80,80, 0,0, 0,0, 0,0, 0,0, 0,0, 80,20
+        80,80, 80,80, 80,20, 80,20, 0,0, 0,0, 0,0, 80,20
     };
     WCHAR text[OTE_ENV_MON1_N_CTRL][OTE_ENV_MON1_N_WCHAR] = {
         L"今治造船/SHIMH　クレーン遠隔システム", L"JC", L"GC", L"TEST", L"クレーン未選択", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"西多度津102号", L"-", L"-", L"-", L"-", L"-", L"-", L"-",
-        L"CHECK",L"-", L"", L"", L"", L"", L"", L"START"
+        L"CHECK",L"-", L"LINE", L"WIFI", L"", L"", L"", L"START"
     };
 }ST_OTE_ENV_MON1, * LPST_OTE_ENV_MON1;
 

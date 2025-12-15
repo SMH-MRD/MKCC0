@@ -85,7 +85,7 @@ int COteAgent::setup_crane_if(int crane_id) {
 		}
 		else
 		{
-			if(st_work.ote_mode == OTE_AGENT_MODE_OTE_PORT_WIFI)
+			if(st_work.ote_mode == OTE_ENV_MODE_OTE_PORT_WIFI)
 				pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE_HHGG3801_W, OTE_IF_UNI_PORT_OTE);
 			else
 				pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_OTE_HHGG3801, OTE_IF_UNI_PORT_OTE);
@@ -197,19 +197,19 @@ int COteAgent::close_crane_if() {
 
 INT32 COteAgent::update_ccif_sock_addr(int code) {
 	st_work.ote_mode = code;
-	if (code == OTE_AGENT_MODE_OTE_PORT_WIFI) {
+	if (code == OTE_ENV_MODE_OTE_PORT_WIFI) {
 		if(S_OK != setup_crane_if(pOteCCIf->id_conected_crane))
-			return OTE_AGENT_MODE_OTE_PORT_ERR;
+			return OTE_ENV_MODE_OTE_PORT_ERR;
 
-		return OTE_AGENT_MODE_OTE_PORT_WIFI;
+		return OTE_ENV_MODE_OTE_PORT_WIFI;
 	}
-	if (code == OTE_AGENT_MODE_OTE_PORT_0) {
+	if (code == OTE_ENV_MODE_OTE_PORT_0) {
 		if (S_OK != setup_crane_if(pOteCCIf->id_conected_crane)) 
-			return OTE_AGENT_MODE_OTE_PORT_ERR;
+			return OTE_ENV_MODE_OTE_PORT_ERR;
 
-		return OTE_AGENT_MODE_OTE_PORT_0;
+		return OTE_ENV_MODE_OTE_PORT_0;
 	}
-	return OTE_AGENT_MODE_OTE_PORT_ERR;
+	return OTE_ENV_MODE_OTE_PORT_ERR;
 }
 
 

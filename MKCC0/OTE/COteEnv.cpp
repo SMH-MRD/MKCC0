@@ -229,6 +229,29 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				EnableWindow(st_mon1.hctrl[i], FALSE);
 			}
 		}
+
+		for (i = OTE_ENV_ID_MON1_RADIO_COM_LINE; i <= OTE_ENV_ID_MON1_RADIO_COM_WIFI; i++) {
+			if (i == OTE_ENV_ID_MON1_RADIO_COM_LINE) {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_MULTILINE | WS_GROUP,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+			else {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_MULTILINE,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+		}
+
+		//初期値セット
+		//通信IFモード
+		if (st_work.ote_com_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
+			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_WIFI], BM_SETCHECK, BST_CHECKED, 0);
+		}
+		else {
+			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_LINE], BM_SETCHECK, BST_CHECKED, 0);
+		}
+
 		//PB
 		i = OTE_ENV_ID_MON1_PB_START;
 		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
@@ -285,6 +308,16 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_STATIC_SELECTED]);
 		}break;
 
+		case OTE_ENV_ID_MON1_RADIO_COM_LINE:
+		{
+			st_work.ote_com_mode = OTE_ENV_MODE_OTE_PORT_0;
+			int code = pAgentObj->update_ccif_sock_addr(st_work.ote_com_mode);
+		}break;
+		case OTE_ENV_ID_MON1_RADIO_COM_WIFI:
+		{
+			st_work.ote_com_mode = OTE_ENV_MODE_OTE_PORT_WIFI;
+			int code = pAgentObj->update_ccif_sock_addr(st_work.ote_com_mode);
+		}break;
 
 
 		default:

@@ -80,12 +80,18 @@ typedef struct _ST_DRAWING_BASE {
 #define OTE_ENV_APP_DEBUG_TYPE1			1	//PC1台デバッグモード
 #define OTE_ENV_APP_DEBUG_TYPE2			2	//PC1台+操作卓PLCデバッグモード
 
+#define OTE_ENV_MODE_OTE_PORT_0			0	//有線LAN接続モード(PORT0）
+#define OTE_ENV_MODE_OTE_PORT_WIFI		1	//端末種別：遠隔操作室端末（有線LAN）
+#define OTE_ENV_MODE_OTE_PORT_1			2	//有線LAN接続モード(PORT1）
+#define OTE_ENV_MODE_OTE_PORT_ERR		-1	//ソケットアドレス未定
+
 typedef struct _ST_OTE_ENV_INF {
 	ST_DEVICE_CODE device_code;
 
 	UINT32			target_crane;			//接続対象クレーン
 	UINT32			ote_type;				//操作端末タイプ
 	UINT32			ote_id;					//端末ID
+	UINT32			ote_com_mode;			//接続対象クレーン
 	UINT32			grip_mode;				//グリップスイッチモード
 	UINT32			gpad_mode = L_OFF;		//ゲームパッドモード
 	DIJOYSTATE		pad_data;
