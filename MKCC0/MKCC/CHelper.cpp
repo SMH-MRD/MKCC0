@@ -296,3 +296,4 @@ LPCWSTR CUIHelper::get_crane_txt_by_code(INT32 value) {
 	return crane_txt.c_str();
 
 }
+

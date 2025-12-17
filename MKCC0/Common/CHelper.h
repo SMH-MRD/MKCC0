@@ -133,3 +133,4 @@ public:
 	static wstring crane_txt;
 	static LPCWSTR get_crane_txt_by_code(INT32 value);
 };
+

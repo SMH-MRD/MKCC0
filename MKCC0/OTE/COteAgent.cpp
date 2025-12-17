@@ -758,6 +758,11 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		//UniCast‘—M
 		HRESULT hr;
 		INT32 stat = 0;
+
+		if(pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN)
+			stat |= OTE_STAT_COM_WAN;
+
+
 		if(pOteCsInf->st_body.remote){
 			stat |= OTE_STAT_MODE_OPE;
 			hr = snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_OPE_ACTIVE, stat), &pUSockPC->addr_in_dst);

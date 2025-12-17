@@ -964,6 +964,25 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラークリア
 
 			}
+			else if (rcv_uni_ote(&pOTE_Inf->st_msg_ote_u_rcv) == S_OK_WAN) {
+				//折り返しアンサバック 送信元へ返送
+				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
+				pUSockOte->addr_in_dst.sin_family = AF_INET;
+				pUSockOte->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
+				pUSockOte->addr_in_dst.sin_addr = pUSockOte->addr_in_from.sin_addr;
+
+				HRESULT hr;
+				if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
+					hr = snd_uni2ote(set_msg_u(true, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
+				else
+					hr = snd_uni2ote(set_msg_u(false, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
+
+				if (hr == S_OK) st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SND;//送信エラークリア
+				else            st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SND;//送信エラー
+
+				st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラークリア
+
+			}
 			else {
 				st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラー
 			}

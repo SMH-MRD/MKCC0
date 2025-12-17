@@ -96,6 +96,8 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 #define OTE_CODE_COM_RESET 			0x0800	//リセットコマンド
 #define OTE_CODE_COM_CLR 			0x0000	//コマンドクリア
 
+#define S_OK_WAN					2       //WAN通信OK
+
 /******* 共通メッセージヘッダ部 ***********/
 
 /// <summary>

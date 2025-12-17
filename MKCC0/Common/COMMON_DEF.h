@@ -137,6 +137,7 @@ using namespace Gdiplus;
 #define STAT_OK         L_ON   // ON
 #define STAT_NG         L_OFF  // OFF
 
+
 #define CODE_ACCEPTED      1        //受付完了
 #define CODE_REJECTED      -1       //受付不可
 #define CODE_NO_REQUEST    0        //要求無し
