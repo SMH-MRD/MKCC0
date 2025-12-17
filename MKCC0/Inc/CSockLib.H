@@ -72,6 +72,15 @@ public:
 	void set_sock_addr(SOCKADDR_IN* paddr, PCSTR ip, USHORT port) {//アドレスセット
 		paddr->sin_family = AF_INET;paddr->sin_port = htons(port);inet_pton(AF_INET, ip, &(paddr->sin_addr.s_addr)); return;
 	}
+
+	IN_ADDR get_sock_ip(PCSTR ip) {//ソケットIPアドレス取得
+		SOCKADDR_IN addr_in;
+		IN_ADDR addr;
+		inet_pton(AF_INET, ip, &(addr_in.sin_addr.s_addr));
+
+		return addr_in.sin_addr;
+	}
+
 	virtual HRESULT GetSockMsg(int nError);
 	virtual HRESULT SetSockErr(int nError);
 	virtual HRESULT Initialize();		//WinSock初期化

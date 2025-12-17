@@ -518,6 +518,10 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 	}
 	
 	rcv_count_ote_u++;
+
+	if (chkbuf_u_msg.head.status & OTE_STAT_COM_WAN)
+		return S_OK_WAN;
+
 	return S_OK;
 }
 /****************************************************************************/
@@ -945,7 +949,8 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (nEvent) {
 		case FD_READ: {
 			//OTEからのユニキャストメッセージ受信
-			if(rcv_uni_ote(&pOTE_Inf->st_msg_ote_u_rcv) == S_OK){
+			HRESULT hr= rcv_uni_ote(&pOTE_Inf->st_msg_ote_u_rcv);
+			if(hr == S_OK){
 				//折り返しアンサバック 送信元へ返送
 				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
 				pUSockOte->addr_in_dst.sin_family = AF_INET;
@@ -964,12 +969,12 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラークリア
 
 			}
-			else if (rcv_uni_ote(&pOTE_Inf->st_msg_ote_u_rcv) == S_OK_WAN) {
+			else if (hr == S_OK_WAN) {
 				//折り返しアンサバック 送信元へ返送
 				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
 				pUSockOte->addr_in_dst.sin_family = AF_INET;
 				pUSockOte->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
-				pUSockOte->addr_in_dst.sin_addr = pUSockOte->addr_in_from.sin_addr;
+				pUSockOte->addr_in_dst.sin_addr = pUSockOte->get_sock_ip(OTE_IF_UNI_IP_PC_WAN_HHGG3801);
 
 				HRESULT hr;
 				if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
