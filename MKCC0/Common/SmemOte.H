@@ -77,8 +77,8 @@ typedef struct _ST_DRAWING_BASE {
 
 #pragma region OTE_INF ENV
 #define OTE_ENV_APP_PRODUCT				0	//実機モード
-#define OTE_ENV_APP_DEBUG_TYPE1			1	//PC1台デバッグモード
-#define OTE_ENV_APP_DEBUG_TYPE2			2	//PC1台+操作卓PLCデバッグモード
+#define OTE_ENV_APP_DEBUG_TYPE1			3	//PC1台デバッグモード
+#define OTE_ENV_APP_DEBUG_TYPE2			4	//PC1台+操作卓PLCデバッグモード
 
 #define OTE_ENV_MODE_OTE_PORT_0			0	//有線LAN接続モード(PORT0）
 #define OTE_ENV_MODE_OTE_PORT_WIFI		1	//端末種別：遠隔操作室端末（有線LAN）
@@ -86,7 +86,8 @@ typedef struct _ST_DRAWING_BASE {
 #define OTE_ENV_MODE_OTE_PORT_ERR		-1	//ソケットアドレス未定
 
 typedef struct _ST_OTE_ENV_INF {
-	ST_DEVICE_CODE device_code;
+	ST_DEVICE_CODE		device_code;
+	ST_APP_COMMON_PARAM app_common_param;
 
 	UINT32			target_crane;			//接続対象クレーン
 	UINT32			ote_type;				//操作端末タイプ
@@ -97,7 +98,7 @@ typedef struct _ST_OTE_ENV_INF {
 	DIJOYSTATE		pad_data;
 
 	INT32			selected_crane;
-	UINT32			app_mode= OTE_ENV_APP_PRODUCT;
+
 
 }ST_OTE_ENV_INF, * LPST_OTE_ENV_INF;
 #pragma endregion 

@@ -33,8 +33,9 @@ CSharedMem* pOteCcInfObj;
 CSharedMem* pOteUiObj;
 
 //共有クラス
-CCrane* pCrane=NULL;	//クレーン制御クラスポインタ
-ST_DEVICE_CODE g_my_code; //端末コード
+CCrane* pCrane=NULL;	                //クレーン制御クラスポインタ
+ST_DEVICE_CODE g_my_code;               //端末コード
+ST_APP_COMMON_PARAM g_app_common_param; //共通パラメータ
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_OTE_WND           st_work_wnd;        //センサーウィンドウ管理用構造体   
@@ -203,19 +204,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
     swscanf_s(wbuf, L"%d", &(g_my_code.option));
   
-    //LPST_OTE_ENV_INF pEnvStat = (LPST_OTE_ENV_INF)(pOteEnvInfObj->get_pMap());
-   // DWORD	str_num;
-   // 
-   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
-   // 
-   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"??????", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
+    //アプリケーションモード設定
+    str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_APP_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
+    swscanf_s(wbuf, L"%d", &(g_app_common_param.app_mode));
 
-   // WCHAR wbuf[32];
-   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
-   // swscanf_s(wbuf, L"%x", &(pEnvStat->device_code.serial_no));
+    //プロダクトモード設定
+    str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_PRODUCT_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
+    swscanf_s(wbuf, L"%d", &(g_app_common_param.product_mode));
 
-   // str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
-   // swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));
 
     HBITMAP hBmp;
     CBasicControl* pobj;

@@ -14,6 +14,7 @@ extern CSharedMem* pOteUiObj;
 
 extern CCrane* pCrane;
 extern ST_DEVICE_CODE g_my_code;
+extern ST_APP_COMMON_PARAM g_app_common_param;
 
 ST_OTE_ENV_MON1 COteEnv::st_mon1;
 ST_OTE_ENV_MON2 COteEnv::st_mon2;
@@ -87,6 +88,7 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 
 	st_work.device_code = g_my_code;
 	st_work.ote_type = g_my_code.option;
+	st_work.app_common_param = g_app_common_param;
 
 
 	return S_OK;
@@ -95,10 +97,16 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 HRESULT COteEnv::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
-		if (pOteEnvInf->app_mode == OTE_ENV_APP_PRODUCT)		wos << L" MODE>>PRODUCT";
-		else if (pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE1)	wos << L" MODE>>DEBUG1";
-		else if (pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE2)	wos << L" MODE>>DEBUG2";
+		if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_PRODUCT)		wos << L" MODE>>PRODUCT";
+		else if (pOteEnvInf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR)	wos << L" MODE>>EMULATOR";
+		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1)	wos << L" MODE>>DEBUG1";
+		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE2)	wos << L" MODE>>DEBUG2";
 		else											wos << L" MODE>>??";
+
+		if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WIFI)		wos << L" IF>>LOCAL";
+		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN)	wos << L" IF>>WAN";
+		else																		wos << L" IF>>??";
+
 		msg2host(wos.str());
 	}
 	input();
@@ -549,15 +557,15 @@ LRESULT CALLBACK COteEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_MODE_RADIO0:
 		{
-			inf.mode_id = st_work.app_mode = OTE_ENV_APP_PRODUCT;
+			inf.mode_id = st_work.app_common_param.app_mode = OTE_ENV_APP_PRODUCT;
 		}break;
 		case IDC_TASK_MODE_RADIO1:
 		{
-			inf.mode_id = st_work.app_mode = OTE_ENV_APP_DEBUG_TYPE1;
+			inf.mode_id = st_work.app_common_param.app_mode = OTE_ENV_APP_DEBUG_TYPE1;
 		}break;
 		case IDC_TASK_MODE_RADIO2:
 		{
-			inf.mode_id = st_work.app_mode = OTE_ENV_APP_DEBUG_TYPE2;
+			inf.mode_id = st_work.app_common_param.app_mode = OTE_ENV_APP_DEBUG_TYPE2;
 		}break;
 
 		case IDC_TASK_MON_CHECK1:

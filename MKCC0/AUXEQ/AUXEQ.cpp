@@ -30,6 +30,8 @@ CSharedMem* pEnvInfObj;
 CSharedMem* pAgentInfObj;
 CSharedMem* pCsInfObj;
 
+ST_APP_COMMON_PARAM g_app_common_param;
+
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_AUXEQ_WND        st_work_wnd;        //センサーウィンドウ管理用構造体   
 

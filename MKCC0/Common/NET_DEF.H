@@ -19,6 +19,8 @@
 #define OTE_IF_CRANE_IP_HHGQ18			"192.168.102.101"	//今造多度津JC300t(10号)
 #define OTE_IF_CRANE_IP_HHFR22			"192.168.103.101"	//今造丸亀GC1300t(1号)
 
+#define OTE_IF_CRANE_IP_HHGH29_WAN		"10.130.7.205"	//今造多度津JC70t(102号) WAN回線
+
 //@ OTE---------------------------------------------------------------------------------------
 #define OTE_IF_UNI_IP_PC				"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
 #define OTE_IF_UNI_IP_PC_HHGG8200		"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
@@ -28,7 +30,8 @@
 #define OTE_IF_UNI_IP_OTE_HHGG3801		"192.168.101.151"	//デフォルトOTEのUNICAST用IP（受信,送信）
 #define OTE_IF_UNI_IP_OTE_HHGG3801_W	"192.168.101.152"	//デフォルトOTEのSUB IP（Wifi 受信,送信）
 
-#define OTE_IF_UNI_IP_PC_WAN			"100.87.239.249" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
+#define OTE_IF_UNI_IP_PC_WAN			"100.87.239.249" 	//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
+#define OTE_IF_UNI_IP_PC_WAN_HHGG3801	"10.130.6.105" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 
 
 //#define OTE_IF_UNI_PORT_PC			10050					//ユニキャストPC受信ポート

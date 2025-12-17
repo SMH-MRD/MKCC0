@@ -73,12 +73,12 @@ int COteAgent::setup_crane_if(int crane_id) {
 	switch (crane_id) {
 	case CARNE_ID_HHGH29: {
 		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
-		if(pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE1){
+		if(pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1){
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_UNI_PORT_OTE);
 			pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
 		}
-		else if (pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE2) {
+		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE2) {
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE1, OTE_IF_UNI_PORT_OTE);
 			pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE1, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE1, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
@@ -94,7 +94,17 @@ int COteAgent::setup_crane_if(int crane_id) {
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_OTE_HHGG3801, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
 		}
 		//送信先アドレス
-		pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29, OTE_IF_UNI_PORT_PC);//送信先アドレス
+
+		if (st_work.ote_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
+			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		}
+		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN) {//WANモード
+			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29_WAN, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		}
+		else {
+			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		}
+
 		pMSockPC->set_sock_addr(&addrin_ote_m2pc_snd, OTE_IF_MULTI_IP_OTE, OTE_IF_MULTI_PORT_OTE2PC); //送信先アドレ???
 		pMSockPC->set_sock_addr(&addrin_ote_m2ote_snd, OTE_IF_MULTI_IP_OTE, OTE_IF_MULTI_PORT_OTE2OTE);//送信先アドレス}
 	}break;
@@ -115,12 +125,12 @@ int COteAgent::setup_crane_if(int crane_id) {
 	case CARNE_ID_HHFR22: 
 	default: {
 		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
-		if (pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
+		if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_UNI_PORT_OTE);
 			pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
 		}
-		else if (pOteEnvInf->app_mode == OTE_ENV_APP_DEBUG_TYPE2) {
+		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE2) {
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE1, OTE_IF_UNI_PORT_OTE);
 			pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE1, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE1, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス

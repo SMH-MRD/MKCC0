@@ -43,30 +43,7 @@ namespace MKCC
 #define EXT_OF_INIFILE					L"ini"			//iniファイル拡張子
 #define PATH_OF_INIFILE					pszInifile		//iniファイルパス
 
-#define OPATH_SECT_OF_INIFILE			L"PATH"			//オプショナルパスセクション
-#define OBJ_NAME_SECT_OF_INIFILE		L"OBJECT_NAME"	//タスクオブジェクトフルネームセクション
-#define OBJ_SNAME_SECT_OF_INIFILE		L"OBJECT_SNAME"	//タスクオブジェクト略称セクション
-#define NETWORK_SECT_OF_INIFILE			L"NW_PARAM"		//Communicatorタスクセクション
-#define SMEM_SECT_OF_INIFILE			L"SMEM"			//共有メモリセクション
-#define SYSTEM_SECT_OF_INIFILE			L"SYSTEM"		//システム設定セクション
-#define SYSTEM_SECT_OF_SIMULATION		L"SIM"		    //シミュレーションセクション
-
-//システム関連キー
-#define ODER_CODE_KEY_OF_INIFILE        L"ORDER_CODE"
-#define PC_TYPE_KEY_OF_INIFILE          L"PC_TYPE"
-#define PC_SERIAL_KEY_OF_INIFILE        L"PC_SERIAL"
-#define PC_OPTION_KEY_OF_INIFILE        L"PC_OPTION"
-
-//各セクションの各タスク用の情報を参照するためのキー
-#define MAIN_KEY_OF_INIFILE				L"MAIN"
-#define ENV_KEY_OF_INIFILE	            L"ENV"
-#define CS_KEY_OF_INIFILE	            L"CLIENT"
-#define POL_KEY_OF_INIFILE	            L"POL"
-#define AGENT_KEY_OF_INIFILE	        L"AGENT"
-#define SCAD_KEY_OF_INIFILE	            L"SCAD"
-#define SIM_KEY_OF_INIFILE	            L"SIM"
-
-     //-ID定義 Mainスレッド用　5100 +α
+//-ID定義 Mainスレッド用　5100 +α
 #define ID_TASK_SET_TAB				5098
 #define ID_STATUS_BAR				5099
 #define IDC_OBJECT_BASE				5100

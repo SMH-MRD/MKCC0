@@ -355,13 +355,21 @@ int CAgent::parse() {
 	
 	//### PCコントロール信号
 	{
-		INT16 mask = MASK_BIT_PC_CTRL_ACTIVE;	mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+		INT16 mask = MASK_BIT_PC_CTRL_ACTIVE;	
 		
+	
 		if (pCS_Inf->cs_ctrl.ope_pnl_status)	mask |= MASK_BIT_PC_OPEPNL_ACTIVE;	//操作有効端末有
 		else									mask &= ~MASK_BIT_PC_OPEPNL_ACTIVE;
 
 		if (pCS_Inf->cs_ctrl.remote_estop)		mask |= MASK_BIT_RMT_ESTP_ACTIVE;	//遠隔非常停止有
 		else									mask &= ~MASK_BIT_RMT_ESTP_ACTIVE;
+
+		if (pEnv_Inf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
+			mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+		}
+		else {
+			mask &= ~MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+		}
 
 
 		if (plc_healthy) {

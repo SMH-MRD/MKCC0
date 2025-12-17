@@ -19,6 +19,7 @@ extern CSharedMem* pOteInfObj;
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
 extern ST_DEVICE_CODE g_my_code;
+extern ST_APP_COMMON_PARAM g_app_common_param;
 extern CCrane* pCrane;
 
 ST_ENV_MON1 CCcEnv::st_mon1;
@@ -139,8 +140,8 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	CCcEnv* pEnvObj = (CCcEnv*)lpParam;
 	int code = 0;
 		
-	st_work.aux_mode = FUNC_ACTIVE;
-
+//	st_work.aux_mode = FUNC_ACTIVE;	
+	pEnvInf->app_common_param = st_work.app_common_param = g_app_common_param;
 	pEnvInf->device_code = st_work.device_code = g_my_code;
 
 	plc_enable_hold = 0;
@@ -227,6 +228,11 @@ HRESULT CCcEnv::routine_work(void* pObj) {
 		if (inf.mode_id == MODE_ENV_APP_SIMURATION)		wos  << L" MODE>>SIMULATOR";
 		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)	wos  << L" MODE>>EMULATOR";
 		else											wos  << L" MODE>>PRODUCT";
+
+		if (pEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WIFI)		wos << L" IF>>LOCAL";
+		else if (pEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN)	wos << L" IF>>WAN";
+		else																		wos << L" IF>>??";
+
 		msg2host(wos.str());
 	}
 	
@@ -789,15 +795,15 @@ LRESULT CALLBACK CCcEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_MODE_RADIO0:
 		{
-			inf.mode_id = pEnvInf->app_mode = MODE_ENV_APP_PRODUCT;
+			inf.mode_id = pEnvInf->app_common_param.app_mode = MODE_ENV_APP_PRODUCT;
 		}break;
 		case IDC_TASK_MODE_RADIO1:
 		{
-			inf.mode_id = pEnvInf->app_mode = MODE_ENV_APP_EMURATOR;
+			inf.mode_id = pEnvInf->app_common_param.app_mode = MODE_ENV_APP_EMURATOR;
 		}break;
 		case IDC_TASK_MODE_RADIO2:
 		{
-			inf.mode_id = pEnvInf->app_mode = MODE_ENV_APP_SIMURATION;
+			inf.mode_id = pEnvInf->app_common_param.app_mode = MODE_ENV_APP_SIMURATION;
 		}break;
 
 		case IDC_TASK_MON_CHECK1:

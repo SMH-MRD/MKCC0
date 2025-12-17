@@ -42,10 +42,6 @@ using namespace std;
 #define N_SWAY_DIR				4
 #define N_DRUM_LAYER			10	//ドラ巻取り層数最大値
 
-#define MODE_ENV_APP_PRODUCT	0	//実機モード
-#define MODE_ENV_APP_EMURATOR	1	//エミュレータモード
-#define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
-
 #define N_FAULTS_HISTORY_BUF	200	//故障履歴バッファ数
 typedef struct _ST_FAULT_RECORD {
 	SYSTEMTIME systime;				//検出中故障リスト
@@ -81,9 +77,9 @@ typedef struct _ST_CRANE_STAT {
 typedef struct _ST_CC_ENV_INF {
 
 	ST_DEVICE_CODE device_code;
+	ST_APP_COMMON_PARAM app_common_param;
 
 	//タスクステータス
-	UINT32	app_mode = MODE_ENV_APP_PRODUCT;
 	UINT32	aux_mode = FUNC_DEACTIVE;
 	bool is_tasks_standby_ok;					//タスクの立ち上がり確認
 	bool is_crane_status_ok = false;			//クレーンステータス初期化完了

@@ -40,6 +40,7 @@ CSharedMem* pAuxInfObj;
 
 CCrane* pCrane;
 ST_DEVICE_CODE g_my_code;
+ST_APP_COMMON_PARAM g_app_common_param;//共通パラメータ
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_MAIN_WND          st_work_wnd;        //センサーウィンドウ管理用構造体  
@@ -208,6 +209,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
    swscanf_s(wbuf, L"%d", &(g_my_code.option));
 
+   //アプリケーションモード設定
+   str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_APP_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(g_app_common_param.app_mode));
+
+   //プロダクトモード設定
+   str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_PRODUCT_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(g_app_common_param.product_mode));
     
    HBITMAP hBmp;
    CBasicControl* pobj;

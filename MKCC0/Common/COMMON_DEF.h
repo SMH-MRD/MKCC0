@@ -244,6 +244,54 @@ enum ID_AXIS {
 
 #pragma endregion タスクエラービット定義
 
+///# iniファイル定義
+#pragma region iniファイル
+
+#define OPATH_SECT_OF_INIFILE			L"PATH"			//オプショナルパスセクション
+#define OBJ_NAME_SECT_OF_INIFILE		L"OBJECT_NAME"	//タスクオブジェクトフルネームセクション
+#define OBJ_SNAME_SECT_OF_INIFILE		L"OBJECT_SNAME"	//タスクオブジェクト略称セクション
+#define NETWORK_SECT_OF_INIFILE			L"NW_PARAM"		//Communicatorタスクセクション
+#define SMEM_SECT_OF_INIFILE			L"SMEM"			//共有メモリセクション
+#define COMMON_SECT_OF_INIFILE			L"COMMON"		//システム設定セクション
+#define SYSTEM_SECT_OF_INIFILE			L"SYSTEM"		//システム設定セクション
+#define SYSTEM_SECT_OF_SIMULATION		L"SIM"		    //シミュレーションセクション
+
+//共通設定関連キー
+#define COMMON_KEY_OF_APP_MODE          L"APP_MODE"      //アプリケーション動作モード
+#define COMMON_KEY_OF_PRODUCT_MODE      L"PRODUCT_MODE"  //プロダクトモード
+
+//システム関連キー
+#define ODER_CODE_KEY_OF_INIFILE        L"ORDER_CODE"
+#define PC_TYPE_KEY_OF_INIFILE          L"PC_TYPE"
+#define PC_SERIAL_KEY_OF_INIFILE        L"PC_SERIAL"
+#define PC_OPTION_KEY_OF_INIFILE        L"PC_OPTION"
+
+//各セクションの各タスク用の情報を参照するためのキー
+#define MAIN_KEY_OF_INIFILE				L"MAIN"
+#define ENV_KEY_OF_INIFILE	            L"ENV"
+#define CS_KEY_OF_INIFILE	            L"CLIENT"
+#define POL_KEY_OF_INIFILE	            L"POL"
+#define AGENT_KEY_OF_INIFILE	        L"AGENT"
+#define SCAD_KEY_OF_INIFILE	            L"SCAD"
+#define SIM_KEY_OF_INIFILE	            L"SIM"
+
+#pragma endregion iniファイル
+
+//アプリケーション設定
+#define MODE_ENV_APP_PRODUCT	0	//実機モード
+#define MODE_ENV_APP_EMURATOR	1	//エミュレータモード
+#define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
+
+#define MODE_ENV_PRODUCT_WIFI	0	//WIFIモード
+#define MODE_ENV_PRODUCT_WAN	1	//WANモード
+
+typedef struct StAppCommonParam {
+    INT32 app_id;
+    INT32 product_mode;
+    INT32 app_mode;
+    WCHAR log_folder[128];
+}ST_APP_COMMON_PARAM, * LPST_APP_COMMON_PARAM;
+
 //デバイスコード
 typedef struct _ST_DEVICE_CODE {
 	WCHAR crane_id[8]=L"XXXXXX";   //製番コード
