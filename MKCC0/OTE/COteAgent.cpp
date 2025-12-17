@@ -757,10 +757,15 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	case WM_TIMER: {
 		//UniCast‘—M
 		HRESULT hr;
-		if(pOteCsInf->st_body.remote)
-			hr = snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_OPE_ACTIVE, OTE_STAT_MODE_OPE), &pUSockPC->addr_in_dst);
-		else 
-			hr = snd_uni2pc(set_msg_u(true, OTE_CODE_REQ_MON, OTE_STAT_MODE_MON), &pUSockPC->addr_in_dst);
+		INT32 stat = 0;
+		if(pOteCsInf->st_body.remote){
+			stat |= OTE_STAT_MODE_OPE;
+			hr = snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_OPE_ACTIVE, stat), &pUSockPC->addr_in_dst);
+		}
+		else {
+			stat |= OTE_STAT_MODE_MON;
+			hr = snd_uni2pc(set_msg_u(true, OTE_CODE_REQ_MON, stat), &pUSockPC->addr_in_dst);
+		}
 
 		//‘—M¬Œ÷ AND ³íóMŒã
 		if((hr==S_OK) && (st_work.cc_comm_chk_cnt == 0))

@@ -486,7 +486,7 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 	//## 受信電文ヘッダ部に操作モード接続要求があれば登録、なければモニタ用バッファに受信電文コピー
 	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {	//操作有効端末無し
 		//送信元の端末がモニタモードから操作モードへの要求有で端末セット
-		if ((chkbuf_u_msg.head.status == OTE_STAT_MODE_OPE) && (chkbuf_u_msg.head.code & OTE_CODE_REQ_OPE_ACTIVE)
+		if ((chkbuf_u_msg.head.status & OTE_STAT_MODE_OPE) && (chkbuf_u_msg.head.code & OTE_CODE_REQ_OPE_ACTIVE)
 			&& pPLC_IO->plc_enable) {//送信元がリモート要求でPLCヘルシーOK
 			st_ote_work.st_ote_ctrl.id_ope_active = chkbuf_u_msg.head.myid.serial_no;
 			st_ote_work.st_ote_ctrl.addr_in_active_ote = pUSockOte->addr_in_from;	//運転有効IP保持

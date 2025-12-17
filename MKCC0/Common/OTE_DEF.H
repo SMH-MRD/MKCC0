@@ -78,7 +78,7 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 
 #define OTE_NON_OPEMODE_ACTIVE		0
 
-#define OTE_STAT_MODE_MON			0x00000000	//端末モニタモード
+#define OTE_STAT_MODE_MON			0x00000001	//端末モニタモード
 #define OTE_STAT_MODE_OPE			0x00000002	//端末運転モード
 #define OTE_STAT_COM_WAN			0x10000000	//WAN回線
 
