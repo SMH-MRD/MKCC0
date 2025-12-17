@@ -53,6 +53,8 @@ CCcEnv::~CCcEnv() {
 HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
 
+	wos.str(L"‰Šú‰»’†c"); msg2host(wos.str());
+
 	pEnvInf		= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPlcIo		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pJobIo		= (LPST_JOB_IO)(pJobIoObj->get_pMap());
@@ -143,7 +145,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 //	st_work.aux_mode = FUNC_ACTIVE;	
 	pEnvInf->app_common_param = st_work.app_common_param = g_app_common_param;
 	pEnvInf->device_code = st_work.device_code = g_my_code;
-
+	inf.mode_id = st_work.app_common_param.app_mode;
 	plc_enable_hold = 0;
 
 	return S_OK;

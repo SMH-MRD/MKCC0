@@ -42,6 +42,8 @@ HRESULT CPolicy::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
 
+	wos.str(L"‰Šú‰»’†c"); msg2host(wos.str());
+
 	pEnvInf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPlcIo = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pJobIo = (LPST_JOB_IO)(pJobIoObj->get_pMap());

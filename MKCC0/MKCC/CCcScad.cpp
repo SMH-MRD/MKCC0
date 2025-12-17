@@ -24,6 +24,8 @@ CScada::~CScada() {
 
 HRESULT CScada::initialize(LPVOID lpParam) {
 
+	wos.str(L"‰Šú‰»’†c"); msg2host(wos.str());
+	
 	set_func_pb_txt();
 	set_item_chk_txt();
 	set_panel_tip_txt();

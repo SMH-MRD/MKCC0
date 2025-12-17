@@ -65,6 +65,8 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
 
+	wos.str(L"初期化中…"); msg2host(wos.str());
+
 	//システム周波数読み込み
 	QueryPerformanceFrequency(&frequency);
 

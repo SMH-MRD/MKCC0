@@ -44,6 +44,8 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
 
+	wos.str(L"初期化中…"); msg2host(wos.str());
+
 	//### SCADAクラスインスタンスのポインタ取得
 	pScadObj = (COteScad*)VectCtrlObj[st_task_id.SCAD];
 	//### AGENTクラスインスタンスのポインタ取得
@@ -265,6 +267,10 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 			hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		i = OTE_ENV_ID_MON1_PB_CLOSE;
+		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+			hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
 
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_ENV_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -302,6 +308,10 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			else {
 				MessageBox(hWnd, TEXT("クレーンを選択して下さい！"), TEXT("Error"), MB_OK | MB_ICONERROR);
 			}
+		}break;
+		case OTE_ENV_ID_MON1_PB_CLOSE: {
+			DestroyWindow(hWnd);
+			PostQuitMessage(0);
 		}break;
 
 		case OTE_ENV_ID_MON1_RADIO_CRANE02:

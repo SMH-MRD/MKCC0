@@ -229,6 +229,9 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 	QueryPerformanceFrequency(&frequency);
 
 	HRESULT hr = S_OK;	
+
+	wos.str(L"初期化中…"); msg2host(wos.str());
+
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_OTE_CC_IF);
 	if (OK_SHMEM != pOteCcInfObj->create_smem(SMEM_OTE_CC_IF_NAME, out_size, MUTEX_OTE_CC_IF_NAME)) {

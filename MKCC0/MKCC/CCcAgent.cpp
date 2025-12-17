@@ -68,6 +68,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	//システム周波数読み込み
 	QueryPerformanceFrequency(&frequency);
 
+	wos.str(L"初期化中…"); msg2host(wos.str());
+
 	///-共有メモリ割付&設定##################
 	if (OK_SHMEM != pAuxInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 	

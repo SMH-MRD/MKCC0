@@ -64,6 +64,9 @@ CCcCS::~CCcCS() {
 
 HRESULT CCcCS::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
+
+	wos.str(L"初期化中…"); msg2host(wos.str());
+
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_CC_CS_INF);
 
