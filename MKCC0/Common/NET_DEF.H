@@ -34,23 +34,23 @@
 #define OTE_IF_UNI_IP_PC_WAN_HHGG3801	"10.130.6.105" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 
 
-//#define OTE_IF_UNI_PORT_PC			10050					//ユニキャストPC受信ポート
-//#define OTE_IF_UNI_PORT_OTE			10051					//ユニキャスト端末受信ポート
+//#define OTE_IF_UNI_PORT_PC			10050				//ユニキャストPC受信ポート
+//#define OTE_IF_UNI_PORT_OTE			10051				//ユニキャスト端末受信ポート
 
-#define OTE_IF_UNI_PORT_PC			8001					//ユニキャストPC受信ポート
-#define OTE_IF_UNI_PORT_OTE			8001					//ユニキャスト端末受信ポート
+#define OTE_IF_UNI_PORT_PC				8001				//ユニキャストPC受信ポート
+#define OTE_IF_UNI_PORT_OTE				8001				//ユニキャスト端末受信ポート
 
-#define OTE_IF_MULTI_IP_PC			"239.1.0.2"				//PCマルチキャスト用IP
-#define OTE_IF_MULTI_IP_OTE			"239.1.0.1"				//OTEマルチキャスト用IP
+#define OTE_IF_MULTI_IP_PC				"239.1.0.2"			//PCマルチキャスト用IP
+#define OTE_IF_MULTI_IP_OTE				"239.1.0.1"			//OTEマルチキャスト用IP
 
-#define OTE_IF_MULTI_PORT_PC2PC		20080					//PC発信マルチキャストOTE受信ポート
-#define OTE_IF_MULTI_PORT_OTE2PC	20081					//OTE発信マルチキャストPC受信ポート;
-#define OTE_IF_MULTI_PORT_PC2OTE	20082					//PC発信マルチキャストOTE受信ポート
-#define OTE_IF_MULTI_PORT_OTE2OTE	20083					//OTE発信マルチキャストPC受信ポート;
+#define OTE_IF_MULTI_PORT_PC2PC			20080				//PC発信マルチキャストOTE受信ポート
+#define OTE_IF_MULTI_PORT_OTE2PC		20081				//OTE発信マルチキャストPC受信ポート;
+#define OTE_IF_MULTI_PORT_PC2OTE		20082				//PC発信マルチキャストOTE受信ポート
+#define OTE_IF_MULTI_PORT_OTE2OTE		20083				//OTE発信マルチキャストPC受信ポート;
 
-#define ID_SOCK_EVENT_OTE_UNI	    10603					//PC受信ソケットイベント　OTE UNICASTメッセージ
-#define ID_SOCK_EVENT_PC_MUL		10604					//PC受信ソケットイベント　PC MULTICASTメッセージ
-#define ID_SOCK_EVENT_OTE_MUL		10605					//PC受信ソケットイベント　OTE MULTICASTメッセージ
+#define ID_SOCK_EVENT_OTE_UNI			10603				//PC受信ソケットイベント　OTE UNICASTメッセージ
+#define ID_SOCK_EVENT_PC_MUL			10604				//PC受信ソケットイベント　PC MULTICASTメッセージ
+#define ID_SOCK_EVENT_OTE_MUL			10605				//PC受信ソケットイベント　OTE MULTICASTメッセージ
 
 
 //@ PLC IF-----------------------------------------------------------------------------------
@@ -65,11 +65,11 @@
 
 //#define IP_ADDR_MC_CLIENT_OTE		OTE_IF_SUB_IP_OTE0		//PLC IF 遠隔操作卓PC　IPアドレス
 #define IP_ADDR_MC_CLIENT_OTE		"192.168.101.150"		//PLC IF 遠隔操作卓PC　IPアドレス
-#define IP_ADDR_MC_SERVER_OTE		"192.168.101.160"		//PLC IF 遠隔操作卓PLC	 IPアドレス
+#define IP_ADDR_MC_SERVER_OTE		"192.168.101.160"		//PLC IF 遠隔操作卓PLC IPアドレス
 #define PORT_MC_CLIENT_OTE			3040					//遠隔PCポート
 #define PORT_MC_SERVER_OTE			3030					//OTEの時のPLCポート
 
-#define IP_ADDR_MC_CLIENT_SLBRK		IP_ADDR_MC_CLIENT	//CC_IF_CRANE_SUB_IP		//旋回BRK IF 遠隔PC	IPアドレス
+#define IP_ADDR_MC_CLIENT_SLBRK		IP_ADDR_MC_CLIENT		//CC_IF_CRANE_SUB_IP		//旋回BRK IF 遠隔PC	IPアドレス
 #define IP_ADDR_MC_SERVER_SLBRK		"192.168.101.120"		//旋回BRK IF PLC	IPアドレス
 #define PORT_MC_CLIENT_SLBRK		3021					//遠隔PCポート
 #define PORT_MC_SERVER_SLBRK		3011					//旋回BRKのPLCポート
