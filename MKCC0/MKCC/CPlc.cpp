@@ -15,7 +15,7 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//syukan_on;
 	{NULL,BIT1,					CODE_PLCIO_BIT_NC,	0,0},	//syukan_off;
 	{NULL,BIT2 | BIT3 | BIT7,	CODE_PLCIO_BITS,	0,0},	//mh_spd_cs;
-	{NULL,BIT4 | BIT5 | BIT6,	CODE_PLCIO_BITS,	0,0},	//bh_mode_cs;
+	{NULL,BIT5 | BIT6 | BIT8,	CODE_PLCIO_BITS,	0,0},	//bh_mode_cs;
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0},	//ah_use_sel;	 
 	{NULL,0xFC00,				CODE_PLCIO_BITS,	10,0},	// ah_notch;
 	//B230
