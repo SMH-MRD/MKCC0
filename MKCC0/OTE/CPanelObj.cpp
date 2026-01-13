@@ -445,8 +445,8 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; cb_bh_r_mode1			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_bh_r_mode2			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_bh_r_mode3			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_BHR_3, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	CCbCtrl* pcb_opt2[8]		= { cb_bh_r_mode0,cb_bh_r_mode1,cb_bh_r_mode2,cb_bh_r_mode3, };
-	i++; rdo_bh_r_mode			= new CRadioCtrl(4, pcb_opt2);
+	CCbCtrl* pcb_opt2[8]		= { cb_bh_r_mode0,cb_bh_r_mode1,cb_bh_r_mode2,cb_bh_r_mode2,cb_bh_r_mode3, };
+	i++; rdo_bh_r_mode			= new CRadioCtrl(5, pcb_opt2);
 	i++; lmp_bh_r_mode			= new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 4, 3, pgraphic);
 
 
