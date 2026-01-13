@@ -37,13 +37,25 @@
 #define CS_MON1_N_CTRL    32
 #define CS_MON1_N_WCHAR   64
 
-#define CS_ID_MON1_CTRL_BASE   51100
-#define CS_ID_MON1_STATIC_1     0
+#define CS_ID_MON1_CTRL_BASE        51100
+#define CS_ID_MON1_STATIC_1         0
+#define CS_ID_MON1_STATIC_CB_3R12   1
+#define CS_ID_MON1_STATIC_CB_3R34   2
+#define CS_ID_MON1_STATIC_CB_3R78   3
+#define CS_ID_MON1_STATIC_CB_SIREN  4
+
+#define CS_ID_MON1_CB_3R12          16
+#define CS_ID_MON1_CB_3R34          17
+#define CS_ID_MON1_CB_3R78          18
+#define CS_ID_MON1_CB_SIREN         19
+#define CS_ID_MON1_CB_FORCED        20
 
 typedef struct _ST_CS_MON1 {
     int timer_ms = CS_PRM_MON1_TIMER_MS;
     HWND hwnd_mon;
     bool is_monitor_active = false; //ソケット情報を表示する内容コード
+	bool debug_flg = false;         //デバッグ用強制ONフラグ
+	INT16 cb_status[16] = { L_OFF, L_OFF, L_OFF, L_OFF,L_OFF, L_OFF, L_OFF, L_OFF,L_OFF, L_OFF, L_OFF, L_OFF,L_OFF, L_OFF, L_OFF, L_OFF };
 
     wostringstream wo_work;
 
@@ -54,21 +66,21 @@ typedef struct _ST_CS_MON1 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[CS_MON1_N_CTRL] = {
-        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        5,5, 70,55, 165,55, 260,55, 355,55, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        5,55, 100,55, 195,55, 290,55, 400,55, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[CS_MON1_N_CTRL] = {
-        490,250, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        490,50, 20,20, 20,20, 20,20, 20,20, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        60,20, 60,20, 60,20, 60,20, 75,20, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[CS_MON1_N_CTRL][CS_MON1_N_WCHAR] = {
-        L"MON1", L"", L"", L"", L"", L"", L"", L"",
+        L"MON1", L"〇", L"〇", L"〇", L"〇", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
+        L"3R12", L"3R34", L"3R78", L"SIREN", L"CB有効", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
 }ST_CS_MON1, * LPST_CS_MON1;

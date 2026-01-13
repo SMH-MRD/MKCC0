@@ -350,13 +350,30 @@ int CCcCS::output() {          //出力処理
 	
 	//### OTEからの接続情報（接続要求内容,モード等）を共有メモリへセット
 	memcpy_s(&(pOTE_Inf->st_ote_ctrl), sizeof(ST_CC_OTE_CTRL), &st_ote_work.st_ote_ctrl, sizeof(ST_CC_OTE_CTRL));
+
+	//### デバッグ用：操作信号をツールウィンドウからセット
+	if (st_mon1.debug_flg) {
+		if (st_mon1.cb_status[0])
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] = L_ON;
+		else
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp1] = L_OFF;
+
+		if (st_mon1.cb_status[1])
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2] = L_ON;
+		else
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp2] = L_OFF;
+
+		if (st_mon1.cb_status[2])
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3] = L_ON;
+		else
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::hd_lamp3] = L_OFF;
+
+		if (st_mon1.cb_status[3])
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::motor_siren] = L_ON;
+		else
+			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::motor_siren] = L_OFF;
+	}
 	
-	////### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
-	// →AGENTで一括設定するように変更
-	//pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & 0x000f;
-	//pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & BIT4;
-	//pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & BIT5;
-		
 	return STAT_OK;
 }
 int CCcCS::close() {
@@ -400,13 +417,12 @@ void CCcCS::set_ote_flt_info() {
 			if (i16work < 0) i16work= N_FAULTS_HISTORY_BUF-1;
 			st_ote_work.st_body.faults_set.codes_plc[i] = pEnv_Inf->crane_stat.fault_list.history[i16work].code;	//履歴コードセット
 			st_ote_work.st_body.faults_set.codes_plc[i] *= pEnv_Inf->crane_stat.fault_list.history[i16work].status;	//クリアは-コード
-		
 		}
 		flt_count = N_OTE_PC_SET_PLC_FLT + N_OTE_PC_SET_PC_FLT;
 	}
 	else {	
 		flt_count = 0;
-		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {//PLC IOの故障バッファ数ループ
+		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {				//PLC IOの故障バッファ数ループ
 			i16work = disp_mask[i] & pEnv_Inf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][i];
 
 			//表示カウント数オーバーまたは故障無しでスキップ
@@ -651,11 +667,21 @@ LRESULT CALLBACK CCcCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[CS_ID_MON1_STATIC_1] = CreateWindowW(TEXT("STATIC"), st_mon1.text[CS_ID_MON1_STATIC_1], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[CS_ID_MON1_STATIC_1].x, st_mon1.pt[CS_ID_MON1_STATIC_1].y,
-			st_mon1.sz[CS_ID_MON1_STATIC_1].cx, st_mon1.sz[CS_ID_MON1_STATIC_1].cy,
-			hWnd, (HMENU)(CS_ID_MON1_CTRL_BASE + CS_ID_MON1_STATIC_1), hInst, NULL);
 
+		int i;
+		for (i = CS_ID_MON1_STATIC_1; i <= CS_ID_MON1_STATIC_CB_SIREN; i++) {
+			st_mon1.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
+				st_mon1.pt[i].x, st_mon1.pt[i].y,st_mon1.sz[i].cx, st_mon1.sz[i].cy,hWnd, 
+				(HMENU)(CS_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		}
+		
+		for (i = CS_ID_MON1_CB_3R12; i <= CS_ID_MON1_CB_FORCED; i++) {
+			st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+				hWnd, (HMENU)(CS_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		}
+		
+		
 		//表示更新用タイマー
 		SetTimer(hWnd, CS_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
@@ -663,10 +689,28 @@ LRESULT CALLBACK CCcCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
+		int _Id = wmId - CS_ID_MON1_CTRL_BASE;
 		// 選択されたメニューの解析:
-		switch (wmId)
+		switch (_Id)
 		{
-		case 1:break;
+		case CS_ID_MON1_CB_FORCED: {
+			if (BST_CHECKED == SendMessage(st_mon1.hctrl[CS_ID_MON1_CB_FORCED], BM_GETCHECK, 0, 0))
+				st_mon1.debug_flg = L_ON;
+			else
+				st_mon1.debug_flg = L_OFF;
+		}break;
+
+		case CS_ID_MON1_CB_3R12: 
+		case CS_ID_MON1_CB_3R34: 
+		case CS_ID_MON1_CB_3R78: 
+		case CS_ID_MON1_CB_SIREN: 
+		{
+			if (BST_CHECKED == SendMessage(st_mon1.hctrl[_Id], BM_GETCHECK, 0, 0))
+				st_mon1.cb_status[_Id - CS_ID_MON1_CB_3R12] = L_ON;
+			else
+				st_mon1.cb_status[_Id - CS_ID_MON1_CB_3R12] = L_OFF;
+		}break;
+
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
@@ -676,9 +720,28 @@ LRESULT CALLBACK CCcCS::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon1.wo_work << L"##CS_Inf  SLBRK COM: LEVEL " << pAUX_CS_Inf->com_slbrk.pc_com_brk_level
 			<< L" HW " << pAUX_CS_Inf->com_slbrk.pc_com_hw_brk
 			<< L" RESET" << pAUX_CS_Inf->com_slbrk.pc_com_reset
-			<< L" FREE" << pAUX_CS_Inf->com_slbrk.pc_com_autosel;
+			<< L" FREE" << pAUX_CS_Inf->com_slbrk.pc_com_autosel << L"\n"
+			<< L" 風速 " << pPLC_IO->wind_spd;
 
 			SetWindowText(st_mon1.hctrl[CS_ID_MON1_STATIC_1], st_mon1.wo_work.str().c_str());
+
+
+			if(pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1])	st_mon1.wo_work.str(L"●");
+			else									            st_mon1.wo_work.str(L"〇");
+			SetWindowText(st_mon1.hctrl[CS_ID_MON1_STATIC_CB_3R12], st_mon1.wo_work.str().c_str());
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp2])	st_mon1.wo_work.str(L"●");
+			else									            st_mon1.wo_work.str(L"〇");
+			SetWindowText(st_mon1.hctrl[CS_ID_MON1_STATIC_CB_3R34], st_mon1.wo_work.str().c_str());
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp3])	st_mon1.wo_work.str(L"●");
+			else									            st_mon1.wo_work.str(L"〇");
+			SetWindowText(st_mon1.hctrl[CS_ID_MON1_STATIC_CB_3R78], st_mon1.wo_work.str().c_str());
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren])	st_mon1.wo_work.str(L"●");
+			else									            st_mon1.wo_work.str(L"〇");
+			SetWindowText(st_mon1.hctrl[CS_ID_MON1_STATIC_CB_SIREN], st_mon1.wo_work.str().c_str());
+
 	}break;
 
 	case WM_PAINT: {

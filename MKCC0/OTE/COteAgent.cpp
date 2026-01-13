@@ -354,6 +354,7 @@ int COteAgent::output() {          //出力処理
 	pOteCCIf->cc_comm_chk_cnt = st_work.cc_comm_chk_cnt;
 	pOteCCIf->ote_mode = st_work.ote_mode;
 	
+	//操作パネルがクレーン接続されていない場合、接続クレーンIDクリア
 	if (pOteUI->hWnd_crane_ope_panel == NULL)
 		pOteCCIf->id_conected_crane = NULL;
 
