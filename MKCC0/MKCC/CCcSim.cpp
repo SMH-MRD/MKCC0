@@ -99,9 +99,14 @@ HRESULT CSim::routine_work(void* pObj) {
 		//		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 		msg2host(wos.str());
 	}
-	input();
-	parse();
-	output();
+
+	if(pEnv_Inf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
+		input();
+		parse();
+		output();
+	}
+	else Sleep(1000);
+
 	return S_OK;
 }
 

@@ -98,7 +98,10 @@ int COteAgent::setup_crane_if(int crane_id) {
 		if (st_work.ote_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
 			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29, OTE_IF_UNI_PORT_PC);//送信先アドレス
 		}
-		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN) {//WANモード
+		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801) {//WANモード
+			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29_WAN, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		}
+		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01) {//WANモード
 			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29_WAN, OTE_IF_UNI_PORT_PC);//送信先アドレス
 		}
 		else {
@@ -763,9 +766,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		HRESULT hr;
 		INT32 stat = 0;
 
-		if(pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN)
-			stat |= OTE_STAT_COM_WAN;
-
+		if(pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801)
+			stat |= OTE_STAT_COM_WAN_HHGG3801;
+		if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01)
+			stat |= OTE_STAT_COM_WAN_MENTE01;
 
 		if(pOteCsInf->st_body.remote){
 			stat |= OTE_STAT_MODE_OPE;

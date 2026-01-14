@@ -106,7 +106,8 @@ HRESULT COteEnv::routine_work(void* pObj) {
 		else											wos << L" MODE>>??";
 
 		if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WIFI)		wos << L" IF>>LOCAL";
-		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN)	wos << L" IF>>WAN";
+		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801)	wos << L" IF>>WAN_HHGG3801";
+		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01)	wos << L" IF>>WAN_MENTE01";
 		else																		wos << L" IF>>??";
 
 		msg2host(wos.str());

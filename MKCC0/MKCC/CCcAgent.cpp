@@ -370,7 +370,7 @@ int CAgent::parse() {
 			mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
 		}
 		else {
-			mask &= ~MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+			mask &= ~MASK_BIT_PC_SIM_MODE;	//PC操作有効、実機モード
 		}
 
 

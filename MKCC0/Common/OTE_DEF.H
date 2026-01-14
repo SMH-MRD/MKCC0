@@ -80,7 +80,8 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 
 #define OTE_STAT_MODE_MON			0x00000001	//端末モニタモード
 #define OTE_STAT_MODE_OPE			0x00000002	//端末運転モード
-#define OTE_STAT_COM_WAN			0x10000000	//WAN回線
+#define OTE_STAT_COM_WAN_HHGG3801	0x10000000	//WAN回線
+#define OTE_STAT_COM_WAN_MENTE01	0x20000000	//WAN回線
 
 #define OTE_STAT_TYPE_UNKOWN		0	//タイプ不定
 #define OTE_STAT_TYPE_SITE			1	//機側
@@ -96,7 +97,8 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 #define OTE_CODE_COM_RESET 			0x0800	//リセットコマンド
 #define OTE_CODE_COM_CLR 			0x0000	//コマンドクリア
 
-#define S_OK_WAN					2       //WAN通信OK
+#define S_OK_WAN_HHGG3801			2       //WAN通信OK
+#define S_OK_WAN_MENTE01			3       //WAN通信OK
 
 /******* 共通メッセージヘッダ部 ***********/
 

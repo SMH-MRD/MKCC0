@@ -230,11 +230,6 @@ HRESULT CCcEnv::routine_work(void* pObj) {
 		if (inf.mode_id == MODE_ENV_APP_SIMURATION)		wos  << L" MODE>>SIMULATOR";
 		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)	wos  << L" MODE>>EMULATOR";
 		else											wos  << L" MODE>>PRODUCT";
-
-		if (pEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WIFI)		wos << L" IF>>LOCAL";
-		else if (pEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN)	wos << L" IF>>WAN";
-		else																		wos << L" IF>>??";
-
 		msg2host(wos.str());
 	}
 	
