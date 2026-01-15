@@ -105,6 +105,7 @@ public:
 
     HRESULT open_opening_window();
     static HRESULT open_ope_window(int crane_id_selected);
+    static void set_product_mode(int mode) { st_work.app_common_param.product_mode = mode;  return; }
 	void clear_crane_if();
 
     //タブパネルのStaticテキストを設定

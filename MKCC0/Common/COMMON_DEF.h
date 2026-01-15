@@ -284,6 +284,7 @@ enum ID_AXIS {
 #define MODE_ENV_APP_SIMURATION	2	//シミュレーションモード
 
 #define MODE_ENV_PRODUCT_WIFI	        0 //WIFIモード
+#define MODE_ENV_PRODUCT_LOCAL	        0 //LOCALモード
 #define MODE_ENV_PRODUCT_WAN_HHGG3801	1	//WANモード
 #define MODE_ENV_PRODUCT_WAN_MENTE01	2	//WANモード
 

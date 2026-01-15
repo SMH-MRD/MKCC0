@@ -1,9 +1,13 @@
 #include "CSockLib.H"
 #include "COteAgent.h"
+#include "COteEnv.h"
 #include "resource.h"
 #include "framework.h"
 #include "OTE_DEF.H"
 #include "CPanelObj.h"
+
+extern vector<CBasicControl*>	VectCtrlObj;
+extern BC_TASK_ID st_task_id;
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
@@ -20,6 +24,8 @@ static CSockUDP* pMSockPC;					//マルチキャストPC通信受信用
 
 static SOCKADDR_IN addrin_ote_m2pc_snd;		//OTE->PC OTEマルチキャスト送信先アドレス（PC受信用)
 static SOCKADDR_IN addrin_ote_m2ote_snd;	//PC->OTE OTEマルチキャスト送信先アドレス（OTE受信用)
+
+static COteEnv* pEnvObj;
 
 ST_OTE_AG_MON1 COteAgent::st_mon1;
 ST_OTE_AG_MON2 COteAgent::st_mon2;
@@ -256,6 +262,8 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
+	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
+
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -281,6 +289,17 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 		st_work.ote_mode = OTE_AGENT_MODE_OTE_PORT_WIFI;
 	else												//電気室or遠隔操作室
 		st_work.ote_mode = OTE_AGENT_MODE_OTE_PORT_0;
+
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"LOCAL");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"WAN1");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"WAN2");
+
+	if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_LOCAL)
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
+	if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801)
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO1);
+	if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01)
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
 
 	return hr;
 }
@@ -433,14 +452,17 @@ LRESULT CALLBACK COteAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case IDC_TASK_MODE_RADIO0:
 		{
 			inf.mode_id = BC_ID_MODE0;
+			pEnvObj->set_product_mode(MODE_ENV_PRODUCT_LOCAL);
 		}break;
 		case IDC_TASK_MODE_RADIO1:
 		{
 			inf.mode_id = BC_ID_MODE1;
+			pEnvObj->set_product_mode(MODE_ENV_PRODUCT_WAN_HHGG3801);
 		}break;
 		case IDC_TASK_MODE_RADIO2:
 		{
 			inf.mode_id = BC_ID_MODE2;
+			pEnvObj->set_product_mode(MODE_ENV_PRODUCT_WAN_MENTE01);
 		}break;
 
 		case IDC_TASK_MON_CHECK1:
