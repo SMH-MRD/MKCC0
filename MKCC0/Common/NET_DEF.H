@@ -32,7 +32,7 @@
 
 #define OTE_IF_UNI_IP_PC_WAN			"100.87.239.249" 	//PCのOTE UNICAST　IF用IP	（送信 WAN回線）
 #define OTE_IF_UNI_IP_PC_WAN_HHGG3801	"10.130.6.105" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線 今造操作卓No.1）
-#define OTE_IF_UNI_IP_PC_WAN_MENTE01	"10.130.6.106" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線　保守端末No1）
+#define OTE_IF_UNI_IP_PC_WAN_MENTE01	"10.130.5.74" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線　保守端末No1）
 
 
 //#define OTE_IF_UNI_PORT_PC			10050				//ユニキャストPC受信ポート
