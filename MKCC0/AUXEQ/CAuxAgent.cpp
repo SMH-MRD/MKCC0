@@ -333,7 +333,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 		//CB
-		for (int i = AUXAG_ID_MON2_CB_COM_LEVEL_BIT0; i <= AUXAG_ID_MON2_CB_MODE_SLBRK_DBG; i++) {
+		for (int i = AUXAG_ID_MON2_CB_COM_LEVEL_BIT0; i <= AUXAG_ID_MON2_CB_COM_LEVEL_FULL; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
@@ -489,6 +489,23 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			else {
 				pAgent_Inf->slbrk_wbuf[0] |= 0x0008;
 			}
+		}break;
+		case AUXAG_ID_MON2_CB_COM_LEVEL_FULL: {
+			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_FULL], BM_GETCHECK, 0, 0)) {
+				pAgent_Inf->slbrk_wbuf[0] &= 0xFFF0;
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT0], BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT1], BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT2], BM_SETCHECK, BST_UNCHECKED, 0);
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT3], BM_SETCHECK, BST_UNCHECKED, 0);
+			}
+			else {
+				pAgent_Inf->slbrk_wbuf[0] |= 0x000F;
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT0], BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT1], BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT2], BM_SETCHECK, BST_CHECKED, 0);
+				SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_LEVEL_BIT3], BM_SETCHECK, BST_CHECKED, 0);
+			}
+
 		}break;
 		case AUXAG_ID_MON2_CB_COM_HW_BRK: {
 			if (BST_UNCHECKED == SendMessage(st_mon2.hctrl[AUXAG_ID_MON2_CB_COM_HW_BRK], BM_GETCHECK, 0, 0)) {

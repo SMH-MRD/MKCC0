@@ -162,7 +162,7 @@ public:
 
 };
 
-#define OTE_IF_RELEASE_COUNTUP          100          // 操作モードの端末の応答切れ判定時間
+#define OTE_IF_RELEASE_COUNTUP          30          // 操作モードの端末の応答切れ判定時間
 
 
 class CCcCS : public CBasicControl

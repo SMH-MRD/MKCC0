@@ -116,9 +116,9 @@ public:
 #define PLC_IO_CS_MH_SPD_MODE2 BIT2
 #define PLC_IO_CS_MH_SPD_MODE3 BIT3 //HHGH29は中速まで
 #define PLC_IO_CS_BH_R_MODE0   BITOFF
-#define PLC_IO_CS_BH_R_MODE1   BIT5
-#define PLC_IO_CS_BH_R_MODE2   BIT6
-#define PLC_IO_CS_BH_R_MODE3   BIT8//HHGH29はジブレスト
+#define PLC_IO_CS_BH_R_MODE1   BIT4
+#define PLC_IO_CS_BH_R_MODE2   BIT5
+#define PLC_IO_CS_BH_R_MODE3   BIT6//HHGH29はジブレスト
 
 class CPlcCSHelper
 {

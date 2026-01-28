@@ -148,6 +148,7 @@ typedef struct _AUXAG_MON1 {
 #define AUXAG_ID_MON2_CB_COM_EMG            22  //SLBRK　DBG出力ビットセット
 #define AUXAG_ID_MON2_CB_COM_AUTOSEL        23  //SLBRK　DBG出力ビットセット
 #define AUXAG_ID_MON2_CB_MODE_SLBRK_DBG     24  //SLBRK　DBGモードセット
+#define AUXAG_ID_MON2_CB_COM_LEVEL_FULL     25  //SLBRK　DBG出力ビット最大値セット
 
 #define AUXAG_MON2_MSG_DISP_OFF             0
 #define AUXAG_MON2_MSG_DISP_HEX             1
@@ -171,20 +172,20 @@ typedef struct _AUXAG_MON2 {
     POINT pt[AUXAG_MON2_N_CTRL] = {
         5,5, 5,30, 5,55, 5,80, 5,105, 5,130,5,200, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        20,160, 75,160, 140,160, 195,160, 270,160, 330,160, 390,160, 450,160,//CB
-        520,160, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
+        20,160,75,160,130,160,185,160, 330,160, 385,160,440,160,495,160, //CB
+        550,160,240,160, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AUXAG_MON2_N_CTRL] = {
         615,20, 615,20, 615,20, 615,20, 615,20,615,20,615,80, 0,0,//Static
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20,//CB
-        50,20, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
+        50,20,50,20, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[AUXAG_MON2_N_CTRL][AUXAG_MON2_N_WCHAR] = {
         L"MSG:", L"INF", L"REQ R", L"RES R", L"REQ W", L"RES W", L"MAIN CS", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"LV0", L"LV1", L"LV2", L"LV3", L"HWB", L"RST", L"EMG", L"AUT",//CB
-        L"DBG", L"", L"", L"", L"", L"", L"", L""
+        L"DBG", L"FUL", L"", L"", L"", L"", L"", L""
     };
 
 }ST_AUXAG_MON2, * LPST_AUXAG_MON2;

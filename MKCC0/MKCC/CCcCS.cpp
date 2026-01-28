@@ -218,8 +218,16 @@ int CCcCS::input() {
 
 int CCcCS::parse() {
 	//#### 制御状態監視
-		//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
-	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) st_ote_work.ope_ote_silent_cnt++;
+	//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
+	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) 
+		st_ote_work.ope_ote_silent_cnt++;
+	
+	//# 操作有効端末との通信断で有効端末クリア
+	if (st_ote_work.ope_ote_silent_cnt > OTE_IF_RELEASE_COUNTUP) {
+		st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;			//保持IPアドレスクリア
+		st_ote_work.st_ote_ctrl.addr_in_active_ote.sin_addr.S_un.S_addr = 0;	//保持IPアドレスクリア
+		st_ote_work.st_ote_ctrl.active_ote_type = OTE_STAT_TYPE_UNKOWN;
+	}
 
 	//### 操作有効端末有無判定　異常,警報フラグ設定
 	if (st_ote_work.st_ote_ctrl.id_ope_active) {
@@ -259,6 +267,7 @@ int CCcCS::parse() {
 			//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
 			plamp_com[OTE_PNL_CTRLS::estop].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->estop).i16;
 
+			//#主幹ランプ
 			if (pCrane->pPlc->rval(pPlcRIf->syukan_mc_comp).i16) {
 				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_OFF;
 				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
@@ -267,8 +276,8 @@ int CCcCS::parse() {
 				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_ON;
 				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
 			}
-			pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
-			pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
+			//pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
+			//pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
 
 			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com	= (UINT8)pCrane->pPlc->rval(pPlcRIf->fault_reset_pb).i16;
 			plamp_com[OTE_PNL_CTRLS::bypass].st.com			= CODE_PNL_COM_ON;
