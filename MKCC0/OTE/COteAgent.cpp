@@ -16,6 +16,7 @@ extern CSharedMem* pOteUiObj;
 
 extern ST_DRAWING_BASE		drawing_items;
 extern ST_DEVICE_CODE g_my_code; //端末コード
+extern ST_APP_COMMON_PARAM g_app_common_param;
 
 //ソケット
 static CSockUDP* pUSockPC;					//ユニキャストPC通信受信用
@@ -76,6 +77,8 @@ int COteAgent::setup_crane_if(int crane_id) {
 	if (pMSockOte != NULL)pMSockOte->Close();
 	pMSockOte = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_OTE_MUL);
 
+	st_work.ote_mode = pOteEnvInf->app_common_param.product_mode;
+
 	switch (crane_id) {
 	case CARNE_ID_HHGH29: {
 		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
@@ -100,7 +103,7 @@ int COteAgent::setup_crane_if(int crane_id) {
 			pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_OTE_HHGG3801, OTE_IF_MULTI_PORT_OTE2OTE);//受信アドレス
 		}
 		//送信先アドレス
-
+#if 0
 		if (st_work.ote_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
 			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29, OTE_IF_UNI_PORT_PC);//送信先アドレス
 		}
@@ -108,6 +111,13 @@ int COteAgent::setup_crane_if(int crane_id) {
 			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29_WAN, OTE_IF_UNI_PORT_PC);//送信先アドレス
 		}
 		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01) {//WANモード
+			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29_WAN, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		}
+		else {
+			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29, OTE_IF_UNI_PORT_PC);//送信先アドレス
+		}
+#endif
+		if (st_work.ote_mode == OTE_AGENT_MODE_OTE_PORT_WAN) {//WANモード
 			pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), OTE_IF_CRANE_IP_HHGH29_WAN, OTE_IF_UNI_PORT_PC);//送信先アドレス
 		}
 		else {
@@ -216,18 +226,12 @@ int COteAgent::close_crane_if() {
 
 INT32 COteAgent::update_ccif_sock_addr(int code) {
 	st_work.ote_mode = code;
-	if (code == OTE_ENV_MODE_OTE_PORT_WIFI) {
-		if(S_OK != setup_crane_if(pOteCCIf->id_conected_crane))
-			return OTE_ENV_MODE_OTE_PORT_ERR;
 
-		return OTE_ENV_MODE_OTE_PORT_WIFI;
-	}
-	if (code == OTE_ENV_MODE_OTE_PORT_0) {
-		if (S_OK != setup_crane_if(pOteCCIf->id_conected_crane)) 
-			return OTE_ENV_MODE_OTE_PORT_ERR;
+	if (S_OK != setup_crane_if(pOteCCIf->id_conected_crane))
+		return OTE_ENV_MODE_OTE_PORT_ERR;
+	else
+		return code;
 
-		return OTE_ENV_MODE_OTE_PORT_0;
-	}
 	return OTE_ENV_MODE_OTE_PORT_ERR;
 }
 
@@ -284,22 +288,32 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 	else
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-
-	if (g_my_code.option == OTE_CS_CODE_OPEPNL_LOCAL)	//機側接続
+	if (g_app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WAN)	//機側接続
+		st_work.ote_mode = OTE_AGENT_MODE_OTE_PORT_WAN;
+	else if(g_app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WIFI)
 		st_work.ote_mode = OTE_AGENT_MODE_OTE_PORT_WIFI;
 	else												//電気室or遠隔操作室
-		st_work.ote_mode = OTE_AGENT_MODE_OTE_PORT_0;
+		st_work.ote_mode = OTE_AGENT_MODE_OTE_PORT_LOCAL;
 
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"LOCAL");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"WAN1");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"WAN2");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Wifi");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"WAN");
 
-	if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_LOCAL)
-		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
-	if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801)
-		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO1);
-	if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01)
-		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
+	if (g_app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WIFI) {
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_CHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+	}
+	else if (g_app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WAN) {
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_CHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
+	}
+	else {
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_CHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
+	}
 
 	return hr;
 }
@@ -452,17 +466,17 @@ LRESULT CALLBACK COteAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case IDC_TASK_MODE_RADIO0:
 		{
 			inf.mode_id = BC_ID_MODE0;
-			pEnvObj->set_product_mode(MODE_ENV_PRODUCT_LOCAL);
+			pEnvObj->set_product_mode(OTE_AGENT_MODE_OTE_PORT_LOCAL);
 		}break;
 		case IDC_TASK_MODE_RADIO1:
 		{
 			inf.mode_id = BC_ID_MODE1;
-			pEnvObj->set_product_mode(MODE_ENV_PRODUCT_WAN_HHGG3801);
+			pEnvObj->set_product_mode(OTE_AGENT_MODE_OTE_PORT_WIFI);
 		}break;
 		case IDC_TASK_MODE_RADIO2:
 		{
 			inf.mode_id = BC_ID_MODE2;
-			pEnvObj->set_product_mode(MODE_ENV_PRODUCT_WAN_MENTE01);
+			pEnvObj->set_product_mode(OTE_AGENT_MODE_OTE_PORT_WAN);
 		}break;
 
 		case IDC_TASK_MON_CHECK1:
@@ -788,10 +802,14 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		HRESULT hr;
 		INT32 stat = 0;
 
+#if 0
 		if(pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801)
 			stat |= OTE_STAT_COM_WAN_HHGG3801;
 		if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01)
 			stat |= OTE_STAT_COM_WAN_MENTE01;
+#endif
+		if (pOteEnvInf->app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WAN)
+			stat |= g_my_code.option;
 
 		if(pOteCsInf->st_body.remote){
 			stat |= OTE_STAT_MODE_OPE;

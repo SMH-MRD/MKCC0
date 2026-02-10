@@ -130,6 +130,24 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1,	L"Emulator");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2,	L"Simulator");
 
+	pEnvInf->app_common_param = g_app_common_param;
+
+	if (pEnvInf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO1);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+	}
+	else if (pEnvInf->app_common_param.app_mode == MODE_ENV_APP_SIMURATION) {
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
+	}
+	else {
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
+	}		
+
 	set_item_chk_txt();
 	set_panel_tip_txt();
 	

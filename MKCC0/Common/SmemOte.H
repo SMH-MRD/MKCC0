@@ -80,9 +80,9 @@ typedef struct _ST_DRAWING_BASE {
 #define OTE_ENV_APP_DEBUG_TYPE1			3	//PC1台デバッグモード
 #define OTE_ENV_APP_DEBUG_TYPE2			4	//PC1台+操作卓PLCデバッグモード
 
-#define OTE_ENV_MODE_OTE_PORT_0			0	//有線LAN接続モード(PORT0）
-#define OTE_ENV_MODE_OTE_PORT_WIFI		1	//端末種別：遠隔操作室端末（有線LAN）
-#define OTE_ENV_MODE_OTE_PORT_1			2	//有線LAN接続モード(PORT1）
+#define OTE_ENV_MODE_OTE_PORT_LOCAL		0	//端末種別：機上有線端末(PORT0）
+#define OTE_ENV_MODE_OTE_PORT_WIFI		1	//端末種別：機側無線（Wifi）
+#define OTE_ENV_MODE_OTE_PORT_WAN		2	//端末種別：遠隔操作室端末（WAN回線）
 #define OTE_ENV_MODE_OTE_PORT_ERR		-1	//ソケットアドレス未定
 
 typedef struct _ST_OTE_ENV_INF {
@@ -155,9 +155,9 @@ typedef struct _ST_OTE_CS_INF {
 
 #define PRM_OTE_PC_COM_TMOV_CNT			20	//通信チェックカウント
 
-#define OTE_AGENT_MODE_OTE_PORT_0			0	//有線LAN接続モード(PORT0）
+#define OTE_AGENT_MODE_OTE_PORT_LOCAL		0	//有線LAN接続モード(PORT0）
 #define OTE_AGENT_MODE_OTE_PORT_WIFI		1	//端末種別：遠隔操作室端末（有線LAN）
-#define OTE_AGENT_MODE_OTE_PORT_1			2	//有線LAN接続モード(PORT1）
+#define OTE_AGENT_MODE_OTE_PORT_WAN			2	//有線LAN接続モード(PORT1）
 #define OTE_AGENT_MODE_OTE_PORT_ERR			-1	//ソケットアドレス未定
 
 

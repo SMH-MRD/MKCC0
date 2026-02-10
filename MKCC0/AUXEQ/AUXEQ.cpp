@@ -180,7 +180,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.serial_no));
 
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
-   swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.option));
+   swscanf_s(wbuf, L"%x", &(pEnvStat->device_code.option));
 
    HBITMAP hBmp;
    CBasicControl* pobj;

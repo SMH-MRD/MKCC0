@@ -46,6 +46,10 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 
 	wos.str(L"初期化中…"); msg2host(wos.str());
 
+	st_work.device_code = g_my_code;
+	st_work.ote_type = g_my_code.option;
+	st_work.app_common_param = g_app_common_param;
+
 	//### SCADAクラスインスタンスのポインタ取得
 	pScadObj = (COteScad*)VectCtrlObj[st_task_id.SCAD];
 	//### AGENTクラスインスタンスのポインタ取得
@@ -85,13 +89,24 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Debug1");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Debug2");
 
+	if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO1);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+	}
+	else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE2) {
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
+	}
+	else {
+		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
+		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
+	}
+
 	COteEnv* pEnvObj = (COteEnv*)lpParam;
 	int code = 0;
-
-	st_work.device_code = g_my_code;
-	st_work.ote_type = g_my_code.option;
-	st_work.app_common_param = g_app_common_param;
-
 
 	return S_OK;
 }
@@ -99,16 +114,15 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 HRESULT COteEnv::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
-		if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_PRODUCT)		wos << L" MODE>>PRODUCT";
-		else if (pOteEnvInf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR)	wos << L" MODE>>EMULATOR";
-		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1)	wos << L" MODE>>DEBUG1";
-		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE2)	wos << L" MODE>>DEBUG2";
-		else											wos << L" MODE>>??";
+		if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_PRODUCT)		wos << L" App>>PRODUCT";
+		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1)	wos << L" App>>DEBUG1";
+		else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE2)	wos << L" App>>DEBUG2";
+		else											wos << L" App>>??";
 
-		if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WIFI)		wos << L" IF>>LOCAL";
-		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801)	wos << L" IF>>WAN_HHGG3801";
-		else if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01)	wos << L" IF>>WAN_MENTE01";
-		else																		wos << L" IF>>??";
+		if (pOteEnvInf->app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WAN)				wos << L" IF>>WAN";
+		else if (pOteEnvInf->app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WIFI)		wos << L" IF>>WIFI";
+		else if (pOteEnvInf->app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_LOCAL)wos << L" IF>>LOCAL";
+		else																				wos << L" IF>>??";
 
 		msg2host(wos.str());
 	}
@@ -241,8 +255,8 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 		}
 
-		for (i = OTE_ENV_ID_MON1_RADIO_COM_LINE; i <= OTE_ENV_ID_MON1_RADIO_COM_WIFI; i++) {
-			if (i == OTE_ENV_ID_MON1_RADIO_COM_LINE) {
+		for (i = OTE_ENV_ID_MON1_RADIO_COM_LOCAL; i <= OTE_ENV_ID_MON1_RADIO_COM_WAN; i++) {
+			if (i == OTE_ENV_ID_MON1_RADIO_COM_LOCAL) {
 				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_MULTILINE | WS_GROUP,
 					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 					hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
@@ -254,15 +268,7 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 		}
 
-		//初期値セット
-		//通信IFモード
-		if (st_work.ote_com_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
-			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_WIFI], BM_SETCHECK, BST_CHECKED, 0);
-		}
-		else {
-			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_LINE], BM_SETCHECK, BST_CHECKED, 0);
-		}
-
+		 
 		//PB
 		i = OTE_ENV_ID_MON1_PB_START;
 		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
@@ -272,6 +278,20 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 			hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
+
+
+		//初期値セット
+//通信IFモード
+		if (st_work.app_common_param.product_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
+			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_WIFI], BM_SETCHECK, BST_CHECKED, 0);
+		}
+		else if (st_work.app_common_param.product_mode == OTE_ENV_MODE_OTE_PORT_WAN) {
+			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_WAN], BM_SETCHECK, BST_CHECKED, 0);
+		}
+		else {
+			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_LOCAL], BM_SETCHECK, BST_CHECKED, 0);
+		}
+
 
 		//表示更新用タイマー
 		SetTimer(hWnd, OTE_ENV_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -327,17 +347,18 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_STATIC_SELECTED]);
 		}break;
 
-		case OTE_ENV_ID_MON1_RADIO_COM_LINE:
+		case OTE_ENV_ID_MON1_RADIO_COM_LOCAL:
 		{
-			st_work.ote_com_mode = OTE_ENV_MODE_OTE_PORT_0;
-			int code = pAgentObj->update_ccif_sock_addr(st_work.ote_com_mode);
+			set_product_mode(OTE_AGENT_MODE_OTE_PORT_LOCAL);
 		}break;
 		case OTE_ENV_ID_MON1_RADIO_COM_WIFI:
 		{
-			st_work.ote_com_mode = OTE_ENV_MODE_OTE_PORT_WIFI;
-			int code = pAgentObj->update_ccif_sock_addr(st_work.ote_com_mode);
+				set_product_mode(OTE_AGENT_MODE_OTE_PORT_WIFI);
 		}break;
-
+		case OTE_ENV_ID_MON1_RADIO_COM_WAN:
+		{
+			set_product_mode(OTE_AGENT_MODE_OTE_PORT_WAN);
+		}break;
 
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);

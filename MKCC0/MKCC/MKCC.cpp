@@ -207,7 +207,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    swscanf_s(wbuf, L"%x", &(g_my_code.serial_no));
 
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
-   swscanf_s(wbuf, L"%d", &(g_my_code.option));
+   swscanf_s(wbuf, L"%x", &(g_my_code.option));
 
    //アプリケーションモード設定
    str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_APP_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
