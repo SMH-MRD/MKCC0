@@ -103,7 +103,8 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 	Sleep(100);
 
-	if (st_work.ote_type == OTE_CS_CODE_OPEPNL_ROOM) {
+//	if (st_work.ote_type == OTE_CS_CODE_OPEPNL_ROOM) {
+	if (st_work.ote_type & OTE_CS_CODE_OPEPNL_ROOM) {
 		wos.str(L"");//èâä˙âª
 		if (st_mon2.hwnd_mon == NULL) {
 			wos << L"Initialize : MON NG"; msg2listview(wos.str());
