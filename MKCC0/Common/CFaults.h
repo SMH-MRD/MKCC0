@@ -146,3 +146,5 @@ public:
 #define FLTS_MASK_ERR_OTE_ESTP			0x0004
 #define FLTS_ID_ERR_OTE_SOURCE_OFF		1		//‘€ì’[––åŠ²’f
 #define FLTS_MASK_ERR_OTE_SOURCE_OFF	0x0008
+#define FLTS_ID_ERR_OTE_CAM_TM_OVER		1		//‰f‘œ’x‰„‰ß‘å
+#define FLTS_MASK_ERR_OTE_CAM_TM_OVER	0x0010

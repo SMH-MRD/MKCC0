@@ -169,8 +169,12 @@ void COteScad::set_panel_io() {
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote]			= pPanelBase->pmainobjs->pb_remote->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pmainobjs->pb_pad_mode->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pmainobjs->pb_freset->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pPanelBase->psubobjs->rdo_mh_spd_mode->get();	//タスクのFunction ID
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pPanelBase->psubobjs->rdo_bh_r_mode->get();		//タスクのFunction ID
+
+
+		if (pOteCsInf->st_body.remote != CODE_PNL_COM_ACTIVE) {
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;	//タスクのFunction ID
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;		//タスクのFunction ID
+		}
 		//故障情報要求コード
 		st_work.flt_req_code = pPanelBase->psubobjs->flt_req_code;
 	}

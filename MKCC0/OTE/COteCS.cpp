@@ -655,7 +655,7 @@ int COteCS::output() {
 	pPcWBuf->mh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
 	pPcWBuf->bh_set.mode = pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
 
-	}
+}
 
 //### パネルウィンドウ用
 	pOteCsInf->plc_com_stat_r = st_work.plc_com_stat_r;	//PLC受信通信状態
