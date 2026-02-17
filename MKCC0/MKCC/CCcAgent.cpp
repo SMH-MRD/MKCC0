@@ -204,7 +204,7 @@ int CAgent::input() {
 	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
 	//pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//éÂä™à íu
 	//pPLC_IO->stat_bh.pos_fb = (float)pEnv_Inf->crane_stat.r.p;			//ê˘âÒîºåa
-	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;									//ê˘âÒîºåa
+	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;							//ê˘âÒîºåa
 	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//ê˘âÒäpìx
 	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//ëñçsà íu 
 
