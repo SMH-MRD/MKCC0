@@ -500,6 +500,12 @@ int CAgent::manage_slbrk() {
 	else
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TMOV] &= ~FLTS_MASK_ERR_SLBRK_TMOV;
 
+	//## 旋回ブレーキ圧力不足
+	if ((pPLC_IO->stat_sl.brake == L_OFF) && (pAUX_CS_Inf->fb_slbrk.brk_fb_level > 14))
+		pPolInf->pc_fault_map[FLTS_ID_WRN_SLBRK_PSWITCH_OFF] |= FLTS_MASK_WRN_SLBRK_PSWITCH_OFF;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_WRN_SLBRK_PSWITCH_OFF] &= ~FLTS_MASK_WRN_SLBRK_PSWITCH_OFF;
+
 	//## システムエラーチェック
 	if (pAUX_CS_Inf->fb_slbrk.brk_fb_err_code || pAUX_CS_Inf->fb_slbrk.brk_fb_sys_err|| pAUX_CS_Inf->fb_slbrk.healthy_err)
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_SYS_ERR] |= FLTS_MASK_ERR_SLBRK_SYS_ERR;

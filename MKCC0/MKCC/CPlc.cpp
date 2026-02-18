@@ -113,7 +113,6 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 
 	//風速
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0 },	//wind_spd_01m
-
 };
 ST_PLC_IO_WIF plc_io_wdef0 = { 
 	//{pi16,mask,type,lp:ビットシフト,hp：バッファサイズ}
@@ -332,7 +331,6 @@ int CPlc::setup(int crane_id) {
 			plc_io_rif.r_bh_m.pi16 = p+27;
 			//風速
 			plc_io_rif.wind_spd_01m.pi16 = p + 5;
-
 		}
 		//WRITE
 		{

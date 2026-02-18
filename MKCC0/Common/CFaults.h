@@ -148,3 +148,5 @@ public:
 #define FLTS_MASK_ERR_OTE_SOURCE_OFF	0x0008
 #define FLTS_ID_ERR_OTE_CAM_TM_OVER		1		//映像遅延過大
 #define FLTS_MASK_ERR_OTE_CAM_TM_OVER	0x0010
+#define FLTS_ID_WRN_SLBRK_PSWITCH_OFF	1		//旋回ブレーキ圧力不足
+#define FLTS_MASK_WRN_SLBRK_PSWITCH_OFF	0x0020
