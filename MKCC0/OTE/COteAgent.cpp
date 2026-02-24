@@ -821,11 +821,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 
 		//送信成功 AND 正常受信後
-		if((hr==S_OK) && (st_work.cc_comm_chk_cnt == 0))
+		if ((hr == S_OK) && (st_work.cc_comm_chk_cnt == 0)) {
 			st_work.cc_comm_chk_cnt = 1; //開始カウントセット
-
-
-		QueryPerformanceCounter(&start_count_s);  // 送信時カウント値取り込み
+			QueryPerformanceCounter(&start_count_s);  // 送信時カウント値取り込み
+		}
 
 		//MultiCast送信
 		snd_mul2pc(set_msg_m()); 	//PCへ送信
