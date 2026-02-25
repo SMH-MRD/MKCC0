@@ -204,6 +204,14 @@ typedef struct _ST_OTE_UI {
 }ST_OTE_UI, * LPST_OTE_UI;
 #pragma endregion 操作端末UI構造体
 
+//## OTE_POLICY
+#pragma region OTE_UI
+typedef struct _ST_OTE_POL {
+	INT32 u_msg_interval_ms;				//ユニキャストメッセージ送信周期
+	INT32 m_msg_interval_ms;				//ユニキャストメッセージ送信周期  
+}ST_OTE_POL, * LPST_OTE_POL;
+#pragma endregion 操作端末POLICY構造体
+
 
 
 

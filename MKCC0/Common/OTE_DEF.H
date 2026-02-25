@@ -112,6 +112,7 @@ typedef struct OteComHead {
 	INT16			command;	//コマンドコード OTE:停止要求　		CC：NA
 	INT32			status;		//状態　OTE:操作/モニタモード　CC：操作/モニタモード
 	INT32			tgid;		//接続中機器ID	OTE:操作端末タイプ　CC：接続中端末ID
+	INT32 			seqno;		//シーケンス番号	
 }ST_OTE_HEAD, * LPST_OTE_HEAD;
 
 /******* 共通メッセージ定義 **************/

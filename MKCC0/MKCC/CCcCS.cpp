@@ -48,9 +48,10 @@ static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 static ST_PLC_IO_WIF* pPlcWIf = NULL;
 static ST_PLC_IO_RIF* pPlcRIf = NULL;
 
-static LONG rcv_count_ote_u = 0, snd_count_ote_u = 0;
-static LONG rcv_count_pc_m = 0, snd_count_m2pc = 0;
-static LONG rcv_count_ote_m = 0, snd_count_m2ote = 0;
+static INT32 rcv_count_ote_u = 0, snd_count_ote_u = 0;
+static INT32 rcv_count_pc_m = 0, snd_count_m2pc = 0;
+static INT32 rcv_count_ote_m = 0, snd_count_m2ote = 0;
+static INT32 rcv_u_seqno = 0;
 
 /****************************************************************************/
 /*   デフォルト関数											                    */
@@ -548,6 +549,8 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 	
 	rcv_count_ote_u++;
 
+	rcv_u_seqno = chkbuf_u_msg.head.seqno;
+
 	if (chkbuf_u_msg.head.status & OTE_STAT_COM_WAN_HHGG3801)
 		return S_OK_WAN_HHGG3801;
 	if (chkbuf_u_msg.head.status & OTE_STAT_COM_WAN_MENTE01)
@@ -607,6 +610,7 @@ LPST_PC_U_MSG CCcCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
 	st_ote_work.st_msg_pc_u_snd.head.code	= code;
 	st_ote_work.st_msg_pc_u_snd.head.status = stat;
 	st_ote_work.st_msg_pc_u_snd.head.tgid	= st_ote_work.st_ote_ctrl.id_ope_active;
+	st_ote_work.st_msg_pc_u_snd.head.seqno	= rcv_u_seqno;
 	
 	//#Body部
 	memcpy_s(&st_ote_work.st_msg_pc_u_snd.body, sizeof(ST_PC_U_BODY), &st_ote_work.st_body, sizeof(ST_PC_U_BODY) );
@@ -634,6 +638,14 @@ HRESULT CCcCS::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 
 //マルチキャストメッセージセット
 LPST_PC_M_MSG CCcCS::set_msg_m(INT32 code, INT32 stat) {	
+	//#Header部
+	st_ote_work.st_msg_pc_m_snd.head.myid = pEnv_Inf->device_code;
+	st_ote_work.st_msg_pc_m_snd.head.addr = pMSockOte->addr_in_rcv;
+	st_ote_work.st_msg_pc_m_snd.head.code = 0;
+	st_ote_work.st_msg_pc_m_snd.head.status = 0;
+	st_ote_work.st_msg_pc_m_snd.head.tgid = 0;
+	st_ote_work.st_msg_pc_m_snd.head.seqno = snd_count_m2ote;
+
 	return &st_ote_work.st_msg_pc_m_snd;
 }
 
@@ -860,8 +872,8 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		//UniCast送信
 			//折り返し送信
 		//MultiCast送信
-		snd_mul2pc(set_msg_m(0,0));		//PCへ送信
-		snd_mul2ote(set_msg_m(0, 0));	//OTEへ送信
+//		snd_mul2pc(set_msg_m(0,0));		//PCへ送信
+//		snd_mul2ote(set_msg_m(0, 0));	//OTEへ送信
 
 		//通信カウントをタイトルバーに表示
 		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"MKCC_IF% PC_U (R:" << rcv_count_ote_u << L" S:" << snd_count_ote_u << L")  PC_M (R:" << rcv_count_pc_m << L")  OTE_M (R:" << rcv_count_ote_m << L" S PC:" << snd_count_m2pc << L"  S OTE:" << snd_count_m2ote << L")";
@@ -966,9 +978,9 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					LPST_OTE_HEAD ph2 = &pOTE_Inf->st_msg_ote_m_rcv.head;
 					st_mon2.wo_uni	<< L"[HEAD]" << L" ID:"<<ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option 
 								<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port)<<L"\n"
-								<< L"       CODE:" << ph0->code << L" COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid <<L"\n";
-					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
-					st_mon2.wo_mote<< L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
+								<< L"       CODE:" << ph0->code << L" COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L" Seqno:" << ph0->seqno <<L"\n";
+					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L" Seqno:" << ph1->seqno << L"\n";
+					st_mon2.wo_mote<< L"[HEAD]" << L"CODE:" << ph2->code << L" Seqno:" << ph2->seqno << L"\n";
 				}
 			}
 			else if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
@@ -1004,10 +1016,10 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					LPST_OTE_HEAD ph1 = &st_ote_work.st_msg_pc_m_snd.head;
 					st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option;
 					st_mon2.wo_uni << L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port) << L"\n";
-					st_mon2.wo_uni << L"       CODE:" << ph0->code << L"  COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L"\n";
+					st_mon2.wo_uni << L"       CODE:" << ph0->code << L"  COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L" Seqno:" << ph0->seqno << L"\n";
 
-					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L"\n";
-					st_mon2.wo_mote << L"[HEAD] -\n";
+					st_mon2.wo_mpc << L"[HEAD]" << L"CODE:" << ph1->code << L" Seqno:" << ph1->seqno << L"\n";
+					st_mon2.wo_mote << L"[HEAD]" << L" Seqno:" << ph0->seqno << L"\n";
 				}
 			}
 			else {

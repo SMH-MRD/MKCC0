@@ -570,6 +570,7 @@ LPST_OTE_U_MSG COteAgent::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat
 	st_work.st_msg_ote_u_snd.head.code = code;
 	st_work.st_msg_ote_u_snd.head.status = stat;
 	st_work.st_msg_ote_u_snd.head.tgid = 0;
+	st_work.st_msg_ote_u_snd.head.seqno = snd_count_ote_u;
 
 	if(is_monitor_mode) {
 		st_work.st_msg_ote_u_snd.head.command = 0;
@@ -612,6 +613,13 @@ HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 /// </summary>
 //マルチキャストメッセージセット
 LPST_OTE_M_MSG COteAgent::set_msg_m() {
+	st_work.st_msg_ote_m_snd.head.myid = pOteEnvInf->device_code;
+	st_work.st_msg_ote_m_snd.head.addr = pMSockOte->addr_in_rcv;
+	st_work.st_msg_ote_m_snd.head.code = 0;
+	st_work.st_msg_ote_m_snd.head.status = 0;
+	st_work.st_msg_ote_m_snd.head.tgid = 0;
+	st_work.st_msg_ote_m_snd.head.seqno = snd_count_m2ote;
+
 	return &st_work.st_msg_ote_m_snd;
 }
 //PCへ送信
@@ -827,8 +835,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 
 		//MultiCast送信
-		snd_mul2pc(set_msg_m()); 	//PCへ送信
-		snd_mul2ote(set_msg_m());	//OTEへ送信
+	//	snd_mul2pc(set_msg_m()); 	//PCへ送信
+	//	snd_mul2ote(set_msg_m());	//OTEへ送信
 
 		//モニター表示
 		if (st_mon2.is_monitor_active) {
@@ -912,9 +920,9 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					LPST_OTE_HEAD  ph2 = &(pOteCCIf->st_msg_ote_m_rcv.head);
 					st_mon2.wo_uni << L"[HEAD]" << L"ID:" << ph0->myid.crane_id << L" PC:" << ph0->myid.pc_type << L" Seral:" << ph0->myid.serial_no << L" Opt:" << ph0->myid.option
 						<< L" IP:" << ph0->addr.sin_addr.S_un.S_un_b.s_b1 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b2 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b3 << L"." << ph0->addr.sin_addr.S_un.S_un_b.s_b4 << L":" << htons(ph0->addr.sin_port);// << L"\n";
-					st_mon2.wo_uni << L"        CODE:" << ph0->code << L" COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid<< L"\n";
-					st_mon2.wo_mpc << L"[HEAD]" << L" CODE:" << ph1->code << L"\n";
-					st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L"\n";
+					st_mon2.wo_uni << L"        CODE:" << ph0->code << L" COMMAND:" << ph0->command << L" STAT:" << ph0->status << L" TGID:" << ph0->tgid << L" Seqno:" << ph0->seqno << L"\n";
+					st_mon2.wo_mpc << L"[HEAD]" << L" CODE:" << ph1->code << L" Seqno:" << ph1->seqno << L"\n";
+					st_mon2.wo_mote << L"[HEAD]" << L"CODE:" << ph2->code << L" Seqno:" << ph2->seqno << L"\n";
 				}
 			}
 			else if (st_mon2.sock_inf_id == OTE_AG_ID_MON2_RADIO_SND) {
@@ -993,7 +1001,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				st_work.id_conected_crane = CRANE_ID_NULL;
 			}
 			QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
-			LONGLONG lspan = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+			LONGLONG lspan;
+			lspan = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
 			if (res_delay_max < lspan) res_delay_max = lspan;
 			if (res_delay_min > lspan) res_delay_min = lspan;
 			if (rcv_count_pc_u % 50 == 0) {
