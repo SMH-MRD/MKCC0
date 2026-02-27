@@ -150,3 +150,5 @@ public:
 #define FLTS_MASK_ERR_OTE_CAM_TM_OVER	0x0010
 #define FLTS_ID_WRN_SLBRK_PSWITCH_OFF	1		//旋回ブレーキ圧力不足
 #define FLTS_MASK_WRN_SLBRK_PSWITCH_OFF	0x0020
+#define FLTS_ID_ERR_OTE_TMOV			1		//操作有効端末タイムオーバー
+#define FLTS_MASK_ERR_OTE_TMOV			0x0040

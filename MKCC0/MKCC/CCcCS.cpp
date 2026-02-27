@@ -248,6 +248,13 @@ int CCcCS::parse() {
 	if(st_ote_work.err_ote_comm) pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] |= FLTS_ID_ERR_CPC_RPC_COMM;
 	else                         pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] &= ~FLTS_ID_ERR_CPC_RPC_COMM;
 	
+	//## 操作有効端末タイムオーバー
+	if ((st_ote_work.ope_ote_silent_cnt > OTE_IF_TMOV_COUNTUP)&&(st_ote_work.st_ote_ctrl.id_ope_active != OTE_NON_OPEMODE_ACTIVE))
+		pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] |= FLTS_MASK_ERR_OTE_TMOV;
+	else
+		pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] &= ~FLTS_MASK_ERR_OTE_TMOV;
+
+	
 	//### OTE送信データ設定
 		//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
 		//## ランプ,ブザー表示指令

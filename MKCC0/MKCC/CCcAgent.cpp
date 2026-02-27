@@ -408,12 +408,19 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw3, pOteCtrl[OTE_PNL_CTRLS::hd_lamp3]);	//水銀ランプ切替スイッチ
 
 	//Notch信号
-	//!!! 主巻と引込はPAD入力の＋が下,出(逆転）
-	pCrane->pPlc->wval(pPlcWIf->mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
-	pCrane->pPlc->wval(pPlcWIf->bh_notch, CNotchHelper::get_code4_by_notch(-pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
-
-	pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
-	pCrane->pPlc->wval(pPlcWIf->gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
+	if (pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] & FLTS_MASK_ERR_OTE_TMOV) {//操作端末タイムオーバー
+		pCrane->pPlc->wval(pPlcWIf->mh_notch, CNotchHelper::get_code4_by_notch(0, 0));
+		pCrane->pPlc->wval(pPlcWIf->bh_notch, CNotchHelper::get_code4_by_notch(0, 0));
+		pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(0, 0));
+		pCrane->pPlc->wval(pPlcWIf->gt_notch, CNotchHelper::get_code4_by_notch(0, 0));
+	}
+	else {
+		//!!! 主巻と引込はPAD入力の＋が下,出(逆転）
+		pCrane->pPlc->wval(pPlcWIf->mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
+		pCrane->pPlc->wval(pPlcWIf->bh_notch, CNotchHelper::get_code4_by_notch(-pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
+		pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
+		pCrane->pPlc->wval(pPlcWIf->gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
+	}
 
 	//### SIMULATOR計算値セット(シミュレータモードでないときはPLCロジック内で反映されない）
 	//高速カウンタ・アブソコーダ

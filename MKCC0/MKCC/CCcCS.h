@@ -162,6 +162,7 @@ public:
 
 };
 
+#define OTE_IF_TMOV_COUNTUP             10          // 操作モードの端末のタイムオーバー判定時間
 #define OTE_IF_RELEASE_COUNTUP          30          // 操作モードの端末の応答切れ判定時間
 
 
