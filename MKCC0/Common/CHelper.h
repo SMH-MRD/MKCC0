@@ -194,13 +194,13 @@ public:
 		}
 		else return init_ok;
 
-		if (cycle_count <= 16) mask = 0x0F;
-		else if (cycle_count <= 32) mask = 0x1F;
-		else if (cycle_count <= 64) mask = 0x3F;
-		else if (cycle_count <= 128) mask = 0x7F;
-		else if (cycle_count <= 256) mask = 0xFF;
-		else if (cycle_count <= 512) mask = 0x1FF;
-		else  mask = 0x3FF;
+		if (cycle_count <= 16) mask = 0x000F;
+		else if (cycle_count <= 32) mask = 0x0000001F;
+		else if (cycle_count <= 64) mask = 0x0000003F;
+		else if (cycle_count <= 128) mask = 0x0000007F;
+		else if (cycle_count <= 256) mask = 0x000000FF;
+		else if (cycle_count <= 512) mask = 0x000001FF;
+		else  mask = 0x000003FF;
 
 		if (buf_size < (mask + 1)) return init_ok;
 
@@ -233,19 +233,27 @@ public:
 
 			//•½‹Ï’lXV
 			if (type == HELPER_DATA_TYPE_LONG) {
-				result.Sum.l = result.Sum.l - *(buf_long + iw) + data.l;
+				if (count > mask) result.Sum.l = result.Sum.l - *(buf_long + iw) + data.l;
+				else result.Sum.l += data.l;
+				*(buf_long + iw) = data.l;
 				result.Ave.l = result.Sum.l / (count > mask ? (mask + 1) : count);
 				result.min_val.l = min(result.min_val.l, data.l);
 				result.max_val.l = max(result.max_val.l, data.l);
 			}
 			else if (type == HELPER_DATA_TYPE_DOUBLE) {
-				result.Sum.d = result.Sum.d - *(buf_double + iw) + data.d;
+
+				if (count > mask) result.Sum.d = result.Sum.d - *(buf_double + iw) + data.d;
+				else result.Sum.d += data.d;
+				*(buf_double + iw) = data.d;
 				result.Ave.d = result.Sum.d / (count > mask ? (mask + 1) : count);
 				result.min_val.d = min(result.min_val.d, data.d);
 				result.max_val.d = max(result.max_val.d, data.d);
 			}
 			else if (type == HELPER_DATA_TYPE_LONGLONG) {
-				result.Sum.ll = result.Sum.ll - *(buf_llong + iw) + data.ll;
+
+				if (count > mask)result.Sum.ll = result.Sum.ll - *(buf_llong + iw) + data.ll;
+				else result.Sum.ll += data.ll;
+				*(buf_llong + iw) = data.ll;
 				result.Ave.ll = result.Sum.ll / (count > mask ? (mask + 1) : count);
 				result.min_val.ll = min(result.min_val.ll, data.ll);
 				result.max_val.ll = max(result.max_val.ll, data.ll);
