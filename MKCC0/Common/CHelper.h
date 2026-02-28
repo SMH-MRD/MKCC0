@@ -134,3 +134,129 @@ public:
 	static LPCWSTR get_crane_txt_by_code(INT32 value);
 };
 
+#define HELPER_DATA_TYPE_LONG		0
+#define HELPER_DATA_TYPE_DOUBLE		1
+#define HELPER_DATA_TYPE_LONGLONG	2
+#define HELPER_DATA_COM_UPDATE		0
+#define HELPER_DATA_COM_REFRESH		1
+#define HELPER_DATA_BUF_MAX			1024
+
+
+
+union UHelperStatisData {
+	long l;
+	double d;
+	LONGLONG ll;
+};
+
+struct StHelperStatisData {
+	UHelperStatisData Ave;
+	UHelperStatisData min_val;
+	UHelperStatisData max_val;
+	UHelperStatisData Sum;
+	int cycle_count;//評価データ数
+};
+
+class CStatisticsHelper
+{
+public:
+	CStatisticsHelper() {};
+	~CStatisticsHelper() {};
+
+	long* buf_long;
+	PLONGLONG buf_llong;
+	double* buf_double;
+
+	int buf_size;	//バッファサイズ		
+	int iw;			//バッファ書き込み位置
+	int count;		//カウント数
+	int count_max;	//カウント最大値
+	int type;		//カウント最大値
+	int mask;		//カウントマスク
+	int init_ok;	//初期化完了フラグ
+
+	StHelperStatisData result;	//結果格納用構造体
+
+	UHelperStatisData default_min;	//デフォルト最小値
+	UHelperStatisData default_max;	//デフォルト最大値
+
+	int init(int _type, void* pbuf, int buf_size, int cycle_count, UHelperStatisData def_min, UHelperStatisData def_max) {
+		init_ok = L_OFF;
+		type = _type;
+		if (type == HELPER_DATA_TYPE_LONG) {
+			buf_long = (long*)pbuf;
+		}
+		else if (type == HELPER_DATA_TYPE_DOUBLE) {
+			buf_double = (double*)pbuf;
+		}
+		else if (type == HELPER_DATA_TYPE_LONGLONG) {
+			buf_llong = (PLONGLONG)pbuf;
+		}
+		else return init_ok;
+
+		if (cycle_count <= 16) mask = 0x0F;
+		else if (cycle_count <= 32) mask = 0x1F;
+		else if (cycle_count <= 64) mask = 0x3F;
+		else if (cycle_count <= 128) mask = 0x7F;
+		else if (cycle_count <= 256) mask = 0xFF;
+		else if (cycle_count <= 512) mask = 0x1FF;
+		else  mask = 0x3FF;
+
+		if (buf_size < (mask + 1)) return init_ok;
+
+		default_min = def_min;
+		default_max = def_max;
+
+		init_ok = L_ON;
+
+		return init_ok;
+	};
+
+	int update(UHelperStatisData data, int com) {
+		
+		if (init_ok == L_OFF)return L_OFF;	
+		
+		if (com == HELPER_DATA_COM_REFRESH) {
+			//結果リフレッシュ
+			if (type == HELPER_DATA_TYPE_LONG) 	result.Ave.l = result.Sum.l = 0;
+			if (type == HELPER_DATA_TYPE_DOUBLE) result.Ave.d = result.Sum.d = 0.0;
+			if (type == HELPER_DATA_TYPE_LONGLONG) result.Ave.ll = result.Sum.ll = 0;
+			result.min_val = default_min;
+			result.max_val = default_max;
+			count = 0;
+			return L_OFF;
+		}
+		else {
+			//データ更新
+			count++;
+			iw = count & mask;
+
+			//平均値更新
+			if (type == HELPER_DATA_TYPE_LONG) {
+				result.Sum.l = result.Sum.l - *(buf_long + iw) + data.l;
+				result.Ave.l = result.Sum.l / (count > mask ? (mask + 1) : count);
+				result.min_val.l = min(result.min_val.l, data.l);
+				result.max_val.l = max(result.max_val.l, data.l);
+			}
+			else if (type == HELPER_DATA_TYPE_DOUBLE) {
+				result.Sum.d = result.Sum.d - *(buf_double + iw) + data.d;
+				result.Ave.d = result.Sum.d / (count > mask ? (mask + 1) : count);
+				result.min_val.d = min(result.min_val.d, data.d);
+				result.max_val.d = max(result.max_val.d, data.d);
+			}
+			else if (type == HELPER_DATA_TYPE_LONGLONG) {
+				result.Sum.ll = result.Sum.ll - *(buf_llong + iw) + data.ll;
+				result.Ave.ll = result.Sum.ll / (count > mask ? (mask + 1) : count);
+				result.min_val.ll = min(result.min_val.ll, data.ll);
+				result.max_val.ll = max(result.max_val.ll, data.ll);
+			}
+			else {
+				return L_OFF;
+			}
+		}
+
+		if(count <= mask)return L_OFF;
+
+		return L_ON;
+	}
+};

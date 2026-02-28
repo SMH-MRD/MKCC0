@@ -5,6 +5,7 @@
 #include "framework.h"
 #include "OTE_DEF.H"
 #include "CPanelObj.h"
+#include "CHelper.h"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -49,6 +50,9 @@ static INT32 rcv_chk_cc = 0, snd_chk_cc = 0, snd_chk_cc_last = 0;
 static LARGE_INTEGER start_count_s, end_count_r;			//システムカウント
 static LARGE_INTEGER frequency;								//システム周波数
 static LONGLONG res_delay_max, res_delay_min = 10000000;	//C応答時間
+static LONGLONG buf_ll[HELPER_DATA_BUF_MAX];				//応答時間評価用バッファ
+static CStatisticsHelper * pStatisHelper;					//統計評価ヘルパークラス
+static int sample_count = 16;								//応答時間評価用サンプルカウント
 
 static wostringstream wos_msg;
 /****************************************************************************/
@@ -314,6 +318,7 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
 		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
 	}
+	
 
 	return hr;
 }
@@ -768,6 +773,12 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 
 		UINT rtn = SetTimer(hWnd, OTE_AG_ID_MON2_TIMER, OTE_AG_PRM_MON2_TIMER_MS, NULL);
+
+		pStatisHelper = new CStatisticsHelper();
+		UHelperStatisData min_value, max_value;
+		min_value.ll = 10000000; max_value.ll = 0;
+		pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, sample_count,min_value,max_value);
+
 	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
@@ -982,7 +993,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
 
 			//応答遅延時間をMSGに表示
-			st_mon2.wo_work.str(L""); st_mon2.wo_work << L"応答遅延(μsec) MAX:" << res_delay_max << L" MIN:" << res_delay_min;
+	//		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"応答遅延(μsec) MAX:" << res_delay_max << L" MIN:" << res_delay_min;
+			st_mon2.wo_work.str(L""); st_mon2.wo_work	<< L"応答遅延(μsec) MAX:" << pStatisHelper->result.max_val.ll 
+														<< L" MIN:" << pStatisHelper->result.min_val.ll 
+														<< L" AVE:" << pStatisHelper->result.Ave.ll;
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MSG], st_mon2.wo_work.str().c_str());
 		}
 
@@ -1002,12 +1016,19 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			}
 			QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
 			LONGLONG lspan;
-			lspan = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
+			UHelperStatisData lspan_data;
+			lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
 			if (res_delay_max < lspan) res_delay_max = lspan;
 			if (res_delay_min > lspan) res_delay_min = lspan;
+
+
 			if (rcv_count_pc_u % 50 == 0) {
 				res_delay_max = 0;
 				res_delay_min = 10000000;
+				pStatisHelper->update(lspan_data, HELPER_DATA_COM_REFRESH);
+			}
+			else {
+				pStatisHelper->update(lspan_data, HELPER_DATA_COM_UPDATE);
 			}
 
 		}break;
@@ -1045,6 +1066,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	case WM_DESTROY: {
 		KillTimer(hWnd, OTE_AG_ID_MON2_TIMER);
 		st_mon2.hwnd_mon = NULL;
+		delete pStatisHelper;
 	}break;
 	default:
 		return DefWindowProc(hWnd, msg, wp, lp);
