@@ -184,6 +184,16 @@ typedef struct _ST_OTE_CC_IF {
 	UINT32	ote_command;		//停止OTE要求モード	非常停止,主幹切
 	UINT32	ote_mode;				//操作端末接続モード
 
+	INT32	msg_snd_seqno_now;			//送信メッセージSeqNo現在値
+	INT32	msg_rcv_seqno_now;			//受信メッセージSeqNo
+	INT32	msg_delay_min_ms;			//送信メッセージSeqNo前回値
+	INT32	msg_delay_max_ms;			//送信メッセージSeqNo前回値
+	INT32	msg_delay_ave_ms;			//送信メッセージSeqNo前回値
+	INT32	msg_delay_sample_count;		//遅延評価データサンプリング回数
+	INT32	msg_data_loss_chk_count;	//遅延評価データサンプリング回数
+	INT32	msg_lost_num;				//メッセージLOST数	
+	INT32	umsg_snd_interval_ms;//unicastメッセージ送信周期ms
+
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体
 
@@ -206,6 +216,7 @@ typedef struct _ST_OTE_UI {
 
 //## OTE_POLICY
 #pragma region OTE_UI
+
 typedef struct _ST_OTE_POL {
 	INT32 u_msg_interval_ms;				//ユニキャストメッセージ送信周期
 	INT32 m_msg_interval_ms;				//ユニキャストメッセージ送信周期  

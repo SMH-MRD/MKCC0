@@ -636,6 +636,7 @@ HRESULT CCcCS::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 		return S_FALSE;
 	}
 	snd_count_ote_u++;
+
 	return S_OK;
 }
 /****************************************************************************/

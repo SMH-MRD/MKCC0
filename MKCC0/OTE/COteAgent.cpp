@@ -42,6 +42,7 @@ static LPST_OTE_CC_IF	pOteCCIf;
 static LPST_OTE_CS_INF	pOteCsInf;
 
 static LONG rcv_count_pc_u = 0,	 snd_count_ote_u = 0;
+static LONG rcv_count_pc_u_chk = 0, snd_count_ote_u_chk = 0;
 static LONG rcv_count_pc_m = 0,  snd_count_m2pc = 0;
 static LONG rcv_count_ote_m = 0, snd_count_m2ote = 0;
 
@@ -52,7 +53,7 @@ static LARGE_INTEGER frequency;								//システム周波数
 static LONGLONG res_delay_max, res_delay_min = 10000000;	//C応答時間
 static LONGLONG buf_ll[HELPER_DATA_BUF_MAX];				//応答時間評価用バッファ
 static CStatisticsHelper * pStatisHelper;					//統計評価ヘルパークラス
-static int sample_count = 16;								//応答時間評価用サンプルカウント
+
 
 static wostringstream wos_msg;
 /****************************************************************************/
@@ -239,7 +240,6 @@ INT32 COteAgent::update_ccif_sock_addr(int code) {
 	return OTE_ENV_MODE_OTE_PORT_ERR;
 }
 
-
 HRESULT COteAgent::initialize(LPVOID lpParam) {
 
 	//システム周波数読み込み
@@ -271,6 +271,10 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 	};
 
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
+
+	pOteCCIf->umsg_snd_interval_ms = OTE_AG_PRM_MON2_TIMER_MS;	//モニタ2への送信間隔をセット
+	pOteCCIf->msg_delay_sample_count = OTE_AG_DELAY_CHK_COUNT;
+	pOteCCIf->msg_data_loss_chk_count = OTE_AG_CHK_REFRESH_COUNT;
 
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -523,9 +527,10 @@ HRESULT COteAgent::rcv_uni_ote(LPST_PC_U_MSG pbuf) {
 		rcv_chk_cc = 0;
 		return S_FALSE;
 	}
-	rcv_count_pc_u++;
+	rcv_count_pc_u++;		//接続開始からのトータル送信数カウント
+	rcv_count_pc_u_chk++;	//通信データロス測定用カウント
 
-	snd_chk_cc=0;
+	snd_chk_cc = 0;			//パネルウィンドウのランプ表示用カウンタ
 
 	//CC通信チェックカウンタリセット
 	//ユニキャスト送信時に1をセットしておき、定周期でカウントアップ
@@ -606,9 +611,14 @@ HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 		snd_chk_cc = 0;
 		return S_FALSE;
 	}
-	snd_count_ote_u++;
 	
-	snd_chk_cc++;
+	pOteCCIf->msg_snd_seqno_now = snd_count_ote_u++;	//最新送信シーケンス番号セット
+	snd_count_ote_u_chk++;//通信データロス測定用カウント
+	if (snd_count_ote_u % pOteCCIf->msg_data_loss_chk_count == 0){
+		snd_count_ote_u_chk = 0;	//通信データロス測定用カウントリセット
+		rcv_count_pc_u_chk = 0;	//通信データロス測定用カウントリセット
+	}
+	snd_chk_cc++;			//パネルウィンドウのランプ表示用カウンタ
 	
 	return S_OK;
 }
@@ -772,12 +782,12 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				hWnd, (HMENU)(OTE_AG_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 
-		UINT rtn = SetTimer(hWnd, OTE_AG_ID_MON2_TIMER, OTE_AG_PRM_MON2_TIMER_MS, NULL);
+		UINT rtn = SetTimer(hWnd, OTE_AG_ID_MON2_TIMER, pOteCCIf->umsg_snd_interval_ms, NULL);
 
 		pStatisHelper = new CStatisticsHelper();
 		UHelperStatisData min_value, max_value;
 		min_value.ll = 10000000; max_value.ll = 0;
-		pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, sample_count,min_value,max_value);
+		pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, pOteCCIf->msg_delay_sample_count,min_value,max_value);
 
 	}break;
 	case WM_COMMAND: {
@@ -994,9 +1004,11 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 			//応答遅延時間をMSGに表示
 	//		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"応答遅延(μsec) MAX:" << res_delay_max << L" MIN:" << res_delay_min;
-			st_mon2.wo_work.str(L""); st_mon2.wo_work	<< L"応答遅延(μsec) MAX:" << pStatisHelper->result.max_val.ll 
+			st_mon2.wo_work.str(L""); st_mon2.wo_work	<< L"応答遅延(msec) MAX:" << pStatisHelper->result.max_val.ll 
 														<< L" MIN:" << pStatisHelper->result.min_val.ll 
-														<< L" AVE:" << pStatisHelper->result.Ave.ll;
+														<< L" AVE:" << pStatisHelper->result.Ave.ll
+														<< L" Lost:" << pOteCCIf->msg_lost_num;
+
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MSG], st_mon2.wo_work.str().c_str());
 		}
 
@@ -1008,23 +1020,32 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		int nEvent = WSAGETSELECTEVENT(lp);
 		switch (nEvent) {
 		case FD_READ: {
+
+			LONGLONG lspan;
+			UHelperStatisData lspan_data;
+
 			if (S_OK == rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv)) ){
 				st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);
+				pOteCCIf->msg_rcv_seqno_now = pOteCCIf->st_msg_pc_u_rcv.head.seqno;
+				LONGLONG seqno_delay =(pOteCCIf->msg_rcv_seqno_now - pOteCCIf->msg_snd_seqno_now) * pOteCCIf->umsg_snd_interval_ms * 1000;
+
+				QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
+				lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000L / frequency.QuadPart;// 時間の間隔[usec]
+	//			if (res_delay_max < lspan) res_delay_max = lspan;
+	//			if (res_delay_min > lspan) res_delay_min = lspan;
+
+
 			}
 			else {
 				st_work.id_conected_crane = CRANE_ID_NULL;
 			}
-			QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
-			LONGLONG lspan;
-			UHelperStatisData lspan_data;
-			lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000000L / frequency.QuadPart;// 時間の間隔[usec]
-			if (res_delay_max < lspan) res_delay_max = lspan;
-			if (res_delay_min > lspan) res_delay_min = lspan;
 
+			pOteCCIf->msg_lost_num = rcv_count_pc_u_chk - snd_count_ote_u_chk -1;//データロスカウント
 
-			if (rcv_count_pc_u % 50 == 0) {
-				res_delay_max = 0;
-				res_delay_min = 10000000;
+			//送信カウント一定以上で統計更新
+			if (snd_count_ote_u % pOteCCIf->msg_delay_sample_count== 0) {
+				//res_delay_max = 0;
+				//res_delay_min = 10000000;
 				pStatisHelper->update(lspan_data, HELPER_DATA_COM_REFRESH);
 			}
 			else {
