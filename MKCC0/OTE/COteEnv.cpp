@@ -30,7 +30,7 @@ static COteAgent* pAgentObj;
 
 static LARGE_INTEGER start_count_s, end_count_r;			//システムカウント
 static LARGE_INTEGER frequency;								//システム周波数
-static LONGLONG res_delay_max, res_delay_min = 10000000;	//C応答時間
+static LONGLONG res_delay_max, res_delay_min = 10000000;	//応答時間
 
 COteEnv::COteEnv(){
 }

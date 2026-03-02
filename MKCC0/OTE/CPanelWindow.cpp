@@ -1952,10 +1952,18 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		// 選択されたメニューの解析:
 		switch (wmId)
 		{
-		case ID_SUB_PNL_STAT_OBJ_PB_NEXT: {
-			pPanelBase->psubobjs->i_disp_page++;
-			if (pPanelBase->psubobjs->i_disp_page >= pPanelBase->psubobjs->n_disp_page)
-				pPanelBase->psubobjs->i_disp_page = 0; //ページ番号をリセット
+		case ID_SUB_PNL_COM_UPDATE_SETTING: {
+
+			pAgentObj->update_msg_cycle(OTE_AGENT_MODE_SND_MSG_FIXED, 200, 20, 50);
+
+			wostringstream wos;
+			wos.str(L""); wos << pCcIf->umsg_snd_interval_ms;
+			SetWindowText(pPanelBase->psubobjs->st_snd_period->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_delay_sample_count * pCcIf->umsg_snd_interval_ms;
+			SetWindowText(pPanelBase->psubobjs->st_delay_chk_cycle->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_data_loss_chk_count * pCcIf->umsg_snd_interval_ms;
+			SetWindowText(pPanelBase->psubobjs->st_lost_chk_cycle->hWnd, wos.str().c_str());
+
 		}break; 
 		default:
 			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);

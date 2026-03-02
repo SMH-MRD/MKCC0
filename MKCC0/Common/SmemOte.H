@@ -160,6 +160,8 @@ typedef struct _ST_OTE_CS_INF {
 #define OTE_AGENT_MODE_OTE_PORT_WAN			2	//有線LAN接続モード(PORT1）
 #define OTE_AGENT_MODE_OTE_PORT_ERR			-1	//ソケットアドレス未定
 
+#define OTE_AGENT_MODE_SND_MSG_FIXED		0	//送信周期固定モード
+#define OTE_AGENT_MODE_SND_MSG_VALIABLE		1	//送信周期可変モード
 
 typedef struct _ST_OTE_CC_IF {
 	INT32			cc_com_stat_r;		//制御PCとの通信状態（受信）
@@ -192,7 +194,8 @@ typedef struct _ST_OTE_CC_IF {
 	INT32	msg_delay_sample_count;		//遅延評価データサンプリング回数
 	INT32	msg_data_loss_chk_count;	//遅延評価データサンプリング回数
 	INT32	msg_lost_num;				//メッセージLOST数	
-	INT32	umsg_snd_interval_ms;//unicastメッセージ送信周期ms
+	INT32	umsg_snd_interval_ms;		//unicastメッセージ送信周期ms
+	INT32	umsg_snd_interval_mode;		//0:固定周期 1:可変周期（通信状態に応じて送信周期を変える）
 
 }ST_OTE_CC_IF, * LPST_OTE_CC_IF;
 #pragma endregion OTEのCCとの通信構造体

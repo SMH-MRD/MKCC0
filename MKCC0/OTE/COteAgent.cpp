@@ -50,7 +50,7 @@ static INT32 rcv_chk_cc = 0, snd_chk_cc = 0, snd_chk_cc_last = 0;
 
 static LARGE_INTEGER start_count_s, end_count_r;			//システムカウント
 static LARGE_INTEGER frequency;								//システム周波数
-static LONGLONG res_delay_max, res_delay_min = 10000000;	//C応答時間
+static LONGLONG res_delay_max=0, res_delay_min = 10000000;	//応答時間
 static LONGLONG buf_ll[HELPER_DATA_BUF_MAX];				//応答時間評価用バッファ
 static CStatisticsHelper * pStatisHelper;					//統計評価ヘルパークラス
 
@@ -273,7 +273,7 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 
 	pOteCCIf->umsg_snd_interval_ms = OTE_AG_PRM_MON2_TIMER_MS;	//モニタ2への送信間隔をセット
-	pOteCCIf->msg_delay_sample_count = OTE_AG_DELAY_CHK_COUNT;
+	pOteCCIf->msg_delay_sample_count = OTE_AG_DELAY_CHK_COUNT; 
 	pOteCCIf->msg_data_loss_chk_count = OTE_AG_CHK_REFRESH_COUNT;
 
 	//###  オペレーションパネル設定
@@ -405,6 +405,32 @@ int COteAgent::output() {          //出力処理
 
 	return STAT_OK;
 }
+
+int COteAgent::update_msg_cycle(int mode, int snd_cycle, int delay_sample_cycle, int lost_chk_cycle) {
+	pOteCCIf->umsg_snd_interval_mode = mode;
+	if(mode == OTE_AGENT_MODE_SND_MSG_FIXED) {
+		pOteCCIf->umsg_snd_interval_ms = snd_cycle;
+		int cycle = 100;
+		if (snd_cycle < 100) cycle = 100;
+		else if (snd_cycle > 1000) cycle = 1000;
+		else cycle = snd_cycle;
+		pOteCCIf->umsg_snd_interval_ms = cycle;
+
+		KillTimer(st_mon2.hwnd_mon, OTE_AG_ID_MON2_TIMER);
+		UINT rtn = SetTimer(st_mon2.hwnd_mon, OTE_AG_ID_MON2_TIMER, pOteCCIf->umsg_snd_interval_ms, NULL);
+
+	}
+
+
+	UHelperStatisData min_value, max_value;
+	min_value.ll = 10000000; max_value.ll = 0;
+	pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, delay_sample_cycle, min_value, max_value);
+	pOteCCIf->msg_delay_sample_count = pStatisHelper->mask+1;
+	
+	pOteCCIf->msg_data_loss_chk_count = lost_chk_cycle;	
+
+	return STAT_OK;
+}	
 
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
@@ -787,8 +813,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		pStatisHelper = new CStatisticsHelper();
 		UHelperStatisData min_value, max_value;
 		min_value.ll = 10000000; max_value.ll = 0;
-		pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, pOteCCIf->msg_delay_sample_count,min_value,max_value);
-
+		pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, OTE_AG_DELAY_CHK_COUNT, min_value, max_value);
+		pOteCCIf->msg_delay_sample_count = pStatisHelper->mask + 1;
 	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
@@ -1003,7 +1029,6 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
 
 			//応答遅延時間をMSGに表示
-	//		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"応答遅延(μsec) MAX:" << res_delay_max << L" MIN:" << res_delay_min;
 			st_mon2.wo_work.str(L""); st_mon2.wo_work	<< L"応答遅延(msec) MAX:" << pStatisHelper->result.max_val.ll 
 														<< L" MIN:" << pStatisHelper->result.min_val.ll 
 														<< L" AVE:" << pStatisHelper->result.Ave.ll
@@ -1045,8 +1070,6 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 			//送信カウント一定以上で統計更新
 			if (snd_count_ote_u % pOteCCIf->msg_delay_sample_count== 0) {
-				//res_delay_max = 0;
-				//res_delay_min = 10000000;
 				pStatisHelper->update(lspan_data, HELPER_DATA_COM_REFRESH);
 			}
 			else {

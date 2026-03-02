@@ -180,6 +180,8 @@ public:
     static int close_crane_if();
             INT32 update_ccif_sock_addr(int code);//
 
+    static int update_msg_cycle(int mode,int snd_cycle,int delay_sample_cycle,int lost_chk_cycle);
+
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
     //タブパネルのFunctionボタンのStaticテキストを設定
