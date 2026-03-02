@@ -1027,7 +1027,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			if (S_OK == rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv)) ){
 				st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);
 				pOteCCIf->msg_rcv_seqno_now = pOteCCIf->st_msg_pc_u_rcv.head.seqno;
-				LONGLONG seqno_delay =(pOteCCIf->msg_rcv_seqno_now - pOteCCIf->msg_snd_seqno_now) * pOteCCIf->umsg_snd_interval_ms * 1000;
+				LONGLONG seqno_delay =(pOteCCIf->msg_snd_seqno_now - pOteCCIf->msg_rcv_seqno_now) * pOteCCIf->umsg_snd_interval_ms * 1000;
 
 				QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
 				lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000L / frequency.QuadPart;// 時間の間隔[usec]
