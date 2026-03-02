@@ -242,9 +242,17 @@ public:
 #define ID_SUB_PNL_FLT_OBJ_LV_FAULTS			60351
 #define ID_SUB_PNL_FLT_OBJ_CB_PCFLT				60352
 
-#define ID_SUB_PNL_SET_OBJ_RDO_IF_LINE			60353
-#define ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI			60354
-#define ID_SUB_PNL_SET_OBJ_RDO_IF_MODE			60355
+#define ID_SUB_PNL_COM_OBJ_RDO_IF_LINE			60353
+#define ID_SUB_PNL_COM_OBJ_RDO_IF_WIFI			60354
+#define ID_SUB_PNL_COM_OBJ_RDO_IF_MODE			60355
+#define ID_SUB_PNL_COM_OBJ_SND_CYCLE			60356
+#define ID_SUB_PNL_COM_OBJ_DELEY_CYCLE			60357
+#define ID_SUB_PNL_COM_OBJ_LOST_CYCLE			60358
+#define ID_SUB_PNL_COM_OBJ_DELAY_MAX			60359
+#define ID_SUB_PNL_COM_OBJ_DELAY_MIN			60360
+#define ID_SUB_PNL_COM_OBJ_DELAY_AVE			60361
+#define ID_SUB_PNL_COM_OBJ_N_LOST				60362
+#define ID_SUB_PNL_COM_UPDATE_SETTING			60363
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -327,6 +335,16 @@ public:
 	CCbCtrl* cb_if_line;			//有線選択ラジオボタン
 	CCbCtrl* cb_if_wifi;			//Wifi If選択ラジオボタン
 	CRadioCtrl* rdo_ote_if_mode;	//インターフェースモード選択ラジオボタン
+
+	CStaticCtrl* st_snd_period;			//送信周期
+	CStaticCtrl* st_delay_chk_cycle;	//遅延チェック周期
+	CStaticCtrl* st_lost_chk_cycle;		//パケットロスチェック周期
+	CStaticCtrl* st_delay_max;			//遅延最大値
+	CStaticCtrl* st_delay_min;			//遅延最小値
+	CStaticCtrl* st_delay_ave;			//遅延平均値
+	CStaticCtrl* st_data_lost;			//パケットロスト値
+	CPbCtrl*	 pb_setting_update;			//周期設定更新ボタン
+
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

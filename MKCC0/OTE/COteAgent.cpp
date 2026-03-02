@@ -1052,6 +1052,9 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			else {
 				pStatisHelper->update(lspan_data, HELPER_DATA_COM_UPDATE);
 			}
+			pOteCCIf->msg_delay_max_ms = (INT32)pStatisHelper->result.max_val.ll;
+			pOteCCIf->msg_delay_min_ms = (INT32)pStatisHelper->result.min_val.ll;
+			pOteCCIf->msg_delay_ave_ms = (INT32)pStatisHelper->result.Ave.ll;
 
 		}break;
 		case FD_WRITE: break;

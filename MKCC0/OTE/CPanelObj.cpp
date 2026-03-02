@@ -117,10 +117,20 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_FLT_OBJ_LV_FAULTS	,Point(5,65)	,Size(620,365)	,L"LIST VIEW"	},	//		CCbCtrl* cb_disp_flt_heavy;
 
 	//通信サブウィンドウ
-	{ID_SUB_PNL_SET_OBJ_RDO_IF_LINE	,Point(50,40)	,Size(60,30)	,L"有線"		},
-	{ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI	,Point(150,40)	,Size(60,30)	,L"WiFi"		},
-	{ID_SUB_PNL_SET_OBJ_RDO_IF_MODE	,Point(50,40)	,Size(200,30)	,L"IFモード"	},
+	{ID_SUB_PNL_COM_OBJ_RDO_IF_LINE	,Point(50,40)	,Size(60,30)	,L"有線"		},
+	{ID_SUB_PNL_COM_OBJ_RDO_IF_WIFI	,Point(150,40)	,Size(60,30)	,L"WiFi"		},
+	{ID_SUB_PNL_COM_OBJ_RDO_IF_MODE	,Point(50,40)	,Size(200,30)	,L"IFモード"	},
 
+	{ID_SUB_PNL_COM_OBJ_SND_CYCLE	,Point(35, 90)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_DELEY_CYCLE	,Point(180, 90)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_LOST_CYCLE	,Point(350, 90)	,Size(50,30)	,L"-"	},
+
+	{ID_SUB_PNL_COM_OBJ_DELAY_MAX	,Point(45, 160)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_DELAY_MIN	,Point(135,160)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_DELAY_AVE	,Point(225,160)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_N_LOST		,Point(315,160)	,Size(50,30)	,L"-"	},
+
+	{ID_SUB_PNL_COM_UPDATE_SETTING	,Point(550,190)	,Size(30,30)	,L"SET"	},	//		CPbCtrl* pb_stat_next;
 };
 
 #define N_GWIN_OBJ			32
@@ -502,12 +512,21 @@ HRESULT CSubPanelObj::setup_obj() {
 
 	//# 通信サブウィンドウオブジェクト
 
-	i++; cb_if_line = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_IF_LINE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	i++; cb_if_wifi = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_if_line = new CCbCtrl(ID_SUB_PNL_COM_OBJ_RDO_IF_LINE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; cb_if_wifi = new CCbCtrl(ID_SUB_PNL_COM_OBJ_RDO_IF_WIFI, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	CCbCtrl* pcb_opt3[8] = { cb_if_line,cb_if_wifi };
 	i++; rdo_ote_if_mode = new CRadioCtrl(2, pcb_opt3);
 
-
+	i++; st_snd_period		= new CStaticCtrl(ID_SUB_PNL_COM_OBJ_SND_CYCLE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_delay_chk_cycle = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DELEY_CYCLE,&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_lost_chk_cycle	= new CStaticCtrl(ID_SUB_PNL_COM_OBJ_LOST_CYCLE,&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_delay_max		= new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DELAY_MAX, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_delay_min		= new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DELAY_MIN, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_delay_ave		= new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DELAY_AVE, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_data_lost		= new CStaticCtrl(ID_SUB_PNL_COM_OBJ_N_LOST,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	
+	i++; pb_setting_update	= new CPbCtrl(ID_SUB_PNL_COM_UPDATE_SETTING, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	
 	return S_OK;
 }
 void CSubPanelObj::delete_obj() {
@@ -539,6 +558,15 @@ void CSubPanelObj::delete_obj() {
 	delete cb_if_line;
 	delete cb_if_wifi;
 	delete rdo_ote_if_mode;
+
+	delete st_snd_period;
+	delete st_delay_chk_cycle;
+	delete st_lost_chk_cycle;
+	delete st_delay_max;
+	delete st_delay_min;
+	delete st_delay_ave;
+	delete st_data_lost;
+	delete pb_setting_update;
 
 
 	return;

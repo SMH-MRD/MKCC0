@@ -1800,50 +1800,189 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_CREATE: {
+		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-        SetWindowText(hwnd, L"通信");
+
+		//グラフィックオブジェクトの初期化
+		pPanelBase->psubobjs->setup_graphics(hwnd);
+		pPanelBase->psubobjs->refresh_obj_graphics();
+		//重ね合わせ画像透過色設定
+		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
+		Status status = pPanelBase->psubobjs->attr.SetColorKey(
+			pPanelBase->psubobjs->colorkey,
+			pPanelBase->psubobjs->colorkey,
+			ColorAdjustTypeDefault // DefaultではなくBitmapを指定する方が明確
+		);
+
+		SetWindowText(hwnd, L"通信");
+		pPanelBase->psubobjs->n_disp_page = 2; //ページ数
+		pPanelBase->psubobjs->n_disp_page = 0; //ページ番号
+
+
+		//表示更新用タイマー
+		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
+
+		//ウィンドウにコントロール追加
+		//LABEL 
+		CreateWindowW(TEXT("STATIC"), L"制御データ遅延評価", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			5, 30, 150, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"設定　送信周期(ms)　遅延集計間隔(ms)　パケットロス集計間隔(ms)", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			5, 65, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"最大値(ms) 　最小値(ms)　平均(ms)　パケットロス数 ", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			55, 125, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
+
+
+		//STATIC 
+		CStaticCtrl* pst = pPanelBase->psubobjs->st_snd_period;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_delay_chk_cycle;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_lost_chk_cycle;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_delay_max;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_delay_min;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_delay_ave;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_data_lost;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		//PB 
+		CPbCtrl* ppb = pPanelBase->psubobjs->pb_setting_update;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+	
+		//表示更新用タイマー
+		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
+
 		//RADIO BUTTON
-		CCbCtrl* pcb = pPanelBase->psubobjs->cb_if_line;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_MULTILINE | WS_GROUP,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-		pcb = pPanelBase->psubobjs->cb_if_wifi;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON |  BS_MULTILINE,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		//CCbCtrl* pcb = pPanelBase->psubobjs->cb_if_line;
+		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_MULTILINE | WS_GROUP,
+		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		//pcb = pPanelBase->psubobjs->cb_if_wifi;
+		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON |  BS_MULTILINE,
+		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
  
 		//初期値セット
+		//設定値
+		wostringstream wos;
+		wos.str(L""); wos << pCcIf->umsg_snd_interval_ms;
+		SetWindowText(pPanelBase->psubobjs->st_snd_period->hWnd, wos.str().c_str());
+		wos.str(L""); wos << pCcIf->msg_delay_sample_count * pCcIf->umsg_snd_interval_ms;
+		SetWindowText(pPanelBase->psubobjs->st_delay_chk_cycle->hWnd, wos.str().c_str());
+		wos.str(L""); wos << pCcIf->msg_data_loss_chk_count * pCcIf->umsg_snd_interval_ms;
+		SetWindowText(pPanelBase->psubobjs->st_lost_chk_cycle->hWnd, wos.str().c_str());
+					
 		//通信IFモード
 
-		if (pOteEnvInf->app_common_param.product_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
-			SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_CHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-		}
-		else {
-			SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
-			SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_CHECKED, 0);
-		}
+		//if (pOteEnvInf->app_common_param.product_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
+		//	SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		//	SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+		//}
+		//else {
+		//	SendMessage(pPanelBase->psubobjs->cb_if_wifi->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+		//	SendMessage(pPanelBase->psubobjs->cb_if_line->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+		//}
 
 		
 	}break;
 
+	case WM_TIMER: {
+		//InvalidateRect(pPanelBase->psubobjs->st_mh_ref_v->hWnd, NULL, TRUE);
+		switch (crane_id) {
+		case CARNE_ID_HHGH29: {
+			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+	
+			wostringstream wos;
+			wos.str(L""); wos << pCcIf->msg_delay_max_ms;
+			SetWindowText(pPanelBase->psubobjs->st_delay_max->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_delay_min_ms;
+			SetWindowText(pPanelBase->psubobjs->st_delay_min->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_delay_ave_ms ;
+			SetWindowText(pPanelBase->psubobjs->st_delay_ave->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_lost_num;
+			SetWindowText(pPanelBase->psubobjs->st_data_lost->hWnd, wos.str().c_str());
+
+		}break;
+		default: {
+			SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_target_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_target_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_target_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_target_v->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_ref_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_ref_v->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_v->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_gt_fb_v->hWnd, L"?");
+
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_trq->hWnd, L"?");
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, L"?");
+		}break;
+		}
+
+	}break;
+
 	case WM_COMMAND: {
-		INT32 code = 0;
+		INT16 code = 0;
 		int wmId = LOWORD(wParam);
 		// 選択されたメニューの解析:
 		switch (wmId)
 		{
-		case ID_SUB_PNL_SET_OBJ_RDO_IF_LINE:
-		case ID_SUB_PNL_SET_OBJ_RDO_IF_WIFI:
-		{
-
-		}break;
-
+		case ID_SUB_PNL_STAT_OBJ_PB_NEXT: {
+			pPanelBase->psubobjs->i_disp_page++;
+			if (pPanelBase->psubobjs->i_disp_page >= pPanelBase->psubobjs->n_disp_page)
+				pPanelBase->psubobjs->i_disp_page = 0; //ページ番号をリセット
+		}break; 
 		default:
 			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);
 		}
 	}break;
 
+
+
+	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
+		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
+		SetBkMode((HDC)wParam, TRANSPARENT);
+	}return (LRESULT)GetStockObject(BLACK_BRUSH); // 背景色に合わせる
+	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
+		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
+	}return 1; // 背景を処理したことを示す
+	
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+		PatBlt(hdc, 0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H, BLACKNESS);
+		EndPaint(hwnd, &ps);
+	}break;
+
     case WM_DESTROY:
-        // PostQuitMessage(0);
+		//表示更新用タイマー
+		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+		// PostQuitMessage(0);
         return 0;
     case WM_CLOSE:
         DestroyWindow(hwnd);
@@ -1995,7 +2134,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 		SetBkMode((HDC)wParam, TRANSPARENT);
 	}return (LRESULT)GetStockObject(BLACK_BRUSH); // 背景色に合わせる
 
-	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
+	case WM_ERASEBKGND: {//ウィンドウの背景色を黒に
 		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
 	}return 1; // 背景を処理したことを示す
 
