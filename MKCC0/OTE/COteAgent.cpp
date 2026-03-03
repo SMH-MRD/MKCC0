@@ -638,10 +638,10 @@ HRESULT COteAgent::snd_uni2pc(LPST_OTE_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 	
 	pOteCCIf->msg_snd_seqno_now = snd_count_ote_u++;	//最新送信シーケンス番号セット
 	snd_count_ote_u_chk++;//通信データロス測定用カウント
-	if (snd_count_ote_u % pOteCCIf->msg_data_loss_chk_count == 0){
-		snd_count_ote_u_chk = 0;	//通信データロス測定用カウントリセット
-		rcv_count_pc_u_chk = 0;	//通信データロス測定用カウントリセット
-	}
+	//if (snd_count_ote_u % pOteCCIf->msg_data_loss_chk_count == 0){
+	//	snd_count_ote_u_chk = 0;	//通信データロス測定用カウントリセット
+	//	rcv_count_pc_u_chk = 0;	//通信データロス測定用カウントリセット
+	//}
 	snd_chk_cc++;			//パネルウィンドウのランプ表示用カウンタ
 	
 	return S_OK;
