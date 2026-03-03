@@ -32,9 +32,9 @@
 #define GSUB_PNL_PIX2MM				234//グラフィックm/PIXEL(Hp35.8/164)
 
 #define ID_GMAIN_TIMER				60898
-#define ID_GMAIN_TIMER_MS			100
+#define ID_GMAIN_TIMER_MS			1000
 #define ID_GSUB_TIMER				60899
-#define ID_GSUB_TIMER_MS			100
+#define ID_GSUB_TIMER_MS			1000
 
 class CGraphicWindow
 {

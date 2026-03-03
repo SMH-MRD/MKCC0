@@ -411,7 +411,7 @@ int COteAgent::update_msg_cycle(int mode, int snd_cycle, int delay_sample_cycle,
 	if(mode == OTE_AGENT_MODE_SND_MSG_FIXED) {
 		pOteCCIf->umsg_snd_interval_ms = snd_cycle;
 		int cycle = 100;
-		if (snd_cycle < 100) cycle = 100;
+		if (snd_cycle < 50) cycle = 50;
 		else if (snd_cycle > 1000) cycle = 1000;
 		else cycle = snd_cycle;
 		pOteCCIf->umsg_snd_interval_ms = cycle;
@@ -808,13 +808,16 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				hWnd, (HMENU)(OTE_AG_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 
+		pOteCCIf->umsg_snd_interval_ms = OTE_AG_PRM_MON2_TIMER_MS;	//モニタ2への送信間隔をセット
 		UINT rtn = SetTimer(hWnd, OTE_AG_ID_MON2_TIMER, pOteCCIf->umsg_snd_interval_ms, NULL);
 
+		//遅延計測ヘルパー初期化
 		pStatisHelper = new CStatisticsHelper();
 		UHelperStatisData min_value, max_value;
 		min_value.ll = 10000000; max_value.ll = 0;
 		pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, OTE_AG_DELAY_CHK_COUNT, min_value, max_value);
 		pOteCCIf->msg_delay_sample_count = pStatisHelper->mask + 1;
+
 	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
@@ -1068,7 +1071,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				st_work.id_conected_crane = CRANE_ID_NULL;
 			}
 
-			pOteCCIf->msg_lost_num = rcv_count_pc_u_chk - snd_count_ote_u_chk -1;//データロスカウント
+			pOteCCIf->msg_lost_num = snd_count_ote_u_chk - rcv_count_pc_u_chk -1;//データロスカウント
 
 			//送信カウント一定以上で統計更新
 			if (snd_count_ote_u % pOteCCIf->msg_delay_sample_count== 0) {

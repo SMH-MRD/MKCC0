@@ -1973,7 +1973,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		{
 		case ID_SUB_PNL_COM_UPDATE_SETTING: {
 
-			pAgentObj->update_msg_cycle(OTE_AGENT_MODE_SND_MSG_FIXED, 200, 20, 50);
+			pAgentObj->update_msg_cycle(OTE_AGENT_MODE_SND_MSG_FIXED, 500, 20, 50);
 
 			wostringstream wos;
 			wos.str(L""); wos << pCcIf->umsg_snd_interval_ms;
