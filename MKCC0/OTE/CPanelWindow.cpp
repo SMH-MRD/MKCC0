@@ -1830,7 +1830,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			5, 65, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"最大値(ms) 　最小値(ms)　平均(ms)　パケットロス数 ", WS_CHILD | WS_VISIBLE | SS_LEFT,
 			55, 125, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
-
+		CreateWindowW(TEXT("STATIC"), L"送信No 　　　受信No　　　差 ", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			55, 185, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
 
 		//STATIC 
 		CStaticCtrl* pst = pPanelBase->psubobjs->st_snd_period;
@@ -1861,6 +1862,18 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 
+		pst = pPanelBase->psubobjs->st_snd_seq_no;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_rcv_seq_no;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_deff_seq_no;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		
 		//PB 
 		CPbCtrl* ppb = pPanelBase->psubobjs->pb_setting_update;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
@@ -1916,6 +1929,12 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			SetWindowText(pPanelBase->psubobjs->st_delay_ave->hWnd, wos.str().c_str());
 			wos.str(L""); wos << pCcIf->msg_lost_num;
 			SetWindowText(pPanelBase->psubobjs->st_data_lost->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_snd_seqno_now;
+			SetWindowText(pPanelBase->psubobjs->st_snd_seq_no->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_rcv_seqno_now;
+			SetWindowText(pPanelBase->psubobjs->st_rcv_seq_no->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_snd_seqno_now - pCcIf->msg_rcv_seqno_now;
+			SetWindowText(pPanelBase->psubobjs->st_deff_seq_no->hWnd, wos.str().c_str());
 
 		}break;
 		default: {

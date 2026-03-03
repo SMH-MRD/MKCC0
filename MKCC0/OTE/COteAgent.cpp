@@ -1032,7 +1032,9 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			st_mon2.wo_work.str(L""); st_mon2.wo_work	<< L"‰ž“š’x‰„(msec) MAX:" << pStatisHelper->result.max_val.ll 
 														<< L" MIN:" << pStatisHelper->result.min_val.ll 
 														<< L" AVE:" << pStatisHelper->result.Ave.ll
-														<< L" Lost:" << pOteCCIf->msg_lost_num;
+														<< L" Lost:" << pOteCCIf->msg_lost_num
+														<< L" snow:" << pOteCCIf->msg_snd_seqno_now
+														<< L" rnow:" << pOteCCIf->msg_rcv_seqno_now;
 
 			SetWindowText(st_mon2.hctrl[OTE_AG_ID_MON2_STATIC_MSG], st_mon2.wo_work.str().c_str());
 		}

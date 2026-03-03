@@ -125,12 +125,16 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_COM_OBJ_DELEY_CYCLE	,Point(180, 90)	,Size(50,30)	,L"-"	},
 	{ID_SUB_PNL_COM_OBJ_LOST_CYCLE	,Point(350, 90)	,Size(50,30)	,L"-"	},
 
-	{ID_SUB_PNL_COM_OBJ_DELAY_MAX	,Point(45, 160)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_COM_OBJ_DELAY_MIN	,Point(135,160)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_COM_OBJ_DELAY_AVE	,Point(225,160)	,Size(50,30)	,L"-"	},
-	{ID_SUB_PNL_COM_OBJ_N_LOST		,Point(315,160)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_DELAY_MAX	,Point(45, 155)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_DELAY_MIN	,Point(135,155)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_DELAY_AVE	,Point(225,155)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_N_LOST		,Point(315,155)	,Size(50,30)	,L"-"	},
 
 	{ID_SUB_PNL_COM_UPDATE_SETTING	,Point(550,190)	,Size(30,30)	,L"SET"	},	//		CPbCtrl* pb_stat_next;
+
+	{ID_SUB_PNL_COM_OBJ_SND_SEQ_NO	,Point(45, 210)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_RCV_SEQ_NO	,Point(135,210)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO	,Point(225,210)	,Size(50,30)	,L"-"	},
 };
 
 #define N_GWIN_OBJ			32
@@ -527,6 +531,9 @@ HRESULT CSubPanelObj::setup_obj() {
 	
 	i++; pb_setting_update	= new CPbCtrl(ID_SUB_PNL_COM_UPDATE_SETTING, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	
+	i++; st_snd_seq_no = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_SND_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_rcv_seq_no = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_RCV_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_deff_seq_no = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	return S_OK;
 }
 void CSubPanelObj::delete_obj() {

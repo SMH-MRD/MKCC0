@@ -215,16 +215,28 @@ public:
 	int update(UHelperStatisData data, int com) {
 		
 		if (init_ok == L_OFF)return L_OFF;	
-		
+
 		if (com == HELPER_DATA_COM_REFRESH) {
 			//結果リフレッシュ
-			if (type == HELPER_DATA_TYPE_LONG) 	result.Ave.l = result.Sum.l = 0;
-			if (type == HELPER_DATA_TYPE_DOUBLE) result.Ave.d = result.Sum.d = 0.0;
-			if (type == HELPER_DATA_TYPE_LONGLONG) result.Ave.ll = result.Sum.ll = 0;
-			result.min_val = default_min;
-			result.max_val = default_max;
 			count = 0;
-			return L_OFF;
+			if (type == HELPER_DATA_TYPE_LONG) {
+				*buf_long = data.l;
+				result.Ave.l = result.Sum.l = data.l;
+				result.min_val.l = data.l;
+				result.max_val.l = data.l;
+			}
+			if (type == HELPER_DATA_TYPE_DOUBLE) {
+				*buf_double = data.d;
+				result.Ave.d = result.Sum.d = data.d;
+				result.min_val.d = data.d;
+				result.max_val.d = data.d;
+			}
+			if (type == HELPER_DATA_TYPE_LONGLONG) {
+				*buf_llong = data.ll;
+				result.Ave.ll = result.Sum.ll = data.ll;
+				result.min_val.ll = data.ll;
+				result.max_val.ll = data.ll;
+			}
 		}
 		else {
 			//データ更新
@@ -235,6 +247,7 @@ public:
 			if (type == HELPER_DATA_TYPE_LONG) {
 				if (count > mask) result.Sum.l = result.Sum.l - *(buf_long + iw) + data.l;
 				else result.Sum.l += data.l;
+				
 				*(buf_long + iw) = data.l;
 				result.Ave.l = result.Sum.l / (count > mask ? (mask + 1) : count);
 				result.min_val.l = min(result.min_val.l, data.l);
@@ -244,6 +257,7 @@ public:
 
 				if (count > mask) result.Sum.d = result.Sum.d - *(buf_double + iw) + data.d;
 				else result.Sum.d += data.d;
+				
 				*(buf_double + iw) = data.d;
 				result.Ave.d = result.Sum.d / (count > mask ? (mask + 1) : count);
 				result.min_val.d = min(result.min_val.d, data.d);
@@ -253,6 +267,7 @@ public:
 
 				if (count > mask)result.Sum.ll = result.Sum.ll - *(buf_llong + iw) + data.ll;
 				else result.Sum.ll += data.ll;
+
 				*(buf_llong + iw) = data.ll;
 				result.Ave.ll = result.Sum.ll / (count > mask ? (mask + 1) : count);
 				result.min_val.ll = min(result.min_val.ll, data.ll);
@@ -263,7 +278,7 @@ public:
 			}
 		}
 
-		if(count <= mask)return L_OFF;
+		//if(count <= mask)return L_OFF;
 
 		return L_ON;
 	}

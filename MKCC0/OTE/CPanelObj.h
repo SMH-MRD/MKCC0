@@ -253,6 +253,9 @@ public:
 #define ID_SUB_PNL_COM_OBJ_DELAY_AVE			60361
 #define ID_SUB_PNL_COM_OBJ_N_LOST				60362
 #define ID_SUB_PNL_COM_UPDATE_SETTING			60363
+#define ID_SUB_PNL_COM_OBJ_SND_SEQ_NO			60364
+#define ID_SUB_PNL_COM_OBJ_RCV_SEQ_NO			60365
+#define ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO			60366
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -343,8 +346,10 @@ public:
 	CStaticCtrl* st_delay_min;			//遅延最小値
 	CStaticCtrl* st_delay_ave;			//遅延平均値
 	CStaticCtrl* st_data_lost;			//パケットロスト値
-	CPbCtrl*	 pb_setting_update;			//周期設定更新ボタン
-
+	CPbCtrl*	 pb_setting_update;		//周期設定更新ボタン
+	CStaticCtrl* st_snd_seq_no;			//送信シーケンス番号
+	CStaticCtrl* st_rcv_seq_no;			//受信シーケンス番号
+	CStaticCtrl* st_deff_seq_no;		//シーケンス番号差
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();
