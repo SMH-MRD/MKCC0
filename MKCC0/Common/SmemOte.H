@@ -135,6 +135,7 @@ typedef struct _ST_OTE_CS_INF {
 	ST_GPAD_IN gpad_in;	
 	INT16 GOT_command;								//GOTのコマンド
 	INT16 ote_error;								//OTEのエラーコード
+	INT32 ote_interlock;							//OTEのインターロックコード
 	INT32 GOT_crane_select;							//GOTのクレーン選択状態
 	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ+2];		//PLCからの読み取り信号生値
 	INT16 buf_opepnl_write[OTE_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
@@ -220,11 +221,6 @@ typedef struct _ST_OTE_UI {
 //## OTE_POLICY
 #pragma region OTE_UI
 
-typedef struct _ST_OTE_POL {
-	INT32 u_msg_interval_ms;				//ユニキャストメッセージ送信周期
-	INT32 m_msg_interval_ms;				//ユニキャストメッセージ送信周期  
-}ST_OTE_POL, * LPST_OTE_POL;
-#pragma endregion 操作端末POLICY構造体
 
 
 

@@ -10,10 +10,12 @@ using namespace std;
 #define SMEM_AUX_ENV_INF_NAME			L"AUX_ENV_INF"
 #define SMEM_AUX_AGENT_INF_NAME			L"AUX_AGENT_INF"
 #define SMEM_AUX_CS_INF_NAME			L"AUX_CS_INF"
+#define SMEM_OTE_AUX_CS_INF_NAME		L"OTE_AUX_CS_INF"
 
 #define MUTEX_AUX_ENV_INF_NAME			L"MU_AUX_ENV_INF"
 #define MUTEX_AUX_AGENT_INF_NAME		L"MU_AUX_AGENT_INF"
 #define MUTEX_AUX_CS_INF_NAME			L"MU_AUX_CS_INF"
+#define MUTEX_OTE_AUX_CS_INF_NAME		L"MU_OTE_AUX_CS_INF"
 
 #define AUX_SLBRK_COM_HW_BRK			BIT4	//HaerWare Brake
 #define AUX_SLBRK_COM_RESET				BIT5	//Reset
@@ -75,4 +77,14 @@ typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	DWORD aux_helthy_cnt;
 	ST_SLBRK_FB fb_slbrk;
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
+
+
+typedef struct _ST_VIDEO_CHK_FB {
+	INT32 video_delay_ms;
+}ST_VIDEO_CHK_FB, * LPST_VIDEO_CHK_FB;
+
+typedef struct _ST_OTE_AUX_CS_INF {		//OTEプロセスとのIF用共有メモリバッファ
+	//AUXEQからOTEプロセスへ
+	ST_VIDEO_CHK_FB st_video_chk;
+}ST_OTE_AUX_CS_INF, * LPST_OTE_AUX_CS_INF;
 

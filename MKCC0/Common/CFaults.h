@@ -146,9 +146,17 @@ public:
 #define FLTS_MASK_ERR_OTE_ESTP			0x0004
 #define FLTS_ID_ERR_OTE_SOURCE_OFF		1		//操作端末主幹断
 #define FLTS_MASK_ERR_OTE_SOURCE_OFF	0x0008
-#define FLTS_ID_ERR_OTE_CAM_TM_OVER		1		//映像遅延過大
-#define FLTS_MASK_ERR_OTE_CAM_TM_OVER	0x0010
+
 #define FLTS_ID_WRN_SLBRK_PSWITCH_OFF	1		//旋回ブレーキ圧力不足
 #define FLTS_MASK_WRN_SLBRK_PSWITCH_OFF	0x0020
 #define FLTS_ID_ERR_OTE_TMOV			1		//操作有効端末タイムオーバー
 #define FLTS_MASK_ERR_OTE_TMOV			0x0040
+
+//## 操作端末インターロックマップ定義
+#define FLTS_ID_ERR_OTE_CAM_TM_OVER		2		//映像遅延過大
+#define FLTS_MASK_ERR_OTE_CAM_TM_OVER	0x0001
+#define FLTS_ID_IL_CTRL_CC_COM_DELAY	2		//制御信号通信遅延大
+#define FLTS_MASK_IL_CTRL_CC_COM_DELAY	0x0002
+
+#define FLTS_LEVEL_IL_CTRL_CC_COM_DELAY	1		//制御信号通信遅延大判定値msec
+#define FLTS_LEVEL_IL_VIDEO_DELAY		1000	//映像遅延大判定値msec

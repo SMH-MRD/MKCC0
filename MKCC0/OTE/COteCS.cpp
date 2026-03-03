@@ -12,6 +12,7 @@ extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
+extern CSharedMem* pOteAuxCsObj;
 extern ST_DEVICE_CODE g_my_code; //端末コード
 
 extern CCrane* pCrane;
@@ -39,6 +40,8 @@ static LPST_OTE_ENV_INF	pOteEnvInf;
 static LPST_OTE_UI		pOteUi;
 static LPST_OTE_CC_IF	pOteCCInf;
 static LPST_OTE_CS_INF	pOteCsInf;
+
+static LPST_OTE_AUX_CS_INF	pOteAuxCsInf;
 
 static CGamePad* pPad = NULL;
 
@@ -86,6 +89,8 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
 	pOteUi = (LPST_OTE_UI)pOteUiObj->get_pMap();
 
+	pOteAuxCsInf = (LPST_OTE_AUX_CS_INF)pOteAuxCsObj->get_pMap();
+
 	if ((pOteEnvInf == NULL) || (pOteCsInf == NULL) || (pOteUi == NULL) || (pOteCCInf == NULL))
 		hr = S_FALSE;
 
@@ -123,6 +128,9 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
 	}
+
+	pOteCsInf->ote_error = pOteCsInf->ote_interlock = 0;//異常検出クリア
+
 
 	//### GamePadインスタンス
 	pPad = new CGamePad();
@@ -453,6 +461,32 @@ int COteCS::parse()
 
 			if (pOteCsInf->ote_error & (1 << j)) {	//検出ありの時
 				pOteCsInf->rpc_flt_codes[pOteCsInf->rpc_flt_count] = 850 + j;
+				pOteCsInf->rpc_flt_count++;	//PC故障数カウントアップ
+			}
+		}
+
+		//## OTE インターロックチェック
+		
+		//# 映像遅延過大
+		if (pOteAuxCsInf->st_video_chk.video_delay_ms > FLTS_LEVEL_IL_VIDEO_DELAY) {
+			pOteCsInf->ote_interlock |= FLTS_MASK_ERR_OTE_CAM_TM_OVER;
+		}
+		else {
+			pOteCsInf->ote_interlock &= ~FLTS_MASK_ERR_OTE_CAM_TM_OVER;
+		}
+		//# 制御通信遅延過大
+		if (pOteCCInf->msg_delay_ave_ms > FLTS_LEVEL_IL_CTRL_CC_COM_DELAY) {
+			pOteCsInf->ote_interlock |= FLTS_MASK_IL_CTRL_CC_COM_DELAY;
+		}
+		else {
+			pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
+		}
+
+		for (int j = 0; j < 16; j++) {
+			if (pOteCsInf->rpc_flt_count >= OTE_PC_FLT_DETECT_MAX) break;	//表示故障数上限
+
+			if (pOteCsInf->ote_interlock & (1 << j)) {	//検出ありの時
+				pOteCsInf->rpc_flt_codes[pOteCsInf->rpc_flt_count] = 900 + j;
 				pOteCsInf->rpc_flt_count++;	//PC故障数カウントアップ
 			}
 		}

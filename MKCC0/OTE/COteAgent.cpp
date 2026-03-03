@@ -873,7 +873,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		//送信成功 AND 正常受信後
 		if (hr == S_OK) {
 			QueryPerformanceCounter(&start_count_s);  // 送信時カウント値取り込み
-			if (st_work.cc_comm_chk_cnt == 0)st_work.cc_comm_chk_cnt = 1; //開始カウントセット
+			if (st_work.cc_comm_chk_cnt == 0)st_work.cc_comm_chk_cnt = 1; //受信で0セット→送信で開始カウントセット
 		}
 
 		//MultiCast送信
@@ -1044,7 +1044,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		case FD_READ: {
 
 			LONGLONG lspan;
-			UHelperStatisData lspan_data;
+			UHelperStatisData lspan_data; lspan_data.ll = 0;
 
 			if (S_OK == rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv)) ){
 				QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
