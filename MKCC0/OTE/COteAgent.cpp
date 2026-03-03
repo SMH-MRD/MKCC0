@@ -322,8 +322,6 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
 		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
 	}
-	
-
 	return hr;
 }
 
@@ -860,12 +858,6 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		HRESULT hr;
 		INT32 stat = 0;
 
-#if 0
-		if(pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_HHGG3801)
-			stat |= OTE_STAT_COM_WAN_HHGG3801;
-		if (pOteEnvInf->app_common_param.product_mode == MODE_ENV_PRODUCT_WAN_MENTE01)
-			stat |= OTE_STAT_COM_WAN_MENTE01;
-#endif
 		if (pOteEnvInf->app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WAN)
 			stat |= g_my_code.option;
 
@@ -1055,23 +1047,21 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			UHelperStatisData lspan_data;
 
 			if (S_OK == rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv)) ){
+				QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
+
 				st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);
 				pOteCCIf->msg_rcv_seqno_now = pOteCCIf->st_msg_pc_u_rcv.head.seqno;
 				LONGLONG seqno_delay =(pOteCCIf->msg_snd_seqno_now - pOteCCIf->msg_rcv_seqno_now) * pOteCCIf->umsg_snd_interval_ms;
 
-				QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
 				lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000L / frequency.QuadPart;// 時間の間隔[usec]
 										+seqno_delay;//シーケンス遅延補正
-	//			if (res_delay_max < lspan) res_delay_max = lspan;
-	//			if (res_delay_min > lspan) res_delay_min = lspan;
-
+			
+				pOteCCIf->msg_lost_num = snd_count_ote_u_chk - rcv_count_pc_u_chk;//データロスカウント
 
 			}
 			else {
 				st_work.id_conected_crane = CRANE_ID_NULL;
 			}
-
-			pOteCCIf->msg_lost_num = snd_count_ote_u_chk - rcv_count_pc_u_chk -1;//データロスカウント
 
 			//送信カウント一定以上で統計更新
 			if (snd_count_ote_u % pOteCCIf->msg_delay_sample_count== 0) {
