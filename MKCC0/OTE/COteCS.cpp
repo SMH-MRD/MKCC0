@@ -672,7 +672,7 @@ int COteCS::output() {
 	}
 	//遠隔PC フォルト
 	for (int i = 0; i < pOteCsInf->rpc_flt_count; i++, index++) {
-		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[index] = pOteCsInf->rpc_flt_codes[index];
+		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[index] = pOteCsInf->rpc_flt_codes[i];
 	}
 
 	//残りは0クリア
