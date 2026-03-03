@@ -1051,10 +1051,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 				st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);
 				pOteCCIf->msg_rcv_seqno_now = pOteCCIf->st_msg_pc_u_rcv.head.seqno;
-				LONGLONG seqno_delay =(pOteCCIf->msg_snd_seqno_now - pOteCCIf->msg_rcv_seqno_now) * pOteCCIf->umsg_snd_interval_ms;
-
-				lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000L / frequency.QuadPart;// 時間の間隔[usec]
-										+seqno_delay;//シーケンス遅延補正
+	
+				LONGLONG seqno_delay =(pOteCCIf->msg_snd_seqno_now - pOteCCIf->msg_rcv_seqno_now) * pOteCCIf->umsg_snd_interval_ms;//シーケンス遅延補正
+				lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000L / frequency.QuadPart + seqno_delay;// 時間の間隔[usec]
+										
 			
 				pOteCCIf->msg_lost_num = snd_count_ote_u_chk - rcv_count_pc_u_chk;//データロスカウント
 
