@@ -419,7 +419,6 @@ int COteAgent::update_msg_cycle(int mode, int snd_cycle, int delay_sample_cycle,
 
 	}
 
-
 	UHelperStatisData min_value, max_value;
 	min_value.ll = 10000000; max_value.ll = 0;
 	pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, delay_sample_cycle, min_value, max_value);
@@ -871,9 +870,9 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 
 		//送信成功 AND 正常受信後
-		if ((hr == S_OK) && (st_work.cc_comm_chk_cnt == 0)) {
-			st_work.cc_comm_chk_cnt = 1; //開始カウントセット
+		if (hr == S_OK) {
 			QueryPerformanceCounter(&start_count_s);  // 送信時カウント値取り込み
+			if (st_work.cc_comm_chk_cnt == 0)st_work.cc_comm_chk_cnt = 1; //開始カウントセット
 		}
 
 		//MultiCast送信
