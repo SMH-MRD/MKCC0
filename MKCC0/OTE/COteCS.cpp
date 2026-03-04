@@ -413,6 +413,36 @@ int COteCS::input(){
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_RESET;		//リセット
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_CHK;		//機能チェック
 
+
+	//## 操作指令インターロック
+	if (flg_0notch_hold == L_ON)
+	{
+		if ((pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] == 0) &&
+			(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] == 0) &&
+			(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] == 0) &&
+			(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] == 0) &&
+			(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] == 0)
+			)
+		{
+			flg_0notch_hold = L_OFF;
+		}
+	}
+
+	if((pOteCsInf->ote_error & FLTS_MASK_ERR_CPC_RPC_COMM)||
+		(pOteCsInf->ote_interlock & FLTS_MASK_IL_CTRL_CC_COM_DELAY)||
+		(pOteCsInf->ote_error & FLTS_MASK_ERR_RPC_ESTP)||
+		(flg_0notch_hold == L_ON)
+		)
+	{
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_mh] = 0;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_bh] = 0;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_sl] = 0;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = 0;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = 0;
+	}
+
+
+
 	return S_OK;
 }
 
@@ -442,14 +472,17 @@ int COteCS::parse()
 		ope_plc_cnt = ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy;
 
 		//## 制御PC通信異常チェック
-		if(pOteCCInf->cc_comm_chk_cnt >= PRM_OTE_PC_COM_TMOV_CNT)
+		if (pOteCCInf->cc_comm_chk_cnt >= PRM_OTE_PC_COM_TMOV_CNT) {
 			pOteCsInf->ote_error |= FLTS_MASK_ERR_CPC_RPC_COMM;
+			flg_0notch_hold = L_ON;
+		}
 		else
 			pOteCsInf->ote_error &= ~FLTS_MASK_ERR_CPC_RPC_COMM;
 
 		//## 非常停止チェック
 		if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]) {
 			pOteCsInf->ote_error |= FLTS_MASK_ERR_RPC_ESTP;
+			flg_0notch_hold = L_ON;
 		}
 		else {
 			pOteCsInf->ote_error &= ~FLTS_MASK_ERR_RPC_ESTP;
@@ -477,6 +510,7 @@ int COteCS::parse()
 		//# 制御通信遅延過大
 		if (pOteCCInf->msg_delay_ave_ms > FLTS_LEVEL_IL_CTRL_CC_COM_DELAY) {
 			pOteCsInf->ote_interlock |= FLTS_MASK_IL_CTRL_CC_COM_DELAY;
+			flg_0notch_hold = L_ON;
 		}
 		else {
 			pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
@@ -555,11 +589,6 @@ int COteCS::parse()
 			pOteCsInf->ope_source_mode |= OTE_OPE_SOURCE_CODE_PCPNL;
 		else
 			pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_PCPNL;
-		//#携帯パネル（次ステップで対応）
-		//if (pOteUi->pc_pnl_active == L_ON)
-		//	pOteCsInf->ope_source_mode |= OTE_OPE_SOURCE_CODE_PCPNL;
-		//else
-		//	pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_PCPNL;
 	}
 
 

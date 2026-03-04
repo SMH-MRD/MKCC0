@@ -233,5 +233,7 @@ private:
     int parse();
     int output();
     int close();
+
+	int flg_0notch_hold = L_OFF;
 };
 
