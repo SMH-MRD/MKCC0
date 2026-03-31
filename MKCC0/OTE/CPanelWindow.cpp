@@ -1787,7 +1787,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_DESTROY:
 		//表示更新用タイマー
 		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
-	//	pPanelBase->psubobjs->clear_graghics();
+	//	pPanelBase->psubobjs->clear_graphics();
 		// PostQuitMessage(0);
 		return 0;
 	case WM_CLOSE:

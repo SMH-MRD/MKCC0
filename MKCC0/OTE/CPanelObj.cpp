@@ -176,11 +176,11 @@ CPanelObjBase::CPanelObjBase(HWND _hwnd)
 	setup_graphics(hPnlWnd);
 }
 CPanelObjBase::~CPanelObjBase() {
-	clear_graghics();
+	clear_graphics();
 }
 
 HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
-	clear_graghics();
+	clear_graphics();
 
 	RECT rect;
 	GetClientRect(hwnd, &rect);
@@ -236,7 +236,7 @@ SelectObject(hdc_inf, hBmp_inf);
 
 	return S_OK;
 }
-void CPanelObjBase::clear_graghics() {
+void CPanelObjBase::clear_graphics() {
 	if(pgraphic != NULL)		delete pgraphic;
 	if(pgraphic_img != NULL)	delete pgraphic_img;
 	if (pgraphic_bk != NULL)	delete pgraphic_bk;

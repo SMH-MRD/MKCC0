@@ -112,7 +112,7 @@ public:
 	int set_panel_code(int code) { panel_code = code; return panel_code; };
 	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
 	virtual HRESULT setup_graphics(HWND hwnd);
-	virtual void clear_graghics();
+	virtual void clear_graphics();
 	virtual void reset_graghic_img(Graphics* pg);//グラフィックオブジェクトの描画をクリア
 
 	virtual HRESULT setup_obj() = 0;

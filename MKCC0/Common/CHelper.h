@@ -236,6 +236,7 @@ public:
 				result.Ave.ll = result.Sum.ll = data.ll;
 				result.min_val.ll = data.ll;
 				result.max_val.ll = data.ll;
+
 			}
 		}
 		else {
