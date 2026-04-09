@@ -159,11 +159,13 @@ double k = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb/62.0*0.9
 
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->set(0);
 //pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(500,550, (float)(gwin_count%360),35,0,1.0,0.8);	// クレーンブーム上面画像書き込み
-pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0 - angle, 35, 0, 1.0, k);	// クレーンブーム上面画像書き込み
+//pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0 - angle, 35, 0, 1.0, k);	// クレーンブーム上面画像書き込み
+pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, - angle, 35, 0, 1.0, k);	// クレーンブーム上面画像書き込み
 
 pPanelBase->pgwinobjs->lmg_crane_potal->set(0);
 //pPanelBase->pgwinobjs->lmg_crane_potal->update(500,550, (float)(gwin_count % 360),25,65,1.0,1.0);	// クレーンポスト上面書き込み
-pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0- angle, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
+//pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0- angle, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
+pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, - angle, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
 
 
 // 3. Info画像の描画(pbmp_inf） 
