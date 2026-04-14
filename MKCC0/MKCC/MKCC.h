@@ -43,6 +43,8 @@ namespace MKCC
 #define EXT_OF_INIFILE					L"ini"			//iniファイル拡張子
 #define PATH_OF_INIFILE					pszInifile		//iniファイルパス
 
+#define VERSION_CODE					L"MCC260425M0"		//バージョンコード
+
 //-ID定義 Mainスレッド用　5100 +α
 #define ID_TASK_SET_TAB				5098
 #define ID_STATUS_BAR				5099

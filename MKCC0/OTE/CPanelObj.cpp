@@ -199,8 +199,8 @@ HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
 	pbmp_inf		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//情報用メモリビットマップ
 	pgraphic_inf	= new Gdiplus::Graphics(pbmp_inf);							//情報書き込みオブジェクト
 	
-	pbmp_img		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//画像書き込みオブジェクト
-	pgraphic_img	= new Gdiplus::Graphics(pbmp_img);							//画像用メモリビットマップ
+	pbmp_img		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//画像用メモリビットマップ
+	pgraphic_img	= new Gdiplus::Graphics(pbmp_img);							//画像書き込みオブジェクト
 
 	pbmp_bk			= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//背景用メモリビットマップ
 	pgraphic_bk		= new Gdiplus::Graphics(pbmp_bk);							//背景用オブジェクト

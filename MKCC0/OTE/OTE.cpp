@@ -390,6 +390,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     ShowWindow(st_work_wnd.hWnd, nCmdShow);
     UpdateWindow(st_work_wnd.hWnd);
 
+    SetWindowTextW(st_work_wnd.hWnd, VERSION_CODE);
+
+
     ///##タスク設定ウィンドウ作成
 
     st_task_id.NUM_OF_THREAD = knl_manage_set.num_of_task;

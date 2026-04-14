@@ -43,6 +43,8 @@ namespace OTE
 #define EXT_OF_INIFILE					L"ini"			//iniファイル拡張子
 #define PATH_OF_INIFILE					pszInifile		//iniファイルパス
 
+#define VERSION_CODE					L"OTE260425M0"		//バージョンコード
+
 #define OPATH_SECT_OF_INIFILE			L"PATH"			//オプショナルパスセクション
 #define OBJ_NAME_SECT_OF_INIFILE		L"OBJECT_NAME"	//タスクオブジェクトフルネームセクション
 #define OBJ_SNAME_SECT_OF_INIFILE		L"OBJECT_SNAME"	//タスクオブジェクト略称セクション

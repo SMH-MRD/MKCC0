@@ -135,6 +135,7 @@ static int gwin_count = 0;
 /// <param name="hWnd">•`‰æ‘ÎÛƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹B</param>
 /// ########################################################################
 
+
 void CGraphicWindow::OnPaint(HDC hdc, HWND hWnd){
 
 int width	= GMAIN_PNL_WND_W;
@@ -157,14 +158,14 @@ pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// ƒNƒŒ[ƒ“‘–s‘•’u‰æ‘œ‘‚«
 double angle = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].pos_fb;
 double k = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb/62.0*0.9;
 
+if (gwin_count % 10 == 0)//10•b‚É1‰ñAƒNƒŒ[ƒ“‰æ‘œ‚ğƒNƒŠƒAic‘œc‚è‘Îôj
+
+pPanelBase->pgwinobjs->pgraphic_img->Clear(Gdiplus::Color(0,0,0,0));
+
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->set(0);
-//pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(500,550, (float)(gwin_count%360),35,0,1.0,0.8);	// ƒNƒŒ[ƒ“ƒu[ƒ€ã–Ê‰æ‘œ‘‚«‚İ
-//pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0 - angle, 35, 0, 1.0, k);	// ƒNƒŒ[ƒ“ƒu[ƒ€ã–Ê‰æ‘œ‘‚«‚İ
 pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, - angle, 35, 0, 1.0, k);	// ƒNƒŒ[ƒ“ƒu[ƒ€ã–Ê‰æ‘œ‘‚«‚İ
 
 pPanelBase->pgwinobjs->lmg_crane_potal->set(0);
-//pPanelBase->pgwinobjs->lmg_crane_potal->update(500,550, (float)(gwin_count % 360),25,65,1.0,1.0);	// ƒNƒŒ[ƒ“ƒ|ƒXƒgã–Ê‘‚«‚İ
-//pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, 180.0- angle, 25, 65, 1.0, 1.0);	// ƒNƒŒ[ƒ“ƒ|ƒXƒgã–Ê‘‚«‚İ
 pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, - angle, 25, 65, 1.0, 1.0);	// ƒNƒŒ[ƒ“ƒ|ƒXƒgã–Ê‘‚«‚İ
 
 
@@ -214,6 +215,7 @@ Status drawStatus = pPanelBase->pgwinobjs->pgraphic_bk->DrawImage(
 // ƒoƒbƒNƒoƒbƒtƒ@‚Ì“à—e‚ğˆê“x‚É‰æ–Ê‚É“]‘—
 pPanelBase->pgwinobjs->pgraphic->DrawImage(pPanelBase->pgwinobjs->pbmp_bk, 0, 0);
 }
+
 
 LRESULT CALLBACK CGraphicWindow::GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {

@@ -256,8 +256,10 @@ int COteCS::input(){
 
 		//モメンタリスイッチ （ハードSW）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pin_opepnl->xin[1] & 0x0200;
-		if (!(pin_opepnl->xin[1] & 0x0400))//操作台の主幹切はノーマルクローズ
-			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_off]		= pin_opepnl->xin[1] & 0x0400;
+
+	//削除PLCでノーマルオープンに変換	if (!(pin_opepnl->xin[1] & 0x0400))//操作台の主幹切はノーマルクローズ
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_off]		= pin_opepnl->xin[1] & 0x0400;
+
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::fault_reset]		= pin_opepnl->xin[1] & 0x0100;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bypass]			= pin_opepnl->xin[1] & 0x6000;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::alm_stop]		= pin_opepnl->xin[1] & 0x0080;

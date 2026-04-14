@@ -414,6 +414,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        MAIN_WND_MIN_H + (MSG_WND_H + MSG_WND_Y_SPACE) * knl_manage_set.num_of_task + TAB_DIALOG_H,
        nullptr, nullptr, hInstance, nullptr);
 
+   SetWindowTextW(st_work_wnd.hWnd, VERSION_CODE);
+
    if (!st_work_wnd.hWnd) return FALSE;
    ShowWindow(st_work_wnd.hWnd, nCmdShow);
    UpdateWindow(st_work_wnd.hWnd);
