@@ -602,9 +602,9 @@ const ST_FAULT_LIST plc_flt_list_HHGH29 = {
 {(INT16)6,(INT16)0x0000,L"",L""},
 {(INT16)6,(INT16)0x0000,L"",L""},
 
-{(INT16)6,(INT16)0x0000,L"映像遅延過大",L"モニタ映像の遅延計測値が許容値以上"},		//900
-{(INT16)6,(INT16)0x0000,L"制御信号通信遅延過大",L"制御信号通信の遅延評価値が制限値以上"},
-{(INT16)6,(INT16)0x0000,L"",L""},
+{(INT16)6,(INT16)0x0F80,L"映像遅延過大",L"モニタ映像の遅延計測値が許容値以上"},		//900
+{(INT16)6,(INT16)0x0F80,L"制御信号通信遅延過大",L"制御信号通信の遅延評価値が制限値以上"},
+{(INT16)5,(INT16)0x0F80,L"遠隔運転席離席検出",L"遠隔運転席の着座スイッチOFFでノッチ入力有"},
 {(INT16)6,(INT16)0x0000,L"",L""},
 {(INT16)6,(INT16)0x0000,L"",L""},
 {(INT16)6,(INT16)0x0000,L"",L""},
@@ -1466,6 +1466,8 @@ int CFaults::setup(int crane_id) {
 	return 0;
 }
 
+#if 0
+//表示指定のあるフォルトを抽出するマスクを作成する
 void CFaults::set_flt_mask(int code) {
 	INT16 imask;
 	for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
@@ -1473,12 +1475,14 @@ void CFaults::set_flt_mask(int code) {
 		if(code & FAULT_HEAVY1)imask	|= flt_list.plc_fault_mask[1][i];
 		if(code & FAULT_HEAVY2)imask	|= flt_list.plc_fault_mask[2][i]; 
 		if(code & FAULT_HEAVY3)imask	|= flt_list.plc_fault_mask[3][i];
-		if (code & FAULT_LIGHT)imask	|= flt_list.plc_fault_mask[4][i];
-		if (code & FAULT_INTERLOCK)imask|= flt_list.plc_fault_mask[5][i];
+		if(code & FAULT_LIGHT)imask		|= flt_list.plc_fault_mask[4][i];
+		if(code & FAULT_INTERLOCK)imask	|= flt_list.plc_fault_mask[5][i];
 		faults_chkmask[i] = imask;
 	}
 	return;
 }
+
+
 int CFaults::set_disp_buf(int code) {
 	set_flt_mask(code);
 	for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
@@ -1487,4 +1491,5 @@ int CFaults::set_disp_buf(int code) {
 	}
 	return 0;
 }
+#endif
  

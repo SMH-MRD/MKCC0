@@ -179,13 +179,20 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 #define OTE_CODE_OPEPLC_AUTO_SEL_GT_PB	0x0020
 #define OTE_CODE_OPEPLC_AUTO_SEL_AH_PB	0x0040
 
+#define OTE_CODE_OPEPLC_INFO_SHEAT_IL	0x0001	//着座IL条件
+
+#define OTE_CODE_OPEPLC_SET_SHEAT_IL	0x0001	//着座ILBypass
+
+
 typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   plc_healthy;							// D10600: PLCヘルシーカウンタ
 	INT16   plc_status;								// D10601: PLC運転モード
 	INT16   auto_sw;								// D10602: 運転室PLC→電気室PLC W出力
 	INT16   got_command;							// D10603: GOTモード
 	INT16   got_crane_selected;						// D10604: GOT Crane
-	INT16  spare0[5];								// D10605:
+	INT16   plc_info;								// D10605:
+	INT16   plc_setting;							// D10606:
+	INT16   spare0[3];								// D10607:
 	INT16	ai_sl_foot;								// D10610:
 	INT16	ai_spare[3];							// D10611:
 	INT16	xin[10];								// D10614-23:

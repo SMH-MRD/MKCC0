@@ -1054,6 +1054,14 @@ static HWND hFltListView = NULL;
 static wostringstream wos_flt;
 static HIMAGELIST hImageList;
 
+/// <summary>
+/// 指定した故障コードに基づいて、指定の ListView 行に故障コード文字列と故障項目のテキストを設定します。
+/// コードの範囲により RPC / PC / PLC を判別し、表示用オフセットや配列参照を行います。
+/// 符号が負の場合はアイコンを切り替え、範囲外の場合は何も変更せずに戻ります。
+/// </summary>
+/// <param name="hlv">操作対象の ListView コントロールの HWND ハンドル。</param>
+/// <param name="code">故障コード。値の範囲により RPC/PC/PLC を判別し、符号が負の場合はアイコンフラグとして扱われます。</param>
+/// <param name="i">ListView の行インデックス（設定先のアイテム位置）。</param>
 void CSubPanelWindow::SetFltToListView(HWND hlv, int code, int i) {
 	int icon = 0;
 	int i_flist=0;
@@ -1326,13 +1334,12 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			)break; 
 
 		int fltcode = 0;
-		int ncc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count
-			+ pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count;
+		int ncc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count;
 		int nplc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count;
-		int n = ncc + pCsInf->rpc_flt_count;
+		int nflt = ncc + nplc + pCsInf->rpc_flt_count;
 		
-		if ((n == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
-		else if ((n < 0) || (n > (N_OTE_PC_SET_PLC_FLT+ N_OTE_PC_SET_PC_FLT))) {	//項目数異常時はクリア
+		if ((nflt == flt_cnt_hold)&&!(pPanelBase->psubobjs->flt_req_code & FAULT_HISTORY));		//項目数が同じ場合は何もしない
+		else if ((nflt < 0) || (nflt > (N_OTE_PC_SET_PLC_FLT+ N_OTE_PC_SET_PC_FLT))) {				//項目数異常時はクリア
 			for (int i = 0; i < flt_cnt_hold; i++) ClearFltListView(hFltListView, false, i);
 		}
 		else{
@@ -1350,21 +1357,21 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			//RPC故障 OTE側分はPC故障要求がある時のみ表示
 			if (pPanelBase->psubobjs->flt_req_code & FAULT_PC_CTRL) {
 				for (int i = 0; i < pCsInf->rpc_flt_count; i++, index++) {
+					if (i > 15) break; //RPC故障は最大16件まで表示
 					fltcode = pCsInf->rpc_flt_codes[i];
 					SetFltToListView(hFltListView, fltcode, index);
 				}
 			}
 
-
-			if (n < flt_cnt_hold) {
-				//for (int i = n-1; i < flt_cnt_hold; i++) {
-				for (int i = n; i < flt_cnt_hold; i++) {
+			//前回表示より項目数が減っている場合、残り行をクリア
+			if (nflt < flt_cnt_hold) {
+				for (int i = nflt; i < flt_cnt_hold; i++) {
 					ClearFltListView(hFltListView, false, i);
 				}
 			}
 		}
 	
-		flt_cnt_hold = n;
+		flt_cnt_hold = nflt;
 
 
 		//### 背景色更新チェック

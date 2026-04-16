@@ -105,8 +105,8 @@ public:
 	UINT16 faults_work[N_PLC_FAULT_BUF];			//作業用フォルトビット列
 	UINT16 faults_chkmask[N_PLC_FAULT_BUF];			//チェック用マスクビット列
 
-	void set_flt_mask(int code);//フォルトチェックマスクセット
-	int set_disp_buf(int code);//表示用フォルトビット列セット
+	//void set_flt_mask(int code);//フォルトチェックマスクセット
+	//int set_disp_buf(int code);//表示用フォルトビット列セット
 
 };
 
@@ -157,6 +157,10 @@ public:
 #define FLTS_MASK_ERR_OTE_CAM_TM_OVER	0x0001
 #define FLTS_ID_IL_CTRL_CC_COM_DELAY	2		//制御信号通信遅延大
 #define FLTS_MASK_IL_CTRL_CC_COM_DELAY	0x0002
+#define FLTS_ID_IL_SEAT_SWITCH			2		//着座スイッチIL
+#define FLTS_MASK_IL_SEAT_SWITCH		0x0004
+#define FLTS_ID_IL_USER_ID_CHECK		2		//ユーザIDチェック
+#define FLTS_MASK_IL_SEAT_SWITCH		0x0008
 
 #define FLTS_LEVEL_IL_CTRL_CC_COM_DELAY	500		//制御信号通信遅延大判定値msec
 #define FLTS_LEVEL_IL_VIDEO_DELAY		1000	//映像遅延大判定値msec

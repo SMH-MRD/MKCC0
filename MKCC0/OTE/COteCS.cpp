@@ -433,6 +433,7 @@ int COteCS::input(){
 	if((pOteCsInf->ote_error & FLTS_MASK_ERR_CPC_RPC_COMM)||
 		(pOteCsInf->ote_interlock & FLTS_MASK_IL_CTRL_CC_COM_DELAY)||
 		(pOteCsInf->ote_error & FLTS_MASK_ERR_RPC_ESTP)||
+		(pOteCsInf->ote_interlock & FLTS_MASK_IL_SEAT_SWITCH) ||
 		(flg_0notch_hold == L_ON)
 		)
 	{
@@ -442,9 +443,6 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = 0;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = 0;
 	}
-
-
-
 	return S_OK;
 }
 
@@ -460,11 +458,9 @@ int COteCS::parse()
 		if (ope_plc_cnt == ((LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read)->plc_healthy) {//前回値から変化なし
 			ope_plc_chk_cnt++;
 			if(ope_plc_chk_cnt > 40) {					//PLC通信異常
-				pOteCsInf->ope_plc_stat = L_OFF;
+				pOteCsInf->ope_plc_stat = L_OFF;						//遠隔操作卓PLC無効
 				pOteCsInf->ote_error |= FLTS_MASK_ERR_RPC_RPLC_COMM;
-
 			}
-			
 		}
 		else {//PLC通信正常
 			pOteCsInf->ope_plc_stat = L_ON;
@@ -491,7 +487,9 @@ int COteCS::parse()
 		}
 
 		pOteCsInf->rpc_flt_count = 0;
-		for (int j = 0; j < 16; j++) {
+
+		//## OTE エラーコードセット
+		for (int j = 0; j < OTE_PC_FLT_DETECT_MAX; j++) {
 			if (pOteCsInf->rpc_flt_count >= OTE_PC_FLT_DETECT_MAX) break;	//表示故障数上限
 
 			if (pOteCsInf->ote_error & (1 << j)) {	//検出ありの時
@@ -517,8 +515,22 @@ int COteCS::parse()
 		else {
 			pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
 		}
+		//# 着座Interlock
+		if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)&& !(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_GPAD)) {
+			if (pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_SHEAT_IL) {
+				pOteCsInf->ote_interlock |= FLTS_ID_IL_SEAT_SWITCH;
+				flg_0notch_hold = L_ON;
+			}
+			else {
+				pOteCsInf->ote_interlock &= ~FLTS_ID_IL_SEAT_SWITCH;
+			}
+		}
+		else {
+			pOteCsInf->ote_interlock &= ~FLTS_ID_IL_SEAT_SWITCH;
+		}
 
-		for (int j = 0; j < 16; j++) {
+		//## OTE エラーコードセット
+		for (int j = 0; j < OTE_PC_FLT_DETECT_MAX; j++) {
 			if (pOteCsInf->rpc_flt_count >= OTE_PC_FLT_DETECT_MAX) break;	//表示故障数上限
 
 			if (pOteCsInf->ote_interlock & (1 << j)) {	//検出ありの時
@@ -636,15 +648,15 @@ int COteCS::output() {
 	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::alm_lamp].code)	plc_yo_buf |= 0x0200;
 	//運転準備完了ランプ
 	if (pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code)	plc_yo_buf |= 0x0800;
-	//ブザー
-	INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].code;
 	plc_yo_buf &= 0x0FFF;
+	//ブザー
+	INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].code;//運転室　Y70-Y7F
 	if (bz_code) {
-		if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//故障
+		if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//故障警報ブザー
 		else if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//重故障
 		else if (bz_code & 0x0002)plc_yo_buf |= 0x2000;	//主幹投入
-		else if (bz_code & 0x0004)plc_yo_buf |= 0x4000;	//渋滞
-		else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//軽故障
+		else if (bz_code & 0x0004)plc_yo_buf |= 0x4000;	//故障PL
+		else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//運転準備完了
 		else;
 	}
 	//デバッグ用　opepanのMode1スイッチでFunc1のチェックBOX1のトリガでEDIT BOXにセットしたビットのみ強制出力
@@ -683,7 +695,7 @@ int COteCS::output() {
 	pPcWBuf->sl_brk_fb4 = pBody->sl_brk_fb[3];				//旋回ブレーキFB4
 	
 	
-	//##GOT故障監視
+	//##GOT故障監視（故障コードバッファにセット）
 	LPST_OTE_PC_FLTS_SET pFltSet = (LPST_OTE_PC_FLTS_SET)&pBody->faults_set;
 
 	int index = 0,nflt=0;
@@ -702,7 +714,9 @@ int COteCS::output() {
 			((LPST_PLC_WBUF_HHGG38)	pOteCsInf->buf_opepnl_write)->fault_code[index] = pFltSet->codes_pc[i] + 300;
 	}
 	//遠隔PC フォルト
-	for (int i = 0; i < pOteCsInf->rpc_flt_count; i++, index++) {
+	nflt = pOteCsInf->rpc_flt_count;
+	if (nflt + index >= N_OTE_OPE_PLC_FAULT_BUF) nflt = N_OTE_OPE_PLC_FAULT_BUF - index;
+	for (int i = 0; i < nflt; i++, index++) {
 		((LPST_PLC_WBUF_HHGG38)pOteCsInf->buf_opepnl_write)->fault_code[index] = pOteCsInf->rpc_flt_codes[i];
 	}
 

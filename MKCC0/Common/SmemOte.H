@@ -114,7 +114,8 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_OPE_GOT_COM_CONNECT_CRANE	0x00000001	//GOTクレーン接続コマンド
 #define OTE_OPE_GOT_COM_RELEASE_CRANE	0x00000002	//GOTクレーン解放コマンド
 
-#define OTE_PC_FLT_DETECT_MAX			15
+#define OTE_PC_FLT_DETECT_MAX			16
+#define OTE_PC_IL_DETECT_MAX			16
 
 #define OTE_CS_CODE_OPEPNL_PC			0	//制御PC端末
 #define OTE_CS_CODE_OPEPNL_LOCAL		1	//機側端末
@@ -137,7 +138,7 @@ typedef struct _ST_OTE_CS_INF {
 	INT16 ote_error;								//OTEのエラーコード
 	INT32 ote_interlock;							//OTEのインターロックコード
 	INT32 GOT_crane_select;							//GOTのクレーン選択状態
-	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ+2];		//PLCからの読み取り信号生値
+	INT16 buf_opepnl_read[OTE_MC_SIZE_W_READ+2];	//PLCからの読み取り信号生値
 	INT16 buf_opepnl_write[OTE_MC_SIZE_W_WRITE];	//PLCへの書き込み信号生値
 	INT16 pnl_ctrl[N_OTE_PNL_CTRL];					//操作卓入力仕分け
 	INT16 rpc_flt_codes[OTE_PC_FLT_DETECT_MAX];		//操作卓故障検出バッファ

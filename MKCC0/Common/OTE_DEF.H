@@ -211,15 +211,15 @@ typedef struct _ST_GPAD_IN {
 
 }ST_GPAD_IN, * LPST_GPAD_IN;
 
-#define CODE_OTE_FLT_SEL_HEAVY1		BIT1	//重故障1	
-#define CODE_OTE_FLT_SEL_HEAVY2		BIT2	//重故障2
-#define CODE_OTE_FLT_SEL_HEAVY3		BIT3	//重故障3
-#define CODE_OTE_FLT_SEL_LIGHT		BIT4	//軽故障
-#define CODE_OTE_FLT_SEL_IL			BIT5	//INTER_LOCK
-#define CODE_OTE_FLT_INF_TRIG		BIT8	//PCからトリガ通知
-#define CODE_OTE_FLT_REQ_REFRESH	BIT8	//OTEからリスト更新要求（トリガクリア,表示選択変更時）
+#define CODE_OTE_FLT_SEL_HEAVY1		BIT1		//重故障1	
+#define CODE_OTE_FLT_SEL_HEAVY2		BIT2		//重故障2
+#define CODE_OTE_FLT_SEL_HEAVY3		BIT3		//重故障3
+#define CODE_OTE_FLT_SEL_LIGHT		BIT4		//軽故障
+#define CODE_OTE_FLT_SEL_IL			BIT5		//INTER_LOCK
+#define CODE_OTE_FLT_INF_TRIG		BIT8		//PCからトリガ通知
+#define CODE_OTE_FLT_REQ_REFRESH	BIT8		//OTEからリスト更新要求（トリガクリア,表示選択変更時）
 
-#define N_OTE_OPEPNL_XIN			10		//重故障1	
+#define N_OTE_OPEPNL_XIN			10			//重故障1	
 
 typedef struct OteUBody {
 	INT16		ope_mode;						//操作モード（自動/手動/ビギナー）
