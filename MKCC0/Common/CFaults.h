@@ -160,7 +160,7 @@ public:
 #define FLTS_ID_IL_SEAT_SWITCH			2		//着座スイッチIL
 #define FLTS_MASK_IL_SEAT_SWITCH		0x0004
 #define FLTS_ID_IL_USER_ID_CHECK		2		//ユーザIDチェック
-#define FLTS_MASK_IL_SEAT_SWITCH		0x0008
+#define FLTS_MASK_IL_USER_ID_CHECK		0x0008
 
 #define FLTS_LEVEL_IL_CTRL_CC_COM_DELAY	500		//制御信号通信遅延大判定値msec
 #define FLTS_LEVEL_IL_VIDEO_DELAY		1000	//映像遅延大判定値msec
