@@ -1334,7 +1334,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 			)break; 
 
 		int fltcode = 0;
-		int ncc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count;
+		int ncc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_pc_count;
 		int nplc = pCcIf->st_msg_pc_u_rcv.body.st.faults_set.set_plc_count;
 		int nflt = ncc + nplc + pCsInf->rpc_flt_count;
 		
