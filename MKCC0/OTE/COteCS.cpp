@@ -447,6 +447,7 @@ int COteCS::input(){
 }
 
 static INT16 ope_plc_cnt;
+static INT16 rpc_flt_count_last=20,rpc_flt_buzzer=0;
 static UINT16 ope_plc_chk_cnt=0,remote_req_time_count = 0;
 static INT16 pnl_ctrl_last[N_OTE_PNL_CTRL];
 //#### モード,指令値設定　
@@ -486,18 +487,6 @@ int COteCS::parse()
 			pOteCsInf->ote_error &= ~FLTS_MASK_ERR_RPC_ESTP;
 		}
 
-		pOteCsInf->rpc_flt_count = 0;
-
-		//## OTE エラーコードセット
-		for (int j = 0; j < OTE_PC_FLT_DETECT_MAX; j++) {
-			if (pOteCsInf->rpc_flt_count >= OTE_PC_FLT_DETECT_MAX) break;	//表示故障数上限
-
-			if (pOteCsInf->ote_error & (1 << j)) {	//検出ありの時
-				pOteCsInf->rpc_flt_codes[pOteCsInf->rpc_flt_count] = 850 + j;
-				pOteCsInf->rpc_flt_count++;	//PC故障数カウントアップ
-			}
-		}
-
 		//## OTE インターロックチェック
 		
 		//# 映像遅延過大
@@ -530,6 +519,18 @@ int COteCS::parse()
 		}
 
 		//## OTE エラーコードセット
+
+		pOteCsInf->rpc_flt_count = 0;
+
+		for (int j = 0; j < OTE_PC_FLT_DETECT_MAX; j++) {
+			if (pOteCsInf->rpc_flt_count >= OTE_PC_FLT_DETECT_MAX) break;	//表示故障数上限
+
+			if (pOteCsInf->ote_error & (1 << j)) {	//検出ありの時
+				pOteCsInf->rpc_flt_codes[pOteCsInf->rpc_flt_count] = 850 + j;
+				pOteCsInf->rpc_flt_count++;	//PC故障数カウントアップ
+			}
+		}
+
 		for (int j = 0; j < OTE_PC_FLT_DETECT_MAX; j++) {
 			if (pOteCsInf->rpc_flt_count >= OTE_PC_FLT_DETECT_MAX) break;	//表示故障数上限
 
@@ -538,6 +539,23 @@ int COteCS::parse()
 				pOteCsInf->rpc_flt_count++;	//PC故障数カウントアップ
 			}
 		}
+	
+		//PC故障数が前回から増えたらブザーを鳴らす
+		if (rpc_flt_count_last < pOteCsInf->rpc_flt_count) {
+			//ブザーON
+			rpc_flt_buzzer = 30;
+		}
+		else {
+			//ブザータイマー減算
+			if (rpc_flt_buzzer > 0) {
+				rpc_flt_buzzer--;
+			}
+			else {
+				rpc_flt_buzzer = 0;
+			}
+		}
+		rpc_flt_count_last = pOteCsInf->rpc_flt_count;
+	
 	}
 	
 	//### モード設定
@@ -654,8 +672,9 @@ int COteCS::output() {
 	if (bz_code) {
 		if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//故障警報ブザー
 		else if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//重故障
-		else if (bz_code & 0x0002)plc_yo_buf |= 0x2000;	//主幹投入
-		else if (bz_code & 0x0004)plc_yo_buf |= 0x4000;	//故障PL
+		else if (bz_code & 0x0002)plc_yo_buf |= 0x2000;	//主幹投入　走行警報
+		else if ((bz_code & 0x0004) || rpc_flt_buzzer)
+			plc_yo_buf |= 0x4000;	//故障PL　OTE故障ブザー
 		else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//運転準備完了
 		else;
 	}
