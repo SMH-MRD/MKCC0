@@ -1365,7 +1365,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 
 			//前回表示より項目数が減っている場合、残り行をクリア
 			if (nflt < flt_cnt_hold) {
-				for (int i = nflt; i < flt_cnt_hold; i++) {
+				for (int i = nflt; i <= flt_cnt_hold; i++) {
 					ClearFltListView(hFltListView, false, i);
 				}
 			}

@@ -518,11 +518,11 @@ int COteCS::parse()
 		//# ’…ÀInterlock
 		if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)&& !(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_GPAD)) {
 			if (pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_SHEAT_IL) {
-				pOteCsInf->ote_interlock |= FLTS_ID_IL_SEAT_SWITCH;
+				pOteCsInf->ote_interlock |= FLTS_MASK_IL_SEAT_SWITCH;
 				flg_0notch_hold = L_ON;
 			}
 			else {
-				pOteCsInf->ote_interlock &= ~FLTS_ID_IL_SEAT_SWITCH;
+				pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_SEAT_SWITCH;
 			}
 		}
 		else {
