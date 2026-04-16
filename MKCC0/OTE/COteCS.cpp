@@ -545,15 +545,6 @@ int COteCS::parse()
 			//ブザーON
 			rpc_flt_buzzer = 30;
 		}
-		else {
-			//ブザータイマー減算
-			if (rpc_flt_buzzer > 0) {
-				rpc_flt_buzzer--;
-			}
-			else {
-				rpc_flt_buzzer = 0;
-			}
-		}
 		rpc_flt_count_last = pOteCsInf->rpc_flt_count;
 	
 	}
@@ -669,7 +660,7 @@ int COteCS::output() {
 	plc_yo_buf &= 0x0FFF;
 	//ブザー
 	INT16 bz_code = (INT16)pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::buzzer].code;//運転室　Y70-Y7F
-	if (bz_code) {
+	if ((bz_code|| rpc_flt_buzzer)) {
 		if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//故障警報ブザー
 		else if (bz_code & 0x0001)plc_yo_buf |= 0x1000;	//重故障
 		else if (bz_code & 0x0002)plc_yo_buf |= 0x2000;	//主幹投入　走行警報
@@ -677,6 +668,14 @@ int COteCS::output() {
 			plc_yo_buf |= 0x4000;	//故障PL　OTE故障ブザー
 		else if (bz_code & 0x0008)plc_yo_buf |= 0x8000;	//運転準備完了
 		else;
+
+		//ブザータイマー減算
+		if (rpc_flt_buzzer > 0) {
+			rpc_flt_buzzer--;
+		}
+		else {
+			rpc_flt_buzzer = 0;
+		}
 	}
 	//デバッグ用　opepanのMode1スイッチでFunc1のチェックBOX1のトリガでEDIT BOXにセットしたビットのみ強制出力
 	if (inf.mode_id == MODE_OTE_CS_APP_DEBUG) {
