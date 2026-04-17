@@ -251,8 +251,15 @@ int COteCS::input(){
 		//非常停止
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]			= (pin_opepnl->xin[4] & 0x0020);
 	
-		//旋回フットブレーキ(0-15)
+		//旋回ブレーキフットスイッチ(0-15)
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	= pin_opepnl->ai_sl_foot;
+		//旋回HWブレーキスイッチ		
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_hw_brk]	= (pin_opepnl->sl_brk_com & 0x0001);
+		//旋回ブレーキパークスイッチ		
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_hw_brk] = (pin_opepnl->sl_brk_com & 0x0004);
+		//旋回ブレーキリセットスイッチ
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_reset] = (pin_opepnl->sl_brk_com & 0x0002);
+
 
 		//モメンタリスイッチ （ハードSW）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pin_opepnl->xin[1] & 0x0200;
@@ -293,7 +300,7 @@ int COteCS::input(){
 		//CS
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]		= pin_opepnl->mh_mode_cs;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pin_opepnl->bh_mode_cs;
-		//旋回ブレーキ
+		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pin_opepnl->notch_L1;
 	
 	}
@@ -409,12 +416,18 @@ int COteCS::input(){
 	//フットペダル値 0-15に補正
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		< 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 0;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		> 15)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 15;
+#if 0
 	//補助ノッチ値により、ブレーキ指令付加
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	==  1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_HW_BRK;	//HWブレーキ
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	==  2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_PARKING;	//サイドブレーキ
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_RESET;		//リセット
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_CHK;		//機能チェック
-
+#else
+	//GOTタッチスイッチにより、ブレーキ指令付加
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_hw_brk] )	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] |= AUX_SLBRK_COM_HW_BRK;	//HWブレーキ
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_park])	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] |= AUX_SLBRK_COM_PARKING;	//サイドブレーキ
+	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_reset] )	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] |= AUX_SLBRK_COM_RESET;		//リセット
+#endif
 
 	//## 操作指令インターロック
 	if (flg_0notch_hold == L_ON)

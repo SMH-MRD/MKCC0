@@ -181,7 +181,10 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 
 #define OTE_CODE_OPEPLC_INFO_SHEAT_IL	0x0001	//着座IL条件
 
-#define OTE_CODE_OPEPLC_SET_SHEAT_IL	0x0001	//着座ILBypass
+#define OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS		0x0001	//着座ILBypass
+#define OTE_CODE_OPEPLC_SET_TOUCH_PB_ACTIVE		0x0002	//タッチPB表示
+#define OTE_CODE_OPEPLC_SET_CTRL_IL_BYPASS		0x0004	//制御遅延ILBypass
+#define OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS		0x0008	//映像遅延ILBypass
 
 
 typedef struct _ST_PLC_RBUF_HHGG38 {
@@ -192,7 +195,8 @@ typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   got_crane_selected;						// D10604: GOT Crane
 	INT16   plc_info;								// D10605:
 	INT16   plc_setting;							// D10606:
-	INT16   spare0[3];								// D10607:
+	INT16   sl_brk_com;								// D10607: 旋回ブレーキ制御
+	INT16   spare0[2];								// D10608:
 	INT16	ai_sl_foot;								// D10610:
 	INT16	ai_spare[3];							// D10611:
 	INT16	xin[10];								// D10614-23:

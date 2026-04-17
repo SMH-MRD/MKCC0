@@ -51,15 +51,19 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	camB_adjust,
 	camAselect,
 	camBselect,
-	buzzer,			//ブザー
-	main_power,		//動力確立ランプ
-	sl_auto_gr,		//自動給脂ランプ
-	ope_ready,		//運転準備完了ランプ
-	alm_lamp,		//警報ランプ
-	fault_lamp,		//故障ランプ
-	sl_brk,			//旋回ブレーキペダル
-	pcpnl_active,	//PCパネル有効
-
+	buzzer,				//ブザー
+	main_power,			//動力確立ランプ
+	sl_auto_gr,			//自動給脂ランプ
+	ope_ready,			//運転準備完了ランプ
+	alm_lamp,			//警報ランプ
+	fault_lamp,			//故障ランプ
+	sl_brk,				//旋回ブレーキペダル
+	pcpnl_active,		//PCパネル有効
+	plc_inf,			//PLC側情報(着座IL条件成立等
+	plc_setting,		//PLCの設定状態　ILバイパス等
+	sl_brk_hw_brk,		//旋回ブレーキHW brk
+	sl_brk_reset,		//旋回ブレーキリセット入力
+	sl_brk_park,		//旋回ブレーキパーキング
 	MAX
 };
 
