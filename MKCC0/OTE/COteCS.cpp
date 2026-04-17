@@ -256,7 +256,7 @@ int COteCS::input(){
 		//旋回HWブレーキスイッチ		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_hw_brk]	= (pin_opepnl->sl_brk_com & 0x0001);
 		//旋回ブレーキパークスイッチ		
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_hw_brk] = (pin_opepnl->sl_brk_com & 0x0004);
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_park] = (pin_opepnl->sl_brk_com & 0x0004);
 		//旋回ブレーキリセットスイッチ
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_reset] = (pin_opepnl->sl_brk_com & 0x0002);
 
