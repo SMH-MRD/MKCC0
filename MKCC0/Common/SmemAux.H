@@ -19,8 +19,7 @@ using namespace std;
 
 #define AUX_SLBRK_COM_HW_BRK			BIT4	//HaerWare Brake
 #define AUX_SLBRK_COM_RESET				BIT5	//Reset
-#define AUX_SLBRK_COM_PARKING			BIT6	//Reset
-//#define AUX_SLBRK_COM_FREE				BIT7	//Auto Select Mode
+#define AUX_SLBRK_COM_PARKING			BIT6	//parking brake
 #define AUX_SLBRK_COM_CHK				BIT7	//Auto Select Mode
 
 typedef struct _ST_AUX_ENV_INF {

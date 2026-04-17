@@ -244,6 +244,7 @@ int CAuxAgent::output() {          //出力処理
 
 	//### 旋回ブレーキシステムへ出力
 	if (!st_mon2.slbrk_dbg_mode) {
+		pAgent_Inf->slbrk_wbuf[0] = 0;
 		pAgent_Inf->slbrk_wbuf[0] = 
 		pCS_Inf->com_slbrk.pc_com_brk_level	|
 		pCS_Inf->com_slbrk.pc_com_autosel	|

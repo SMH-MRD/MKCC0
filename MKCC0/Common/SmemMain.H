@@ -391,10 +391,9 @@ typedef struct _ST_JOB_IO {
 
 //## Policy定義構造体
 #pragma region POLICY
-#define FAULT_MAP_W_SIZE	64	//フォルトマップサイズ
 typedef struct _ST_CC_POL_INF {
 
-	WORD pc_fault_map[N_PC_FAULT_BUF];
+	WORD pc_fault_map[N_PC_FAULT_BUF];//PC検出故障マップ
 
 }ST_CC_POL_INF, * LPST_CC_POL_INF;
 #pragma endregion Policy情報定義構造体
@@ -428,7 +427,7 @@ typedef struct _ST_CC_POL_INF {
 #define AG_MODE_SLBK_CHECK_STANDBY		0x000000001
 #define AG_MODE_SLBK_CHECK_RUNNING		0x000000002
 #define AG_MODE_SLBK_CHECK_FIN			0x000000004
-#define AG_MODE_SLBK_SIDE_BRK			0x000000008
+#define AG_MODE_SLBK_PARK_BRK			0x000000008
 #define AG_MODE_SLBK_DBG				0x000000080
 
 typedef struct _ST_CC_AXIS_CTRL {
