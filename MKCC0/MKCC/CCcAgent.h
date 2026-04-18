@@ -124,7 +124,7 @@ typedef struct _ST_AGENT_MON2 {
 
 
 #define AGENT_PRM_SLBK_CHK_COUNT_STANDBY   20   //スレーブブレーキチェックシーケンスカウント値　400msec
-#define AGENT_PRM_SLBK_CHK_COUNT_RUNNING   500  //スレーブブレーキチェックシーケンスカウント値　10sec
+#define AGENT_PRM_SLBK_CHK_COUNT_RUNNING   200  //スレーブブレーキチェックシーケンスカウント値　6sec
 
 
 class CAgent : public CBasicControl

@@ -187,8 +187,10 @@ pPanelBase->pgwinobjs->str_pos_mouse->update(wo.str().c_str());	// É}ÉEÉXà íuèëÇ
 wo.str(L""); wo << L"SLBK MODEÅF " << std::fixed << std::setprecision(1);
 if(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_NORMAL) wo << L"í èÌ";
 else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_CHECK_RUNNING)||(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 2))wo << L"CHECKING";
-else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_OPT_CTRL_FIN))wo << L"OPT FIN";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_OPT_CHK_FIN))wo << L"CHECKäÆóπ";
 else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_PARK_BRK))wo << L"PARKING...";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_CHECK_STANDBY))wo << L"CHECKäJén";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_OPT_PARK_FIN))wo << L"PARKäÆóπ";
 else wo << L"UNKNOWN";
 
 pPanelBase->pgwinobjs->str_slbk_mode->update(wo.str().c_str());	// éÂä™à íuèëÇ´çûÇ›

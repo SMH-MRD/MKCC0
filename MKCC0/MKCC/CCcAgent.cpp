@@ -133,7 +133,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}
 
 	//旋回ブレーキモード
-	st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CTRL_FIN;
+	st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CHK_FIN;
 	st_work.slew_brake_chk_enable = L_OFF;
 	
 	//###  オペレーションパネル設定
@@ -474,11 +474,11 @@ int CAgent::close() {
 	return 0;
 }
 
-static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0;
+static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0, slblk_level_fb=0;
 
 int CAgent::manage_slbrk() {
 
-	INT16 slblk_level_fb = (pAUX_CS_Inf->fb_slbrk.brk_fb_rbsl_pos + 100)/9000;//旋回ブレーキ制御シリンダ位置レベル判定値
+	slblk_level_fb = (pAUX_CS_Inf->fb_slbrk.brk_fb_rbsl_pos + 100)/600;//旋回ブレーキ制御シリンダ位置レベル判定値
 
 	//### 旋回ブレーキ制御
 	//PLCリモートモードのときAuto有効
@@ -495,20 +495,20 @@ int CAgent::manage_slbrk() {
 	if (pCS_Inf->cs_ctrl.ope_pnl_status == CC_CS_CODE_OPEPNL_ACTIVE) {		//遠隔操作端末有効時
 
 		//リセット指令時		
-		if(pAUX_CS_Inf->com_slbrk.pc_com_reset){
+		if((pAUX_CS_Inf->com_slbrk.pc_com_reset)||(pPLC_IO->stat_sl.v_ref)){
 			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 			st_work.slew_brake_chk_enable = L_OFF;
 		}
 		//パーキングブレーキ指令中
-		else if (pOteCtrl[OTE_PNL_CTRLS::sl_brk_park] & AUX_SLBRK_COM_PARKING) {
+		else if (pOteCtrl[OTE_PNL_CTRLS::sl_brk_park]) {
 			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_PARK_BRK;
 			st_work.slew_brake_chk_enable = L_OFF;
 
 			//パーキングモード解除条件
 			if ((slblk_level_fb >= 15)&&(pAUX_CS_Inf->fb_slbrk.brk_fb_hw_brk)) {
-				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CTRL_FIN;
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_PARK_FIN;
 			}
-			else if (!(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_PARKING)) {
+			else if (!(pOteCtrl[OTE_PNL_CTRLS::sl_brk_park] )) {
 				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 			}
 			else;
@@ -535,7 +535,7 @@ int CAgent::manage_slbrk() {
 			else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_RUNNING) {	//チェックシーケンス実行中
 				slblk_chk_cnt--;
 				if (slblk_chk_cnt < 0) {
-					st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CTRL_FIN;
+					st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CHK_FIN;
 
 					//チェック異常判定　ブレーキのFBレベルが15未満、またはFBレベルが15以上でも空振り検出の場合は異常とする
 					if ((pAUX_CS_Inf->fb_slbrk.brk_fb_level < 15) || (pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_KARABURI] & FLTS_MASK_ERR_SLBRK_KARABURI)) {
@@ -543,7 +543,7 @@ int CAgent::manage_slbrk() {
 					}
 				}
 			}
-			else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_CTRL_FIN) {//チェックシーケンス完了時
+			else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_CHK_FIN) {//チェックシーケンス完了時
 				if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F) {//遠隔操作卓ペダル入力有で解除
 					st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 				}
@@ -563,8 +563,7 @@ int CAgent::manage_slbrk() {
 	//### 旋回ブレーキ制御出力設定
 	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
 
-		if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_PARKING) {	//サイドブレーキ指令
-			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_PARK_BRK;
+		if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_PARK_BRK) {	//サイドブレーキ指令
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
 			//フィードバックレベルが15以上でブレーキアクチュエータが移動中で無い時　ハードウェアブレーキ指令ON
 			if ((slblk_level_fb>=15) && !(pAUX_CS_Inf->fb_slbrk.d20 & 0x0004)) {
@@ -582,12 +581,14 @@ int CAgent::manage_slbrk() {
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
 			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
 		}
-		else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_PARK_BRK) {
-			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
-
-			if (slblk_level_fb >= 15) {
-				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
-			}
+		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_CHK_FIN) {	//通常指令
+			//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
+			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
+		}
+		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_PARK_FIN) {	//通常指令
+			//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
+			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
 		}
 		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL) {	//通常指令
 			//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
@@ -595,7 +596,7 @@ int CAgent::manage_slbrk() {
 			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
 			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
 		}
-		else;//AG_MODE_SLBK_OPT_CTRL_FIN
+		else;//AG_MODE_SLBK_OPT_CHK_FIN
 			//pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0;//ハードウェアブレーキ指令解除
 	}
 	else {
