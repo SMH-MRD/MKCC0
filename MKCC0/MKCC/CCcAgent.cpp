@@ -133,7 +133,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}
 
 	//旋回ブレーキモード
-	st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
+	st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CTRL_FIN;
 	st_work.slew_brake_chk_enable = L_OFF;
 	
 	//###  オペレーションパネル設定
@@ -475,7 +475,10 @@ int CAgent::close() {
 }
 
 static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0;
+
 int CAgent::manage_slbrk() {
+
+	INT16 slblk_level_fb = (pAUX_CS_Inf->fb_slbrk.brk_fb_rbsl_pos + 100)/9000;//旋回ブレーキ制御シリンダ位置レベル判定値
 
 	//### 旋回ブレーキ制御
 	//PLCリモートモードのときAuto有効
@@ -491,14 +494,19 @@ int CAgent::manage_slbrk() {
 	//機能チェックを主幹投入時に実施して機能不全があれば警報発令
 	if (pCS_Inf->cs_ctrl.ope_pnl_status == CC_CS_CODE_OPEPNL_ACTIVE) {		//遠隔操作端末有効時
 
+		//リセット指令時		
+		if(pAUX_CS_Inf->com_slbrk.pc_com_reset){
+			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
+			st_work.slew_brake_chk_enable = L_OFF;
+		}
 		//パーキングブレーキ指令中
-		if (pOteCtrl[OTE_PNL_CTRLS::sl_brk_park] & AUX_SLBRK_COM_PARKING) {
+		else if (pOteCtrl[OTE_PNL_CTRLS::sl_brk_park] & AUX_SLBRK_COM_PARKING) {
 			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_PARK_BRK;
 			st_work.slew_brake_chk_enable = L_OFF;
 
 			//パーキングモード解除条件
-			if ((pAUX_CS_Inf->fb_slbrk.brk_fb_level >= 15)&&(pAUX_CS_Inf->fb_slbrk.brk_fb_hw_brk)) {
-				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
+			if ((slblk_level_fb >= 15)&&(pAUX_CS_Inf->fb_slbrk.brk_fb_hw_brk)) {
+				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CTRL_FIN;
 			}
 			else if (!(pOteCtrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_PARKING)) {
 				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
@@ -527,7 +535,7 @@ int CAgent::manage_slbrk() {
 			else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_RUNNING) {	//チェックシーケンス実行中
 				slblk_chk_cnt--;
 				if (slblk_chk_cnt < 0) {
-					st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_FIN;
+					st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_OPT_CTRL_FIN;
 
 					//チェック異常判定　ブレーキのFBレベルが15未満、またはFBレベルが15以上でも空振り検出の場合は異常とする
 					if ((pAUX_CS_Inf->fb_slbrk.brk_fb_level < 15) || (pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_KARABURI] & FLTS_MASK_ERR_SLBRK_KARABURI)) {
@@ -535,7 +543,7 @@ int CAgent::manage_slbrk() {
 					}
 				}
 			}
-			else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_FIN) {//チェックシーケンス完了時
+			else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_CTRL_FIN) {//チェックシーケンス完了時
 				if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F) {//遠隔操作卓ペダル入力有で解除
 					st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 				}
@@ -559,8 +567,11 @@ int CAgent::manage_slbrk() {
 			st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_PARK_BRK;
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
 			//フィードバックレベルが15以上でブレーキアクチュエータが移動中で無い時　ハードウェアブレーキ指令ON
-			if ((pAUX_CS_Inf->fb_slbrk.brk_fb_level >= 15) && !(pAUX_CS_Inf->fb_slbrk.d20 & 0x0004)) {
+			if ((slblk_level_fb>=15) && !(pAUX_CS_Inf->fb_slbrk.d20 & 0x0004)) {
 				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
+			}
+			else{
+				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
 			}
 		}
 		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_STANDBY) {//ブレーキチェックシーケンススタンバイ
@@ -574,7 +585,7 @@ int CAgent::manage_slbrk() {
 		else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_PARK_BRK) {
 			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
 
-			if (pAUX_CS_Inf->fb_slbrk.brk_fb_level >= 15) {
+			if (slblk_level_fb >= 15) {
 				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
 			}
 		}
@@ -584,7 +595,7 @@ int CAgent::manage_slbrk() {
 			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
 			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
 		}
-		else;//AG_MODE_SLBK_CHECK_FIN
+		else;//AG_MODE_SLBK_OPT_CTRL_FIN
 			//pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0;//ハードウェアブレーキ指令解除
 	}
 	else {
@@ -615,7 +626,7 @@ int CAgent::manage_slbrk() {
 			pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_TMOV] &= ~FLTS_MASK_ERR_SLBRK_TMOV;
 
 		//## 旋回ブレーキ圧力不足
-		if ((pPLC_IO->stat_sl.brake == L_OFF) && (pAUX_CS_Inf->fb_slbrk.brk_fb_level > 14)) {
+		if ((pPLC_IO->stat_sl.brake == L_OFF) && (pAUX_CS_Inf->fb_slbrk.brk_fb_rbsl_pos > 8800)) {//ブレーキ圧力SWがOFFで、ブレーキ位置FBがしきい値以上のときは圧力不足と判定
 			if (slbrk_pressuer_chk > 150) {
 				pPolInf->pc_fault_map[FLTS_ID_WRN_SLBRK_PSWITCH_OFF] |= FLTS_MASK_WRN_SLBRK_PSWITCH_OFF;
 			}

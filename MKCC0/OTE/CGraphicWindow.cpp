@@ -8,6 +8,7 @@
 #include "COteEnv.h"
 #include "CFaults.h"
 #include "phisics.h"
+#include "SmemMain.H"
 
 
 extern vector<CBasicControl*>	VectCtrlObj;
@@ -184,10 +185,10 @@ wo.str(L""); wo << L"("<<mouse_pos_main.X<< L"," << mouse_pos_main.Y <<L") " ;
 pPanelBase->pgwinobjs->str_pos_mouse->update(wo.str().c_str());	// マウス位置書き込み
 
 wo.str(L""); wo << L"SLBK MODE： " << std::fixed << std::setprecision(1);
-if(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 0) wo << L"通常";
-else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 1)||(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 2))wo << L"CHECK";
-else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 4))wo << L"STAND BY";
-else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 8))wo << L"サイドブレーキ";
+if(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_NORMAL) wo << L"通常";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_CHECK_RUNNING)||(pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == 2))wo << L"CHECKING";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_OPT_CTRL_FIN))wo << L"OPT FIN";
+else if ((pCcIf->st_msg_pc_u_rcv.body.st.sl_brk_fb[5] == AG_MODE_SLBK_PARK_BRK))wo << L"PARKING...";
 else wo << L"UNKNOWN";
 
 pPanelBase->pgwinobjs->str_slbk_mode->update(wo.str().c_str());	// 主巻位置書き込み
