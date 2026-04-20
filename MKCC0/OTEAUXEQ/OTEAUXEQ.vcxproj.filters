@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Domain">
+      <UniqueIdentifier>{3de67d46-6c26-4275-850a-bd8308921bf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure">
+      <UniqueIdentifier>{85845a69-d9aa-4eab-a226-2a7dd4e5bae3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Kernel">
+      <UniqueIdentifier>{f2a140ba-9952-4a02-8232-61320ed2f673}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Tasks">
+      <UniqueIdentifier>{28382ba9-4cdd-479e-8e67-29a116009957}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="OTEAUXEQ.h">
+      <Filter>Kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="COteAuxAgent.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="COteAuxCS.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="COteAuxEnv.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="COteAuxPol.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="COteAuxScad.h">
+      <Filter>Domain\Tasks</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="OTEAUXEQ.rc">
+      <Filter>リソース ファイル</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="OTEAUXEQ.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OTEAUXEQ.cpp">
+      <Filter>Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CBasicControl.cpp">
+      <Filter>Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CSharedMem.cpp">
+      <Filter>Infrastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CSock.cpp">
+      <Filter>Infrastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="COteAuxAgent.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COteAuxCS.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COteAuxEnv.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COteAuxPol.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="COteAuxScad.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

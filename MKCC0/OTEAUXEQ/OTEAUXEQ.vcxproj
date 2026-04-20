@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{b6683be5-dcf7-460a-a646-1d03a248cd54}</ProjectGuid>
-    <RootNamespace>OTE</RootNamespace>
+    <ProjectGuid>{896fc191-6e50-4114-af59-9408b495538a}</ProjectGuid>
+    <RootNamespace>OTEAUXEQ</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,22 +70,16 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>CCUILib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;Gdiplus.lib;dinput8.lib;dxguid.lib;iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Lib\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -96,15 +90,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>CCUILib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;Gdiplus.lib;dinput8.lib;dxguid.lib;iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Lib\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,13 +102,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\opencv\build\include;..\Common;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\opencv\build\include;$(STAPI_ROOT_PATH)Include\GenICam\;$(STAPI_ROOT_PATH)Include;$(STAPI_ROOT_PATH)Include\StApi\;..\Common</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Gdiplus.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\opencv\build\x64\vc16\lib;$(STAPI_ROOT_PATH)lib\$(PlatformName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>comctl32.lib;ws2_32.lib;winmm.lib;StAPi_TL_MD_VC141_v1_2.lib;opencv_world4120d.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,73 +120,44 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\opencv\build\include;..\Common;..\inc\spec;..\inc;..\MKCC</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>C:\opencv\build\include;$(STAPI_ROOT_PATH)Include\GenICam\;$(STAPI_ROOT_PATH)Include;$(STAPI_ROOT_PATH)Include\StApi\;..\Common</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Gdiplus.lib;PCIFLib.lib;msimg32.lib;ws2_32.lib;comctl32.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\opencv\build\x64\vc16\lib;$(STAPI_ROOT_PATH)lib\$(PlatformName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>comctl32.lib;ws2_32.lib;winmm.lib;StAPi_TL_MD_VC141_v1_2.lib;opencv_world4120.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CGamePad.h" />
-    <ClInclude Include="CGraphicWindow.h" />
-    <ClInclude Include="COpePanel.H" />
-    <ClInclude Include="COteAgent.h" />
-    <ClInclude Include="COteCS.h" />
-    <ClInclude Include="COteEnv.h" />
-    <ClInclude Include="COtePol.h" />
-    <ClInclude Include="COteScad.h" />
-    <ClInclude Include="CPanelIo.h" />
-    <ClInclude Include="CPanelObj.h" />
-    <ClInclude Include="CPanelWindow.h" />
+    <ClInclude Include="COteAuxAgent.h" />
+    <ClInclude Include="COteAuxCS.h" />
+    <ClInclude Include="COteAuxEnv.h" />
+    <ClInclude Include="COteAuxPol.h" />
+    <ClInclude Include="COteAuxScad.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="OTE.h" />
+    <ClInclude Include="OTEAUXEQ.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\MKCC\CBasicControl.cpp" />
-    <ClCompile Include="..\MKCC\CCrane.cpp" />
-    <ClCompile Include="..\MKCC\CFaults.cpp" />
-    <ClCompile Include="..\MKCC\CHelper.cpp" />
-    <ClCompile Include="..\MKCC\CPlc.cpp" />
-    <ClCompile Include="..\MKCC\CSharedMem.cpp" />
-    <ClCompile Include="..\MKCC\CSpec.cpp" />
-    <ClCompile Include="..\MKCC\CValue.cpp" />
-    <ClCompile Include="CGamePad.cpp" />
-    <ClCompile Include="CGraphicWindow.cpp" />
-    <ClCompile Include="COteAgent.cpp" />
-    <ClCompile Include="COteCS.cpp" />
-    <ClCompile Include="COteEnv.cpp" />
-    <ClCompile Include="COtePol.cpp" />
-    <ClCompile Include="COteScad.cpp" />
-    <ClCompile Include="CPanelIo.cpp" />
-    <ClCompile Include="CPanelObj.cpp" />
-    <ClCompile Include="CPanelWindow.cpp" />
-    <ClCompile Include="OpePanel.cpp" />
-    <ClCompile Include="OTE.cpp" />
+    <ClCompile Include="..\Common\src\CBasicControl.cpp" />
+    <ClCompile Include="..\Common\src\CSharedMem.cpp" />
+    <ClCompile Include="..\Common\src\CSock.cpp" />
+    <ClCompile Include="COteAuxAgent.cpp" />
+    <ClCompile Include="COteAuxCS.cpp" />
+    <ClCompile Include="COteAuxEnv.cpp" />
+    <ClCompile Include="COteAuxPol.cpp" />
+    <ClCompile Include="COteAuxScad.cpp" />
+    <ClCompile Include="OTEAUXEQ.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="OTE.rc" />
+    <ResourceCompile Include="OTEAUXEQ.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Img\agent.bmp" />
-    <Image Include="..\Img\cs.bmp" />
-    <Image Include="..\Img\env.bmp" />
-    <Image Include="..\Img\policy.bmp" />
-    <Image Include="..\Img\scada.bmp" />
-    <Image Include="OTE.ico" />
+    <Image Include="OTEAUXEQ.ico" />
     <Image Include="small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MKCC\MKCC.vcxproj">
-      <Project>{c29d3778-9c15-439c-bf02-c675ec93f1d1}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
