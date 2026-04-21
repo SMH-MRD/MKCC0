@@ -2,6 +2,7 @@
 
 #include "framework.h"
 #include "CBasicControl.h"
+#include "SmemAux.H"
 
 // Include files for using OpenCV.
 #include <opencv2/opencv.hpp>
@@ -152,22 +153,9 @@ typedef struct _AUXPOL_MON2 {
 #define AUXPOL_CODE_IMG_PROC_ACTIVE       0x00000002   //検出実行中
 
 
-typedef struct _ST_AUXPOL_IMG_PROC {
-    // HSV マスク設定値
-    int hl = 0, hh = 10,hCenter=0;
-    int sl = 0, sh = 255,sCenter = 0;
-    int vl = 0, vh = 255, vCenter;
-    int status=0;
-    int target_chk_base_count=0;
-    int roi_cnt_diff = 0;
-	int is_target_detected = L_OFF; 
-    int whiteCountInWorkRoi = 0;
-    int whiteCountInWorkRoi_Last = 0;
-    int whiteCountInCriterionRoi = 0;
-    cv::Mat hsvMat_mask;
-
-} ST_AUXPOL_IMG_PROC, * LPST_AUXPOL_IMG_PROC;
-
+#define AUXPOL_CODE_VIDEO_CHK_ERR		    -1	//映像チェック異常
+#define AUXPOL_CODE_VIDEO_CHK_DETECT_ON	    1	//映像チェックON検出
+#define AUXPOL_CODE_VIDEO_CHK_DETECT_OFF	2	//映像チェックOFF検出
 
 class COteAuxPol : public CBasicControl
 {
@@ -184,7 +172,6 @@ public:
 
     static ST_AUXPOL_MON1 st_mon1;
     static ST_AUXPOL_MON2 st_mon2;
-	static ST_AUXPOL_IMG_PROC st_img_proc;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -204,6 +191,10 @@ public:
     static void UpdateMon2(HWND hWnd, HDC hdc);
     static HRESULT setup_graphics(HWND hwnd);
     static void clear_graphics();
+
+    static LPST_AUXPOL_IMG_PROC pst_img_proc;
+
+    int GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work);
  
 private:
 
@@ -237,10 +228,10 @@ private:
     static std::unique_ptr<Graphics> m_pOffscreenGraphics;
 
     static Graphics* pgraphic_img;	//描画用グラフィックス
-	static cv::Rect rc_mat_roi_work;            //データ処理用ROI
-    static cv::Rect rc_mat_roi_criterion;       //データ処理用ROI
-    static cv::Rect rc_mat_roi_work_disp;       //画面表示用ROI
-    static cv::Rect rc_mat_roi_criterion_disp;  //画面表示用ROI
+	static cv::Rect rc_mat_roi_work;            //画像処理対象範囲ROI（実画像）
+    static cv::Rect rc_mat_roi_criterion;       //検出対象範囲設定ROI（実画像）
+    static cv::Rect rc_mat_roi_work_disp;       //画像処理対象範囲ROI（表示モニタ画像）
+    static cv::Rect rc_mat_roi_criterion_disp;  //検出対象範囲設定ROI（表示モニタ画像）
     static cv::Mat mat_roi_work;
     static cv::Mat mat_criterion;
         
@@ -276,5 +267,6 @@ private:
     static void HSV_autoCalibrate();
     static void UpdateSliderPos();
     static int GetModeBinCenter(const cv::Mat& singleChannelMat, int maxVal, int binWidth);
+	
 };
 

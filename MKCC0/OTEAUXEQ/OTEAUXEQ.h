@@ -35,7 +35,7 @@ namespace OTEAUXEQ
 
 #define AUX_ENV_SCAN_MS			    100
 #define AUX_CS_SCAN_MS				100
-#define AUX_AGENT_SCAN_MS			100
+#define AUX_AGENT_SCAN_MS			20
 #define AUX_POLICY_SCAN_MS			40
 #define AUX_SCADA_SCAN_MS			100
 #define AUX_SIM_SCAN_MS			    100

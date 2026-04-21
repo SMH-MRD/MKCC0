@@ -1,5 +1,6 @@
 ﻿
 #include "COteAuxAgent.h"
+#include "COteAuxPol.h"
 #include "resource.h"
 #include "CSHAREDMEM.H"
 #include "SmemAux.H"
@@ -32,6 +33,7 @@ extern BC_TASK_ID st_task_id;
 extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
 
 static COteAuxAgent* pAgentObj;
+static COteAuxPol* pPolObj;
 
 //共有メモリ
 static LPST_OTE_AUX_ENV_INF		pEnvInf = NULL;
@@ -80,19 +82,9 @@ HRESULT COteAuxAgent::initialize(LPVOID lpParam){
 	pPolInf = (LPST_OTE_AUX_POL_INF)pPolInfObj->get_pMap();
 
 	pAgentObj = (COteAuxAgent*)VectCtrlObj[st_task_id.AGENT];
+	// スレッド停止用のイベントを作成（マニュアルリセット型）
+	g_hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL);//自動リセット,初期値非シグナル
 
-	//### IFウィンドウOPEN
-	if (st_mon2.hwnd_mon == NULL) {
-		WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
-		LPARAM lp = BC_ID_MON2;
-		SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
-		Sleep(1000);
-	}
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Err(MON2 NULL Handle!!):";
-		msg2listview(wos.str()); wos.str(L"");
-		return S_FALSE;
-	}
 
 	//### 初期化
 	 // GDI+ の初期化
@@ -103,14 +95,9 @@ HRESULT COteAuxAgent::initialize(LPVOID lpParam){
 		MessageBox(nullptr, L"GDI+ の初期化に失敗しました。", L"Error", MB_ICONERROR);
 		return -1;
 	}
-	wos.str(L"");//初期化
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Initialize : MON2 NG"; msg2listview(wos.str());
-		return S_FALSE;
-	}
-	else {
-		wos << L"Initialize : MON2 OK"; msg2listview(wos.str());
-	}
+
+	//システム周波数読み込み
+	QueryPerformanceFrequency(&pAgInf->frequency);
 
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"USBcam");
 
@@ -126,8 +113,9 @@ HRESULT COteAuxAgent::routine_work(void* pObj){
 	parse();
 	output();
 
-	if (inf.total_act % 20 == 0) {
-		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time <<L" CamCount:"<<st_mon2.thrad_counter;
+	if (inf.total_act % 10 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time <<L" CamCount:"<<st_mon2.thrad_counter
+			<<L" DelayChkStatus:"<< pAgInf->v_delay_chk_status << L" Delay:" << pAgInf->v_delay_sec << L" TMOV:" << pAgInf->v_delay_tmov_cnt << L" FIN:" << pAgInf->v_delay_chk_fin_cnt;
 		msg2host(wos.str());
 	}
 
@@ -139,6 +127,82 @@ int COteAuxAgent::input() {
 	return S_OK;
 }
 int COteAuxAgent::parse() {           //メイン処理
+
+	//# 映像遅延計測処理
+	if (pEnvInf->video_delay_chk_func_active == L_ON) {
+		//## スレッドを起動してカメラキャプチャを開始
+		if ((!g_keepRunning) && (pAgInf->st_usb_cam.retry_count == 0)) {
+			camera_capture_start();
+		}
+
+		//## 処理ステップ判定処理
+		//遅延計測処理
+		if (pAgInf->v_delay_chk_status & (OTEAUXAG_CODE_V_DELAY_STANDBY | OTEAUXAG_CODE_V_DELAY_CHK_FIN)) {
+			//計測トリガ処理
+			if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_ON) {
+				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
+				pAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE;	//クレーン装置にOFFコマンド送信
+				QueryPerformanceCounter(&pAgInf->start_count);//計測開始カウンタ値取得
+			}
+			else if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_OFF) {
+				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
+				pAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
+				QueryPerformanceCounter(&pAgInf->start_count);//計測開始カウンタ値取得
+			}
+			else;
+		}
+
+		else if (pAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) {
+			QueryPerformanceCounter(&pAgInf->end_count);//計測完了カウンタ値取得
+			pAgInf->v_delay_sec = (double)(pAgInf->end_count.QuadPart - pAgInf->start_count.QuadPart) / (double)pAgInf->frequency.QuadPart;
+
+			if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_ON) {
+				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_FIN;
+				pAgInf->v_delay_chk_fin_cnt++;
+			}
+			else {
+				if(pAgInf->v_delay_sec > 2.0)//タイムオーバー判定
+					pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+			}
+		}
+
+		else if (pAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK) {
+			QueryPerformanceCounter(&pAgInf->end_count);//計測完了カウンタ値取得
+			pAgInf->v_delay_sec = (double)(pAgInf->end_count.QuadPart - pAgInf->start_count.QuadPart) / (double)pAgInf->frequency.QuadPart;
+			if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_OFF) {
+				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_FIN;
+				pAgInf->v_delay_chk_fin_cnt++;
+			}
+			else {
+				if (pAgInf->v_delay_sec > 2.0)//タイムオーバー判定
+					pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+			}
+		}
+		else if (pAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_CHK_TMOV) {
+			pAgInf->v_delay_tmov_cnt++;
+			pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+		}
+		else;
+
+	}
+	else {
+		if (g_keepRunning) {
+			SetEvent(g_hStopEvent);
+			Sleep(1000);
+			if (g_capThread.joinable()) {
+				g_capThread.join();
+			}
+		}
+		pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+		pAgInf->v_delay_sec = 1.0;
+	}
+
+	//### 映像遅延計測処理
+
+
+	if (pAgInf->st_usb_cam.retry_count > 0)pAgInf->st_usb_cam.retry_count--;
+
+
 	return STAT_OK;
 }
 int COteAuxAgent::output() {          //出力処理
@@ -216,9 +280,9 @@ LRESULT CALLBACK COteAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		UINT rtn = SetTimer(hWnd, AUXAG_ID_MON2_TIMER, AUXAG_PRM_MON2_TIMER_MS, NULL);
 
 	    // スレッド停止用のイベントを作成（マニュアルリセット型）
-		g_hStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	//	g_hStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		// スレッドを起動してカメラキャプチャを開始
-		camera_capture_start();
+	//	camera_capture_start();
 
 		setup_graphics(hWnd);
 
@@ -244,9 +308,6 @@ LRESULT CALLBACK COteAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
-
-	//	OnPaintMon2(hWnd, st_mon2.hdc);
-
 		EndPaint(hWnd, &ps);
 		break;
 	}break;
@@ -254,9 +315,6 @@ LRESULT CALLBACK COteAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		st_mon2.hwnd_mon = NULL;
 		st_mon2.is_monitor_active = false;
 		KillTimer(hWnd, AUXAG_ID_MON2_TIMER);
-		if (g_hStopEvent) SetEvent(g_hStopEvent);
-
-		camera_capture_stop();
 
 	}break;
 	default:
@@ -311,6 +369,7 @@ HWND COteAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 			AUXAG_MON1_WND_X, AUXAG_MON1_WND_Y, AUXAG_MON1_WND_W, AUXAG_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
 		show_monitor_wnd(id);
+		if(st_mon1.hwnd_mon!=NULL)st_mon1.is_monitor_active = true;
 	}
 	else if (id == BC_ID_MON2) {
 		wcex.cbSize = sizeof(WNDCLASSEX);
@@ -331,6 +390,8 @@ HWND COteAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		st_mon2.hwnd_mon = CreateWindowW(TEXT("AUXAG_MON2"), TEXT("USB CAMERA"), WS_OVERLAPPEDWINDOW,
 			AUXAG_MON2_WND_X, AUXAG_MON2_WND_Y, AUXAG_MON2_WND_W, AUXAG_MON2_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
+		show_monitor_wnd(id);
+		if (st_mon2.hwnd_mon != NULL)st_mon2.is_monitor_active = true;
 		return st_mon2.hwnd_mon;
 	}
 	else
@@ -443,16 +504,16 @@ LRESULT CALLBACK COteAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM 
 			}
 			else {
 				close_monitor_wnd(BC_ID_MON1);
+				st_mon1.is_monitor_active = false;
 			}
 		}break;
 
 		case IDC_TASK_MON_CHECK2: {
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK2) == BST_CHECKED) {
-				show_monitor_wnd(BC_ID_MON2);
-				st_mon2.is_monitor_active = true;
+				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON2);
 			}
 			else {
-				hide_monitor_wnd(BC_ID_MON2);
+				close_monitor_wnd(BC_ID_MON2);
 				st_mon2.is_monitor_active = false;
 			}
 		}break;
@@ -591,12 +652,22 @@ void COteAuxAgent::UsbCameraThreadAG() {
 
 		pDataStream->StartAcquisition();
 		pDevice->AcquisitionStart();
+		pAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_NORMAL;
+		pAgInf->st_usb_cam.retry_count = 0;
 	}
 	catch (const GenICam::GenericException& e) {
 		wos_cam.str(L""); wos_cam << "USB CAM Init Exception: " << e.GetDescription() << endl;
 		pAgentObj->msg2listview(wos_cam.str().c_str());
+		pAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_INIT_ERR;
+		pAgInf->st_usb_cam.retry_count = OTEAUXAG_CAMERA_PRM_RETRY_CNT;
+		g_keepRunning = false;
+		wos_cam.str(L""); wos_cam << "Exit Thread Loop: " << endl;
+		pAgentObj->msg2listview(wos_cam.str().c_str());
+
 		return;
 	}
+
+	g_keepRunning = true; // ループ制御フラグを立てる
 
 	while (g_keepRunning) {
 		try {
@@ -605,6 +676,8 @@ void COteAuxAgent::UsbCameraThreadAG() {
 
 			if (dwWait == WAIT_OBJECT_0) {		//終了イベント
 				// StopEventがセットされたらループ脱出
+				pAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_SUSPEND;
+				pAgInf->st_usb_cam.retry_count = 0;
 				break;
 			}
 
@@ -649,7 +722,11 @@ void COteAuxAgent::UsbCameraThreadAG() {
 	pDevice->AcquisitionStop();
 	pDataStream->StopAcquisition();
 	
+	wos_cam.str(L""); wos_cam << "Exit Thread Loop: "<< endl;
+	pAgentObj->msg2listview(wos_cam.str().c_str());
+
 	CloseHandle(hTimer);
+	g_keepRunning = false;
 
 	return;
 }

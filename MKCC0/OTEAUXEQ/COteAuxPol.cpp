@@ -1,7 +1,6 @@
 ﻿#include "COteAuxPol.h"
 #include "resource.h"
 #include "CSHAREDMEM.H"
-#include "SmemAux.H"
 #include <commctrl.h>
 
 #pragma comment (lib, "Gdiplus.lib")
@@ -15,8 +14,8 @@ ST_AUXPOL_MON1 COteAuxPol::st_mon1;
 
 cv::Rect COteAuxPol::rc_mat_roi_work;
 cv::Rect COteAuxPol::rc_mat_roi_criterion;
-cv::Rect COteAuxPol::rc_mat_roi_work_disp;
-cv::Rect COteAuxPol::rc_mat_roi_criterion_disp;
+cv::Rect COteAuxPol::rc_mat_roi_work_disp;		//描画用に拡大/縮小している場合のROI
+cv::Rect COteAuxPol::rc_mat_roi_criterion_disp;	//描画用に拡大/縮小している場合のROI
 cv::Mat COteAuxPol::mat_roi_work;
 cv::Mat COteAuxPol::mat_criterion;
 
@@ -49,7 +48,7 @@ std::unique_ptr<Graphics> COteAuxPol::m_pOffscreenGraphics;
 
 Graphics* COteAuxPol::pgraphic_img;
 
-ST_AUXPOL_IMG_PROC COteAuxPol::st_img_proc;
+LPST_AUXPOL_IMG_PROC COteAuxPol::pst_img_proc;
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
@@ -157,6 +156,8 @@ HRESULT COteAuxPol::initialize(LPVOID lpParam) {
 	pPolInf = (LPST_OTE_AUX_POL_INF)pPolInfObj->get_pMap();
 
 	pPolObj = (COteAuxPol*)VectCtrlObj[st_task_id.POL];
+	pst_img_proc = &(pPolInf->st_img_proc);
+	pst_img_proc->h_margin = pst_img_proc->s_margin = pst_img_proc->v_margin = 20;
 
 	//### 初期化
 	wos.str(L"");//初期化
@@ -194,59 +195,37 @@ int COteAuxPol::input() {
 }
 int COteAuxPol::parse() {           //メイン処理
 
-
+	// 1. カメラ画像がない場合は処理しない
 	if (pAgInf->st_usb_cam.hsvMatFrame.empty()) {
-		st_img_proc.status &= ~AUXPOL_CODE_IMG_PROC_ENABLE;
-		return -1;
+		pst_img_proc->status &= ~AUXPOL_CODE_IMG_PROC_ENABLE;
+		return AUXPOL_CODE_VIDEO_CHK_ERR;
 	}
-	else st_img_proc.status |= AUXPOL_CODE_IMG_PROC_ENABLE;
+	else pst_img_proc->status |= AUXPOL_CODE_IMG_PROC_ENABLE;
 
-	if (st_img_proc.target_chk_base_count)
-		st_img_proc.status |= AUXPOL_CODE_IMG_PROC_ACTIVE;
+		
+	// 2. 画像処理の基準値(pixlがON：検出条件成立の数）がない場合は処理しない
+	if (pst_img_proc->target_chk_base_count)
+		pst_img_proc->status |= AUXPOL_CODE_IMG_PROC_ACTIVE;
 	else
-		st_img_proc.status &= ~AUXPOL_CODE_IMG_PROC_ACTIVE;
-
-	// HSVマスク画像生成
-	cv::Mat mask;
-	cv::Mat m1, m2;
+		pst_img_proc->status &= ~AUXPOL_CODE_IMG_PROC_ACTIVE;
 
 	int tem_int = 0;
-	if (st_img_proc.sl > st_img_proc.sh) {
-		tem_int = st_img_proc.sl;
-		st_img_proc.sl = st_img_proc.sh;
-		st_img_proc.sh = tem_int;
+	if (pst_img_proc->sl > pst_img_proc->sh) {//彩度閾値の下限が上限より大きい場合は入れ替える
+		tem_int = pst_img_proc->sl;
+		pst_img_proc->sl = pst_img_proc->sh;
+		pst_img_proc->sh = tem_int;
 	}
-	if (st_img_proc.vl > st_img_proc.vh) {
-		tem_int = st_img_proc.vl;
-		st_img_proc.vl = st_img_proc.vh;
-		st_img_proc.vh = tem_int;
+	if (pst_img_proc->vl > pst_img_proc->vh) {//明度閾値の下限が上限より大きい場合は入れ替える
+		tem_int = pst_img_proc->vl;
+		pst_img_proc->vl = pst_img_proc->vh;
+		pst_img_proc->vh = tem_int;
 	}
+	if (st_mon2.is_monitor_active) {
 
-	if (st_img_proc.hl > st_img_proc.hh) {
-		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(0, st_img_proc.sl, st_img_proc.vl), cv::Scalar(st_img_proc.hh, st_img_proc.sh, st_img_proc.vh), m1);
-		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(st_img_proc.hl, st_img_proc.sl, st_img_proc.vl), cv::Scalar(179, st_img_proc.sh, st_img_proc.vh), m2);
-		cv::bitwise_or(m1, m2, mask);
+		pst_img_proc->is_target_detected = GetCraneDeviceStatus(&(pPolInf->st_img_proc));
+		// 4. 表示用にマスク(1ch)をRGB(3ch)へ
+		cv::cvtColor(pst_img_proc->mask, pst_img_proc->hsvMat_mask, cv::COLOR_GRAY2RGB);
 	}
-	else {
-		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(st_img_proc.hl, st_img_proc.sl, st_img_proc.vl), cv::Scalar(st_img_proc.hh, st_img_proc.sh, st_img_proc.vh), mask);
-	}
-
-	st_img_proc.whiteCountInCriterionRoi = cv::countNonZero(mask(rc_mat_roi_criterion));
-	st_img_proc.whiteCountInWorkRoi = cv::countNonZero(mask(rc_mat_roi_work));
-
-
-	// 4. 表示用にマスク(1ch)をRGB(3ch)へ
-	cv::cvtColor(mask, st_img_proc.hsvMat_mask, cv::COLOR_GRAY2RGB);
-
-	int roi_cnt_diff = st_img_proc.whiteCountInWorkRoi - st_img_proc.whiteCountInWorkRoi_Last;
-	if (roi_cnt_diff > st_img_proc.target_chk_base_count / 2) {
-		st_img_proc.is_target_detected = L_ON;
-	}
-	if (roi_cnt_diff < -st_img_proc.target_chk_base_count / 2){
-		st_img_proc.is_target_detected = L_OFF;
-	}
-
-	st_img_proc.whiteCountInWorkRoi_Last = st_img_proc.whiteCountInWorkRoi;
 
 	return STAT_OK;
 }
@@ -256,6 +235,42 @@ int COteAuxPol::output() {          //出力処理
 }
 int COteAuxPol::close() {
 	return 0;
+}
+
+int COteAuxPol::GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work) {
+
+	// HSVマスク画像生成
+	cv::Mat m1, m2, local_mask;
+
+	if(pAgInf->st_usb_cam.hsvMatFrame.empty()) {
+		return -1;
+	}
+
+	if (pst_work->hl > pst_work->hh) {//色相閾値の下限が上限より大きい場合は、0-180の両端で範囲を設定してチェック結果をORする
+		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(0, pst_work->sl, pst_work->vl), cv::Scalar(pst_work->hh, pst_work->sh, pst_work->vh), m1);
+		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(pst_work->hl, pst_work->sl, pst_work->vl), cv::Scalar(179, pst_work->sh, pst_work->vh), m2);
+		cv::bitwise_or(m1, m2, pst_work->mask);
+	}
+	else {
+		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(pst_work->hl, pst_work->sl, pst_work->vl), cv::Scalar(pst_work->hh, pst_work->sh, pst_work->vh), pst_work->mask);
+	}
+
+	// 3. マスク画像からROI内の白いピクセル数をカウント
+	pst_work->whiteCountInCriterionRoi = cv::countNonZero(pst_work->mask(rc_mat_roi_criterion));	//設定した基準Roi内の白いピクセル数をカウント
+	pst_work->whiteCountInWorkRoi = cv::countNonZero(pst_work->mask(rc_mat_roi_work));				//設定したRoi内の白いピクセル数をカウント	
+
+	int roi_cnt_diff = pst_work->whiteCountInWorkRoi - pst_work->whiteCountInWorkRoi_Last;
+	if (roi_cnt_diff > pst_work->target_chk_base_count / 2) {
+		pst_work->is_target_detected = L_ON;
+	}
+	if (roi_cnt_diff < -pst_work->target_chk_base_count / 2) {
+		pst_work->is_target_detected = L_OFF;
+	}
+
+	pst_work->whiteCountInWorkRoi_Last = pst_work->whiteCountInWorkRoi;
+
+	return pst_work->is_target_detected;
+
 }
 
 static wostringstream monwos;
@@ -334,26 +349,26 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(AUXPOL_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
-		monwos.str(L""); monwos << st_img_proc.hl;
+		monwos.str(L""); monwos << pst_img_proc->hl;
 		SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_HL], monwos.str().c_str());
-		monwos.str(L""); monwos << st_img_proc.hh;
+		monwos.str(L""); monwos << pst_img_proc->hh;
 		SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_HH], monwos.str().c_str());
-		monwos.str(L""); monwos << st_img_proc.sl;
+		monwos.str(L""); monwos << pst_img_proc->sl;
 		SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_SL], monwos.str().c_str());
-		monwos.str(L""); monwos << st_img_proc.sh;
+		monwos.str(L""); monwos << pst_img_proc->sh;
 		SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_SH], monwos.str().c_str());
-		monwos.str(L""); monwos << st_img_proc.vl;
+		monwos.str(L""); monwos << pst_img_proc->vl;
 		SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_VL], monwos.str().c_str());
-		monwos.str(L""); monwos << st_img_proc.vh;
+		monwos.str(L""); monwos << pst_img_proc->vh;
 		SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_VH], monwos.str().c_str());
 
 		// スライダー配置 (x=660の位置に縦に並べる)
-		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HL] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_HL, 680, 50, -1, 180, st_img_proc.hl);
-		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HH] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_HH, 680, 90, -1, 180, st_img_proc.hh);
-		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SL] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_SL, 680, 150, -1, 256, st_img_proc.sl);
-		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SH] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_SH, 680, 190, -1, 256, st_img_proc.sh);
-		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VL] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_VL, 680, 250, -1, 256, st_img_proc.vl);
-		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VH] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_VH, 680, 290, -1, 256, st_img_proc.vh);
+		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HL] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_HL, 680, 50, -1, 180, pst_img_proc->hl);
+		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HH] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_HH, 680, 90, -1, 180, pst_img_proc->hh);
+		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SL] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_SL, 680, 150, -1, 256, pst_img_proc->sl);
+		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SH] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_SH, 680, 190, -1, 256, pst_img_proc->sh);
+		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VL] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_VL, 680, 250, -1, 256, pst_img_proc->vl);
+		st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VH] = CreateSlider(hWnd, AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_VH, 680, 290, -1, 256, pst_img_proc->vh);
 
 		//PB
 		for (int i = AUXPOL_ID_MON2_PB_GET_CRITERION; i <= AUXPOL_ID_MON2_PB_SET_ROI; i++) {
@@ -388,7 +403,7 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		switch (wmId - AUXPOL_ID_MON2_CTRL_BASE)
 		{
 		case AUXPOL_ID_MON2_PB_GET_CRITERION: {
-			if (st_img_proc.status & AUXPOL_CODE_IMG_PROC_ENABLE) {
+			if (pst_img_proc->status & AUXPOL_CODE_IMG_PROC_ENABLE) {
 				rc_mat_roi_criterion_disp = get_hsv_criterion();
 		
 				HSV_autoCalibrate();
@@ -401,16 +416,16 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				cv::Mat mask;
 				cv::Mat m1,m2;
 
-				if (st_img_proc.hl > st_img_proc.hh) {
-					cv::inRange(mat_criterion, cv::Scalar(0, st_img_proc.sl, st_img_proc.vl), cv::Scalar(st_img_proc.hh, st_img_proc.sh, st_img_proc.vh), m1);
-					cv::inRange(mat_criterion, cv::Scalar(st_img_proc.hl, st_img_proc.sl, st_img_proc.vl), cv::Scalar(179, st_img_proc.sh, st_img_proc.vh), m2);
+				if (pst_img_proc->hl > pst_img_proc->hh) {
+					cv::inRange(mat_criterion, cv::Scalar(0, pst_img_proc->sl, pst_img_proc->vl), cv::Scalar(pst_img_proc->hh, pst_img_proc->sh, pst_img_proc->vh), m1);
+					cv::inRange(mat_criterion, cv::Scalar(pst_img_proc->hl, pst_img_proc->sl, pst_img_proc->vl), cv::Scalar(179, pst_img_proc->sh, pst_img_proc->vh), m2);
 					cv::bitwise_or(m1, m2, mask);
 				}
 				else {
-					cv::inRange(mat_criterion, cv::Scalar(st_img_proc.hl, st_img_proc.sl, st_img_proc.vl), cv::Scalar(st_img_proc.hh, st_img_proc.sh, st_img_proc.vh), mask);
+					cv::inRange(mat_criterion, cv::Scalar(pst_img_proc->hl, pst_img_proc->sl, pst_img_proc->vl), cv::Scalar(pst_img_proc->hh, pst_img_proc->sh, pst_img_proc->vh), mask);
 				}
 							
-				st_img_proc.target_chk_base_count = cv::countNonZero(mask);
+				pst_img_proc->target_chk_base_count = cv::countNonZero(mask);
 			}
 			st_mon2.flg_dispDragging = false;
 		}break;
@@ -473,27 +488,27 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		int id = GetDlgCtrlID((HWND)lp);
 		int pos = (int)SendMessage((HWND)lp, TBM_GETPOS, 0, 0);
 		if (id == AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_HL) {
-			st_img_proc.hl = pos;monwos.str(L""); monwos << st_img_proc.hl;
+			pst_img_proc->hl = pos;monwos.str(L""); monwos << pst_img_proc->hl;
 			SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_HL], monwos.str().c_str());
 		}
 		if (id == AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_HH) {
-			st_img_proc.hh = pos; monwos.str(L""); monwos << st_img_proc.hh;
+			pst_img_proc->hh = pos; monwos.str(L""); monwos << pst_img_proc->hh;
 			SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_HH], monwos.str().c_str());
 		}
 		if (id == AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_SL) {
-			st_img_proc.sl = pos; monwos.str(L""); monwos << st_img_proc.sl;
+			pst_img_proc->sl = pos; monwos.str(L""); monwos << pst_img_proc->sl;
 			SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_SL], monwos.str().c_str());
 		}
 		if (id == AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_SH) {
-			st_img_proc.sh = pos; monwos.str(L""); monwos << st_img_proc.sh;
+			pst_img_proc->sh = pos; monwos.str(L""); monwos << pst_img_proc->sh;
 			SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_SH], monwos.str().c_str());
 		}
 		if (id == AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_VL) {
-			st_img_proc.vl = pos; monwos.str(L""); monwos << st_img_proc.vl;
+			pst_img_proc->vl = pos; monwos.str(L""); monwos << pst_img_proc->vl;
 			SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_VL], monwos.str().c_str());
 		}
 		if (id == AUXPOL_ID_MON2_CTRL_BASE + AUXPOL_ID_MON2_SLIDER_VH) {
-			st_img_proc.vh = pos; monwos.str(L""); monwos << st_img_proc.vh;
+			pst_img_proc->vh = pos; monwos.str(L""); monwos << pst_img_proc->vh;
 			SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_VH], monwos.str().c_str());
 		}
 		return 0;
@@ -885,15 +900,15 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 		if(st_mon2.flg_disp_cri_roi) {
 			monwos.str(L""); h_text += 25.0f;
 			monwos << L"(" << rc_mat_roi_criterion.x << L"," << rc_mat_roi_criterion.y << L")" << L" (" << rc_mat_roi_criterion.x + rc_mat_roi_criterion.width<< L"," << rc_mat_roi_criterion.y + rc_mat_roi_criterion.height << L")" 
-				<< L" HSV:[" << st_img_proc.hCenter<< L"," << st_img_proc.sCenter << L"," << st_img_proc.vCenter << L"]"
-				<< L" Cnt:" << st_img_proc.whiteCountInCriterionRoi << L"(" << st_img_proc.target_chk_base_count << L")";
+				<< L" HSV:[" << pst_img_proc->hCenter<< L"," << pst_img_proc->sCenter << L"," << pst_img_proc->vCenter << L"]"
+				<< L" Cnt:" << pst_img_proc->whiteCountInCriterionRoi << L"(" << pst_img_proc->target_chk_base_count << L")";
 			m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont18.get(), PointF(5.0f, h_text), m_pGreenBrush.get());
 			m_pOffscreenGraphics->DrawRectangle(m_pGreenPen.get(), rc_mat_roi_criterion_disp.x, rc_mat_roi_criterion_disp.y, rc_mat_roi_criterion_disp.width, rc_mat_roi_criterion_disp.height);
 		}
 		if(st_mon2.flg_disp_work_roi) {
 			
 			monwos.str(L""); h_text += 25.0f;
-			monwos << L"(" << rc_mat_roi_work.x << L"," << rc_mat_roi_work.y << L")" << L" (" << rc_mat_roi_work.x + rc_mat_roi_work.width << L"," << rc_mat_roi_work.y + rc_mat_roi_work.height << L")" << L" Cnt:" << st_img_proc.whiteCountInWorkRoi;
+			monwos << L"(" << rc_mat_roi_work.x << L"," << rc_mat_roi_work.y << L")" << L" (" << rc_mat_roi_work.x + rc_mat_roi_work.width << L"," << rc_mat_roi_work.y + rc_mat_roi_work.height << L")" ;
 			m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont18.get(), PointF(5.0f, h_text), m_pMagentaBrush.get());
 			m_pOffscreenGraphics->DrawRectangle(m_pMagentaPen.get(), rc_mat_roi_work_disp.x, rc_mat_roi_work_disp.y, rc_mat_roi_work_disp.width, rc_mat_roi_work_disp.height);
 		}
@@ -902,16 +917,16 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 	}
 
 	if (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_HSV_MASK){
-		if (!st_img_proc.hsvMat_mask.empty()) {
+		if (!pst_img_proc->hsvMat_mask.empty()) {
 			// --- 手順1: Bitmapバッファへ順次描画 ---
-			Gdiplus::Bitmap bitmap(st_img_proc.hsvMat_mask.cols, st_img_proc.hsvMat_mask.rows,
-				(int)st_img_proc.hsvMat_mask.step, PixelFormat24bppRGB, st_img_proc.hsvMat_mask.data);
+			Gdiplus::Bitmap bitmap(pst_img_proc->hsvMat_mask.cols, pst_img_proc->hsvMat_mask.rows,
+				(int)pst_img_proc->hsvMat_mask.step, PixelFormat24bppRGB, pst_img_proc->hsvMat_mask.data);
 			m_pOffscreenGraphics->DrawImage(&bitmap, 0, height, width, height);
 			
 			//テキスト描画
 			monwos.str(L"●");
-			if (st_img_proc.status & AUXPOL_CODE_IMG_PROC_ACTIVE) {
-				if (st_img_proc.is_target_detected)
+			if (pst_img_proc->status & AUXPOL_CODE_IMG_PROC_ACTIVE) {
+				if (pst_img_proc->is_target_detected)
 					m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont36.get(), PointF(5.0f, 5.0f + height), m_pGreenBrush.get());
 				else
 					m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont36.get(), PointF(5.0f, 5.0f + height), m_pBlueBrush.get());
@@ -946,7 +961,7 @@ HWND COteAuxPol::CreateSlider(HWND parent, int id, int x, int y, int minV, int m
 	return h;
 }
 
-// --- ROI内の平均値からHSV範囲を自動計算 ---
+// --- ROI内の最頻度値からHSV範囲を自動計算 ---
 void COteAuxPol::HSV_autoCalibrate() {
 
 	// 選択範囲が画像内にあるか確認して切り出し
@@ -962,80 +977,51 @@ void COteAuxPol::HSV_autoCalibrate() {
 	std::vector<cv::Mat> channels;
 	cv::split(roiHsv, channels);
 
-#if 1
 	// 1. Hue の最頻値を求める (0-179 の範囲)
-	st_img_proc.hCenter = GetModeBinCenter(channels[0], 180, 10);
+	pst_img_proc->hCenter = GetModeBinCenter(channels[0], 180, 10);
 
 	// 2. Saturation の最頻値を求める (0-255 の範囲)
-	st_img_proc.sCenter = GetModeBinCenter(channels[1], 256, 10);
+	pst_img_proc->sCenter = GetModeBinCenter(channels[1], 256, 10);
 
 	// 3. Value の最頻値を求める (0-255 の範囲)
-	st_img_proc.vCenter = GetModeBinCenter(channels[2], 256, 10);
+	pst_img_proc->vCenter = GetModeBinCenter(channels[2], 256, 10);
 
 	// 4. 上下限値の設定 (±10)
-	st_img_proc.hl = st_img_proc.hCenter - 10;
-	st_img_proc.hh = st_img_proc.hCenter + 10;
-	if (st_img_proc.hl < 0) st_img_proc.hl += 180;
-	if (st_img_proc.hl > 179) st_img_proc.hl -= 180;
+	pst_img_proc->hl = pst_img_proc->hCenter - pst_img_proc->h_margin;
+	pst_img_proc->hh = pst_img_proc->hCenter + pst_img_proc->h_margin;
+	// Hueは環状なので、0-179の範囲に収める
+	if (pst_img_proc->hl < 0) pst_img_proc->hl += 180;
+	if (pst_img_proc->hl > 179) pst_img_proc->hl -= 180;
 
-	st_img_proc.sl = std::max(0, st_img_proc.sCenter - 10);
-	st_img_proc.sh = std::min(255, st_img_proc.sCenter + 10);
+	pst_img_proc->sl = std::max(0, pst_img_proc->sCenter - pst_img_proc->s_margin);
+	pst_img_proc->sh = std::min(255, pst_img_proc->sCenter + pst_img_proc->s_margin);
 
-	st_img_proc.vl = std::max(0, st_img_proc.vCenter - 10);
-	st_img_proc.vh = std::min(255, st_img_proc.vCenter + 10);
+	pst_img_proc->vl = std::max(0, pst_img_proc->vCenter - pst_img_proc->v_margin);
+	pst_img_proc->vh = std::min(255, pst_img_proc->vCenter + pst_img_proc->v_margin);
 
-#else
-	//精度確保のためフロートに変換
-	cv::Mat hFloat;
-	channels[0].convertTo(hFloat, CV_32F);
-	// 全要素に 180 を加算 (一旦 180〜359 の範囲にする)
-	hFloat += 180.0f;
-
-	// 平均値を求める
-	double avgHShifted = cv::mean(hFloat)[0];
-	// 180 を引いて戻す (0〜179 の範囲に戻る)
-	double avgH = avgHShifted - 180.0f;
-	int hCenter = (int)(avgH);
-
-	// --- S, V の平均計算 (これらは通常通り) ---
-	channels[1].convertTo(hFloat, CV_32F);
-	double avgS = cv::mean(channels[1])[0];
-	channels[2].convertTo(hFloat, CV_32F);
-	double avgV = cv::mean(channels[2])[0];
-
-	// 3. 上下限値の設定 (±10)
-	st_img_proc.hl = hCenter - 10;
-	st_img_proc.hh = hCenter + 10;
-	if(st_img_proc.hl < 0) st_img_proc.hl += 180;
-	if(st_img_proc.hh > 179) st_img_proc.hh -= 179;
-	st_img_proc.sl = std::max(0, (int)avgS - 10);
-	st_img_proc.sh = std::min(255, (int)avgS + 10);
-	st_img_proc.vl = std::max(0, (int)avgV - 10);
-	st_img_proc.vh = std::min(255, (int)avgV + 10);
-#endif
 	// スライダーのつまみ位置を更新
 	UpdateSliderPos();
 	return;
 }
 void COteAuxPol::UpdateSliderPos() {
-	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HL], TBM_SETPOS, TRUE, st_img_proc.hl);
-	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HH], TBM_SETPOS, TRUE, st_img_proc.hh);
-	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SL], TBM_SETPOS, TRUE, st_img_proc.sl);
-	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SH], TBM_SETPOS, TRUE, st_img_proc.sh);
-	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VL], TBM_SETPOS, TRUE, st_img_proc.vl);
-	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VH], TBM_SETPOS, TRUE, st_img_proc.vh);
+	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HL], TBM_SETPOS, TRUE, pst_img_proc->hl);
+	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_HH], TBM_SETPOS, TRUE, pst_img_proc->hh);
+	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SL], TBM_SETPOS, TRUE, pst_img_proc->sl);
+	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_SH], TBM_SETPOS, TRUE, pst_img_proc->sh);
+	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VL], TBM_SETPOS, TRUE, pst_img_proc->vl);
+	SendMessage(st_mon2.hctrl[AUXPOL_ID_MON2_SLIDER_VH], TBM_SETPOS, TRUE, pst_img_proc->vh);
 
-	monwos.str(L""); monwos << st_img_proc.hl;
+	monwos.str(L""); monwos << pst_img_proc->hl;
 	SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_HL], monwos.str().c_str());
-	monwos.str(L""); monwos << st_img_proc.hh;
+	monwos.str(L""); monwos << pst_img_proc->hh;
 	SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_HH], monwos.str().c_str());
-	monwos.str(L""); monwos << st_img_proc.sl;
+	monwos.str(L""); monwos << pst_img_proc->sl;
 	SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_SL], monwos.str().c_str());
-	monwos.str(L""); monwos << st_img_proc.sh;
+	monwos.str(L""); monwos << pst_img_proc->sh;
 	SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_SH], monwos.str().c_str());
-	monwos.str(L""); monwos << st_img_proc.vl;
+	monwos.str(L""); monwos << pst_img_proc->vl;
 	SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_VL], monwos.str().c_str());
-	monwos.str(L""); monwos << st_img_proc.vh;
+	monwos.str(L""); monwos << pst_img_proc->vh;
 	SetWindowText(st_mon2.hctrl[AUXPOL_ID_MON2_STATIC_VH], monwos.str().c_str());
 }
 cv::Rect COteAuxPol::get_hsv_criterion(){
@@ -1098,6 +1084,8 @@ cv::Rect COteAuxPol::set_work_roi(bool is_criterion_base) {
 	else {	//基準値設定後の自動設定
 		rc_disp = st_mon2.rc_selected;
 	}
+	
+	//画像選択範囲→カメラ画像の実際の範囲に変換
 	rc_mat_roi_work = { 
 		rc_disp.x * AUXPOL_CAMERA_DISP_RETIO,
 		rc_disp.y * AUXPOL_CAMERA_DISP_RETIO,
