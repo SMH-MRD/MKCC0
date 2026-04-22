@@ -3,7 +3,7 @@
 #include "COteAuxPol.h"
 #include "resource.h"
 #include "CSHAREDMEM.H"
-#include "SmemAux.H"
+#include "SmemOte.H"
 
 #include <thread>
 #include <mutex>
@@ -24,10 +24,11 @@ using namespace Gdiplus;
 ST_AUXAG_MON1 COteAuxAgent::st_mon1;
 ST_AUXAG_MON2 COteAuxAgent::st_mon2;
 
-extern CSharedMem* pEnvInfObj;
-extern CSharedMem* pAgentInfObj;
+extern CSharedMem* pAuxEnvInfObj;
+extern CSharedMem* pAuxAgentInfObj;
+extern CSharedMem* pAuxCsInfObj;
+extern CSharedMem* pAuxPolInfObj;
 extern CSharedMem* pCsInfObj;
-extern CSharedMem* pPolInfObj;
 
 extern BC_TASK_ID st_task_id;
 extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
@@ -36,10 +37,11 @@ static COteAuxAgent* pAgentObj;
 static COteAuxPol* pPolObj;
 
 //共有メモリ
-static LPST_OTE_AUX_ENV_INF		pEnvInf = NULL;
-static LPST_OTE_AUX_CS_INF		pCSInf = NULL;
-static LPST_OTE_AUX_AGENT_INF	pAgInf = NULL;
-static LPST_OTE_AUX_POL_INF		pPolInf = NULL;
+static LPST_OTE_AUX_ENV_INF		pAuxEnvInf = NULL;
+static LPST_OTE_AUX_CS_INF		pAuxCSInf = NULL;
+static LPST_OTE_AUX_AGENT_INF	pAuxAgInf = NULL;
+static LPST_OTE_AUX_POL_INF		pAuxPolInf = NULL;
+static LPST_OTE_CS_INF			pCSInf = NULL;
 
 std::thread g_capThread;// スレッド変数が消えないようにグローバル領域に保持
 std::atomic<bool> g_keepRunning = false;
@@ -73,13 +75,13 @@ HRESULT COteAuxAgent::initialize(LPVOID lpParam){
 
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_OTE_AUX_AGENT_INF);
-	set_outbuf(pAgentInfObj->get_pMap());
+	set_outbuf(pAuxAgentInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	pAgInf = (LPST_OTE_AUX_AGENT_INF)pAgentInfObj->get_pMap();
-	pEnvInf = (LPST_OTE_AUX_ENV_INF)(pEnvInfObj->get_pMap());
-	pCSInf = (LPST_OTE_AUX_CS_INF)pCsInfObj->get_pMap();
-	pPolInf = (LPST_OTE_AUX_POL_INF)pPolInfObj->get_pMap();
+	pAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pAuxAgentInfObj->get_pMap();
+	pAuxEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
+	pAuxCSInf = (LPST_OTE_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+	pAuxPolInf = (LPST_OTE_AUX_POL_INF)pAuxPolInfObj->get_pMap();
 
 	pAgentObj = (COteAuxAgent*)VectCtrlObj[st_task_id.AGENT];
 	// スレッド停止用のイベントを作成（マニュアルリセット型）
@@ -97,7 +99,7 @@ HRESULT COteAuxAgent::initialize(LPVOID lpParam){
 	}
 
 	//システム周波数読み込み
-	QueryPerformanceFrequency(&pAgInf->frequency);
+	QueryPerformanceFrequency(&pAuxAgInf->frequency);
 
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"USBcam");
 
@@ -114,8 +116,15 @@ HRESULT COteAuxAgent::routine_work(void* pObj){
 	output();
 
 	if (inf.total_act % 10 == 0) {
+		wstring status_str;
+		status_str =	(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_STANDBY) ? L"STBY" :
+						(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ? L"ON CHK" :
+						(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK) ? L"OFF CHK" :
+						(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_TMOV) ? L"TMOV" :
+						(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_FIN) ? L"FIN" : L"UNK";
+
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time <<L" CamCount:"<<st_mon2.thrad_counter
-			<<L" DelayChkStatus:"<< pAgInf->v_delay_chk_status << L" Delay:" << pAgInf->v_delay_sec << L" TMOV:" << pAgInf->v_delay_tmov_cnt << L" FIN:" << pAgInf->v_delay_chk_fin_cnt;
+			<<L" DelayChkStatus:"<< status_str.c_str() << L" Delay:" << pAuxAgInf->v_delay_sec << L" TMOV:" << pAuxAgInf->v_delay_tmov_cnt << L" FIN:" << pAuxAgInf->v_delay_chk_fin_cnt;
 		msg2host(wos.str());
 	}
 
@@ -129,61 +138,77 @@ int COteAuxAgent::input() {
 int COteAuxAgent::parse() {           //メイン処理
 
 	//# 映像遅延計測処理
-	if (pEnvInf->video_delay_chk_func_active == L_ON) {
+	if (pAuxEnvInf->video_delay_chk_func_active == L_ON) {
+		double delay_sec = 0.0;
 		//## スレッドを起動してカメラキャプチャを開始
-		if ((!g_keepRunning) && (pAgInf->st_usb_cam.retry_count == 0)) {
+		if ((!g_keepRunning) && (pAuxAgInf->st_usb_cam.retry_count == 0)) {
 			camera_capture_start();
 		}
 
 		//## 処理ステップ判定処理
 		//遅延計測処理
-		if (pAgInf->v_delay_chk_status & (OTEAUXAG_CODE_V_DELAY_STANDBY | OTEAUXAG_CODE_V_DELAY_CHK_FIN)) {
+		if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_STANDBY) {
 			//計測トリガ処理
-			if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_ON) {
-				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
-				pAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE;	//クレーン装置にOFFコマンド送信
-				QueryPerformanceCounter(&pAgInf->start_count);//計測開始カウンタ値取得
+			if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_ON) {
+				pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
+				pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE;	//クレーン装置にOFFコマンド送信
+				QueryPerformanceCounter(&pAuxAgInf->start_count);//計測開始カウンタ値取得
 			}
-			else if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_OFF) {
-				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
-				pAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
-				QueryPerformanceCounter(&pAgInf->start_count);//計測開始カウンタ値取得
+			else if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_OFF) {
+				pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
+				pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
+				QueryPerformanceCounter(&pAuxAgInf->start_count);//計測開始カウンタ値取得
 			}
 			else;
 		}
+		else if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) {
+			QueryPerformanceCounter(&pAuxAgInf->end_count);//計測完了カウンタ値取得
+			delay_sec = (double)(pAuxAgInf->end_count.QuadPart - pAuxAgInf->start_count.QuadPart) / (double)pAuxAgInf->frequency.QuadPart;
 
-		else if (pAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) {
-			QueryPerformanceCounter(&pAgInf->end_count);//計測完了カウンタ値取得
-			pAgInf->v_delay_sec = (double)(pAgInf->end_count.QuadPart - pAgInf->start_count.QuadPart) / (double)pAgInf->frequency.QuadPart;
-
-			if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_ON) {
-				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_FIN;
-				pAgInf->v_delay_chk_fin_cnt++;
+			if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_ON) {
+				pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_FIN;
+				pAuxAgInf->v_delay_chk_fin_cnt++;
 			}
 			else {
-				if(pAgInf->v_delay_sec > 2.0)//タイムオーバー判定
-					pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+				//タイムオーバー判定LV1 (フラグセット）
+				if (delay_sec > AUXAG_PRM_V_DELAY_TMOV_LV1)
+					pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+				//タイムオーバー判定LV2 測定打ち切り判定
+				if (delay_sec > AUXAG_PRM_V_DELAY_TMOV_LV2) {
+					pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+					pAuxAgInf->v_delay_sec = delay_sec;
+				}
+
 			}
 		}
-
-		else if (pAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK) {
-			QueryPerformanceCounter(&pAgInf->end_count);//計測完了カウンタ値取得
-			pAgInf->v_delay_sec = (double)(pAgInf->end_count.QuadPart - pAgInf->start_count.QuadPart) / (double)pAgInf->frequency.QuadPart;
-			if (pPolObj->GetCraneDeviceStatus(&(pPolInf->st_img_proc)) == L_OFF) {
-				pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_FIN;
-				pAgInf->v_delay_chk_fin_cnt++;
+		else if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK) {
+			QueryPerformanceCounter(&pAuxAgInf->end_count);//計測完了カウンタ値取得
+			delay_sec = (double)(pAuxAgInf->end_count.QuadPart - pAuxAgInf->start_count.QuadPart) / (double)pAuxAgInf->frequency.QuadPart;
+			if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_OFF) {
+				pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_FIN;
+				pAuxAgInf->v_delay_chk_fin_cnt++;
 			}
 			else {
-				if (pAgInf->v_delay_sec > 2.0)//タイムオーバー判定
-					pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+				//タイムオーバー判定LV1(フラグセット）
+				if (delay_sec > AUXAG_PRM_V_DELAY_TMOV_LV1)
+					pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+				//タイムオーバー判定LV2 測定打ち切り判定
+				if (delay_sec > AUXAG_PRM_V_DELAY_TMOV_LV2) {
+					pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
+					pAuxAgInf->v_delay_sec = delay_sec;
+				}
 			}
 		}
-		else if (pAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_CHK_TMOV) {
-			pAgInf->v_delay_tmov_cnt++;
-			pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+		else if(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_FIN){
+			QueryPerformanceCounter(&pAuxAgInf->end_count);//計測完了カウンタ値取得
+			pAuxAgInf->v_delay_sec = (double)(pAuxAgInf->end_count.QuadPart - pAuxAgInf->start_count.QuadPart) / (double)pAuxAgInf->frequency.QuadPart;
+			pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+		}
+		else if (pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_TMOV) {
+			pAuxAgInf->v_delay_tmov_cnt++;
+			pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
 		}
 		else;
-
 	}
 	else {
 		if (g_keepRunning) {
@@ -193,14 +218,14 @@ int COteAuxAgent::parse() {           //メイン処理
 				g_capThread.join();
 			}
 		}
-		pAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
-		pAgInf->v_delay_sec = 1.0;
+		pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+		pAuxAgInf->v_delay_sec = 0.0;
 	}
 
 	//### 映像遅延計測処理
 
 
-	if (pAgInf->st_usb_cam.retry_count > 0)pAgInf->st_usb_cam.retry_count--;
+	if (pAuxAgInf->st_usb_cam.retry_count > 0)pAuxAgInf->st_usb_cam.retry_count--;
 
 
 	return STAT_OK;
@@ -325,11 +350,11 @@ LRESULT CALLBACK COteAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 void COteAuxAgent::OnPaintMon2(HWND hWnd, HDC hdc) {
 
-	std::lock_guard<std::mutex> lock(pAgInf->st_usb_cam.g_mtx);
-	if (!pAgInf->st_usb_cam.bgrMatFrame.empty()) {
+	std::lock_guard<std::mutex> lock(pAuxAgInf->st_usb_cam.g_mtx);
+	if (!pAuxAgInf->st_usb_cam.bgrMatFrame.empty()) {
 		// --- 手順1: Bitmapバッファへ順次描画 ---
-		Gdiplus::Bitmap bitmap(pAgInf->st_usb_cam.bgrMatFrame.cols, pAgInf->st_usb_cam.bgrMatFrame.rows,
-			(int)pAgInf->st_usb_cam.bgrMatFrame.step, PixelFormat24bppRGB, pAgInf->st_usb_cam.bgrMatFrame.data);
+		Gdiplus::Bitmap bitmap(pAuxAgInf->st_usb_cam.bgrMatFrame.cols, pAuxAgInf->st_usb_cam.bgrMatFrame.rows,
+			(int)pAuxAgInf->st_usb_cam.bgrMatFrame.step, PixelFormat24bppRGB, pAuxAgInf->st_usb_cam.bgrMatFrame.data);
 
 		int img_w = bitmap.GetWidth(), img_h = bitmap.GetHeight();
 		m_pOffscreenGraphics->DrawImage(&bitmap, 0, 0, img_w, img_h);
@@ -652,14 +677,14 @@ void COteAuxAgent::UsbCameraThreadAG() {
 
 		pDataStream->StartAcquisition();
 		pDevice->AcquisitionStart();
-		pAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_NORMAL;
-		pAgInf->st_usb_cam.retry_count = 0;
+		pAuxAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_NORMAL;
+		pAuxAgInf->st_usb_cam.retry_count = 0;
 	}
 	catch (const GenICam::GenericException& e) {
 		wos_cam.str(L""); wos_cam << "USB CAM Init Exception: " << e.GetDescription() << endl;
 		pAgentObj->msg2listview(wos_cam.str().c_str());
-		pAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_INIT_ERR;
-		pAgInf->st_usb_cam.retry_count = OTEAUXAG_CAMERA_PRM_RETRY_CNT;
+		pAuxAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_INIT_ERR;
+		pAuxAgInf->st_usb_cam.retry_count = OTEAUXAG_CAMERA_PRM_RETRY_CNT;
 		g_keepRunning = false;
 		wos_cam.str(L""); wos_cam << "Exit Thread Loop: " << endl;
 		pAgentObj->msg2listview(wos_cam.str().c_str());
@@ -676,8 +701,8 @@ void COteAuxAgent::UsbCameraThreadAG() {
 
 			if (dwWait == WAIT_OBJECT_0) {		//終了イベント
 				// StopEventがセットされたらループ脱出
-				pAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_SUSPEND;
-				pAgInf->st_usb_cam.retry_count = 0;
+				pAuxAgInf->st_usb_cam.status = OTEAUXAG_CAMERA_STAT_SUSPEND;
+				pAuxAgInf->st_usb_cam.retry_count = 0;
 				break;
 			}
 
@@ -690,23 +715,23 @@ void COteAuxAgent::UsbCameraThreadAG() {
 
 					if (pIStImage != nullptr) {
 						// 2. 画像情報の取得
-						pAgInf->st_usb_cam.width	= (int)pIStImage->GetImageWidth();
-						pAgInf->st_usb_cam.height	= (int)pIStImage->GetImageHeight();
-						pAgInf->st_usb_cam.stride	= pIStImage->GetImageLinePitch(); // 1行のバイト数
-						pAgInf->st_usb_cam.pRawData = pIStImage->GetImageBuffer();
+						pAuxAgInf->st_usb_cam.width	= (int)pIStImage->GetImageWidth();
+						pAuxAgInf->st_usb_cam.height	= (int)pIStImage->GetImageHeight();
+						pAuxAgInf->st_usb_cam.stride	= pIStImage->GetImageLinePitch(); // 1行のバイト数
+						pAuxAgInf->st_usb_cam.pRawData = pIStImage->GetImageBuffer();
 
 						{
-							std::lock_guard<std::mutex> lock(pAgInf->st_usb_cam.g_mtx);
+							std::lock_guard<std::mutex> lock(pAuxAgInf->st_usb_cam.g_mtx);
 							// 3. OpenCVのMatに生のBayerデータを読み込み ※ 8bit (CV_8UC1) であることを前提としています
-							cv::Mat rawMat(pAgInf->st_usb_cam.height, pAgInf->st_usb_cam.width, CV_8UC1, pAgInf->st_usb_cam.pRawData, pAgInf->st_usb_cam.stride);
+							cv::Mat rawMat(pAuxAgInf->st_usb_cam.height, pAuxAgInf->st_usb_cam.width, CV_8UC1, pAuxAgInf->st_usb_cam.pRawData, pAuxAgInf->st_usb_cam.stride);
 							
 							// 4. OpenCVでBGRへ変換
 							// 注意: ここではBayerGR2RGBを使用していますが。bgrMatFrameの中身は、BGR順のデータになる様です。表示や処理の際は、OpenCVの慣習に従ってBGRとして扱ってください。
-							cv::cvtColor(rawMat, pAgInf->st_usb_cam.bgrMatFrame, cv::COLOR_BayerGR2RGB);
+							cv::cvtColor(rawMat, pAuxAgInf->st_usb_cam.bgrMatFrame, cv::COLOR_BayerGR2RGB);
 							
 							// 5. OpenCVでHSV Matを作成
-							cv::cvtColor(pAgInf->st_usb_cam.bgrMatFrame, pAgInf->st_usb_cam.hsvMatFrame, cv::COLOR_BGR2HSV);
-							pAgInf->st_usb_cam.isRawMatUpdated = true; // フレームが更新されたことを示すフラグを立てる
+							cv::cvtColor(pAuxAgInf->st_usb_cam.bgrMatFrame, pAuxAgInf->st_usb_cam.hsvMatFrame, cv::COLOR_BGR2HSV);
+							pAuxAgInf->st_usb_cam.isRawMatUpdated = true; // フレームが更新されたことを示すフラグを立てる
 						}
 					}
 					st_mon2.thrad_counter++;
@@ -716,7 +741,7 @@ void COteAuxAgent::UsbCameraThreadAG() {
 		catch (const GenICam::GenericException& e) {
 			wos_cam.str(L""); wos_cam << "USB CAM Capture Exception: " << e.GetDescription() << endl;
 			pAgentObj->msg2listview(wos_cam.str().c_str());
-			pAgInf->st_usb_cam.isRawMatUpdated = false;
+			pAuxAgInf->st_usb_cam.isRawMatUpdated = false;
 		}
 	}
 	pDevice->AcquisitionStop();

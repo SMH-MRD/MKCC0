@@ -7,6 +7,7 @@
 #include "CBasicControl.h"
 #include "CSHAREDMEM.H" 
 #include "SmemAux.h"
+#include "SmemOte.h"
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "COteAuxAgent.h"
@@ -32,10 +33,11 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ ク
 // --- グローバル変数・共有リソース ---
 
 //共有メモリオブジェクトポインタ
-CSharedMem* pEnvInfObj;
-CSharedMem* pAgentInfObj;
+CSharedMem* pAuxEnvInfObj;
+CSharedMem* pAuxAgentInfObj;
+CSharedMem* pAuxCsInfObj;
+CSharedMem* pAuxPolInfObj;
 CSharedMem* pCsInfObj;
-CSharedMem* pPolInfObj;
 
 ST_APP_COMMON_PARAM g_app_common_param;
 
@@ -89,10 +91,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // 共有メモリオブジェクトのインスタンス化
-    pEnvInfObj = new CSharedMem;
-    pAgentInfObj = new CSharedMem;
+    pAuxEnvInfObj = new CSharedMem;
+    pAuxAgentInfObj = new CSharedMem;
+    pAuxCsInfObj = new CSharedMem;
+    pAuxPolInfObj = new CSharedMem;
     pCsInfObj = new CSharedMem;
-    pPolInfObj = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -177,13 +180,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    pszInifile = dstpath;
 
    ///-共有メモリ割付&設定##################
-   if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_OTE_AUX_ENV_INF_NAME, sizeof(ST_OTE_AUX_ENV_INF), MUTEX_OTE_AUX_ENV_INF_NAME)) return(FALSE);
-   if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_OTE_AUX_AGENT_INF_NAME, sizeof(ST_OTE_AUX_AGENT_INF), MUTEX_OTE_AUX_AGENT_INF_NAME)) return(FALSE);
-   if (OK_SHMEM != pCsInfObj->create_smem(SMEM_OTE_AUX_CS_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_CS_INF_NAME)) return(FALSE);
-   if (OK_SHMEM != pPolInfObj->create_smem(SMEM_OTE_AUX_POL_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_POL_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pAuxEnvInfObj->create_smem(SMEM_OTE_AUX_ENV_INF_NAME, sizeof(ST_OTE_AUX_ENV_INF), MUTEX_OTE_AUX_ENV_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pAuxAgentInfObj->create_smem(SMEM_OTE_AUX_AGENT_INF_NAME, sizeof(ST_OTE_AUX_AGENT_INF), MUTEX_OTE_AUX_AGENT_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pAuxCsInfObj->create_smem(SMEM_OTE_AUX_CS_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_CS_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pAuxPolInfObj->create_smem(SMEM_OTE_AUX_POL_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_POL_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pCsInfObj->create_smem(SMEM_OTE_CS_INF_NAME, sizeof(ST_OTE_CS_INF), MUTEX_OTE_CS_INF_NAME)) return(FALSE);
 
    //デバイスコードセット
-   LPST_OTE_AUX_ENV_INF pEnvInf = (LPST_OTE_AUX_ENV_INF)(pEnvInfObj->get_pMap());
+   LPST_OTE_AUX_ENV_INF pEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
 
    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", pEnvInf->device_code.crane_id, _countof(pEnvInf->device_code.crane_id), PATH_OF_INIFILE);
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", pEnvInf->device_code.pc_type, _countof(pEnvInf->device_code.pc_type), PATH_OF_INIFILE);
@@ -430,9 +434,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 VOID CloseApp()
 {
-    delete pEnvInfObj;
-    delete pAgentInfObj;
-    delete pCsInfObj;
+    delete pAuxEnvInfObj;
+    delete pAuxAgentInfObj;
+    delete pAuxCsInfObj;
+    delete pAuxPolInfObj;
     return;
 }
 

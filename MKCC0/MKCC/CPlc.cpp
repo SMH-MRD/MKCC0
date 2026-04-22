@@ -183,6 +183,9 @@ ST_PLC_IO_WIF plc_io_wdef0 = {
 
 	//OTEヘッダコマンド
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0},// 
+
+	//映像遅延検出用デバイス
+	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0},	//ST_PLC_IO_DEF v_delay_device;
 };
 
 int CPlc::setup(int crane_id) {
@@ -410,6 +413,8 @@ int CPlc::setup(int crane_id) {
 
 			//OTE HEADER COMMAND
 			plc_io_wif.ote_head_command.pi16 = p + 16;
+
+			plc_io_wif.v_delay_device.pi16 = p + 10;	//映像遅延検出用デバイス
 		}
 	}break;
 	case CARNE_ID_HHGQ18:{

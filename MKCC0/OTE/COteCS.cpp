@@ -12,7 +12,7 @@ extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
-extern CSharedMem* pOteAuxCsObj;
+extern CSharedMem* pOteAuxAgObj;
 extern ST_DEVICE_CODE g_my_code; //端末コード
 
 extern CCrane* pCrane;
@@ -41,7 +41,7 @@ static LPST_OTE_UI		pOteUi;
 static LPST_OTE_CC_IF	pOteCCInf;
 static LPST_OTE_CS_INF	pOteCsInf;
 
-static LPST_OTE_AUX_CS_INF	pOteAuxCsInf;
+static LPST_OTE_AUX_AGENT_INF	pOteAuxAgInf;
 
 static CGamePad* pPad = NULL;
 
@@ -89,7 +89,7 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
 	pOteUi = (LPST_OTE_UI)pOteUiObj->get_pMap();
 
-	pOteAuxCsInf = (LPST_OTE_AUX_CS_INF)pOteAuxCsObj->get_pMap();
+	pOteAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pOteAuxAgObj->get_pMap();
 
 	if ((pOteEnvInf == NULL) || (pOteCsInf == NULL) || (pOteUi == NULL) || (pOteCCInf == NULL))
 		hr = S_FALSE;
@@ -146,6 +146,10 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 		
+	//AUXモード設定
+	pOteCsInf->video_delay_chk_req = L_ON;
+
+
 	//モニタウィンドウテキスト	
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Debug");
@@ -456,6 +460,20 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = 0;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = 0;
 	}
+
+	//映像遅延チェック用指令出力
+	if(pOteCsInf->video_delay_chk_req){
+		if(pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK){
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
+		}
+		else{
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
+		}
+	}
+	else{
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
+	}
+
 	return S_OK;
 }
 
@@ -503,7 +521,7 @@ int COteCS::parse()
 		//## OTE インターロックチェック
 		
 		//# 映像遅延過大
-		if (pOteAuxCsInf->st_video_chk.video_delay_ms > FLTS_LEVEL_IL_VIDEO_DELAY) {
+		if (pOteAuxAgInf->v_delay_sec > FLTS_LEVEL_IL_VIDEO_DELAY) {
 			pOteCsInf->ote_interlock |= FLTS_MASK_ERR_OTE_CAM_TM_OVER;
 		}
 		else {

@@ -145,6 +145,8 @@ typedef struct _ST_OTE_CS_INF {
 	INT16 rpc_flt_count;							//操作卓故障検出バッファカウント
 	INT16 rpc_IL_count;								//操作卓インターロック検出バッファカウント
 
+	INT32 video_delay_chk_req = L_OFF;			//映像遅延チェック状態
+
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他
 

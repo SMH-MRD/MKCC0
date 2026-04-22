@@ -2,6 +2,7 @@
 #include "resource.h"
 #include "CSHAREDMEM.H"
 #include <commctrl.h>
+#include "SmemOte.H"
 
 #pragma comment (lib, "Gdiplus.lib")
 
@@ -50,10 +51,11 @@ Graphics* COteAuxPol::pgraphic_img;
 
 LPST_AUXPOL_IMG_PROC COteAuxPol::pst_img_proc;
 
-extern CSharedMem* pEnvInfObj;
-extern CSharedMem* pAgentInfObj;
+extern CSharedMem* pAuxEnvInfObj;
+extern CSharedMem* pAuxAgentInfObj;
+extern CSharedMem* pAuxCsInfObj;
+extern CSharedMem* pAuxPolInfObj;
 extern CSharedMem* pCsInfObj;
-extern CSharedMem* pPolInfObj;
 
 extern BC_TASK_ID st_task_id;
 extern vector<CBasicControl*>	VectCtrlObj;	    //スレッドオブジェクトのポインタ
@@ -61,10 +63,11 @@ extern vector<CBasicControl*>	VectCtrlObj;	    //スレッドオブジェクト�
 static COteAuxPol* pPolObj;
 
 //共有メモリ
-static LPST_OTE_AUX_ENV_INF		pEnvInf = NULL;
-static LPST_OTE_AUX_CS_INF		pCSInf = NULL;
-static LPST_OTE_AUX_AGENT_INF	pAgInf = NULL;
-static LPST_OTE_AUX_POL_INF		pPolInf = NULL;
+static LPST_OTE_AUX_ENV_INF		pAuxEnvInf = NULL;
+static LPST_OTE_AUX_CS_INF		pAuxCSInf = NULL;
+static LPST_OTE_AUX_AGENT_INF	pAuxAgInf = NULL;
+static LPST_OTE_AUX_POL_INF		pAuxPolInf = NULL;
+static LPST_OTE_CS_INF			pCSInf = NULL;
 
 COteAuxPol::COteAuxPol() {
 
@@ -147,16 +150,17 @@ HRESULT COteAuxPol::initialize(LPVOID lpParam) {
 
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_OTE_AUX_POL_INF);
-	set_outbuf(pPolInfObj->get_pMap());
+	set_outbuf(pAuxPolInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	pAgInf	= (LPST_OTE_AUX_AGENT_INF)pAgentInfObj->get_pMap();
-	pEnvInf = (LPST_OTE_AUX_ENV_INF)(pEnvInfObj->get_pMap());
-	pCSInf	= (LPST_OTE_AUX_CS_INF)pCsInfObj->get_pMap();
-	pPolInf = (LPST_OTE_AUX_POL_INF)pPolInfObj->get_pMap();
+	pAuxAgInf	= (LPST_OTE_AUX_AGENT_INF)pAuxAgentInfObj->get_pMap();
+	pAuxEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
+	pAuxCSInf	= (LPST_OTE_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+	pAuxPolInf = (LPST_OTE_AUX_POL_INF)pAuxPolInfObj->get_pMap();
+	pCSInf = (LPST_OTE_CS_INF)pCsInfObj->get_pMap();
 
 	pPolObj = (COteAuxPol*)VectCtrlObj[st_task_id.POL];
-	pst_img_proc = &(pPolInf->st_img_proc);
+	pst_img_proc = &(pAuxPolInf->st_img_proc);
 	pst_img_proc->h_margin = pst_img_proc->s_margin = pst_img_proc->v_margin = 20;
 
 	//### 初期化
@@ -196,7 +200,7 @@ int COteAuxPol::input() {
 int COteAuxPol::parse() {           //メイン処理
 
 	// 1. カメラ画像がない場合は処理しない
-	if (pAgInf->st_usb_cam.hsvMatFrame.empty()) {
+	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
 		pst_img_proc->status &= ~AUXPOL_CODE_IMG_PROC_ENABLE;
 		return AUXPOL_CODE_VIDEO_CHK_ERR;
 	}
@@ -222,7 +226,7 @@ int COteAuxPol::parse() {           //メイン処理
 	}
 	if (st_mon2.is_monitor_active) {
 
-		pst_img_proc->is_target_detected = GetCraneDeviceStatus(&(pPolInf->st_img_proc));
+		pst_img_proc->is_target_detected = GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc));
 		// 4. 表示用にマスク(1ch)をRGB(3ch)へ
 		cv::cvtColor(pst_img_proc->mask, pst_img_proc->hsvMat_mask, cv::COLOR_GRAY2RGB);
 	}
@@ -242,17 +246,17 @@ int COteAuxPol::GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work) {
 	// HSVマスク画像生成
 	cv::Mat m1, m2, local_mask;
 
-	if(pAgInf->st_usb_cam.hsvMatFrame.empty()) {
+	if(pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
 		return -1;
 	}
 
 	if (pst_work->hl > pst_work->hh) {//色相閾値の下限が上限より大きい場合は、0-180の両端で範囲を設定してチェック結果をORする
-		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(0, pst_work->sl, pst_work->vl), cv::Scalar(pst_work->hh, pst_work->sh, pst_work->vh), m1);
-		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(pst_work->hl, pst_work->sl, pst_work->vl), cv::Scalar(179, pst_work->sh, pst_work->vh), m2);
+		cv::inRange(pAuxAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(0, pst_work->sl, pst_work->vl), cv::Scalar(pst_work->hh, pst_work->sh, pst_work->vh), m1);
+		cv::inRange(pAuxAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(pst_work->hl, pst_work->sl, pst_work->vl), cv::Scalar(179, pst_work->sh, pst_work->vh), m2);
 		cv::bitwise_or(m1, m2, pst_work->mask);
 	}
 	else {
-		cv::inRange(pAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(pst_work->hl, pst_work->sl, pst_work->vl), cv::Scalar(pst_work->hh, pst_work->sh, pst_work->vh), pst_work->mask);
+		cv::inRange(pAuxAgInf->st_usb_cam.hsvMatFrame, cv::Scalar(pst_work->hl, pst_work->sl, pst_work->vl), cv::Scalar(pst_work->hh, pst_work->sh, pst_work->vh), pst_work->mask);
 	}
 
 	// 3. マスク画像からROI内の白いピクセル数をカウント
@@ -411,7 +415,7 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				rc_mat_roi_work_disp = set_work_roi(true);//true:rc_mat_roi_criterion+αの領域を設定
 
 				//基準判定用Matをセット
-				mat_criterion = pAgInf->st_usb_cam.hsvMatFrame(rc_mat_roi_criterion);
+				mat_criterion = pAuxAgInf->st_usb_cam.hsvMatFrame(rc_mat_roi_criterion);
 				//基準カウント数取得
 				cv::Mat mask;
 				cv::Mat m1,m2;
@@ -661,7 +665,7 @@ LRESULT CALLBACK COteAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp
 		{
 			if (inf.panel_func_id == IDC_TASK_FUNC_RADIO1) {
 
-				if (pAgInf->st_usb_cam.bgrMatFrame.empty()) break;
+				if (pAuxAgInf->st_usb_cam.bgrMatFrame.empty()) break;
 
 				if (LOWORD(wp) == IDC_TASK_ITEM_CHECK1) {
 					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_ROWMAT;
@@ -873,16 +877,16 @@ HRESULT COteAuxPol::setup_graphics(HWND hwnd) {
 void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 
 	m_pOffscreenGraphics->Clear(Color(200, 200, 200));
-	std::lock_guard<std::mutex> lock(pAgInf->st_usb_cam.g_mtx);
-	int width = pAgInf->st_usb_cam.bgrMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
-	int height = pAgInf->st_usb_cam.bgrMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
+	std::lock_guard<std::mutex> lock(pAuxAgInf->st_usb_cam.g_mtx);
+	int width = pAuxAgInf->st_usb_cam.bgrMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
+	int height = pAuxAgInf->st_usb_cam.bgrMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
 	float h_text = 10.0f;
 
-	if (!pAgInf->st_usb_cam.bgrMatFrame.empty()) {
+	if (!pAuxAgInf->st_usb_cam.bgrMatFrame.empty()) {
 		// --- 手順1: Bitmapバッファへ順次描画 ---
 		// カメラ画像
-		Gdiplus::Bitmap bitmap(pAgInf->st_usb_cam.bgrMatFrame.cols, pAgInf->st_usb_cam.bgrMatFrame.rows,
-			(int)pAgInf->st_usb_cam.bgrMatFrame.step, PixelFormat24bppRGB, pAgInf->st_usb_cam.bgrMatFrame.data);
+		Gdiplus::Bitmap bitmap(pAuxAgInf->st_usb_cam.bgrMatFrame.cols, pAuxAgInf->st_usb_cam.bgrMatFrame.rows,
+			(int)pAuxAgInf->st_usb_cam.bgrMatFrame.step, PixelFormat24bppRGB, pAuxAgInf->st_usb_cam.bgrMatFrame.data);
 
 		m_pOffscreenGraphics->DrawImage(&bitmap, 0, 0, width, height);
 
@@ -966,14 +970,14 @@ void COteAuxPol::HSV_autoCalibrate() {
 
 	// 選択範囲が画像内にあるか確認して切り出し
 	// 表示画面は元画像を縮小している
-	int width = pAgInf->st_usb_cam.hsvMatFrame.cols;
-	int height = pAgInf->st_usb_cam.hsvMatFrame.rows;
+	int width = pAuxAgInf->st_usb_cam.hsvMatFrame.cols;
+	int height = pAuxAgInf->st_usb_cam.hsvMatFrame.rows;
 	//AND領域の矩形取得
 	cv::Rect valid = rc_mat_roi_criterion & cv::Rect(0, 0, width, height);
 	if (valid.width < 0 || valid.height < 0) return;
 		
 	// HSV各チャンネルに分離
-	cv::Mat roiHsv = pAgInf->st_usb_cam.hsvMatFrame(valid);
+	cv::Mat roiHsv = pAuxAgInf->st_usb_cam.hsvMatFrame(valid);
 	std::vector<cv::Mat> channels;
 	cv::split(roiHsv, channels);
 
@@ -1037,8 +1041,8 @@ cv::Rect COteAuxPol::get_hsv_criterion(){
 
 		// 選択範囲が画像内にあるか確認して切り出し
 		// 表示画面は元画像を縮小している
-		int width_disp = pAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
-		int height_disp = pAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
+		int width_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
+		int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
 		//AND領域の矩形取得
 		st_mon2.rc_selected = st_mon2.rc_selected & cv::Rect(0, 0, width_disp, height_disp);
 
@@ -1072,8 +1076,8 @@ cv::Rect COteAuxPol::set_work_roi(bool is_criterion_base) {
 
 		// 選択範囲が画像内にあるか確認して切り出し
 		// 表示画面は元画像を縮小している
-		int width_disp	= pAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
-		int height_disp = pAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
+		int width_disp	= pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
+		int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
 		//AND領域の矩形取得
 		rc_disp = rc_disp & cv::Rect(0, 0, width_disp, height_disp);
 

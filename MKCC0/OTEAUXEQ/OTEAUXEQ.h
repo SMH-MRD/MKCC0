@@ -28,7 +28,7 @@ namespace OTEAUXEQ
 #define TAB_SPACE				    20		 
 
 #define AUXEQ_WND_X                0
-#define AUXEQ_WND_Y                0
+#define AUXEQ_WND_Y                500
 #define AUXEQ_WND_W                640
 #define AUXEQ_WND_H                460
 #define AUXEQ_WND_MIN_H            100

@@ -404,6 +404,9 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw1, pOteCtrl[OTE_PNL_CTRLS::hd_lamp1]);	//水銀ランプ切替スイッチ
 	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw2, pOteCtrl[OTE_PNL_CTRLS::hd_lamp2]);	//水銀ランプ切替スイッチ
 	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw3, pOteCtrl[OTE_PNL_CTRLS::hd_lamp3]);	//水銀ランプ切替スイッチ
+	
+	//映像遅延検出デバイス
+	pCrane->pPlc->wval(pPlcWIf->v_delay_device, pOteCtrl[OTE_PNL_CTRLS::v_delay_device]);	//水銀ランプ切替スイッチ
 
 	//Notch信号
 	if (pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] & FLTS_MASK_ERR_OTE_TMOV) {//操作端末タイムオーバー
@@ -419,6 +422,9 @@ int CAgent::parse() {
 		pCrane->pPlc->wval(pPlcWIf->sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
 		pCrane->pPlc->wval(pPlcWIf->gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
 	}
+
+
+
 
 	//### SIMULATOR計算値セット(シミュレータモードでないときはPLCロジック内で反映されない）
 	//高速カウンタ・アブソコーダ

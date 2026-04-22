@@ -1,6 +1,7 @@
 #include "COteAuxEnv.h"
 #include "resource.h"
 #include "CSHAREDMEM.H"
+#include "SmemOte.H"
 #include "SmemAux.H"
 
 //Namespace for using StApi.
@@ -8,19 +9,21 @@
 ST_OTEAUXENV_MON1 COteAuxEnv::st_mon1;
 ST_OTEAUXENV_MON2 COteAuxEnv::st_mon2;
 
-extern CSharedMem* pEnvInfObj;
-extern CSharedMem* pAgentInfObj;
+extern CSharedMem* pAuxEnvInfObj;
+extern CSharedMem* pAuxAgentInfObj;
+extern CSharedMem* pAuxCsInfObj;
+extern CSharedMem* pAuxPolInfObj;
 extern CSharedMem* pCsInfObj;
-extern CSharedMem* pPolInfObj;
 
 extern BC_TASK_ID st_task_id;
 extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
 
 //共有メモリ
-static LPST_OTE_AUX_ENV_INF		pEnvInf = NULL;
-static LPST_OTE_AUX_CS_INF		pCSInf = NULL;
-static LPST_OTE_AUX_AGENT_INF	pAgInf = NULL;
-static LPST_OTE_AUX_POL_INF		pPolInf = NULL;
+static LPST_OTE_AUX_ENV_INF		pAuxEnvInf = NULL;
+static LPST_OTE_AUX_CS_INF		pAuxCSInf = NULL;
+static LPST_OTE_AUX_AGENT_INF	pAuxAgInf = NULL;
+static LPST_OTE_AUX_POL_INF		pAuxPolInf = NULL;
+static LPST_OTE_CS_INF			pCSInf = NULL;
 
 static wostringstream wos_cam;
 
@@ -35,16 +38,17 @@ HRESULT COteAuxEnv::initialize(LPVOID lpParam) {
 
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_OTE_AUX_ENV_INF);
-	set_outbuf(pEnvInfObj->get_pMap());
+	set_outbuf(pAuxEnvInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	pAgInf = (LPST_OTE_AUX_AGENT_INF)pAgentInfObj->get_pMap();
-	pEnvInf = (LPST_OTE_AUX_ENV_INF)(pEnvInfObj->get_pMap());
-	pCSInf = (LPST_OTE_AUX_CS_INF)pCsInfObj->get_pMap();
-	pPolInf = (LPST_OTE_AUX_POL_INF)pPolInfObj->get_pMap();
+	pAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pAuxAgentInfObj->get_pMap();
+	pAuxEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
+	pAuxCSInf = (LPST_OTE_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+	pAuxPolInf = (LPST_OTE_AUX_POL_INF)pAuxPolInfObj->get_pMap();
+	pCSInf = (LPST_OTE_CS_INF)pCsInfObj->get_pMap();
 
 	//### 初期化
-	pEnvInf->video_delay_chk_func_active = L_ON;
+	pAuxEnvInf->video_delay_chk_func_active = L_ON;
 
 	//モニタウィンドウテキスト	
 	set_func_pb_txt();
@@ -60,7 +64,7 @@ HRESULT COteAuxEnv::routine_work(void* pObj) {
 
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time << L" CamDelay:";
-		if(pEnvInf->video_delay_chk_func_active == L_ON) wos << L"ReqON";
+		if(pAuxEnvInf->video_delay_chk_func_active == L_ON) wos << L"ReqON";
 		else wos << L"ReqOFF";
 		msg2host(wos.str());
 	}
@@ -69,7 +73,10 @@ HRESULT COteAuxEnv::routine_work(void* pObj) {
 }
 
 int COteAuxEnv::input() {
-
+	if (pCSInf->video_delay_chk_req == L_ON)
+		pAuxEnvInf->video_delay_chk_func_active = L_ON;
+	else
+		pAuxEnvInf->video_delay_chk_func_active = L_OFF;
 	return S_OK;
 }
 int COteAuxEnv::parse() {           //メイン処理
@@ -308,8 +315,6 @@ LRESULT CALLBACK COteAuxEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp
 
 		case IDSET:
 		{
-			if(pEnvInf->video_delay_chk_func_active == L_ON)pEnvInf->video_delay_chk_func_active = L_OFF;
-			else pEnvInf->video_delay_chk_func_active = L_ON;
 		}break;
 		case IDRESET:
 		{

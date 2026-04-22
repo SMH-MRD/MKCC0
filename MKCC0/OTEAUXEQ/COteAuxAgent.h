@@ -56,7 +56,6 @@ typedef struct _AUXAG_MON1 {
     };
 }ST_AUXAG_MON1, * LPST_AUXAG_MON1;
 
-
 //MON2---------------------------------------------------
 #define AUXAG_MON2_WND_X                    10
 #define AUXAG_MON2_WND_Y                    10   
@@ -115,7 +114,8 @@ typedef struct _AUXAG_MON2 {
 
 }ST_AUXAG_MON2, * LPST_AUXAG_MON2;
 
-
+#define AUXAG_PRM_V_DELAY_TMOV_LV1            2.5   //タイムオーバー判定用遅延時間(sec）異常判定値
+#define AUXAG_PRM_V_DELAY_TMOV_LV2            3.0   //タイムオーバー判定用遅延時間(sec）計測打ち切り判定値
 
 class COteAuxAgent :  public CBasicControl
 {

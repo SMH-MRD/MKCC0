@@ -19,7 +19,7 @@ using namespace std;
 #define MUTEX_AUX_CS_INF_NAME			L"MU_AUX_CS_INF"
 #define MUTEX_AUX_POL_INF_NAME			L"MU_AUX_POL_INF"
 
-#define SMEM_OTE_AUX_ENV_INF_NAME			L"OTE_AUX_ENV_INF"
+#define SMEM_OTE_AUX_ENV_INF_NAME		L"OTE_AUX_ENV_INF"
 #define SMEM_OTE_AUX_AGENT_INF_NAME		L"OTE_AUX_AGENT_INF"
 #define SMEM_OTE_AUX_CS_INF_NAME		L"OTE_AUX_CS_INF"
 #define SMEM_OTE_AUX_POL_INF_NAME		L"OTE_AUX_POL_INF"
@@ -76,7 +76,6 @@ typedef struct _ST_SLBRK_FB {
 typedef struct _ST_AUX_AGENT_INF {	//MCprotocolの送受信バッファ
 	INT16 slbrk_wbuf[16];
 	INT16 slbrk_rbuf[16];
-	
 }ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 
 typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
@@ -134,8 +133,6 @@ typedef struct _USB_CAM
 #define OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK	0x0020	//映像遅延検出OFFチェック起動
 #define OTEAUXAG_CODE_V_DELAY_CHK_FIN		0x0100	//映像遅延検出チェック正常完了フラグ
 #define OTEAUXAG_CODE_V_DELAY_CHK_TMOV		0x0200	//映像遅延検出チェックタイムオーバーフラグ
-
-#define OTEAUXAG_PRM_V_DELAY_TMOV_SEC		1.0;	//
 
 typedef struct _ST_OTE_AUX_AGENT_INF {				//MCprotocolの送受信バッファ
 	ST_USB_CAM st_usb_cam;

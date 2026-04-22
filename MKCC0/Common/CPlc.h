@@ -70,7 +70,8 @@ typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC
 	INT16   ctrl_mode;					//D10201:自動制御フラグ
 	UINT16  cab_ai[4];					//D10202:運転室PLC AI信号【モーメントリミッタ】
 	INT16   cab_bi[4];					//D10206:運転室PLC→電気室PLC b出力
-	INT16   spare[2];					//D10210:予備
+	INT16   aux_com;					//D10210:補機指令出力 0bit：映像遅延チェックデバイス
+	INT16   spare[1];					//D10211:予備
 	INT16   mh_load;					//D10212:主巻荷重
 	INT16   ah_load;					//D10213:補巻荷重
 	INT16   wind_spd;					//D10214:風速
@@ -477,7 +478,10 @@ typedef struct _ST_PLC_IO_WIF {
 	//風速
 	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
 	//OTEヘッダコマンド
-	ST_PLC_IO_DEF ote_head_command;	
+	ST_PLC_IO_DEF ote_head_command;
+
+	//映像遅延検出用デバイス
+	ST_PLC_IO_DEF v_delay_device;
 
 }ST_PLC_IO_WIF, * LPST_PLC_IO_WIF;
 

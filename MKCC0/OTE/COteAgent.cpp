@@ -6,6 +6,7 @@
 #include "OTE_DEF.H"
 #include "CPanelObj.h"
 #include "CHelper.h"
+#include "SmemAux.H"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -14,6 +15,7 @@ extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
+extern CSharedMem* pOteAuxAgObj;
 
 extern ST_DRAWING_BASE		drawing_items;
 extern ST_DEVICE_CODE g_my_code; //端末コード
@@ -36,10 +38,11 @@ ST_OTE_CC_IF COteAgent::st_work;
 
 //共有メモリ
 
-static LPST_OTE_ENV_INF	pOteEnvInf;
-static LPST_OTE_UI		pOteUI;
-static LPST_OTE_CC_IF	pOteCCIf;
-static LPST_OTE_CS_INF	pOteCsInf;
+static LPST_OTE_ENV_INF			pOteEnvInf;
+static LPST_OTE_UI				pOteUI;
+static LPST_OTE_CC_IF			pOteCCIf;
+static LPST_OTE_CS_INF			pOteCsInf;
+static LPST_OTE_AUX_AGENT_INF	pOteAuxAgInf;
 
 static LONG rcv_count_pc_u = 0,	 snd_count_ote_u = 0;
 static LONG rcv_count_pc_u_chk = 0, snd_count_ote_u_chk = 0;
@@ -261,6 +264,8 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
 	pOteUI = (LPST_OTE_UI)pOteUiObj->get_pMap();
 	pOteEnvInf = (LPST_OTE_ENV_INF)pOteEnvInfObj->get_pMap();
+	pOteAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pOteAuxAgObj->get_pMap();
+	
 
 	if ((pOteCCIf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteEnvInf == NULL))
 		hr = S_FALSE;
