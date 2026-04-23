@@ -1840,6 +1840,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		CreateWindowW(TEXT("STATIC"), L"送信No 　　　受信No　　　差 ", WS_CHILD | WS_VISIBLE | SS_LEFT,
 			55, 185, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
 
+		CreateWindowW(TEXT("STATIC"), L"映像遅延(sec) ", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			55, 245, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
+
 		//STATIC 
 		CStaticCtrl* pst = pPanelBase->psubobjs->st_snd_period;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
@@ -1880,6 +1883,11 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		pst = pPanelBase->psubobjs->st_deff_seq_no;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_v_delay;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
 		
 		//PB 
 		CPbCtrl* ppb = pPanelBase->psubobjs->pb_setting_update;
@@ -1942,6 +1950,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			SetWindowText(pPanelBase->psubobjs->st_rcv_seq_no->hWnd, wos.str().c_str());
 			wos.str(L""); wos << pCcIf->msg_snd_seqno_now - pCcIf->msg_rcv_seqno_now;
 			SetWindowText(pPanelBase->psubobjs->st_deff_seq_no->hWnd, wos.str().c_str());
+	
+			wos.str(L""); wos << pCsInf->video_delay_sec;
+			SetWindowText(pPanelBase->psubobjs->st_v_delay->hWnd, wos.str().c_str());
 
 		}break;
 		default: {

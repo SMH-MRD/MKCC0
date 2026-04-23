@@ -55,7 +55,7 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 
 };
 
-#define N_SUB_PNL_OBJ		64
+#define N_SUB_PNL_OBJ		128
 static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	//設定サブウィンドウ
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(85,80)	,Size(30,30)	,L"-"			},//i=0
@@ -135,6 +135,8 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_COM_OBJ_SND_SEQ_NO	,Point(45, 210)	,Size(50,30)	,L"-"	},
 	{ID_SUB_PNL_COM_OBJ_RCV_SEQ_NO	,Point(135,210)	,Size(50,30)	,L"-"	},
 	{ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO	,Point(225,210)	,Size(50,30)	,L"-"	},
+
+	{ID_SUB_PNL_COM_OBJ_V_DELAY		,Point(45,270)	,Size(50,30)	,L"-"	},
 };
 
 #define N_GWIN_OBJ			32
@@ -534,6 +536,8 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; st_snd_seq_no = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_SND_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_rcv_seq_no = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_RCV_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_deff_seq_no = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	
+	i++; st_v_delay = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	return S_OK;
 }
 void CSubPanelObj::delete_obj() {
@@ -574,6 +578,7 @@ void CSubPanelObj::delete_obj() {
 	delete st_delay_ave;
 	delete st_data_lost;
 	delete pb_setting_update;
+	delete st_v_delay;
 
 
 	return;

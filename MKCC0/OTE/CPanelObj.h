@@ -256,6 +256,7 @@ public:
 #define ID_SUB_PNL_COM_OBJ_SND_SEQ_NO			60364
 #define ID_SUB_PNL_COM_OBJ_RCV_SEQ_NO			60365
 #define ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO			60366
+#define ID_SUB_PNL_COM_OBJ_V_DELAY				60367
 
 
 class CSubPanelObj :public CPanelObjBase
@@ -350,6 +351,7 @@ public:
 	CStaticCtrl* st_snd_seq_no;			//送信シーケンス番号
 	CStaticCtrl* st_rcv_seq_no;			//受信シーケンス番号
 	CStaticCtrl* st_deff_seq_no;		//シーケンス番号差
+	CStaticCtrl* st_v_delay;			//遅延表示
 
 	virtual HRESULT setup_obj();
 	virtual void delete_obj();

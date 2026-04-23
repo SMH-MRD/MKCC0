@@ -147,7 +147,7 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 		
 	//AUXモード設定
-	pOteCsInf->video_delay_chk_req = L_ON;
+	pOteCsInf->video_delay_chk_req = L_OFF;//映像遅延チェック要求
 
 
 	//モニタウィンドウテキスト	
@@ -306,6 +306,22 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pin_opepnl->bh_mode_cs;
 		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pin_opepnl->notch_L1;
+
+		//映像遅延チェック要求セット
+
+		if (
+			!(pin_opepnl->plc_setting & OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS) &&		//バイパス無し
+			//	!(pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_NOTCH_ALL0) &&			//全ノッチ0	
+			pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code	//操作準備完了
+			)
+		{
+			pOteCsInf->video_delay_chk_req = L_ON;//映像遅延チェック要求
+			pOteCsInf->video_delay_sec = pOteAuxAgInf->v_delay_sec;//映像遅延時間セット
+		}
+		else {
+			pOteCsInf->video_delay_chk_req = L_OFF;//映像遅延チェック要求
+			pOteCsInf->video_delay_sec = 0.0;//映像遅延時間クリア
+		}
 	
 	}
 	else {//オルタネートSWは操作台無効時のみPCパネル指令受付（GpadはオルタネートSW無し）
@@ -315,6 +331,8 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_aux];
+
+		pOteCsInf->video_delay_sec = 0.0;//映像遅延時間クリア
 	}
 	
 	//## ゲームパッド信号取り込み（モメンタリ）
@@ -337,6 +355,7 @@ int COteCS::input(){
 		//旋回ブレーキ
 		// ペダル(0-15)
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] = (pOteCsInf->gpad_in.trig_l+ pOteCsInf->gpad_in.trig_r) / 0x10;
+
 	}
 	
 	//## PC Winパネル信号取り込み（モメンタリ）
@@ -374,6 +393,7 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_gt]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_gt];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_ah]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_ah];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
+
 	}
 
 	//## ノッチ指令値取り込み
