@@ -518,7 +518,6 @@ int CAgent::manage_slbrk() {
 				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 			}
 			else;
-
 		}
 		//機能チェック停止中
 		else if (st_work.slew_brake_chk_enable == L_OFF) {
@@ -527,8 +526,16 @@ int CAgent::manage_slbrk() {
 				st_work.slew_brake_chk_enable = L_ON;
 				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_CHECK_STANDBY;
 			}
+			else {
+				if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_PARK_FIN) {
+					if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F) {//遠隔操作卓ペダル入力有で解除
+						pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
+					}
+				}
+			}
 			slblk_chk_cnt = AGENT_PRM_SLBK_CHK_COUNT_STANDBY;
 		}
+
 		//機能チェックシーケンス中
 		else {
 			if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_STANDBY) {		//シーケンス開始時
@@ -554,7 +561,11 @@ int CAgent::manage_slbrk() {
 					st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 				}
 			}
-
+			else if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_PARK_FIN) {
+				if (pOteCtrl[OTE_PNL_CTRLS::sl_brk] & 0x000F) {//遠隔操作卓ペダル入力有で解除
+					pAgent_Inf->slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
+				}
+			}
 			else {
 				st_work.slew_brake_ctrl_mode = AG_MODE_SLBK_NORMAL;
 			}
@@ -595,6 +606,7 @@ int CAgent::manage_slbrk() {
 		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_PARK_FIN) {	//通常指令
 			//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
 			pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
+//			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
 		}
 		else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL) {	//通常指令
 			//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
