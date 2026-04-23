@@ -186,7 +186,7 @@ typedef struct _ST_PLC_WBUF_HHGG38 {
 #define OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS		0x0001	//íÖç¿ILBypass
 #define OTE_CODE_OPEPLC_SET_TOUCH_PB_ACTIVE		0x0002	//É^ÉbÉ`PBï\é¶
 #define OTE_CODE_OPEPLC_SET_CTRL_IL_BYPASS		0x0004	//êßå‰íxâÑILBypass
-#define OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS		0x0008	//âfëúíxâÑILBypass
+#define OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS	0x0008	//âfëúíxâÑILBypass
 
 
 

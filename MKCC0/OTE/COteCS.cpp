@@ -548,25 +548,37 @@ int COteCS::parse()
 			pOteCsInf->ote_interlock &= ~FLTS_MASK_ERR_OTE_CAM_TM_OVER;
 		}
 		//# 制御通信遅延過大
-		if (pOteCCInf->msg_delay_ave_ms > FLTS_LEVEL_IL_CTRL_CC_COM_DELAY) {
-			pOteCsInf->ote_interlock |= FLTS_MASK_IL_CTRL_CC_COM_DELAY;
-			flg_0notch_hold = L_ON;
+		LPST_PLC_RBUF_HHGG38 p = (LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read;
+
+		if (!(p->plc_setting & OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS) ){
+			if (pOteCCInf->msg_delay_ave_ms > FLTS_LEVEL_IL_CTRL_CC_COM_DELAY) {
+				pOteCsInf->ote_interlock |= FLTS_MASK_IL_CTRL_CC_COM_DELAY;
+				flg_0notch_hold = L_ON;
+			}
+			else {
+				pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
+			}
 		}
 		else {
 			pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
 		}
 		//# 着座Interlock
-		if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)&& !(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_GPAD)) {
-			if (pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_SHEAT_IL) {
-				pOteCsInf->ote_interlock |= FLTS_MASK_IL_SEAT_SWITCH;
-				flg_0notch_hold = L_ON;
+		if (!(p->plc_setting & OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS)) {
+			if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) && !(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_GPAD)) {
+				if (pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_SHEAT_IL) {
+					pOteCsInf->ote_interlock |= FLTS_MASK_IL_SEAT_SWITCH;
+					flg_0notch_hold = L_ON;
+				}
+				else {
+					pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_SEAT_SWITCH;
+				}
 			}
 			else {
-				pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_SEAT_SWITCH;
+				pOteCsInf->ote_interlock &= ~FLTS_ID_IL_SEAT_SWITCH;
 			}
 		}
 		else {
-			pOteCsInf->ote_interlock &= ~FLTS_ID_IL_SEAT_SWITCH;
+			pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_SEAT_SWITCH;
 		}
 
 		//## OTE エラーコードセット
