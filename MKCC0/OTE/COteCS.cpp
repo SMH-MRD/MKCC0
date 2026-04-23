@@ -310,7 +310,7 @@ int COteCS::input(){
 		//映像遅延チェック要求セット
 
 		if (
-			!(pin_opepnl->plc_setting & OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS) &&		//バイパス無し
+			!(pin_opepnl->plc_setting & OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS) &&		//バイパス無し
 			//	!(pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_NOTCH_ALL0) &&			//全ノッチ0	
 			pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code	//操作準備完了
 			)
