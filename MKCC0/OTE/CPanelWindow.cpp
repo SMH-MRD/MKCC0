@@ -1951,7 +1951,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			wos.str(L""); wos << pCcIf->msg_snd_seqno_now - pCcIf->msg_rcv_seqno_now;
 			SetWindowText(pPanelBase->psubobjs->st_deff_seq_no->hWnd, wos.str().c_str());
 	
-			wos.str(L""); wos << pCsInf->video_delay_sec;
+			wos.str(L""); wos << std::setprecision(2) << pCsInf->video_delay_sec;
 			SetWindowText(pPanelBase->psubobjs->st_v_delay->hWnd, wos.str().c_str());
 
 		}break;
