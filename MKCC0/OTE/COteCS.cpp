@@ -541,7 +541,7 @@ int COteCS::parse()
 		//## OTE インターロックチェック
 		LPST_PLC_RBUF_HHGG38 p = (LPST_PLC_RBUF_HHGG38)pOteCsInf->buf_opepnl_read;
 		//# 映像遅延過大
-		if (!(p->plc_setting & OTE_CODE_OPEPLC_SET_CTRL_IL_BYPASS)) {
+		if (!(p->plc_setting & OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS)) {
 			if (pOteAuxAgInf->v_delay_sec > FLTS_LEVEL_IL_VIDEO_DELAY) {
 				pOteCsInf->ote_interlock |= FLTS_MASK_ERR_OTE_CAM_TM_OVER;
 			}
