@@ -77,6 +77,25 @@ int COteAuxEnv::input() {
 		pAuxEnvInf->video_delay_chk_func_active = L_ON;
 	else
 		pAuxEnvInf->video_delay_chk_func_active = L_OFF;
+
+	//チェックデバイス強制ON
+	if (pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_FORCED_ON)
+		pAuxEnvInf->video_delay_chk_device_forth_on = L_ON;
+	else 
+		pAuxEnvInf->video_delay_chk_device_forth_on = L_OFF;
+
+	//自動パラメータセット要求
+	if (pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM) 
+		pAuxEnvInf->video_delay_chk_auto_prm_set_req = L_ON;
+	else
+		pAuxEnvInf->video_delay_chk_auto_prm_set_req = L_OFF;
+
+	//パラメータセーブ要求
+	if (pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_SAVE)
+		pAuxEnvInf->video_delay_chk_prm_save_req = L_ON;
+	else
+		pAuxEnvInf->video_delay_chk_prm_save_req = L_OFF;
+
 	return S_OK;
 }
 int COteAuxEnv::parse() {           //メイン処理

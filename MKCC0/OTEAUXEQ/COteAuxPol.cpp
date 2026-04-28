@@ -3,6 +3,7 @@
 #include "CSHAREDMEM.H"
 #include <commctrl.h>
 #include "SmemOte.H"
+#include <fstream>
 
 #pragma comment (lib, "Gdiplus.lib")
 
@@ -164,6 +165,9 @@ HRESULT COteAuxPol::initialize(LPVOID lpParam) {
 	pst_img_proc->h_margin = pst_img_proc->s_margin = pst_img_proc->v_margin = 20;
 
 	//### 初期化
+	//映像遅延パラメータ保存状態初期化
+	LoadParameters();
+
 	wos.str(L"");//初期化
 	rc_mat_roi_work = { AUXPOL_DEFAULT_ROI_X, AUXPOL_DEFAULT_ROI_Y, AUXPOL_DEFAULT_ROI_W,AUXPOL_DEFAULT_ROI_H};
 	rc_mat_roi_criterion = { AUXPOL_DEFAULT_ROI_X, AUXPOL_DEFAULT_ROI_Y, AUXPOL_DEFAULT_ROI_W,AUXPOL_DEFAULT_ROI_H };
@@ -199,6 +203,24 @@ int COteAuxPol::input() {
 }
 int COteAuxPol::parse() {           //メイン処理
 
+	//パラメータセーブ要求処理
+	if ((pAuxEnvInf->video_delay_chk_prm_save_req) && !(pAuxPolInf->st_img_proc.v_delay_pam_save_status & OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_START)) {
+		pAuxPolInf->st_img_proc.v_delay_pam_save_status |= OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_START;
+		pAuxPolInf->st_img_proc.v_delay_pam_save_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL);
+		//パラメータ保存処理開始
+	}
+	else if ((!pAuxEnvInf->video_delay_chk_prm_save_req) && (pAuxPolInf->st_img_proc.v_delay_pam_save_status & (OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL))) {
+		//パラメータ保存処理終了
+		pAuxPolInf->st_img_proc.v_delay_pam_save_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_START;
+	}
+	else if (pAuxPolInf->st_img_proc.v_delay_pam_save_status & OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_START) {
+		//パラメータ保存処理中
+		SaveParameters();
+		pAuxPolInf->st_img_proc.v_delay_pam_save_status |= OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN;
+	}
+	else;
+
+	//## 映像遅延検出パラメータ更新
 	// 1. カメラ画像がない場合は処理しない
 	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
 		pst_img_proc->status &= ~AUXPOL_CODE_IMG_PROC_ENABLE;
@@ -224,10 +246,10 @@ int COteAuxPol::parse() {           //メイン処理
 		pst_img_proc->vl = pst_img_proc->vh;
 		pst_img_proc->vh = tem_int;
 	}
-	if (st_mon2.is_monitor_active) {
 
+	// 4. 表示用に検出→マスク(1ch)をRGB(3ch)へ
+	if (st_mon2.is_monitor_active) {
 		pst_img_proc->is_target_detected = GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc));
-		// 4. 表示用にマスク(1ch)をRGB(3ch)へ
 		cv::cvtColor(pst_img_proc->mask, pst_img_proc->hsvMat_mask, cv::COLOR_GRAY2RGB);
 	}
 
@@ -275,6 +297,49 @@ int COteAuxPol::GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work) {
 
 	return pst_work->is_target_detected;
 
+}
+
+std::string COteAuxPol::GetExeDirectoryPath(std::string filename) {
+	char path[MAX_PATH];
+	// 自分のexeのフルパスを取得
+	GetModuleFileNameA(NULL, path, MAX_PATH);
+
+	std::string strPath = path;
+	// 最後のバックスラッシュ（フォルダの区切り）を探して、ファイル名部分を削る
+	size_t lastSlash = strPath.find_last_of("\\/");
+	return strPath.substr(0, lastSlash + 1) + filename;
+}
+
+// --- バイナリ形式で保存 ---
+void COteAuxPol::SaveParameters() {
+
+	std::string fullPath = GetExeDirectoryPath("prm.dat");
+	std::ofstream ofs(fullPath, std::ios::binary);
+
+	if (ofs) {
+		// 構造体を丸ごとメモリダンプとして書き込む
+		ofs.write(reinterpret_cast<const char*>(&(pAuxPolInf->st_img_proc)), sizeof(ST_AUXPOL_IMG_PROC));
+		ofs.close();
+	}
+}
+
+// --- バイナリ形式で読み込み ---
+void COteAuxPol::LoadParameters() {
+
+	std::string fullPath = GetExeDirectoryPath("prm.dat");
+	std::ifstream ifs(fullPath, std::ios::binary);
+	if (ifs) {
+		ST_AUXPOL_IMG_PROC temp;
+		ifs.read(reinterpret_cast<char*>(&temp), sizeof(ST_AUXPOL_IMG_PROC));
+		ifs.close();
+
+		 //識別子が一致する場合のみ反映（ファイルが壊れていないかチェック）
+		if (temp.magic == OTEAUXPOL_CODE_MAGIC) {
+			pAuxPolInf->st_img_proc = temp;
+			// GUIのスライダー位置を更新
+			UpdateSliderPos();
+		}
+	}
 }
 
 static wostringstream monwos;

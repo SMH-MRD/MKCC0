@@ -13,6 +13,7 @@ extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 extern CSharedMem* pOteAuxAgObj;
+extern CSharedMem* pOteAuxPolObj;
 extern ST_DEVICE_CODE g_my_code; //端末コード
 
 extern CCrane* pCrane;
@@ -42,6 +43,7 @@ static LPST_OTE_CC_IF	pOteCCInf;
 static LPST_OTE_CS_INF	pOteCsInf;
 
 static LPST_OTE_AUX_AGENT_INF	pOteAuxAgInf;
+static LPST_OTE_AUX_POL_INF	pOteAuxPolInf;
 
 static CGamePad* pPad = NULL;
 
@@ -90,6 +92,7 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	pOteUi = (LPST_OTE_UI)pOteUiObj->get_pMap();
 
 	pOteAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pOteAuxAgObj->get_pMap();
+	pOteAuxPolInf = (LPST_OTE_AUX_POL_INF)pOteAuxPolObj->get_pMap();
 
 	if ((pOteEnvInf == NULL) || (pOteCsInf == NULL) || (pOteUi == NULL) || (pOteCCInf == NULL))
 		hr = S_FALSE;
@@ -481,18 +484,8 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = 0;
 	}
 
-	//映像遅延チェック用指令出力
-	if(pOteCsInf->video_delay_chk_req){
-		if(pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK){
-			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
-		}
-		else{
-			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
-		}
-	}
-	else{
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
-	}
+	pOteCsInf->video_delay_prm_stat = pOteAuxAgInf->v_delay_chk_status;
+	pOteCsInf->video_delay_ctrl_stat = pOteAuxPolInf->st_img_proc.v_delay_pam_save_status;
 
 	return S_OK;
 }
@@ -559,6 +552,7 @@ int COteCS::parse()
 				flg_0notch_hold = L_ON;
 			}
 			else {
+				if(flg_0notch_hold == L_OFF)
 				pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
 			}
 //		}
@@ -826,6 +820,45 @@ int COteCS::output() {
 
 //### 制御PCへの出力処理
 	pOteCsInf->st_body.ote_err[0] = pOteCsInf->ote_error;	//遠隔操作PC検出故障セット
+
+//###　映像遅延チェック用指令出力
+	if (pOteCsInf->video_delay_chk_req) {
+		if (pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) {
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
+		}
+		else {
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
+		}
+	}
+	else {
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
+	}
+
+	//## 映像遅延チェック指令の整形
+	//チェックデバイス強制ON
+	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device]) {
+		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_FORCED_ON;
+	}
+	else{
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_FORCED_ON;
+	}
+	//自動パラメータセット要求
+	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm]) {
+		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
+	}
+	else if(pOteCsInf->video_delay_ctrl_stat &(OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL)){
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
+	}
+	else;
+
+
+	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm]) {
+		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+	}
+	else if (pOteCsInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL)) {
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+	}
+	else;
 
 //##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));

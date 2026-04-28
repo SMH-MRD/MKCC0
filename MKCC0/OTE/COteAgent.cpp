@@ -260,10 +260,10 @@ HRESULT COteAgent::initialize(LPVOID lpParam) {
 	set_outbuf(pOteCcInfObj->get_pMap());
 
 	//### ‹¤—Lƒƒ‚ƒŠæ“¾
-	pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
-	pOteCsInf = (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
-	pOteUI = (LPST_OTE_UI)pOteUiObj->get_pMap();
-	pOteEnvInf = (LPST_OTE_ENV_INF)pOteEnvInfObj->get_pMap();
+	pOteCCIf	= (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
+	pOteCsInf	= (LPST_OTE_CS_INF)(pOteCsInfObj->get_pMap());
+	pOteUI		= (LPST_OTE_UI)pOteUiObj->get_pMap();
+	pOteEnvInf	= (LPST_OTE_ENV_INF)pOteEnvInfObj->get_pMap();
 	pOteAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pOteAuxAgObj->get_pMap();
 	
 

@@ -121,6 +121,10 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_CS_CODE_OPEPNL_LOCAL		1	//機側端末
 #define OTE_CS_CODE_OPEPNL_ROOM			2	//操作室端末
 
+#define OTE_CS_CODE_V_DELAY_COM_FORCED_ON	0x0001	//デバイス強制ON要求
+#define OTE_CS_CODE_V_DELAY_COM_AUTO_PRM	0x0002	//自動パラメータ設定要求
+#define OTE_CS_CODE_V_DELAY_COM_PRM_SAVE	0x0004	//パラメータ設定保存要求
+
 typedef struct _ST_OTE_CS_INF {
 	INT32 ote_type	 = OTE_CS_CODE_OPEPNL_PC;		//PLCとの通信状態
 	INT32 ote_option = 0;							//予備
@@ -146,7 +150,10 @@ typedef struct _ST_OTE_CS_INF {
 	INT16 rpc_IL_count;								//操作卓インターロック検出バッファカウント
 	double video_delay_sec;							//映像遅延時間
 
-	INT32 video_delay_chk_req = L_OFF;			//映像遅延チェック状態
+	INT32 video_delay_chk_req = L_OFF;				//映像遅延チェック要求状態
+	INT32 video_delay_chk_ctrl = L_OFF;				//映像遅延チェック制御要求状態
+	INT32 video_delay_prm_stat = L_OFF;				//映像遅延チェックパラメータ状態
+	INT32 video_delay_ctrl_stat = L_OFF;				//映像遅延チェックパラメータ状態
 
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他

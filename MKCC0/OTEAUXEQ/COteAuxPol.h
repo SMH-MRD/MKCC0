@@ -195,8 +195,13 @@ public:
     static LPST_AUXPOL_IMG_PROC pst_img_proc;
 
     int GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work);
+
+    void SaveParameters();
+    void LoadParameters();
+    std::string GetExeDirectoryPath(std::string filename);
  
 private:
+    const char* m_filename = "prm.dat";
 
     // --- GDI+ ŠÖ˜A ---
     ULONG_PTR m_gdiplusToken;

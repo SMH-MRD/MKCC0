@@ -117,11 +117,11 @@ HRESULT COteAuxAgent::routine_work(void* pObj){
 
 	if (inf.total_act % 10 == 0) {
 		wstring status_str;
-		status_str =	(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_STANDBY) ? L"STBY" :
+		status_str =	(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_STANDBY) ? L"STBY" :
 						(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ? L"ON CHK" :
 						(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK) ? L"OFF CHK" :
-						(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_TMOV) ? L"TMOV" :
-						(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_FIN) ? L"FIN" : L"UNK";
+						(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_CHK_TMOV) ? L"TMOV" :
+						(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_CHK_FIN) ? L"FIN" : L"UNK";
 
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time <<L" CamCount:"<<st_mon2.thrad_counter
 			<<L" DelayChkStatus:"<< status_str.c_str() << L" Delay:" << pAuxAgInf->v_delay_sec << L" TMOV:" << pAuxAgInf->v_delay_tmov_cnt << L" FIN:" << pAuxAgInf->v_delay_chk_fin_cnt;
@@ -150,12 +150,14 @@ int COteAuxAgent::parse() {           //メイン処理
 		if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_STANDBY) {
 			//計測トリガ処理
 			if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_ON) {
-				pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
+				pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
+				pAuxAgInf->v_delay_chk_status &= ~OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
 				pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE;	//クレーン装置にOFFコマンド送信
 				QueryPerformanceCounter(&pAuxAgInf->start_count);//計測開始カウンタ値取得
 			}
 			else if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_OFF) {
-				pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
+				pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
+				pAuxAgInf->v_delay_chk_status &= ~OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
 				pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
 				QueryPerformanceCounter(&pAuxAgInf->start_count);//計測開始カウンタ値取得
 			}
@@ -202,17 +204,39 @@ int COteAuxAgent::parse() {           //メイン処理
 		else if(pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_FIN){
 			QueryPerformanceCounter(&pAuxAgInf->end_count);//計測完了カウンタ値取得
 			pAuxAgInf->v_delay_sec = (double)(pAuxAgInf->end_count.QuadPart - pAuxAgInf->start_count.QuadPart) / (double)pAuxAgInf->frequency.QuadPart;
-			pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_STANDBY;
 		}
 		else if (pAuxAgInf->v_delay_chk_status == OTEAUXAG_CODE_V_DELAY_CHK_TMOV) {
 			pAuxAgInf->v_delay_tmov_cnt++;
-			pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_STANDBY;
 		}
 		else;
+
+		//デバイス強制ON要求処理
+		if (pAuxEnvInf->video_delay_chk_device_forth_on) {
+			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
+			pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
+		}
+
+		//自動パラメータ設定要求処理
+		if ((pAuxEnvInf->video_delay_chk_auto_prm_set_req) && !(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START)) {
+			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
+			//自動パラメータ設定処理開始
+		}
+		else if ((!pAuxEnvInf->video_delay_chk_auto_prm_set_req) && (pAuxAgInf->v_delay_chk_status & (OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL))) {
+			pAuxAgInf->v_delay_chk_status &= ~OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
+			pAuxAgInf->v_delay_chk_status &= ~(OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL);
+		}
+		else if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START) {
+
+		}
+		else;
+			//自動パラメータ設定処理終了
+
 	}
 	else {
 		if (g_keepRunning) {
-			SetEvent(g_hStopEvent);
+			SetEvent(g_hStopEvent);//スレッド停止指示
 			Sleep(1000);
 			if (g_capThread.joinable()) {
 				g_capThread.join();
@@ -222,9 +246,8 @@ int COteAuxAgent::parse() {           //メイン処理
 		pAuxAgInf->v_delay_sec = 0.0;
 	}
 
+	
 	//### 映像遅延計測処理
-
-
 	if (pAuxAgInf->st_usb_cam.retry_count > 0)pAuxAgInf->st_usb_cam.retry_count--;
 
 
@@ -240,6 +263,11 @@ int COteAuxAgent::close() {
    }
 	return 0;
 }
+
+
+
+
+
 
 static wostringstream monwos;
 LRESULT CALLBACK COteAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {

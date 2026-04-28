@@ -96,7 +96,10 @@ typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 typedef struct _ST_OTE_AUX_ENV_INF {
 
 	ST_DEVICE_CODE device_code;
-	INT32 video_delay_chk_func_active = L_ON;	//ビデオ遅延チェック機能有効フラグ
+	INT32 video_delay_chk_func_active = L_ON;		//ビデオ遅延チェック機能有効フラグ
+	INT32 video_delay_chk_device_forth_on = L_OFF;	//ビデオ遅延チェック用デバイス強制ONフラグ
+	INT32 video_delay_chk_auto_prm_set_req = L_OFF;	//ビデオ遅延チェック用自動パラメータ設定要求フラグ
+	INT32 video_delay_chk_prm_save_req = L_OFF;	//ビデオ遅延チェック用パラメータ保存要求フラグ
 	INT32 video_delay_ms = 10000;				//ビデオ遅延計測値
 	DWORD helthy_cnt;
 
@@ -127,12 +130,17 @@ typedef struct _USB_CAM
 #define OTEAUXAG_COM_CRANE_DEVICE_ACTIVE	0x0011	//クレーン機器状態 ON要求コード
 #define OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE	0x0010	//クレーン機器状態 OFF要求コード
 
-#define OTEAUXAG_CODE_V_DELAY_DEACTIVE		0x0000	//映像遅延検出無効
-#define OTEAUXAG_CODE_V_DELAY_STANDBY		0x0001	//映像遅延検出待機中
-#define OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK	0x0010	//映像遅延検出ONチェック起動
-#define OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK	0x0020	//映像遅延検出OFFチェック起動
-#define OTEAUXAG_CODE_V_DELAY_CHK_FIN		0x0100	//映像遅延検出チェック正常完了フラグ
-#define OTEAUXAG_CODE_V_DELAY_CHK_TMOV		0x0200	//映像遅延検出チェックタイムオーバーフラグ
+#define OTEAUXAG_CODE_V_DELAY_DEACTIVE			0x0000	//映像遅延検出無効
+#define OTEAUXAG_CODE_V_DELAY_STANDBY			0x0001	//映像遅延検出待機中
+#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM			0x0002	//映像遅延検出パラメータ設定中
+#define OTEAUXAG_CODE_V_DELAY_SAVE_PRM			0x0004	//映像遅延検出パラメータ保存中
+#define OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK		0x0010	//映像遅延検出ONチェック起動
+#define OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK		0x0020	//映像遅延検出OFFチェック起動
+#define OTEAUXAG_CODE_V_DELAY_CHK_FIN			0x0100	//映像遅延検出チェック正常完了フラグ
+#define OTEAUXAG_CODE_V_DELAY_CHK_TMOV			0x0200	//映像遅延検出チェックタイムオーバーフラグ
+#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START	0x1000	//映像遅延検出パラメータ自動設定ターゲット検出中
+#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN		0x4000	//映像遅延検出コマンド実行完了
+#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL		0x8000	//映像遅延検出コマンド実行エラー
 
 typedef struct _ST_OTE_AUX_AGENT_INF {				//MCprotocolの送受信バッファ
 	ST_USB_CAM st_usb_cam;
@@ -156,7 +164,14 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 }ST_OTE_AUX_CS_INF, * LPST_OTE_AUX_CS_INF;
 
 
+#define OTEAUXPOL_CODE_MAGIC						0x53544341 // "STCA" (Sentech Camera App)
+#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_START		0x2000	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
+#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN			0x4000	//映像遅延検出コマンド実行完了
+#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL		0x8000	//映像遅延検出コマンド実行エラー
+
 typedef struct _ST_AUXPOL_IMG_PROC {
+	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー
+	INT32 v_delay_pam_save_status = L_OFF;
 	// HSV マスク設定値
 	int hl = 0, hh = 10, hCenter = 0;
 	int sl = 0, sh = 255, sCenter = 0;

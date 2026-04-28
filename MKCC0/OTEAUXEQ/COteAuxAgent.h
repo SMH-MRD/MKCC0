@@ -1,7 +1,6 @@
 #pragma once
 
 #include "framework.h"
-
 #include "CBasicControl.h"
 
 // Include files for using OpenCV.
@@ -153,11 +152,11 @@ public:
     static void UsbCameraThreadAG();
     static void OnPaintMon2(HWND hWnd, HDC hdc);
 
- 
+     void SaveParameters(); 
+     void LoadParameters();
+
 private:
-
-
-    // --- GDI+ ŠÖ˜A ---
+     // --- GDI+ ŠÖ˜A ---
     ULONG_PTR m_gdiplusToken;
     static std::unique_ptr<Bitmap>   m_pOffscreenBitmap;
     static std::unique_ptr<Graphics> m_pOffscreenGraphics;
@@ -187,5 +186,7 @@ private:
 
     static HRESULT setup_graphics(HWND hwnd);
     static void clear_graphics();
+
+
 };
 

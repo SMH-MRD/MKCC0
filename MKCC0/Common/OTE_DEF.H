@@ -64,7 +64,9 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	sl_brk_hw_brk,		//旋回ブレーキHW brk
 	sl_brk_reset,		//旋回ブレーキリセット入力
 	sl_brk_park,		//旋回ブレーキパーキング
-	v_delay_device,		//映像遅延デバイス指令
+	v_delay_device,		//映像遅延デバイスON指令
+	v_delay_auto_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ計測起動
+	v_delay_save_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ保存起動
 	MAX
 };
 

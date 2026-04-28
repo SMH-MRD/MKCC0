@@ -163,18 +163,30 @@ void COteScad::set_panel_io() {
 	//st_workにセットしてoutput()で共有メモリへ出力する
 	// !!GamePadの入力はMON1ウィンドウのTIMERでCSの共有メモリのGPAD情報をみてPanelBaseのオブジェクトにセットしている
 	if (pPanelBase != NULL) {
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::estop]			= pPanelBase->pmainobjs->cb_estop->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		= pPanelBase->pmainobjs->pb_syukan_on->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off]		= pPanelBase->pmainobjs->pb_syukan_off->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote]			= pPanelBase->pmainobjs->pb_remote->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad]		= pPanelBase->pmainobjs->pb_pad_mode->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]	= pPanelBase->pmainobjs->pb_freset->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::estop] = pPanelBase->pmainobjs->cb_estop->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on] = pPanelBase->pmainobjs->pb_syukan_on->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off] = pPanelBase->pmainobjs->pb_syukan_off->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote] = pPanelBase->pmainobjs->pb_remote->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad] = pPanelBase->pmainobjs->pb_pad_mode->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset] = pPanelBase->pmainobjs->pb_freset->get();
 
-
-		if (pOteCsInf->st_body.remote != CODE_PNL_COM_ACTIVE) {
-			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;	//タスクのFunction ID
-			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;		//タスクのFunction ID
+		//### スイッチ
+		if ((pOteCsInf->st_body.remote != CODE_PNL_COM_ACTIVE) || (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)) {
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;	
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;		
 		}
+		else if(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_PCPNL) {
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pPanelBase->psubobjs->rdo_mh_spd_mode->get();
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] = pPanelBase->psubobjs->rdo_bh_r_mode->get();
+		}
+		else;
+
+		//### 映像遅延チェック
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_save->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = pPanelBase->psubobjs->cb_v_delay_chk_device->get();
+
+		
 		//故障情報要求コード
 		st_work.flt_req_code = pPanelBase->psubobjs->flt_req_code;
 	}

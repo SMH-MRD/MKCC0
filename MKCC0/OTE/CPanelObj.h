@@ -198,6 +198,13 @@ public:
 #define ID_SUB_PNL_SET_OBJ_RDO_BHR				60210
 #define ID_SUB_PNL_SET_OBJ_LMP_BHR				60211
 
+#define ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE		60212
+#define ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM		60213
+#define ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE		60214
+#define ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM		60215
+#define ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE		60216
+
+
 #define ID_SUB_PNL_STAT_OBJ_BASE				60300
 #define ID_SUB_PNL_STAT_OBJ_PB_NEXT				60300
 #define ID_SUB_PNL_STAT_OBJ_PB_BACK				60301
@@ -280,14 +287,20 @@ public:
 	CCbCtrl*	cb_mh_spd_mode2;	//主巻速度モード選択ラジオボタン
 	CCbCtrl*	cb_mh_spd_mode3;	//主巻速度モード選択ラジオボタン
 	CRadioCtrl* rdo_mh_spd_mode;	//主巻速度モード選択ラジオボタン
-	CSwitchImg*	lmp_mh_spd_mode;	//緊急停止ランプ
+	CSwitchImg*	lmp_mh_spd_mode;	//主巻速度モードランプ
 
 	CCbCtrl*	cb_bh_r_mode0;		//引込速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode1;		//引込速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode2;		//引込速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode3;		//引込速度モード選択ラジオボタン
 	CRadioCtrl* rdo_bh_r_mode;		//引込速度モード選択ラジオボタン
-	CSwitchImg*	lmp_bh_r_mode;		//緊急停止ランプ
+	CSwitchImg*	lmp_bh_r_mode;		//主巻速度モードランプ
+
+	CCbCtrl		*cb_v_delay_chk_device;			//映像遅延測定用デバイス強制ON/OFFチェックボックス
+	CPbCtrl		*pb_v_delay_chk_prm_auto_set;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット起動PB
+	CPbCtrl		*pb_v_delay_chk_prm_save;		//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブPB
+	CStaticCtrl	*st_v_delay_auto_set_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット進捗表示テキスト
+	CStaticCtrl	*st_v_delay_prm_save_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
 
 	//状態表示サブウィンドウのオブジェクト
 	CPbCtrl*	pb_stat_next;		//次表示PB

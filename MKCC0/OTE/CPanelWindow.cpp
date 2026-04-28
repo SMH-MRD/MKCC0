@@ -1586,6 +1586,12 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
 
 		//ウィンドウにコントロール追加
+		//LABEL 
+		CreateWindowW(TEXT("STATIC"), L"巻上モード", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			100, 70, 150, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"引込モード", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			100, 220, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
+		
 		//RADIO BUTTON
 		CCbCtrl* pcb = pPanelBase->psubobjs->cb_mh_spd_mode1;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
@@ -1607,6 +1613,27 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pcb = pPanelBase->psubobjs->cb_bh_r_mode3;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+		//映像遅延検出関連
+		pcb = pPanelBase->psubobjs->cb_v_delay_chk_device;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+		//STATIC 
+		CStaticCtrl* pst = pPanelBase->psubobjs->st_v_delay_auto_set_status;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_v_delay_prm_save_status;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		//PB
+		CPbCtrl* ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
+		ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_save;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
 
 		//Switch Image Windowハンドルセット（パネルウィンドウ）
 		pPanelBase->psubobjs->lmp_mh_spd_mode->set_wnd(hwnd);
@@ -1673,13 +1700,13 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		//# Switching Image更新
 		//巻速度モード
 		INT16 code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
-		pPanelBase->psubobjs->lmp_mh_spd_mode->set(code); 
-		pPanelBase->psubobjs->lmp_mh_spd_mode->update();
+		pPanelBase->psubobjs->lmp_mh_spd_mode->set(code); //値セット
+		pPanelBase->psubobjs->lmp_mh_spd_mode->update();  //表示更新
 
 		//起伏モード
 		code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;
-		pPanelBase->psubobjs->lmp_bh_r_mode->set(code);
-		pPanelBase->psubobjs->lmp_bh_r_mode->update();
+		pPanelBase->psubobjs->lmp_bh_r_mode->set(code); //値セット
+		pPanelBase->psubobjs->lmp_bh_r_mode->update();	//表示更新
 
 		//操作台モード時または遠隔操作権無効時は、クレーン状態にラジオボタンセット
 		if ((pCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)||(pCsInf->st_body.remote != CODE_PNL_COM_ACTIVE)) {
@@ -1750,6 +1777,12 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
 		}
 
+		wostringstream wos;
+		wos.str(L""); wos << pCsInf->video_delay_ctrl_stat;
+		SetWindowText(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
+		wos.str(L""); wos << pCsInf->video_delay_prm_stat;
+		SetWindowText(pPanelBase->psubobjs->st_v_delay_prm_save_status->hWnd, wos.str().c_str());
+
 	}break;
 
 	case WM_COMMAND: {
@@ -1762,7 +1795,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1: 
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2:
 		case ID_SUB_PNL_SET_OBJ_RDO_MHSPD_3: {
-
 			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);//non owner draw(枠表示のみ）
 		}break;
 		case ID_SUB_PNL_SET_OBJ_RDO_BHR_0: 
@@ -1771,6 +1803,24 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		case ID_SUB_PNL_SET_OBJ_RDO_BHR_3: {
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
 			}break;
+
+		case ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE: {
+			//映像遅延検出デバイス選択チェックボックス
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_v_delay_chk_device->hWnd, BM_GETCHECK, 0, 0)) {
+				//有効
+				pPanelBase->psubobjs->cb_v_delay_chk_device->set(true);
+			}
+			else {
+				//無効
+				pPanelBase->psubobjs->cb_v_delay_chk_device->set(false);
+			}
+		}break;
+		case ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM: {
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->set(true);
+		}break;
+		case ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE: {
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_save->set(true);	
+		}break;
 
 		default:
 			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);

@@ -72,8 +72,14 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,280)	,Size(30,30)	,L"引込モード"	},
 	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(130,290)	,Size(80,80)	,L"引込モード"	},
 
+	{ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE		,Point(380,50)	,Size(100,30)	,L"DeviceON"	},//i=12
+	{ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM	,Point(380,100)	,Size(100,30)	,L"AutoPrm"		},
+	{ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE	,Point(380,160)	,Size(100,30)	,L"SavePrm"		},
+	{ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM	,Point(500,105)	,Size(150,30)	,L"STANDBY"		},
+	{ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE	,Point(500,165)	,Size(150,30)	,L"要求待ち"	},
+	
 	//状態サブウィンドウ
-	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=12
+	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=17
 	{ID_SUB_PNL_STAT_OBJ_PB_BACK	,Point(285,420)	,Size(50,30)	,L"BACK"		},
 
 	{ID_SUB_PNL_STAT_OBJ_STATIC_MH_DIR		,Point(35, 70 )	,Size(50,30)	,L"-"	},
@@ -102,7 +108,7 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_STAT_OBJ_STATIC_GT_FB_ABS	,Point(445,175)	,Size(100,30)	,L"GT ABS CNT"	},
 
 	//故障表示サブウィンドウ
-	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(640,500)	,L"背景"		},	//i=30	CSwitchImg* img_flt_bk;
+	{ID_SUB_PNL_FLT_OBJ_IMG_BK		,Point(0,0)		,Size(640,500)	,L"背景"		},	//i=35	CSwitchImg* img_flt_bk;
 	{ID_SUB_PNL_FLT_OBJ_PB_NEXT		,Point(315,440)	,Size(30,30)	,L"次"			},	//		CPbCtrl* pb_stat_next;
 	{ID_SUB_PNL_FLT_OBJ_CB_HISTORY	,Point(280,440)	,Size(40,30)	,L"履歴"		},	//		CCbCtrl* cb_stat_back;
 	{ID_SUB_PNL_FLT_OBJ_CB_HEAVY1	,Point(5,440)	,Size(40,30)	,L"重1"			},	//		CCbCtrl* cb_disp_flt_heavy1;
@@ -465,6 +471,12 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; rdo_bh_r_mode			= new CRadioCtrl(4, pcb_opt2);
 	i++; lmp_bh_r_mode			= new CSwitchImg(ID_SUB_PNL_SET_OBJ_LMP_BHR, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cs_bh_r_mode, 4, 3, pgraphic);
 
+	i++; cb_v_delay_chk_device		= new CCbCtrl(ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE	,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; pb_v_delay_chk_prm_auto_set= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; pb_v_delay_chk_prm_save	= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; st_v_delay_auto_set_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_v_delay_prm_save_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+
 
 	//# 状態表示ウィンドウオブジェクト
 	i++; pb_stat_next		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_NEXT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -551,6 +563,13 @@ void CSubPanelObj::delete_obj() {
 	delete cb_bh_r_mode2;
 	delete rdo_bh_r_mode;
 	delete lmp_bh_r_mode;
+
+	delete cb_v_delay_chk_device;		//映像遅延測定用デバイス強制ON/OFFチェックボックス
+	delete pb_v_delay_chk_prm_auto_set;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット起動PB
+	delete pb_v_delay_chk_prm_save;		//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブPB
+	delete st_v_delay_auto_set_status;//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット進捗表示テキスト
+	delete st_v_delay_prm_save_status;//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
+
 	delete pb_stat_next;
 	delete pb_stat_back;
 	delete img_flt_bk;
@@ -599,6 +618,7 @@ void CSubPanelObj::refresh_obj_graphics() {
 	cb_bh_r_mode3->refresh_graphics(pgraphic);
 	rdo_bh_r_mode->refresh_graphics(pgraphic);
 	lmp_bh_r_mode->refresh_graphics(pgraphic);
+
 
 	img_flt_bk->refresh_graphics(pgraphic_bk);
 	str_flt_message->refresh_graphics(pgraphic_inf);
