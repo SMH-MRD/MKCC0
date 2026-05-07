@@ -4,6 +4,7 @@
 #include <string>
 
 #include "SmemOte.H"
+#include "SmemAux.h"
 #include "CGraphicWindow.h"
 
 #define SUB_PNL_WND_X             125
@@ -28,7 +29,10 @@ public:
 	static LPST_OTE_CC_IF pCcIf;
 	static LPST_OTE_ENV_INF pOteEnvInf;
 
-	static CPanelBase* pPanelBase;
+	static LPST_OTE_AUX_AGENT_INF pOteAuxAgInf;
+	static LPST_OTE_AUX_POL_INF pOteAuxPolInf;
+	
+		static CPanelBase* pPanelBase;
 	static HWND hPnlWnd;//生成したパネルのウィンドウハンドル
 	static HWND hParentWnd;//親ウィンドウハンドル
 
@@ -48,7 +52,7 @@ public:
 	
 
 	static int close();
-	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf,int _crane_id);
+	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf, LPST_OTE_AUX_AGENT_INF _pOteAuxAgInf, LPST_OTE_AUX_POL_INF _pOteAuxPolInf,int _crane_id);
 	
 };
 
@@ -87,6 +91,9 @@ public:
 	static LPST_OTE_CC_IF pCcIf;
 	static LPST_OTE_ENV_INF pOteEnvInf;
 
+	static LPST_OTE_AUX_AGENT_INF	pOteAuxAgInf;
+	static LPST_OTE_AUX_POL_INF	pOteAuxPolInf;
+
 	static CSubPanelWindow* pSubPanelWnd;
 	static CGraphicWindow* pGWnd;
 
@@ -97,6 +104,7 @@ public:
 	static LRESULT CALLBACK WndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static int close();
-	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf) ;
+	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf, LPST_OTE_AUX_AGENT_INF pOteAuxAgInf, LPST_OTE_AUX_POL_INF	pOteAuxPolInf) ;
+
 };
 

@@ -38,8 +38,7 @@ CSharedMem* pAuxAgentInfObj;
 CSharedMem* pAuxCsInfObj;
 CSharedMem* pAuxPolInfObj;
 CSharedMem* pCsInfObj;
-
-ST_APP_COMMON_PARAM g_app_common_param;
+CSharedMem* pCcInfObj;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_OTEAUXEQ_WND      st_work_wnd;       //ウィンドウ管理用構造体  
@@ -96,6 +95,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     pAuxCsInfObj = new CSharedMem;
     pAuxPolInfObj = new CSharedMem;
     pCsInfObj = new CSharedMem;
+    pCcInfObj = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -184,8 +184,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pAuxAgentInfObj->create_smem(SMEM_OTE_AUX_AGENT_INF_NAME, sizeof(ST_OTE_AUX_AGENT_INF), MUTEX_OTE_AUX_AGENT_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pAuxCsInfObj->create_smem(SMEM_OTE_AUX_CS_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_CS_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pAuxPolInfObj->create_smem(SMEM_OTE_AUX_POL_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_POL_INF_NAME)) return(FALSE);
-   if (OK_SHMEM != pCsInfObj->create_smem(SMEM_OTE_CS_INF_NAME, sizeof(ST_OTE_CS_INF), MUTEX_OTE_CS_INF_NAME)) return(FALSE);
-
+   if (OK_SHMEM != pCcInfObj->create_smem(SMEM_OTE_CC_IF_NAME, sizeof(ST_OTE_CC_IF), MUTEX_OTE_CC_IF_NAME)) return(FALSE);
+   
    //デバイスコードセット
    LPST_OTE_AUX_ENV_INF pEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
 

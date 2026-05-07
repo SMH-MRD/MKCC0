@@ -93,7 +93,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     pOteCcInfObj    = new CSharedMem;
     pOteUiObj       = new CSharedMem;
     pOteAuxAgObj    = new CSharedMem;
-    pOteAuxPolObj = new CSharedMem;
+    pOteAuxPolObj   = new CSharedMem;
     
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -188,8 +188,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     if (OK_SHMEM != pOteCsInfObj->create_smem(  SMEM_OTE_CS_INF_NAME, sizeof(ST_OTE_CS_INF) , MUTEX_OTE_CS_INF_NAME))   return(FALSE);
     if (OK_SHMEM != pOteUiObj->create_smem(     SMEM_OTE_UI_NAME	, sizeof(ST_OTE_UI)     , MUTEX_OTE_UI_NAME))       return(FALSE);
     if (OK_SHMEM != pOteCcInfObj->create_smem(  SMEM_OTE_CC_IF_NAME	, sizeof(ST_OTE_CC_IF)  , MUTEX_OTE_CC_IF_NAME))    return(FALSE);
-    if (OK_SHMEM != pOteAuxAgObj->create_smem(SMEM_OTE_AUX_AGENT_INF_NAME, sizeof(ST_OTE_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) return(FALSE);
-    if (OK_SHMEM != pOteAuxPolObj->create_smem(SMEM_OTE_AUX_POL_INF_NAME, sizeof(ST_OTE_AUX_AGENT_INF), MUTEX_AUX_POL_INF_NAME)) return(FALSE);
+    if (OK_SHMEM != pOteAuxAgObj->create_smem(  SMEM_OTE_AUX_AGENT_INF_NAME, sizeof(ST_OTE_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) return(FALSE);
+    if (OK_SHMEM != pOteAuxPolObj->create_smem( SMEM_OTE_AUX_POL_INF_NAME, sizeof(ST_OTE_AUX_POL_INF), MUTEX_AUX_POL_INF_NAME)) return(FALSE);
 
 	LPST_OTE_CC_IF pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
 	INT16 plc_buf_dummy[256]; //PLCのバッファーサイズは256byte

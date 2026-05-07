@@ -75,8 +75,9 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE		,Point(380,50)	,Size(100,30)	,L"DeviceON"	},//i=12
 	{ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM	,Point(380,100)	,Size(100,30)	,L"AutoPrm"		},
 	{ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE	,Point(380,160)	,Size(100,30)	,L"SavePrm"		},
+	{ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD	,Point(380,200)	,Size(100,30)	,L"LoadPrm"		},
 	{ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM	,Point(500,105)	,Size(150,30)	,L"STANDBY"		},
-	{ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE	,Point(500,165)	,Size(150,30)	,L"要求待ち"	},
+	{ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE	,Point(500,180)	,Size(150,60)	,L"要求待ち"	},
 	
 	//状態サブウィンドウ
 	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=17
@@ -474,8 +475,10 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; cb_v_delay_chk_device		= new CCbCtrl(ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE	,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; pb_v_delay_chk_prm_auto_set= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; pb_v_delay_chk_prm_save	= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; pb_v_delay_chk_prm_load	= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; st_v_delay_auto_set_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_v_delay_prm_save_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+
 
 
 	//# 状態表示ウィンドウオブジェクト

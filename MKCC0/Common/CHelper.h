@@ -34,6 +34,7 @@ struct ST_NOTCH_CODE {
 };
 
 using namespace std;
+///ノッチコード変換クラス
 class CNotchHelper
 {
 public:
@@ -58,6 +59,7 @@ public:
 	static INT16 get_iui4_by_notch(int notch);
 	static INT16 get_iui4_by_v(double v, double* vtbl_f, double* vtbl_r);
 };
+
 class CStrHelper
 {
 public:
@@ -120,6 +122,9 @@ public:
 #define PLC_IO_CS_BH_R_MODE2   BIT5
 #define PLC_IO_CS_BH_R_MODE3   BIT6//HHGH29はジブレスト
 
+/// <summary>
+/// とクレーンPLCのモードSW入力とCSコードとの変換クラス
+/// </summary>
 class CPlcCSHelper
 {
 public:
@@ -142,13 +147,11 @@ public:
 #define HELPER_DATA_BUF_MAX			1024
 
 
-
 union UHelperStatisData {
 	long l;
 	double d;
 	LONGLONG ll;
 };
-
 struct StHelperStatisData {
 	UHelperStatisData Ave;
 	UHelperStatisData min_val;
@@ -157,6 +160,10 @@ struct StHelperStatisData {
 	int cycle_count;//評価データ数
 };
 
+/// <summary>
+/// 統計処理クラス
+/// 平均値、最大値、最小値を算出する。更新はサイクル数分のバッファで行い、サイクル数を超えると古いデータから順に更新していく。
+/// </summary>
 class CStatisticsHelper
 {
 public:
@@ -282,5 +289,35 @@ public:
 		//if(count <= mask)return L_OFF;
 
 		return L_ON;
+	}
+};
+
+class CFileHelper
+{
+	public:
+
+	// --- パラメータファイルのパスとファイル名を生成するヘルパー関数 ---
+		// suffix: ファイル名のサフィックス（例: 製番"HHGG82"など）
+	static std::wstring GetPrmFilePath(const WCHAR* suffixWtype, const WCHAR* suffixWid) {
+		// 1. exeのフルパスを取得
+		WCHAR exePath[MAX_PATH];
+		GetModuleFileNameW(NULL, exePath, MAX_PATH);
+
+		std::wstring path = exePath;
+		// exe名を除去してディレクトリパスにする
+		size_t lastSlash = path.find_last_of(L"\\/");
+		std::wstring dir = path.substr(0, lastSlash + 1); // "C:\...\Project\"
+
+		// 2. "PRM" フォルダのパスを作成
+		std::wstring prmDir = dir + L"PRM";
+
+		// 3. PRMフォルダがなければ作成する
+		// すでに存在していても、CreateDirectoryはエラーを返すだけで安全です
+		CreateDirectoryW(prmDir.c_str(), NULL);
+
+		// 4. ファイル名の組み立て: "PRM\prm" + suffix + ".dat"
+		std::wstring fullPath = prmDir + suffixWtype + suffixWid + L".dat";
+
+		return fullPath;
 	}
 };

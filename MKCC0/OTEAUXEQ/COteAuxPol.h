@@ -157,6 +157,8 @@ typedef struct _AUXPOL_MON2 {
 #define AUXPOL_CODE_VIDEO_CHK_DETECT_ON	    1	//映像チェックON検出
 #define AUXPOL_CODE_VIDEO_CHK_DETECT_OFF	2	//映像チェックOFF検出
 
+#define AUXPOL_PRM_FILENAME                 "oteaux.dat"
+
 class COteAuxPol : public CBasicControl
 {
 public:
@@ -196,12 +198,12 @@ public:
 
     int GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work);
 
-    void SaveParameters();
-    void LoadParameters();
+    void SaveParameters(LPST_DEVICE_CODE pCrane);
+    void LoadParameters(LPST_DEVICE_CODE pCrane);
     std::string GetExeDirectoryPath(std::string filename);
  
 private:
-    const char* m_filename = "prm.dat";
+    const char* m_filename = AUXPOL_PRM_FILENAME;
 
     // --- GDI+ 関連 ---
     ULONG_PTR m_gdiplusToken;

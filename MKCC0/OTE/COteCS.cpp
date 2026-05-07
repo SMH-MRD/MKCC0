@@ -43,7 +43,7 @@ static LPST_OTE_CC_IF	pOteCCInf;
 static LPST_OTE_CS_INF	pOteCsInf;
 
 static LPST_OTE_AUX_AGENT_INF	pOteAuxAgInf;
-static LPST_OTE_AUX_POL_INF	pOteAuxPolInf;
+static LPST_OTE_AUX_POL_INF		pOteAuxPolInf;
 
 static CGamePad* pPad = NULL;
 
@@ -183,10 +183,10 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 HRESULT COteCS::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
-		wos << L"  OPE TYPE:" << pOteCsInf->ote_type;
-		wos << L"  OPE SRC CODE:" << hex << pOteCsInf->ope_source_mode;
-		wos << L"  RMT_MODE:" << st_work.st_body.remote;
-		wos << L"  MC COM:R " << st_work.plc_com_stat_r << L"S" << st_work.plc_com_stat_s;
+		wos << L"  PB_F:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device];
+		wos << L"  PB_A:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm];
+		wos << L"  PB_S:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm];
+		wos << L"  PB_L:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm];
 
 		msg2host(wos.str());
 	}
@@ -483,10 +483,6 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = 0;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = 0;
 	}
-
-	pOteCsInf->video_delay_prm_stat = pOteAuxAgInf->v_delay_chk_status;
-	pOteCsInf->video_delay_ctrl_stat = pOteAuxPolInf->st_img_proc.v_delay_pam_save_status;
-
 	return S_OK;
 }
 
@@ -855,7 +851,15 @@ int COteCS::output() {
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm]) {
 		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 	}
-	else if (pOteCsInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL)) {
+	else if (pOteCsInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+	}
+	else;
+
+	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm]) {
+		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
+	}
+	else if (pOteCsInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 	}
 	else;

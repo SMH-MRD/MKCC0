@@ -21,6 +21,9 @@
     <Filter Include="Domain\Tasks">
       <UniqueIdentifier>{28382ba9-4cdd-479e-8e67-29a116009957}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Domain\Helpers">
+      <UniqueIdentifier>{da5cd955-a30e-4003-833b-98b652e3b9a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">

@@ -127,20 +127,29 @@ typedef struct _USB_CAM
 	int retry_count = 0;
 }ST_USB_CAM, LPST_USB_CAM;
 
-#define OTEAUXAG_COM_CRANE_DEVICE_ACTIVE	0x0011	//クレーン機器状態 ON要求コード
-#define OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE	0x0010	//クレーン機器状態 OFF要求コード
+#define OTEAUXAG_COM_CRANE_DEVICE_ACTIVE		0x0011	//クレーン機器(ランプ）状態 ON要求コード
+#define OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE		0x0010	//クレーン機器状態 OFF要求コード
 
 #define OTEAUXAG_CODE_V_DELAY_DEACTIVE			0x0000	//映像遅延検出無効
 #define OTEAUXAG_CODE_V_DELAY_STANDBY			0x0001	//映像遅延検出待機中
+
 #define OTEAUXAG_CODE_V_DELAY_AUTO_PRM			0x0002	//映像遅延検出パラメータ設定中
 #define OTEAUXAG_CODE_V_DELAY_SAVE_PRM			0x0004	//映像遅延検出パラメータ保存中
+#define OTEAUXAG_CODE_V_DELAY_LOAD_PRM			0x0008	//映像遅延検出パラメータ読込中
+
 #define OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK		0x0010	//映像遅延検出ONチェック起動
 #define OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK		0x0020	//映像遅延検出OFFチェック起動
+
 #define OTEAUXAG_CODE_V_DELAY_CHK_FIN			0x0100	//映像遅延検出チェック正常完了フラグ
 #define OTEAUXAG_CODE_V_DELAY_CHK_TMOV			0x0200	//映像遅延検出チェックタイムオーバーフラグ
-#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START	0x1000	//映像遅延検出パラメータ自動設定ターゲット検出中
-#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN		0x4000	//映像遅延検出コマンド実行完了
-#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL		0x8000	//映像遅延検出コマンド実行エラー
+
+#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START	0x1000	//映像遅延検出パラメータSAVE/LOAD実行中
+#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN		0x4000	//映像遅延検出パラメータSAVE/LOAD完了
+#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL		0x8000	//映像遅延検出パラメータSAVE/LOADエラー
+
+#define OTEAUXPOL_CODE_V_DELAY_PRM_START		0x2000	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
+#define OTEAUXPOL_CODE_V_DELAY_PRM_FIN			0x4000	//映像遅延検出コマンド実行完了
+#define OTEAUXPOL_CODE_V_DELAY_PRM_FAIL			0x8000	//映像遅延検出コマンド実行エラー
 
 typedef struct _ST_OTE_AUX_AGENT_INF {				//MCprotocolの送受信バッファ
 	ST_USB_CAM st_usb_cam;
@@ -164,12 +173,9 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 }ST_OTE_AUX_CS_INF, * LPST_OTE_AUX_CS_INF;
 
 
-#define OTEAUXPOL_CODE_MAGIC						0x53544341 // "STCA" (Sentech Camera App)
-#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_START		0x2000	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
-#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN			0x4000	//映像遅延検出コマンド実行完了
-#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL		0x8000	//映像遅延検出コマンド実行エラー
+#define OTEAUXPOL_CODE_MAGIC					0x53544341 // "STCA" (Sentech Camera App)
 
-typedef struct _ST_AUXPOL_IMG_PROC {
+typedef struct _ST_AUXPOL_IMG_PRM {
 	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー
 	INT32 v_delay_pam_save_status = L_OFF;
 	// HSV マスク設定値
@@ -177,8 +183,12 @@ typedef struct _ST_AUXPOL_IMG_PROC {
 	int sl = 0, sh = 255, sCenter = 0;
 	int vl = 0, vh = 255, vCenter;
 	int h_margin = 20, s_margin = 20, v_margin = 20;
-	int status = 0;
 	int target_chk_base_count = 0;
+} ST_AUXPOL_IMG_PRM, * LPST_AUXPOL_IMG_PRM;
+
+typedef struct _ST_AUXPOL_IMG_PROC {
+	ST_AUXPOL_IMG_PRM param;
+	int status = 0;
 	int roi_cnt_diff = 0;
 	INT32 is_target_detected = L_OFF;
 	int whiteCountInWorkRoi = 0;    //画像処理対象範囲ROI内の白画素数
@@ -186,6 +196,8 @@ typedef struct _ST_AUXPOL_IMG_PROC {
 	int whiteCountInCriterionRoi = 0;//基準(検出対象）ROI内の白画素数
 	cv::Mat mask;
 	cv::Mat hsvMat_mask;            //白黒１chのmask画像を表示用に3ｃｈに変換したもの
+	wstring video_delay_auto_prm_status = L"待機中";
+	wstring video_delay_prm_save_status = L"待機中";
 } ST_AUXPOL_IMG_PROC, * LPST_AUXPOL_IMG_PROC;
 
 typedef struct _ST_OTE_AUX_POL_INF {

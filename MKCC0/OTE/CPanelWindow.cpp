@@ -9,6 +9,7 @@
 #include <windows.h>
 #include "CFaults.h"
 #include "CHelper.h"
+#include "SmemAux.h"
 
 
 extern vector<CBasicControl*>	VectCtrlObj;
@@ -30,6 +31,9 @@ LPST_OTE_UI			CMainPanelWindow::pUi;
 LPST_OTE_CS_INF		CMainPanelWindow::pCsInf;
 LPST_OTE_CC_IF		CMainPanelWindow::pCcIf;
 LPST_OTE_ENV_INF	CMainPanelWindow::pOteEnvInf;
+
+LPST_OTE_AUX_AGENT_INF	CMainPanelWindow::pOteAuxAgInf;
+LPST_OTE_AUX_POL_INF	CMainPanelWindow::pOteAuxPolInf;
 
 CSubPanelWindow*	CMainPanelWindow::pSubPanelWnd;
 CGraphicWindow*		CMainPanelWindow::pGWnd;
@@ -84,7 +88,7 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 	}
 
 	//サブウィンドウの共有メモリのポインタセット
-	CSubPanelWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf, crane_id);
+	CSubPanelWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf, pOteAuxAgInf, pOteAuxPolInf,crane_id);
 	CGraphicWindow::set_up(pUi, pCsInf, pCcIf, pOteEnvInf, crane_id);
 	
 
@@ -106,7 +110,7 @@ CMainPanelWindow::~CMainPanelWindow()
 	close();
 }
 
-void CMainPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF _pOteEnvInf) {
+void CMainPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF _pOteEnvInf, LPST_OTE_AUX_AGENT_INF _pOteAuxAgInf, LPST_OTE_AUX_POL_INF _pOteAuxPolInf) {
 	pUi			= _pUi;
 	pCsInf		= _pCsInf;
 	pCcIf		= _pCcIf;
@@ -114,6 +118,9 @@ void CMainPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OT
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 	pAgentObj = (COteAgent*)VectCtrlObj[st_task_id.AGENT];
+
+	pOteAuxAgInf= _pOteAuxAgInf;
+	pOteAuxPolInf = _pOteAuxPolInf;
 	return;
 };
 int CMainPanelWindow::close()
@@ -935,6 +942,10 @@ LPST_OTE_CS_INF CSubPanelWindow::pCsInf;
 LPST_OTE_CC_IF CSubPanelWindow::pCcIf;
 LPST_OTE_ENV_INF CSubPanelWindow::pOteEnvInf; 
 
+LPST_OTE_AUX_AGENT_INF CSubPanelWindow::pOteAuxAgInf;
+LPST_OTE_AUX_POL_INF CSubPanelWindow::pOteAuxPolInf;
+
+
 CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int _wnd_code, CPanelBase* _pPanelBase) {
 	pPanelBase = _pPanelBase;
 	hParentWnd = hParent;
@@ -1009,11 +1020,13 @@ int CSubPanelWindow::close()
 	DestroyWindow(hPnlWnd); 
 	return 0;
 }
-void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF _pOteEnvInf, int _crane_id) {
+void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF _pOteEnvInf, LPST_OTE_AUX_AGENT_INF _pOteAuxAgInf, LPST_OTE_AUX_POL_INF _pOteAuxPolInf,int _crane_id) {
 	pUi = _pUi;
 	pCsInf = _pCsInf;
 	pCcIf = _pCcIf;
 	pOteEnvInf = _pOteEnvInf;
+	pOteAuxAgInf = _pOteAuxAgInf;
+	pOteAuxPolInf = _pOteAuxPolInf;
 	crane_id = _crane_id; //クレーンIDをセット
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
@@ -1572,6 +1585,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
+
 LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
@@ -1632,6 +1646,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
 
 		ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_save;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
+		ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_load;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
 
@@ -1697,7 +1715,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	}return 1; // 背景を処理したことを示す
 
 	case WM_TIMER: {
-		//# Switching Image更新
+
+			//# Switching Image更新
 		//巻速度モード
 		INT16 code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
 		pPanelBase->psubobjs->lmp_mh_spd_mode->set(code); //値セット
@@ -1776,12 +1795,18 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);//(枠表示なし）
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
 		}
-
 		wostringstream wos;
-		wos.str(L""); wos << pCsInf->video_delay_ctrl_stat;
+		wos.str(L""); wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status.c_str();
 		SetWindowText(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
-		wos.str(L""); wos << pCsInf->video_delay_prm_stat;
+		wos.str(L""); wos << pOteAuxPolInf->st_img_proc.video_delay_prm_save_status.c_str();
 		SetWindowText(pPanelBase->psubobjs->st_v_delay_prm_save_status->hWnd, wos.str().c_str());
+
+		//PBの状態更新（カウントダウン）
+		pPanelBase->psubobjs ->pb_v_delay_chk_prm_auto_set->update(false);
+		pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(false);
+		pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(false);
+
+
 
 	}break;
 
@@ -1815,11 +1840,15 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 				pPanelBase->psubobjs->cb_v_delay_chk_device->set(false);
 			}
 		}break;
+
 		case ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM: {
-			pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->set(true);
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->update(true);
 		}break;
 		case ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE: {
-			pPanelBase->psubobjs->pb_v_delay_chk_prm_save->set(true);	
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(true);	
+		}break;
+		case ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD: {
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(true);
 		}break;
 
 		default:

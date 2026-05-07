@@ -15,6 +15,9 @@ extern CSharedMem* pOteCsInfObj;
 extern CSharedMem* pOteCcInfObj;
 extern CSharedMem* pOteUiObj;
 
+extern CSharedMem* pOteAuxAgObj;
+extern CSharedMem* pOteAuxPolObj;
+
 extern CCrane* pCrane;
 extern ST_DEVICE_CODE g_my_code;
 
@@ -34,6 +37,9 @@ static LPST_OTE_ENV_INF	pOteEnvInf;
 static LPST_OTE_UI		pOteUI;
 static LPST_OTE_CC_IF	pOteCCIf;
 static LPST_OTE_CS_INF	pOteCsInf;
+
+static LPST_OTE_AUX_AGENT_INF pOteAuxAgInf;
+static LPST_OTE_AUX_POL_INF pOteAuxPolInf;
 
 static COteEnv* pEnvObj;
 
@@ -73,6 +79,10 @@ HRESULT COteScad::initialize(LPVOID lpParam) {
 	pOteUI = (LPST_OTE_UI)pOteUiObj->get_pMap();
 	pOteEnvInf = (LPST_OTE_ENV_INF)pOteEnvInfObj->get_pMap();
 
+	pOteAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pOteAuxAgObj->get_pMap();
+	pOteAuxPolInf  = (LPST_OTE_AUX_POL_INF)pOteAuxPolObj->get_pMap();
+
+
 	if ((pOteCCIf == NULL) || (pOteCsInf == NULL) || (pOteUI == NULL) || (pOteEnvInf == NULL))
 		hr = S_FALSE;
 
@@ -86,7 +96,7 @@ HRESULT COteScad::initialize(LPVOID lpParam) {
 
 	//### パネル関連セットアップ
 	CPanelBase::hr_init_setting = CPanelBase::setup_common_base(pOteUI);					//ベースクラス初期化
-	CMainPanelWindow::set_up(pOteUI, pOteCsInf, pOteCCIf, pOteEnvInf);						//メインパネルセットアップ
+	CMainPanelWindow::set_up(pOteUI, pOteCsInf, pOteCCIf, pOteEnvInf, pOteAuxAgInf, pOteAuxPolInf);						//メインパネルセットアップ
 
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -184,6 +194,7 @@ void COteScad::set_panel_io() {
 		//### 映像遅延チェック
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_save->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_load->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = pPanelBase->psubobjs->cb_v_delay_chk_device->get();
 
 		

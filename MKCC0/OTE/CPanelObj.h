@@ -203,6 +203,7 @@ public:
 #define ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE		60214
 #define ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM		60215
 #define ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE		60216
+#define ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD		60217
 
 
 #define ID_SUB_PNL_STAT_OBJ_BASE				60300
@@ -299,6 +300,7 @@ public:
 	CCbCtrl		*cb_v_delay_chk_device;			//映像遅延測定用デバイス強制ON/OFFチェックボックス
 	CPbCtrl		*pb_v_delay_chk_prm_auto_set;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット起動PB
 	CPbCtrl		*pb_v_delay_chk_prm_save;		//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブPB
+	CPbCtrl		*pb_v_delay_chk_prm_load;		//映像遅延測定用ﾊﾟﾗﾒｰﾀロードPB
 	CStaticCtrl	*st_v_delay_auto_set_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット進捗表示テキスト
 	CStaticCtrl	*st_v_delay_prm_save_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
 

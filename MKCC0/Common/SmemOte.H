@@ -124,6 +124,8 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_CS_CODE_V_DELAY_COM_FORCED_ON	0x0001	//デバイス強制ON要求
 #define OTE_CS_CODE_V_DELAY_COM_AUTO_PRM	0x0002	//自動パラメータ設定要求
 #define OTE_CS_CODE_V_DELAY_COM_PRM_SAVE	0x0004	//パラメータ設定保存要求
+#define OTE_CS_CODE_V_DELAY_COM_PRM_LOAD	0x0004	//パラメータ設定読込要求
+
 
 typedef struct _ST_OTE_CS_INF {
 	INT32 ote_type	 = OTE_CS_CODE_OPEPNL_PC;		//PLCとの通信状態
@@ -133,8 +135,8 @@ typedef struct _ST_OTE_CS_INF {
 	INT32 cc_ope_active = L_OFF;
 	INT32 ope_source_mode=0;						//操作器具モード
 	INT32 pc_pnl_active;
-	INT32 plc_com_stat_r = L_OFF;						//PLCとの通信状態
-	INT32 plc_com_stat_s = L_OFF;						//PLCとの通信状態
+	INT32 plc_com_stat_r = L_OFF;					//PLCとの通信状態
+	INT32 plc_com_stat_s = L_OFF;					//PLCとの通信状態
 
 	ST_OTE_U_BODY st_body;							//OTE⇒PC送信メッセージボディ部
 	ST_GPAD_IN gpad_in;	
@@ -153,7 +155,11 @@ typedef struct _ST_OTE_CS_INF {
 	INT32 video_delay_chk_req = L_OFF;				//映像遅延チェック要求状態
 	INT32 video_delay_chk_ctrl = L_OFF;				//映像遅延チェック制御要求状態
 	INT32 video_delay_prm_stat = L_OFF;				//映像遅延チェックパラメータ状態
-	INT32 video_delay_ctrl_stat = L_OFF;				//映像遅延チェックパラメータ状態
+	INT32 video_delay_ctrl_stat = L_OFF;			//映像遅延チェック制御状態
+
+	INT32 video_delay_auto_prm_pb = L_OFF;			//映像遅延チェック自動パラメータ要求PB状態
+	INT32 video_delay_prm_save_pb = L_OFF;			//映像遅延チェックパラメータセーブ要求PB状態
+	INT32 video_delay_prm_load_pb = L_OFF;			//映像遅延チェックパラメータLOAD要求PB状態
 
 }ST_OTE_CS_INF, * LPST_OTE_CS_INF;
 #pragma endregion 操作卓PLCとの通信他

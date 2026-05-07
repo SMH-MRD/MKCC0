@@ -67,6 +67,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	v_delay_device,		//映像遅延デバイスON指令
 	v_delay_auto_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ計測起動
 	v_delay_save_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ保存起動
+	v_delay_load_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ読み込み起動
 	MAX
 };
 
