@@ -124,7 +124,7 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_CS_CODE_V_DELAY_COM_FORCED_ON	0x0001	//デバイス強制ON要求
 #define OTE_CS_CODE_V_DELAY_COM_AUTO_PRM	0x0002	//自動パラメータ設定要求
 #define OTE_CS_CODE_V_DELAY_COM_PRM_SAVE	0x0004	//パラメータ設定保存要求
-#define OTE_CS_CODE_V_DELAY_COM_PRM_LOAD	0x0004	//パラメータ設定読込要求
+#define OTE_CS_CODE_V_DELAY_COM_PRM_LOAD	0x0008	//パラメータ設定読込要求
 
 
 typedef struct _ST_OTE_CS_INF {
@@ -154,8 +154,6 @@ typedef struct _ST_OTE_CS_INF {
 
 	INT32 video_delay_chk_req = L_OFF;				//映像遅延チェック要求状態
 	INT32 video_delay_chk_ctrl = L_OFF;				//映像遅延チェック制御要求状態
-	INT32 video_delay_prm_stat = L_OFF;				//映像遅延チェックパラメータ状態
-	INT32 video_delay_ctrl_stat = L_OFF;			//映像遅延チェック制御状態
 
 	INT32 video_delay_auto_prm_pb = L_OFF;			//映像遅延チェック自動パラメータ要求PB状態
 	INT32 video_delay_prm_save_pb = L_OFF;			//映像遅延チェックパラメータセーブ要求PB状態

@@ -161,10 +161,15 @@ typedef struct _ST_OTE_AUX_AGENT_INF {				//MCprotocolの送受信バッファ
 	INT32 v_delay_chk_period_ms = 1000;				//映像遅延計測の周期
 	LARGE_INTEGER start_count, end_count;			//システムカウント
 	LARGE_INTEGER frequency;						//システム周波数
+
+	INT32 video_delay_prm_stat = L_OFF;				//映像遅延チェックパラメータ状態
+	INT32 video_delay_ctrl_stat = L_OFF;			//映像遅延チェック制御状態
+
 }ST_OTE_AUX_AGENT_INF, * LPST_OTE_AUX_AGENT_INF;
 
 typedef struct _ST_VIDEO_CHK_FB {
 	INT32 video_delay_ms;
+
 }ST_VIDEO_CHK_FB, * LPST_VIDEO_CHK_FB;
 
 typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ

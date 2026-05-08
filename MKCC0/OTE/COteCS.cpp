@@ -183,10 +183,8 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 HRESULT COteCS::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
-		wos << L"  PB_F:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device];
-		wos << L"  PB_A:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm];
-		wos << L"  PB_S:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm];
-		wos << L"  PB_L:" << pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm];
+		wos << L"  VdelayCom:" << pOteCsInf->video_delay_chk_ctrl<<L"  Lamp:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device];
+
 
 		msg2host(wos.str());
 	}
@@ -310,21 +308,6 @@ int COteCS::input(){
 		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]		= pin_opepnl->notch_L1;
 
-		//映像遅延チェック要求セット
-
-		if (
-			!(pin_opepnl->plc_setting & OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS) &&		//バイパス無し
-			//	!(pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_NOTCH_ALL0) &&			//全ノッチ0	
-			pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code	//操作準備完了
-			)
-		{
-			pOteCsInf->video_delay_chk_req = L_ON;//映像遅延チェック要求
-			pOteCsInf->video_delay_sec = pOteAuxAgInf->v_delay_sec;//映像遅延時間セット
-		}
-		else {
-			pOteCsInf->video_delay_chk_req = L_OFF;//映像遅延チェック要求
-			pOteCsInf->video_delay_sec = 0.0;//映像遅延時間クリア
-		}
 	
 	}
 	else {//オルタネートSWは操作台無効時のみPCパネル指令受付（GpadはオルタネートSW無し）
@@ -443,18 +426,10 @@ int COteCS::input(){
 	//フットペダル値 0-15に補正
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		< 0	)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 0;
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		> 15)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]		= 15;
-#if 0
-	//補助ノッチ値により、ブレーキ指令付加
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	==  1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_HW_BRK;	//HWブレーキ
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	==  2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_PARKING;	//サイドブレーキ
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -1)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_RESET;		//リセット
-	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]	== -2)	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= AUX_SLBRK_COM_CHK;		//機能チェック
-#else
 	//GOTタッチスイッチにより、ブレーキ指令付加
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_hw_brk] )	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] |= AUX_SLBRK_COM_HW_BRK;	//HWブレーキ
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_park])	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] |= AUX_SLBRK_COM_PARKING;	//サイドブレーキ
 	if (pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_reset] )	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk] |= AUX_SLBRK_COM_RESET;		//リセット
-#endif
 
 	//## 操作指令インターロック
 	if (flg_0notch_hold == L_ON)
@@ -816,53 +791,69 @@ int COteCS::output() {
 
 //### 制御PCへの出力処理
 	pOteCsInf->st_body.ote_err[0] = pOteCsInf->ote_error;	//遠隔操作PC検出故障セット
+		
+	//###　映像遅延チェック用指令出力
+	 
+	//## 映像遅延チェック要求セット＋遅延取り込み
+	if (
+		(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)&&					//遠隔操作卓有効
+		!(pin_opepnl->plc_setting & OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS) &&		//バイパス無し
+		//	!(pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_NOTCH_ALL0) &&			//全ノッチ0ではない
+		pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code		//操作準備完了
+		)
+	{
+		pOteCsInf->video_delay_chk_req = L_ON;					//映像遅延チェック要求　AUXEQへの指令
+		pOteCsInf->video_delay_sec = pOteAuxAgInf->v_delay_sec;	//映像遅延時間セット　	遅延計測値取り込み
 
-//###　映像遅延チェック用指令出力
-	if (pOteCsInf->video_delay_chk_req) {
+	}
+	else {
+		pOteCsInf->video_delay_chk_req = L_OFF;					//映像遅延チェック要求　AUXEQへの指令
+		pOteCsInf->video_delay_sec = 0.0;						//映像遅延時間クリア
+	}
+
+	
+	//## 制御PCへの出力
+	// 映像遅延チェックデバイスON/OFF制御
+	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {				//遠隔操作卓有効
 		if (pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) {
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
-		}
-		else {
-			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
 		}
 	}
 	else {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
 	}
 
-	//## 映像遅延チェック指令の整形
+	//## 映像遅延チェック指令内容セット
 	//チェックデバイス強制ON
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device]) {
-		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_FORCED_ON;
+		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_FORCED_ON;	//AUXEQへの通知セット
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;				//制御PCへの指令セット
 	}
-	else{
-		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_FORCED_ON;
+	else {
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_FORCED_ON;	//AUXEQへの通知セット
 	}
+
 	//自動パラメータセット要求
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm]) {
-		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
+			pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
-	else if(pOteCsInf->video_delay_ctrl_stat &(OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL)){
+	if (pOteAuxAgInf->video_delay_ctrl_stat & (OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
-	else;
 
-
+	//パラメータLOAD、SAVE要求
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm]) {
 		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 	}
-	else if (pOteCsInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
-		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
-	}
-	else;
-
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm]) {
 		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
-	}
-	else if (pOteCsInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 	}
-	else;
+	if (pOteAuxAgInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
+	}
 
 //##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
