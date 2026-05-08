@@ -872,6 +872,11 @@ int COteCS::close() {
 	return 0;
 }
 
+void COteCS::setup_v_delay_chk() {
+	pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
+	pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+	return;
+}
 /// <summary>
 /// SCADA パネル通信状態ランプ表示用ステータス更新関数
 /// </summary>

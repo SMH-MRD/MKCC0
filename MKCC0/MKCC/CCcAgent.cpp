@@ -406,7 +406,7 @@ int CAgent::parse() {
 	pCrane->pPlc->wval(pPlcWIf->mercury_lamp_sw3, pOteCtrl[OTE_PNL_CTRLS::hd_lamp3]);	//水銀ランプ切替スイッチ
 	
 	//映像遅延検出デバイス
-	pCrane->pPlc->wval(pPlcWIf->v_delay_device, pOteCtrl[OTE_PNL_CTRLS::v_delay_device]);	//水銀ランプ切替スイッチ
+	pCrane->pPlc->wval(pPlcWIf->v_delay_device, pOteCtrl[OTE_PNL_CTRLS::v_delay_device]);	//映像遅延検出ランプ
 
 	//Notch信号
 	if (pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] & FLTS_MASK_ERR_OTE_TMOV) {//操作端末タイムオーバー

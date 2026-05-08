@@ -89,7 +89,7 @@ int COteAgent::setup_crane_if(int crane_id) {
 
 	switch (crane_id) {
 	case CARNE_ID_HHGH29: {
-		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
+		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定にする予定
 		if(pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1){
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_UNI_PORT_OTE);
 			pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, OTE_IF_UNI_IP_PC_OTE0, OTE_IF_MULTI_PORT_PC2OTE);//受信アドレス
@@ -990,12 +990,15 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					}
 					else if (st_mon2.ipage_uni == 1) {
 						st_mon2.wo_uni << L"@ PNL CTRL:";
-						for (int i = 0; i < 20; i++) {
+						for (int i = 0; i < 30; i++) {
 							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
 						}
 					}
 					else if (st_mon2.ipage_uni == 2) {
-
+						st_mon2.wo_uni << L"@ PNL CTRL:";
+						for (int i = 30; i < 60; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pOteCsInf->pnl_ctrl[i];
+						}
 					}
 					else {
 

@@ -963,8 +963,16 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 							<< L" alm stp:" << pb0->pnl_ctrl[OTE_PNL_CTRLS::alm_stop] ;
 					}
 					else if (st_mon2.ipage_uni == 1) {
+						st_mon2.wo_uni << L"@ PNL CTRL:";
+						for (int i = 0; i < 30; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[i];
+						}
 					}
 					else if (st_mon2.ipage_uni == 2) {
+						st_mon2.wo_uni << L"@ PNL CTRL:";
+						for (int i = 30; i < 60; i++) {
+							st_mon2.wo_uni << " [" << i << "]" << pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[i];
+						}
 					}
 					else {
 

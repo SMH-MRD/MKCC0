@@ -179,7 +179,7 @@ public:
            int setup_crane_if(int crane_id);
     static int close_crane_if();
             INT32 update_ccif_sock_addr(int code);//
-
+   
     static int update_msg_cycle(int mode,int snd_cycle,int delay_sample_cycle,int lost_chk_cycle);
 
     //タブパネルのStaticテキストを設定

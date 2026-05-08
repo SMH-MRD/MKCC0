@@ -3,6 +3,7 @@
 #include "CCrane.h"
 #include "COteScad.h"
 #include "COteAgent.h"
+#include "COteCs.h"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -27,6 +28,7 @@ static LPST_OTE_CC_IF	pOteCCIf;
 static LPST_OTE_CS_INF	pOteCsInf;
 static COteScad* pScadObj;
 static COteAgent* pAgentObj;
+static COteCS* pCsObj;
 
 static LARGE_INTEGER start_count_s, end_count_r;			//システムカウント
 static LARGE_INTEGER frequency;								//システム周波数
@@ -54,6 +56,8 @@ HRESULT COteEnv::initialize(LPVOID lpParam) {
 	pScadObj = (COteScad*)VectCtrlObj[st_task_id.SCAD];
 	//### AGENTクラスインスタンスのポインタ取得
 	pAgentObj = (COteAgent*)VectCtrlObj[st_task_id.AGENT];
+	//### CSクラスインスタンスのポインタ取得
+	pCsObj = (COteCS*)VectCtrlObj[st_task_id.CS];
 
 	//### 共有メモリ取得
 	pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
@@ -193,6 +197,7 @@ HRESULT COteEnv::open_ope_window(int crane_id_selected) {
 			pScadObj->open_ope_window();
 			crane_id_selected = CRANE_ID_NULL;
 			close_monitor_wnd(BC_ID_MON1);
+			//### 映像遅延チェック用のパラメータ読込
 		}
 		else {
 			pAgentObj->close_crane_if();
