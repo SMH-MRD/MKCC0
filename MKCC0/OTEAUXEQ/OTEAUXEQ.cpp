@@ -185,6 +185,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pAuxCsInfObj->create_smem(SMEM_OTE_AUX_CS_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_CS_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pAuxPolInfObj->create_smem(SMEM_OTE_AUX_POL_INF_NAME, sizeof(ST_OTE_AUX_CS_INF), MUTEX_OTE_AUX_POL_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pCcInfObj->create_smem(SMEM_OTE_CC_IF_NAME, sizeof(ST_OTE_CC_IF), MUTEX_OTE_CC_IF_NAME)) return(FALSE);
+   if (OK_SHMEM != pCsInfObj->create_smem(SMEM_OTE_CS_INF_NAME, sizeof(ST_OTE_CC_IF), MUTEX_OTE_CS_INF_NAME)) return(FALSE);
    
    //デバイスコードセット
    LPST_OTE_AUX_ENV_INF pEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());

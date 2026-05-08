@@ -316,7 +316,7 @@ class CFileHelper
 		CreateDirectoryW(prmDir.c_str(), NULL);
 
 		// 4. ファイル名の組み立て: "PRM\prm" + suffix + ".dat"
-		std::wstring fullPath = prmDir + suffixWtype + suffixWid + L".dat";
+		std::wstring fullPath = prmDir + L"\\prm" + suffixWtype + suffixWid + L".dat";
 
 		return fullPath;
 	}

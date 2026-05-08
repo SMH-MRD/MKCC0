@@ -477,7 +477,7 @@ HRESULT CSubPanelObj::setup_obj() {
 	i++; pb_v_delay_chk_prm_save	= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; pb_v_delay_chk_prm_load	= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; st_v_delay_auto_set_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
-	i++; st_v_delay_prm_save_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_v_delay_prm_io_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
 
 
@@ -571,7 +571,7 @@ void CSubPanelObj::delete_obj() {
 	delete pb_v_delay_chk_prm_auto_set;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット起動PB
 	delete pb_v_delay_chk_prm_save;		//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブPB
 	delete st_v_delay_auto_set_status;//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット進捗表示テキスト
-	delete st_v_delay_prm_save_status;//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
+	delete st_v_delay_prm_io_status;//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
 
 	delete pb_stat_next;
 	delete pb_stat_back;

@@ -1637,7 +1637,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		CStaticCtrl* pst = pPanelBase->psubobjs->st_v_delay_auto_set_status;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
-		pst = pPanelBase->psubobjs->st_v_delay_prm_save_status;
+		pst = pPanelBase->psubobjs->st_v_delay_prm_io_status;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 		//PB
@@ -1795,18 +1795,20 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			code = pPanelBase->psubobjs->rdo_mh_spd_mode->update(true);//(枠表示なし）
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
 		}
+
 		wostringstream wos;
-		wos.str(L""); wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status.c_str();
+		wos.str(L""); 
+		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status.c_str();
 		SetWindowText(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
-		wos.str(L""); wos << pOteAuxPolInf->st_img_proc.video_delay_prm_save_status.c_str();
-		SetWindowText(pPanelBase->psubobjs->st_v_delay_prm_save_status->hWnd, wos.str().c_str());
+		wos.str(L""); 
+		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_save_status.c_str();
+		SetWindowText(pPanelBase->psubobjs->st_v_delay_prm_io_status->hWnd, wos.str().c_str());
+
 
 		//PBの状態更新（カウントダウン）
 		pPanelBase->psubobjs ->pb_v_delay_chk_prm_auto_set->update(false);
 		pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(false);
 		pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(false);
-
-
 
 	}break;
 

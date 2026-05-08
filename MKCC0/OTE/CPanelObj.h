@@ -302,7 +302,7 @@ public:
 	CPbCtrl		*pb_v_delay_chk_prm_save;		//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブPB
 	CPbCtrl		*pb_v_delay_chk_prm_load;		//映像遅延測定用ﾊﾟﾗﾒｰﾀロードPB
 	CStaticCtrl	*st_v_delay_auto_set_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット進捗表示テキスト
-	CStaticCtrl	*st_v_delay_prm_save_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
+	CStaticCtrl	*st_v_delay_prm_io_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
 
 	//状態表示サブウィンドウのオブジェクト
 	CPbCtrl*	pb_stat_next;		//次表示PB

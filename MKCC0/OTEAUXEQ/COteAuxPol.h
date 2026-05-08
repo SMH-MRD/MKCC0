@@ -198,9 +198,12 @@ public:
 
     int GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work);
 
-    void SaveParameters(LPST_DEVICE_CODE pCrane);
-    void LoadParameters(LPST_DEVICE_CODE pCrane);
+    HRESULT SaveParameters(LPST_DEVICE_CODE pCrane);
+    HRESULT LoadParameters(LPST_DEVICE_CODE pCrane);
+    int AutoParameters();
     std::string GetExeDirectoryPath(std::string filename);
+
+	ST_OTE_AUX_POL_INF st_aux_pol_inf;
  
 private:
     const char* m_filename = AUXPOL_PRM_FILENAME;
@@ -259,6 +262,7 @@ private:
     int parse();
     int output();
     int close();
+
 
     static std::wstring GetTimestamp() {
         auto now = std::chrono::system_clock::now();

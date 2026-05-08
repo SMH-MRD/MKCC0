@@ -841,23 +841,23 @@ int COteCS::output() {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
 
-	//パラメータLOAD、SAVE要求
+	//パラメータSAVE要求
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm]) {
 		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 	}
+	//パラメータLOAD要求
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm]) {
 		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 	}
-	if (pOteAuxAgInf->video_delay_prm_stat & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
+	if (pOteAuxPolInf->st_img_proc.param.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 	}
 
 //##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
-
 
 	return STAT_OK;
 }

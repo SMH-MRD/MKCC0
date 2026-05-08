@@ -167,18 +167,21 @@ HRESULT COteAuxPol::initialize(LPVOID lpParam) {
 	pCCIf = (LPST_OTE_CC_IF)pCcInfObj->get_pMap();
 
 	pPolObj = (COteAuxPol*)VectCtrlObj[st_task_id.POL];
-	pst_img_proc = &(pAuxPolInf->st_img_proc);
+	pst_img_proc = &(st_aux_pol_inf.st_img_proc);
 	pst_img_proc->param.h_margin = pst_img_proc->param.s_margin = pst_img_proc->param.v_margin = 20;
 
 	//### 初期化
-	//映像遅延パラメータ保存状態初期化
-	ST_DEVICE_CODE device_code = {
-		L"XXXXXXX",	//製番コード
-		L"???????", //PC TYPE
-		0,			//serial_no;
-		0			//option;
-	};
-	LoadParameters(&device_code);
+	
+	//映像遅延パラメータ初期化
+
+	st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"初期状態";
+	st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"初期状態";
+
+	st_aux_pol_inf.st_img_proc.param.magic = OTEAUXPOL_CODE_MAGIC;
+	st_aux_pol_inf.st_img_proc.param.hl = 0; st_aux_pol_inf.st_img_proc.param.hh = 10; st_aux_pol_inf.st_img_proc.param.hCenter = 0;
+	st_aux_pol_inf.st_img_proc.param.sl = 0; st_aux_pol_inf.st_img_proc.param.sh = 255; st_aux_pol_inf.st_img_proc.param.sCenter = 0;
+	st_aux_pol_inf.st_img_proc.param.vl = 0; st_aux_pol_inf.st_img_proc.param.vh = 255; st_aux_pol_inf.st_img_proc.param.vCenter = 0;
+	st_aux_pol_inf.st_img_proc.param.h_margin = 20; st_aux_pol_inf.st_img_proc.param.s_margin = 20, st_aux_pol_inf.st_img_proc.param.v_margin = 20;
 
 	wos.str(L"");//初期化
 	rc_mat_roi_work = { AUXPOL_DEFAULT_ROI_X, AUXPOL_DEFAULT_ROI_Y, AUXPOL_DEFAULT_ROI_W,AUXPOL_DEFAULT_ROI_H};
@@ -216,21 +219,68 @@ int COteAuxPol::input() {
 int COteAuxPol::parse() {           //メイン処理
 
 	//パラメータセーブ要求処理
-	if ((pAuxEnvInf->video_delay_chk_prm_save_req) && !(pAuxPolInf->st_img_proc.param.v_delay_pam_save_status & OTEAUXPOL_CODE_V_DELAY_PRM_START)) {
-		pAuxPolInf->st_img_proc.param.v_delay_pam_save_status |= OTEAUXPOL_CODE_V_DELAY_PRM_START;
-		pAuxPolInf->st_img_proc.param.v_delay_pam_save_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL);
+	if ((pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_SAVE) && !(st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status & OTEAUXPOL_CODE_V_DELAY_PRM_START)) {
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_START;
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL);
 		//パラメータ保存処理開始
+		if (SaveParameters(&(pCCIf->st_msg_pc_u_rcv.head.myid)) == S_OK) {
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FIN;
+		}
+		else {
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FAIL;
+		}
 	}
-	else if ((!pAuxEnvInf->video_delay_chk_prm_save_req) && (pAuxPolInf->st_img_proc.param.v_delay_pam_save_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL))) {
-		//パラメータ保存処理終了
-		pAuxPolInf->st_img_proc.param.v_delay_pam_save_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_START;
-	}
-	else if (pAuxPolInf->st_img_proc.param.v_delay_pam_save_status & OTEAUXPOL_CODE_V_DELAY_PRM_START) {
-		//パラメータ保存処理中
-		SaveParameters(&pCCIf->st_msg_pc_u_rcv.head.myid);
-		pAuxPolInf->st_img_proc.param.v_delay_pam_save_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FIN;
+	else if (
+		(st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL) )&& 
+			!(pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_SAVE)
+			) {
+		//パラメータ保存完了/失敗後のフラグをリセット
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL);
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_START;
 	}
 	else;
+
+	//パラメータロード要求処理
+	if ((pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_LOAD) && !(st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status & OTEAUXPOL_CODE_V_DELAY_PRM_START)) {
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_START;
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL);
+		//パラメータ読出処理開始
+		if (LoadParameters(&(pCCIf->st_msg_pc_u_rcv.head.myid)) == S_OK) {
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FIN;
+		}
+		else {
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FAIL;
+		}
+	}
+	else if (
+		(st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) &&
+			!(pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_LOAD)
+		) {
+		//パラメータ保存完了/失敗後のフラグをリセット
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL);
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_START;
+	}
+	else;
+	
+	
+	//パラメータ自動設定
+	if ((pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM) && !(st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status & OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START)) {
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
+	}
+
+	if(st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status & OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START){
+		st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~(OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL);
+		//パラメータ保存処理開始
+		if (AutoParameters() == L_ON) {
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FIN;
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_START;
+		}
+		else if (AutoParameters() < 0) {
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FAIL;
+			st_aux_pol_inf.st_img_proc.param.v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_START;
+		}
+		else;
+	}
 
 	//## 映像遅延検出パラメータ更新
 	// 1. カメラ画像がない場合は処理しない
@@ -261,7 +311,7 @@ int COteAuxPol::parse() {           //メイン処理
 
 	// 4. 表示用に検出→マスク(1ch)をRGB(3ch)へ
 	if (st_mon2.is_monitor_active) {
-		pst_img_proc->is_target_detected = GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc));
+		pst_img_proc->is_target_detected = GetCraneDeviceStatus(&(st_aux_pol_inf.st_img_proc));
 		cv::cvtColor(pst_img_proc->mask, pst_img_proc->hsvMat_mask, cv::COLOR_GRAY2RGB);
 	}
 
@@ -270,9 +320,7 @@ int COteAuxPol::parse() {           //メイン処理
 
 int COteAuxPol::output() {          //出力処理
 
-	pAuxPolInf->st_img_proc.video_delay_prm_save_status =L"運転中";
-	pAuxPolInf->st_img_proc.video_delay_auto_prm_status = L"Auto";
-
+	*pAuxPolInf = st_aux_pol_inf;
 
 	return STAT_OK;
 }
@@ -328,43 +376,64 @@ std::string COteAuxPol::GetExeDirectoryPath(std::string filename) {
 }
 
 // --- バイナリ形式で保存 ---
-void COteAuxPol::SaveParameters(LPST_DEVICE_CODE pCrane) {
+HRESULT COteAuxPol::SaveParameters(LPST_DEVICE_CODE pCrane) {
 
 	std::wstring fullPath = CFileHelper::GetPrmFilePath(prmfile_type_str.c_str(), pCrane->crane_id);
 	std::ofstream ofs(fullPath.c_str(), std::ios::binary);
 
 	if (ofs) {
 		// 構造体を丸ごとメモリダンプとして書き込む
-		ofs.write(reinterpret_cast<const char*>(&(pAuxPolInf->st_img_proc)), sizeof(ST_AUXPOL_IMG_PROC));
+		ofs.write(reinterpret_cast<const char*>(&(st_aux_pol_inf.st_img_proc.param)), sizeof(ST_AUXPOL_IMG_PRM));
 		ofs.close();
-		std::wcout << L"パラメータを保存しました: " << fullPath << std::endl;
+		st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"SAVE完了";
+
+		return S_OK;
 	}
+	else {
+		MessageBoxA(NULL, ("パラメータの保存に失敗しました: " + std::string(fullPath.begin(), fullPath.end())).c_str(), "Error", MB_ICONERROR);
+		st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"SAVE失敗(File Open)";
+	}
+	return S_FALSE;
 }
 
 // --- バイナリ形式で読み込み ---
-void COteAuxPol::LoadParameters(LPST_DEVICE_CODE pCrane) {
+HRESULT COteAuxPol::LoadParameters(LPST_DEVICE_CODE pCrane) {
 
-	std::string fullPath = GetExeDirectoryPath("prm.dat");
-	std::ifstream ifs(fullPath, std::ios::binary);
+	std::wstring fullPath = CFileHelper::GetPrmFilePath(prmfile_type_str.c_str(), pCrane->crane_id);
+
+	ST_AUXPOL_IMG_PRM temp_prm; //一時的な構造体変数を用意
+
+	std::ifstream ifs(fullPath.c_str(), std::ios::binary);
 	if (ifs) {
-		ST_AUXPOL_IMG_PRM temp;
-		try{
-			ifs.read(reinterpret_cast<char*>(&temp), sizeof(ST_AUXPOL_IMG_PRM));
-		}
-		catch (const std::exception& e) {
-			MessageBoxA(NULL, ("パラメータの読み込みに失敗しました: " + std::string(e.what())).c_str(), "Error", MB_ICONERROR);
-			return;
-		}
-
+		ifs.read(reinterpret_cast<char*>(&temp_prm), sizeof(ST_AUXPOL_IMG_PRM));
 		ifs.close();
-
-		// //識別子が一致する場合のみ反映（ファイルが壊れていないかチェック）
-		if (temp.magic == OTEAUXPOL_CODE_MAGIC) {
-			pAuxPolInf->st_img_proc.param = temp;
-			// GUIのスライダー位置を更新
-			UpdateSliderPos();
-		}
+		UpdateSliderPos();
+		st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"File読出完了";
 	}
+	else {
+		st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"File読出失敗（File Read）";
+		return S_FALSE;
+	}
+	//識別子が一致する場合のみ反映（ファイルが壊れていないかチェック）
+		if (temp_prm.magic == OTEAUXPOL_CODE_MAGIC) {
+			// GUIのスライダー位置を更新
+			st_aux_pol_inf.st_img_proc.param = temp_prm;	//読み込んだパラメータを反映
+			UpdateSliderPos();
+			st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"LOAD完了";
+			return S_OK;
+		}
+		else {
+			st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"LOAD失敗（識別コード不一致）";
+			return S_FALSE;
+		}
+		return S_FALSE;
+}
+
+int COteAuxPol::AutoParameters() {
+	st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"実行中";
+	st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"完了";
+	st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗";
+	return 0;
 }
 
 static wostringstream monwos;
