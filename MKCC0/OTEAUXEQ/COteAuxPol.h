@@ -8,9 +8,6 @@
 #include <opencv2/opencv.hpp>
 #include <gdiplus.h>
 
-typedef struct _AUXPOL_PALLETE {
-    SolidBrush whiteBrush;
-}AUXPOL_PALLETE, * LPAUXPOL_PALLETE;
 
 #define AUXPOL_MON1_WND_X                0
 #define AUXPOL_MON1_WND_Y                0
@@ -19,14 +16,20 @@ typedef struct _AUXPOL_PALLETE {
 #define AUXPOL_MON1_N_CTRL               32
 #define AUXPOL_MON1_N_WCHAR              64
 
+#define AUXPOL_CAMERA_W                 1280
+#define AUXPOL_CAMERA_H                 1080
+#define AUXPOL_INIT_ROI_W               160     // 1280/8
+#define AUXPOL_INIT_ROI_H               135     // 1080/8
+
 #define AUXPOL_DEFAULT_ROI_X             1000
 #define AUXPOL_DEFAULT_ROI_Y             0   
 #define AUXPOL_DEFAULT_ROI_W             50
 #define AUXPOL_DEFAULT_ROI_H             50
 #define AUXPOL_MARGIN_WORK_ROI           10
+#define AUXPOL_DEFAULT_ROI_X             1000
+#define AUXPOL_DEFAULT_ROI_Y             0   
 
 #define AUXPOL_CAMERA_DISP_RETIO         2  //カメラ映像を表示する時のサイズ割合（割値）
-
 
 #define AUXPOL_ID_MON1_CTRL_BASE         4100
 #define AUXPOL_ID_MON1_STATIC_INF        0
@@ -149,13 +152,14 @@ typedef struct _AUXPOL_MON2 {
 
 }ST_AUXPOL_MON2, * LPST_AUXPOL_MON2;
 
-#define AUXPOL_CODE_IMG_PROC_ENABLE       0x00000001   //ベースのMatデータ有効
-#define AUXPOL_CODE_IMG_PROC_ACTIVE       0x00000002   //検出実行中
+#define AUXPOL_CODE_IMG_PROC_ENABLE         0x00000001   //ベースのMatデータ有効
+#define AUXPOL_CODE_IMG_PROC_ACTIVE         0x00000002   //検出実行中
 
+#define AUXPOL_MODE_AUTO_CAL_MANUAL         0           //マニュアルキャリブレーション
+#define AUXPOL_MODE_AUTO_CAL_AUTO           1           //オートキャリブレーション
 
 #define AUXPOL_CODE_VIDEO_CHK_ERR		    -1	//映像チェック異常
-#define AUXPOL_CODE_VIDEO_CHK_DETECT_ON	    1	//映像チェックON検出
-#define AUXPOL_CODE_VIDEO_CHK_DETECT_OFF	2	//映像チェックOFF検出
+#define AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT	30	//自動パラメータ設定のランプON待ちカウント
 
 #define AUXPOL_PRM_FILENAME                 "oteaux.dat"
 
@@ -198,12 +202,12 @@ public:
 
     int GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work);
 
-    HRESULT SaveParameters(LPST_DEVICE_CODE pCrane);
-    HRESULT LoadParameters(LPST_DEVICE_CODE pCrane);
-    int AutoParameters();
+    HRESULT SaveParameters_Vdelay(LPST_DEVICE_CODE pCrane);
+    HRESULT LoadParameters_Vdelay(LPST_DEVICE_CODE pCrane);
+    HRESULT AutoParameterts_Vdelay(INT32 step);
     std::string GetExeDirectoryPath(std::string filename);
 
-	ST_OTE_AUX_POL_INF st_aux_pol_inf;
+	static ST_OTE_AUX_POL_INF st_aux_pol_inf;
  
 private:
     const char* m_filename = AUXPOL_PRM_FILENAME;
@@ -263,8 +267,7 @@ private:
     int output();
     int close();
 
-
-    static std::wstring GetTimestamp() {
+	static std::wstring GetTimestamp() {
         auto now = std::chrono::system_clock::now();
         auto time_t_now = std::chrono::system_clock::to_time_t(now);
         struct tm t; localtime_s(&t, &time_t_now);
@@ -275,7 +278,7 @@ private:
     static HWND CreateSlider(HWND parent, int id, int x, int y, int minV, int maxV, int initV);
     static cv::Rect get_hsv_criterion();
     static cv::Rect set_work_roi(bool is_criterion_base);
-    static void HSV_autoCalibrate();
+    static void HSV_autoCalibrate(int mode);
     static void UpdateSliderPos();
     static int GetModeBinCenter(const cv::Mat& singleChannelMat, int maxVal, int binWidth);
 	

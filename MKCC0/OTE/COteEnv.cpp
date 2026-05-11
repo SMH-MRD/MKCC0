@@ -158,7 +158,6 @@ int COteEnv::parse() {
 				LPARAM lp = BC_ID_MON1;
 				SendMessage(st_mon1.hwnd_mon, WM_USER_OPEN_CRANE_WND, wp, lp);
 			}
-
 		}
 	}
 

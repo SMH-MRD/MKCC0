@@ -152,8 +152,8 @@ public:
     static void UsbCameraThreadAG();
     static void OnPaintMon2(HWND hWnd, HDC hdc);
 
-     void SaveParameters(); 
-     void LoadParameters();
+     void SaveParameters_Vdelay(); 
+     void LoadParameters_Vdelay();
 
 private:
      // --- GDI+ ŠÖ˜A ---

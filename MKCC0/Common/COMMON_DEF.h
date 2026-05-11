@@ -427,4 +427,9 @@ union UN_LAMP_COM {
     ST_LAMP_COM st;
 };
 
+union UN_PRODUCT_ID {
+	WCHAR wc[8];    //製番コードWCHAR表現
+	INT64 i64[2];   //製番コードINT64表現
+};
+
 #pragma endregion

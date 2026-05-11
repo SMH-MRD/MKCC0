@@ -139,6 +139,7 @@ typedef struct _USB_CAM
 
 #define OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK		0x0010	//映像遅延検出ONチェック起動
 #define OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK		0x0020	//映像遅延検出OFFチェック起動
+#define OTEAUXAG_CODE_V_DELAY_APRM_REQ_ON		0x0040	//映像遅延検出パラメータ設定用ON要求
 
 #define OTEAUXAG_CODE_V_DELAY_CHK_FIN			0x0100	//映像遅延検出チェック正常完了フラグ
 #define OTEAUXAG_CODE_V_DELAY_CHK_TMOV			0x0200	//映像遅延検出チェックタイムオーバーフラグ
@@ -147,9 +148,6 @@ typedef struct _USB_CAM
 #define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN		0x4000	//映像遅延検出パラメータSAVE/LOAD完了
 #define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL		0x8000	//映像遅延検出パラメータSAVE/LOADエラー
 
-#define OTEAUXPOL_CODE_V_DELAY_PRM_START		0x2000	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
-#define OTEAUXPOL_CODE_V_DELAY_PRM_FIN			0x4000	//映像遅延検出コマンド実行完了
-#define OTEAUXPOL_CODE_V_DELAY_PRM_FAIL			0x8000	//映像遅延検出コマンド実行エラー
 
 typedef struct _ST_OTE_AUX_AGENT_INF {				//MCprotocolの送受信バッファ
 	ST_USB_CAM st_usb_cam;
@@ -180,14 +178,35 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 
 #define OTEAUXPOL_CODE_MAGIC					0x53544341 // "STCA" (Sentech Camera App)
 
+#define OTEAUXPOL_PRM_V_DELAY_H_MARGIN			20	
+#define OTEAUXPOL_PRM_V_DELAY_S_MARGIN			20
+#define OTEAUXPOL_PRM_V_DELAY_V_MARGIN			20
+#define OTEAUXPOL_PRM_V_DELAY_ROI_MARGIN		20
+
+#define OTEAUXPOL_CODE_V_DELAY_PRM_START		0x2000	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
+#define OTEAUXPOL_CODE_V_DELAY_PRM_FIN			0x4000	//映像遅延検出コマンド実行完了
+#define OTEAUXPOL_CODE_V_DELAY_PRM_FAIL			0x8000	//映像遅延検出コマンド実行エラー
+
+
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY		0	//自動パラメータ設定待機中
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_OFF_MAT	1	//OFF画像取得
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM		2	//ON指令出力
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ON_MAT	3	//ON画像取得
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ROI		4	//ROI取得
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_SET_PRM		5	//パラメータ設定
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN			6	//パラメータ設定完了
+#define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL			7	//パラメータ設定失敗
+
 typedef struct _ST_AUXPOL_IMG_PRM {
 	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー
 	INT32 v_delay_prm_io_status = L_OFF;
+	INT32 v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
 	// HSV マスク設定値
+	cv::Rect v_delay_roi = cv::Rect(0, 0, 0, 0);
 	int hl = 0, hh = 10, hCenter = 0;
 	int sl = 0, sh = 255, sCenter = 0;
 	int vl = 0, vh = 255, vCenter;
-	int h_margin = 20, s_margin = 20, v_margin = 20;
+	int h_margin = OTEAUXPOL_PRM_V_DELAY_H_MARGIN, s_margin = OTEAUXPOL_PRM_V_DELAY_S_MARGIN, v_margin = OTEAUXPOL_PRM_V_DELAY_V_MARGIN;
 	int target_chk_base_count = 0;
 } ST_AUXPOL_IMG_PRM, * LPST_AUXPOL_IMG_PRM;
 

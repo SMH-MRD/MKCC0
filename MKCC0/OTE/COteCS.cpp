@@ -650,6 +650,7 @@ int COteCS::parse()
 }
 
 static INT16 ote_helthy = 0; //ヘルシー値
+static INT64 crane_product_i64_last = 0;
 //#### 出力処理　
 int COteCS::output() {          
 
@@ -742,8 +743,7 @@ int COteCS::output() {
 	pPcWBuf->sl_brk_fb2 = pBody->sl_brk_fb[1];				//旋回ブレーキFB2
 	pPcWBuf->sl_brk_fb3 = pBody->sl_brk_fb[2];				//旋回ブレーキFB3
 	pPcWBuf->sl_brk_fb4 = pBody->sl_brk_fb[3];				//旋回ブレーキFB4
-	
-	
+		
 	//##GOT故障監視（故障コードバッファにセット）
 	LPST_OTE_PC_FLTS_SET pFltSet = (LPST_OTE_PC_FLTS_SET)&pBody->faults_set;
 
@@ -815,9 +815,17 @@ int COteCS::output() {
 	//## 制御PCへの出力
 	// 映像遅延チェックデバイスON/OFF制御
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {				//遠隔操作卓有効
-		if (pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) {
+		if ((pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ||
+			(pOteAuxPolInf->st_img_proc.param.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM))
+		{
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
 		}
+
+	}
+	else if((pOteAuxPolInf->st_img_proc.param.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM) &&
+			(pOteCsInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM))
+	{
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
 	}
 	else {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
@@ -833,29 +841,33 @@ int COteCS::output() {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_FORCED_ON;	//AUXEQへの通知セット
 	}
 
-	//自動パラメータセット要求
+	//#自動パラメータセット要求
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm]) {
 			pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
-	if (pOteAuxAgInf->video_delay_ctrl_stat & (OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL)) {
+	if (pOteAuxPolInf->st_img_proc.param.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
 
-	//パラメータSAVE要求
+
+	//#パラメータSAVE要求
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm]) {
 		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 	}
-	//パラメータLOAD要求
-	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm]) {
+	//#パラメータLOAD要求
+	if ((pOteCCInf->crane_product_id.i64[0]) && !(crane_product_i64_last)||	//初期化時のロード クレーン製品IDが0から有効値に変わったタイミングでロード要求
+		(pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm])){				//サブパネルのPB入力でロード
 		pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 	}
+	crane_product_i64_last = pOteCCInf->crane_product_id.i64[0];
+
 	if (pOteAuxPolInf->st_img_proc.param.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 	}
-
+	
 //##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
 

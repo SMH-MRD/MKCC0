@@ -734,7 +734,10 @@ void COteAuxAgent::UsbCameraThreadAG() {
 				break;
 			}
 
+
 			if (dwWait == WAIT_OBJECT_0 + 1) {	//タイマーイベント
+				pAuxAgInf->st_usb_cam.isRawMatUpdated = false;
+
 				auto pBuffer = pDataStream->RetrieveBuffer(50);
 
 				if (pBuffer != nullptr) {

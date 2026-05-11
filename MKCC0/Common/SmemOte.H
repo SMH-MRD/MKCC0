@@ -154,6 +154,7 @@ typedef struct _ST_OTE_CS_INF {
 
 	INT32 video_delay_chk_req = L_OFF;				//映像遅延チェック要求状態
 	INT32 video_delay_chk_ctrl = L_OFF;				//映像遅延チェック制御要求状態
+	INT32 video_delay_chk_init_status = L_OFF;		//映像遅延チェック初期化状態
 
 	INT32 video_delay_auto_prm_pb = L_OFF;			//映像遅延チェック自動パラメータ要求PB状態
 	INT32 video_delay_prm_save_pb = L_OFF;			//映像遅延チェックパラメータセーブ要求PB状態
@@ -185,6 +186,7 @@ typedef struct _ST_OTE_CC_IF {
 	INT32			cc_com_stat_s;		//制御PCとの通信状態（送信）
 	INT32			cc_active_ote_id;	//クレーン側操作有効端末id
 	INT32			cc_comm_chk_cnt;	//通信状態チェックカウンタ
+	UN_PRODUCT_ID  crane_product_id;	//接続クレーン製番
 
 	ST_PC_U_MSG     st_msg_pc_u_rcv;
 	ST_PC_M_MSG     st_msg_pc_m_rcv;
@@ -192,6 +194,8 @@ typedef struct _ST_OTE_CC_IF {
 
 	ST_OTE_U_MSG    st_msg_ote_u_snd;
 	ST_OTE_M_MSG    st_msg_ote_m_snd;
+
+
 
 	INT32	id_ote_ope_active = OTE_NON_OPEMODE_ACTIVE;			//ノッチ操作が有効な接続端末ID
 	INT32	id_conected_crane = CRANE_ID_NULL;					//接続中クレーンID
@@ -201,7 +205,7 @@ typedef struct _ST_OTE_CC_IF {
 	UINT32	ope_ote_silent_cnt;	//操作有効端末からの受信無しでカウントアップ
 	UINT32	mon_silent_cnt;  	//隣接PCからのマルチキャスト受信カウント無しでカウントアップ	
 	UINT32	ote_command;		//停止OTE要求モード	非常停止,主幹切
-	UINT32	ote_mode;				//操作端末接続モード
+	UINT32	ote_mode;			//操作端末接続モード
 
 	INT32	msg_snd_seqno_now;			//送信メッセージSeqNo現在値
 	INT32	msg_rcv_seqno_now;			//受信メッセージSeqNo

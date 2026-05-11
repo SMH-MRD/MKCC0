@@ -374,13 +374,16 @@ int COteAgent::parse() {
 
 	if (st_work.cc_comm_chk_cnt == PRM_OTE_PC_COM_TMOV_CNT){//通信異常
 		//クレーン操作有効端末idクリア
-		pOteCCIf->cc_active_ote_id	= CRANE_ID_NULL;
-		pOteCCIf->id_conected_crane = CRANE_ID_NULL;
+		pOteCCIf->cc_active_ote_id	= st_work.cc_active_ote_id = CRANE_ID_NULL;
+		pOteCCIf->id_conected_crane = st_work.id_conected_crane = CRANE_ID_NULL;
+		pOteCCIf->crane_product_id.i64[0] = st_work.crane_product_id.i64[0] = 0;
+		pOteCCIf->crane_product_id.i64[1] = st_work.crane_product_id.i64[1] = 0;
 	}
 	else {
 		//クレーン操作有効端末id
 		pOteCCIf->cc_active_ote_id = st_work.cc_active_ote_id;
 		pOteCCIf->id_conected_crane = st_work.id_conected_crane;
+		pOteCCIf->crane_product_id = st_work.crane_product_id;
 	}
 
 	return S_OK;
@@ -403,8 +406,12 @@ int COteAgent::output() {          //出力処理
 	pOteCCIf->ote_mode = st_work.ote_mode;
 	
 	//操作パネルがクレーン接続されていない場合、接続クレーンIDクリア
-	if (pOteUI->hWnd_crane_ope_panel == NULL)
+	if (pOteUI->hWnd_crane_ope_panel == NULL) {
 		pOteCCIf->id_conected_crane = NULL;
+		pOteCCIf->crane_product_id.i64[0] = 0;
+		pOteCCIf->crane_product_id.i64[1] = 0;
+	}
+
 
 	return STAT_OK;
 }
@@ -1057,7 +1064,11 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			if (S_OK == rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv)) ){
 				QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
 
-				st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);
+				//接続クレーンIDセット
+				st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);		//PCコード
+				st_work.crane_product_id = *(UN_PRODUCT_ID*)(pOteCCIf->st_msg_pc_u_rcv.head.myid.crane_id);		//製番コード
+
+
 				pOteCCIf->msg_rcv_seqno_now = pOteCCIf->st_msg_pc_u_rcv.head.seqno;
 	
 				LONGLONG seqno_delay =(pOteCCIf->msg_snd_seqno_now - pOteCCIf->msg_rcv_seqno_now) * pOteCCIf->umsg_snd_interval_ms;//シーケンス遅延補正
@@ -1069,6 +1080,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			}
 			else {
 				st_work.id_conected_crane = CRANE_ID_NULL;
+				st_work.crane_product_id.i64[0] = 0;
+				st_work.crane_product_id.i64[1] = 0;
 			}
 
 			//送信カウント一定以上で統計更新
