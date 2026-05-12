@@ -158,7 +158,7 @@ int COteAuxAgent::parse() {           //メイン処理
 			else if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_OFF) {
 				pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
 				pAuxAgInf->v_delay_chk_status &= ~OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
-				pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
+				pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;		//クレーン装置にONコマンド送信
 				QueryPerformanceCounter(&pAuxAgInf->start_count);//計測開始カウンタ値取得
 			}
 			else;
@@ -263,11 +263,6 @@ int COteAuxAgent::close() {
    }
 	return 0;
 }
-
-
-
-
-
 
 static wostringstream monwos;
 LRESULT CALLBACK COteAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {

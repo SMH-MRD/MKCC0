@@ -3,6 +3,7 @@
 #include "AUXEQ_DEF.h"
 #include "Windows.h"
 #include <opencv2/opencv.hpp>
+#include "CBasicControl.h"
 
 using namespace std;
 /****************************************************************************/
@@ -102,6 +103,7 @@ typedef struct _ST_OTE_AUX_ENV_INF {
 	INT32 video_delay_chk_prm_save_req = L_OFF;	//ビデオ遅延チェック用パラメータ保存要求フラグ
 	INT32 video_delay_ms = 10000;				//ビデオ遅延計測値
 	DWORD helthy_cnt;
+	int app_mode = BC_ID_MODE0;
 
 }ST_OTE_AUX_ENV_INF, * LPST_OTE_AUX_ENV_INF;
 
@@ -218,8 +220,6 @@ typedef struct _ST_AUXPOL_IMG_PROC {
 	int whiteCountInWorkRoi = 0;    //画像処理対象範囲ROI内の白画素数
 	int whiteCountInWorkRoi_Last = 0;
 	int whiteCountInCriterionRoi = 0;//基準(検出対象）ROI内の白画素数
-	cv::Mat mask;
-	cv::Mat hsvMat_mask;            //白黒１chのmask画像を表示用に3ｃｈに変換したもの
 	wstring video_delay_auto_prm_status = L"-";
 	wstring video_delay_prm_save_status = L"-";
 } ST_AUXPOL_IMG_PROC, * LPST_AUXPOL_IMG_PROC;

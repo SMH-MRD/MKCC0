@@ -50,6 +50,10 @@ HRESULT COteAuxEnv::initialize(LPVOID lpParam) {
 	//### 初期化
 	pAuxEnvInf->video_delay_chk_func_active = L_ON;
 
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Debug1");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Debug2");
+
 	//モニタウィンドウテキスト	
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -62,10 +66,16 @@ HRESULT COteAuxEnv::routine_work(void* pObj) {
 	parse();
 	output();
 
-	if (inf.total_act % 20 == 0) {
+	if (inf.total_act % 10 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time << L" CamDelay:";
 		if(pAuxEnvInf->video_delay_chk_func_active == L_ON) wos << L"ReqON";
 		else wos << L"ReqOFF";
+
+		if(inf.mode_id == BC_ID_MODE0)			wos << L" App>>Product";
+		else if (inf.mode_id == BC_ID_MODE1)	wos << L" App>>DEBUG1";
+		else if (inf.mode_id == BC_ID_MODE2)	wos << L" App>>DEBUG2";
+		else									wos << L" App>>??";
+
 		msg2host(wos.str());
 	}
 
@@ -74,6 +84,8 @@ HRESULT COteAuxEnv::routine_work(void* pObj) {
 
 int COteAuxEnv::input() {
 	if (pCSInf->video_delay_chk_req == L_ON)
+		pAuxEnvInf->video_delay_chk_func_active = L_ON;
+	else if((inf.mode_id == BC_ID_MODE1)|| (inf.mode_id == BC_ID_MODE2))//Debugモード時は機能ON
 		pAuxEnvInf->video_delay_chk_func_active = L_ON;
 	else
 		pAuxEnvInf->video_delay_chk_func_active = L_OFF;
@@ -341,15 +353,16 @@ LRESULT CALLBACK COteAuxEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp
 
 		case IDC_TASK_MODE_RADIO0:
 		{
-			inf.mode_id = BC_ID_MODE0;
+			pAuxEnvInf->app_mode = inf.mode_id = BC_ID_MODE0;
+			
 		}break;
 		case IDC_TASK_MODE_RADIO1:
 		{
-			inf.mode_id = BC_ID_MODE1;
+			pAuxEnvInf->app_mode = inf.mode_id = BC_ID_MODE1;
 		}break;
 		case IDC_TASK_MODE_RADIO2:
 		{
-			inf.mode_id = BC_ID_MODE2;
+			pAuxEnvInf->app_mode = inf.mode_id = BC_ID_MODE2;
 		}break;
 
 		case IDC_TASK_MON_CHECK1:{

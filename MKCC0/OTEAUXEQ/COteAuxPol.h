@@ -26,7 +26,7 @@
 #define AUXPOL_DEFAULT_ROI_W             50
 #define AUXPOL_DEFAULT_ROI_H             50
 #define AUXPOL_MARGIN_WORK_ROI           10
-#define AUXPOL_DEFAULT_ROI_X             1000
+#define AUXPOL_DEFAULT_ROI_X             0
 #define AUXPOL_DEFAULT_ROI_Y             0   
 
 #define AUXPOL_CAMERA_DISP_RETIO         2  //カメラ映像を表示する時のサイズ割合（割値）
@@ -248,6 +248,8 @@ private:
     static cv::Rect rc_mat_roi_criterion_disp;  //検出対象範囲設定ROI（表示モニタ画像）
     static cv::Mat mat_roi_work;
     static cv::Mat mat_criterion;
+    static cv::Mat mat_mask;
+    static cv::Mat hsvMat_mask;
         
     //オーバーライド
 
