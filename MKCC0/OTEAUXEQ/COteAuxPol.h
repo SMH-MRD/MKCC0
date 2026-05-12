@@ -210,7 +210,11 @@ public:
 	static ST_OTE_AUX_POL_INF st_aux_pol_inf;
  
 private:
-    const char* m_filename = AUXPOL_PRM_FILENAME;
+ 
+    static std::mutex m_maskMutex;
+
+	bool auto_calibrate_req = false;	//オートキャリブレーショ要求中フラグ   
+    static INT32 pol_video_delay_chk_ctrl;
 
     // --- GDI+ 関連 ---
     ULONG_PTR m_gdiplusToken;
@@ -249,7 +253,7 @@ private:
     static cv::Mat mat_roi_work;
     static cv::Mat mat_criterion;
     static cv::Mat mat_mask;
-    static cv::Mat hsvMat_mask;
+    static cv::Mat rgbMat_mask;
         
     //オーバーライド
 

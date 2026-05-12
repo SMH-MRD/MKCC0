@@ -201,8 +201,6 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 
 typedef struct _ST_AUXPOL_IMG_PRM {
 	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー
-	INT32 v_delay_prm_io_status = L_OFF;
-	INT32 v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
 	// HSV マスク設定値
 	cv::Rect v_delay_roi = cv::Rect(0, 0, 0, 0);
 	int hl = 0, hh = 10, hCenter = 0;
@@ -222,6 +220,8 @@ typedef struct _ST_AUXPOL_IMG_PROC {
 	int whiteCountInCriterionRoi = 0;//基準(検出対象）ROI内の白画素数
 	wstring video_delay_auto_prm_status = L"-";
 	wstring video_delay_prm_save_status = L"-";
+	INT32 v_delay_prm_io_status = L_OFF;
+	INT32 v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
 } ST_AUXPOL_IMG_PROC, * LPST_AUXPOL_IMG_PROC;
 
 typedef struct _ST_OTE_AUX_POL_INF {

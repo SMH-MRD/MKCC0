@@ -816,13 +816,13 @@ int COteCS::output() {
 	// 映像遅延チェックデバイスON/OFF制御
 	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {				//遠隔操作卓有効
 		if ((pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ||
-			(pOteAuxPolInf->st_img_proc.param.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM))
+			(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM))
 		{
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
 		}
 
 	}
-	else if((pOteAuxPolInf->st_img_proc.param.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM) &&
+	else if((pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM) &&
 			(pOteCsInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM))
 	{
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
@@ -845,7 +845,7 @@ int COteCS::output() {
 	if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm]) {
 			pOteCsInf->video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
-	if (pOteAuxPolInf->st_img_proc.param.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
+	if (pOteAuxPolInf->st_img_proc.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
 
@@ -863,7 +863,7 @@ int COteCS::output() {
 	}
 	crane_product_i64_last = pOteCCInf->crane_product_id.i64[0];
 
-	if (pOteAuxPolInf->st_img_proc.param.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
+	if (pOteAuxPolInf->st_img_proc.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 	}
