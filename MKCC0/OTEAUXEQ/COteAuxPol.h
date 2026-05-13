@@ -101,9 +101,12 @@ typedef struct _AUXPOL_MON1 {
 #define AUXPOL_ID_MON2_CB_DISP_ROI_WORK      27   //ROI設定ROI表示
 
 
-#define AUXPOL_CODE_MON2_DISP_DEFAULT        0   //デフォルト表示
-#define AUXPOL_CODE_MON2_DISP_ROWMAT         1   //MAT生表示
-#define AUXPOL_CODE_MON2_DISP_HSV_MASK       2   //MATROI表示
+#define AUXPOL_CODE_MON2_DISP_DEFAULT       0   //デフォルト表示
+#define AUXPOL_CODE_MON2_DISP_H             1   //輝度画像表示
+#define AUXPOL_CODE_MON2_DISP_S             2   //輝度画像表示
+#define AUXPOL_CODE_MON2_DISP_V             3   //輝度画像表示
+#define AUXPOL_CODE_MON2_DISP_HSV_MASK      4   //MASK画像表示
+#define AUXPOL_CODE_MON2_DISP_APRM_DIFF     5   //自動パラメータ用ON画像＋検出領域表示
 
 #define AUXPOL_MON2_CAMIMG_W                 640
 #define AUXPOL_MON2_CAMIMG_H                 540
@@ -159,7 +162,7 @@ typedef struct _AUXPOL_MON2 {
 #define AUXPOL_MODE_AUTO_CAL_AUTO           1           //オートキャリブレーション
 
 #define AUXPOL_CODE_VIDEO_CHK_ERR		    -1	//映像チェック異常
-#define AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT	30	//自動パラメータ設定のランプON待ちカウント
+#define AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT	50	//自動パラメータ設定のランプON待ちカウント
 
 #define AUXPOL_PRM_FILENAME                 "oteaux.dat"
 
@@ -212,6 +215,8 @@ public:
 private:
  
     static std::mutex m_maskMutex;
+    static std::vector<std::vector<cv::Point>> m_allContours;   // 輪郭データ
+    static std::mutex m_contourMutex;                           // 輪郭データ保護用
 
 	bool auto_calibrate_req = false;	//オートキャリブレーショ要求中フラグ   
     static INT32 pol_video_delay_chk_ctrl;
@@ -282,9 +287,9 @@ private:
         return wss.str();
     }
     static HWND CreateSlider(HWND parent, int id, int x, int y, int minV, int maxV, int initV);
-    static cv::Rect get_hsv_criterion();
+    static cv::Rect get_hsv_criterion(bool is_auto_param);
     static cv::Rect set_work_roi(bool is_criterion_base);
-    static void HSV_autoCalibrate(int mode);
+    static void HSV_autoCalibrate();
     static void UpdateSliderPos();
     static int GetModeBinCenter(const cv::Mat& singleChannelMat, int maxVal, int binWidth);
 	

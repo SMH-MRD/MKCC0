@@ -164,6 +164,7 @@ typedef struct _ST_OTE_AUX_AGENT_INF {				//MCprotocolの送受信バッファ
 
 	INT32 video_delay_prm_stat = L_OFF;				//映像遅延チェックパラメータ状態
 	INT32 video_delay_ctrl_stat = L_OFF;			//映像遅延チェック制御状態
+	std::mutex hsvMutex;
 
 }ST_OTE_AUX_AGENT_INF, * LPST_OTE_AUX_AGENT_INF;
 

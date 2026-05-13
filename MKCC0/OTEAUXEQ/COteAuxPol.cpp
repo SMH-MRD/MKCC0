@@ -24,6 +24,8 @@ cv::Mat COteAuxPol::mat_criterion;
 cv::Mat COteAuxPol::mat_mask;
 cv::Mat COteAuxPol::rgbMat_mask;
 std::mutex COteAuxPol::m_maskMutex;
+std::vector<std::vector<cv::Point>> COteAuxPol::m_allContours;   // 輪郭データ
+std::mutex COteAuxPol::m_contourMutex;                           // 輪郭データ保護用
 
 INT32 COteAuxPol::pol_video_delay_chk_ctrl = 0;
 
@@ -32,7 +34,10 @@ ST_OTE_AUX_POL_INF COteAuxPol::st_aux_pol_inf;
 static cv::Mat init_work_mat1;
 static cv::Mat init_work_mat2;
 static cv::Rect init_work_roi;
+static std::mutex diffmatMutex;
 static cv::Mat diff_mat;
+static LONGLONG AROIarea=0;
+static cv::Rect boundingBox;
 
 std::unique_ptr<Pen>        COteAuxPol::m_pWhitePen;
 std::unique_ptr<Pen>        COteAuxPol::m_pBlackPen;
@@ -234,7 +239,8 @@ int COteAuxPol::input() {
 int COteAuxPol::parse() {           //メイン処理
 
 	//### パラメータセーブ要求処理
-	if ((pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_SAVE) && !(pst_img_proc->v_delay_prm_io_status & OTEAUXPOL_CODE_V_DELAY_PRM_START)) {
+	if (((pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_SAVE)||(pol_video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_SAVE)) &&
+		!(pst_img_proc->v_delay_prm_io_status & OTEAUXPOL_CODE_V_DELAY_PRM_START)) {
 		st_aux_pol_inf.st_img_proc.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_START;
 		st_aux_pol_inf.st_img_proc.v_delay_prm_io_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL);
 		//パラメータ保存処理開始
@@ -244,6 +250,8 @@ int COteAuxPol::parse() {           //メイン処理
 		else {
 			st_aux_pol_inf.st_img_proc.v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FAIL;
 		}
+		//デバッグ用要求フラグクリア
+		pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 	}
 	else if (
 		(pst_img_proc->v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) &&
@@ -256,7 +264,8 @@ int COteAuxPol::parse() {           //メイン処理
 	else;
 
 	//### パラメータロード要求処理
-	if ((pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_LOAD) && !(pst_img_proc->v_delay_prm_io_status & OTEAUXPOL_CODE_V_DELAY_PRM_START)) {
+	if (((pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_LOAD)||(pol_video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_LOAD)) &&
+		!(pst_img_proc->v_delay_prm_io_status & OTEAUXPOL_CODE_V_DELAY_PRM_START)) {
 		pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_START;
 		pst_img_proc->v_delay_prm_io_status &= ~(OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL);
 		//パラメータ読出処理開始
@@ -266,6 +275,8 @@ int COteAuxPol::parse() {           //メイン処理
 		else {
 			pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FAIL;
 		}
+		//デバッグ用要求フラグクリア
+		pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
 	}
 	else if (
 		(pst_img_proc->v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_FAIL)) &&
@@ -290,46 +301,52 @@ int COteAuxPol::parse() {           //メイン処理
 	if (auto_calibrate_req && !(st_aux_pol_inf.st_img_proc.v_delay_prm_io_status & OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START)) {
 		st_aux_pol_inf.st_img_proc.v_delay_prm_io_status |= OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
 		//自動パラメータ設定処理開始 -> 自動パラメータ設定のステップをOFF画像取得にセット
+
 		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_OFF_MAT;
+		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"OFF画像取得中";
 	}
+	else if (!auto_calibrate_req) {
+		//自動パラメータ設定要求がない場合はステップを待機状態に
+		st_aux_pol_inf.st_img_proc.v_delay_prm_io_status &= ~OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
+		pst_img_proc->v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
+	}
+	else;
 
 	//自動パラメータ設定処理
 	AutoParameterts_Vdelay(pst_img_proc->v_delay_auto_prm_step);
 	
 	if (pst_img_proc->v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN) {
 		pst_img_proc->v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_START;
-		pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FIN;
+		pst_img_proc->v_delay_prm_io_status |= OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN;
+		
 		//デバッグ用要求フラグクリア
 		pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
 	else if (pst_img_proc->v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL) {
-		pst_img_proc->v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_PRM_START;
-		pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_FAIL;
+		pst_img_proc->v_delay_prm_io_status &= ~OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
+		pst_img_proc->v_delay_prm_io_status |= OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL;
+	
 		//デバッグ用要求フラグクリア
 		pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
-	else if (!auto_calibrate_req) {
-		//自動パラメータ設定要求がない場合はステップを待機状態に
-		pst_img_proc->v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
-		pst_img_proc->v_delay_prm_io_status &= ~(OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN | OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL);
-	}
 	else;
 
-	//## 映像遅延検出パラメータ更新
+	//## 映像遅延検出処理
+	// 
 	// 1. カメラ画像がない場合は処理しない
 	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
 		pst_img_proc->status &= ~AUXPOL_CODE_IMG_PROC_ENABLE;
 		return AUXPOL_CODE_VIDEO_CHK_ERR;
 	}
 	else pst_img_proc->status |= AUXPOL_CODE_IMG_PROC_ENABLE;
-
 		
-	// 2. 画像処理の基準値(pixlがON：検出条件成立の数）がない場合は処理しない
+	// 2. 画像処理の基準値(pixlがON：検出条件成立の数）が未設定では処理しない
 	if (pst_img_proc->param.target_chk_base_count)
 		pst_img_proc->status |= AUXPOL_CODE_IMG_PROC_ACTIVE;
 	else
 		pst_img_proc->status &= ~AUXPOL_CODE_IMG_PROC_ACTIVE;
-
+	
+	// 3. 検出パラメータ調整
 	int tem_int = 0;
 	if (pst_img_proc->param.sl > pst_img_proc->param.sh) {//彩度閾値の下限が上限より大きい場合は入れ替える
 		tem_int = pst_img_proc->param.sl;
@@ -342,14 +359,11 @@ int COteAuxPol::parse() {           //メイン処理
 		pst_img_proc->param.vh = tem_int;
 	}
 
-	// 4. 検出処理　→　表示用に(1ch)をRGB(3ch)へ変換
-	//if (st_mon2.is_monitor_active) {
-		pst_img_proc->is_target_detected = GetCraneDeviceStatus(pst_img_proc);
-	//}
+	// 4. 検出処理
+	pst_img_proc->is_target_detected = GetCraneDeviceStatus(pst_img_proc);
 
 	return STAT_OK;
 }
-
 int COteAuxPol::output() {          //出力処理
 
 	*pAuxPolInf = st_aux_pol_inf;
@@ -467,7 +481,7 @@ HRESULT COteAuxPol::LoadParameters_Vdelay(LPST_DEVICE_CODE pCrane) {
 static int v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;
 
 HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
-	INT32 status = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL;
+
 	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
 		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL;
 		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"画像無し";
@@ -477,45 +491,47 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 	switch (st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step) {
 
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY: {
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"待機中";
-		v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;//ON画像取得前の待ちカウントをリセット
+			v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;//ON画像取得前の待ちカウントをリセット
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_OFF_MAT: {
-			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"OFF画像取得中";
+			
 			cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat1, 2); // V画像の取り出し　チャンネル2 = V
 			//pAuxAgInf->st_usb_cam.hsvMatFrame.copyTo(init_work_mat1);
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM;
+			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ランプ点灯待";
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM: {
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ランプ点灯待";		
 		v_delay_on_wait_count--;
 		if (v_delay_on_wait_count<=0) {
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ON_MAT;
+			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ON画像取得中";
 		}
 
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ON_MAT: {
-			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ON画像取得中";
 			cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat2, 2); // V画像の取り出し　チャンネル2 = V
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ROI;
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ROI:{
+
+		std::lock_guard<std::mutex> lock(diffmatMutex);//diff_matをロック(ツール表示のため）
+
 		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ROI計算中";
 		//OFF画像とON画像の差分を計算
-		cv::absdiff(init_work_mat1, init_work_mat2, diff_mat);								
+		cv::absdiff(init_work_mat1, init_work_mat2, diff_mat);
 		//差分画像にぼかしをかけてノイズを減らす（カーネルサイズは5x5、適宜調整）
-		cv::Mat matBlurred;																	
-		cv::blur(diff_mat, diff_mat,cv::Size(5, 5));
+		cv::blur(diff_mat, diff_mat, cv::Size(5, 5));
 		// 差分画像を2値化（閾値は100、適宜調整）
-		cv::threshold(diff_mat, diff_mat, 100, 255, cv::THRESH_BINARY);		
+		cv::Mat matThresh;
+		cv::threshold(diff_mat, matThresh, 100, 255, cv::THRESH_BINARY);
 		// 輪郭を求める
-		std::vector<std::vector<cv::Point>> contours;
-		cv::findContours(diff_mat, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+		cv::findContours(matThresh, m_allContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
 		// 最大面積の輪郭を探す
 		double maxArea = 0;
 		int maxIdx = -1;
-		for (int i = 0; i < contours.size(); ++i) {
-			double area = cv::contourArea(contours[i]);
+		for (int i = 0; i < m_allContours.size(); ++i) {
+			double area = cv::contourArea(m_allContours[i]);
 			if (area > maxArea) {
 				maxArea = area;
 				maxIdx = i;
@@ -524,16 +540,17 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		//最大の輪郭があれば、その矩形領域をROIに設定
 		  // ※あまりに小さいノイズは無視するために、面積しきい値(例: 100px)を設けると安定します
 		if (maxIdx != -1 && maxArea > 100.0) {
-			cv::Rect boundingBox = cv::boundingRect(contours[maxIdx]);
-			LONGLONG area = (LONGLONG)boundingBox.width * boundingBox.height;
-			if (area < 10000) {//あまりに大きな領域は誤検出の可能性があるため無視（例: 100x100=10000px）
-				st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗(領域大）";
+			boundingBox = cv::boundingRect(m_allContours[maxIdx]);
+			AROIarea = (LONGLONG)boundingBox.width * boundingBox.height;
+			if (AROIarea > 10000) {//あまりに大きな領域は誤検出の可能性があるため無視（例: 100x100=10000px）
+				wos.str(L""); wos << L"失敗(領域大:" << AROIarea;
+				st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = wos.str().c_str();
 				st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL;
 			}
 			else {
-				st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ROI計算完了";
 				init_work_roi = boundingBox;
 				st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_SET_PRM;
+				st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"PRM設定中";
 			}
 		}
 		else {
@@ -543,30 +560,33 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_SET_PRM: {
+
 		//計算したROIを基にパラメータを自動設定
 		//得られたROI内のON画像の数をカウントして、閾値の基準値とする
 		st_aux_pol_inf.st_img_proc.param.target_chk_base_count = cv::countNonZero(diff_mat(init_work_roi));
+		//評価基準エリア更新
+		rc_mat_roi_criterion = init_work_roi;
+		rc_mat_roi_criterion_disp = get_hsv_criterion(true);//表示用ROIのHSV基準値を更新
 
-		//ROIの周囲にマージンを追加（マージンはOTEAUXPOL_PRM_V_DELAY_ROI_MARGINで定義、適宜調整）
-		init_work_roi.x -= OTEAUXPOL_PRM_V_DELAY_ROI_MARGIN; init_work_roi.y -= OTEAUXPOL_PRM_V_DELAY_ROI_MARGIN; init_work_roi.height += 2*OTEAUXPOL_PRM_V_DELAY_ROI_MARGIN; init_work_roi.width += 2 * OTEAUXPOL_PRM_V_DELAY_ROI_MARGIN;
-		//ROIが画像サイズを超えないように補正
-		st_aux_pol_inf.st_img_proc.param.v_delay_roi = init_work_roi & cv::Rect(0, 0, init_work_mat1.cols, init_work_mat1.rows);
+		//評価値計算エリア更新
+		rc_mat_roi_work_disp = set_work_roi(true);
 
 		//設定したROIを基に、画像処理のマージンパラメータを自動設定
-		HSV_autoCalibrate(AUXPOL_MODE_AUTO_CAL_AUTO);
+		HSV_autoCalibrate();
 
 		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN;
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"PRM設定中";
+		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"完了";
+		
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN: {
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"完了";
+		
 		if (!(pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM)) {
 			//自動パラメータ設定要求がOFFになったら、完了状態から待機状態に戻す
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
 		}
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL: {
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗(ERROR)";
+		//st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗(ERROR)";
 		if (!(pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM)) {
 			//自動パラメータ設定要求がOFFになったら、待機状態に戻す
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
@@ -575,7 +595,7 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 
 	default:
 		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL;
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失態(STEP）";
+		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗(STEP）";
 		break;
 	}
 	
@@ -711,11 +731,11 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		// 選択されたメニューの解析:
 		switch (wmId - AUXPOL_ID_MON2_CTRL_BASE)
 		{
-		case AUXPOL_ID_MON2_PB_GET_CRITERION: {
+		case AUXPOL_ID_MON2_PB_GET_CRITERION: {//評価用基準値の取得
 			if (pst_img_proc->status & AUXPOL_CODE_IMG_PROC_ENABLE) {
-				rc_mat_roi_criterion_disp = get_hsv_criterion();
+				rc_mat_roi_criterion_disp = get_hsv_criterion(false);
 		
-				HSV_autoCalibrate(AUXPOL_MODE_AUTO_CAL_MANUAL);
+				HSV_autoCalibrate();
 				//ROI WORKをセット
 				rc_mat_roi_work_disp = set_work_roi(true);//true:rc_mat_roi_criterion+αの領域を設定
 
@@ -973,22 +993,21 @@ LRESULT CALLBACK COteAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp
 				if (pAuxAgInf->st_usb_cam.bgrMatFrame.empty()) break;
 
 				if (LOWORD(wp) == IDC_TASK_ITEM_CHECK1) {
-					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_ROWMAT;
+					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_H;
 				}
 				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK2) {
-					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_HSV_MASK;
+					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_S;
 				}
 				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK3) {
+					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_V;
 				}
 				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK4) {
+					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_HSV_MASK;
 				}
 				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK5) {
+					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_APRM_DIFF;
 				}
 				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK6) {
-					if(pol_video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM)
-						pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
-					else
-						pol_video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 				}
 				else
 					st_mon2.disp_mode = AUXPOL_CODE_MON2_DISP_DEFAULT;
@@ -998,7 +1017,49 @@ LRESULT CALLBACK COteAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp
 					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
 				}	
 			}
+			if (inf.panel_func_id == IDC_TASK_FUNC_RADIO2) {
 
+				if (pAuxAgInf->st_usb_cam.bgrMatFrame.empty()) break;
+
+				if (LOWORD(wp) == IDC_TASK_ITEM_CHECK1) {
+					if (pol_video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM)
+						pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
+					else
+						pol_video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+						
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK2) {
+					if (pol_video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_SAVE)
+						pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+					else
+						pol_video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
+	
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK2), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK3) {
+
+					if (pol_video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_PRM_LOAD)
+						pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
+					else
+						pol_video_delay_chk_ctrl |= OTE_CS_CODE_V_DELAY_COM_PRM_LOAD;
+
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK4) {
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK5) {
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK6) {
+				}
+				else
+
+
+				for (int i = 0; i < BC_N_ACT_ITEM; i++) {
+					if (LOWORD(wp) == IDC_TASK_ITEM_CHECK1 + i) continue;
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+			}
 			if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED)
 				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = true;
 			else
@@ -1131,8 +1192,8 @@ void COteAuxPol::set_panel_tip_txt() {
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
 void COteAuxPol::set_func_pb_txt() {
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"SelImg");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"画像");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"ｺﾏﾝﾄﾞ");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO5, L"-");
@@ -1142,12 +1203,20 @@ void COteAuxPol::set_func_pb_txt() {
 //タブパネルのItem chkテキストを設定
 void COteAuxPol::set_item_chk_txt() {
 	if(inf.panel_func_id == IDC_TASK_FUNC_RADIO1) {
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"BGRMat");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"HSVMask");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"HMat");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"SMat");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"VMat");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"HSVMask");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"APRM DIFF");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"");
+	}
+	else if (inf.panel_func_id == IDC_TASK_FUNC_RADIO2) {
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"APRM TRG");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"Save PRM");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"Load PRM");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"APRM TRG");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"");
 	}
 	else {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
@@ -1222,7 +1291,8 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 		if(st_mon2.flg_disp_work_roi) {
 			
 			monwos.str(L""); h_text += 25.0f;
-			monwos << L"(" << rc_mat_roi_work.x << L"," << rc_mat_roi_work.y << L")" << L" (" << rc_mat_roi_work.x + rc_mat_roi_work.width << L"," << rc_mat_roi_work.y + rc_mat_roi_work.height << L")" ;
+			monwos << L"(" << rc_mat_roi_work.x << L"," << rc_mat_roi_work.y << L")" << L" (" << rc_mat_roi_work.x + rc_mat_roi_work.width << L"," << rc_mat_roi_work.y + rc_mat_roi_work.height << L")" 
+				<< L" Cnt:" << pst_img_proc->whiteCountInWorkRoi << L")";
 			m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont18.get(), PointF(5.0f, h_text), m_pMagentaBrush.get());
 			m_pOffscreenGraphics->DrawRectangle(m_pMagentaPen.get(), rc_mat_roi_work_disp.x, rc_mat_roi_work_disp.y, rc_mat_roi_work_disp.width, rc_mat_roi_work_disp.height);
 		}
@@ -1230,7 +1300,7 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 
 	}
 
-	if (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_HSV_MASK){
+	if (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_HSV_MASK) {
 		{//mutexでmat_maskロック
 			std::lock_guard<std::mutex> lock(m_maskMutex);
 			cv::cvtColor(mat_mask, rgbMat_mask, cv::COLOR_GRAY2RGB);
@@ -1239,32 +1309,113 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 		if (!rgbMat_mask.empty()) {
 			// --- 手順1: Bitmapバッファへ順次描画 ---
 
-			Gdiplus::Bitmap bitmap(rgbMat_mask.cols, rgbMat_mask.rows,	(int)rgbMat_mask.step, PixelFormat24bppRGB, rgbMat_mask.data);
+			Gdiplus::Bitmap bitmap(rgbMat_mask.cols, rgbMat_mask.rows, (int)rgbMat_mask.step, PixelFormat24bppRGB, rgbMat_mask.data);
 			m_pOffscreenGraphics->DrawImage(&bitmap, 0, height, width, height);
-			
+
 			//テキスト描画
-			monwos.str(L"●");
+			Font font(L"Arial", 12, FontStyleBold);
+			monwos.str(L"HSV MASK ●");
 			if (pst_img_proc->status & AUXPOL_CODE_IMG_PROC_ACTIVE) {
 				if (pst_img_proc->is_target_detected)
-					m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont36.get(), PointF(5.0f, 5.0f + height), m_pGreenBrush.get());
+					m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, &font, PointF(5.0f, 5.0f + height), m_pMagentaBrush.get());
 				else
-					m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont36.get(), PointF(5.0f, 5.0f + height), m_pBlueBrush.get());
+					m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, &font, PointF(5.0f, 5.0f + height), m_pBlueBrush.get());
 			}
 			else {
-				m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont36.get(), PointF(5.0f, 5.0f + height), m_pWhiteBrush.get());
+				m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, &font, PointF(5.0f, 5.0f + height), m_pWhiteBrush.get());
 			}
-			
+
 			//ROI描画
 			if (st_mon2.flg_disp_cri_roi) {
-				m_pOffscreenGraphics->DrawRectangle(m_pGreenPen.get(), rc_mat_roi_criterion_disp.x, rc_mat_roi_criterion_disp.y+ height, rc_mat_roi_criterion_disp.width, rc_mat_roi_criterion_disp.height);
+				m_pOffscreenGraphics->DrawRectangle(m_pGreenPen.get(), rc_mat_roi_criterion_disp.x, rc_mat_roi_criterion_disp.y + height, rc_mat_roi_criterion_disp.width, rc_mat_roi_criterion_disp.height);
 			}
 			if (st_mon2.flg_disp_work_roi) {
 				m_pOffscreenGraphics->DrawRectangle(m_pMagentaPen.get(), rc_mat_roi_work_disp.x, rc_mat_roi_work_disp.y + height, rc_mat_roi_work_disp.width, rc_mat_roi_work_disp.height);
 			}
 		}
 	}
+	else if ((st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_H)|| (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_S)|| (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_V)) {
+		//HSV個別画像の表示処理
+		if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) return;
+		cv::Mat Vmat,RGBmat;
 
-	// --- 手順2: 完成したバッファを画面(HDC)へ一気に転送する ---
+		{
+			std::lock_guard<std::mutex> lock(pAuxAgInf->hsvMutex);// hsvMatFrameへのアクセスをロック
+			int channel = st_mon2.disp_mode - 1;
+			cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, Vmat, channel);
+			cv::cvtColor(Vmat, RGBmat, cv::COLOR_GRAY2BGR);
+
+		}//ロック解除
+
+		Gdiplus::Bitmap bitmap(RGBmat.cols, RGBmat.rows, (int)RGBmat.step, PixelFormat24bppRGB, RGBmat.data);
+
+		width = Vmat.cols / AUXPOL_CAMERA_DISP_RETIO;
+		height = Vmat.rows / AUXPOL_CAMERA_DISP_RETIO;
+		m_pOffscreenGraphics->DrawImage(&bitmap, 0, height, width, height);
+
+		// (任意) 画面に「V-Channel」とテキストを入れる
+		Font font(L"Arial", 9, FontStyleBold);
+		SolidBrush yellowBrush(Color::Yellow);
+		if (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_H)
+			m_pOffscreenGraphics->DrawString(L"H-Channel (Hue)", -1, &font, PointF(10, height + 10), &yellowBrush);
+		else if (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_S)
+			m_pOffscreenGraphics->DrawString(L"S-Channel (Saturation)", -1, &font, PointF(10, height + 10), &yellowBrush);
+		else if (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_V)
+			m_pOffscreenGraphics->DrawString(L"V-Channel (Brightness)", -1, &font, PointF(10, height + 10), &yellowBrush);
+		else;
+
+		//ROI描画
+		if (st_mon2.flg_disp_cri_roi) {
+			m_pOffscreenGraphics->DrawRectangle(m_pGreenPen.get(), rc_mat_roi_criterion_disp.x, rc_mat_roi_criterion_disp.y + height, rc_mat_roi_criterion_disp.width, rc_mat_roi_criterion_disp.height);
+		}
+		if (st_mon2.flg_disp_work_roi) {
+			m_pOffscreenGraphics->DrawRectangle(m_pMagentaPen.get(), rc_mat_roi_work_disp.x, rc_mat_roi_work_disp.y + height, rc_mat_roi_work_disp.width, rc_mat_roi_work_disp.height);
+		}
+	}
+	else if (st_mon2.disp_mode == AUXPOL_CODE_MON2_DISP_APRM_DIFF) {//自動パラメータセットON/OFF差分画像の表示
+
+		if (!diff_mat.empty()) {
+
+			std::lock_guard<std::mutex> lock(diffmatMutex);//diff_mat,m_allContoursをロック
+
+			// 1. 表示用に 3ch に変換
+			cv::Mat RGBmat;
+			cv::cvtColor(diff_mat, RGBmat, cv::COLOR_GRAY2BGR);
+
+			// 2. すべての輪郭を描画
+			// 全輪郭を水色(0, 255, 0)で、太さ1で描画
+			// 引数: (対象画像, 輪郭リスト, 全描画指定(-1), 色, 太さ)
+			cv::drawContours(RGBmat, m_allContours, -1, cv::Scalar(255, 255, 0), 2);
+			// (オプション) 評価時のROI枠も描画しておく
+			cv::rectangle(RGBmat, boundingBox, cv::Scalar(255, 255, 255), 2); // 白枠
+
+			// (オプション) 現在のROI枠も描画しておくと分かりやすいです
+			cv::rectangle(RGBmat, init_work_roi, cv::Scalar(0, 255, 255), 2); // ﾏｾﾞﾝﾀ枠
+
+			// 3. GDI+ Bitmap作成
+			Gdiplus::Bitmap bitmap(RGBmat.cols, RGBmat.rows, (int)RGBmat.step, PixelFormat24bppRGB, RGBmat.data);
+
+			// 4. 描画
+			width = RGBmat.cols / AUXPOL_CAMERA_DISP_RETIO;
+			height = RGBmat.rows / AUXPOL_CAMERA_DISP_RETIO;
+			m_pOffscreenGraphics->DrawImage(&bitmap, 0, height, width, height);
+
+			// テキスト表示
+			Font font(L"Arial", 9, FontStyleBold);
+			SolidBrush yellowBrush(Color::Yellow);
+			m_pOffscreenGraphics->DrawString(L"ON/OFF Diff with Contours", -1, &font, PointF(10, height + 10), &yellowBrush);
+			m_pOffscreenGraphics->DrawString(st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status.c_str(), -1, &font, PointF(10, height + 25), &yellowBrush);
+		}
+		//ROI描画
+		if (st_mon2.flg_disp_cri_roi) {
+			m_pOffscreenGraphics->DrawRectangle(m_pGreenPen.get(), rc_mat_roi_criterion_disp.x, rc_mat_roi_criterion_disp.y + height, rc_mat_roi_criterion_disp.width, rc_mat_roi_criterion_disp.height);
+		}
+		if (st_mon2.flg_disp_work_roi) {
+			m_pOffscreenGraphics->DrawRectangle(m_pMagentaPen.get(), rc_mat_roi_work_disp.x, rc_mat_roi_work_disp.y + height, rc_mat_roi_work_disp.width, rc_mat_roi_work_disp.height);
+		}
+	}
+	else;
+	// 完成したバッファを画面(HDC)へ一気に転送する ---
 	pgraphic_img->DrawImage(m_pOffscreenBitmap.get(), 0, 0);
 
 	return;
@@ -1281,24 +1432,22 @@ HWND COteAuxPol::CreateSlider(HWND parent, int id, int x, int y, int minV, int m
 }
 
 // --- ROI内の最頻度値からHSV範囲を自動計算 ---
-void COteAuxPol::HSV_autoCalibrate(int mode) {
+void COteAuxPol::HSV_autoCalibrate() {
 
 	// 選択範囲が画像内にあるか確認して切り出し
 	// 表示画面は元画像を縮小している
 	cv::Mat roiHsv;
 
+	std::lock_guard<std::mutex> lock(pAuxAgInf->hsvMutex);// hsvMatFrameへのアクセスをロック
+
 	// パラメータ評価領域を設定
-	if (mode == AUXPOL_MODE_AUTO_CAL_AUTO) {
-		roiHsv = pAuxAgInf->st_usb_cam.hsvMatFrame(st_aux_pol_inf.st_img_proc.param.v_delay_roi);
-	}
-	else {
-		int width = pAuxAgInf->st_usb_cam.hsvMatFrame.cols;
-		int height = pAuxAgInf->st_usb_cam.hsvMatFrame.rows;
-		//ROIが画像サイズを超えないように補正
-		cv::Rect valid = rc_mat_roi_criterion & cv::Rect(0, 0, width, height);
-		if (valid.width < 0 || valid.height < 0) return;
-		roiHsv = pAuxAgInf->st_usb_cam.hsvMatFrame(valid);
-	}
+	int width = pAuxAgInf->st_usb_cam.hsvMatFrame.cols;
+	int height = pAuxAgInf->st_usb_cam.hsvMatFrame.rows;
+	//ROIが画像サイズを超えないように補正
+	cv::Rect valid = rc_mat_roi_criterion & cv::Rect(0, 0, width, height);
+	if (valid.width < 0 || valid.height < 0) return;
+	roiHsv = pAuxAgInf->st_usb_cam.hsvMatFrame(valid);
+	
 	// HSV各チャンネルに分離
 	std::vector<cv::Mat> channels;
 	cv::split(roiHsv, channels);
@@ -1355,36 +1504,60 @@ void COteAuxPol::UpdateSliderPos() {
 /// ON/OFF判定のための基準ROIを決定する関数
 /// 基準値設定のROIは、初期値は画面中央の固定サイズの矩形、マウス選択で設定または自動設定設定のROIとする
 /// </summary>
-/// <returns></returns>
-cv::Rect COteAuxPol::get_hsv_criterion(){
-
+/// <returns>戻り値はモニタ画面表示用のRect</returns>
+cv::Rect COteAuxPol::get_hsv_criterion(bool is_auto_param){
+	//デフォルトの基準領域を実画像のスケールで、まずセット
 	cv::Rect rc_disp(
-		AUXPOL_DEFAULT_ROI_X/AUXPOL_CAMERA_DISP_RETIO,
-		AUXPOL_DEFAULT_ROI_Y/AUXPOL_CAMERA_DISP_RETIO,
-		AUXPOL_DEFAULT_ROI_W/AUXPOL_CAMERA_DISP_RETIO,
-		AUXPOL_DEFAULT_ROI_H/AUXPOL_CAMERA_DISP_RETIO
+		AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO,
+		AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO,
+		AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO,
+		AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO
 	);
+	if(is_auto_param){
+		//自動パラメータ設定のROIは、設定済の基準値設定のROIをベースにしてモニタスケールの領域を求める
+		rc_disp.x = rc_mat_roi_criterion.x / AUXPOL_CAMERA_DISP_RETIO;
+		rc_disp.y = rc_mat_roi_criterion.y / AUXPOL_CAMERA_DISP_RETIO;
+		rc_disp.width = rc_mat_roi_criterion.width / AUXPOL_CAMERA_DISP_RETIO;
+		rc_disp.height = rc_mat_roi_criterion.height / AUXPOL_CAMERA_DISP_RETIO;
 
-	if (st_mon2.flg_dispDragging) {//マウス選択範囲を基準値設定のROIにする
-
-		// 選択範囲が画像内にあるか確認して切り出し
-		// 表示画面は元画像を縮小している
+		// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
 		int width_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
 		int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
 		//AND領域の矩形取得
-		st_mon2.rc_selected = st_mon2.rc_selected & cv::Rect(0, 0, width_disp, height_disp);
-
-		//画像内にある時は選択範囲
-		if (!(st_mon2.rc_selected.width < 0 || st_mon2.rc_selected.height < 0)) {
-			rc_disp = st_mon2.rc_selected;
-		}
+		rc_disp = rc_disp & cv::Rect(0, 0, width_disp, height_disp);
+		//画像内にない時は基準エリア=初期値エリア
+		if (rc_disp.width < 0 || rc_disp.height < 0)
+			rc_disp = cv::Rect(
+				AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO,
+				AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO,
+				AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO,
+				AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO
+			);
 	}
-	rc_mat_roi_criterion = { 
-		rc_disp.x * AUXPOL_CAMERA_DISP_RETIO,
-		rc_disp.y * AUXPOL_CAMERA_DISP_RETIO,
-		rc_disp.width * AUXPOL_CAMERA_DISP_RETIO, 
-		rc_disp.height * AUXPOL_CAMERA_DISP_RETIO 
-	};
+	else {
+		//マウス選択範囲を基準値設定のROIにする
+		if (st_mon2.flg_dispDragging) {
+			// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
+			int width_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
+			int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
+
+			//マウス選択範囲とモニタ画面スケールの画像領域とのAND領域の矩形取得
+			st_mon2.rc_selected = st_mon2.rc_selected & cv::Rect(0, 0, width_disp, height_disp);
+
+			//画像内にあれば処理後の範囲をモニタ画面スケールの選択範囲として採用
+			if (!(st_mon2.rc_selected.width < 0 || st_mon2.rc_selected.height < 0)) {
+				rc_disp = st_mon2.rc_selected;
+			}
+		}
+
+		//実画像の領域をセット
+		rc_mat_roi_criterion = {
+			rc_disp.x * AUXPOL_CAMERA_DISP_RETIO,
+			rc_disp.y * AUXPOL_CAMERA_DISP_RETIO,
+			rc_disp.width * AUXPOL_CAMERA_DISP_RETIO,
+			rc_disp.height * AUXPOL_CAMERA_DISP_RETIO
+		};
+	}
 	return rc_disp;
 }
 
@@ -1396,7 +1569,7 @@ cv::Rect COteAuxPol::get_hsv_criterion(){
 /// <returns>戻り値は、画面表示用のROI,実画像のROIはクラス変数にセット</returns>
 cv::Rect COteAuxPol::set_work_roi(bool is_criterion_base) {
 
-	//画面表示用ROIの初期値（基準値設定前）
+	//デフォルトの作業領域を実画像のスケールで、まずセット
 	cv::Rect rc_disp(
 		AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO,
 		AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO,
@@ -1404,29 +1577,31 @@ cv::Rect COteAuxPol::set_work_roi(bool is_criterion_base) {
 		AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO
 	); 
 
-	//基準値設定後の自動設定
+	//基準領域設定済のケースでの作業領域（モニタ画像スケール）を計算
 	if (is_criterion_base) {	//基準値設定後の自動設定	
-		rc_disp.x		= rc_mat_roi_criterion_disp.x - AUXPOL_MARGIN_WORK_ROI;
-		rc_disp.y		= rc_mat_roi_criterion_disp.y	- AUXPOL_MARGIN_WORK_ROI;
-		rc_disp.width	= rc_mat_roi_criterion_disp.width	+ AUXPOL_MARGIN_WORK_ROI * 2;
-		rc_disp.height	= rc_mat_roi_criterion_disp.height	+ AUXPOL_MARGIN_WORK_ROI * 2;
-
-		// 選択範囲が画像内にあるか確認して切り出し
-		// 表示画面は元画像を縮小している
-		int width_disp	= pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
-		int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
-		//AND領域の矩形取得
-		rc_disp = rc_disp & cv::Rect(0, 0, width_disp, height_disp);
-
-		//画像内にない時は基準判定エリア
-		if (rc_disp.width < 0 || rc_disp.height < 0)
-			rc_disp = rc_mat_roi_criterion_disp;
+		rc_disp.x = rc_mat_roi_criterion_disp.x - AUXPOL_MARGIN_WORK_ROI;
+		rc_disp.y = rc_mat_roi_criterion_disp.y - AUXPOL_MARGIN_WORK_ROI;
+		rc_disp.width = rc_mat_roi_criterion_disp.width + AUXPOL_MARGIN_WORK_ROI * 2;
+		rc_disp.height = rc_mat_roi_criterion_disp.height + AUXPOL_MARGIN_WORK_ROI * 2;
 	}
-	else {						//マウス選択範囲をそのまま作業領域にする
-		rc_disp = st_mon2.rc_selected;
+	else {
+		rc_disp.x = st_mon2.rc_selected.x - AUXPOL_MARGIN_WORK_ROI;
+		rc_disp.y = st_mon2.rc_selected.y - AUXPOL_MARGIN_WORK_ROI;
+		rc_disp.width = st_mon2.rc_selected.width + AUXPOL_MARGIN_WORK_ROI * 2;
+		rc_disp.height = st_mon2.rc_selected.height + AUXPOL_MARGIN_WORK_ROI * 2;
 	}
+
+	// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
+	int width_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
+	int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
+	//AND領域の矩形取得
+	rc_disp = rc_disp & cv::Rect(0, 0, width_disp, height_disp);
+
+	//画像内にない時は作業エリア=基準判定エリア
+	if (rc_disp.width < 0 || rc_disp.height < 0)
+		rc_disp = rc_mat_roi_criterion_disp;
 	
-	//画像選択範囲→カメラ画像の実際の範囲に変換
+	//モニタスケール→カメラ画像スケールに変換してセット
 	rc_mat_roi_work = { 
 		rc_disp.x * AUXPOL_CAMERA_DISP_RETIO,
 		rc_disp.y * AUXPOL_CAMERA_DISP_RETIO,

@@ -218,21 +218,6 @@ int COteAuxAgent::parse() {           //メイン処理
 			pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
 		}
 
-		//自動パラメータ設定要求処理
-		if ((pAuxEnvInf->video_delay_chk_auto_prm_set_req) && !(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START)) {
-			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
-			//自動パラメータ設定処理開始
-		}
-		else if ((!pAuxEnvInf->video_delay_chk_auto_prm_set_req) && (pAuxAgInf->v_delay_chk_status & (OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL))) {
-			pAuxAgInf->v_delay_chk_status &= ~OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START;
-			pAuxAgInf->v_delay_chk_status &= ~(OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN | OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL);
-		}
-		else if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START) {
-
-		}
-		else;
-			//自動パラメータ設定処理終了
-
 	}
 	else {
 		if (g_keepRunning) {
@@ -756,8 +741,11 @@ void COteAuxAgent::UsbCameraThreadAG() {
 							cv::cvtColor(rawMat, pAuxAgInf->st_usb_cam.bgrMatFrame, cv::COLOR_BayerGR2RGB);
 							
 							// 5. OpenCVでHSV Matを作成
-							cv::cvtColor(pAuxAgInf->st_usb_cam.bgrMatFrame, pAuxAgInf->st_usb_cam.hsvMatFrame, cv::COLOR_BGR2HSV);
-							pAuxAgInf->st_usb_cam.isRawMatUpdated = true; // フレームが更新されたことを示すフラグを立てる
+							{
+								std::lock_guard<std::mutex> lock(pAuxAgInf->hsvMutex);// HSV Matへのアクセスを保護するためのミューテックス
+								cv::cvtColor(pAuxAgInf->st_usb_cam.bgrMatFrame, pAuxAgInf->st_usb_cam.hsvMatFrame, cv::COLOR_BGR2HSV);
+								pAuxAgInf->st_usb_cam.isRawMatUpdated = true; // フレームが更新されたことを示すフラグを立てる
+							}
 						}
 					}
 					st_mon2.thrad_counter++;
