@@ -162,7 +162,7 @@ typedef struct _AUXPOL_MON2 {
 #define AUXPOL_MODE_AUTO_CAL_AUTO           1           //オートキャリブレーション
 
 #define AUXPOL_CODE_VIDEO_CHK_ERR		    -1	//映像チェック異常
-#define AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT	50	//自動パラメータ設定のランプON待ちカウント
+#define AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT	100	//自動パラメータ設定のランプON待ちカウント
 
 #define AUXPOL_PRM_FILENAME                 "oteaux.dat"
 
@@ -208,6 +208,7 @@ public:
     HRESULT SaveParameters_Vdelay(LPST_DEVICE_CODE pCrane);
     HRESULT LoadParameters_Vdelay(LPST_DEVICE_CODE pCrane);
     HRESULT AutoParameterts_Vdelay(INT32 step);
+	HRESULT CheckVdlayParameters(ST_AUXPOL_IMG_PRM st_param);
     std::string GetExeDirectoryPath(std::string filename);
 
 	static ST_OTE_AUX_POL_INF st_aux_pol_inf;
@@ -252,7 +253,7 @@ private:
 
     static Graphics* pgraphic_img;	//描画用グラフィックス
 	static cv::Rect rc_mat_roi_work;            //画像処理対象範囲ROI（実画像）
-    static cv::Rect rc_mat_roi_criterion;       //検出対象範囲設定ROI（実画像）
+   // static cv::Rect rc_mat_roi_criterion;       //検出対象範囲設定ROI（実画像）
     static cv::Rect rc_mat_roi_work_disp;       //画像処理対象範囲ROI（表示モニタ画像）
     static cv::Rect rc_mat_roi_criterion_disp;  //検出対象範囲設定ROI（表示モニタ画像）
     static cv::Mat mat_roi_work;

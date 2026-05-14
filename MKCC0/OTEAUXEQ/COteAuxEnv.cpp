@@ -68,13 +68,15 @@ HRESULT COteAuxEnv::routine_work(void* pObj) {
 
 	if (inf.total_act % 10 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time << L" CamDelay:";
-		if(pAuxEnvInf->video_delay_chk_func_active == L_ON) wos << L"ReqON";
-		else wos << L"ReqOFF";
+		if(pAuxEnvInf->video_delay_chk_func_active == L_ON) wos << L"ReqON/ ";
+		else wos << L"ReqOFF/";
 
-		if(inf.mode_id == BC_ID_MODE0)			wos << L" App>>Product";
-		else if (inf.mode_id == BC_ID_MODE1)	wos << L" App>>DEBUG1";
-		else if (inf.mode_id == BC_ID_MODE2)	wos << L" App>>DEBUG2";
-		else									wos << L" App>>??";
+		if(inf.mode_id == BC_ID_MODE0)			wos << L"App>>Product/ ";
+		else if (inf.mode_id == BC_ID_MODE1)	wos << L"App>>DEBUG1/ ";
+		else if (inf.mode_id == BC_ID_MODE2)	wos << L"App>>DEBUG2/ ";
+		else									wos << L"App>>??/ ";
+
+		wos << L"DELAY CHK>>"<<pAuxEnvInf->video_delay_chk_func_active;
 
 		msg2host(wos.str());
 	}

@@ -1798,10 +1798,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		wostringstream wos;
 		wos.str(L""); 
-		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status.c_str();
+//		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status.c_str();
 		SetWindowText(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
 		wos.str(L""); 
-		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_save_status.c_str();
+//		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_save_status.c_str();
 		SetWindowText(pPanelBase->psubobjs->st_v_delay_prm_io_status->hWnd, wos.str().c_str());
 
 

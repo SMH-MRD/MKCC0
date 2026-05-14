@@ -146,11 +146,6 @@ typedef struct _USB_CAM
 #define OTEAUXAG_CODE_V_DELAY_CHK_FIN			0x0100	//映像遅延検出チェック正常完了フラグ
 #define OTEAUXAG_CODE_V_DELAY_CHK_TMOV			0x0200	//映像遅延検出チェックタイムオーバーフラグ
 
-#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_START	0x1000	//映像遅延検出パラメータSAVE/LOAD実行中
-#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FIN		0x4000	//映像遅延検出パラメータSAVE/LOAD完了
-#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM_FAIL		0x8000	//映像遅延検出パラメータSAVE/LOADエラー
-
-
 typedef struct _ST_OTE_AUX_AGENT_INF {				//MCprotocolの送受信バッファ
 	ST_USB_CAM st_usb_cam;
 	INT32 req_command_to_crane	= OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE;
@@ -186,9 +181,17 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 #define OTEAUXPOL_PRM_V_DELAY_V_MARGIN			20
 #define OTEAUXPOL_PRM_V_DELAY_ROI_MARGIN		20
 
-#define OTEAUXPOL_CODE_V_DELAY_PRM_START		0x2000	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
-#define OTEAUXPOL_CODE_V_DELAY_PRM_FIN			0x4000	//映像遅延検出コマンド実行完了
-#define OTEAUXPOL_CODE_V_DELAY_PRM_FAIL			0x8000	//映像遅延検出コマンド実行エラー
+#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_START		0x2000	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
+#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN			0x4000	//映像遅延検出コマンド実行完了
+#define OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL		0x8000	//映像遅延検出コマンド実行エラー
+
+#define OTEAUXPOL_CODE_V_DELAY_PRM_LOAD_START		0x0200	//映像遅延検出パラメータ自動設定ターゲットパラメータセット中
+#define OTEAUXPOL_CODE_V_DELAY_PRM_LOAD_FIN			0x0400	//映像遅延検出コマンド実行完了
+#define OTEAUXPOL_CODE_V_DELAY_PRM_LOAD_FAIL		0x0800	//映像遅延検出コマンド実行エラー
+
+#define OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_START		0x0010	//映像遅延検出パラメータSAVE/LOAD実行中
+#define OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_FIN			0x0040	//映像遅延検出パラメータSAVE/LOAD完了
+#define OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_FAIL		0x0080	//映像遅延検出パラメータSAVE/LOADエラー
 
 
 #define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY		0	//自動パラメータ設定待機中
@@ -203,7 +206,7 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 typedef struct _ST_AUXPOL_IMG_PRM {
 	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー
 	// HSV マスク設定値
-	cv::Rect v_delay_roi = cv::Rect(0, 0, 0, 0);
+	cv::Rect rc_mat_roi_criterion = cv::Rect(0, 0, 0, 0);
 	int hl = 0, hh = 10, hCenter = 0;
 	int sl = 0, sh = 255, sCenter = 0;
 	int vl = 0, vh = 255, vCenter;
