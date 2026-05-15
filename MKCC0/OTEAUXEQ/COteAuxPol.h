@@ -261,6 +261,8 @@ private:
     static cv::Mat mat_mask;
     static cv::Mat rgbMat_mask;
         
+    static int get_target_chk_base_count();
+
     //オーバーライド
 
     virtual HRESULT routine_work(void* pObj) override;

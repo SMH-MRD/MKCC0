@@ -514,9 +514,10 @@ int COteCS::parse()
 			}
 		}
 		else {
-			pOteCsInf->ote_interlock &= ~FLTS_MASK_ERR_OTE_CAM_TM_OVER;
+			pOteCsInf->video_delay_chk_req = L_OFF;//映像遅延のチェック要求
 		}
 		//# 制御通信遅延過大
+//とりあえずバイパス機能無効にしておく
 //		if (!(p->plc_setting & OTE_CODE_OPEPLC_SET_CTRL_IL_BYPASS) ){
 			if (pOteCCInf->msg_delay_ave_ms > FLTS_LEVEL_IL_CTRL_CC_COM_DELAY) {
 				pOteCsInf->ote_interlock |= FLTS_MASK_IL_CTRL_CC_COM_DELAY;
@@ -804,26 +805,29 @@ int COteCS::output() {
 	{
 		pOteCsInf->video_delay_chk_req = L_ON;					//映像遅延チェック要求　AUXEQへの指令
 		pOteCsInf->video_delay_sec = pOteAuxAgInf->v_delay_sec;	//映像遅延時間セット　	遅延計測値取り込み
-
 	}
 	else {
-		pOteCsInf->video_delay_chk_req = L_OFF;					//映像遅延チェック要求　AUXEQへの指令
+		if (otecs_plc_setting) {
+			pOteCsInf->video_delay_chk_req = L_ON;				//映像遅延チェック要求　AUXEQへの指令
+		}
+		else{
+			pOteCsInf->video_delay_chk_req = L_OFF;				//映像遅延チェック要求　AUXEQへの指令
+		}
 		pOteCsInf->video_delay_sec = 0.0;						//映像遅延時間クリア
 	}
 
 	
 	//## 制御PCへの出力
 	// 映像遅延チェックデバイスON/OFF制御
-	if (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) {				//遠隔操作卓有効
-		if ((pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ||
-			(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM))
+	if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) ||(forced_opedesk)){				//遠隔操作卓有効
+		if ((pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ||						//AUXEQからの映像遅延チェック用ランプON指令がある　または
+			(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM)) //AUXEQからの映像遅延自動パラメータセット要求がある
 		{
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
 		}
-
 	}
-	else if((pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step & OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM) &&
-			(pOteCsInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM))
+	else if ((pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM) && //遠隔操作卓が無効で、AUXEQからの映像遅延自動パラメータセット要求がある かつ
+		(pOteCsInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM))									//自動パラメータセット要求があるときは、映像遅延チェックデバイスON
 	{
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
 	}
@@ -1567,8 +1571,36 @@ LRESULT CALLBACK COteCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 			}
 
 		}break;
-		case IDC_TASK_ITEM_CHECK2:
-		case IDC_TASK_ITEM_CHECK3:
+		case IDC_TASK_ITEM_CHECK2: {
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1: {
+				if (otecs_plc_setting) {
+					otecs_plc_setting = L_OFF;
+					//チェックを外す
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else {
+					otecs_plc_setting = L_ON;
+				}
+			}break;
+			default:break;
+			}
+		}break;
+		case IDC_TASK_ITEM_CHECK3: {
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1: {
+				if (forced_opedesk) {
+					forced_opedesk = L_OFF;
+					//チェックを外す
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else {
+					forced_opedesk = L_ON;
+				}
+			}break;
+			default:break;
+			}
+		}break;
 		case IDC_TASK_ITEM_CHECK4:
 		case IDC_TASK_ITEM_CHECK5:
 		case IDC_TASK_ITEM_CHECK6:
@@ -1708,7 +1740,7 @@ void COteCS::set_panel_tip_txt() {
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
 void COteCS::set_func_pb_txt() {
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"Debug");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
@@ -1730,8 +1762,8 @@ void COteCS::set_item_chk_txt() {
 	}break;
 	case IDC_TASK_FUNC_RADIO1: {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"Y80 OUT");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"V遅延");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"卓ﾓｰﾄﾞ");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");

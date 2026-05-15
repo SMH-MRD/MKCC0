@@ -332,7 +332,10 @@ int COteAuxPol::parse() {           //メイン処理
 		//デバッグ用要求フラグクリア
 		pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
-	else;
+	else {
+		pst_img_proc->v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_FAIL;
+		pst_img_proc->v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_FIN;
+	}
 
 	//## 映像遅延検出処理
 	// 
@@ -499,6 +502,11 @@ HRESULT COteAuxPol::LoadParameters_Vdelay(LPST_DEVICE_CODE pCrane) {
 			// GUIのスライダー位置を更新
 			st_aux_pol_inf.st_img_proc.param = temp_prm;	//読み込んだパラメータを反映
 			UpdateSliderPos();
+			//margin固定値なので、念のため初期値をセットする
+			pst_img_proc->param.h_margin = OTEAUXPOL_PRM_V_DELAY_H_MARGIN;
+			pst_img_proc->param.s_margin = OTEAUXPOL_PRM_V_DELAY_S_MARGIN;
+			pst_img_proc->param.v_margin = OTEAUXPOL_PRM_V_DELAY_V_MARGIN;
+
 			st_aux_pol_inf.st_img_proc.video_delay_prm_save_status = L"LOAD完了";
 			return S_OK;
 		}
@@ -514,7 +522,7 @@ static int v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;
 HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 
 	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
-		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL;
+		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_NULL;
 		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"画像無し";
 		return S_FALSE;
 	}
@@ -522,28 +530,28 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 	switch (st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step) {
 
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY: {
-			v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;//ON画像取得前の待ちカウントをリセット
+		v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;//ON画像取得前の待ちカウントをリセット
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_OFF_MAT: {
-			
-			cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat1, 2); // V画像の取り出し　チャンネル2 = V
-			//pAuxAgInf->st_usb_cam.hsvMatFrame.copyTo(init_work_mat1);
-			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM;
-			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ランプ点灯待";
+
+		cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat1, 2); // V画像の取り出し　チャンネル2 = V
+		//pAuxAgInf->st_usb_cam.hsvMatFrame.copyTo(init_work_mat1);
+		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM;
+		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ランプ点灯待";
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM: {
 		v_delay_on_wait_count--;
-		if (v_delay_on_wait_count<=0) {
+		if (v_delay_on_wait_count <= 0) {
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ON_MAT;
 			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ON画像取得中";
 		}
 
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ON_MAT: {
-			cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat2, 2); // V画像の取り出し　チャンネル2 = V
-			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ROI;
+		cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat2, 2); // V画像の取り出し　チャンネル2 = V
+		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ROI;
 	}break;
-	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ROI:{
+	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_ROI: {
 
 		std::lock_guard<std::mutex> lock(diffmatMutex);//diff_matをロック(ツール表示のため）
 
@@ -588,13 +596,13 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗(未検出）";
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL;
 		}
-		
+
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_SET_PRM: {
 
 		//計算したROIを基にパラメータを自動設定
-		//得られたROI内のON画像の数をカウントして、閾値の基準値とする
-		st_aux_pol_inf.st_img_proc.param.target_chk_base_count = cv::countNonZero(diff_mat(init_work_roi));
+
+		//st_aux_pol_inf.st_img_proc.param.target_chk_base_count = cv::countNonZero(diff_mat(init_work_roi));
 		//評価基準エリア更新
 		pImgPrm->rc_mat_roi_criterion = init_work_roi;
 		rc_mat_roi_criterion_disp = get_hsv_criterion(true);//表示用ROIのHSV基準値を更新
@@ -604,13 +612,15 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 
 		//設定したROIを基に、画像処理のマージンパラメータを自動設定
 		HSV_autoCalibrate();
+		//得られたROI内の設定レンジ内のON画像の数をカウントして、閾値の基準値とする
+		pst_img_proc->param.target_chk_base_count = get_target_chk_base_count();
 
 		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN;
 		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"完了";
-		
+
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN: {
-		
+
 		if (!(pCSInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM)) {
 			//自動パラメータ設定要求がOFFになったら、完了状態から待機状態に戻す
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
@@ -623,14 +633,33 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
 		}
 	}break;
-
-	default:
-		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL;
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗(STEP）";
-		break;
+	default: {
+		   st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_NULL;
+		   st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"失敗(STEP）";
+	}break;
 	}
 	
 	return S_OK;
+}
+
+int COteAuxPol::get_target_chk_base_count() {
+
+	//基準判定用Matをセット
+	mat_criterion = pAuxAgInf->st_usb_cam.hsvMatFrame(pImgPrm->rc_mat_roi_criterion);
+	//基準カウント数取得
+	cv::Mat mask;
+	cv::Mat m1, m2;
+
+	if (pst_img_proc->param.hl > pst_img_proc->param.hh) {
+		cv::inRange(mat_criterion, cv::Scalar(0, pst_img_proc->param.sl, pst_img_proc->param.vl), cv::Scalar(pst_img_proc->param.hh, pst_img_proc->param.sh, pst_img_proc->param.vh), m1);
+		cv::inRange(mat_criterion, cv::Scalar(pst_img_proc->param.hl, pst_img_proc->param.sl, pst_img_proc->param.vl), cv::Scalar(179, pst_img_proc->param.sh, pst_img_proc->param.vh), m2);
+		cv::bitwise_or(m1, m2, mask);
+	}
+	else {
+		cv::inRange(mat_criterion, cv::Scalar(pst_img_proc->param.hl, pst_img_proc->param.sl, pst_img_proc->param.vl), cv::Scalar(pst_img_proc->param.hh, pst_img_proc->param.sh, pst_img_proc->param.vh), mask);
+	}
+
+	return cv::countNonZero(mask);
 }
 
 static wostringstream monwos;
@@ -770,6 +799,7 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				//ROI WORKをセット
 				rc_mat_roi_work_disp = set_work_roi(true);//true:rc_mat_roi_criterion+αの領域を設定
 
+#if 0
 				//基準判定用Matをセット
 				mat_criterion = pAuxAgInf->st_usb_cam.hsvMatFrame(pImgPrm->rc_mat_roi_criterion);
 				//基準カウント数取得
@@ -786,6 +816,8 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				}
 							
 				pst_img_proc->param.target_chk_base_count = cv::countNonZero(mask);
+#endif
+				pst_img_proc->param.target_chk_base_count = get_target_chk_base_count();
 			}
 			st_mon2.flg_dispDragging = false;
 		}break;
@@ -1323,7 +1355,7 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 			
 			monwos.str(L""); h_text += 25.0f;
 			monwos << L"(" << rc_mat_roi_work.x << L"," << rc_mat_roi_work.y << L")" << L" (" << rc_mat_roi_work.x + rc_mat_roi_work.width << L"," << rc_mat_roi_work.y + rc_mat_roi_work.height << L")" 
-				<< L" Cnt:" << pst_img_proc->whiteCountInWorkRoi << L")";
+				<< L" Cnt:" << pst_img_proc->whiteCountInWorkRoi;
 			m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, m_pFont18.get(), PointF(5.0f, h_text), m_pMagentaBrush.get());
 			m_pOffscreenGraphics->DrawRectangle(m_pMagentaPen.get(), rc_mat_roi_work_disp.x, rc_mat_roi_work_disp.y, rc_mat_roi_work_disp.width, rc_mat_roi_work_disp.height);
 		}
@@ -1355,6 +1387,9 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 			else {
 				m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, &font, PointF(5.0f, 5.0f + height), m_pWhiteBrush.get());
 			}
+
+			monwos.str(L""); monwos << L"Delay(Sec):" << pAuxAgInf->v_delay_sec;
+			m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, &font, PointF(5.0f, 25.0f + height), m_pWhiteBrush.get()); 
 
 			//ROI描画
 			if (st_mon2.flg_disp_cri_roi) {
@@ -1497,7 +1532,7 @@ void COteAuxPol::HSV_autoCalibrate() {
 	pst_img_proc->param.hh = pst_img_proc->param.hCenter + pst_img_proc->param.h_margin;
 	// Hueは環状なので、0-179の範囲に収める
 	if (pst_img_proc->param.hl < 0) pst_img_proc->param.hl += 180;
-	if (pst_img_proc->param.hl > 179) pst_img_proc->param.hl -= 180;
+	if (pst_img_proc->param.hh > 179) pst_img_proc->param.hh -= 180;
 
 	pst_img_proc->param.sl = std::max(0, pst_img_proc->param.sCenter - pst_img_proc->param.s_margin);
 	pst_img_proc->param.sh = std::min(255, pst_img_proc->param.sCenter + pst_img_proc->param.s_margin);

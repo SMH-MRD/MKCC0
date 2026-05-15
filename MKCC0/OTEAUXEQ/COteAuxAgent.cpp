@@ -124,7 +124,8 @@ HRESULT COteAuxAgent::routine_work(void* pObj){
 						(pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_CHK_FIN) ? L"FIN" : L"UNK";
 
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time <<L" CamCount:"<<st_mon2.thrad_counter
-			<<L" DelayChkStatus:"<< status_str.c_str() << L" Delay:" << pAuxAgInf->v_delay_sec << L" TMOV:" << pAuxAgInf->v_delay_tmov_cnt << L" FIN:" << pAuxAgInf->v_delay_chk_fin_cnt;
+			<<L" DelayChkStatus:"<< status_str.c_str() << L" Delay:" << pAuxAgInf->
+			v_delay_sec << L" TMOV:" << pAuxAgInf->v_delay_tmov_cnt << L" FIN:" << pAuxAgInf->v_delay_chk_fin_cnt;
 		msg2host(wos.str());
 	}
 
@@ -151,7 +152,7 @@ int COteAuxAgent::parse() {           //メイン処理
 			//計測トリガ処理
 			if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_ON) {
 				pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
-				pAuxAgInf->v_delay_chk_status &= ~OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
+				pAuxAgInf->v_delay_chk_status &= ~OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
 				pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_DEACTIVE;	//クレーン装置にOFFコマンド送信
 				QueryPerformanceCounter(&pAuxAgInf->start_count);//計測開始カウンタ値取得
 			}

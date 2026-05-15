@@ -411,8 +411,6 @@ int COteAgent::output() {          //o—Íˆ—
 		pOteCCIf->crane_product_id.i64[0] = 0;
 		pOteCCIf->crane_product_id.i64[1] = 0;
 	}
-
-
 	return STAT_OK;
 }
 

@@ -236,5 +236,7 @@ private:
     int close();
 
 	int flg_0notch_hold = L_OFF;
+	INT16 otecs_plc_setting = 0;
+    INT16 forced_opedesk = L_OFF;
 };
 
