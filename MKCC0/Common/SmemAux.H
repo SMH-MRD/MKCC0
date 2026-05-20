@@ -135,10 +135,6 @@ typedef struct _USB_CAM
 #define OTEAUXAG_CODE_V_DELAY_DEACTIVE			0x0000	//映像遅延検出無効
 #define OTEAUXAG_CODE_V_DELAY_STANDBY			0x0001	//映像遅延検出待機中
 
-//#define OTEAUXAG_CODE_V_DELAY_AUTO_PRM			0x0002	//映像遅延検出パラメータ設定中
-//#define OTEAUXAG_CODE_V_DELAY_SAVE_PRM			0x0004	//映像遅延検出パラメータ保存中
-//#define OTEAUXAG_CODE_V_DELAY_LOAD_PRM			0x0008	//映像遅延検出パラメータ読込中
-
 #define OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK		0x0010	//映像遅延検出ONチェック起動
 #define OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK		0x0020	//映像遅延検出OFFチェック起動
 #define OTEAUXAG_CODE_V_DELAY_APRM_REQ_ON		0x0040	//映像遅延検出パラメータ設定用ON要求
@@ -177,7 +173,7 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 #define OTEAUXPOL_CODE_MAGIC					0x53544341 // "STCA" (Sentech Camera App)
 
 #define OTEAUXPOL_PRM_V_DELAY_H_MARGIN			40	
-#define OTEAUXPOL_PRM_V_DELAY_S_MARGIN			200
+#define OTEAUXPOL_PRM_V_DELAY_S_MARGIN			40
 #define OTEAUXPOL_PRM_V_DELAY_V_MARGIN			20
 #define OTEAUXPOL_PRM_V_DELAY_ROI_MARGIN		20
 
@@ -203,6 +199,11 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 #define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN			7	//パラメータ設定完了
 #define OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL			8 	//パラメータ設定失敗
 
+#define OTEAUXPOL_MOD_VIDEO_CHK_MASK_HSV				0	//映像チェックマスクHSV全範囲設定
+#define OTEAUXPOL_MOD_VIDEO_CHK_MASK_HV					1	//映像チェックマスクHV範囲設定Sフリー
+#define OTEAUXPOL_MOD_VIDEO_CHK_MASK_V					 2	//映像チェックマスクVのみ範囲設定HSフリー
+
+
 typedef struct _ST_AUXPOL_IMG_PRM {
 	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー
 	// HSV マスク設定値
@@ -212,6 +213,7 @@ typedef struct _ST_AUXPOL_IMG_PRM {
 	int vl = 0, vh = 255, vCenter;
 	int h_margin = OTEAUXPOL_PRM_V_DELAY_H_MARGIN, s_margin = OTEAUXPOL_PRM_V_DELAY_S_MARGIN, v_margin = OTEAUXPOL_PRM_V_DELAY_V_MARGIN;
 	int target_chk_base_count = 0;
+	int hsv_filter_mode = OTEAUXPOL_MOD_VIDEO_CHK_MASK_HSV;	//0:通常、1:H値の範囲が0-180を跨ぐモード
 } ST_AUXPOL_IMG_PRM, * LPST_AUXPOL_IMG_PRM;
 
 typedef struct _ST_AUXPOL_IMG_PROC {

@@ -292,7 +292,7 @@ private:
     static HWND CreateSlider(HWND parent, int id, int x, int y, int minV, int maxV, int initV);
     static cv::Rect get_hsv_criterion(bool is_auto_param);
     static cv::Rect set_work_roi(bool is_criterion_base);
-    static void HSV_autoCalibrate();
+    static void HSV_autoCalibrate(int type);
     static void UpdateSliderPos();
     static int GetModeBinCenter(const cv::Mat& singleChannelMat, int maxVal, int binWidth);
 	

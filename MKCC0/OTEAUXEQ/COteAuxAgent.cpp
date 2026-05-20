@@ -148,7 +148,21 @@ int COteAuxAgent::parse() {           //メイン処理
 
 		//## 処理ステップ判定処理
 		//遅延計測処理
-		if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_STANDBY) {
+		
+				//デバイス強制ON要求処理
+		if (pAuxEnvInf->video_delay_chk_device_forth_on) {						//デバイス強制ONの時
+			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
+			pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
+			pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+			pAuxAgInf->v_delay_sec = 0.0;
+		}
+		else if(pAuxEnvInf->video_delay_chk_auto_prm_set_req == L_ON){				//自動パラメータ設定要求の時
+			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_APRM_REQ_ON;
+			pAuxEnvInf->video_delay_chk_auto_prm_set_req = L_OFF;				//要求フラグリセット
+			pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
+			pAuxAgInf->v_delay_sec = 0.0;
+		}
+		else if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_STANDBY) {
 			//計測トリガ処理
 			if (pPolObj->GetCraneDeviceStatus(&(pAuxPolInf->st_img_proc)) == L_ON) {
 				pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK;
@@ -187,7 +201,6 @@ int COteAuxAgent::parse() {           //メイン処理
 					pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_CHK_TMOV;
 					pAuxAgInf->v_delay_sec = delay_sec;
 				}
-
 			}
 		}
 		else if (pAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_OFF_CHK) {
@@ -219,12 +232,6 @@ int COteAuxAgent::parse() {           //メイン処理
 		}
 		else;
 
-		//デバイス強制ON要求処理
-		if (pAuxEnvInf->video_delay_chk_device_forth_on) {
-			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK;
-			pAuxAgInf->req_command_to_crane = OTEAUXAG_COM_CRANE_DEVICE_ACTIVE;	//クレーン装置にONコマンド送信
-		}
-
 	}
 	else {
 		if (g_keepRunning) {
@@ -240,7 +247,8 @@ int COteAuxAgent::parse() {           //メイン処理
 
 	
 	//### 映像遅延計測処理
-	if (pAuxAgInf->st_usb_cam.retry_count > 0)pAuxAgInf->st_usb_cam.retry_count--;
+	if (pAuxAgInf->st_usb_cam.retry_count > 0)
+		pAuxAgInf->st_usb_cam.retry_count--;
 
 
 	return STAT_OK;

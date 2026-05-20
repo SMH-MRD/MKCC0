@@ -212,6 +212,11 @@ HRESULT COteAuxPol::initialize(LPVOID lpParam) {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"mon1");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"CamChk");
 
+	//モード設定0
+	inf.mode_id = BC_ID_MODE0;
+	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
+
+
 	//モニタウィンドウテキスト	
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -319,6 +324,7 @@ int COteAuxPol::parse() {           //メイン処理
 	AutoParameterts_Vdelay(pst_img_proc->v_delay_auto_prm_step);
 	
 	if (pst_img_proc->v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN) {
+		//	if ((pst_img_proc->v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FIN)&&(auto_calibrate_req == false)) {
 		pst_img_proc->v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_START;
 		pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_FIN;
 		
@@ -326,6 +332,7 @@ int COteAuxPol::parse() {           //メイン処理
 		pol_video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_AUTO_PRM;
 	}
 	else if (pst_img_proc->v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL) {
+		//	else if ((pst_img_proc->v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_FAIL) && (auto_calibrate_req == false)){
 		pst_img_proc->v_delay_prm_io_status &= ~OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_START;
 		pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_AUTO_PRM_FAIL;
 	
@@ -407,12 +414,15 @@ int COteAuxPol::GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work) {
 	}//ロック解除
 
 	int roi_cnt_diff = pst_work->whiteCountInWorkRoi - pst_work->whiteCountInWorkRoi_Last;
-	if (roi_cnt_diff > pst_work->param.target_chk_base_count / 2) {
+	if ((roi_cnt_diff > pst_work->param.target_chk_base_count / 2) || (pst_work->whiteCountInWorkRoi > pst_work->param.target_chk_base_count / 2)) {
 		pst_work->is_target_detected = L_ON;
 	}
-	if (roi_cnt_diff < -pst_work->param.target_chk_base_count / 2) {
+	else if((roi_cnt_diff < -pst_work->param.target_chk_base_count / 2)||(pst_work->whiteCountInWorkRoi < pst_work->param.target_chk_base_count / 4)) {
 		pst_work->is_target_detected = L_OFF;
 	}
+	else;
+	
+
 	pst_work->whiteCountInWorkRoi_Last = pst_work->whiteCountInWorkRoi;
 
 	return pst_work->is_target_detected;
@@ -611,7 +621,7 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		rc_mat_roi_work_disp = set_work_roi(true);
 
 		//設定したROIを基に、画像処理のマージンパラメータを自動設定
-		HSV_autoCalibrate();
+		HSV_autoCalibrate(pst_img_proc->param.hsv_filter_mode);
 		//得られたROI内の設定レンジ内のON画像の数をカウントして、閾値の基準値とする
 		pst_img_proc->param.target_chk_base_count = get_target_chk_base_count();
 
@@ -795,7 +805,7 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 			if (pst_img_proc->status & AUXPOL_CODE_IMG_PROC_ENABLE) {
 				rc_mat_roi_criterion_disp = get_hsv_criterion(false);
 		
-				HSV_autoCalibrate();
+				HSV_autoCalibrate(pst_img_proc->param.hsv_filter_mode);
 				//ROI WORKをセット
 				rc_mat_roi_work_disp = set_work_roi(true);//true:rc_mat_roi_criterion+αの領域を設定
 
@@ -1123,6 +1133,38 @@ LRESULT CALLBACK COteAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp
 					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
 				}
 			}
+			if (inf.panel_func_id == IDC_TASK_FUNC_RADIO3) {
+
+				if (LOWORD(wp) == IDC_TASK_ITEM_CHECK1) {
+					pst_img_proc->param.hsv_filter_mode = OTEAUXPOL_MOD_VIDEO_CHK_MASK_HSV;
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK2) {
+					pst_img_proc->param.hsv_filter_mode = OTEAUXPOL_MOD_VIDEO_CHK_MASK_HV;
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK2), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK3) {
+					pst_img_proc->param.hsv_filter_mode = OTEAUXPOL_MOD_VIDEO_CHK_MASK_V;
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK4) {
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK5) {
+				}
+				else if (LOWORD(wp) == IDC_TASK_ITEM_CHECK6) {
+				}
+				else
+
+
+					for (int i = 0; i < BC_N_ACT_ITEM; i++) {
+						if (LOWORD(wp) == IDC_TASK_ITEM_CHECK1 + i) continue;
+						SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
+					}
+			}
+
+
+
 			if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED)
 				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = true;
 			else
@@ -1257,7 +1299,7 @@ void COteAuxPol::set_panel_tip_txt() {
 void COteAuxPol::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"画像");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"ｺﾏﾝﾄﾞ");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"Mode");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO5, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO6, L"-");
@@ -1277,6 +1319,14 @@ void COteAuxPol::set_item_chk_txt() {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"APRM TRG");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"Save PRM");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"Load PRM");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"");
+	}
+	else if (inf.panel_func_id == IDC_TASK_FUNC_RADIO3) {
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"HSV filter");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"HV filter");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"V filter");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"");
@@ -1391,6 +1441,13 @@ void COteAuxPol::UpdateMon2(HWND hWnd, HDC hdc) {
 			monwos.str(L""); monwos << L"Delay(Sec):" << pAuxAgInf->v_delay_sec;
 			m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, &font, PointF(5.0f, 25.0f + height), m_pWhiteBrush.get()); 
 
+			monwos.str(L""); monwos << L"Filter:";
+			if(pst_img_proc->param .hsv_filter_mode == OTEAUXPOL_MOD_VIDEO_CHK_MASK_HSV ) monwos << L"HSV";
+			else if(pst_img_proc->param.hsv_filter_mode == OTEAUXPOL_MOD_VIDEO_CHK_MASK_HV)monwos << L"SV";
+			else if(pst_img_proc->param.hsv_filter_mode == OTEAUXPOL_MOD_VIDEO_CHK_MASK_V)monwos << L"V";
+			else monwos << L"-";
+			m_pOffscreenGraphics->DrawString(monwos.str().c_str(), -1, &font, PointF(5.0f, 45.0f + height), m_pWhiteBrush.get());
+
 			//ROI描画
 			if (st_mon2.flg_disp_cri_roi) {
 				m_pOffscreenGraphics->DrawRectangle(m_pGreenPen.get(), rc_mat_roi_criterion_disp.x, rc_mat_roi_criterion_disp.y + height, rc_mat_roi_criterion_disp.width, rc_mat_roi_criterion_disp.height);
@@ -1498,12 +1555,12 @@ HWND COteAuxPol::CreateSlider(HWND parent, int id, int x, int y, int minV, int m
 }
 
 // --- ROI内の最頻度値からHSV範囲を自動計算 ---
-void COteAuxPol::HSV_autoCalibrate() {
+void COteAuxPol::HSV_autoCalibrate(int type) {
 
 	// 選択範囲が画像内にあるか確認して切り出し
 	// 表示画面は元画像を縮小している
 	cv::Mat roiHsv;
-
+	
 	std::lock_guard<std::mutex> lock(pAuxAgInf->hsvMutex);// hsvMatFrameへのアクセスをロック
 
 	// パラメータ評価領域を設定
@@ -1518,28 +1575,63 @@ void COteAuxPol::HSV_autoCalibrate() {
 	std::vector<cv::Mat> channels;
 	cv::split(roiHsv, channels);
 
-	// 1. Hue の最頻値を求める (0-179 の範囲)
-	pst_img_proc->param.hCenter = GetModeBinCenter(channels[0], 180, 10);
 
-	// 2. Saturation の最頻値を求める (0-255 の範囲)
-	pst_img_proc->param.sCenter = GetModeBinCenter(channels[1], 256, 10);
+	if (type == OTEAUXPOL_MOD_VIDEO_CHK_MASK_V) {		//Vチャンネルのみフィルタ範囲設定
+		// 1. Value の最頻値を求める (0-255 の範囲)
+		pst_img_proc->param.vCenter = GetModeBinCenter(channels[2], 256, 10);
 
-	// 3. Value の最頻値を求める (0-255 の範囲)
-	pst_img_proc->param.vCenter = GetModeBinCenter(channels[2], 256, 10);
+		// 2. 上下限値の設定 
+		pst_img_proc->param.hl = 0;
+		pst_img_proc->param.hh = 179;
+		pst_img_proc->param.sl = 0;
+		pst_img_proc->param.sh = 255;
 
-	// 4. 上下限値の設定 
-	pst_img_proc->param.hl = pst_img_proc->param.hCenter - pst_img_proc->param.h_margin;
-	pst_img_proc->param.hh = pst_img_proc->param.hCenter + pst_img_proc->param.h_margin;
-	// Hueは環状なので、0-179の範囲に収める
-	if (pst_img_proc->param.hl < 0) pst_img_proc->param.hl += 180;
-	if (pst_img_proc->param.hh > 179) pst_img_proc->param.hh -= 180;
+		pst_img_proc->param.vl = std::max(0, pst_img_proc->param.vCenter - pst_img_proc->param.v_margin);
+		pst_img_proc->param.vh = std::min(255, pst_img_proc->param.vCenter + pst_img_proc->param.v_margin);
+	}
+	else if (type == OTEAUXPOL_MOD_VIDEO_CHK_MASK_HV) {	//HVチャンネルのみフィルタ範囲設定
+		// 1. Hue の最頻値を求める (0-179 の範囲)
+		pst_img_proc->param.hCenter = GetModeBinCenter(channels[0], 180, 10);
 
-	pst_img_proc->param.sl = std::max(0, pst_img_proc->param.sCenter - pst_img_proc->param.s_margin);
-	pst_img_proc->param.sh = std::min(255, pst_img_proc->param.sCenter + pst_img_proc->param.s_margin);
+		// 2. Value の最頻値を求める (0-255 の範囲)
+		pst_img_proc->param.vCenter = GetModeBinCenter(channels[2], 256, 10);
 
-	pst_img_proc->param.vl = std::max(0, pst_img_proc->param.vCenter - pst_img_proc->param.v_margin);
-	pst_img_proc->param.vh = std::min(255, pst_img_proc->param.vCenter + pst_img_proc->param.v_margin);
+		// 3. 上下限値の設定 
+		pst_img_proc->param.hl = pst_img_proc->param.hCenter - pst_img_proc->param.h_margin;
+		pst_img_proc->param.hh = pst_img_proc->param.hCenter + pst_img_proc->param.h_margin;
+		// Hueは環状なので、0-179の範囲に収める
+		if (pst_img_proc->param.hl < 0) pst_img_proc->param.hl += 180;
+		if (pst_img_proc->param.hh > 179) pst_img_proc->param.hh -= 180;
 
+		pst_img_proc->param.sl = 0;
+		pst_img_proc->param.sh = 255;
+
+		pst_img_proc->param.vl = std::max(0, pst_img_proc->param.vCenter - pst_img_proc->param.v_margin);
+		pst_img_proc->param.vh = std::min(255, pst_img_proc->param.vCenter + pst_img_proc->param.v_margin);
+	}
+	else {												//HSV全チャンネルフィルタ範囲設定
+		// 1. Hue の最頻値を求める (0-179 の範囲)
+		pst_img_proc->param.hCenter = GetModeBinCenter(channels[0], 180, 10);
+
+		// 2. Saturation の最頻値を求める (0-255 の範囲)
+		pst_img_proc->param.sCenter = GetModeBinCenter(channels[1], 256, 10);
+
+		// 3. Value の最頻値を求める (0-255 の範囲)
+		pst_img_proc->param.vCenter = GetModeBinCenter(channels[2], 256, 10);
+
+		// 4. 上下限値の設定 
+		pst_img_proc->param.hl = pst_img_proc->param.hCenter - pst_img_proc->param.h_margin;
+		pst_img_proc->param.hh = pst_img_proc->param.hCenter + pst_img_proc->param.h_margin;
+		// Hueは環状なので、0-179の範囲に収める
+		if (pst_img_proc->param.hl < 0) pst_img_proc->param.hl += 180;
+		if (pst_img_proc->param.hh > 179) pst_img_proc->param.hh -= 180;
+
+		pst_img_proc->param.sl = std::max(0, pst_img_proc->param.sCenter - pst_img_proc->param.s_margin);
+		pst_img_proc->param.sh = std::min(255, pst_img_proc->param.sCenter + pst_img_proc->param.s_margin);
+
+		pst_img_proc->param.vl = std::max(0, pst_img_proc->param.vCenter - pst_img_proc->param.v_margin);
+		pst_img_proc->param.vh = std::min(255, pst_img_proc->param.vCenter + pst_img_proc->param.v_margin);
+	}
 	// スライダーのつまみ位置を更新
 	UpdateSliderPos();
 	return;
