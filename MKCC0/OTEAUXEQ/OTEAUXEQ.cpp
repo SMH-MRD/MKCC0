@@ -25,6 +25,8 @@ using namespace OTEAUXEQ;
 using namespace cv;
 using namespace std;
 
+extern std::atomic<bool> g_keepRunning;
+
 // グローバル変数:
 HINSTANCE hInst;                                // 現在のインターフェイス
 WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキスト
@@ -529,6 +531,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             pobj->inf.command = BC_CODE_COM_TERMINATE;		// 基本ティックのカウンタ変数クリア
             pobj->close();
         }
+
+        g_keepRunning = false;//USBデバイス監視スレッド終了フラグセット
 
         Sleep(1000);//スレッド終了待機
 

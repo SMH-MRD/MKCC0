@@ -20,6 +20,8 @@ using namespace OTE;
 
 #define MAX_LOADSTRING 100
 
+
+
 // グローバル変数:
 HINSTANCE hInst;                                // 現在のインターフェイス
 WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキスト

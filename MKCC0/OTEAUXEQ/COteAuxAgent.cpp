@@ -68,6 +68,8 @@ COteAuxAgent::COteAuxAgent() {
 }
 COteAuxAgent::~COteAuxAgent() {
 	GdiplusShutdown(m_gdiplusToken);
+	g_keepRunning = false;//USBデバイス監視スレッド終了フラグセット
+	Sleep(1000);//スレッド終了待機
 }
 
 
@@ -235,6 +237,7 @@ int COteAuxAgent::parse() {           //メイン処理
 	}
 	else {
 		if (g_keepRunning) {
+			g_keepRunning = false;//USBデバイス監視スレッド終了フラグセット	
 			SetEvent(g_hStopEvent);//スレッド停止指示
 			Sleep(1000);
 			if (g_capThread.joinable()) {
