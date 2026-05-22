@@ -111,7 +111,6 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 	Sleep(100);
 
-//	if (st_work.ote_type == OTE_CS_CODE_OPEPNL_ROOM) {
 	if (st_work.ote_type & OTE_CS_CODE_OPEPNL_ROOM) {
 		wos.str(L"");//初期化
 		if (st_mon2.hwnd_mon == NULL) {
@@ -462,6 +461,10 @@ int COteCS::input(){
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_gt] = 0;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = 0;
 	}
+
+	//### 端末タイプセット(初期化後もセット：共有メモリはOTEAUXの初期化でクリアされる為
+	pOteCsInf->ote_type = st_work.ote_type  ;
+
 	return S_OK;
 }
 
