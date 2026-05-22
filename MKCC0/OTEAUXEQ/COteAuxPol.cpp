@@ -278,7 +278,7 @@ int COteAuxPol::parse() {           //メイン処理
 		if (LoadParameters_Vdelay(&(pCCIf->st_msg_pc_u_rcv.head.myid)) == S_OK) {
 			//読出し成功 ROIの更新
 			rc_mat_roi_criterion_disp = get_hsv_criterion(AUXPOL_MODE_AUTO_CAL_FILE_LOAD);
-			rc_mat_roi_work_disp = set_work_roi(true);
+			rc_mat_roi_work_disp = set_work_roi(AUXPOL_MODE_AUTO_CAL_FILE_LOAD);
 			pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_LOAD_FIN;
 		}
 		else {
@@ -623,7 +623,7 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		rc_mat_roi_criterion_disp = get_hsv_criterion(AUXPOL_MODE_AUTO_CAL_AUTO);//表示用ROIのHSV基準値を更新
 
 		//評価値計算エリア更新
-		rc_mat_roi_work_disp = set_work_roi(true);
+		rc_mat_roi_work_disp = set_work_roi(AUXPOL_MODE_AUTO_CAL_AUTO);
 
 		//設定したROIを基に、画像処理のマージンパラメータを自動設定
 		HSV_autoCalibrate(pst_img_proc->param.hsv_filter_mode);
@@ -812,7 +812,7 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		
 				HSV_autoCalibrate(pst_img_proc->param.hsv_filter_mode);
 				//ROI WORKをセット
-				rc_mat_roi_work_disp = set_work_roi(true);//true:rc_mat_roi_criterion+αの領域を設定
+				rc_mat_roi_work_disp = set_work_roi(AUXPOL_MODE_AUTO_CAL_MANUAL);//true:rc_mat_roi_criterion+αの領域を設定
 
 #if 0
 				//基準判定用Matをセット
@@ -837,7 +837,7 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 			st_mon2.flg_dispDragging = false;
 		}break;
 		case AUXPOL_ID_MON2_PB_SET_ROI: {
-			rc_mat_roi_work_disp = set_work_roi(false);//false:マウス選択範囲の領域を設定
+			rc_mat_roi_work_disp = set_work_roi(AUXPOL_MODE_AUTO_CAL_MANUAL);//false:マウス選択範囲の領域を設定
 			st_mon2.flg_dispDragging = false;
 		}break;
 		case AUXPOL_ID_MON2_CB_DISP_ROI_CRITERION: {
@@ -1726,6 +1726,20 @@ cv::Rect COteAuxPol::get_hsv_criterion(int mode){
 		rc_disp.y = pImgPrm->rc_mat_roi_criterion.y / AUXPOL_CAMERA_DISP_RETIO;
 		rc_disp.width = pImgPrm->rc_mat_roi_criterion.width / AUXPOL_CAMERA_DISP_RETIO;
 		rc_disp.height = pImgPrm->rc_mat_roi_criterion.height / AUXPOL_CAMERA_DISP_RETIO;
+
+		// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
+		int width_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
+		int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
+		//AND領域の矩形取得
+		rc_disp = rc_disp & cv::Rect(0, 0, width_disp, height_disp);
+		//画像内にない時は基準エリア=初期値エリア
+		if (rc_disp.width <= 0 || rc_disp.height <= 0)
+			rc_disp = cv::Rect(
+				AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO,
+				AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO,
+				AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO,
+				AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO
+			);
 	}
 	else;
 
@@ -1738,7 +1752,7 @@ cv::Rect COteAuxPol::get_hsv_criterion(int mode){
 /// MON2の操作PB使用時のみで自動パラメータ設定時には呼ばれない
 /// <param name="is_criterion_base"></param>
 /// <returns>戻り値は、画面表示用のROI,実画像のROIはクラス変数にセット</returns>
-cv::Rect COteAuxPol::set_work_roi(bool is_criterion_base) {
+cv::Rect COteAuxPol::set_work_roi(int mode) {
 
 	//デフォルトの作業領域を実画像のスケールで、まずセット
 	cv::Rect rc_disp(
@@ -1749,18 +1763,26 @@ cv::Rect COteAuxPol::set_work_roi(bool is_criterion_base) {
 	); 
 
 	//基準領域設定済のケースでの作業領域（モニタ画像スケール）を計算
-	if (is_criterion_base) {	//基準値設定後の自動設定	
+	if (mode == AUXPOL_MODE_AUTO_CAL_AUTO) {	//基準値設定後の自動設定	
 		rc_disp.x = rc_mat_roi_criterion_disp.x - AUXPOL_MARGIN_WORK_ROI;
 		rc_disp.y = rc_mat_roi_criterion_disp.y - AUXPOL_MARGIN_WORK_ROI;
 		rc_disp.width = rc_mat_roi_criterion_disp.width + AUXPOL_MARGIN_WORK_ROI * 2;
 		rc_disp.height = rc_mat_roi_criterion_disp.height + AUXPOL_MARGIN_WORK_ROI * 2;
 	}
-	else {
+	else if (mode == AUXPOL_MODE_AUTO_CAL_MANUAL) {
 		rc_disp.x = st_mon2.rc_selected.x - AUXPOL_MARGIN_WORK_ROI;
 		rc_disp.y = st_mon2.rc_selected.y - AUXPOL_MARGIN_WORK_ROI;
 		rc_disp.width = st_mon2.rc_selected.width + AUXPOL_MARGIN_WORK_ROI * 2;
 		rc_disp.height = st_mon2.rc_selected.height + AUXPOL_MARGIN_WORK_ROI * 2;
 	}
+	else if (mode == AUXPOL_MODE_AUTO_CAL_FILE_LOAD) {
+		rc_disp.x = rc_mat_roi_criterion_disp.x - AUXPOL_MARGIN_WORK_ROI;
+		rc_disp.y = rc_mat_roi_criterion_disp.y - AUXPOL_MARGIN_WORK_ROI;
+		rc_disp.width = rc_mat_roi_criterion_disp.width		+ AUXPOL_MARGIN_WORK_ROI * 2;
+		rc_disp.height = rc_mat_roi_criterion_disp.height	+ AUXPOL_MARGIN_WORK_ROI * 2;
+	}
+	else;
+
 
 	// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
 	int width_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
