@@ -28,7 +28,6 @@ extern CSharedMem* pAuxEnvInfObj;
 extern CSharedMem* pAuxAgentInfObj;
 extern CSharedMem* pAuxCsInfObj;
 extern CSharedMem* pAuxPolInfObj;
-extern CSharedMem* pCsInfObj;
 
 extern BC_TASK_ID st_task_id;
 extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
@@ -41,7 +40,6 @@ static LPST_OTE_AUX_ENV_INF		pAuxEnvInf = NULL;
 static LPST_OTE_AUX_CS_INF		pAuxCSInf = NULL;
 static LPST_OTE_AUX_AGENT_INF	pAuxAgInf = NULL;
 static LPST_OTE_AUX_POL_INF		pAuxPolInf = NULL;
-static LPST_OTE_CS_INF			pCSInf = NULL;
 
 std::thread g_capThread;// スレッド変数が消えないようにグローバル領域に保持
 std::atomic<bool> g_keepRunning = false;
