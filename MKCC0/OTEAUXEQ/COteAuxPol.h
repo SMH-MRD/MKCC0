@@ -160,9 +160,12 @@ typedef struct _AUXPOL_MON2 {
 
 #define AUXPOL_MODE_AUTO_CAL_MANUAL         0           //マニュアルキャリブレーション
 #define AUXPOL_MODE_AUTO_CAL_AUTO           1           //オートキャリブレーション
+#define AUXPOL_MODE_AUTO_CAL_FILE_LOAD      2           //faileからのパラメータロード
+
 
 #define AUXPOL_CODE_VIDEO_CHK_ERR		    -1	//映像チェック異常
 #define AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT	100	//自動パラメータ設定のランプON待ちカウント
+#define AUXPOL_CODE_VIDEO_CHK_AUTO_OFF_COUNT	100	//自動パラメータ設定のランプON待ちカウント
 
 #define AUXPOL_PRM_FILENAME                 "oteaux.dat"
 
@@ -290,7 +293,7 @@ private:
         return wss.str();
     }
     static HWND CreateSlider(HWND parent, int id, int x, int y, int minV, int maxV, int initV);
-    static cv::Rect get_hsv_criterion(bool is_auto_param);
+    static cv::Rect get_hsv_criterion(int mode);
     static cv::Rect set_work_roi(bool is_criterion_base);
     static void HSV_autoCalibrate(int type);
     static void UpdateSliderPos();

@@ -448,10 +448,9 @@ int COteCS::input(){
 		}
 	}
 
-	if((pOteCsInf->ote_error & FLTS_MASK_ERR_CPC_RPC_COMM)||
-		(pOteCsInf->ote_interlock & FLTS_MASK_IL_CTRL_CC_COM_DELAY)||
-		(pOteCsInf->ote_error & FLTS_MASK_ERR_RPC_ESTP)||
-		(pOteCsInf->ote_interlock & FLTS_MASK_IL_SEAT_SWITCH) ||
+	if(	
+		(pOteCsInf->ote_error & (FLTS_MASK_ERR_RPC_ESTP | FLTS_MASK_ERR_CPC_RPC_COMM))||
+		(pOteCsInf->ote_interlock & (FLTS_MASK_ERR_OTE_CAM_TM_OVER | FLTS_MASK_IL_CTRL_CC_COM_DELAY|FLTS_MASK_IL_SEAT_SWITCH )) ||
 		(flg_0notch_hold == L_ON)
 		)
 	{
@@ -515,9 +514,11 @@ int COteCS::parse()
 		if (!(p->plc_setting & OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS)) {
 			if (pOteAuxAgInf->v_delay_sec > FLTS_LEVEL_IL_VIDEO_DELAY) {
 				pOteCsInf->ote_interlock |= FLTS_MASK_ERR_OTE_CAM_TM_OVER;
+				flg_0notch_hold = L_ON;
 			}
 			else {
-				pOteCsInf->ote_interlock &= ~FLTS_MASK_ERR_OTE_CAM_TM_OVER;
+				if (flg_0notch_hold == L_OFF)
+					pOteCsInf->ote_interlock &= ~FLTS_MASK_ERR_OTE_CAM_TM_OVER;
 			}
 		}
 		else {
@@ -532,7 +533,7 @@ int COteCS::parse()
 			}
 			else {
 				if(flg_0notch_hold == L_OFF)
-				pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
+					pOteCsInf->ote_interlock &= ~FLTS_MASK_IL_CTRL_CC_COM_DELAY;
 			}
 //		}
 //		else {
@@ -827,10 +828,17 @@ int COteCS::output() {
 	//## 制御PCへの出力
 	// 映像遅延チェックデバイスON/OFF制御
 	if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) ||(forced_opedesk)){				//遠隔操作卓有効
-		if ((pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ||						//AUXEQからの映像遅延チェック用ランプON指令がある　または
-			(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM)) //AUXEQからの映像遅延自動パラメータセット要求がある
+		if (
+			(pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ||						//AUXEQからの映像遅延チェック用ランプON指令がある　または
+			(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM)
+			) //AUXEQからの映像遅延自動パラメータセット要求がある
 		{
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
+		}
+
+		if(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_OFF_MAT)	//AUXEQからの映像遅延自動パラメータセットのOFF画像取り込み処理時
+		{
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_OFF;
 		}
 	}
 	else if ((pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM) && //遠隔操作卓が無効で、AUXEQからの映像遅延自動パラメータセット要求がある かつ

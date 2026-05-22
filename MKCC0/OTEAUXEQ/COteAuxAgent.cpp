@@ -695,6 +695,9 @@ void COteAuxAgent::UsbCameraThreadAG() {
 		pDevice = pSystem->CreateFirstIStDevice();
 		pDataStream = pDevice->CreateIStDataStream();
 
+		pDevice->AcquisitionStop();
+		pDataStream->StopAcquisition();
+
 		pDestImage = StApi::CreateIStImageBuffer();
 
 		pDataStream->SetStreamBufferCount(2); // デフォルト（8〜16など）から最小の2〜3に変更　遅延を減らすため
@@ -776,6 +779,10 @@ void COteAuxAgent::UsbCameraThreadAG() {
 	}
 	pDevice->AcquisitionStop();
 	pDataStream->StopAcquisition();
+
+	pDataStream.Reset();
+	pDevice.Reset();
+	pSystem.Reset();
 	
 	wos_cam.str(L""); wos_cam << "Exit Thread Loop: "<< endl;
 	pAgentObj->msg2listview(wos_cam.str().c_str());

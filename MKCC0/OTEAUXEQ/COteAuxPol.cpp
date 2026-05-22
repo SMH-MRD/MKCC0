@@ -277,7 +277,7 @@ int COteAuxPol::parse() {           //メイン処理
 		//パラメータ読出処理開始
 		if (LoadParameters_Vdelay(&(pCCIf->st_msg_pc_u_rcv.head.myid)) == S_OK) {
 			//読出し成功 ROIの更新
-			rc_mat_roi_criterion_disp = get_hsv_criterion(true);
+			rc_mat_roi_criterion_disp = get_hsv_criterion(AUXPOL_MODE_AUTO_CAL_FILE_LOAD);
 			rc_mat_roi_work_disp = set_work_roi(true);
 			pst_img_proc->v_delay_prm_io_status |= OTEAUXPOL_CODE_V_DELAY_PRM_LOAD_FIN;
 		}
@@ -528,6 +528,7 @@ HRESULT COteAuxPol::LoadParameters_Vdelay(LPST_DEVICE_CODE pCrane) {
 }
 
 static int v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;
+static int v_delay_off_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;
 
 HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 
@@ -541,13 +542,17 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY: {
 		v_delay_on_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;//ON画像取得前の待ちカウントをリセット
+		v_delay_off_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_OFF_COUNT;//ON画像取得前の待ちカウントをリセット
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_GET_OFF_MAT: {
 
-		cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat1, 2); // V画像の取り出し　チャンネル2 = V
-		//pAuxAgInf->st_usb_cam.hsvMatFrame.copyTo(init_work_mat1);
-		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM;
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ランプ点灯待";
+		v_delay_off_wait_count--;
+		if (v_delay_off_wait_count <= 0) {
+			cv::extractChannel(pAuxAgInf->st_usb_cam.hsvMatFrame, init_work_mat1, 2); // V画像の取り出し　チャンネル2 = V
+			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM;
+			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"ランプ点灯待";
+		}
+
 	}break;
 	case OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM: {
 		v_delay_on_wait_count--;
@@ -615,7 +620,7 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		//st_aux_pol_inf.st_img_proc.param.target_chk_base_count = cv::countNonZero(diff_mat(init_work_roi));
 		//評価基準エリア更新
 		pImgPrm->rc_mat_roi_criterion = init_work_roi;
-		rc_mat_roi_criterion_disp = get_hsv_criterion(true);//表示用ROIのHSV基準値を更新
+		rc_mat_roi_criterion_disp = get_hsv_criterion(AUXPOL_MODE_AUTO_CAL_AUTO);//表示用ROIのHSV基準値を更新
 
 		//評価値計算エリア更新
 		rc_mat_roi_work_disp = set_work_roi(true);
@@ -803,7 +808,7 @@ LRESULT CALLBACK COteAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		{
 		case AUXPOL_ID_MON2_PB_GET_CRITERION: {//評価用基準値の取得
 			if (pst_img_proc->status & AUXPOL_CODE_IMG_PROC_ENABLE) {
-				rc_mat_roi_criterion_disp = get_hsv_criterion(false);
+				rc_mat_roi_criterion_disp = get_hsv_criterion(AUXPOL_MODE_AUTO_CAL_MANUAL);
 		
 				HSV_autoCalibrate(pst_img_proc->param.hsv_filter_mode);
 				//ROI WORKをセット
@@ -1663,7 +1668,7 @@ void COteAuxPol::UpdateSliderPos() {
 /// 基準値設定のROIは、初期値は画面中央の固定サイズの矩形、マウス選択で設定または自動設定設定のROIとする
 /// </summary>
 /// <returns>戻り値はモニタ画面表示用のRect</returns>
-cv::Rect COteAuxPol::get_hsv_criterion(bool is_auto_param){
+cv::Rect COteAuxPol::get_hsv_criterion(int mode){
 	//デフォルトの基準領域を実画像のスケールで、まずセット
 	cv::Rect rc_disp(
 		AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO,
@@ -1671,7 +1676,7 @@ cv::Rect COteAuxPol::get_hsv_criterion(bool is_auto_param){
 		AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO,
 		AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO
 	);
-	if(is_auto_param){
+	if (mode == AUXPOL_MODE_AUTO_CAL_AUTO) {
 		//自動パラメータ設定のROIは、設定済の基準値設定のROIをベースにしてモニタスケールの領域を求める
 		rc_disp.x = pImgPrm->rc_mat_roi_criterion.x / AUXPOL_CAMERA_DISP_RETIO;
 		rc_disp.y = pImgPrm->rc_mat_roi_criterion.y / AUXPOL_CAMERA_DISP_RETIO;
@@ -1692,7 +1697,7 @@ cv::Rect COteAuxPol::get_hsv_criterion(bool is_auto_param){
 				AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO
 			);
 	}
-	else {
+	else if (mode == AUXPOL_MODE_AUTO_CAL_MANUAL) {
 		//マウス選択範囲を基準値設定のROIにする
 		if (st_mon2.flg_dispDragging) {
 			// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
@@ -1716,6 +1721,14 @@ cv::Rect COteAuxPol::get_hsv_criterion(bool is_auto_param){
 			rc_disp.height * AUXPOL_CAMERA_DISP_RETIO
 		};
 	}
+	else if (AUXPOL_MODE_AUTO_CAL_FILE_LOAD) {
+		rc_disp.x = pImgPrm->rc_mat_roi_criterion.x / AUXPOL_CAMERA_DISP_RETIO;
+		rc_disp.y = pImgPrm->rc_mat_roi_criterion.y / AUXPOL_CAMERA_DISP_RETIO;
+		rc_disp.width = pImgPrm->rc_mat_roi_criterion.width / AUXPOL_CAMERA_DISP_RETIO;
+		rc_disp.height = pImgPrm->rc_mat_roi_criterion.height / AUXPOL_CAMERA_DISP_RETIO;
+	}
+	else;
+
 	return rc_disp;
 }
 
