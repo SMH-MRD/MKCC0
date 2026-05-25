@@ -533,9 +533,11 @@ static int v_delay_off_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;
 HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 
 	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
-		st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_NULL;
-		st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"画像無し";
-		return S_FALSE;
+		if (v_delay_off_wait_count <= 0) {
+			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_NULL;
+			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"画像無し";
+			return S_FALSE;
+		}
 	}
 
 	switch (st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step) {

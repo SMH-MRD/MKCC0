@@ -809,7 +809,7 @@ int COteCS::output() {
 		(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)&&					//遠隔操作卓有効
 		!(pin_opepnl->plc_setting & OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS) &&		//バイパス無し
 		//	!(pin_opepnl->plc_info & OTE_CODE_OPEPLC_INFO_NOTCH_ALL0) &&			//全ノッチ0ではない
-		pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code		//操作準備完了
+		(pOteCCInf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::ope_ready].code || (pOteCsInf->video_delay_chk_ctrl & OTE_CS_CODE_V_DELAY_COM_AUTO_PRM))		//操作準備完了
 		)
 	{
 		pOteCsInf->video_delay_chk_req = L_ON;					//映像遅延チェック要求　AUXEQへの指令

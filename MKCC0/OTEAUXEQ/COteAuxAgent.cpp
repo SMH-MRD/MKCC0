@@ -161,7 +161,6 @@ int COteAuxAgent::parse() {           //メイン処理
 		}
 		else if(pAuxEnvInf->video_delay_chk_auto_prm_set_req == L_ON){				//自動パラメータ設定要求の時
 			pAuxAgInf->v_delay_chk_status |= OTEAUXAG_CODE_V_DELAY_APRM_REQ_ON;
-			pAuxEnvInf->video_delay_chk_auto_prm_set_req = L_OFF;				//要求フラグリセット
 			pAuxAgInf->v_delay_chk_status = OTEAUXAG_CODE_V_DELAY_STANDBY;
 			pAuxAgInf->v_delay_sec = 0.0;
 		}
