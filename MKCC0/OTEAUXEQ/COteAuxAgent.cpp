@@ -133,6 +133,9 @@ HRESULT COteAuxAgent::routine_work(void* pObj){
 }
 
 int COteAuxAgent::input() {
+
+	//システム周波数読み込み
+	if(pAuxAgInf->frequency.QuadPart == 0) QueryPerformanceFrequency(&pAuxAgInf->frequency);
 		
 	return S_OK;
 }
