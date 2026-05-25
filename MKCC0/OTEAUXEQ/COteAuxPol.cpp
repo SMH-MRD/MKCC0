@@ -1676,6 +1676,10 @@ cv::Rect COteAuxPol::get_hsv_criterion(int mode){
 		AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO,
 		AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO
 	);
+
+	int width_disp = OTEAUXPOL_PRM_CAMERA_WIDTH / AUXPOL_CAMERA_DISP_RETIO;
+	int height_disp = OTEAUXPOL_PRM_CAMERA_HEIGHT / AUXPOL_CAMERA_DISP_RETIO;
+
 	if (mode == AUXPOL_MODE_AUTO_CAL_AUTO) {
 		//自動パラメータ設定のROIは、設定済の基準値設定のROIをベースにしてモニタスケールの領域を求める
 		rc_disp.x = pImgPrm->rc_mat_roi_criterion.x / AUXPOL_CAMERA_DISP_RETIO;
@@ -1684,8 +1688,6 @@ cv::Rect COteAuxPol::get_hsv_criterion(int mode){
 		rc_disp.height = pImgPrm->rc_mat_roi_criterion.height / AUXPOL_CAMERA_DISP_RETIO;
 
 		// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
-		int width_disp = OTEAUXPOL_PRM_CAMERA_WIDTH / AUXPOL_CAMERA_DISP_RETIO;
-		int height_disp = OTEAUXPOL_PRM_CAMERA_HEIGHT / AUXPOL_CAMERA_DISP_RETIO;
 		//AND領域の矩形取得
 		rc_disp = rc_disp & cv::Rect(0, 0, width_disp, height_disp);
 		//画像内にない時は基準エリア=初期値エリア
@@ -1701,9 +1703,6 @@ cv::Rect COteAuxPol::get_hsv_criterion(int mode){
 		//マウス選択範囲を基準値設定のROIにする
 		if (st_mon2.flg_dispDragging) {
 			// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
-			int width_disp = OTEAUXPOL_PRM_CAMERA_WIDTH / AUXPOL_CAMERA_DISP_RETIO;
-			int height_disp = OTEAUXPOL_PRM_CAMERA_HEIGHT / AUXPOL_CAMERA_DISP_RETIO;
-
 			//マウス選択範囲とモニタ画面スケールの画像領域とのAND領域の矩形取得
 			st_mon2.rc_selected = st_mon2.rc_selected & cv::Rect(0, 0, width_disp, height_disp);
 
@@ -1728,8 +1727,6 @@ cv::Rect COteAuxPol::get_hsv_criterion(int mode){
 		rc_disp.height = pImgPrm->rc_mat_roi_criterion.height / AUXPOL_CAMERA_DISP_RETIO;
 
 		// 選択範囲が画像内にあるか確認して切り出し(表示画面は元画像を縮小している）
-		int width_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.cols / AUXPOL_CAMERA_DISP_RETIO;
-		int height_disp = pAuxAgInf->st_usb_cam.hsvMatFrame.rows / AUXPOL_CAMERA_DISP_RETIO;
 		//AND領域の矩形取得
 		rc_disp = rc_disp & cv::Rect(0, 0, width_disp, height_disp);
 		//画像内にない時は基準エリア=初期値エリア
