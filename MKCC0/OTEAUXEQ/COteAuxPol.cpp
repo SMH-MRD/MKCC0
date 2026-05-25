@@ -575,9 +575,9 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		cv::absdiff(init_work_mat1, init_work_mat2, diff_mat);
 		//差分画像にぼかしをかけてノイズを減らす（カーネルサイズは5x5、適宜調整）
 		cv::blur(diff_mat, diff_mat, cv::Size(5, 5));
-		// 差分画像を2値化（閾値は100、適宜調整）
+		// 差分画像を2値化（閾値は50、適宜調整）
 		cv::Mat matThresh;
-		cv::threshold(diff_mat, matThresh, 100, 255, cv::THRESH_BINARY);
+		cv::threshold(diff_mat, matThresh, AUXPOL_PRM_VDELAY_AUTO_DIFF_ON_LEVEL, 255, cv::THRESH_BINARY);
 		// 輪郭を求める
 		cv::findContours(matThresh, m_allContours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
@@ -593,7 +593,7 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		}
 		//最大の輪郭があれば、その矩形領域をROIに設定
 		  // ※あまりに小さいノイズは無視するために、面積しきい値(例: 100px)を設けると安定します
-		if (maxIdx != -1 && maxArea > 100.0) {
+		if (maxIdx != -1 && maxArea > AUXPOL_PRM_VDELAY_AUTO_CHK_MIN_AREA) {
 			boundingBox = cv::boundingRect(m_allContours[maxIdx]);
 			AROIarea = (LONGLONG)boundingBox.width * boundingBox.height;
 			if (AROIarea > 10000) {//あまりに大きな領域は誤検出の可能性があるため無視（例: 100x100=10000px）

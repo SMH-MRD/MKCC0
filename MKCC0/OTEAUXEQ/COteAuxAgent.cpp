@@ -142,7 +142,7 @@ int COteAuxAgent::input() {
 int COteAuxAgent::parse() {           //メイン処理
 
 	//# 映像遅延計測処理
-	if (pAuxEnvInf->video_delay_chk_func_active == L_ON) {
+	if((pAuxEnvInf->video_delay_chk_func_active == L_ON)|| (pAuxEnvInf->video_delay_chk_auto_prm_set_req == L_ON)) {
 		double delay_sec = 0.0;
 		//## スレッドを起動してカメラキャプチャを開始
 		if ((!g_keepRunning) && (pAuxAgInf->st_usb_cam.retry_count == 0)) {

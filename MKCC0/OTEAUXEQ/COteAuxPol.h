@@ -169,6 +169,10 @@ typedef struct _AUXPOL_MON2 {
 
 #define AUXPOL_PRM_FILENAME                 "oteaux.dat"
 
+#define AUXPOL_PRM_VDELAY_AUTO_DIFF_ON_LEVEL  50 //ビデオ遅延の自動パラメータ設定のON/OFF差分でON/とOFFを判定するレベル
+#define AUXPOL_PRM_VDELAY_AUTO_CHK_MIN_AREA   100.0 //ビデオ遅延の自動パラメータ設定のターゲット検出時のノイズ判定レベル
+
+
 class COteAuxPol : public CBasicControl
 {
 public:
