@@ -256,6 +256,8 @@ int COteAuxAgent::parse() {           //メイン処理
 }
 int COteAuxAgent::output() {          //出力処理
 	
+
+
 	return STAT_OK;
 }
 int COteAuxAgent::close() {

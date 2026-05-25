@@ -132,8 +132,7 @@ public:
     static ST_AUXAG_MON1 st_mon1;
     static ST_AUXAG_MON2 st_mon2;
 
-    ST_OTEAUXEQ st_work;
-    //タブパネルのStaticテキストを設定
+     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
     //タブパネルのFunctionボタンのStaticテキストを設定
     virtual void set_func_pb_txt() override;

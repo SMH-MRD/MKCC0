@@ -523,6 +523,7 @@ int COteCS::parse()
 		}
 		else {
 			pOteCsInf->video_delay_chk_req = L_OFF;//映像遅延のチェック要求
+			pOteCsInf->ote_interlock &= ~FLTS_MASK_ERR_OTE_CAM_TM_OVER;
 		}
 		//# 制御通信遅延過大
 //とりあえずバイパス機能無効にしておく
@@ -801,7 +802,7 @@ int COteCS::output() {
 //### 制御PCへの出力処理
 	pOteCsInf->st_body.ote_err[0] = pOteCsInf->ote_error;	//遠隔操作PC検出故障セット
 		
-	//###　映像遅延チェック用指令出力
+//###　映像遅延チェック用指令出力
 	 
 	//## 映像遅延チェック要求セット＋遅延取り込み
 	if (
@@ -824,8 +825,6 @@ int COteCS::output() {
 		pOteCsInf->video_delay_sec = 0.0;						//映像遅延時間クリア
 	}
 
-	
-	//## 制御PCへの出力
 	// 映像遅延チェックデバイスON/OFF制御
 	if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) ||(forced_opedesk)){				//遠隔操作卓有効
 		if (
@@ -882,6 +881,7 @@ int COteCS::output() {
 	}
 	crane_product_i64_last = pOteCCInf->crane_product_id.i64[0];
 
+	//## 映像遅延パラメータ　LOAD/SAVE指令リセット
 	if (pOteAuxPolInf->st_img_proc.v_delay_prm_io_status & (OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FIN | OTEAUXPOL_CODE_V_DELAY_PRM_SAVE_FAIL)) {
 		pOteCsInf->video_delay_chk_ctrl &= ~OTE_CS_CODE_V_DELAY_COM_PRM_SAVE;
 	}

@@ -203,6 +203,9 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 #define OTEAUXPOL_MOD_VIDEO_CHK_MASK_HV					1	//映像チェックマスクHV範囲設定Sフリー
 #define OTEAUXPOL_MOD_VIDEO_CHK_MASK_V					 2	//映像チェックマスクVのみ範囲設定HSフリー
 
+#define OTEAUXPOL_PRM_CAMERA_WIDTH						1280	//映像チェックマスクHSV全範囲設定
+#define OTEAUXPOL_PRM_CAMERA_HEIGHT						1024	//映像チェックマスクHV範囲設定Sフリー
+
 
 typedef struct _ST_AUXPOL_IMG_PRM {
 	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー
