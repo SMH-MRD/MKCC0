@@ -125,7 +125,7 @@ HRESULT COteAuxAgent::routine_work(void* pObj){
 
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time <<L" CamCount:"<<st_mon2.thrad_counter
 			<<L" DelayChkStatus:"<< status_str.c_str() << L" Delay:" << pAuxAgInf->	v_delay_sec 
-			<< L" TMOV:" << pAuxAgInf->v_delay_tmov_cnt << L" FIN:" << pAuxAgInf->v_delay_chk_fin_cnt;
+			<< L" TMOV:" << pAuxAgInf->v_delay_tmov_cnt << L" FIN:" << pAuxAgInf->v_delay_chk_fin_cnt << L" GKeep:" << g_keepRunning;
 		msg2host(wos.str());
 	}
 

@@ -69,6 +69,7 @@ HRESULT COteAuxEnv::routine_work(void* pObj) {
 	if (inf.total_act % 10 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time << L" CamDelay:";
 		if(pAuxEnvInf->video_delay_chk_func_active == L_ON) wos << L"ReqON/ ";
+		else if (pAuxEnvInf->video_delay_chk_auto_prm_set_req == L_ON) wos << L"APrmON/ ";
 		else wos << L"ReqOFF/";
 
 		if(inf.mode_id == BC_ID_MODE0)			wos << L"App>>Product/ ";
