@@ -6,6 +6,7 @@
 #include "PLC_DEF.h"
 #include "CValue.h"
 
+//OTE_CS
 
 #define MODE_OTE_CS_APP_PRODUCT     0
 #define MODE_OTE_CS_APP_DEBUG       1
