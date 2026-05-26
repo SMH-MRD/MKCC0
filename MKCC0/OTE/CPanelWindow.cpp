@@ -945,7 +945,6 @@ LPST_OTE_ENV_INF CSubPanelWindow::pOteEnvInf;
 LPST_OTE_AUX_AGENT_INF CSubPanelWindow::pOteAuxAgInf;
 LPST_OTE_AUX_POL_INF CSubPanelWindow::pOteAuxPolInf;
 
-
 CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_id, int _wnd_code, CPanelBase* _pPanelBase) {
 	pPanelBase = _pPanelBase;
 	hParentWnd = hParent;
@@ -1004,6 +1003,7 @@ CSubPanelWindow::CSubPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane_i
         SUB_PNL_WND_X, SUB_PNL_WND_Y, SUB_PNL_WND_W, SUB_PNL_WND_H,
         hParent, nullptr, hInstance, nullptr
     );
+
 
     if (hPnlWnd) {
 		pPanelBase->set_panel_id(wnd_code);//パネルコードセット
@@ -1186,6 +1186,11 @@ void CSubPanelWindow::OnPaintFlt(HDC hdc, HWND hwnd) {
 	pPanelBase->psubobjs->pgraphic->DrawImage(pPanelBase->psubobjs->pbmp_bk, 0, 0);
 	return;
 }
+
+static wostringstream monwos;
+
+
+
 
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
@@ -1586,6 +1591,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+static WCHAR wch_chk_aprm[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"-";
+static WCHAR wch_chk_file[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"-";
+bool is_not_same_msg = false;
+
 LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
@@ -1629,6 +1638,11 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 
 		//映像遅延検出関連
+				//LABEL 
+		CreateWindowW(TEXT("STATIC"), L"映像遅延検出設定", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			400, 25, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
+
+
 		pcb = pPanelBase->psubobjs->cb_v_delay_chk_device;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
@@ -1715,8 +1729,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	}return 1; // 背景を処理したことを示す
 
 	case WM_TIMER: {
-
-			//# Switching Image更新
+		//# Switching Image更新
 		//巻速度モード
 		INT16 code = (INT16)pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;
 		pPanelBase->psubobjs->lmp_mh_spd_mode->set(code); //値セット
@@ -1799,16 +1812,36 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		wostringstream wos;
 		wos.str(L""); 
 //		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status.c_str();
-		SetWindowText(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
+		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch;
+		SetWindowTextW(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
 		wos.str(L""); 
 //		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_save_status.c_str();
-		SetWindowText(pPanelBase->psubobjs->st_v_delay_prm_io_status->hWnd, wos.str().c_str());
+		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch;
+		SetWindowTextW(pPanelBase->psubobjs->st_v_delay_prm_io_status->hWnd, wos.str().c_str());
+
+		//テキストの変化があったと表示更新（テキスト変化がない場合は更新しない）
+		//とりあえず仮処置
+		is_not_same_msg = false;
+		for(int i = 0; i < 16; i++) {
+			if(wch_chk_aprm[i] != pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch[i]) {
+				is_not_same_msg = true;
+			}
+			if (wch_chk_file[i] != pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch[i]) {
+				is_not_same_msg = true;
+			}
+			wch_chk_aprm[i] = pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch[i];
+			wch_chk_file[i] = pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch[i];
+		}
+
+		if (is_not_same_msg) InvalidateRect(hwnd, NULL, TRUE);
 
 
 		//PBの状態更新（カウントダウン）
 		pPanelBase->psubobjs ->pb_v_delay_chk_prm_auto_set->update(false);
 		pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(false);
 		pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(false);
+
+
 
 	}break;
 
@@ -1861,6 +1894,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
+
 		EndPaint(hwnd, &ps);
 	}break;
 	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
@@ -1875,6 +1909,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_DESTROY:
 		//表示更新用タイマー
 		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+
 	//	pPanelBase->psubobjs->clear_graphics();
 		// PostQuitMessage(0);
 		return 0;

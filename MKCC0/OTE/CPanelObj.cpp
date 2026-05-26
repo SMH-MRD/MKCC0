@@ -3,6 +3,19 @@
 
 #include "SmemOte.H"
 
+
+#include "COpePanel.h"
+#include "CPanelWindow.h"
+#include <commctrl.h>       //コモンコントロール用
+#include "CBasicControl.h"
+#include <vector>
+#include "COteEnv.h"
+#include "COteAgent.h"
+#include <windows.h>
+#include "CFaults.h"
+#include "CHelper.h"
+#include "SmemAux.h"
+
 using namespace Gdiplus;
 
 extern ST_DRAWING_BASE		drawing_items;
@@ -207,7 +220,7 @@ HRESULT CPanelObjBase::setup_graphics(HWND hwnd) {
 
 	pbmp_inf		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//情報用メモリビットマップ
 	pgraphic_inf	= new Gdiplus::Graphics(pbmp_inf);							//情報書き込みオブジェクト
-	
+
 	pbmp_img		= new Bitmap(rc_panel.Width, rc_panel.Height, pgraphic);	//画像用メモリビットマップ
 	pgraphic_img	= new Gdiplus::Graphics(pbmp_img);							//画像書き込みオブジェクト
 

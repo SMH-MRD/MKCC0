@@ -205,6 +205,7 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 
 #define OTEAUXPOL_PRM_CAMERA_WIDTH						1280	//映像チェックマスクHSV全範囲設定
 #define OTEAUXPOL_PRM_CAMERA_HEIGHT						1024	//映像チェックマスクHV範囲設定Sフリー
+#define OTEAUXPOL_PRM_MSG_WCH_SIZE						32	//映像チェックマスクHV範囲設定Sフリー
 
 
 typedef struct _ST_AUXPOL_IMG_PRM {
@@ -219,6 +220,8 @@ typedef struct _ST_AUXPOL_IMG_PRM {
 	int hsv_filter_mode = OTEAUXPOL_MOD_VIDEO_CHK_MASK_HSV;	//0:通常、1:H値の範囲が0-180を跨ぐモード
 } ST_AUXPOL_IMG_PRM, * LPST_AUXPOL_IMG_PRM;
 
+
+
 typedef struct _ST_AUXPOL_IMG_PROC {
 	ST_AUXPOL_IMG_PRM param;
 	int status = 0;
@@ -228,7 +231,9 @@ typedef struct _ST_AUXPOL_IMG_PROC {
 	int whiteCountInWorkRoi_Last = 0;
 	int whiteCountInCriterionRoi = 0;//基準(検出対象）ROI内の白画素数
 	wstring video_delay_auto_prm_status = L"-";
-	wstring video_delay_prm_save_status = L"-";
+	wstring video_delay_prm_file_status = L"-";
+	WCHAR video_delay_auto_prm_status_wch[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"APRM WCH";
+	WCHAR video_delay_prm_file_status_wch[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"PRM_FILE";
 	INT32 v_delay_prm_io_status = L_OFF;
 	INT32 v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_STANDBY;
 } ST_AUXPOL_IMG_PROC, * LPST_AUXPOL_IMG_PROC;
