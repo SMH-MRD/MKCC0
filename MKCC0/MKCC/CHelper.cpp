@@ -151,7 +151,7 @@ void CBmpHelper::put_bmp_built(HDC hdc, HBITMAP hbmp, POINT dst_pt, POINT src_pt
 
 	if ((hdc == NULL) || (hbmp == NULL)) return;
 
-	BITMAP bmp;
+	BITMAP bmp={0};
 	GetObject(hbmp, sizeof(BITMAP), &bmp);
 	int BMP_W = (int)bmp.bmWidth;
 	int BMP_H = (int)bmp.bmHeight;
@@ -168,7 +168,7 @@ void CBmpHelper::put_bmp_stretch(HDC hdc, HBITMAP hbmp, POINT dst_pt, POINT src_
 
 	if ((hdc == NULL) || (hbmp == NULL)) return;
 
-	BITMAP bmp;
+	BITMAP bmp={0};
 	GetObject(hbmp, sizeof(BITMAP), &bmp);
 	int BMP_W = (int)bmp.bmWidth;
 	int BMP_H = (int)bmp.bmHeight;
@@ -290,7 +290,7 @@ LPCWSTR CUIHelper::get_crane_txt_by_code(INT32 value) {
 	case CRANE_ID_H6R602:	crane_txt = CRANE_TXT_H6R602; break;
 	case CARNE_ID_HHGH29:	crane_txt = CARNE_TXT_HHGH29; break;
 	case CARNE_ID_HHGQ18:	crane_txt = CARNE_TXT_HHGQ18; break;
-	case CARNE_ID_HHFR22:	crane_txt = CARNE_TXT_HHFR22; break;
+	case CARNE_ID_HHFM08:	crane_txt = CARNE_TXT_HHFM08; break;
 	default:				crane_txt = CRANE_TXT_NULL; break;
 	}
 	return crane_txt.c_str();

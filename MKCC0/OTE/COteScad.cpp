@@ -179,7 +179,7 @@ void COteScad::set_panel_io() {
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote] = pPanelBase->pmainobjs->pb_remote->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad] = pPanelBase->pmainobjs->pb_pad_mode->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset] = pPanelBase->pmainobjs->pb_freset->get();
-
+	
 		//### スイッチ
 		if ((pOteCsInf->st_body.remote != CODE_PNL_COM_ACTIVE) || (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)) {
 			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;	
@@ -823,7 +823,7 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
 
-	WNDCLASSEXW wcex;
+	WNDCLASSEXW wcex = {};
 //	ATOM fb = RegisterClassExW(&wcex);
 
 	if (id == BC_ID_MON1) {
@@ -967,7 +967,7 @@ void COteScad::msg2listview(wstring wstr) {
 	const wchar_t* pwc; pwc = wstr.c_str();
 
 	inf.hwnd_msglist = GetDlgItem(inf.hwnd_opepane, IDC_LIST1);
-	LVITEM item;
+	LVITEM item = {};
 
 	item.mask = LVIF_TEXT;
 	item.pszText = (wchar_t*)pwc;								// テキスト

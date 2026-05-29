@@ -1430,7 +1430,7 @@ HWND COteCS::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
 
-	WNDCLASSEXW wcex;
+	WNDCLASSEXW wcex = {};
 	ATOM fb = RegisterClassExW(&wcex);
 
 	if (id == BC_ID_MON1) {
@@ -1683,7 +1683,7 @@ void COteCS::msg2listview(wstring wstr) {
 	const wchar_t* pwc; pwc = wstr.c_str();
 
 	inf.hwnd_msglist = GetDlgItem(inf.hwnd_opepane, IDC_LIST1);
-	LVITEM item;
+	LVITEM item = {};
 
 	item.mask = LVIF_TEXT;
 	item.pszText = (wchar_t*)pwc;								// テキスト

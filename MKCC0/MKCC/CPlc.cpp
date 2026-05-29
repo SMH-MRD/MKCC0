@@ -421,7 +421,7 @@ int CPlc::setup(int crane_id) {
 		plc_io_rif = plc_io_rdef0;
 		plc_io_wif = plc_io_wdef0;
 	}break;
-	case CARNE_ID_HHFR22:{
+	case CARNE_ID_HHFM08:{
 		plc_io_rif = plc_io_rdef0;
 		plc_io_wif = plc_io_wdef0;
 	}break;

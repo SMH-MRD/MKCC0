@@ -35,9 +35,6 @@
 #define OTE_IF_UNI_IP_PC_WAN_MENTE01	"10.130.5.74" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線　保守端末No1）
 
 
-//#define OTE_IF_UNI_PORT_PC			10050				//ユニキャストPC受信ポート
-//#define OTE_IF_UNI_PORT_OTE			10051				//ユニキャスト端末受信ポート
-
 #define OTE_IF_UNI_PORT_PC				8001				//ユニキャストPC受信ポート
 #define OTE_IF_UNI_PORT_OTE				8001				//ユニキャスト端末受信ポート
 

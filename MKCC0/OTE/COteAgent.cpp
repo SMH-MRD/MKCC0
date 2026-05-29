@@ -149,7 +149,7 @@ int COteAgent::setup_crane_if(int crane_id) {
 	}break;
 	case CARNE_ID_PC0: 
 	case CARNE_ID_HHGQ18: 
-	case CARNE_ID_HHFR22: 
+	case CARNE_ID_HHFM08: 
 	default: {
 		//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定
 		if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
@@ -429,7 +429,7 @@ int COteAgent::update_msg_cycle(int mode, int snd_cycle, int delay_sample_cycle,
 
 	}
 
-	UHelperStatisData min_value, max_value;
+	UHelperStatisData min_value={0}, max_value={0};
 	min_value.ll = 10000000; max_value.ll = 0;
 	pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, delay_sample_cycle, min_value, max_value);
 	pOteCCIf->msg_delay_sample_count = pStatisHelper->mask+1;
@@ -821,7 +821,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 		//遅延計測ヘルパー初期化
 		pStatisHelper = new CStatisticsHelper();
-		UHelperStatisData min_value, max_value;
+		UHelperStatisData min_value={0}, max_value={0};
 		min_value.ll = 10000000; max_value.ll = 0;
 		pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, OTE_AG_DELAY_CHK_COUNT, min_value, max_value);
 		pOteCCIf->msg_delay_sample_count = pStatisHelper->mask + 1;
@@ -1057,7 +1057,7 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		case FD_READ: {
 
 			LONGLONG lspan;
-			UHelperStatisData lspan_data; lspan_data.ll = 0;
+			UHelperStatisData lspan_data={0}; lspan_data.ll = 0;
 
 			if (S_OK == rcv_uni_ote(&(pOteCCIf->st_msg_pc_u_rcv)) ){
 				QueryPerformanceCounter(&end_count_r);    // 応答受信時のカウント数
@@ -1068,8 +1068,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 
 				pOteCCIf->msg_rcv_seqno_now = pOteCCIf->st_msg_pc_u_rcv.head.seqno;
-	
-				LONGLONG seqno_delay =(pOteCCIf->msg_snd_seqno_now - pOteCCIf->msg_rcv_seqno_now) * pOteCCIf->umsg_snd_interval_ms;//シーケンス遅延補正
+
+				LONGLONG seqno_delay = static_cast<LONGLONG>((pOteCCIf->msg_snd_seqno_now - pOteCCIf->msg_rcv_seqno_now) * pOteCCIf->umsg_snd_interval_ms);//シーケンス遅延補正
 				lspan = lspan_data.ll = (end_count_r.QuadPart - start_count_s.QuadPart) * 1000L / frequency.QuadPart + seqno_delay;// 時間の間隔[usec]
 										
 			
@@ -1175,7 +1175,7 @@ HWND COteAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
 
-	WNDCLASSEXW wcex;
+	WNDCLASSEXW wcex={0};
 	ATOM fb = RegisterClassExW(&wcex);
 
 	if (id == BC_ID_MON1) {
@@ -1290,7 +1290,7 @@ void COteAgent::msg2listview(wstring wstr) {
 	const wchar_t* pwc; pwc = wstr.c_str();
 
 	inf.hwnd_msglist = GetDlgItem(inf.hwnd_opepane, IDC_LIST1);
-	LVITEM item;
+	LVITEM item={0};
 
 	item.mask = LVIF_TEXT;
 	item.pszText = (wchar_t*)pwc;								// テキスト

@@ -26,8 +26,6 @@
 #define OTE_CS_ID_MON1_SLIDER_VIB_R  17
 #define OTE_CS_ID_MON1_SLIDER_VIB_L  18
 
-
-
 #define OTE_CS_ID_MON1_TIMER         61590
 #define OTE_CS_ID_MON2_TIMER         61591
 

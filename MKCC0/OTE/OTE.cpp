@@ -138,7 +138,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-    WNDCLASSEXW wcex;
+    WNDCLASSEXW wcex = {};
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
@@ -194,7 +194,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     if (OK_SHMEM != pOteAuxPolObj->create_smem( SMEM_OTE_AUX_POL_INF_NAME, sizeof(ST_OTE_AUX_POL_INF), MUTEX_AUX_POL_INF_NAME)) return(FALSE);
 
 	LPST_OTE_CC_IF pOteCCIf = (LPST_OTE_CC_IF)(pOteCcInfObj->get_pMap());
-	INT16 plc_buf_dummy[256]; //PLCのバッファーサイズは256byte
+    INT16 plc_buf_dummy[256]{}; //PLCのバッファーサイズは256byte
 
     //クレーンオブジェクト生成
     pCrane = new CCrane(CRANE_ID_NULL, plc_buf_dummy, plc_buf_dummy);	//クレーンIDはNULLで初期化
@@ -450,7 +450,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
         // --マルチメディアタイマー起動失敗判定　メッセージBOX出してFALSE　returen
         if (knl_manage_set.KnlTick_TimerID == 0) {	 //失敗確認表示
-            LPVOID lpMsgBuf;
+            LPVOID lpMsgBuf = nullptr;
             FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
                 0, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language*/(LPTSTR)&lpMsgBuf, 0, NULL);
             MessageBox(NULL, (LPCWSTR)lpMsgBuf, L"MMT Failed!!", MB_OK | MB_ICONINFORMATION);// Display the string.
@@ -625,7 +625,7 @@ HWND CreateStatusbarMain(HWND hWnd)
 HWND CreateTaskSettingWnd(HWND hWnd)
 {
     RECT rc;
-    TC_ITEM tc[N_OTE_TASK];//タブコントロール設定構造体
+    TC_ITEM tc[N_OTE_TASK]{};//タブコントロール設定構造体
 
     //タブコントロールウィンドウの生成
     GetClientRect(hWnd, &rc);
@@ -677,7 +677,7 @@ LRESULT CALLBACK TaskTabDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
         InitCommonControls();
 
         //メッセージ用リストコントロールの設定
-        LVCOLUMN lvcol;
+        LVCOLUMN lvcol = {};
 
         //列ラベル設定
         LPTSTR strItem0[] = { (LPTSTR)(L"time"), (LPTSTR)(L"message") };//列ラベル
@@ -692,7 +692,7 @@ LRESULT CALLBACK TaskTabDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
             ListView_InsertColumn(hList, i, &lvcol);
         }
         //リスト行追加
-        LVITEM item;
+        LVITEM item = {};
         item.mask = LVIF_TEXT;
         for (int i = 0; i < PRM_N_TASK_MSGLIST_ROW; i++) {
             item.pszText = (LPWSTR)L".";   // テキスト
@@ -803,7 +803,7 @@ VOID	CALLBACK    alarmHandlar(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWOR
 
             TCHAR tbuf[32];
             wsprintf(tbuf, L"\t%4d", (int)pobj->inf.period);
-            SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, knl_manage_set.num_of_task-i-1, (LPARAM)tbuf);
+            SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, static_cast<WPARAM>(knl_manage_set.num_of_task - static_cast<WPARAM>(i) - 1), (LPARAM)tbuf);
         }
     }
 

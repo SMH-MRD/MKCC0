@@ -178,6 +178,7 @@
     <ClCompile Include="CPanelIo.cpp" />
     <ClCompile Include="CPanelObj.cpp" />
     <ClCompile Include="CPanelWindow.cpp" />
+    <ClCompile Include="HHGH2900.cpp" />
     <ClCompile Include="OpePanel.cpp" />
     <ClCompile Include="OTE.cpp" />
   </ItemGroup>

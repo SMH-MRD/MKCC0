@@ -884,7 +884,7 @@ const ST_FAULT_LIST flt_list_HHGQ18 = {
 }
 };
 //HHFR22
-const ST_FAULT_LIST flt_list_HHFR22 = {
+const ST_FAULT_LIST flt_list_HHFM08 = {
 {
 {(INT16)0,(INT16)00,L"0",L"0"},
 {(INT16)1,(INT16)0xF800,L"運転室非常停止",L"運転室非常停止PBが操作された"},
@@ -1453,9 +1453,9 @@ int CFaults::setup(int crane_id) {
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGQ18, sizeof(flt_list_HHGQ18));
 	}break;
-	case CARNE_ID_HHFR22: { 
+	case CARNE_ID_HHFM08: { 
 		//フォルトリスト
-		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHFR22, sizeof(flt_list_HHFR22));
+		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHFM08, sizeof(flt_list_HHFM08));
 	}break;
 	default: {
 		memcpy_s(&flt_list, sizeof(flt_list), &plc_flt_list_HHGH29, sizeof(flt_list_H6R602));
@@ -1464,30 +1464,4 @@ int CFaults::setup(int crane_id) {
 	return 0;
 }
 
-#if 0
-//表示指定のあるフォルトを抽出するマスクを作成する
-void CFaults::set_flt_mask(int code) {
-	INT16 imask;
-	for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
-		imask = 0;
-		if(code & FAULT_HEAVY1)imask	|= flt_list.plc_fault_mask[1][i];
-		if(code & FAULT_HEAVY2)imask	|= flt_list.plc_fault_mask[2][i]; 
-		if(code & FAULT_HEAVY3)imask	|= flt_list.plc_fault_mask[3][i];
-		if(code & FAULT_LIGHT)imask		|= flt_list.plc_fault_mask[4][i];
-		if(code & FAULT_INTERLOCK)imask	|= flt_list.plc_fault_mask[5][i];
-		faults_chkmask[i] = imask;
-	}
-	return;
-}
-
-
-int CFaults::set_disp_buf(int code) {
-	set_flt_mask(code);
-	for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
-		faults_disp[i] = 0;
-		faults_disp[i] |= faults_chkmask[i];
-	}
-	return 0;
-}
-#endif
  
