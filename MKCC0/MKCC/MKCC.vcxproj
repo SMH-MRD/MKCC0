@@ -160,7 +160,6 @@
     <ClCompile Include="..\Common\src\CFaults.cpp" />
     <ClCompile Include="..\Common\src\CHelper.cpp" />
     <ClCompile Include="..\Common\src\CPlc.cpp" />
-    <ClCompile Include="..\Common\src\Cranes\HHGH2900.cpp" />
     <ClCompile Include="..\Common\src\CRK4.cpp" />
     <ClCompile Include="..\Common\src\CSpec.cpp" />
     <ClCompile Include="..\Common\src\CVector3.cpp" />

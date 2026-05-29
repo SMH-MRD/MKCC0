@@ -34,9 +34,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Domain\Cranes">
-      <UniqueIdentifier>{8a7a23c3-4053-4f79-862c-aba34250b47a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -124,9 +121,6 @@
     </ClCompile>
     <ClCompile Include="..\Common\src\CHelper.cpp">
       <Filter>Domain\Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Common\src\Cranes\HHGH2900.cpp">
-      <Filter>Domain\Cranes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
