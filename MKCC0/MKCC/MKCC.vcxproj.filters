@@ -34,6 +34,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Domain\Cranes">
+      <UniqueIdentifier>{8a7a23c3-4053-4f79-862c-aba34250b47a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -71,23 +74,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CSpec.cpp">
-      <Filter>Domain\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="CPlc.cpp">
-      <Filter>Domain\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="CCrane.cpp">
-      <Filter>Domain\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="CFaults.cpp">
-      <Filter>Domain\Entity</Filter>
-    </ClCompile>
     <ClCompile Include="CValue.cpp">
       <Filter>Domain\ValueObjects</Filter>
-    </ClCompile>
-    <ClCompile Include="CHelper.cpp">
-      <Filter>Domain\Helpers</Filter>
     </ClCompile>
     <ClCompile Include="CCcSim.cpp">
       <Filter>Domain\Simulation</Filter>
@@ -121,6 +109,24 @@
     </ClCompile>
     <ClCompile Include="..\Common\src\CVector3.cpp">
       <Filter>Domain\ValueObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CCrane.cpp">
+      <Filter>Domain\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CFaults.cpp">
+      <Filter>Domain\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CPlc.cpp">
+      <Filter>Domain\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CSpec.cpp">
+      <Filter>Domain\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CHelper.cpp">
+      <Filter>Domain\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\Cranes\HHGH2900.cpp">
+      <Filter>Domain\Cranes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

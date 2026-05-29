@@ -156,7 +156,13 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\src\CCrane.cpp" />
+    <ClCompile Include="..\Common\src\CFaults.cpp" />
+    <ClCompile Include="..\Common\src\CHelper.cpp" />
+    <ClCompile Include="..\Common\src\CPlc.cpp" />
+    <ClCompile Include="..\Common\src\Cranes\HHGH2900.cpp" />
     <ClCompile Include="..\Common\src\CRK4.cpp" />
+    <ClCompile Include="..\Common\src\CSpec.cpp" />
     <ClCompile Include="..\Common\src\CVector3.cpp" />
     <ClCompile Include="CBasicControl.cpp" />
     <ClCompile Include="CCcAgent.cpp" />
@@ -165,12 +171,7 @@
     <ClCompile Include="CCcPol.cpp" />
     <ClCompile Include="CCcScad.cpp" />
     <ClCompile Include="CCcSim.cpp" />
-    <ClCompile Include="CCrane.cpp" />
-    <ClCompile Include="CFaults.cpp" />
-    <ClCompile Include="CHelper.cpp" />
-    <ClCompile Include="CPlc.cpp" />
     <ClCompile Include="CSharedMem.cpp" />
-    <ClCompile Include="CSpec.cpp" />
     <ClCompile Include="CValue.cpp" />
     <ClCompile Include="MKCC.cpp" />
   </ItemGroup>

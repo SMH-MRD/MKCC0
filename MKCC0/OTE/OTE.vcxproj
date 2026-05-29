@@ -160,13 +160,13 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\src\CCrane.cpp" />
+    <ClCompile Include="..\Common\src\CFaults.cpp" />
+    <ClCompile Include="..\Common\src\CHelper.cpp" />
+    <ClCompile Include="..\Common\src\CPlc.cpp" />
+    <ClCompile Include="..\Common\src\CSpec.cpp" />
     <ClCompile Include="..\MKCC\CBasicControl.cpp" />
-    <ClCompile Include="..\MKCC\CCrane.cpp" />
-    <ClCompile Include="..\MKCC\CFaults.cpp" />
-    <ClCompile Include="..\MKCC\CHelper.cpp" />
-    <ClCompile Include="..\MKCC\CPlc.cpp" />
     <ClCompile Include="..\MKCC\CSharedMem.cpp" />
-    <ClCompile Include="..\MKCC\CSpec.cpp" />
     <ClCompile Include="..\MKCC\CValue.cpp" />
     <ClCompile Include="CGamePad.cpp" />
     <ClCompile Include="CGraphicWindow.cpp" />
@@ -178,7 +178,6 @@
     <ClCompile Include="CPanelIo.cpp" />
     <ClCompile Include="CPanelObj.cpp" />
     <ClCompile Include="CPanelWindow.cpp" />
-    <ClCompile Include="HHGH2900.cpp" />
     <ClCompile Include="OpePanel.cpp" />
     <ClCompile Include="OTE.cpp" />
   </ItemGroup>
