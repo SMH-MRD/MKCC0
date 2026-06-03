@@ -25,26 +25,13 @@ using namespace Gdiplus;
 #define CARNE_ID_HHGH29         101     //今造西多度津70tJC　102号  
 #define CARNE_ID_HHGQ18         110     //今造西多度津300tJC 10号
 #define CARNE_ID_HHFM08         102     //今造西多度津1280tGC
+#define CARNE_ID_XXXXXX         1       //多度津OHC
 
 #define OTE_ID_HHGG3800         101
 #define OTE_ID_HHGG3801         102
 
 
 //クレーンID（テキスト）は、製番
-#define CRANE_ID_NULL           0        //未定
-
-#define CRANE_ID_H6R602         100     //みらい
-#define CARNE_ID_HHGH29         101     //今造西多度津70tJC　102号  
-#define CARNE_ID_HHGQ18         110     //今造西多度津300tJC 10号
-#define CARNE_ID_HHFM08         102     //今造西多度津1280tGC
-
-#define CARNE_ID_XXXXXX         1       //多度津OHC
-
-#define OTE_ID_HHGG3800         101
-#define OTE_ID_HHGG3801         251
-#define OTE_ID_PC               254      //制御PC端末
-
-
 #define CARNE_ID_PC0            0xFF00      //PC単体
 
 #define CRANE_ID_TXT_NULL       L"HXXX0000"
@@ -57,7 +44,8 @@ using namespace Gdiplus;
 #define CRANE_TXT_H6R602        L"みらい"
 #define CARNE_TXT_HHGH29        L"西多度津70tJC 102号"   
 #define CARNE_TXT_HHGQ18        L"西多度津300tJC 10号" 
-#define CARNE_TXT_HHFM08        L"西多度津1280tGC" 
+#define CARNE_TXT_HHFM08        L"西多度津1280tGC"
+#define CARNE_ID_XXXXXX         L"多度津OHC"
 
 #pragma endregion 識別ID
 

@@ -156,6 +156,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\src\CComm.cpp" />
     <ClCompile Include="..\Common\src\CCrane.cpp" />
     <ClCompile Include="..\Common\src\CFaults.cpp" />
     <ClCompile Include="..\Common\src\CHelper.cpp" />

@@ -1,29 +1,8 @@
 #include "CSpec.h"
 #include "COMMON_DEF.h"
-#include ".\Cranes\HHGH2900_Spec.h"
 
-ST_STRUCTURE	CSpec::st_struct;
-
-ST_AXIS_ITEMS	CSpec::base_mh;
-ST_AXIS_ITEMS	CSpec::base_bh;
-ST_AXIS_ITEMS	CSpec::base_sl;
-ST_AXIS_ITEMS	CSpec::base_gt;
-ST_AXIS_ITEMS	CSpec::base_ah;
-
-ST_AUTO_SPEC	CSpec::auto_mh;
-ST_AUTO_SPEC	CSpec::auto_bh;
-ST_AUTO_SPEC	CSpec::auto_sl;
-ST_AUTO_SPEC	CSpec::auto_gt;
-ST_AUTO_SPEC	CSpec::auto_ah;
-
-ST_REMOTE_SPEC	CSpec::rmt_mh;
-ST_REMOTE_SPEC	CSpec::rmt_bh;
-ST_REMOTE_SPEC	CSpec::rmt_sl;
-ST_REMOTE_SPEC	CSpec::rmt_gt;
-ST_REMOTE_SPEC	CSpec::rmt_ah;
-
-//構造
-ST_STRUCTURE	st_struct0 = {
+//クレーン仕様
+ST_STRUCTURE	st_struct_hhgh29 = {
 	700000.0,	//定格荷重Kg
 	84.0,		//ジブ長さ
 	70.0,		//休止時揚程
@@ -37,8 +16,9 @@ ST_STRUCTURE	st_struct0 = {
 	52.809,		//起伏上限時d
 	10000.0		//フック重量KG	
 };
+
 //主巻
-ST_AXIS_ITEMS	base_mh0 = {
+ST_AXIS_ITEMS	base_mh_hhgh29 = {
 	ID_HOIST,//INT32 Axis_id
 	
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
@@ -86,8 +66,9 @@ ST_AXIS_ITEMS	base_mh0 = {
 	387.55,			// Lfull;		フルスパン（m）
 	1.0,			// PsoPreset    位置プリセット値
 };
+
 //起伏
-ST_AXIS_ITEMS	base_bh0 = {
+ST_AXIS_ITEMS	base_bh_hhgh29 = {
 
 	ID_BOOM_H,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
@@ -135,8 +116,9 @@ ST_AXIS_ITEMS	base_bh0 = {
 	1.0,				// PsoPreset    位置プリセット値
 
 };
+
 //旋回
-ST_AXIS_ITEMS	base_sl0 = {
+ST_AXIS_ITEMS	base_sl_hhgh29 = {
 	ID_SLEW,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,0.00175,0.0175,0.035,0.035,0.035},
@@ -182,8 +164,9 @@ ST_AXIS_ITEMS	base_sl0 = {
 	11.473,				// Lfull;		フルスパン（m）
 	1.0,				// PsoPreset    位置プリセット値
 };
+
 //走行
-ST_AXIS_ITEMS	base_gt0 = {
+ST_AXIS_ITEMS	base_gt_hhgh29 = {
 	ID_GANTRY,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,0.058,0.175,0.350,0.580,0.580},
@@ -231,54 +214,10 @@ ST_AXIS_ITEMS	base_gt0 = {
 	50.0,			// PsoPreset    位置プリセット値
 
 };
+
 //補巻
-ST_AXIS_ITEMS	base_ah0 = {
+ST_AXIS_ITEMS	base_ah_hhgh29 = {
 	ID_AHOIST,//INT32 Axis_id;
 };
 
-int CSpec::setup(int crane_id) {
-	switch (crane_id) {
-	case CRANE_ID_H6R602:{
-		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
-	}break;
-	case CARNE_ID_HHGH29:{
-		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhgh29, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_hhgh29, sizeof(ST_AXIS_ITEMS));
-	}break;
-	case CARNE_ID_HHGQ18:{
-		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
-	}break;
-	case CARNE_ID_HHFM08:{
-		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
-	}break;
-	default: {
-		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
-	}break;
-	}
-	return 0;
-}
 
