@@ -33,6 +33,7 @@ WCHAR szTitle[MAX_LOADSTRING];                  // タイトル バーのテキ�
 WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ クラス名
 
 // --- グローバル変数・共有リソース ---
+ST_DEVICE_CODE g_my_code;
 
 //共有メモリオブジェクトポインタ
 CSharedMem* pAuxEnvInfObj;
@@ -192,15 +193,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //デバイスコードセット
    LPST_OTE_AUX_ENV_INF pEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
 
-   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", pEnvInf->device_code.crane_id, _countof(pEnvInf->device_code.crane_id), PATH_OF_INIFILE);
-   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", pEnvInf->device_code.pc_type, _countof(pEnvInf->device_code.pc_type), PATH_OF_INIFILE);
+   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
 
    WCHAR wbuf[32];
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
-   swscanf_s(wbuf, L"%d", &(pEnvInf->device_code.serial_no));
+   swscanf_s(wbuf, L"%d", &(g_my_code.serial_no));
 
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
-   swscanf_s(wbuf, L"%x", &(pEnvInf->device_code.option));
+   swscanf_s(wbuf, L"%x", &(g_my_code.option));
+
+   pEnvInf->device_code = g_my_code;
 
    HBITMAP hBmp;
    CBasicControl* pobj;

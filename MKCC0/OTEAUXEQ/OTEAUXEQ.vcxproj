@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\src\CBasicControl.cpp" />
+    <ClCompile Include="..\Common\src\CComm.cpp" />
     <ClCompile Include="..\Common\src\CSharedMem.cpp" />
     <ClCompile Include="..\Common\src\CSock.cpp" />
     <ClCompile Include="COteAuxAgent.cpp" />

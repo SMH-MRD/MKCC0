@@ -1,8 +1,10 @@
 #include "CComm.h"
 #include "NET_DEF.h"
 
-ST_COMM_SET	CComm::addr_list;
 
+
+
+ST_COMM_SET	CComm::addr_list;
 
 CComm::CComm() {
 	setup();
@@ -10,6 +12,11 @@ CComm::CComm() {
 CComm:: ~CComm() {};
 
 int CComm::setup(){
+	ST_ADDR_ITEM default_addr = {
+		{ "192.168.100.100" },
+		CODE_COMM_TYPE_LAN, CODE_COMM_PROTOCOL_UDP, 8001,0
+	};
+
 
 	// リスト初期化
 	for (int i = 0; i < N_COMM_SET_CRANE; i++) {
@@ -19,9 +26,9 @@ int CComm::setup(){
 		for (int j = 0; j < N_COMM_SET_AUX_LAN_PORT; j++)	addr_list.crn[i].aux[j] = default_addr;
 	}
 
-	//#############################################################
-	//################ クレーンアドレスセット　####################
-	//#############################################################
+//#############################################################
+//################ クレーンアドレスセット　####################
+//#############################################################
 	
 	//CARNE_ID_HHGH29
 	{
@@ -29,21 +36,21 @@ int CComm::setup(){
 		ST_ADDR_SET st_src =
 		{
 			{//PC
-				default_addr,	//ID_COMM_MAIN_PC_PLC
-				default_addr,	//ID_COMM_CRANE_OTE_IF
-				default_addr,	//ID_COMM_PC_SLBRK
-				default_addr
+				{"192.168.101.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3020,0},	//ID_COMM_MAIN_PC_PLC
+				{"192.168.101.101",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
+				{"192.168.101.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3021,0},	//ID_COMM_PC_SLBRK
+				{"192.168.101.102",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_CCOTE_IF 制御PC内部OTE IF用ポート（デバッグ用）
 			},	
 			{//WAN
-				default_addr,
+				{"10.130.7.205",CODE_COMM_TYPE_WAN,CODE_COMM_PROTOCOL_UDP,8001,0},		//ID_COMM_WAN0
 				default_addr
 			},							
 			{//PLC
-				default_addr,	//ID_COMM_MAIN_PC_PLC
+				{"192.168.101.110",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3010,0},	//ID_COMM_MAIN_PC_PLC
 				default_addr
 			},							
 			{//AUX
-				default_addr,	//ID_COMM_PC_SLBRK
+				{"192.168.101.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
 				default_addr,
 				default_addr,
 				default_addr
@@ -58,21 +65,21 @@ int CComm::setup(){
 		ST_ADDR_SET st_src =
 		{
 			{//PC
-				{OTE_IF_CRANE_IP_HHGH29,CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,OTE_IF_UNI_PORT_PC,0},	//ID_COMM_MAIN_PC_PLC
-				default_addr,	//ID_COMM_CRANE_OTE_IF
-				default_addr,	//ID_COMM_PC_SLBRK
-				default_addr
+				{"192.168.101.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3020,0},	//ID_COMM_MAIN_PC_PLC
+				{"192.168.101.101",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
+				{"192.168.101.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3021,0},	//ID_COMM_PC_SLBRK
+				{"192.168.101.102",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_CCOTE_IF 制御PC内部OTE IF用ポート（デバッグ用）
 			},
 			{//WAN
-				default_addr,
+				{"10.130.7.205",CODE_COMM_TYPE_WAN,CODE_COMM_PROTOCOL_UDP,8001,0},		//ID_COMM_WAN0
 				default_addr
 			},
 			{//PLC
-				default_addr,	//ID_COMM_MAIN_PC_PLC
+				{"192.168.101.110",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3010,0},	//ID_COMM_MAIN_PC_PLC
 				default_addr
 			},
 			{//AUX
-				default_addr,	//ID_COMM_PC_SLBRK
+				{"192.168.101.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
 				default_addr,
 				default_addr,
 				default_addr
@@ -91,17 +98,17 @@ int CComm::setup(){
 		ST_ADDR_SET st_src =
 		{
 			{//PC
-				default_addr,	//ID_COMM_MAIN_PC_PLC
-				default_addr,	//ID_COMM_CRANE_OTE_IF
+				{"192.168.101.150",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3040,0},	//ID_COMM_MAIN_PC_PLC
+				{"192.168.101.151",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
 				default_addr,	
 				default_addr
 			},
 			{//WAN
-				default_addr,
+				{"10.130.7.205",CODE_COMM_TYPE_WAN,CODE_COMM_PROTOCOL_UDP,8001,0},		//ID_COMM_WAN0
 				default_addr
 			},
 			{//PLC
-				default_addr,	//ID_COMM_MAIN_PC_PLC
+				{"192.168.101.160",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3030,0},	//ID_COMM_MAIN_PC_PLC
 				default_addr
 			},
 			{//AUX
@@ -141,6 +148,34 @@ int CComm::setup(){
 			},
 		};
 		set_addr_set(CODE_COMM_LOCATION_CRANE, machine_id, &st_src);
+	}
+
+//#############################################################
+//############# マルチキャストアドレスセット　#################
+//#############################################################
+
+	//クレーン間マルチキャストアドレス	
+	{
+		ST_ADDR_ITEM mcast = { "239.1.0.2", CODE_COMM_TYPE_LAN, CODE_COMM_PROTOCOL_MCAST, 20080,0 };
+		addr_list.mcast_crn_crn = mcast;
+	}
+
+	{//クレーン2OTEマルチキャストアドレス
+
+		ST_ADDR_ITEM mcast = { "239.1.0.2", CODE_COMM_TYPE_LAN, CODE_COMM_PROTOCOL_MCAST, 20082,0 };
+		addr_list.mcast_crn_crn = mcast;
+	}
+
+	//OTE間マルチキャストアドレス	
+	{
+		ST_ADDR_ITEM mcast = { "239.1.0.1", CODE_COMM_TYPE_LAN, CODE_COMM_PROTOCOL_MCAST, 20083,0 };
+		addr_list.mcast_ote_ote = mcast;
+	}
+
+	{//クレーン2OTEマルチキャストアドレス
+
+		ST_ADDR_ITEM mcast = { "239.1.0.1", CODE_COMM_TYPE_LAN, CODE_COMM_PROTOCOL_MCAST, 20081,0 };
+		addr_list.mcast_ote_crn = mcast;
 	}
 	
 	return 0;

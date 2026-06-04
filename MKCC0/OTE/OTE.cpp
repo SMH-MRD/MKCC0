@@ -206,6 +206,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
     
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"??????", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
+ 
 
     WCHAR wbuf[32];
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
@@ -213,6 +214,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
     str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
     swscanf_s(wbuf, L"%x", &(g_my_code.option));
+
+   //マシンコード設定
+    str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_MACHINE_ID, L"0", wbuf, 32, PATH_OF_INIFILE);
+    swscanf_s(wbuf, L"%d", &(g_my_code.machine_id));
+
   
     //アプリケーションモード設定
     str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_APP_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);

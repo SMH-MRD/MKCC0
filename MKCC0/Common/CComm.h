@@ -32,6 +32,7 @@
 #define CODE_COMM_PROTOCOL_UDP		0	//UDP
 #define CODE_COMM_PROTOCOL_TCP		1	//TCP
 #define CODE_COMM_PROTOCOL_MC		2	//MCプロトコル
+#define CODE_COMM_PROTOCOL_MCAST	3	//マルチキャスト
 
 //通信定義構造体定義
 typedef struct _ST_ADDR_ITEM
@@ -55,12 +56,18 @@ typedef struct _ST_COMM_SET
 {
 	ST_ADDR_SET crn[N_COMM_SET_CRANE];	//クレーンIPアドレスリスト
 	ST_ADDR_SET ote[N_COMM_SET_OTE];	//OTE側IPアドレスリスト
+
+	ST_ADDR_ITEM mcast_crn_crn;		//クレーン間マルチキャストアドレス
+	ST_ADDR_ITEM mcast_crn_ote;		//クレーンからOTEへのマルチキャストアドレス
+	ST_ADDR_ITEM mcast_ote_crn;		//OTEからクレーンへのマルチキャストアドレス
+	ST_ADDR_ITEM mcast_ote_ote;		//OTE間マルチキャストアドレス
+
 }ST_COMM_SET, * LPST_COMM_SET;
 
 
 class CComm {
 private:
-	HRESULT set_addr_set(int loc, int machine_id, LPST_ADDR_SET psrc) {
+	static HRESULT set_addr_set(int loc, int machine_id, LPST_ADDR_SET psrc) {
 		if((loc == CODE_COMM_LOCATION_CRANE)&&(machine_id>= 0)&& (machine_id < N_COMM_SET_CRANE)) {
 			addr_list.crn[machine_id] = *psrc;
 			return S_OK;
@@ -77,13 +84,6 @@ public:
 
 	static ST_COMM_SET	addr_list;
 	
-	ST_ADDR_ITEM default_addr = {
-		// ip[N_COMM_SET_IP_WCHAR] の初期化
-		{ "192.168.100.100" },
-		// port[N_COMM_SET_PORT] の初期化（例: 0で初期化、必要に応じてポート番号を指定）
-		CODE_COMM_TYPE_LAN, CODE_COMM_PROTOCOL_UDP, 8001,0
-	};
-
-	int setup();
+	static int setup();
 
 };

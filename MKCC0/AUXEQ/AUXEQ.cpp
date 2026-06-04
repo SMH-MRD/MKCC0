@@ -30,7 +30,9 @@ CSharedMem* pEnvInfObj;
 CSharedMem* pAgentInfObj;
 CSharedMem* pCsInfObj;
 
-ST_APP_COMMON_PARAM g_app_common_param;
+ST_DEVICE_CODE g_my_code;
+ST_APP_COMMON_PARAM g_app_common_param;//共通パラメータ
+
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_AUXEQ_WND        st_work_wnd;        //センサーウィンドウ管理用構造体   
@@ -172,15 +174,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //デバイスコードセット
    LPST_AUX_ENV_INF pEnvStat = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
 
-   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", pEnvStat->device_code.crane_id, _countof(pEnvStat->device_code.crane_id), PATH_OF_INIFILE);
-   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", pEnvStat->device_code.pc_type, _countof(pEnvStat->device_code.pc_type), PATH_OF_INIFILE);
+   DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
 
    WCHAR wbuf[32];
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
-   swscanf_s(wbuf, L"%d", &(pEnvStat->device_code.serial_no));
+   swscanf_s(wbuf, L"%d", &(g_my_code.serial_no));
 
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
-   swscanf_s(wbuf, L"%x", &(pEnvStat->device_code.option));
+   swscanf_s(wbuf, L"%x", &g_my_code.option);
+
+   //マシンコード設定
+   str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_MACHINE_ID, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(g_my_code.machine_id));
+
+   pEnvStat->device_code = g_my_code;
 
    HBITMAP hBmp;
    CBasicControl* pobj;

@@ -269,6 +269,7 @@ enum ID_AXIS {
 #define SYSTEM_SECT_OF_SIMULATION		L"SIM"		    //シミュレーションセクション
 
 //共通設定関連キー
+#define COMMON_KEY_OF_MACHINE_ID        L"MY_ID"         //マシンID　IPアドレス3オクテット
 #define COMMON_KEY_OF_APP_MODE          L"APP_MODE"      //アプリケーション動作モード
 #define COMMON_KEY_OF_PRODUCT_MODE      L"PRODUCT_MODE"  //プロダクトモード
 
@@ -308,6 +309,7 @@ typedef struct StAppCommonParam {
 
 //デバイスコード
 typedef struct _ST_DEVICE_CODE {
+    INT32 machine_id;
 	WCHAR crane_id[8]=L"XXXXXX";   //製番コード
     WCHAR pc_type[8]=L"??????";    //PC TYPE
     INT32 serial_no;

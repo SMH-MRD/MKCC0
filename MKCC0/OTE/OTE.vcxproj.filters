@@ -152,6 +152,9 @@
     <ClCompile Include="..\Common\src\CHelper.cpp">
       <Filter>Domain\Helpers</Filter>
     </ClCompile>
+    <ClCompile Include="..\Common\src\CComm.cpp">
+      <Filter>Infrastructure</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OTE.rc">
