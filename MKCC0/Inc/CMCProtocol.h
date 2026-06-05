@@ -12,13 +12,13 @@
 #include <iomanip>
 #include <sstream>
 
-#define ID_SOCK_MC_CLIENT   PORT_MC_CLIENT
-#define ID_SOCK_MC_SERVER   PORT_MC_SERVER
+#define ID_SOCK_MC_CLIENT		3020
+#define ID_SOCK_MC_SERVER		3010
 
-#define ID_SOCK_MC_CC_AGENT		PORT_MC_CLIENT
-#define ID_SOCK_MC_OTE_AGENT    PORT_MC_CLIENT
-#define ID_SOCK_MC_OTE_CS		PORT_MC_CLIENT
-#define ID_SOCK_MC_AUX_BRK		PORT_MC_CLIENT
+#define ID_SOCK_MC_CC_AGENT		3020
+#define ID_SOCK_MC_OTE_AGENT	3020
+#define ID_SOCK_MC_OTE_CS		3020
+#define ID_SOCK_MC_AUX_BRK		3020
 
 #define CODE_3E_FORMAT		0x50
 #define CODE_4E_FORMAT		0x54
@@ -104,7 +104,7 @@ public:
 	void set_access_D_r(UINT16 no, UINT16 num) { D_no_r = no; n_D_read = num; return; };
 
 	//初期化/終了
-	HRESULT Initialize(HWND hwnd,int com_id);
+	HRESULT Initialize(HWND hwnd,int com_id,int machine_id);
 	HRESULT close();
 
 	HRESULT set_sndbuf_read_D_3E();				//3E　Dデバイス読み込み要求送信フォーマットセット

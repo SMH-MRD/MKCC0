@@ -120,12 +120,12 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 		else {
 			pMCSock = new CMCProtocol(ID_SOCK_MC_OTE_CS);
 
-			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE) != S_OK) {
+			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE, g_my_code.machine_id) != S_OK) {
 				wos << L"Initialize : MC Init NG(OTE)"; msg2listview(wos.str()); wos.str(L"");
 				wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
 				return S_FALSE;
 
-				if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG) != S_OK) {
+				if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG, g_my_code.machine_id) != S_OK) {
 					wos << L"Initialize : MC Init NG(DEBUG)"; msg2listview(wos.str()); wos.str(L"");
 					wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
 					return S_FALSE;

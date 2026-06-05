@@ -117,6 +117,9 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	PCSTR ip_pc_uni = CComm::addr_list.crn[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].ip;
 	USHORT port_pc_uni = CComm::addr_list.crn[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].port;
 
+	PCSTR ip_ote_uni = CComm::addr_list.crn[0].pc[ID_COMM_CRANE_OTE_IF].ip;
+	USHORT port_ote_uni = CComm::addr_list.crn[0].pc[ID_COMM_CRANE_OTE_IF].port;
+
 	PCSTR ip_pc_mult = CComm::addr_list.mcast_crn_crn.ip;
 	PCSTR ip_ote_mult = CComm::addr_list.mcast_ote_ote.ip;
 
@@ -129,7 +132,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, ip_pc_uni, port_otecrn_mult);//受信アドレス
 	
 	//送信先アドレス
-	pUSockOte->set_sock_addr(&(pUSockOte->addr_in_dst), OTE_IF_UNI_IP_OTE_HHGG3801, port_pc_uni);
+	pUSockOte->set_sock_addr(&(pUSockOte->addr_in_dst), ip_ote_uni, port_ote_uni);
 	pMSockPC->set_sock_addr(&addrin_pc_m2pc_snd, ip_pc_mult, port_crncrn_mult);
 	pMSockPC->set_sock_addr(&addrin_pc_m2ote_snd, ip_pc_mult, port_crnote_mult);
 	
@@ -571,10 +574,16 @@ HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 
 	rcv_u_seqno = chkbuf_u_msg.head.seqno;
 
-	if (chkbuf_u_msg.head.status & OTE_STAT_COM_WAN_HHGG3801)
-		return S_OK_WAN_HHGG3801;
-	if (chkbuf_u_msg.head.status & OTE_STAT_COM_WAN_MENTE01)
-		return S_OK_WAN_MENTE01;
+	//WAN回線の時は、機器コード+status bitで端末識別する
+	if (chkbuf_u_msg.head.status & OTE_STAT_COM_WAN0) {
+		
+		return chkbuf_u_msg.head.myid.machine_id | OTE_STAT_COM_WAN0;
+	}
+
+	if (chkbuf_u_msg.head.status & OTE_STAT_COM_WAN1) {
+		return chkbuf_u_msg.head.myid.machine_id | OTE_STAT_COM_WAN1;
+	}
+
 
 	return S_OK;
 }
@@ -1078,45 +1087,40 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				pUSockOte->addr_in_dst.sin_family = AF_INET;
 				pUSockOte->addr_in_dst.sin_port = htons(port_pc_uni);
 				pUSockOte->addr_in_dst.sin_addr = pUSockOte->addr_in_from.sin_addr;
-
-				HRESULT hr;
-				if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
-					hr = snd_uni2ote(set_msg_u(true, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
-				else 
-					hr = snd_uni2ote(set_msg_u(false, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
-				
-				if (hr == S_OK) st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SND;//送信エラークリア
-				else            st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SND;//送信エラー
-
-				st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラークリア
-
 			}
-			else if ((hr == S_OK_WAN_HHGG3801)|| (hr == S_OK_WAN_MENTE01)) {
+			else if (hr & OTE_STAT_COM_WAN0) {
 				//折り返しアンサバック 送信元へ返送
 				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
 				pUSockOte->addr_in_dst.sin_family = AF_INET;
 				pUSockOte->addr_in_dst.sin_port = htons(port_pc_uni);
 
-				if(hr == S_OK_WAN_MENTE01)
-					pUSockOte->addr_in_dst.sin_addr = pUSockOte->get_sock_ip(OTE_IF_UNI_IP_PC_WAN_MENTE01);
-				else
-					pUSockOte->addr_in_dst.sin_addr = pUSockOte->get_sock_ip(OTE_IF_UNI_IP_PC_WAN_HHGG3801);
-
-				HRESULT hr;
-				if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
-					hr = snd_uni2ote(set_msg_u(true, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
-				else
-					hr = snd_uni2ote(set_msg_u(false, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
-
-				if (hr == S_OK) st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SND;//送信エラークリア
-				else            st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SND;//送信エラー
-
-				st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラークリア
-
+				PCSTR ip_ote_wan = CComm::addr_list.ote[ hr&0x00FF ].wan[ID_COMM_WAN0].ip;
+				pUSockOte->addr_in_dst.sin_addr = pUSockOte->get_sock_ip(ip_ote_wan);
 			}
+			else if (hr & OTE_STAT_COM_WAN1){
+				//折り返しアンサバック 送信元へ返送
+				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
+				pUSockOte->addr_in_dst.sin_family = AF_INET;
+				pUSockOte->addr_in_dst.sin_port = htons(port_pc_uni);
+
+				PCSTR ip_ote_wan = CComm::addr_list.ote[hr & 0x00FF].wan[ID_COMM_WAN1].ip;
+				pUSockOte->addr_in_dst.sin_addr = pUSockOte->get_sock_ip(ip_ote_wan);
+			}
+
 			else {
 				st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラー
+				break;
 			}
+
+			if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) //操作モードの端末無
+				hr = snd_uni2ote(set_msg_u(true, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
+			else
+				hr = snd_uni2ote(set_msg_u(false, 0, st_ote_work.st_ote_ctrl.id_ope_active), &pUSockOte->addr_in_dst);
+
+			if (hr == S_OK) st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SND;//送信エラークリア
+			else            st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SND;//送信エラー
+
+			st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_RCV;//受信エラークリア
 
 		}break;
 		case FD_WRITE: break;

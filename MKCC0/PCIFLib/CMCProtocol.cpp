@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "CMCProtocol.h"
 #include "CSockLib.h"
+#include "CComm.h"
 
 static CSockUDP* pMCSock;
 
@@ -41,10 +42,16 @@ CMCProtocol::~CMCProtocol() {
 /// <param name="no_w">		書き込みDデバイス先頭番号</param>
 /// <param name="num_w">	書き込みDデバイス数号</param>
 /// <returns></returns>
-HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
+HRESULT CMCProtocol::Initialize(HWND hwnd, int type, int machine_id){
+	
 	switch (type) {
-	case PLC_IF_TYPE_SLBRK: //OTE IF
+	case PLC_IF_TYPE_SLBRK: //SLBRK IF
 	{
+		PCSTR ipC = CComm::addr_list.crn[machine_id].pc[ID_COMM_PC_SLBRK].ip;
+		PCSTR ipS = CComm::addr_list.crn[machine_id].aux[ID_COMM_PC_SLBRK].ip;
+		USHORT portC = CComm::addr_list.crn[machine_id].pc[ID_COMM_PC_SLBRK].port;
+		USHORT portS = CComm::addr_list.crn[machine_id].aux[ID_COMM_PC_SLBRK].port;
+
 		//読み書きデバイス設定
 		set_access_D_r(SLBRK_MC_ADDR_W_READ, SLBRK_MC_SIZE_W_READ);  //読み出しDデバイス先頭アドレスセット
 		set_access_D_w(SLBRK_MC_ADDR_W_WRITE, SLBRK_MC_SIZE_W_WRITE);//書き込みDデバイス先頭アドレスセット
@@ -54,14 +61,13 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		set_sndbuf_write_D_3E();	//3E　Dデバイス書き込み用要求送信フォーマットセット
 
 		//クライアントUDPソケット　アドレス設定　インスタンス化　初期化
-
 		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, eventID);
 		if (pMCSock->Initialize() != S_OK) {							//受信ソケット生成
 			msg_wos.str() = pMCSock->err_msg.str();
 			return S_FALSE;
 		}
 		else {
-			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_SLBRK, PORT_MC_CLIENT_SLBRK);
+			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, ipC, portS);
 			if (pMCSock->init_sock(hwnd, pMCSock->addr_in_rcv) != S_OK) {//受信ソケット設定
 				msg_wos.str() = pMCSock->err_msg.str();
 				return S_FALSE;
@@ -69,10 +75,15 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		}
 
 		//送信先アドレスセット
-		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER_SLBRK, PORT_MC_SERVER_SLBRK);
+		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, ipS, portS);
 	}break;
 	case PLC_IF_TYPE_OTE: //OTE IF
 	{
+		PCSTR ipC = CComm::addr_list.ote[machine_id].pc[ID_COMM_MAIN_PC_PLC].ip;
+		PCSTR ipS = CComm::addr_list.ote[machine_id].plc[ID_COMM_MAIN_PC_PLC].ip;
+		USHORT portC = CComm::addr_list.ote[machine_id].pc[ID_COMM_MAIN_PC_PLC].port;
+		USHORT portS = CComm::addr_list.ote[machine_id].plc[ID_COMM_MAIN_PC_PLC].port;
+
 		//読み書きデバイス設定
 		set_access_D_r(OTE_MC_ADDR_W_READ, OTE_MC_SIZE_W_READ);  //読み出しDデバイス先頭アドレスセット
 		set_access_D_w(OTE_MC_ADDR_W_WRITE, OTE_MC_SIZE_W_WRITE);//書き込みDデバイス先頭アドレスセット
@@ -89,7 +100,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 			return S_FALSE;
 		}
 		else {
-			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_OTE, PORT_MC_CLIENT_OTE);
+			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, ipC, portC);
 			if (pMCSock->init_sock(hwnd, pMCSock->addr_in_rcv) != S_OK) {//受信ソケット設定
 				msg_wos.str() = pMCSock->err_msg.str();
 				return S_FALSE;
@@ -97,7 +108,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		}
 
 		//送信先アドレスセット
-		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER_OTE, PORT_MC_SERVER_OTE);
+		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, ipS, portS);
 	}break;
 	case PLC_IF_TYPE_OTE_DEBUG: //OTE IF
 	{
@@ -110,6 +121,10 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		set_sndbuf_write_D_3E();	//3E　Dデバイス書き込み用要求送信フォーマットセット
 
 		//クライアントUDPソケット　アドレス設定　インスタンス化　初期化
+		PCSTR ipC = CComm::addr_list.ote[machine_id].pc[ID_COMM_MAIN_PC_PLC].ip;
+		PCSTR ipS = CComm::addr_list.ote[machine_id].plc[ID_COMM_MAIN_PC_PLC].ip;
+		USHORT portC = CComm::addr_list.ote[machine_id].pc[ID_COMM_MAIN_PC_PLC].port;
+		USHORT portS = CComm::addr_list.ote[machine_id].plc[ID_COMM_MAIN_PC_PLC].port;
 
 		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, eventID);
 		if (pMCSock->Initialize() != S_OK) {							//受信ソケット生成
@@ -118,7 +133,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		}
 		else {
 //			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT_OTE_DBG, PORT_MC_CLIENT_OTE);
-			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, DEFAULT_MY_IP3, PORT_MC_CLIENT_OTE);
+			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, DEFAULT_MY_IP3, portC);
 			if (pMCSock->init_sock(hwnd, pMCSock->addr_in_rcv) != S_OK) {//受信ソケット設定
 				msg_wos.str() = pMCSock->err_msg.str();
 				return S_FALSE;
@@ -126,7 +141,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		}
 
 		//送信先アドレスセット
-		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER_OTE, PORT_MC_SERVER_OTE);
+		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, ipS, portS);
 	}break;
 	case PLC_IF_TYPE_CC: //CC IF
 	default:
@@ -141,13 +156,18 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 
 		//クライアントUDPソケット　アドレス設定　インスタンス化　初期化
 
+		PCSTR ipC = CComm::addr_list.crn[machine_id].pc[ID_COMM_MAIN_PC_PLC].ip;
+		PCSTR ipS = CComm::addr_list.crn[machine_id].plc[ID_COMM_MAIN_PC_PLC].ip;
+		USHORT portC = CComm::addr_list.crn[machine_id].pc[ID_COMM_MAIN_PC_PLC].port;
+		USHORT portS = CComm::addr_list.crn[machine_id].plc[ID_COMM_MAIN_PC_PLC].port;
+
 		pMCSock = new CSockUDP(ACCESS_TYPE_CLIENT, eventID);
 		if (pMCSock->Initialize() != S_OK) {									//受信ソケット生成
 			msg_wos.str() = pMCSock->err_msg.str();
 			return S_FALSE;
 		}
 		else {
-			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, IP_ADDR_MC_CLIENT, PORT_MC_CLIENT);
+			pMCSock->set_sock_addr(&pMCSock->addr_in_rcv, ipC, portC);
 			if (pMCSock->init_sock(hwnd, pMCSock->addr_in_rcv) != S_OK) {//受信ソケット設定
 				msg_wos.str() = pMCSock->err_msg.str();
 				return S_FALSE;
@@ -155,7 +175,7 @@ HRESULT CMCProtocol::Initialize(HWND hwnd, int type) {
 		}
 
 		//送信先アドレスセット
-		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, IP_ADDR_MC_SERVER, PORT_MC_SERVER);
+		pMCSock->set_sock_addr(&pMCSock->addr_in_dst, ipS, portS);
 	}
 	}
 	return S_OK;

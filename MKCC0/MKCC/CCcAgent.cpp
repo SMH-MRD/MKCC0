@@ -5,6 +5,7 @@
 #include "CPlc.h"
 #include "CSpec.h"
 #include "CHelper.h"
+#include "CComm.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -18,6 +19,7 @@ extern CSharedMem* pOteInfObj;
 extern CCrane* pCrane;
 
 extern CSharedMem* pAuxInfObj;
+extern ST_DEVICE_CODE g_my_code;
 
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
@@ -122,7 +124,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}
 	else {
 		pMCSock = new CMCProtocol(ID_SOCK_MC_CC_AGENT);
-		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_CC) != S_OK) {
+		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_CC, g_my_code.machine_id) != S_OK) {
 			wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
 			wos << L"Err :"<<pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
 			return S_FALSE;

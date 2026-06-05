@@ -319,28 +319,6 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 	}break;
 
-	case ID_SOCK_EVENT_AUXCS_UNI: {
-#if 0
-		int nEvent = WSAGETSELECTEVENT(lp);
-		switch (nEvent) {
-		case FD_READ: {
-			//OTEからのユニキャストメッセージ受信
-			if (rcv_uni_main(&pCsInf->st_msg_u_rcv) == S_OK) {
-				//折り返しアンサバック 送信元へ返送
-				pCsInf->addrin_from = pUSockAuxCs->addr_in_from;
-				pUSockAuxCs->addr_in_dst.sin_family = AF_INET;
-				pUSockAuxCs->addr_in_dst.sin_port = htons(IP_PORT_AUX_CS_CLIENT);
-				pUSockAuxCs->addr_in_dst.sin_addr = pUSockAuxCs->addr_in_from.sin_addr;
-
-				snd_uni2main(set_msg_u(true, 0, 0), &pUSockAuxCs->addr_in_dst);
-			}
-		}break;
-		case FD_WRITE: break;
-		case FD_CLOSE: break;
-		}
-#endif
-	}break;
-
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);

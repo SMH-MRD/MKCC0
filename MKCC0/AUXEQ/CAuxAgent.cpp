@@ -14,6 +14,8 @@ extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
 extern CSharedMem* pCsInfObj;
 
+extern ST_DEVICE_CODE g_my_code;
+
 //ソケット
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
 
@@ -66,7 +68,8 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	}
 	else {
 		pMCSock = new CMCProtocol(ID_SOCK_MC_AUX_BRK);
-		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_SLBRK) != S_OK) {
+	
+		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_SLBRK, g_my_code.machine_id) != S_OK) {
 			wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
 			wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
 			return S_FALSE;
