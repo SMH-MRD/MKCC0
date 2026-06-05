@@ -513,8 +513,8 @@ void COteEnv::close_monitor_wnd(int id) {
 }
 void COteEnv::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
-		//ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
-		ShowWindow(st_mon1.hwnd_mon, SW_MAXIMIZE);
+		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
+		//ShowWindow(st_mon1.hwnd_mon, SW_MAXIMIZE);
 		UpdateWindow(st_mon1.hwnd_mon);
 		InvalidateRect(st_mon1.hwnd_mon, NULL, TRUE);
 	}

@@ -8,6 +8,7 @@
 #include "CSHAREDMEM.H" 
 #include "SmemAux.h"
 #include "SmemOte.h"
+#include "CComm.h"
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include "COteAuxAgent.h"
@@ -204,6 +205,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    swscanf_s(wbuf, L"%x", &(g_my_code.option));
 
    pEnvInf->device_code = g_my_code;
+
+   //コミュニケーションオブジェクトセットアップ
+   CComm::setup();
+   CComm::addr_list;
 
    HBITMAP hBmp;
    CBasicControl* pobj;

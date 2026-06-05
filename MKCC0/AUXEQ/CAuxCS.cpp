@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "AUXEQ_DEF.H"
 #include "SmemAux.H"
+#include "CComm.h"
 
 //ソケット
 static CSockUDP* pUSockAuxCs;	//ユニキャストOTE通信受信用
@@ -73,14 +74,6 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 	LPARAM lp = BC_ID_MON2;
 	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 
-	//### 通信ソケットアドレスセット
-	//##インスタンス生成
-	pUSockAuxCs = new CSockUDP(ACCESS_TYPE_SERVER, ID_SOCK_EVENT_AUXCS_UNI);//#OTEユニキャスト受信
-	//受信アドレス
-	pUSockAuxCs->set_sock_addr(&pUSockAuxCs->addr_in_rcv, IP_ADDR_AUX_SERVER, IP_PORT_AUX_CS_SERVER);
-	//送信先アドレス
-	pUSockAuxCs->set_sock_addr(&(pUSockAuxCs->addr_in_dst), IP_ADDR_AUX_CLIENT, IP_PORT_AUX_CS_CLIENT);
-
 	Sleep(1000);
 	if (st_mon2.hwnd_mon == NULL) {
 		wos << L"Err(MON2 NULL Handle!!):";
@@ -88,31 +81,6 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		return S_FALSE;
 	}
 
-#if 0
-	//### 通信ソケット生成/初期化
-	//##WSA初期化
-	wos.str(L"");
-	if (pUSockAuxCs->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pUSockAuxCs->err_msg.str(); err |= SOCK_NG_UNICAST;   hr = S_FALSE; }
-
-	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
-
-	//##ソケットソケット生成・設定
-	//##ユニキャスト
-	if (pUSockAuxCs->init_sock(st_mon2.hwnd_mon, pUSockAuxCs->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
-		wos << L"CS U SockErr:" << pUSockAuxCs->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
-	}
-	else wos << L"CS U Socket init OK"; msg2listview(wos.str()); wos.str(L"");
-
-	//送信メッセージヘッダ設定（送信元受信アドレス：受信先の折り返し用）
-	pCsInf->st_msg_u_snd.head.sockaddr = pUSockAuxCs->addr_in_rcv;
-
-	if (hr == S_FALSE) {
-		pUSockAuxCs->Close();				//ソケットクローズ
-		close_monitor_wnd(BC_ID_MON2);		//通信モニタクローズ
-		wos.str(L""); wos << L"Initialize : SOCKET NG"; msg2listview(wos.str());
-		return hr;
-	};
-#endif
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;

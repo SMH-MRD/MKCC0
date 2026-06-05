@@ -22,7 +22,7 @@
 #define OTE_IF_CRANE_IP_HHGH29_WAN		"10.130.7.205"	//今造多度津JC70t(102号) WAN回線 
 
 //@ OTE---------------------------------------------------------------------------------------
-#define OTE_IF_UNI_IP_PC				"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
+//#define OTE_IF_UNI_IP_PC				"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
 #define OTE_IF_UNI_IP_PC_HHGG8200		"192.168.101.101" 	//PCのOTE UNICAST　IF用IP	（受信,送信）
 #define OTE_IF_UNI_IP_PC_OTE0			"192.168.101.102"	//デフォルトOTEのUNICAST用IP（受信,送信）
 #define OTE_IF_UNI_IP_PC_OTE1			"192.168.101.103"	//デフォルトOTEのUNICAST用IP2（受信,送信）
@@ -35,16 +35,16 @@
 #define OTE_IF_UNI_IP_PC_WAN_MENTE01	"10.130.5.74" 		//PCのOTE UNICAST　IF用IP	（送信 WAN回線　保守端末No1）
 
 
-#define OTE_IF_UNI_PORT_PC				8001				//ユニキャストPC受信ポート
-#define OTE_IF_UNI_PORT_OTE				8001				//ユニキャスト端末受信ポート
+//#define OTE_IF_UNI_PORT_PC				8001				//ユニキャストPC受信ポート
+//#define OTE_IF_UNI_PORT_OTE				8001				//ユニキャスト端末受信ポート
 
-#define OTE_IF_MULTI_IP_PC				"239.1.0.2"			//PCマルチキャスト用IP
-#define OTE_IF_MULTI_IP_OTE				"239.1.0.1"			//OTEマルチキャスト用IP
+//#define OTE_IF_MULTI_IP_PC				"239.1.0.2"			//PCマルチキャスト用IP
+//#define OTE_IF_MULTI_IP_OTE				"239.1.0.1"			//OTEマルチキャスト用IP
 
-#define OTE_IF_MULTI_PORT_PC2PC			20080				//PC発信マルチキャストOTE受信ポート
-#define OTE_IF_MULTI_PORT_OTE2PC		20081				//OTE発信マルチキャストPC受信ポート;
-#define OTE_IF_MULTI_PORT_PC2OTE		20082				//PC発信マルチキャストOTE受信ポート
-#define OTE_IF_MULTI_PORT_OTE2OTE		20083				//OTE発信マルチキャストPC受信ポート;
+//#define OTE_IF_MULTI_PORT_PC2PC			20080				//PC発信マルチキャストOTE受信ポート
+//#define OTE_IF_MULTI_PORT_OTE2PC		20081				//OTE発信マルチキャストPC受信ポート;
+//#define OTE_IF_MULTI_PORT_PC2OTE		20082				//PC発信マルチキャストOTE受信ポート
+//#define OTE_IF_MULTI_PORT_OTE2OTE		20083				//OTE発信マルチキャストPC受信ポート;
 
 #define ID_SOCK_EVENT_OTE_UNI			10603				//PC受信ソケットイベント　OTE UNICASTメッセージ
 #define ID_SOCK_EVENT_PC_MUL			10604				//PC受信ソケットイベント　PC MULTICASTメッセージ

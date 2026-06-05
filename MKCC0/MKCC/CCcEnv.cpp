@@ -6,6 +6,7 @@
 #include "CCrane.H"
 #include "CFaults.h"
 #include "phisics.h"
+#include "CComm.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -89,11 +90,6 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 
 	//### 通信ソケットアドレスセット
 	//##インスタンス生成
-	pUSockCcEnv = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_CC_ENV_UNI);//#OTEユニキャスト受信
-	//受信アドレス
-	pUSockCcEnv->set_sock_addr(&pUSockCcEnv->addr_in_rcv, IP_ADDR_AUX_CLIENT, IP_PORT_AUX_CS_CLIENT);
-	//送信先アドレス
-	pUSockCcEnv->set_sock_addr(&(pUSockCcEnv->addr_in_dst), IP_ADDR_AUX_SERVER, IP_PORT_AUX_CS_SERVER);
 
 	Sleep(1000);
 	if (st_mon2.hwnd_mon == NULL) {
@@ -104,7 +100,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	//### 通信ソケット生成/初期化
 	//##WSA初期化
 	wos.str(L"");
-	if (pUSockCcEnv->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pUSockCcEnv->err_msg.str(); err |= SOCK_NG_UNICAST;   hr = S_FALSE; }
+//	if (pUSockCcEnv->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pUSockCcEnv->err_msg.str(); err |= SOCK_NG_UNICAST;   hr = S_FALSE; }
 
 	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
 

@@ -15,6 +15,7 @@
 #include "CAuxScad.h"
 #include "CAuxPol.h"
 //#include "CAuxSim.h"
+#include "CComm.h"
 
 #define MAX_LOADSTRING 100
 
@@ -189,6 +190,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    swscanf_s(wbuf, L"%d", &(g_my_code.machine_id));
 
    pEnvStat->device_code = g_my_code;
+
+   //コミュニケーションオブジェクトセットアップ
+   CComm::setup();
+   CComm::addr_list;
 
    HBITMAP hBmp;
    CBasicControl* pobj;

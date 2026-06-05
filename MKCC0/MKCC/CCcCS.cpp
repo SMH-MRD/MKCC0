@@ -5,6 +5,7 @@
 #include "framework.h"
 #include "OTE_DEF.H"
 #include "CCrane.H"
+#include "CComm.H"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -113,14 +114,24 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pMSockOte = new CSockUDP(ACCESS_TYPE_CLIENT, ID_SOCK_EVENT_OTE_MUL);//#OTEマルチキャスト受信
 
 	//受信アドレス
-	pUSockOte->set_sock_addr(&pUSockOte->addr_in_rcv, OTE_IF_UNI_IP_PC, OTE_IF_UNI_PORT_PC);
-	pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv,   OTE_IF_UNI_IP_PC, OTE_IF_MULTI_PORT_PC2PC);//受信アドレス
-	pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, OTE_IF_UNI_IP_PC, OTE_IF_MULTI_PORT_OTE2PC);//受信アドレス
+	PCSTR ip_pc_uni = CComm::addr_list.crn[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].ip;
+	USHORT port_pc_uni = CComm::addr_list.crn[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].port;
+
+	PCSTR ip_pc_mult = CComm::addr_list.mcast_crn_crn.ip;
+	PCSTR ip_ote_mult = CComm::addr_list.mcast_ote_ote.ip;
+
+	USHORT port_crncrn_mult = CComm::addr_list.mcast_crn_crn.port;
+	USHORT port_otecrn_mult = CComm::addr_list.mcast_ote_crn.port;
+	USHORT port_crnote_mult = CComm::addr_list.mcast_crn_ote.port;
+
+	pUSockOte->set_sock_addr(&pUSockOte->addr_in_rcv, ip_pc_uni, port_pc_uni);
+	pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, ip_pc_uni, port_crncrn_mult);//受信アドレス
+	pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, ip_pc_uni, port_otecrn_mult);//受信アドレス
 	
 	//送信先アドレス
-	pUSockOte->set_sock_addr(&(pUSockOte->addr_in_dst), OTE_IF_UNI_IP_OTE_HHGG3801, OTE_IF_UNI_PORT_OTE);
-	pMSockPC->set_sock_addr(&addrin_pc_m2pc_snd,  OTE_IF_MULTI_IP_PC, OTE_IF_MULTI_PORT_PC2PC);
-	pMSockPC->set_sock_addr(&addrin_pc_m2ote_snd, OTE_IF_MULTI_IP_PC, OTE_IF_MULTI_PORT_PC2OTE);
+	pUSockOte->set_sock_addr(&(pUSockOte->addr_in_dst), OTE_IF_UNI_IP_OTE_HHGG3801, port_pc_uni);
+	pMSockPC->set_sock_addr(&addrin_pc_m2pc_snd, ip_pc_mult, port_crncrn_mult);
+	pMSockPC->set_sock_addr(&addrin_pc_m2ote_snd, ip_pc_mult, port_crnote_mult);
 	
 	//### 通信ソケット生成/初期化
 	//##WSA初期化
@@ -137,6 +148,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	}
 
 	//##ソケットソケット生成・設定
+	 
 	//##ユニキャスト
 	if (pUSockOte->init_sock(st_mon2.hwnd_mon, pUSockOte->addr_in_rcv) != S_OK) {//init_sock():bind()→非同期化まで実施
 		wos << L"OTE U SockErr:" << pUSockOte->err_msg.str(); err |= SOCK_NG_UNICAST; hr = S_FALSE;
@@ -146,14 +158,14 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	
 	//#マルチキャスト
 	SOCKADDR_IN addr_buf;
-	pMSockPC->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_PC, NULL);//PCマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
+	pMSockPC->set_sock_addr(&addr_buf, ip_pc_mult, NULL);//PCマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
 	if (pMSockPC->init_sock(st_mon2.hwnd_mon, pMSockPC->addr_in_rcv, addr_buf) != S_OK) {//init_sock_m():bind()まで実施 + マルチキャストグループへ登録
 		wos << L"PC M SockErr:"<< pMSockPC->err_msg.str(); hr = S_FALSE;
 		pMSockPC = NULL;
 	}
 	else wos << L"PC M Socket init OK";	msg2listview(wos.str()); wos.str(L"");
 
-	pMSockOte->set_sock_addr(&addr_buf, OTE_IF_MULTI_IP_OTE, NULL);//OTEマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
+	pMSockOte->set_sock_addr(&addr_buf, ip_ote_mult, NULL);//OTEマルチキャスト受信IPセット,PORTはネットワーク設定（第2引数）のポート
 	if (pMSockOte->init_sock(st_mon2.hwnd_mon, pMSockOte->addr_in_rcv, addr_buf) != S_OK) {
 		wos << L"OTE M SockErr:" << pMSockOte->err_msg.str(); hr = S_FALSE;
 		pMSockOte = NULL;
@@ -1057,11 +1069,14 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		case FD_READ: {
 			//OTEからのユニキャストメッセージ受信
 			HRESULT hr= rcv_uni_ote(&pOTE_Inf->st_msg_ote_u_rcv);
+
+			USHORT port_pc_uni = CComm::addr_list.crn[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].port;
+
 			if(hr == S_OK){
 				//折り返しアンサバック 送信元へ返送
 				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
 				pUSockOte->addr_in_dst.sin_family = AF_INET;
-				pUSockOte->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
+				pUSockOte->addr_in_dst.sin_port = htons(port_pc_uni);
 				pUSockOte->addr_in_dst.sin_addr = pUSockOte->addr_in_from.sin_addr;
 
 				HRESULT hr;
@@ -1080,7 +1095,7 @@ LRESULT CALLBACK CCcCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				//折り返しアンサバック 送信元へ返送
 				st_ote_work.addr_in_from_oteu = pUSockOte->addr_in_from;
 				pUSockOte->addr_in_dst.sin_family = AF_INET;
-				pUSockOte->addr_in_dst.sin_port = htons(OTE_IF_UNI_PORT_OTE);
+				pUSockOte->addr_in_dst.sin_port = htons(port_pc_uni);
 
 				if(hr == S_OK_WAN_MENTE01)
 					pUSockOte->addr_in_dst.sin_addr = pUSockOte->get_sock_ip(OTE_IF_UNI_IP_PC_WAN_MENTE01);

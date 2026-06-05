@@ -17,6 +17,7 @@
 #define ID_COMM_MAIN_PC_PLC			0	//メインのPCとPLC間通信
 #define ID_COMM_CRANE_OTE_IF		1	//クレーンPCと遠隔操作PC（OTE）間通信
 #define ID_COMM_PC_SLBRK			2	//メインのPCと旋回ブレーキPLC間通信
+#define ID_COMM_PC_OPTION			3	//デバッグ用
 
 #define ID_COMM_WAN0				0	//デフォルトのWAN
 #define ID_COMM_WAN1				1	//WAN1

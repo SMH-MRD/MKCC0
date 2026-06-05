@@ -15,6 +15,7 @@
 
 #include "CCrane.h"
 #include "SmemAux.h"
+#include "CComm.h"
 
 using namespace OTE;
 
@@ -228,6 +229,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_PRODUCT_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
     swscanf_s(wbuf, L"%d", &(g_app_common_param.product_mode));
 
+    //コミュニケーションオブジェクトセットアップ
+    CComm::setup();
+    CComm::addr_list;
 
     HBITMAP hBmp;
     CBasicControl* pobj;
