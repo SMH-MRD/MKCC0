@@ -1,6 +1,14 @@
 #pragma once
 #include "COMMON_DEF.h"
 
+
+//@ DEFAULT-----------------------------------------------------------------------------------
+#define DEFAULT_MY_IP1					"127.0.0.1"
+#define DEFAULT_MY_IP2					"127.0.0.2"
+#define DEFAULT_MY_IP3					"127.0.0.3"
+#define DEFAULT_MY_PORT					10050
+
+
 #define N_COMM_SET_CRANE			200
 #define N_COMM_SET_OTE				128
 #define N_COMM_SET_IP_WCHAR			16
@@ -8,8 +16,6 @@
 #define N_COMM_SET_WAN_PORT			2
 #define N_COMM_SET_PLC_LAN_PORT		2
 #define N_COMM_SET_AUX_LAN_PORT		4
-
-#define N_COMM_SET_OTE_ID_OFFSET	0	
 
 #define CODE_COMM_LOCATION_CRANE	0	//クレーン
 #define CODE_COMM_LOCATION_OTE		1	//操作端末
@@ -35,6 +41,17 @@
 #define CODE_COMM_PROTOCOL_TCP		1	//TCP
 #define CODE_COMM_PROTOCOL_MC		2	//MCプロトコル
 #define CODE_COMM_PROTOCOL_MCAST	3	//マルチキャスト
+
+//@ PLC IF-----------------------------------------------------------------------------------
+#define PLC_IF_TYPE_CC				0
+#define PLC_IF_TYPE_OTE				1
+#define PLC_IF_TYPE_SLBRK			2
+#define PLC_IF_TYPE_OTE_DEBUG		3
+
+#define ID_SOCK_EVENT_OTE_UNI			10603				//PC受信ソケットイベント　OTE UNICASTメッセージ
+#define ID_SOCK_EVENT_PC_MUL			10604				//PC受信ソケットイベント　PC MULTICASTメッセージ
+#define ID_SOCK_EVENT_OTE_MUL			10605				//PC受信ソケットイベント　OTE MULTICASTメッセージ
+
 
 //通信定義構造体定義
 typedef struct _ST_ADDR_ITEM
@@ -74,8 +91,8 @@ private:
 			addr_list.crn[machine_id] = *psrc;
 			return S_OK;
 		}
-		if ((loc == CODE_COMM_LOCATION_OTE) && (machine_id >= N_COMM_SET_OTE_ID_OFFSET) && (machine_id < (N_COMM_SET_OTE_ID_OFFSET + N_COMM_SET_OTE))) {
-			addr_list.ote[machine_id - N_COMM_SET_OTE_ID_OFFSET] = *psrc;
+		if ((loc == CODE_COMM_LOCATION_OTE) && (machine_id >= 0) && (machine_id < N_COMM_SET_OTE)) {
+			addr_list.ote[machine_id] = *psrc;
 		}
 		return S_FALSE;
 	}

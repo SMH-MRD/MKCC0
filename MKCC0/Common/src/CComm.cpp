@@ -1,8 +1,4 @@
 #include "CComm.h"
-#include "NET_DEF.h"
-
-
-
 
 ST_COMM_SET	CComm::addr_list;
 

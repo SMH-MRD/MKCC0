@@ -7,6 +7,7 @@
 #include "SmemAux.h"
 #include "COteEnv.h"
 #include "CPanelObj.h"
+#include "CComm.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;

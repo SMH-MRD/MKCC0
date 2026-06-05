@@ -5,6 +5,7 @@
 #include "SmemAux.H"
 #include "CMCProtocol.h"
 #include "CPlc.h"
+#include "CComm.h"
 
 LPST_AUXEQ CAuxAgent::pst_work;
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
