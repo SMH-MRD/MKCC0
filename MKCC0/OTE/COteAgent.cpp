@@ -88,9 +88,6 @@ int COteAgent::setup_crane_if(int crane_id) {
 
 	st_work.ote_mode = pOteEnvInf->app_common_param.product_mode;
 
-	PCSTR ip_pc_uni = CComm::addr_list.crn[crane_id].pc[ID_COMM_CRANE_OTE_IF].ip;
-	USHORT port_pc_uni = CComm::addr_list.crn[crane_id].pc[ID_COMM_CRANE_OTE_IF].port;
-
 	USHORT port_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].port;
 
 	USHORT port_oteote_mult = CComm::addr_list.mcast_ote_ote.port;
@@ -116,21 +113,21 @@ int COteAgent::setup_crane_if(int crane_id) {
 		}
 		else {
 			ip_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].ip;
-			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, ip_pc_uni, port_ote_uni);
+			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, ip_ote_uni, port_ote_uni);
 		}
 	}
 	pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, ip_ote_uni, port_crnote_mult);//受信アドレス
 	pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, ip_ote_uni, port_oteote_mult);//受信アドレス
 	
 	//送信先アドレス
-
+	USHORT port_crn_uni = CComm::addr_list.crn[crane_id].pc[ID_COMM_CRANE_OTE_IF].port;
 	if (st_work.ote_mode == OTE_AGENT_MODE_OTE_PORT_WAN) {//WANモード
 		PCSTR ip_crn_wan = CComm::addr_list.crn[crane_id].wan[ID_COMM_WAN0].ip;
-		pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), ip_crn_wan, port_pc_uni);//送信先アドレス
+		pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), ip_crn_wan, port_crn_uni);//送信先アドレス
 	}
 	else {
 		PCSTR ip_crn_pc = CComm::addr_list.crn[crane_id].pc[ID_COMM_CRANE_OTE_IF].ip;
-		pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), ip_crn_pc, port_pc_uni);//送信先アドレス
+		pUSockPC->set_sock_addr(&(pUSockPC->addr_in_dst), ip_crn_pc, port_crn_uni);//送信先アドレス
 	}
 
 
