@@ -97,37 +97,31 @@ int COteAgent::setup_crane_if(int crane_id) {
 	USHORT port_otecrn_mult = CComm::addr_list.mcast_ote_crn.port;
 	USHORT port_crnote_mult = CComm::addr_list.mcast_crn_ote.port;
 
-
-	//受信アドレス ！！【仮】受信アドレスはアダプタから読み取り設定にする予定
+	PCSTR ip_ote_uni;
 	if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
 
-		PCSTR ip_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_PC_OPTION].ip;
-
+		ip_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_PC_OPTION].ip;
 		pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, ip_ote_uni, port_ote_uni);
-		pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, ip_ote_uni, port_crnote_mult);//受信アドレス
-		pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, ip_ote_uni, port_oteote_mult);//受信アドレス
+
 	}
 	else if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE2) {
-
-		PCSTR ip_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_PC_OPTION].ip;
-
+		ip_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_PC_OPTION].ip;
 		pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, ip_ote_uni, port_ote_uni);
-		pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, ip_ote_uni, port_crnote_mult);//受信アドレス
-		pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, ip_ote_uni, port_oteote_mult);//受信アドレス
 	}
 	else
 	{
 		if (st_work.ote_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
-			PCSTR ip_pc_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_PC_WIFI].ip;
+			ip_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_PC_WIFI].ip;
+			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, ip_ote_uni, port_ote_uni);
+		}
+		else {
+			ip_ote_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].ip;
 			pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, ip_pc_uni, port_ote_uni);
 		}
-		else
-			PCSTR ip_pc_uni = CComm::addr_list.ote[g_my_code.machine_id].pc[ID_COMM_CRANE_OTE_IF].ip;
-		pUSockPC->set_sock_addr(&pUSockPC->addr_in_rcv, ip_pc_uni, port_ote_uni);
-
-		pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, ip_pc_uni, port_crnote_mult);//受信アドレス
-		pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, ip_pc_uni, port_oteote_mult);//受信アドレス
 	}
+	pMSockPC->set_sock_addr(&pMSockPC->addr_in_rcv, ip_ote_uni, port_crnote_mult);//受信アドレス
+	pMSockOte->set_sock_addr(&pMSockOte->addr_in_rcv, ip_ote_uni, port_oteote_mult);//受信アドレス
+	
 	//送信先アドレス
 
 	if (st_work.ote_mode == OTE_AGENT_MODE_OTE_PORT_WAN) {//WANモード
