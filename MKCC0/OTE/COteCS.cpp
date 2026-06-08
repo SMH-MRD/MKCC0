@@ -55,8 +55,8 @@ static LARGE_INTEGER frequency;						//ÉVÉXÉeÉÄé¸îgêî
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLCâûìöéûä‘
 static INT32 read_chk_plc = 0, write_chk_plc = 0;
 
-static ST_PLC_IO_WIF* pPlcWIf = NULL;
-static ST_PLC_IO_RIF* pPlcRIf = NULL;
+static LPST_PLC_WBUF_HHGH29 pPlcWIf = NULL;
+static LPST_PLC_RBUF_HHGH29 pPlcRIf = NULL;
 
 static LPST_PLC_RBUF_HHGG38 pin_opepnl;
 static INT16 dbg_plc_yout[4];

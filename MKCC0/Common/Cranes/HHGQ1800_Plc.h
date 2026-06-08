@@ -4,7 +4,9 @@
 // ################################################################################
 
 
-ST_PLC_IO_RIF plc_io_rdef_hhgq18 = { 
+
+
+ST_HHGQ18_PLC_R plc_io_rdef_hhgq18 = {
 	//{pi16,mask,type,lp,hp}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//plc_healthy;
@@ -114,7 +116,7 @@ ST_PLC_IO_RIF plc_io_rdef_hhgq18 = {
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0 },	//wind_spd_01m
 };
 
-ST_PLC_IO_WIF plc_io_wdef_hhgq18 = { 
+ST_HHGQ18_PLC_W plc_io_wdef_hhgq18 = {
 	//{pi16,mask,type,lp:ビットシフト,hp：バッファサイズ}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_healthy;

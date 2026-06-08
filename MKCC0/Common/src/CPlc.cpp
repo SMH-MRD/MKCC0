@@ -4,7 +4,7 @@
 #include ".\Cranes\HHGQ1800_Plc.h"
 #include ".\Cranes\HHFM0800_Plc.h"
 
-ST_PLC_IO_RIF plc_io_rdef0 = { 
+ST_HHGH29_PLC_R plc_io_rdef0 = {
 	//{pi16,mask,type,lp,hp}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//plc_healthy;
@@ -113,7 +113,7 @@ ST_PLC_IO_RIF plc_io_rdef0 = {
 	//風速
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0 },	//wind_spd_01m
 };
-ST_PLC_IO_WIF plc_io_wdef0 = { 
+ST_HHGH29_PLC_W plc_io_wdef0 = {
 	//{pi16,mask,type,lp:ビットシフト,hp：バッファサイズ}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_healthy;
@@ -194,526 +194,526 @@ int CPlc::setup(int machine_id) {
 	//内容をセット⇒データバッファのアドレスをセット
 	switch (machine_id) {
 	case CRANE_ID_H6R602: {
-		plc_io_rif = plc_io_rdef0;
-		plc_io_wif = plc_io_wdef0;
+		plc_io_rif.hhgh29 = plc_io_rdef0;
+		plc_io_wif.hhgh29 = plc_io_wdef0;
 	}break;
 	case CARNE_ID_HHGH29: {
 
-		plc_io_rif = plc_io_rdef_hhgh29;
+		plc_io_rif.hhgh29 = plc_io_rdef_hhgh29;
 		p = pbuf_r;
 		{
-			plc_io_rif.plc_healthy.pi16		= p + 0;	//PLC制御
-			plc_io_rif.plc_ctrl_fb.pi16		= p + 1;
-			plc_io_rif.m.pi16				= p + 4;	//主巻荷重
-			plc_io_rif.wind_spd_01m.pi16	= p + 5;	//風速
+			plc_io_rif.hhgh29.plc_healthy.pi16		= p + 0;	//PLC制御
+			plc_io_rif.hhgh29.plc_ctrl_fb.pi16		= p + 1;
+			plc_io_rif.hhgh29.m.pi16				= p + 4;	//主巻荷重
+			plc_io_rif.hhgh29.wind_spd_01m.pi16	= p + 5;	//風速
 			//運転室
-			plc_io_rif.syukan_on.pi16		=			
-			plc_io_rif.syukan_off.pi16		= 
-			plc_io_rif.mh_spd_cs.pi16 		= 
-			plc_io_rif.bh_mode_cs.pi16 		= 
-			plc_io_rif.ah_use_sel.pi16 		= 
-			plc_io_rif.ah_notch.pi16 		= p + 6;
+			plc_io_rif.hhgh29.syukan_on.pi16		=
+			plc_io_rif.hhgh29.syukan_off.pi16		=
+			plc_io_rif.hhgh29.mh_spd_cs.pi16 		=
+			plc_io_rif.hhgh29.bh_mode_cs.pi16 		=
+			plc_io_rif.hhgh29.ah_use_sel.pi16 		=
+			plc_io_rif.hhgh29.ah_notch.pi16 		= p + 6;
 			//
-			plc_io_rif.mh_notch.pi16		=
-			plc_io_rif.gt_notch.pi16		=
-			plc_io_rif.estop.pi16			=
-			plc_io_rif.gt_spd_sel.pi16		= p + 7; 
+			plc_io_rif.hhgh29.mh_notch.pi16		=
+			plc_io_rif.hhgh29.gt_notch.pi16		=
+			plc_io_rif.hhgh29.estop.pi16			=
+			plc_io_rif.hhgh29.gt_spd_sel.pi16		= p + 7; 
 			//
-			plc_io_rif.ah_under_limit.pi16	=
-			plc_io_rif.mlim_warn_1.pi16		=
-			plc_io_rif.mlim_warn_2.pi16		=
-			plc_io_rif.mlim_90.pi16			=
-			plc_io_rif.mlim_100.pi16		=
-			plc_io_rif.mlim_under_hmh.pi16	=
-			plc_io_rif.mlim_normal.pi16		=
-			plc_io_rif.wind_over16.pi16		=
-			plc_io_rif.alarm_stp_pb.pi16	=
-			plc_io_rif.fault_reset_pb.pi16	=
-			plc_io_rif.bypass_pb.pi16		=
-			plc_io_rif.mhbk_normal_ss.pi16	=
-			plc_io_rif.mhbk_emr_ss.pi16		=
-			plc_io_rif.mhbk_opn_pb.pi16		=
-			plc_io_rif.ahbk_emr_low_ss.pi16	= p + 8;
+			plc_io_rif.hhgh29.ah_under_limit.pi16	=
+			plc_io_rif.hhgh29.mlim_warn_1.pi16		=
+			plc_io_rif.hhgh29.mlim_warn_2.pi16		=
+			plc_io_rif.hhgh29.mlim_90.pi16			=
+			plc_io_rif.hhgh29.mlim_100.pi16		=
+			plc_io_rif.hhgh29.mlim_under_hmh.pi16	=
+			plc_io_rif.hhgh29.mlim_normal.pi16		=
+			plc_io_rif.hhgh29.wind_over16.pi16		=
+			plc_io_rif.hhgh29.alarm_stp_pb.pi16	=
+			plc_io_rif.hhgh29.fault_reset_pb.pi16	=
+			plc_io_rif.hhgh29.bypass_pb.pi16		=
+			plc_io_rif.hhgh29.mhbk_normal_ss.pi16	=
+			plc_io_rif.hhgh29.mhbk_emr_ss.pi16		=
+			plc_io_rif.hhgh29.mhbk_opn_pb.pi16		=
+			plc_io_rif.hhgh29.ahbk_emr_low_ss.pi16	= p + 8;
 			//
-			plc_io_rif.bh_notch.pi16		=
-			plc_io_rif.sl_brake.pi16		=
-			plc_io_rif.sl_notch.pi16		=
-			plc_io_rif.sl_hydr_press_sw.pi16= p + 9;
-	
-			plc_io_rif.auto_kyusi.pi16		= p + 14;	//自動給脂ランプ
+			plc_io_rif.hhgh29.bh_notch.pi16		=
+			plc_io_rif.hhgh29.sl_brake.pi16		=
+			plc_io_rif.hhgh29.sl_notch.pi16		=
+			plc_io_rif.hhgh29.sl_hydr_press_sw.pi16= p + 9;
+
+			plc_io_rif.hhgh29.auto_kyusi.pi16		= p + 14;	//自動給脂ランプ
 			//B160
-			plc_io_rif.syukan_comp_bz.pi16	=
-			plc_io_rif.syukan_mc_comp.pi16	=
-			plc_io_rif.fault_pl.pi16		=
-			plc_io_rif.syukairo_comp.pi16	=
-			plc_io_rif.takamaki_mode.pi16	=
-			plc_io_rif.bh_rest_mode.pi16	=
-			plc_io_rif.mercury_lamp_sw1.pi16=
-			plc_io_rif.mercury_lamp_sw2.pi16=
-			plc_io_rif.mercury_lamp_sw3.pi16=
-			plc_io_rif.douryoku_ok.pi16		=
-			plc_io_rif.siren_sw.pi16		= p + 15;
+			plc_io_rif.hhgh29.syukan_comp_bz.pi16	=
+			plc_io_rif.hhgh29.syukan_mc_comp.pi16	=
+			plc_io_rif.hhgh29.fault_pl.pi16		=
+			plc_io_rif.hhgh29.syukairo_comp.pi16	=
+			plc_io_rif.hhgh29.takamaki_mode.pi16	=
+			plc_io_rif.hhgh29.bh_rest_mode.pi16	=
+			plc_io_rif.hhgh29.mercury_lamp_sw1.pi16=
+			plc_io_rif.hhgh29.mercury_lamp_sw2.pi16=
+			plc_io_rif.hhgh29.mercury_lamp_sw3.pi16=
+			plc_io_rif.hhgh29.douryoku_ok.pi16		=
+			plc_io_rif.hhgh29.siren_sw.pi16		= p + 15;
 
 			//揚程　旋回半径
-			plc_io_rif.h_mh_mm.pi16			= p + 25;
-			plc_io_rif.r_bh_m.pi16			= p + 27;
+			plc_io_rif.hhgh29.h_mh_mm.pi16			= p + 25;
+			plc_io_rif.hhgh29.r_bh_m.pi16			= p + 27;
 
 			//目標速度％
-			plc_io_rif.target_v_mh.pi16		= p + 33;	//主巻目標速度
-			plc_io_rif.target_v_bh.pi16		= p + 34;	//引込目標速度
-			plc_io_rif.target_v_sl.pi16		= p + 35;	//旋回目標速度
-			plc_io_rif.target_v_gt.pi16		= p + 36;	//走行目標速度	 
-			plc_io_rif.fault_bz.pi16		= p + 38;		//ブザー
+			plc_io_rif.hhgh29.target_v_mh.pi16		= p + 33;	//主巻目標速度
+			plc_io_rif.hhgh29.target_v_bh.pi16		= p + 34;	//引込目標速度
+			plc_io_rif.hhgh29.target_v_sl.pi16		= p + 35;	//旋回目標速度
+			plc_io_rif.hhgh29.target_v_gt.pi16		= p + 36;	//走行目標速度	 
+			plc_io_rif.hhgh29.fault_bz.pi16		= p + 38;		//ブザー
 
 			//インバータへの指令出力内容
 			//主巻インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_mh.pi16		= 
-			plc_io_rif.inv_rev_mh.pi16		= p + 57;
+			plc_io_rif.hhgh29.inv_fwd_mh.pi16		= 
+			plc_io_rif.hhgh29.inv_rev_mh.pi16		= p + 57;
 			//引込,旋回インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_bh.pi16		=
-			plc_io_rif.inv_rev_bh.pi16		=
-			plc_io_rif.inv_fwd_sl.pi16		=
-			plc_io_rif.inv_rev_sl.pi16		= p + 58;	
+			plc_io_rif.hhgh29.inv_fwd_bh.pi16		=
+			plc_io_rif.hhgh29.inv_rev_bh.pi16		=
+			plc_io_rif.hhgh29.inv_fwd_sl.pi16		=
+			plc_io_rif.hhgh29.inv_rev_sl.pi16		= p + 58;	
 			//走行インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_gt.pi16		= 
-			plc_io_rif.inv_rev_gt.pi16		= p + 59;	
+			plc_io_rif.hhgh29.inv_fwd_gt.pi16		=
+			plc_io_rif.hhgh29.inv_rev_gt.pi16		= p + 59;	
 			//電気室
 			//X0C0
-			plc_io_rif.brk_mc3_fb.pi16		=
-			plc_io_rif.mh_brk1_fb.pi16		= 
-			plc_io_rif.bh_brk_fb.pi16		= 
-			plc_io_rif.gt_brk_fb.pi16		= p + 66;
+			plc_io_rif.hhgh29.brk_mc3_fb.pi16		=
+			plc_io_rif.hhgh29.mh_brk1_fb.pi16		=
+			plc_io_rif.hhgh29.bh_brk_fb.pi16		=
+			plc_io_rif.hhgh29.gt_brk_fb.pi16		= p + 66;
 			//インバータ速度指令
-			plc_io_rif.inv_vref_mh.pi16		= p + 70;	//主巻インバータ速度指令
-			plc_io_rif.inv_vref_bh.pi16		= p + 71;	//引込インバータ速度指令
-			plc_io_rif.inv_vref_sl.pi16		= p + 72;	//旋回インバータ速度指令
-			plc_io_rif.inv_vref_gt.pi16		= p + 73;	//走行インバータ速度指令
+			plc_io_rif.hhgh29.inv_vref_mh.pi16		= p + 70;	//主巻インバータ速度指令
+			plc_io_rif.hhgh29.inv_vref_bh.pi16		= p + 71;	//引込インバータ速度指令
+			plc_io_rif.hhgh29.inv_vref_sl.pi16		= p + 72;	//旋回インバータ速度指令
+			plc_io_rif.hhgh29.inv_vref_gt.pi16		= p + 73;	//走行インバータ速度指令
 			//インバータ速度FB
-			plc_io_rif.inv_vfb_mh.pi16		= p + 74;	//主巻インバータ速度FB
-			plc_io_rif.inv_vfb_bh.pi16		= p + 75;	//引込インバータ速度FB
-			plc_io_rif.inv_vfb_sl.pi16		= p + 76;	//旋回インバータ速度FB
-			plc_io_rif.inv_vfb_gt.pi16		= p + 77;	//走行インバータ速度FB
+			plc_io_rif.hhgh29.inv_vfb_mh.pi16		= p + 74;	//主巻インバータ速度FB
+			plc_io_rif.hhgh29.inv_vfb_bh.pi16		= p + 75;	//引込インバータ速度FB
+			plc_io_rif.hhgh29.inv_vfb_sl.pi16		= p + 76;	//旋回インバータ速度FB
+			plc_io_rif.hhgh29.inv_vfb_gt.pi16		= p + 77;	//走行インバータ速度FB
 			//インバータトルク指令
-			plc_io_rif.inv_trqref_mh.pi16	= p + 78;	//主巻インバータトルク指令
-			plc_io_rif.inv_trqref_bh.pi16	= p + 79;	//引込インバータトルク指令
+			plc_io_rif.hhgh29.inv_trqref_mh.pi16	= p + 78;	//主巻インバータトルク指令
+			plc_io_rif.hhgh29.inv_trqref_bh.pi16	= p + 79;	//引込インバータトルク指令
 			//高速カウンタ,アブソコーダ
-			plc_io_rif.hcounter_mh.pi16		= p + 82;
-			plc_io_rif.hcounter_bh.pi16		= p + 86;
-			plc_io_rif.hcounter_sl.pi16		= p + 88;
-			plc_io_rif.absocoder_mh.pi16	= p + 90;
-			plc_io_rif.absocoder_gt.pi16	= p + 94;
+			plc_io_rif.hhgh29.hcounter_mh.pi16		= p + 82;
+			plc_io_rif.hhgh29.hcounter_bh.pi16		= p + 86;
+			plc_io_rif.hhgh29.hcounter_sl.pi16		= p + 88;
+			plc_io_rif.hhgh29.absocoder_mh.pi16		= p + 90;
+			plc_io_rif.hhgh29.absocoder_gt.pi16		= p + 94;
 		}
 		//WRITE
-		plc_io_wif = plc_io_wdef_hhgh29;	//IOデータインスタンスバッファ先頭アドレス
+		plc_io_wif.hhgh29 = plc_io_wdef_hhgh29;	//IOデータインスタンスバッファ先頭アドレス
 		p = pbuf_w;					//書き込みバッファ先頭アドレス
 		{
-			plc_io_wif.pc_healthy.pi16			= p + 0;	//PLC制御
-			plc_io_wif.pc_ctrl_mode.pi16		= p + 1;
+			plc_io_wif.hhgh29.pc_healthy.pi16			= p + 0;	//PLC制御
+			plc_io_wif.hhgh29.pc_ctrl_mode.pi16		= p + 1;
 			//運転室
-			plc_io_wif.mlim_r_ai.pi16			= p + 3;	//モーメントリミッタAI
-			plc_io_wif.mlim_weight_ai.pi16		= p + 4;
-			plc_io_wif.wind_spd_ai.pi16			= p + 5;	//風速AI
+			plc_io_wif.hhgh29.mlim_r_ai.pi16			= p + 3;	//モーメントリミッタAI
+			plc_io_wif.hhgh29.mlim_weight_ai.pi16		= p + 4;
+			plc_io_wif.hhgh29.wind_spd_ai.pi16			= p + 5;	//風速AI
+			//運転室
+			plc_io_wif.hhgh29.syukan_on.pi16			=
+			plc_io_wif.hhgh29.syukan_off.pi16			=
+			plc_io_wif.hhgh29.mh_spd_cs.pi16			=
+			plc_io_wif.hhgh29.bh_mode_cs.pi16			=
+			plc_io_wif.hhgh29.ah_use_sel.pi16			=
+			plc_io_wif.hhgh29.ah_notch.pi16			= p + 6;
 			//
-			plc_io_wif.syukan_on.pi16			=
-			plc_io_wif.syukan_off.pi16			=
-			plc_io_wif.mh_spd_cs.pi16			=
-			plc_io_wif.bh_mode_cs.pi16			=
-			plc_io_wif.ah_use_sel.pi16			=
-			plc_io_wif.ah_notch.pi16			= p + 6;
+			plc_io_wif.hhgh29.mh_notch.pi16			=
+			plc_io_wif.hhgh29.gt_spd_sel.pi16			=
+			plc_io_wif.hhgh29.gt_notch.pi16			=
+			plc_io_wif.hhgh29.estop.pi16				= p + 7;
 			//
-			plc_io_wif.mh_notch.pi16			=
-			plc_io_wif.gt_spd_sel.pi16			=
-			plc_io_wif.gt_notch.pi16			=
-			plc_io_wif.estop.pi16				= p + 7;
+			plc_io_wif.hhgh29.ah_under_limit.pi16		=
+			plc_io_wif.hhgh29.mlim_warn_1.pi16			=
+			plc_io_wif.hhgh29.mlim_warn_2.pi16			=
+			plc_io_wif.hhgh29.mlim_90.pi16				=
+			plc_io_wif.hhgh29.mlim_100.pi16			=
+			plc_io_wif.hhgh29.mlim_under_hmh.pi16		=
+			plc_io_wif.hhgh29.mlim_normal.pi16			=
+			plc_io_wif.hhgh29.wind_over16.pi16			=
+			plc_io_wif.hhgh29.alarm_stp_pb.pi16		=
+			plc_io_wif.hhgh29.fault_reset_pb.pi16		=
+			plc_io_wif.hhgh29.bypass_pb.pi16			=
+			plc_io_wif.hhgh29.mhbk_normal_ss.pi16		=
+			plc_io_wif.hhgh29.mhbk_emr_ss.pi16			=
+			plc_io_wif.hhgh29.mhbk_opn_pb.pi16			=
+			plc_io_wif.hhgh29.ahbk_emr_low_ss.pi16		= p + 8;
 			//
-			plc_io_wif.ah_under_limit.pi16		=
-			plc_io_wif.mlim_warn_1.pi16			=
-			plc_io_wif.mlim_warn_2.pi16			=
-			plc_io_wif.mlim_90.pi16				=
-			plc_io_wif.mlim_100.pi16			=
-			plc_io_wif.mlim_under_hmh.pi16		=
-			plc_io_wif.mlim_normal.pi16			=
-			plc_io_wif.wind_over16.pi16			=
-			plc_io_wif.alarm_stp_pb.pi16		=
-			plc_io_wif.fault_reset_pb.pi16		=
-			plc_io_wif.bypass_pb.pi16			=
-			plc_io_wif.mhbk_normal_ss.pi16		=
-			plc_io_wif.mhbk_emr_ss.pi16			=
-			plc_io_wif.mhbk_opn_pb.pi16			=
-			plc_io_wif.ahbk_emr_low_ss.pi16		= p + 8;
-			//
-			plc_io_wif.bh_notch.pi16			=
-			plc_io_wif.sl_brake.pi16			=
-			plc_io_wif.sl_notch.pi16			=
-			plc_io_wif.sl_hydr_press_sw.pi16	= p + 9;
+			plc_io_wif.hhgh29.bh_notch.pi16			=
+			plc_io_wif.hhgh29.sl_brake.pi16			=
+			plc_io_wif.hhgh29.sl_notch.pi16			=
+			plc_io_wif.hhgh29.sl_hydr_press_sw.pi16	= p + 9;
 
-			plc_io_wif.v_delay_device.pi16		= p + 10;	//映像遅延検出用デバイス
+			plc_io_wif.hhgh29.v_delay_device.pi16		= p + 10;	//映像遅延検出用デバイス
 			//
-			plc_io_wif.mercury_lamp_sw1.pi16	=
-			plc_io_wif.mercury_lamp_sw2.pi16	=
-			plc_io_wif.mercury_lamp_sw3.pi16	=
-			plc_io_wif.siren_sw.pi16			= p + 15;
+			plc_io_wif.hhgh29.mercury_lamp_sw1.pi16	=
+			plc_io_wif.hhgh29.mercury_lamp_sw2.pi16	=
+			plc_io_wif.hhgh29.mercury_lamp_sw3.pi16	=
+			plc_io_wif.hhgh29.siren_sw.pi16			= p + 15;
 			//
-			plc_io_wif.ote_head_command.pi16	= p + 16;//OTE HEADER COMMAND
+			plc_io_wif.hhgh29.ote_head_command.pi16	= p + 16;//OTE HEADER COMMAND
 			//Simulator
-			plc_io_wif.hcounter_mh.pi16			= p + 30;//高速カウンタ,アブソコーダ
-			plc_io_wif.hcounter_bh.pi16			= p + 34;
-			plc_io_wif.hcounter_sl.pi16			= p + 36;
-			plc_io_wif.absocoder_mh.pi16		= p + 38;
-			plc_io_wif.absocoder_gt.pi16		= p + 42;
-			plc_io_wif.vfb_mh.pi16				= p + 70;//インバータ速度FB
-			plc_io_wif.vfb_bh.pi16				= p + 71;
-			plc_io_wif.vfb_sl.pi16				= p + 72;
-			plc_io_wif.vfb_gt.pi16				= p + 73;
-			plc_io_wif.trqref_mh.pi16			= p + 74;//インバータトルクFB
-			plc_io_wif.trqref_bh.pi16			= p + 75;
+			plc_io_wif.hhgh29.hcounter_mh.pi16			= p + 30;//高速カウンタ,アブソコーダ
+			plc_io_wif.hhgh29.hcounter_bh.pi16			= p + 34;
+			plc_io_wif.hhgh29.hcounter_sl.pi16			= p + 36;
+			plc_io_wif.hhgh29.absocoder_mh.pi16			= p + 38;
+			plc_io_wif.hhgh29.absocoder_gt.pi16			= p + 42;
+			plc_io_wif.hhgh29.vfb_mh.pi16				= p + 70;//インバータ速度FB
+			plc_io_wif.hhgh29.vfb_bh.pi16				= p + 71;
+			plc_io_wif.hhgh29.vfb_sl.pi16				= p + 72;
+			plc_io_wif.hhgh29.vfb_gt.pi16				= p + 73;
+			plc_io_wif.hhgh29.trqref_mh.pi16			= p + 74;//インバータトルクFB
+			plc_io_wif.hhgh29.trqref_bh.pi16			= p + 75;
 		}
 	}break;
 	case CARNE_ID_HHGQ18:{
-		plc_io_rif = plc_io_rdef_hhgq18;
+		plc_io_rif.hhgq18 = plc_io_rdef_hhgq18;
 		p = pbuf_r;
 		{
-			plc_io_rif.plc_healthy.pi16 = p + 0;	//PLC制御
-			plc_io_rif.plc_ctrl_fb.pi16 = p + 1;
-			plc_io_rif.m.pi16 = p + 4;	//主巻荷重
-			plc_io_rif.wind_spd_01m.pi16 = p + 5;	//風速
+			plc_io_rif.hhgq18.plc_healthy.pi16 = p + 0;	//PLC制御
+			plc_io_rif.hhgq18.plc_ctrl_fb.pi16 = p + 1;
+			plc_io_rif.hhgq18.m.pi16 = p + 4;	//主巻荷重
+			plc_io_rif.hhgq18.wind_spd_01m.pi16 = p + 5;	//風速
 			//運転室
-			plc_io_rif.syukan_on.pi16 =
-				plc_io_rif.syukan_off.pi16 =
-				plc_io_rif.mh_spd_cs.pi16 =
-				plc_io_rif.bh_mode_cs.pi16 =
-				plc_io_rif.ah_use_sel.pi16 =
-				plc_io_rif.ah_notch.pi16 = p + 6;
+			plc_io_rif.hhgq18.syukan_on.pi16 =
+				plc_io_rif.hhgq18.syukan_off.pi16 =
+				plc_io_rif.hhgq18.mh_spd_cs.pi16 =
+				plc_io_rif.hhgq18.bh_mode_cs.pi16 =
+				plc_io_rif.hhgq18.ah_use_sel.pi16 =
+				plc_io_rif.hhgq18.ah_notch.pi16 = p + 6;
 			//
-			plc_io_rif.mh_notch.pi16 =
-				plc_io_rif.gt_notch.pi16 =
-				plc_io_rif.estop.pi16 =
-				plc_io_rif.gt_spd_sel.pi16 = p + 7;
+			plc_io_rif.hhgq18.mh_notch.pi16 =
+				plc_io_rif.hhgq18.gt_notch.pi16 =
+				plc_io_rif.hhgq18.estop.pi16 =
+				plc_io_rif.hhgq18.gt_spd_sel.pi16 = p + 7;
 			//
-			plc_io_rif.ah_under_limit.pi16 =
-				plc_io_rif.mlim_warn_1.pi16 =
-				plc_io_rif.mlim_warn_2.pi16 =
-				plc_io_rif.mlim_90.pi16 =
-				plc_io_rif.mlim_100.pi16 =
-				plc_io_rif.mlim_under_hmh.pi16 =
-				plc_io_rif.mlim_normal.pi16 =
-				plc_io_rif.wind_over16.pi16 =
-				plc_io_rif.alarm_stp_pb.pi16 =
-				plc_io_rif.fault_reset_pb.pi16 =
-				plc_io_rif.bypass_pb.pi16 =
-				plc_io_rif.mhbk_normal_ss.pi16 =
-				plc_io_rif.mhbk_emr_ss.pi16 =
-				plc_io_rif.mhbk_opn_pb.pi16 =
-				plc_io_rif.ahbk_emr_low_ss.pi16 = p + 8;
+			plc_io_rif.hhgq18.ah_under_limit.pi16 =
+				plc_io_rif.hhgq18.mlim_warn_1.pi16 =
+				plc_io_rif.hhgq18.mlim_warn_2.pi16 =
+				plc_io_rif.hhgq18.mlim_90.pi16 =
+				plc_io_rif.hhgq18.mlim_100.pi16 =
+				plc_io_rif.hhgq18.mlim_under_hmh.pi16 =
+				plc_io_rif.hhgq18.mlim_normal.pi16 =
+				plc_io_rif.hhgq18.wind_over16.pi16 =
+				plc_io_rif.hhgq18.alarm_stp_pb.pi16 =
+				plc_io_rif.hhgq18.fault_reset_pb.pi16 =
+				plc_io_rif.hhgq18.bypass_pb.pi16 =
+				plc_io_rif.hhgq18.mhbk_normal_ss.pi16 =
+				plc_io_rif.hhgq18.mhbk_emr_ss.pi16 =
+				plc_io_rif.hhgq18.mhbk_opn_pb.pi16 =
+				plc_io_rif.hhgq18.ahbk_emr_low_ss.pi16 = p + 8;
 			//
-			plc_io_rif.bh_notch.pi16 =
-				plc_io_rif.sl_brake.pi16 =
-				plc_io_rif.sl_notch.pi16 =
-				plc_io_rif.sl_hydr_press_sw.pi16 = p + 9;
+			plc_io_rif.hhgq18.bh_notch.pi16 =
+				plc_io_rif.hhgq18.sl_brake.pi16 =
+				plc_io_rif.hhgq18.sl_notch.pi16 =
+				plc_io_rif.hhgq18.sl_hydr_press_sw.pi16 = p + 9;
 
-			plc_io_rif.auto_kyusi.pi16 = p + 14;	//自動給脂ランプ
+			plc_io_rif.hhgq18.auto_kyusi.pi16 = p + 14;	//自動給脂ランプ
 			//B160
-			plc_io_rif.syukan_comp_bz.pi16 =
-				plc_io_rif.syukan_mc_comp.pi16 =
-				plc_io_rif.fault_pl.pi16 =
-				plc_io_rif.syukairo_comp.pi16 =
-				plc_io_rif.takamaki_mode.pi16 =
-				plc_io_rif.bh_rest_mode.pi16 =
-				plc_io_rif.mercury_lamp_sw1.pi16 =
-				plc_io_rif.mercury_lamp_sw2.pi16 =
-				plc_io_rif.mercury_lamp_sw3.pi16 =
-				plc_io_rif.douryoku_ok.pi16 =
-				plc_io_rif.siren_sw.pi16 = p + 15;
+			plc_io_rif.hhgq18.syukan_comp_bz.pi16 =
+				plc_io_rif.hhgq18.syukan_mc_comp.pi16 =
+				plc_io_rif.hhgq18.fault_pl.pi16 =
+				plc_io_rif.hhgq18.syukairo_comp.pi16 =
+				plc_io_rif.hhgq18.takamaki_mode.pi16 =
+				plc_io_rif.hhgq18.bh_rest_mode.pi16 =
+				plc_io_rif.hhgq18.mercury_lamp_sw1.pi16 =
+				plc_io_rif.hhgq18.mercury_lamp_sw2.pi16 =
+				plc_io_rif.hhgq18.mercury_lamp_sw3.pi16 =
+				plc_io_rif.hhgq18.douryoku_ok.pi16 =
+				plc_io_rif.hhgq18.siren_sw.pi16 = p + 15;
 
 			//揚程　旋回半径
-			plc_io_rif.h_mh_mm.pi16 = p + 25;
-			plc_io_rif.r_bh_m.pi16 = p + 27;
+			plc_io_rif.hhgq18.h_mh_mm.pi16 = p + 25;
+			plc_io_rif.hhgq18.r_bh_m.pi16 = p + 27;
 
 			//目標速度％
-			plc_io_rif.target_v_mh.pi16 = p + 33;	//主巻目標速度
-			plc_io_rif.target_v_bh.pi16 = p + 34;	//引込目標速度
-			plc_io_rif.target_v_sl.pi16 = p + 35;	//旋回目標速度
-			plc_io_rif.target_v_gt.pi16 = p + 36;	//走行目標速度	 
-			plc_io_rif.fault_bz.pi16 = p + 38;		//ブザー
+			plc_io_rif.hhgq18.target_v_mh.pi16 = p + 33;	//主巻目標速度
+			plc_io_rif.hhgq18.target_v_bh.pi16 = p + 34;	//引込目標速度
+			plc_io_rif.hhgq18.target_v_sl.pi16 = p + 35;	//旋回目標速度
+			plc_io_rif.hhgq18.target_v_gt.pi16 = p + 36;	//走行目標速度
+			plc_io_rif.hhgq18.fault_bz.pi16 = p + 38;		//ブザー
 
 			//インバータへの指令出力内容
 			//主巻インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_mh.pi16 =
-				plc_io_rif.inv_rev_mh.pi16 = p + 57;
+			plc_io_rif.hhgq18.inv_fwd_mh.pi16 =
+				plc_io_rif.hhgq18.inv_rev_mh.pi16 = p + 57;
 			//引込,旋回インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_bh.pi16 =
-				plc_io_rif.inv_rev_bh.pi16 =
-				plc_io_rif.inv_fwd_sl.pi16 =
-				plc_io_rif.inv_rev_sl.pi16 = p + 58;
+			plc_io_rif.hhgq18.inv_fwd_bh.pi16 =
+				plc_io_rif.hhgq18.inv_rev_bh.pi16 =
+				plc_io_rif.hhgq18.inv_fwd_sl.pi16 =
+				plc_io_rif.hhgq18.inv_rev_sl.pi16 = p + 58;
 			//走行インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_gt.pi16 =
-				plc_io_rif.inv_rev_gt.pi16 = p + 59;
+			plc_io_rif.hhgq18.inv_fwd_gt.pi16 =
+				plc_io_rif.hhgq18.inv_rev_gt.pi16 = p + 59;
 			//電気室
 			//X0C0
-			plc_io_rif.brk_mc3_fb.pi16 =
-				plc_io_rif.mh_brk1_fb.pi16 =
-				plc_io_rif.bh_brk_fb.pi16 =
-				plc_io_rif.gt_brk_fb.pi16 = p + 66;
+			plc_io_rif.hhgq18.brk_mc3_fb.pi16 =
+				plc_io_rif.hhgq18.mh_brk1_fb.pi16 =
+				plc_io_rif.hhgq18.bh_brk_fb.pi16 =
+				plc_io_rif.hhgq18.gt_brk_fb.pi16 = p + 66;
 			//インバータ速度指令
-			plc_io_rif.inv_vref_mh.pi16 = p + 70;	//主巻インバータ速度指令
-			plc_io_rif.inv_vref_bh.pi16 = p + 71;	//引込インバータ速度指令
-			plc_io_rif.inv_vref_sl.pi16 = p + 72;	//旋回インバータ速度指令
-			plc_io_rif.inv_vref_gt.pi16 = p + 73;	//走行インバータ速度指令
+			plc_io_rif.hhgq18.inv_vref_mh.pi16 = p + 70;	//主巻インバータ速度指令
+			plc_io_rif.hhgq18.inv_vref_bh.pi16 = p + 71;	//引込インバータ速度指令
+			plc_io_rif.hhgq18.inv_vref_sl.pi16 = p + 72;	//旋回インバータ速度指令
+			plc_io_rif.hhgq18.inv_vref_gt.pi16 = p + 73;	//走行インバータ速度指令
 			//インバータ速度FB
-			plc_io_rif.inv_vfb_mh.pi16 = p + 74;	//主巻インバータ速度FB
-			plc_io_rif.inv_vfb_bh.pi16 = p + 75;	//引込インバータ速度FB
-			plc_io_rif.inv_vfb_sl.pi16 = p + 76;	//旋回インバータ速度FB
-			plc_io_rif.inv_vfb_gt.pi16 = p + 77;	//走行インバータ速度FB
+			plc_io_rif.hhgq18.inv_vfb_mh.pi16 = p + 74;	//主巻インバータ速度FB
+			plc_io_rif.hhgq18.inv_vfb_bh.pi16 = p + 75;	//引込インバータ速度FB
+			plc_io_rif.hhgq18.inv_vfb_sl.pi16 = p + 76;	//旋回インバータ速度FB
+			plc_io_rif.hhgq18.inv_vfb_gt.pi16 = p + 77;	//走行インバータ速度FB
 			//インバータトルク指令
-			plc_io_rif.inv_trqref_mh.pi16 = p + 78;	//主巻インバータトルク指令
-			plc_io_rif.inv_trqref_bh.pi16 = p + 79;	//引込インバータトルク指令
+			plc_io_rif.hhgq18.inv_trqref_mh.pi16 = p + 78;	//主巻インバータトルク指令
+			plc_io_rif.hhgq18.inv_trqref_bh.pi16 = p + 79;	//引込インバータトルク指令
 			//高速カウンタ,アブソコーダ
-			plc_io_rif.hcounter_mh.pi16 = p + 82;
-			plc_io_rif.hcounter_bh.pi16 = p + 86;
-			plc_io_rif.hcounter_sl.pi16 = p + 88;
-			plc_io_rif.absocoder_mh.pi16 = p + 90;
-			plc_io_rif.absocoder_gt.pi16 = p + 94;
+			plc_io_rif.hhgq18.hcounter_mh.pi16 = p + 82;
+			plc_io_rif.hhgq18.hcounter_bh.pi16 = p + 86;
+			plc_io_rif.hhgq18.hcounter_sl.pi16 = p + 88;
+			plc_io_rif.hhgq18.absocoder_mh.pi16 = p + 90;
+			plc_io_rif.hhgq18.absocoder_gt.pi16 = p + 94;
 		}
 		//WRITE
-		plc_io_wif = plc_io_wdef_hhgq18;	//IOデータインスタンスバッファ先頭アドレス
+		plc_io_wif.hhgq18 = plc_io_wdef_hhgq18;	//IOデータインスタンスバッファ先頭アドレス
 		p = pbuf_w;					//書き込みバッファ先頭アドレス
 		{
-			plc_io_wif.pc_healthy.pi16 = p + 0;	//PLC制御
-			plc_io_wif.pc_ctrl_mode.pi16 = p + 1;
+			plc_io_wif.hhgq18.pc_healthy.pi16 = p + 0;	//PLC制御
+			plc_io_wif.hhgq18.pc_ctrl_mode.pi16 = p + 1;
 			//運転室
-			plc_io_wif.mlim_r_ai.pi16 = p + 3;	//モーメントリミッタAI
-			plc_io_wif.mlim_weight_ai.pi16 = p + 4;
-			plc_io_wif.wind_spd_ai.pi16 = p + 5;	//風速AI
+			plc_io_wif.hhgq18.mlim_r_ai.pi16 = p + 3;	//モーメントリミッタAI
+			plc_io_wif.hhgq18.mlim_weight_ai.pi16 = p + 4;
+			plc_io_wif.hhgq18.wind_spd_ai.pi16 = p + 5;	//風速AI
 			//
-			plc_io_wif.syukan_on.pi16 =
-				plc_io_wif.syukan_off.pi16 =
-				plc_io_wif.mh_spd_cs.pi16 =
-				plc_io_wif.bh_mode_cs.pi16 =
-				plc_io_wif.ah_use_sel.pi16 =
-				plc_io_wif.ah_notch.pi16 = p + 6;
+			plc_io_wif.hhgq18.syukan_on.pi16 =
+				plc_io_wif.hhgq18.syukan_off.pi16 =
+				plc_io_wif.hhgq18.mh_spd_cs.pi16 =
+				plc_io_wif.hhgq18.bh_mode_cs.pi16 =
+				plc_io_wif.hhgq18.ah_use_sel.pi16 =
+				plc_io_wif.hhgq18.ah_notch.pi16 = p + 6;
 			//
-			plc_io_wif.mh_notch.pi16 =
-				plc_io_wif.gt_spd_sel.pi16 =
-				plc_io_wif.gt_notch.pi16 =
-				plc_io_wif.estop.pi16 = p + 7;
+			plc_io_wif.hhgq18.mh_notch.pi16 =
+				plc_io_wif.hhgq18.gt_spd_sel.pi16 =
+				plc_io_wif.hhgq18.gt_notch.pi16 =
+				plc_io_wif.hhgq18.estop.pi16 = p + 7;
 			//
-			plc_io_wif.ah_under_limit.pi16 =
-				plc_io_wif.mlim_warn_1.pi16 =
-				plc_io_wif.mlim_warn_2.pi16 =
-				plc_io_wif.mlim_90.pi16 =
-				plc_io_wif.mlim_100.pi16 =
-				plc_io_wif.mlim_under_hmh.pi16 =
-				plc_io_wif.mlim_normal.pi16 =
-				plc_io_wif.wind_over16.pi16 =
-				plc_io_wif.alarm_stp_pb.pi16 =
-				plc_io_wif.fault_reset_pb.pi16 =
-				plc_io_wif.bypass_pb.pi16 =
-				plc_io_wif.mhbk_normal_ss.pi16 =
-				plc_io_wif.mhbk_emr_ss.pi16 =
-				plc_io_wif.mhbk_opn_pb.pi16 =
-				plc_io_wif.ahbk_emr_low_ss.pi16 = p + 8;
+			plc_io_wif.hhgq18.ah_under_limit.pi16 =
+				plc_io_wif.hhgq18.mlim_warn_1.pi16 =
+				plc_io_wif.hhgq18.mlim_warn_2.pi16 =
+				plc_io_wif.hhgq18.mlim_90.pi16 =
+				plc_io_wif.hhgq18.mlim_100.pi16 =
+				plc_io_wif.hhgq18.mlim_under_hmh.pi16 =
+				plc_io_wif.hhgq18.mlim_normal.pi16 =
+				plc_io_wif.hhgq18.wind_over16.pi16 =
+				plc_io_wif.hhgq18.alarm_stp_pb.pi16 =
+				plc_io_wif.hhgq18.fault_reset_pb.pi16 =
+				plc_io_wif.hhgq18.bypass_pb.pi16 =
+				plc_io_wif.hhgq18.mhbk_normal_ss.pi16 =
+				plc_io_wif.hhgq18.mhbk_emr_ss.pi16 =
+				plc_io_wif.hhgq18.mhbk_opn_pb.pi16 =
+				plc_io_wif.hhgq18.ahbk_emr_low_ss.pi16 = p + 8;
 			//
-			plc_io_wif.bh_notch.pi16 =
-				plc_io_wif.sl_brake.pi16 =
-				plc_io_wif.sl_notch.pi16 =
-				plc_io_wif.sl_hydr_press_sw.pi16 = p + 9;
+			plc_io_wif.hhgq18.bh_notch.pi16 =
+				plc_io_wif.hhgq18.sl_brake.pi16 =
+				plc_io_wif.hhgq18.sl_notch.pi16 =
+				plc_io_wif.hhgq18.sl_hydr_press_sw.pi16 = p + 9;
 
-			plc_io_wif.v_delay_device.pi16 = p + 10;	//映像遅延検出用デバイス
+			plc_io_wif.hhgq18.v_delay_device.pi16 = p + 10;	//映像遅延検出用デバイス
 			//
-			plc_io_wif.mercury_lamp_sw1.pi16 =
-				plc_io_wif.mercury_lamp_sw2.pi16 =
-				plc_io_wif.mercury_lamp_sw3.pi16 =
-				plc_io_wif.siren_sw.pi16 = p + 15;
+			plc_io_wif.hhgq18.mercury_lamp_sw1.pi16 =
+				plc_io_wif.hhgq18.mercury_lamp_sw2.pi16 =
+				plc_io_wif.hhgq18.mercury_lamp_sw3.pi16 =
+				plc_io_wif.hhgq18.siren_sw.pi16 = p + 15;
 			//
-			plc_io_wif.ote_head_command.pi16 = p + 16;//OTE HEADER COMMAND
+			plc_io_wif.hhgq18.ote_head_command.pi16 = p + 16;//OTE HEADER COMMAND
 			//Simulator
-			plc_io_wif.hcounter_mh.pi16 = p + 30;//高速カウンタ,アブソコーダ
-			plc_io_wif.hcounter_bh.pi16 = p + 34;
-			plc_io_wif.hcounter_sl.pi16 = p + 36;
-			plc_io_wif.absocoder_mh.pi16 = p + 38;
-			plc_io_wif.absocoder_gt.pi16 = p + 42;
-			plc_io_wif.vfb_mh.pi16 = p + 70;//インバータ速度FB
-			plc_io_wif.vfb_bh.pi16 = p + 71;
-			plc_io_wif.vfb_sl.pi16 = p + 72;
-			plc_io_wif.vfb_gt.pi16 = p + 73;
-			plc_io_wif.trqref_mh.pi16 = p + 74;//インバータトルクFB
-			plc_io_wif.trqref_bh.pi16 = p + 75;
+			plc_io_wif.hhgq18.hcounter_mh.pi16 = p + 30;//高速カウンタ,アブソコーダ
+			plc_io_wif.hhgq18.hcounter_bh.pi16 = p + 34;
+			plc_io_wif.hhgq18.hcounter_sl.pi16 = p + 36;
+			plc_io_wif.hhgq18.absocoder_mh.pi16 = p + 38;
+			plc_io_wif.hhgq18.absocoder_gt.pi16 = p + 42;
+			plc_io_wif.hhgq18.vfb_mh.pi16 = p + 70;//インバータ速度FB
+			plc_io_wif.hhgq18.vfb_bh.pi16 = p + 71;
+			plc_io_wif.hhgq18.vfb_sl.pi16 = p + 72;
+			plc_io_wif.hhgq18.vfb_gt.pi16 = p + 73;
+			plc_io_wif.hhgq18.trqref_mh.pi16 = p + 74;//インバータトルクFB
+			plc_io_wif.hhgq18.trqref_bh.pi16 = p + 75;
 		}
 	}break;
 	case CARNE_ID_HHFM08:{
-		plc_io_rif = plc_io_rdef_hhfm08;
+		plc_io_rif.hhfm08 = plc_io_rdef_hhfm08;
 		p = pbuf_r;
 		{
-			plc_io_rif.plc_healthy.pi16 = p + 0;	//PLC制御
-			plc_io_rif.plc_ctrl_fb.pi16 = p + 1;
-			plc_io_rif.m.pi16 = p + 4;	//主巻荷重
-			plc_io_rif.wind_spd_01m.pi16 = p + 5;	//風速
+			plc_io_rif.hhfm08.plc_healthy.pi16 = p + 0;	//PLC制御
+			plc_io_rif.hhfm08.plc_ctrl_fb.pi16 = p + 1;
+			plc_io_rif.hhfm08.m.pi16 = p + 4;	//主巻荷重
+			plc_io_rif.hhfm08.wind_spd_01m.pi16 = p + 5;	//風速
 			//運転室
-			plc_io_rif.syukan_on.pi16 =
-				plc_io_rif.syukan_off.pi16 =
-				plc_io_rif.mh_spd_cs.pi16 =
-				plc_io_rif.bh_mode_cs.pi16 =
-				plc_io_rif.ah_use_sel.pi16 =
-				plc_io_rif.ah_notch.pi16 = p + 6;
+			plc_io_rif.hhfm08.syukan_on.pi16 =
+				plc_io_rif.hhfm08.syukan_off.pi16 =
+				plc_io_rif.hhfm08.mh_spd_cs.pi16 =
+				plc_io_rif.hhfm08.bh_mode_cs.pi16 =
+				plc_io_rif.hhfm08.ah_use_sel.pi16 =
+				plc_io_rif.hhfm08.ah_notch.pi16 = p + 6;
 			//
-			plc_io_rif.mh_notch.pi16 =
-				plc_io_rif.gt_notch.pi16 =
-				plc_io_rif.estop.pi16 =
-				plc_io_rif.gt_spd_sel.pi16 = p + 7;
+			plc_io_rif.hhfm08.mh_notch.pi16 =
+				plc_io_rif.hhfm08.gt_notch.pi16 =
+				plc_io_rif.hhfm08.estop.pi16 =
+				plc_io_rif.hhfm08.gt_spd_sel.pi16 = p + 7;
 			//
-			plc_io_rif.ah_under_limit.pi16 =
-				plc_io_rif.mlim_warn_1.pi16 =
-				plc_io_rif.mlim_warn_2.pi16 =
-				plc_io_rif.mlim_90.pi16 =
-				plc_io_rif.mlim_100.pi16 =
-				plc_io_rif.mlim_under_hmh.pi16 =
-				plc_io_rif.mlim_normal.pi16 =
-				plc_io_rif.wind_over16.pi16 =
-				plc_io_rif.alarm_stp_pb.pi16 =
-				plc_io_rif.fault_reset_pb.pi16 =
-				plc_io_rif.bypass_pb.pi16 =
-				plc_io_rif.mhbk_normal_ss.pi16 =
-				plc_io_rif.mhbk_emr_ss.pi16 =
-				plc_io_rif.mhbk_opn_pb.pi16 =
-				plc_io_rif.ahbk_emr_low_ss.pi16 = p + 8;
+			plc_io_rif.hhfm08.ah_under_limit.pi16 =
+				plc_io_rif.hhfm08.mlim_warn_1.pi16 =
+				plc_io_rif.hhfm08.mlim_warn_2.pi16 =
+				plc_io_rif.hhfm08.mlim_90.pi16 =
+				plc_io_rif.hhfm08.mlim_100.pi16 =
+				plc_io_rif.hhfm08.mlim_under_hmh.pi16 =
+				plc_io_rif.hhfm08.mlim_normal.pi16 =
+				plc_io_rif.hhfm08.wind_over16.pi16 =
+				plc_io_rif.hhfm08.alarm_stp_pb.pi16 =
+				plc_io_rif.hhfm08.fault_reset_pb.pi16 =
+				plc_io_rif.hhfm08.bypass_pb.pi16 =
+				plc_io_rif.hhfm08.mhbk_normal_ss.pi16 =
+				plc_io_rif.hhfm08.mhbk_emr_ss.pi16 =
+				plc_io_rif.hhfm08.mhbk_opn_pb.pi16 =
+				plc_io_rif.hhfm08.ahbk_emr_low_ss.pi16 = p + 8;
 			//
-			plc_io_rif.bh_notch.pi16 =
-				plc_io_rif.sl_brake.pi16 =
-				plc_io_rif.sl_notch.pi16 =
-				plc_io_rif.sl_hydr_press_sw.pi16 = p + 9;
+			plc_io_rif.hhfm08.bh_notch.pi16 =
+				plc_io_rif.hhfm08.sl_brake.pi16 =
+				plc_io_rif.hhfm08.sl_notch.pi16 =
+				plc_io_rif.hhfm08.sl_hydr_press_sw.pi16 = p + 9;
 
-			plc_io_rif.auto_kyusi.pi16 = p + 14;	//自動給脂ランプ
+			plc_io_rif.hhfm08.auto_kyusi.pi16 = p + 14;	//自動給脂ランプ
 			//B160
-			plc_io_rif.syukan_comp_bz.pi16 =
-				plc_io_rif.syukan_mc_comp.pi16 =
-				plc_io_rif.fault_pl.pi16 =
-				plc_io_rif.syukairo_comp.pi16 =
-				plc_io_rif.takamaki_mode.pi16 =
-				plc_io_rif.bh_rest_mode.pi16 =
-				plc_io_rif.mercury_lamp_sw1.pi16 =
-				plc_io_rif.mercury_lamp_sw2.pi16 =
-				plc_io_rif.mercury_lamp_sw3.pi16 =
-				plc_io_rif.douryoku_ok.pi16 =
-				plc_io_rif.siren_sw.pi16 = p + 15;
+			plc_io_rif.hhfm08.syukan_comp_bz.pi16 =
+				plc_io_rif.hhfm08.syukan_mc_comp.pi16 =
+				plc_io_rif.hhfm08.fault_pl.pi16 =
+				plc_io_rif.hhfm08.syukairo_comp.pi16 =
+				plc_io_rif.hhfm08.takamaki_mode.pi16 =
+				plc_io_rif.hhfm08.bh_rest_mode.pi16 =
+				plc_io_rif.hhfm08.mercury_lamp_sw1.pi16 =
+				plc_io_rif.hhfm08.mercury_lamp_sw2.pi16 =
+				plc_io_rif.hhfm08.mercury_lamp_sw3.pi16 =
+				plc_io_rif.hhfm08.douryoku_ok.pi16 =
+				plc_io_rif.hhfm08.siren_sw.pi16 = p + 15;
 
 			//揚程　旋回半径
-			plc_io_rif.h_mh_mm.pi16 = p + 25;
-			plc_io_rif.r_bh_m.pi16 = p + 27;
+			plc_io_rif.hhfm08.h_mh_mm.pi16 = p + 25;
+			plc_io_rif.hhfm08.r_bh_m.pi16 = p + 27;
 
 			//目標速度％
-			plc_io_rif.target_v_mh.pi16 = p + 33;	//主巻目標速度
-			plc_io_rif.target_v_bh.pi16 = p + 34;	//引込目標速度
-			plc_io_rif.target_v_sl.pi16 = p + 35;	//旋回目標速度
-			plc_io_rif.target_v_gt.pi16 = p + 36;	//走行目標速度	 
-			plc_io_rif.fault_bz.pi16 = p + 38;		//ブザー
+			plc_io_rif.hhfm08.target_v_mh.pi16 = p + 33;	//主巻目標速度
+			plc_io_rif.hhfm08.target_v_bh.pi16 = p + 34;	//引込目標速度
+			plc_io_rif.hhfm08.target_v_sl.pi16 = p + 35;	//旋回目標速度
+			plc_io_rif.hhfm08.target_v_gt.pi16 = p + 36;	//走行目標速度	 
+			plc_io_rif.hhfm08.fault_bz.pi16 = p + 38;		//ブザー
 
 			//インバータへの指令出力内容
 			//主巻インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_mh.pi16 =
-				plc_io_rif.inv_rev_mh.pi16 = p + 57;
+			plc_io_rif.hhfm08.inv_fwd_mh.pi16 =
+				plc_io_rif.hhfm08.inv_rev_mh.pi16 = p + 57;
 			//引込,旋回インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_bh.pi16 =
-				plc_io_rif.inv_rev_bh.pi16 =
-				plc_io_rif.inv_fwd_sl.pi16 =
-				plc_io_rif.inv_rev_sl.pi16 = p + 58;
+			plc_io_rif.hhfm08.inv_fwd_bh.pi16 =
+				plc_io_rif.hhfm08.inv_rev_bh.pi16 =
+				plc_io_rif.hhfm08.inv_fwd_sl.pi16 =
+				plc_io_rif.hhfm08.inv_rev_sl.pi16 = p + 58;
 			//走行インバータ指令FWD,REV
-			plc_io_rif.inv_fwd_gt.pi16 =
-				plc_io_rif.inv_rev_gt.pi16 = p + 59;
+			plc_io_rif.hhfm08.inv_fwd_gt.pi16 =
+				plc_io_rif.hhfm08.inv_rev_gt.pi16 = p + 59;
 			//電気室
 			//X0C0
-			plc_io_rif.brk_mc3_fb.pi16 =
-				plc_io_rif.mh_brk1_fb.pi16 =
-				plc_io_rif.bh_brk_fb.pi16 =
-				plc_io_rif.gt_brk_fb.pi16 = p + 66;
+			plc_io_rif.hhfm08.brk_mc3_fb.pi16 =
+				plc_io_rif.hhfm08.mh_brk1_fb.pi16 =
+				plc_io_rif.hhfm08.bh_brk_fb.pi16 =
+				plc_io_rif.hhfm08.gt_brk_fb.pi16 = p + 66;
 			//インバータ速度指令
-			plc_io_rif.inv_vref_mh.pi16 = p + 70;	//主巻インバータ速度指令
-			plc_io_rif.inv_vref_bh.pi16 = p + 71;	//引込インバータ速度指令
-			plc_io_rif.inv_vref_sl.pi16 = p + 72;	//旋回インバータ速度指令
-			plc_io_rif.inv_vref_gt.pi16 = p + 73;	//走行インバータ速度指令
+			plc_io_rif.hhfm08.inv_vref_mh.pi16 = p + 70;	//主巻インバータ速度指令
+			plc_io_rif.hhfm08.inv_vref_bh.pi16 = p + 71;	//引込インバータ速度指令
+			plc_io_rif.hhfm08.inv_vref_sl.pi16 = p + 72;	//旋回インバータ速度指令
+			plc_io_rif.hhfm08.inv_vref_gt.pi16 = p + 73;	//走行インバータ速度指令
 			//インバータ速度FB
-			plc_io_rif.inv_vfb_mh.pi16 = p + 74;	//主巻インバータ速度FB
-			plc_io_rif.inv_vfb_bh.pi16 = p + 75;	//引込インバータ速度FB
-			plc_io_rif.inv_vfb_sl.pi16 = p + 76;	//旋回インバータ速度FB
-			plc_io_rif.inv_vfb_gt.pi16 = p + 77;	//走行インバータ速度FB
+			plc_io_rif.hhfm08.inv_vfb_mh.pi16 = p + 74;	//主巻インバータ速度FB
+			plc_io_rif.hhfm08.inv_vfb_bh.pi16 = p + 75;	//引込インバータ速度FB
+			plc_io_rif.hhfm08.inv_vfb_sl.pi16 = p + 76;	//旋回インバータ速度FB
+			plc_io_rif.hhfm08.inv_vfb_gt.pi16 = p + 77;	//走行インバータ速度FB
 			//インバータトルク指令
-			plc_io_rif.inv_trqref_mh.pi16 = p + 78;	//主巻インバータトルク指令
-			plc_io_rif.inv_trqref_bh.pi16 = p + 79;	//引込インバータトルク指令
+			plc_io_rif.hhfm08.inv_trqref_mh.pi16 = p + 78;	//主巻インバータトルク指令
+			plc_io_rif.hhfm08.inv_trqref_bh.pi16 = p + 79;	//引込インバータトルク指令
 			//高速カウンタ,アブソコーダ
-			plc_io_rif.hcounter_mh.pi16 = p + 82;
-			plc_io_rif.hcounter_bh.pi16 = p + 86;
-			plc_io_rif.hcounter_sl.pi16 = p + 88;
-			plc_io_rif.absocoder_mh.pi16 = p + 90;
-			plc_io_rif.absocoder_gt.pi16 = p + 94;
+			plc_io_rif.hhfm08.hcounter_mh.pi16 = p + 82;
+			plc_io_rif.hhfm08.hcounter_bh.pi16 = p + 86;
+			plc_io_rif.hhfm08.hcounter_sl.pi16 = p + 88;
+			plc_io_rif.hhfm08.absocoder_mh.pi16 = p + 90;
+			plc_io_rif.hhfm08.absocoder_gt.pi16 = p + 94;
 		}
 		//WRITE
-		plc_io_wif = plc_io_wdef_hhfm08;	//IOデータインスタンスバッファ先頭アドレス
+		plc_io_wif.hhfm08 = plc_io_wdef_hhfm08;	//IOデータインスタンスバッファ先頭アドレス
 		p = pbuf_w;					//書き込みバッファ先頭アドレス
 		{
-			plc_io_wif.pc_healthy.pi16 = p + 0;	//PLC制御
-			plc_io_wif.pc_ctrl_mode.pi16 = p + 1;
+			plc_io_wif.hhfm08.pc_healthy.pi16 = p + 0;	//PLC制御
+			plc_io_wif.hhfm08.pc_ctrl_mode.pi16 = p + 1;
 			//運転室
-			plc_io_wif.mlim_r_ai.pi16 = p + 3;	//モーメントリミッタAI
-			plc_io_wif.mlim_weight_ai.pi16 = p + 4;
-			plc_io_wif.wind_spd_ai.pi16 = p + 5;	//風速AI
+			plc_io_wif.hhfm08.mlim_r_ai.pi16 = p + 3;	//モーメントリミッタAI
+			plc_io_wif.hhfm08.mlim_weight_ai.pi16 = p + 4;
+			plc_io_wif.hhfm08.wind_spd_ai.pi16 = p + 5;	//風速AI
 			//
-			plc_io_wif.syukan_on.pi16 =
-				plc_io_wif.syukan_off.pi16 =
-				plc_io_wif.mh_spd_cs.pi16 =
-				plc_io_wif.bh_mode_cs.pi16 =
-				plc_io_wif.ah_use_sel.pi16 =
-				plc_io_wif.ah_notch.pi16 = p + 6;
+			plc_io_wif.hhfm08.syukan_on.pi16 =
+				plc_io_wif.hhfm08.syukan_off.pi16 =
+				plc_io_wif.hhfm08.mh_spd_cs.pi16 =
+				plc_io_wif.hhfm08.bh_mode_cs.pi16 =
+				plc_io_wif.hhfm08.ah_use_sel.pi16 =
+				plc_io_wif.hhfm08.ah_notch.pi16 = p + 6;
 			//
-			plc_io_wif.mh_notch.pi16 =
-				plc_io_wif.gt_spd_sel.pi16 =
-				plc_io_wif.gt_notch.pi16 =
-				plc_io_wif.estop.pi16 = p + 7;
+			plc_io_wif.hhfm08.mh_notch.pi16 =
+				plc_io_wif.hhfm08.gt_spd_sel.pi16 =
+				plc_io_wif.hhfm08.gt_notch.pi16 =
+				plc_io_wif.hhfm08.estop.pi16 = p + 7;
 			//
-			plc_io_wif.ah_under_limit.pi16 =
-				plc_io_wif.mlim_warn_1.pi16 =
-				plc_io_wif.mlim_warn_2.pi16 =
-				plc_io_wif.mlim_90.pi16 =
-				plc_io_wif.mlim_100.pi16 =
-				plc_io_wif.mlim_under_hmh.pi16 =
-				plc_io_wif.mlim_normal.pi16 =
-				plc_io_wif.wind_over16.pi16 =
-				plc_io_wif.alarm_stp_pb.pi16 =
-				plc_io_wif.fault_reset_pb.pi16 =
-				plc_io_wif.bypass_pb.pi16 =
-				plc_io_wif.mhbk_normal_ss.pi16 =
-				plc_io_wif.mhbk_emr_ss.pi16 =
-				plc_io_wif.mhbk_opn_pb.pi16 =
-				plc_io_wif.ahbk_emr_low_ss.pi16 = p + 8;
+			plc_io_wif.hhfm08.ah_under_limit.pi16 =
+				plc_io_wif.hhfm08.mlim_warn_1.pi16 =
+				plc_io_wif.hhfm08.mlim_warn_2.pi16 =
+				plc_io_wif.hhfm08.mlim_90.pi16 =
+				plc_io_wif.hhfm08.mlim_100.pi16 =
+				plc_io_wif.hhfm08.mlim_under_hmh.pi16 =
+				plc_io_wif.hhfm08.mlim_normal.pi16 =
+				plc_io_wif.hhfm08.wind_over16.pi16 =
+				plc_io_wif.hhfm08.alarm_stp_pb.pi16 =
+				plc_io_wif.hhfm08.fault_reset_pb.pi16 =
+				plc_io_wif.hhfm08.bypass_pb.pi16 =
+				plc_io_wif.hhfm08.mhbk_normal_ss.pi16 =
+				plc_io_wif.hhfm08.mhbk_emr_ss.pi16 =
+				plc_io_wif.hhfm08.mhbk_opn_pb.pi16 =
+				plc_io_wif.hhfm08.ahbk_emr_low_ss.pi16 = p + 8;
 			//
-			plc_io_wif.bh_notch.pi16 =
-				plc_io_wif.sl_brake.pi16 =
-				plc_io_wif.sl_notch.pi16 =
-				plc_io_wif.sl_hydr_press_sw.pi16 = p + 9;
+			plc_io_wif.hhfm08.bh_notch.pi16 =
+				plc_io_wif.hhfm08.sl_brake.pi16 =
+				plc_io_wif.hhfm08.sl_notch.pi16 =
+				plc_io_wif.hhfm08.sl_hydr_press_sw.pi16 = p + 9;
 
-			plc_io_wif.v_delay_device.pi16 = p + 10;	//映像遅延検出用デバイス
+			plc_io_wif.hhfm08.v_delay_device.pi16 = p + 10;	//映像遅延検出用デバイス
 			//
-			plc_io_wif.mercury_lamp_sw1.pi16 =
-				plc_io_wif.mercury_lamp_sw2.pi16 =
-				plc_io_wif.mercury_lamp_sw3.pi16 =
-				plc_io_wif.siren_sw.pi16 = p + 15;
+			plc_io_wif.hhfm08.mercury_lamp_sw1.pi16 =
+				plc_io_wif.hhfm08.mercury_lamp_sw2.pi16 =
+				plc_io_wif.hhfm08.mercury_lamp_sw3.pi16 =
+				plc_io_wif.hhfm08.siren_sw.pi16 = p + 15;
 			//
-			plc_io_wif.ote_head_command.pi16 = p + 16;//OTE HEADER COMMAND
+			plc_io_wif.hhfm08.ote_head_command.pi16 = p + 16;//OTE HEADER COMMAND
 			//Simulator
-			plc_io_wif.hcounter_mh.pi16 = p + 30;//高速カウンタ,アブソコーダ
-			plc_io_wif.hcounter_bh.pi16 = p + 34;
-			plc_io_wif.hcounter_sl.pi16 = p + 36;
-			plc_io_wif.absocoder_mh.pi16 = p + 38;
-			plc_io_wif.absocoder_gt.pi16 = p + 42;
-			plc_io_wif.vfb_mh.pi16 = p + 70;//インバータ速度FB
-			plc_io_wif.vfb_bh.pi16 = p + 71;
-			plc_io_wif.vfb_sl.pi16 = p + 72;
-			plc_io_wif.vfb_gt.pi16 = p + 73;
-			plc_io_wif.trqref_mh.pi16 = p + 74;//インバータトルクFB
-			plc_io_wif.trqref_bh.pi16 = p + 75;
+			plc_io_wif.hhfm08.hcounter_mh.pi16 = p + 30;//高速カウンタ,アブソコーダ
+			plc_io_wif.hhfm08.hcounter_bh.pi16 = p + 34;
+			plc_io_wif.hhfm08.hcounter_sl.pi16 = p + 36;
+			plc_io_wif.hhfm08.absocoder_mh.pi16 = p + 38;
+			plc_io_wif.hhfm08.absocoder_gt.pi16 = p + 42;
+			plc_io_wif.hhfm08.vfb_mh.pi16 = p + 70;//インバータ速度FB
+			plc_io_wif.hhfm08.vfb_bh.pi16 = p + 71;
+			plc_io_wif.hhfm08.vfb_sl.pi16 = p + 72;
+			plc_io_wif.hhfm08.vfb_gt.pi16 = p + 73;
+			plc_io_wif.hhfm08.trqref_mh.pi16 = p + 74;//インバータトルクFB
+			plc_io_wif.hhfm08.trqref_bh.pi16 = p + 75;
 		}
 	}break;
 	default: {
-		plc_io_rif = plc_io_rdef0;
-		plc_io_wif = plc_io_wdef0;
+		plc_io_rif.hhgh29 = plc_io_rdef0;
+		plc_io_wif.hhgh29 = plc_io_wdef0;
 	}break;
 	}
 	return 0;

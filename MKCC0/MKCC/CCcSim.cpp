@@ -22,8 +22,8 @@ static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
 static LPST_CC_SIM_INF		pSim_Inf	= NULL;
 
 static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
-static ST_PLC_IO_WIF* pPlcWIf = NULL;
-static ST_PLC_IO_RIF* pPlcRIf = NULL;
+static LPST_HHGH29_PLC_R pPlcWIf = NULL;
+static LPST_HHGH29_PLC_W pPlcRIf = NULL;
 
 ST_SIM_MON1 CSim::st_mon1;
 ST_SIM_MON2 CSim::st_mon2;
@@ -51,7 +51,7 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	pSim_Inf = (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
 
 	pPlcWIf = &st_work.st_plc_w;						//PLC出力IF
-	pPlcRIf = (ST_PLC_IO_RIF*)pPLC_IO->buf_io_read;		//PLC入力IF
+//	pPlcRIf = (LPST_PLC_RBUF_HHGH29)pPLC_IO->buf_io_read;		//PLC入力IF
 
 	if (pCrane == NULL)return S_FALSE;
 	pspec = pCrane->pSpec;

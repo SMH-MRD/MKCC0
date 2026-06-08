@@ -26,8 +26,8 @@ public:
 
 	int get_id() { return crane_id; };
 	//PLC通信バッファ
-	LPST_PLC_IO_RIF get_plc_rif()	{ if (pPlc != NULL) return &(pPlc->plc_io_rif);	return NULL;}
-	LPST_PLC_IO_WIF get_plc_wif()	{ if (pPlc != NULL) return &(pPlc->plc_io_wif);	return NULL;}
+	LPST_HHGH29_PLC_R get_plc_rif()	{ if (pPlc != NULL) return &(pPlc->plc_io_rif.hhgh29);	return NULL;}
+	LPST_HHGH29_PLC_W get_plc_wif()	{ if (pPlc != NULL) return &(pPlc->plc_io_wif.hhgh29);	return NULL;}
 	
 	//仕様定義構造体
 	LPST_STRUCTURE	 get_st_struct(){ if (pSpec != NULL)return &pSpec->st_struct;	return NULL;}
