@@ -1,8 +1,9 @@
-#include "CSpec.h"
-#include "COMMON_DEF.h"
-
+// ################################################################################
+// ##############  クレーン仕様設定ファイル　　　　　##############################
+// ##############  西多度津300tJC 10号（HHGQ1800）   ##############################
+// ################################################################################
 //クレーン仕様
-ST_STRUCTURE	st_struct_hhgh29 = {
+ST_STRUCTURE	st_struct_hhgq18 = {
 	700000.0,	//定格荷重Kg
 	84.0,		//ジブ長さ
 	70.0,		//休止時揚程
@@ -18,7 +19,7 @@ ST_STRUCTURE	st_struct_hhgh29 = {
 };
 
 //主巻
-ST_AXIS_ITEMS	base_mh_hhgh29 = {
+ST_AXIS_ITEMS	base_mh_hhgq18 = {
 	ID_HOIST,//INT32 Axis_id
 	
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
@@ -68,7 +69,7 @@ ST_AXIS_ITEMS	base_mh_hhgh29 = {
 };
 
 //起伏
-ST_AXIS_ITEMS	base_bh_hhgh29 = {
+ST_AXIS_ITEMS	base_bh_hhgq18 = {
 
 	ID_BOOM_H,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
@@ -118,7 +119,7 @@ ST_AXIS_ITEMS	base_bh_hhgh29 = {
 };
 
 //旋回
-ST_AXIS_ITEMS	base_sl_hhgh29 = {
+ST_AXIS_ITEMS	base_sl_hhgq18 = {
 	ID_SLEW,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,0.00175,0.0175,0.035,0.035,0.035},
@@ -166,7 +167,7 @@ ST_AXIS_ITEMS	base_sl_hhgh29 = {
 };
 
 //走行
-ST_AXIS_ITEMS	base_gt_hhgh29 = {
+ST_AXIS_ITEMS	base_gt_hhgq18 = {
 	ID_GANTRY,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,0.058,0.175,0.350,0.580,0.580},
@@ -216,7 +217,7 @@ ST_AXIS_ITEMS	base_gt_hhgh29 = {
 };
 
 //補巻
-ST_AXIS_ITEMS	base_ah_hhgh29 = {
+ST_AXIS_ITEMS	base_ah_hhgq18 = {
 	ID_AHOIST,//INT32 Axis_id;
 };
 

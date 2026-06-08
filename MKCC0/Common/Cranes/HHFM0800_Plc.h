@@ -1,9 +1,10 @@
 // ################################################################################
-// ##############  PLC IO設定ファイル　　      　　　##############################
-// ##############  西多度津70tJC 102号（HHGH2900）   ##############################
+// ##############  PLC IO設定ファイル　　　　　      ##############################
+// ##############  西多度津1280tGC（HHFM0800）       ##############################
 // ################################################################################
-//西多度津70tJC102号の定義
-ST_PLC_IO_RIF plc_io_rdef_hhgh29 = { 
+
+
+ST_PLC_IO_RIF plc_io_rdef_hhfm08 = { 
 	//{pi16,mask,type,lp,hp}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//plc_healthy;
@@ -113,7 +114,7 @@ ST_PLC_IO_RIF plc_io_rdef_hhgh29 = {
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0 },	//wind_spd_01m
 };
 
-ST_PLC_IO_WIF plc_io_wdef_hhgh29 = { 
+ST_PLC_IO_WIF plc_io_wdef_hhfm08 = { 
 	//{pi16,mask,type,lp:ビットシフト,hp：バッファサイズ}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_healthy;

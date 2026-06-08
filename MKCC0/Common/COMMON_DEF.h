@@ -119,6 +119,7 @@ using namespace Gdiplus;
 #define CODE_COMCHK_RCV_OK		3  //通信受信OK
 
 
+
 #pragma endregion ステータスコード
 
 #pragma region TYPE
@@ -446,3 +447,5 @@ union UN_PRODUCT_ID {
 };
 
 #pragma endregion
+
+
