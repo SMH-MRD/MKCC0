@@ -4,7 +4,7 @@
 // ################################################################################
 
 
-ST_HHFM08_PLC_R plc_io_rdef_hhfm08 = {
+ST_GC_PLC_IO_R plc_io_rdef_hhfm08 = {
 	//{pi16,mask,type,lp,hp}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//plc_healthy;
@@ -114,7 +114,7 @@ ST_HHFM08_PLC_R plc_io_rdef_hhfm08 = {
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0 },	//wind_spd_01m
 };
 
-ST_HHFM08_PLC_W plc_io_wdef_hhfm08 = {
+ST_GC_PLC_IO_W plc_io_wdef_hhfm08 = {
 	//{pi16,mask,type,lp:ビットシフト,hp：バッファサイズ}
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1},	//pc_healthy;

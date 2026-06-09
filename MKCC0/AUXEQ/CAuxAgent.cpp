@@ -225,7 +225,7 @@ int CAuxAgent::parse() {           //メイン処理
 }
 int CAuxAgent::output() {          //出力処理
 	//### MAINプロセスへ出力
-	LPST_PLC_RBUF_SBRK pfb = (LPST_PLC_RBUF_SBRK)pAgent_Inf->slbrk_rbuf;
+	LPST_PLC_RBUF_SBRK0 pfb = (LPST_PLC_RBUF_SBRK0)pAgent_Inf->slbrk_rbuf;
 
 	pCS_Inf->fb_slbrk.d16				= pAgent_Inf->slbrk_rbuf[0];			//旋回ブレーキフィードバックD16
 	pCS_Inf->fb_slbrk.d17				= pAgent_Inf->slbrk_rbuf[1];			//旋回ブレーキフィードバックD17

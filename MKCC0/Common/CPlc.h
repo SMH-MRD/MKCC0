@@ -6,9 +6,7 @@
 //######!!!!!!!! 構造体のポインタで参照したときにずれる 	#######################
 #pragma pack(push,2)
 
-
-
-/*** PLC IFバッファ構造体定義 ***/
+//######################　PLC IFバッファ構造体定義  ##########################/
 
 //西多度津70tJC102号の定義
 typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC
@@ -59,10 +57,71 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   spar4[4];					// D10396:予備
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
+//西多度津300tJC10号の定義
+typedef struct _ST_PLC_WBUF_HHGQ18 {	//制御PC→PLC
+	INT16   helthy;						//D10200:PCヘルシー出力信号
+	INT16   ctrl_mode;					//D10201:自動制御フラグ
+	UINT16  cab_ai[4];					//D10202:運転室PLC AI信号【モーメントリミッタ】
+	INT16   cab_bi[4];					//D10206:運転室PLC→電気室PLC b出力
+	INT16   aux_com;					//D10210:補機指令出力 0bit：映像遅延チェックデバイス
+	INT16   spare[1];					//D10211:予備
+	INT16   mh_load;					//D10212:主巻荷重
+	INT16   ah_load;					//D10213:補巻荷重
+	INT16   wind_spd;					//D10214:風速
+	INT16   spear[15];					//D10215:予備
+	UINT32  hcounter[4];				//D10230:高速カウンタユニット 
+	UINT32  absocoder[3];				//D10238　アブソコーダ 
+	INT16   pc_fault[N_PLC_FAULT_BUF];	//D10244　PC　FAULT
+	INT16   spare0[8];					//D10244　予備 
+	INT16   spd_fb[4];					//D10270:速度FB（符号付き　3200が最高速度）
+	INT16   trq_ref[2];					//D10274:トルク指令（符号付き　4000/200%）
+	INT16   spear1[24];					//D10276:インバータ速度指令（符号付き　3200が最高速度）
+
+}ST_PLC_WBUF_HHGQ18, * LPST_PLC_WBUF_HHQ18;
+typedef struct _ST_PLC_RBUF_HHGQ18 {
+	INT16   helthy;						// D10300:PLCヘルシーカウンタ
+	INT16   plc_ctrl;					// D10301: PLC運転モード
+	UINT16  cab_ai[4];					// D10302:運転室PLC→電気室PLC W出力
+	INT16   cab_bi[4];					// D10306:運転室PLC→電気室PLC b出力
+	INT16   cab_xi[4];					// D10310:運転室PLC→電気室PLC b出力
+	INT16   cab_bo;						// D10314:b2b0-f = Y70-F
+	INT16   cab_yo;						// D10315:b160-f
+	INT16   erm_900;					// D10316:
+	INT16   erm_bo[8];					// D10317:電気室PLC b出力
+	INT32	mh_z;						// D10325:主巻揚程　D1010
+	float	r_mm;						// D10327:引込半径　D2774
+	INT16	spar0[4];					// D10327:予備
+	INT16	cv_tg[4];					// D10333:目標速度％
+	INT16	spar1[2];					// D10337:予備
+	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10339:故障信号
+	INT16   erm_y[5];					// D10357:電気室PLC Y出力
+	INT16   erm_x[7];					// D10362:電気室PLC X入力
+	INT16   spar2;						//
+	INT16   inv_vref[4];				// D10370:インバータ速度指令
+	INT16   inv_vfb[4];					// D10375:インバータ速度FB
+	INT16   inv_trq[2];					// D10378:インバータトルク指令
+	INT16   spar3[2];					// D10369:インバータPLC DO指令	
+	INT32   hcount_fb[4];				// D10380:高速カウンタユニット FB値
+	INT32   absocoder_fb[3];			// D10388:アブソコーダ FB値
+	INT16   spar4[4];					// D10396:予備
+
+}ST_PLC_RBUF_HHGQ18, * LPST_PLC_RBUF_HHQ18;
+
+//クレーン
+typedef union _UN_PLC_RBUF {
+	INT16 rbuf[CC_MC_SIZE_W_READ];
+	//	ST_PLC_RBUF			st;
+	ST_PLC_RBUF_HHGH29	st_hhgh29;
+	ST_PLC_RBUF_HHGQ18	st_hhgq18;
+}UN_PLC_RBUF, * LPUN_PLC_RBUF;
+typedef union _UN_PLC_WBUF {
+	INT16 wbuf[CC_MC_SIZE_W_WRITE];
+	//	ST_PLC_WBUF			st;
+	ST_PLC_WBUF_HHGH29	st_hhgh29;
+	ST_PLC_WBUF_HHGQ18	st_hhgq18;
+}UN_PLC_WBUF, * LPUN_PLC_WBUF;
 
 // ######## OTE PLC関連定義 ##########################
-
-
 typedef struct _ST_PLC_AXIS_SET {
 	float	pos_fb;									// 位置
 	INT16   notch_ref;								// ノッチ入力
@@ -78,6 +137,7 @@ typedef struct _ST_PLC_AXIS_SET {
 	INT32   absocoder;								// アブソコーダ
 	INT32	pg_count;								// パルスジェネレータカウント
 }ST_PLC_AXIS_SET, * LPST_PLC_AXIS_SET;
+//今治造船殿向け初号機の定義
 typedef struct _ST_PLC_WBUF_HHGG38 {
 	INT16   pc_healthy;								// D10650　PCヘルシー出力信号
 	INT16   pc_status;								// D10651　PC Status
@@ -131,623 +191,6 @@ typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16	notch_L1;								// D10635
 	INT16   spare2[14];								// D10636: 
 }ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
-
-// ######## SLBRK PLC関連定義 ##########################
-
-typedef struct _ST_PLC_WBUF_SBRK {
-	INT16   pc_ref_D96;		// D96
-	INT16	spare[15];		// D97-D111　予備
-}ST_PLC_WBUF_SBRK, * LPST_PLC_WBUF_SBRK;
-typedef struct _ST_PLC_RBUF_SBRK {
-	INT16   fb_main_D16;					// 
-	INT16   fb_err_D17;						// 
-	INT16   fb_err_code_D18;				// 
-	INT16   pos_robo_D19;					// 
-	INT16   fb_WF_D20;						// 
-	INT16  spare0[5];						// 
-}ST_PLC_RBUF_SBRK, * LPST_PLC_RBUF_SBRK;
-
-
-
-typedef union _UN_IF_VALUE {
-	INT16 i16;
-	INT32 i32;
-	double d;
-	float f;
-}UN_IF_VALUE, * LPUN_IF_VALUE;
-typedef struct _ST_PLC_IO_DEF {
-	INT16*	pi16;	//信号が入っているバッファのアドレス
-	INT16	mask;	//信号抽出用マスク;
-	INT16	type;	//
-	INT16	shift;	//ビットシフト数
-	INT16   size;	//バッファサイズ
-	INT16   index;	//インデックス(バッファ内の位置）
-}ST_PLC_IO_DEF, * LPST_PLC_IO_DEF;
-
-typedef struct _ST_HHGH29_PLC_R {
-	//PLC制御
-	ST_PLC_IO_DEF plc_healthy;
-	ST_PLC_IO_DEF plc_ctrl_fb;
-	//運転室操作台
-	//B220
-	ST_PLC_IO_DEF syukan_on;
-	ST_PLC_IO_DEF syukan_off;
-	ST_PLC_IO_DEF mh_spd_cs;
-	ST_PLC_IO_DEF bh_mode_cs;
-	ST_PLC_IO_DEF ah_use_sel;
-	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
-	//B230
-	ST_PLC_IO_DEF mh_notch;
-	ST_PLC_IO_DEF gt_spd_sel;
-	ST_PLC_IO_DEF gt_notch;
-	ST_PLC_IO_DEF estop;
-	//B240
-	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
-	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
-	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
-	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
-	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
-	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
-	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
-	ST_PLC_IO_DEF wind_over16;
-	ST_PLC_IO_DEF alarm_stp_pb;
-	ST_PLC_IO_DEF fault_reset_pb;
-	ST_PLC_IO_DEF bypass_pb;
-	ST_PLC_IO_DEF mhbk_normal_ss;
-	ST_PLC_IO_DEF mhbk_emr_ss;
-	ST_PLC_IO_DEF mhbk_opn_pb;
-	ST_PLC_IO_DEF ahbk_emr_low_ss;
-	//B250
-	ST_PLC_IO_DEF bh_notch;
-	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
-	ST_PLC_IO_DEF sl_notch;
-	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
-
-	//B2B0
-	ST_PLC_IO_DEF fault_bz;			//故障ブザー	
-	ST_PLC_IO_DEF auto_kyusi;		//旋回自動給脂装置ランプ	
-
-	//B160
-	ST_PLC_IO_DEF syukan_comp_bz;	//主幹投入完了  Bz
-	ST_PLC_IO_DEF syukan_mc_comp;	//主幹MC投入完了
-	ST_PLC_IO_DEF fault_pl;			//故障ランプ
-	ST_PLC_IO_DEF syukairo_comp;    //主回路準備完了
-	ST_PLC_IO_DEF takamaki_mode;	//高巻モード
-	ST_PLC_IO_DEF bh_rest_mode;		//引込レストモード
-	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
-	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
-	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
-	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立ランプ
-	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
-	
-	//X0C0
-	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
-	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
-	ST_PLC_IO_DEF bh_brk_fb;		//引込ブレーキアンサーバック
-	ST_PLC_IO_DEF gt_brk_fb;		//走行ブレーキアンサーバック
-
-	//インバータへの指令出力内容
-	ST_PLC_IO_DEF inv_fwd_mh;		//主巻インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_mh;		//主巻インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_bh;		//引込インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_bh;		//引込インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_sl;		//旋回インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_sl;		//旋回インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_gt;		//走行インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_gt;		//走行インバータ指令REV
-
-	ST_PLC_IO_DEF inv_vref_mh;		//主巻インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_bh;		//引込インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
-
-	ST_PLC_IO_DEF inv_vfb_mh;		//主巻インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
-
-	ST_PLC_IO_DEF target_v_mh;		//主巻目標速度
-	ST_PLC_IO_DEF target_v_bh;		//引込目標速度
-	ST_PLC_IO_DEF target_v_sl;		//旋回目標速度
-	ST_PLC_IO_DEF target_v_gt;		//走行目標速度
-
-	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
-	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
-
-	//高速カウンタユニット
-	ST_PLC_IO_DEF hcounter_mh;
-	ST_PLC_IO_DEF hcounter_bh;
-	ST_PLC_IO_DEF hcounter_sl;
-	//アブソコーダ
-	ST_PLC_IO_DEF absocoder_mh;
-	ST_PLC_IO_DEF absocoder_gt;
-	
-	//荷重
-	ST_PLC_IO_DEF m;
-
-	//揚程、旋回半径
-	ST_PLC_IO_DEF h_mh_mm;
-	ST_PLC_IO_DEF r_bh_m;
-
-	//風速
-	ST_PLC_IO_DEF wind_spd_01m;
-
-}ST_HHGH29_PLC_R, * LPST_HHGH29_PLC_R;
-typedef struct _ST_HHGQ18_PLC_R {
-	//PLC制御
-	ST_PLC_IO_DEF plc_healthy;
-	ST_PLC_IO_DEF plc_ctrl_fb;
-	//運転室操作台
-	//B220
-	ST_PLC_IO_DEF syukan_on;
-	ST_PLC_IO_DEF syukan_off;
-	ST_PLC_IO_DEF mh_spd_cs;
-	ST_PLC_IO_DEF bh_mode_cs;
-	ST_PLC_IO_DEF ah_use_sel;
-	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
-	//B230
-	ST_PLC_IO_DEF mh_notch;
-	ST_PLC_IO_DEF gt_spd_sel;
-	ST_PLC_IO_DEF gt_notch;
-	ST_PLC_IO_DEF estop;
-	//B240
-	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
-	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
-	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
-	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
-	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
-	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
-	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
-	ST_PLC_IO_DEF wind_over16;
-	ST_PLC_IO_DEF alarm_stp_pb;
-	ST_PLC_IO_DEF fault_reset_pb;
-	ST_PLC_IO_DEF bypass_pb;
-	ST_PLC_IO_DEF mhbk_normal_ss;
-	ST_PLC_IO_DEF mhbk_emr_ss;
-	ST_PLC_IO_DEF mhbk_opn_pb;
-	ST_PLC_IO_DEF ahbk_emr_low_ss;
-	//B250
-	ST_PLC_IO_DEF bh_notch;
-	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
-	ST_PLC_IO_DEF sl_notch;
-	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
-
-	//B2B0
-	ST_PLC_IO_DEF fault_bz;			//故障ブザー	
-	ST_PLC_IO_DEF auto_kyusi;		//旋回自動給脂装置ランプ	
-
-	//B160
-	ST_PLC_IO_DEF syukan_comp_bz;	//主幹投入完了  Bz
-	ST_PLC_IO_DEF syukan_mc_comp;	//主幹MC投入完了
-	ST_PLC_IO_DEF fault_pl;			//故障ランプ
-	ST_PLC_IO_DEF syukairo_comp;    //主回路準備完了
-	ST_PLC_IO_DEF takamaki_mode;	//高巻モード
-	ST_PLC_IO_DEF bh_rest_mode;		//引込レストモード
-	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
-	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
-	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
-	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立ランプ
-	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
-
-	//X0C0
-	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
-	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
-	ST_PLC_IO_DEF bh_brk_fb;		//引込ブレーキアンサーバック
-	ST_PLC_IO_DEF gt_brk_fb;		//走行ブレーキアンサーバック
-
-	//インバータへの指令出力内容
-	ST_PLC_IO_DEF inv_fwd_mh;		//主巻インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_mh;		//主巻インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_bh;		//引込インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_bh;		//引込インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_sl;		//旋回インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_sl;		//旋回インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_gt;		//走行インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_gt;		//走行インバータ指令REV
-
-	ST_PLC_IO_DEF inv_vref_mh;		//主巻インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_bh;		//引込インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
-
-	ST_PLC_IO_DEF inv_vfb_mh;		//主巻インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
-
-	ST_PLC_IO_DEF target_v_mh;		//主巻目標速度
-	ST_PLC_IO_DEF target_v_bh;		//引込目標速度
-	ST_PLC_IO_DEF target_v_sl;		//旋回目標速度
-	ST_PLC_IO_DEF target_v_gt;		//走行目標速度
-
-	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
-	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
-
-	//高速カウンタユニット
-	ST_PLC_IO_DEF hcounter_mh;
-	ST_PLC_IO_DEF hcounter_bh;
-	ST_PLC_IO_DEF hcounter_sl;
-	//アブソコーダ
-	ST_PLC_IO_DEF absocoder_mh;
-	ST_PLC_IO_DEF absocoder_gt;
-
-	//荷重
-	ST_PLC_IO_DEF m;
-
-	//揚程、旋回半径
-	ST_PLC_IO_DEF h_mh_mm;
-	ST_PLC_IO_DEF r_bh_m;
-
-	//風速
-	ST_PLC_IO_DEF wind_spd_01m;
-
-}ST_HHGQ18_PLC_R, * LPST_HHGQ18_PLC_R;
-typedef struct _ST_HHFM08_PLC_R {
-	//PLC制御
-	ST_PLC_IO_DEF plc_healthy;
-	ST_PLC_IO_DEF plc_ctrl_fb;
-	//運転室操作台
-	//B220
-	ST_PLC_IO_DEF syukan_on;
-	ST_PLC_IO_DEF syukan_off;
-	ST_PLC_IO_DEF mh_spd_cs;
-	ST_PLC_IO_DEF bh_mode_cs;
-	ST_PLC_IO_DEF ah_use_sel;
-	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
-	//B230
-	ST_PLC_IO_DEF mh_notch;
-	ST_PLC_IO_DEF gt_spd_sel;
-	ST_PLC_IO_DEF gt_notch;
-	ST_PLC_IO_DEF estop;
-	//B240
-	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
-	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
-	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
-	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
-	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
-	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
-	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
-	ST_PLC_IO_DEF wind_over16;
-	ST_PLC_IO_DEF alarm_stp_pb;
-	ST_PLC_IO_DEF fault_reset_pb;
-	ST_PLC_IO_DEF bypass_pb;
-	ST_PLC_IO_DEF mhbk_normal_ss;
-	ST_PLC_IO_DEF mhbk_emr_ss;
-	ST_PLC_IO_DEF mhbk_opn_pb;
-	ST_PLC_IO_DEF ahbk_emr_low_ss;
-	//B250
-	ST_PLC_IO_DEF bh_notch;
-	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
-	ST_PLC_IO_DEF sl_notch;
-	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
-
-	//B2B0
-	ST_PLC_IO_DEF fault_bz;			//故障ブザー	
-	ST_PLC_IO_DEF auto_kyusi;		//旋回自動給脂装置ランプ	
-
-	//B160
-	ST_PLC_IO_DEF syukan_comp_bz;	//主幹投入完了  Bz
-	ST_PLC_IO_DEF syukan_mc_comp;	//主幹MC投入完了
-	ST_PLC_IO_DEF fault_pl;			//故障ランプ
-	ST_PLC_IO_DEF syukairo_comp;    //主回路準備完了
-	ST_PLC_IO_DEF takamaki_mode;	//高巻モード
-	ST_PLC_IO_DEF bh_rest_mode;		//引込レストモード
-	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
-	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
-	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
-	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立ランプ
-	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
-
-	//X0C0
-	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
-	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
-	ST_PLC_IO_DEF bh_brk_fb;		//引込ブレーキアンサーバック
-	ST_PLC_IO_DEF gt_brk_fb;		//走行ブレーキアンサーバック
-
-	//インバータへの指令出力内容
-	ST_PLC_IO_DEF inv_fwd_mh;		//主巻インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_mh;		//主巻インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_bh;		//引込インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_bh;		//引込インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_sl;		//旋回インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_sl;		//旋回インバータ指令REV
-	ST_PLC_IO_DEF inv_fwd_gt;		//走行インバータ指令FWD
-	ST_PLC_IO_DEF inv_rev_gt;		//走行インバータ指令REV
-
-	ST_PLC_IO_DEF inv_vref_mh;		//主巻インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_bh;		//引込インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
-	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
-
-	ST_PLC_IO_DEF inv_vfb_mh;		//主巻インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
-	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
-
-	ST_PLC_IO_DEF target_v_mh;		//主巻目標速度
-	ST_PLC_IO_DEF target_v_bh;		//引込目標速度
-	ST_PLC_IO_DEF target_v_sl;		//旋回目標速度
-	ST_PLC_IO_DEF target_v_gt;		//走行目標速度
-
-	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
-	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
-
-	//高速カウンタユニット
-	ST_PLC_IO_DEF hcounter_mh;
-	ST_PLC_IO_DEF hcounter_bh;
-	ST_PLC_IO_DEF hcounter_sl;
-	//アブソコーダ
-	ST_PLC_IO_DEF absocoder_mh;
-	ST_PLC_IO_DEF absocoder_gt;
-
-	//荷重
-	ST_PLC_IO_DEF m;
-
-	//揚程、旋回半径
-	ST_PLC_IO_DEF h_mh_mm;
-	ST_PLC_IO_DEF r_bh_m;
-
-	//風速
-	ST_PLC_IO_DEF wind_spd_01m;
-
-}ST_HHFM08_PLC_R, * LPST_HHFM08_PLC_R;
-
-typedef struct _ST_HHGH29_PLC_W {
-	//PLC制御
-	ST_PLC_IO_DEF pc_healthy;
-	ST_PLC_IO_DEF pc_ctrl_mode;
-	//運転室操作台
-	//B160　遠隔追加スイッチ
-	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
-	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
-	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
-	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
-	//B220
-	ST_PLC_IO_DEF syukan_on;
-	ST_PLC_IO_DEF syukan_off;
-	ST_PLC_IO_DEF mh_spd_cs;
-	ST_PLC_IO_DEF bh_mode_cs;
-	ST_PLC_IO_DEF ah_use_sel;
-	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
-	//B230
-	ST_PLC_IO_DEF mh_notch;
-	ST_PLC_IO_DEF gt_spd_sel;
-	ST_PLC_IO_DEF gt_notch;
-	ST_PLC_IO_DEF estop;
-	//B240
-	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
-	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
-	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
-	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
-	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
-	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
-	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
-	ST_PLC_IO_DEF wind_over16;
-	ST_PLC_IO_DEF alarm_stp_pb;
-	ST_PLC_IO_DEF fault_reset_pb;
-	ST_PLC_IO_DEF bypass_pb;
-	ST_PLC_IO_DEF mhbk_normal_ss;
-	ST_PLC_IO_DEF mhbk_emr_ss;
-	ST_PLC_IO_DEF mhbk_opn_pb;
-	ST_PLC_IO_DEF ahbk_emr_low_ss;
-	//B250
-	ST_PLC_IO_DEF bh_notch;
-	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
-	ST_PLC_IO_DEF sl_notch;
-	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
-
-	//高速カウンタユニット
-	ST_PLC_IO_DEF hcounter_mh;
-	ST_PLC_IO_DEF hcounter_bh;
-	ST_PLC_IO_DEF hcounter_sl;
-	//アブソコーダ
-	ST_PLC_IO_DEF absocoder_mh;
-	ST_PLC_IO_DEF absocoder_gt;
-
-	//INV出力
-	ST_PLC_IO_DEF vfb_mh;
-	ST_PLC_IO_DEF vfb_bh;
-	ST_PLC_IO_DEF vfb_sl;
-	ST_PLC_IO_DEF vfb_gt;
-	ST_PLC_IO_DEF trqref_mh;
-	ST_PLC_IO_DEF trqref_bh;
-
-	//モーメントリミッタ
-	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
-	ST_PLC_IO_DEF mlim_r_ai;		//モーメントリミッタ旋回半径AI
-
-	//風速
-	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
-	//OTEヘッダコマンド
-	ST_PLC_IO_DEF ote_head_command;
-
-	//映像遅延検出用デバイス
-	ST_PLC_IO_DEF v_delay_device;
-
-}ST_HHGH29_PLC_W, * LPST_HHGH29_PLC_W;
-typedef struct _ST_HHGQ18_PLC_W {
-	//PLC制御
-	ST_PLC_IO_DEF pc_healthy;
-	ST_PLC_IO_DEF pc_ctrl_mode;
-	//運転室操作台
-	//B160　遠隔追加スイッチ
-	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
-	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
-	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
-	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
-	//B220
-	ST_PLC_IO_DEF syukan_on;
-	ST_PLC_IO_DEF syukan_off;
-	ST_PLC_IO_DEF mh_spd_cs;
-	ST_PLC_IO_DEF bh_mode_cs;
-	ST_PLC_IO_DEF ah_use_sel;
-	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
-	//B230
-	ST_PLC_IO_DEF mh_notch;
-	ST_PLC_IO_DEF gt_spd_sel;
-	ST_PLC_IO_DEF gt_notch;
-	ST_PLC_IO_DEF estop;
-	//B240
-	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
-	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
-	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
-	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
-	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
-	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
-	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
-	ST_PLC_IO_DEF wind_over16;
-	ST_PLC_IO_DEF alarm_stp_pb;
-	ST_PLC_IO_DEF fault_reset_pb;
-	ST_PLC_IO_DEF bypass_pb;
-	ST_PLC_IO_DEF mhbk_normal_ss;
-	ST_PLC_IO_DEF mhbk_emr_ss;
-	ST_PLC_IO_DEF mhbk_opn_pb;
-	ST_PLC_IO_DEF ahbk_emr_low_ss;
-	//B250
-	ST_PLC_IO_DEF bh_notch;
-	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
-	ST_PLC_IO_DEF sl_notch;
-	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
-
-	//高速カウンタユニット
-	ST_PLC_IO_DEF hcounter_mh;
-	ST_PLC_IO_DEF hcounter_bh;
-	ST_PLC_IO_DEF hcounter_sl;
-	//アブソコーダ
-	ST_PLC_IO_DEF absocoder_mh;
-	ST_PLC_IO_DEF absocoder_gt;
-
-	//INV出力
-	ST_PLC_IO_DEF vfb_mh;
-	ST_PLC_IO_DEF vfb_bh;
-	ST_PLC_IO_DEF vfb_sl;
-	ST_PLC_IO_DEF vfb_gt;
-	ST_PLC_IO_DEF trqref_mh;
-	ST_PLC_IO_DEF trqref_bh;
-
-	//モーメントリミッタ
-	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
-	ST_PLC_IO_DEF mlim_r_ai;		//モーメントリミッタ旋回半径AI
-
-	//風速
-	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
-	//OTEヘッダコマンド
-	ST_PLC_IO_DEF ote_head_command;
-
-	//映像遅延検出用デバイス
-	ST_PLC_IO_DEF v_delay_device;
-
-}ST_HHGQ18_PLC_W, * LPST_HHGQ18_PLC_W;
-typedef struct _ST_HHFM08_PLC_W {
-	//PLC制御
-	ST_PLC_IO_DEF pc_healthy;
-	ST_PLC_IO_DEF pc_ctrl_mode;
-	//運転室操作台
-	//B160　遠隔追加スイッチ
-	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
-	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
-	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
-	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
-	//B220
-	ST_PLC_IO_DEF syukan_on;
-	ST_PLC_IO_DEF syukan_off;
-	ST_PLC_IO_DEF mh_spd_cs;
-	ST_PLC_IO_DEF bh_mode_cs;
-	ST_PLC_IO_DEF ah_use_sel;
-	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
-	//B230
-	ST_PLC_IO_DEF mh_notch;
-	ST_PLC_IO_DEF gt_spd_sel;
-	ST_PLC_IO_DEF gt_notch;
-	ST_PLC_IO_DEF estop;
-	//B240
-	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
-	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
-	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
-	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
-	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
-	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
-	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
-	ST_PLC_IO_DEF wind_over16;
-	ST_PLC_IO_DEF alarm_stp_pb;
-	ST_PLC_IO_DEF fault_reset_pb;
-	ST_PLC_IO_DEF bypass_pb;
-	ST_PLC_IO_DEF mhbk_normal_ss;
-	ST_PLC_IO_DEF mhbk_emr_ss;
-	ST_PLC_IO_DEF mhbk_opn_pb;
-	ST_PLC_IO_DEF ahbk_emr_low_ss;
-	//B250
-	ST_PLC_IO_DEF bh_notch;
-	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
-	ST_PLC_IO_DEF sl_notch;
-	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
-
-	//高速カウンタユニット
-	ST_PLC_IO_DEF hcounter_mh;
-	ST_PLC_IO_DEF hcounter_bh;
-	ST_PLC_IO_DEF hcounter_sl;
-	//アブソコーダ
-	ST_PLC_IO_DEF absocoder_mh;
-	ST_PLC_IO_DEF absocoder_gt;
-
-	//INV出力
-	ST_PLC_IO_DEF vfb_mh;
-	ST_PLC_IO_DEF vfb_bh;
-	ST_PLC_IO_DEF vfb_sl;
-	ST_PLC_IO_DEF vfb_gt;
-	ST_PLC_IO_DEF trqref_mh;
-	ST_PLC_IO_DEF trqref_bh;
-
-	//モーメントリミッタ
-	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
-	ST_PLC_IO_DEF mlim_r_ai;		//モーメントリミッタ旋回半径AI
-
-	//風速
-	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
-	//OTEヘッダコマンド
-	ST_PLC_IO_DEF ote_head_command;
-
-	//映像遅延検出用デバイス
-	ST_PLC_IO_DEF v_delay_device;
-
-}ST_HHFM08_PLC_W, * LPST_HHFM08_PLC_W;
-
-
-//クレーンのPLC入出力内容を定義する構造体
-typedef union _UN_PLC_RBUF {
-	INT16 rbuf[CC_MC_SIZE_W_READ];
-	//	ST_PLC_RBUF			st;
-	ST_PLC_RBUF_HHGH29	st_hhgh29;
-}UN_PLC_RBUF, * LPUN_PLC_RBUF;
-typedef union _UN_PLC_WBUF {
-	INT16 wbuf[CC_MC_SIZE_W_WRITE];
-	//	ST_PLC_WBUF			st;
-	ST_PLC_WBUF_HHGH29	st_hhgh29;
-}UN_PLC_WBUF, * LPUN_PLC_WBUF;
-
-typedef union _UN_PLC_IO_RIF {
-	ST_PLC_IO_DEF io[N_ST_PLC_IO_DEF];
-	ST_HHGH29_PLC_R hhgh29;
-	ST_HHGQ18_PLC_R hhgq18;
-	ST_HHFM08_PLC_R hhfm08;
-}UN_PLC_IO_RIF, * LPUN_PLC_IO_RIF;
-typedef union _UN_PLC_IO_WIF {
-	ST_PLC_IO_DEF io[N_ST_PLC_IO_DEF];
-	ST_HHGH29_PLC_W hhgh29;
-	ST_HHGQ18_PLC_W hhgq18;
-	ST_HHFM08_PLC_W hhfm08;
-}UN_PLC_IO_WIF, * LPUN_PLC_IO_WIF;
-
-//旋回ブレーキ
-typedef union _UN_SBRK_PLC_RBUF {
-	INT16 rbuf[SLBRK_MC_ADDR_W_READ];
-	ST_PLC_RBUF_SBRK	st_sbrk_r;
-}UN_SBRK_PLC_RBUF, * LPUN_SBRK_PLC_RBUF;
-typedef union _UN_SBRK_PLC_WBUF {
-	INT16 wbuf[SLBRK_MC_ADDR_W_WRITE];
-	ST_PLC_WBUF_SBRK	st_sbrk_w;
-}UN_SBRK_PLC_WBUF, * LPUN_SBRK_PLC_WBUF;
-
 //OTE
 typedef union _UN_OPE_PLC_RBUF {
 	INT16 rbuf[OTE_MC_SIZE_W_READ];
@@ -757,6 +200,425 @@ typedef union _UN_OPE_PLC_WBUF {
 	INT16 wbuf[OTE_MC_SIZE_W_WRITE];
 	ST_PLC_WBUF_HHGG38	st_hhgh38;
 }UN_OPE_PLC_WBUF, * LPUN_OPE_PLC_WBUF;
+
+// ######## SLBRK PLC関連定義 ##########################
+typedef struct _ST_PLC_WBUF_SBRK0 {
+	INT16   pc_ref_D96;		// D96
+	INT16	spare[15];		// D97-D111　予備
+}ST_PLC_WBUF_SBRK0, * LPST_PLC_WBUF_SBRK0;
+typedef struct _ST_PLC_RBUF_SBRK0 {
+	INT16   fb_main_D16;					// 
+	INT16   fb_err_D17;						// 
+	INT16   fb_err_code_D18;				// 
+	INT16   pos_robo_D19;					// 
+	INT16   fb_WF_D20;						// 
+	INT16  spare0[5];						// 
+}ST_PLC_RBUF_SBRK0, * LPST_PLC_RBUF_SBRK0;
+//旋回ブレーキ
+typedef union _UN_SBRK_PLC_RBUF {
+	INT16 rbuf[SLBRK_MC_ADDR_W_READ];
+	ST_PLC_RBUF_SBRK0	st_sbrk_r;
+}UN_SBRK_PLC_RBUF, * LPUN_SBRK_PLC_RBUF;
+typedef union _UN_SBRK_PLC_WBUF {
+	INT16 wbuf[SLBRK_MC_ADDR_W_WRITE];
+	ST_PLC_WBUF_SBRK0	st_sbrk_w;
+}UN_SBRK_PLC_WBUF, * LPUN_SBRK_PLC_WBUF;
+
+
+// ######## PLC IO割付定義 ##########################
+//PLC IOの値を格納するための共用体
+typedef union _UN_IF_VALUE {
+	INT16 i16;
+	INT32 i32;
+	double d;
+	float f;
+}UN_IF_VALUE, * LPUN_IF_VALUE;
+typedef struct _ST_PLC_IO_DEF {
+	INT16* pi16;	//信号が入っているバッファのアドレス
+	INT16	mask;	//信号抽出用マスク;
+	INT16	type;	//
+	INT16	shift;	//ビットシフト数
+	INT16   size;	//バッファサイズ
+	INT16   index;	//インデックス(バッファ内の位置）
+}ST_PLC_IO_DEF, * LPST_PLC_IO_DEF;// 
+//
+//クレーンごとにPLC IOの割付定義を構造体で定義する
+typedef struct _ST_JC_PLC_IO_R {
+	//PLC制御
+	ST_PLC_IO_DEF plc_healthy;
+	ST_PLC_IO_DEF plc_ctrl_fb;
+	//運転室操作台
+	//B220
+	ST_PLC_IO_DEF syukan_on;
+	ST_PLC_IO_DEF syukan_off;
+	ST_PLC_IO_DEF mh_spd_cs;
+	ST_PLC_IO_DEF bh_mode_cs;
+	ST_PLC_IO_DEF ah_use_sel;
+	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
+	//B230
+	ST_PLC_IO_DEF mh_notch;
+	ST_PLC_IO_DEF gt_spd_sel;
+	ST_PLC_IO_DEF gt_notch;
+	ST_PLC_IO_DEF estop;
+	//B240
+	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
+	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
+	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
+	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
+	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
+	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
+	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
+	ST_PLC_IO_DEF wind_over16;
+	ST_PLC_IO_DEF alarm_stp_pb;
+	ST_PLC_IO_DEF fault_reset_pb;
+	ST_PLC_IO_DEF bypass_pb;
+	ST_PLC_IO_DEF mhbk_normal_ss;
+	ST_PLC_IO_DEF mhbk_emr_ss;
+	ST_PLC_IO_DEF mhbk_opn_pb;
+	ST_PLC_IO_DEF ahbk_emr_low_ss;
+	//B250
+	ST_PLC_IO_DEF bh_notch;
+	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
+	ST_PLC_IO_DEF sl_notch;
+	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
+
+	//B2B0
+	ST_PLC_IO_DEF fault_bz;			//故障ブザー	
+	ST_PLC_IO_DEF auto_kyusi;		//旋回自動給脂装置ランプ	
+
+	//B160
+	ST_PLC_IO_DEF syukan_comp_bz;	//主幹投入完了  Bz
+	ST_PLC_IO_DEF syukan_mc_comp;	//主幹MC投入完了
+	ST_PLC_IO_DEF fault_pl;			//故障ランプ
+	ST_PLC_IO_DEF syukairo_comp;    //主回路準備完了
+	ST_PLC_IO_DEF takamaki_mode;	//高巻モード
+	ST_PLC_IO_DEF bh_rest_mode;		//引込レストモード
+	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
+	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
+	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
+	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立ランプ
+	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
+	
+	//X0C0
+	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
+	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
+	ST_PLC_IO_DEF bh_brk_fb;		//引込ブレーキアンサーバック
+	ST_PLC_IO_DEF gt_brk_fb;		//走行ブレーキアンサーバック
+
+	//インバータへの指令出力内容
+	ST_PLC_IO_DEF inv_fwd_mh;		//主巻インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_mh;		//主巻インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_bh;		//引込インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_bh;		//引込インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_sl;		//旋回インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_sl;		//旋回インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_gt;		//走行インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_gt;		//走行インバータ指令REV
+
+	ST_PLC_IO_DEF inv_vref_mh;		//主巻インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_bh;		//引込インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
+
+	ST_PLC_IO_DEF inv_vfb_mh;		//主巻インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
+
+	ST_PLC_IO_DEF target_v_mh;		//主巻目標速度
+	ST_PLC_IO_DEF target_v_bh;		//引込目標速度
+	ST_PLC_IO_DEF target_v_sl;		//旋回目標速度
+	ST_PLC_IO_DEF target_v_gt;		//走行目標速度
+
+	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
+	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
+
+	//高速カウンタユニット
+	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_bh;
+	ST_PLC_IO_DEF hcounter_sl;
+	//アブソコーダ
+	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_gt;
+	
+	//荷重
+	ST_PLC_IO_DEF m;
+
+	//揚程、旋回半径
+	ST_PLC_IO_DEF h_mh_mm;
+	ST_PLC_IO_DEF r_bh_m;
+
+	//風速
+	ST_PLC_IO_DEF wind_spd_01m;
+
+}ST_JC_PLC_IO_R, * LPST_JC_PLC_IO_R;
+typedef struct _ST_JC_PLC_IO_W {
+	//PLC制御
+	ST_PLC_IO_DEF pc_healthy;
+	ST_PLC_IO_DEF pc_ctrl_mode;
+	//運転室操作台
+	//B160　遠隔追加スイッチ
+	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
+	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
+	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
+	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
+	//B220
+	ST_PLC_IO_DEF syukan_on;
+	ST_PLC_IO_DEF syukan_off;
+	ST_PLC_IO_DEF mh_spd_cs;
+	ST_PLC_IO_DEF bh_mode_cs;
+	ST_PLC_IO_DEF ah_use_sel;
+	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
+	//B230
+	ST_PLC_IO_DEF mh_notch;
+	ST_PLC_IO_DEF gt_spd_sel;
+	ST_PLC_IO_DEF gt_notch;
+	ST_PLC_IO_DEF estop;
+	//B240
+	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
+	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
+	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
+	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
+	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
+	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
+	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
+	ST_PLC_IO_DEF wind_over16;
+	ST_PLC_IO_DEF alarm_stp_pb;
+	ST_PLC_IO_DEF fault_reset_pb;
+	ST_PLC_IO_DEF bypass_pb;
+	ST_PLC_IO_DEF mhbk_normal_ss;
+	ST_PLC_IO_DEF mhbk_emr_ss;
+	ST_PLC_IO_DEF mhbk_opn_pb;
+	ST_PLC_IO_DEF ahbk_emr_low_ss;
+	//B250
+	ST_PLC_IO_DEF bh_notch;
+	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
+	ST_PLC_IO_DEF sl_notch;
+	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
+
+	//高速カウンタユニット
+	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_bh;
+	ST_PLC_IO_DEF hcounter_sl;
+	//アブソコーダ
+	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_gt;
+
+	//INV出力
+	ST_PLC_IO_DEF vfb_mh;
+	ST_PLC_IO_DEF vfb_bh;
+	ST_PLC_IO_DEF vfb_sl;
+	ST_PLC_IO_DEF vfb_gt;
+	ST_PLC_IO_DEF trqref_mh;
+	ST_PLC_IO_DEF trqref_bh;
+
+	//モーメントリミッタ
+	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
+	ST_PLC_IO_DEF mlim_r_ai;		//モーメントリミッタ旋回半径AI
+
+	//風速
+	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
+	//OTEヘッダコマンド
+	ST_PLC_IO_DEF ote_head_command;
+
+	//映像遅延検出用デバイス
+	ST_PLC_IO_DEF v_delay_device;
+
+}ST_JC_PLC_IO_W, * LPST_JC_PLC_IO_W;
+
+typedef struct _ST_GC_PLC_IO_R {
+	//PLC制御
+	ST_PLC_IO_DEF plc_healthy;
+	ST_PLC_IO_DEF plc_ctrl_fb;
+	//運転室操作台
+	//B220
+	ST_PLC_IO_DEF syukan_on;
+	ST_PLC_IO_DEF syukan_off;
+	ST_PLC_IO_DEF mh_spd_cs;
+	ST_PLC_IO_DEF bh_mode_cs;
+	ST_PLC_IO_DEF ah_use_sel;
+	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
+	//B230
+	ST_PLC_IO_DEF mh_notch;
+	ST_PLC_IO_DEF gt_spd_sel;
+	ST_PLC_IO_DEF gt_notch;
+	ST_PLC_IO_DEF estop;
+	//B240
+	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
+	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
+	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
+	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
+	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
+	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
+	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
+	ST_PLC_IO_DEF wind_over16;
+	ST_PLC_IO_DEF alarm_stp_pb;
+	ST_PLC_IO_DEF fault_reset_pb;
+	ST_PLC_IO_DEF bypass_pb;
+	ST_PLC_IO_DEF mhbk_normal_ss;
+	ST_PLC_IO_DEF mhbk_emr_ss;
+	ST_PLC_IO_DEF mhbk_opn_pb;
+	ST_PLC_IO_DEF ahbk_emr_low_ss;
+	//B250
+	ST_PLC_IO_DEF bh_notch;
+	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
+	ST_PLC_IO_DEF sl_notch;
+	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
+
+	//B2B0
+	ST_PLC_IO_DEF fault_bz;			//故障ブザー	
+	ST_PLC_IO_DEF auto_kyusi;		//旋回自動給脂装置ランプ	
+
+	//B160
+	ST_PLC_IO_DEF syukan_comp_bz;	//主幹投入完了  Bz
+	ST_PLC_IO_DEF syukan_mc_comp;	//主幹MC投入完了
+	ST_PLC_IO_DEF fault_pl;			//故障ランプ
+	ST_PLC_IO_DEF syukairo_comp;    //主回路準備完了
+	ST_PLC_IO_DEF takamaki_mode;	//高巻モード
+	ST_PLC_IO_DEF bh_rest_mode;		//引込レストモード
+	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
+	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
+	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
+	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立ランプ
+	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
+
+	//X0C0
+	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
+	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
+	ST_PLC_IO_DEF bh_brk_fb;		//引込ブレーキアンサーバック
+	ST_PLC_IO_DEF gt_brk_fb;		//走行ブレーキアンサーバック
+
+	//インバータへの指令出力内容
+	ST_PLC_IO_DEF inv_fwd_mh;		//主巻インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_mh;		//主巻インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_bh;		//引込インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_bh;		//引込インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_sl;		//旋回インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_sl;		//旋回インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_gt;		//走行インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_gt;		//走行インバータ指令REV
+
+	ST_PLC_IO_DEF inv_vref_mh;		//主巻インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_bh;		//引込インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
+
+	ST_PLC_IO_DEF inv_vfb_mh;		//主巻インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
+
+	ST_PLC_IO_DEF target_v_mh;		//主巻目標速度
+	ST_PLC_IO_DEF target_v_bh;		//引込目標速度
+	ST_PLC_IO_DEF target_v_sl;		//旋回目標速度
+	ST_PLC_IO_DEF target_v_gt;		//走行目標速度
+
+	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
+	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
+
+	//高速カウンタユニット
+	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_bh;
+	ST_PLC_IO_DEF hcounter_sl;
+	//アブソコーダ
+	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_gt;
+
+	//荷重
+	ST_PLC_IO_DEF m;
+
+	//揚程、旋回半径
+	ST_PLC_IO_DEF h_mh_mm;
+	ST_PLC_IO_DEF r_bh_m;
+
+	//風速
+	ST_PLC_IO_DEF wind_spd_01m;
+
+}ST_GC_PLC_IO_R, * LPST_GC_PLC_IO_R;
+typedef struct _ST_GC_PLC_IO_W {
+	//PLC制御
+	ST_PLC_IO_DEF pc_healthy;
+	ST_PLC_IO_DEF pc_ctrl_mode;
+	//運転室操作台
+	//B160　遠隔追加スイッチ
+	ST_PLC_IO_DEF mercury_lamp_sw1;	//水銀灯スイッチ1
+	ST_PLC_IO_DEF mercury_lamp_sw2;	//水銀灯スイッチ2
+	ST_PLC_IO_DEF mercury_lamp_sw3;	//水銀灯スイッチ3
+	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
+	//B220
+	ST_PLC_IO_DEF syukan_on;
+	ST_PLC_IO_DEF syukan_off;
+	ST_PLC_IO_DEF mh_spd_cs;
+	ST_PLC_IO_DEF bh_mode_cs;
+	ST_PLC_IO_DEF ah_use_sel;
+	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
+	//B230
+	ST_PLC_IO_DEF mh_notch;
+	ST_PLC_IO_DEF gt_spd_sel;
+	ST_PLC_IO_DEF gt_notch;
+	ST_PLC_IO_DEF estop;
+	//B240
+	ST_PLC_IO_DEF ah_under_limit;	//補巻制限荷重以下
+	ST_PLC_IO_DEF mlim_warn_1;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下
+	ST_PLC_IO_DEF mlim_warn_2;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ3倍速許可荷重以下
+	ST_PLC_IO_DEF mlim_90;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ90%荷重
+	ST_PLC_IO_DEF mlim_100;			//ﾓｰﾒﾝﾄﾘﾐｯﾀ100%荷重
+	ST_PLC_IO_DEF mlim_under_hmh;	//ﾓｰﾒﾝﾄﾘﾐｯﾀ高巻荷重以下
+	ST_PLC_IO_DEF mlim_normal;		//ﾓｰﾒﾝﾄﾘﾐｯﾀ正常
+	ST_PLC_IO_DEF wind_over16;
+	ST_PLC_IO_DEF alarm_stp_pb;
+	ST_PLC_IO_DEF fault_reset_pb;
+	ST_PLC_IO_DEF bypass_pb;
+	ST_PLC_IO_DEF mhbk_normal_ss;
+	ST_PLC_IO_DEF mhbk_emr_ss;
+	ST_PLC_IO_DEF mhbk_opn_pb;
+	ST_PLC_IO_DEF ahbk_emr_low_ss;
+	//B250
+	ST_PLC_IO_DEF bh_notch;
+	ST_PLC_IO_DEF sl_brake;			//旋回ブレーキ
+	ST_PLC_IO_DEF sl_notch;
+	ST_PLC_IO_DEF sl_hydr_press_sw;	//旋回油圧圧力スイッチ
+
+	//高速カウンタユニット
+	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_bh;
+	ST_PLC_IO_DEF hcounter_sl;
+	//アブソコーダ
+	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_gt;
+
+	//INV出力
+	ST_PLC_IO_DEF vfb_mh;
+	ST_PLC_IO_DEF vfb_bh;
+	ST_PLC_IO_DEF vfb_sl;
+	ST_PLC_IO_DEF vfb_gt;
+	ST_PLC_IO_DEF trqref_mh;
+	ST_PLC_IO_DEF trqref_bh;
+
+	//モーメントリミッタ
+	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
+	ST_PLC_IO_DEF mlim_r_ai;		//モーメントリミッタ旋回半径AI
+
+	//風速
+	ST_PLC_IO_DEF wind_spd_ai;		//風速アナログ出力値
+	//OTEヘッダコマンド
+	ST_PLC_IO_DEF ote_head_command;
+
+	//映像遅延検出用デバイス
+	ST_PLC_IO_DEF v_delay_device;
+
+}ST_GC_PLC_IO_W, * LPST_GC_PLC_IO_W;
+
+typedef union _UN_PLC_IO_RIF {
+	ST_PLC_IO_DEF io[N_ST_PLC_IO_DEF];
+	ST_JC_PLC_IO_R JC;
+	ST_GC_PLC_IO_R GC;
+}UN_PLC_IO_RIF, * LPUN_PLC_IO_RIF;
+typedef union _UN_PLC_IO_WIF {
+	ST_PLC_IO_DEF io[N_ST_PLC_IO_DEF];
+	ST_JC_PLC_IO_W JC;
+	ST_GC_PLC_IO_W GC;
+}UN_PLC_IO_WIF, * LPUN_PLC_IO_WIF;
 
 #pragma pack(pop)
 

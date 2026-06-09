@@ -98,7 +98,7 @@ typedef struct _ST_CC_SIM_WORK {
     double dt;
     INT32 sl_cnt_pg360;//旋回360°のPGカウント値
  
-    ST_HHGH29_PLC_R st_plc_w;			                //PLC IO書き込みIF
+    ST_JC_PLC_IO_R st_plc_w;			                //PLC IO書き込みIF
     
     ST_SIM_AXIS axis[MOTION_ID_MAX];				//軸計算値
     double weight_mh;					            //フック質量 

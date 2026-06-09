@@ -286,10 +286,10 @@ int CCcCS::parse() {
 			memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
 
 			//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
-			plamp_com[OTE_PNL_CTRLS::estop].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->hhgh29.estop).i16;
+			plamp_com[OTE_PNL_CTRLS::estop].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.estop).i16;
 
 			//#主幹ランプ
-			if (pCrane->pPlc->rval(pPlcRIf->hhgh29.syukan_mc_comp).i16) {
+			if (pCrane->pPlc->rval(pPlcRIf->JC.syukan_mc_comp).i16) {
 				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_ON;
 				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
 			}
@@ -300,15 +300,15 @@ int CCcCS::parse() {
 			//pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
 			//pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
 
-			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com	= (UINT8)pCrane->pPlc->rval(pPlcRIf->hhgh29.fault_reset_pb).i16;
+			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com	= (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.fault_reset_pb).i16;
 			plamp_com[OTE_PNL_CTRLS::bypass].st.com			= CODE_PNL_COM_ON;
 
 			//#PLC側CSスイッチの状態
 			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com	= (UINT8)pPLC_IO->stat_mh.mode;
 			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com		= (UINT8)pPLC_IO->stat_bh.mode;
 			//#自動給脂　動力確立ランプ
-			plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->hhgh29.douryoku_ok).i16;
-			plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->hhgh29.auto_kyusi).i16;
+			plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.douryoku_ok).i16;
+			plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.auto_kyusi).i16;
 
 			if(pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren])	plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_ON;
 			else                                                    plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_OFF;
@@ -329,11 +329,11 @@ int CCcCS::parse() {
 			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = (UINT8)pPLC_IO->stat_gt.notch_ref;
 
 			//#ブザー,故障、警報ランプ
-			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->hhgh29.fault_bz).i16 & 0x000F;
-			plamp_com[OTE_PNL_CTRLS::fault_lamp].code = pCrane->pPlc->rval(pPlcRIf->hhgh29.fault_pl).i16;
+			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->JC.fault_bz).i16 & 0x000F;
+			plamp_com[OTE_PNL_CTRLS::fault_lamp].code = pCrane->pPlc->rval(pPlcRIf->JC.fault_pl).i16;
 
 			plamp_com[OTE_PNL_CTRLS::alm_lamp].code = plamp_com[OTE_PNL_CTRLS::fault_lamp].code;
-			plamp_com[OTE_PNL_CTRLS::ope_ready].code = pCrane->pPlc->rval(pPlcRIf->hhgh29.syukairo_comp).i16;
+			plamp_com[OTE_PNL_CTRLS::ope_ready].code = pCrane->pPlc->rval(pPlcRIf->JC.syukairo_comp).i16;
 
 		}
 

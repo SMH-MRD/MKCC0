@@ -22,8 +22,8 @@ static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
 static LPST_CC_SIM_INF		pSim_Inf	= NULL;
 
 static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
-static LPST_HHGH29_PLC_R pPlcWIf = NULL;
-static LPST_HHGH29_PLC_W pPlcRIf = NULL;
+static LPST_JC_PLC_IO_R pPlcWIf = NULL;
+static LPST_JC_PLC_IO_W pPlcRIf = NULL;
 
 ST_SIM_MON1 CSim::st_mon1;
 ST_SIM_MON2 CSim::st_mon2;
