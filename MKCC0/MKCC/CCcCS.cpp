@@ -17,10 +17,8 @@ extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
 extern CSharedMem* pAuxInfObj;
-
 extern CCrane* pCrane;
 extern ST_DEVICE_CODE g_my_code;
-
 
 //ソケット
 static CSockUDP* pUSockOte;	//ユニキャストOTE通信受信用
@@ -90,8 +88,8 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 		return S_FALSE;
 	}
 	else {
-		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
-		pPlcRIf = &(pCrane->pPlc->plc_io_rif);
+		pPlcWIf = &(pCrane->pPlc->un_plc_io_wif);
+		pPlcRIf = &(pCrane->pPlc->un_plc_io_rif);
 	}
 
 	if((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pOTE_Inf == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL))

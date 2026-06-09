@@ -3,6 +3,7 @@
 // ##############  西多度津70tJC 102号（HHGH2900）   ##############################
 // ################################################################################
 //西多度津70tJC102号の定義
+//PLCからのIO読み書き条件定義グローバル
 ST_HHGH29_PLC_R plc_io_rdef_hhgh29 = {
 	//{pi16,mask,type,lp,hp}
 	//PLC制御
@@ -112,7 +113,6 @@ ST_HHGH29_PLC_R plc_io_rdef_hhgh29 = {
 	//風速
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0 },	//wind_spd_01m
 };
-
 ST_HHGH29_PLC_W plc_io_wdef_hhgh29 = {
 	//{pi16,mask,type,lp:ビットシフト,hp：バッファサイズ}
 	//PLC制御

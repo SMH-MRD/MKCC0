@@ -18,114 +18,49 @@
 #define OTE_MC_SIZE_W_WRITE				150
 
 #define SLBRK_MC_ADDR_W_READ			16
-//#define SLBRK_MC_ADDR_W_READ			10460
 #define SLBRK_MC_SIZE_W_READ			16
 #define SLBRK_MC_ADDR_W_WRITE			96
-//#define SLBRK_MC_ADDR_W_WRITE			10450
 #define SLBRK_MC_SIZE_W_WRITE			16
 
-#define PLC_IF_REMOTE_OFF_MODE		    0x00000000		//機上運転モード（PCからの出力無効,端末にて状態のモニタのみ）
-#define PLC_IF_RMT_MODE_0			    0x00000001		//遠隔運転モード（PCからの出力有効　通常運用モード）
-#define PLC_IF_SIM_MODE_1			    0x00000003		//操作端末からの操作入力有効通常運用モード
-#define PLC_IF_SIM_MODE_2			    0x00000007		//PLC切り離しモード（PLC IFで機器への指定（ブレーキ,MC等）をシミュレート）
+#define PLC_IF_RINDEX_RMTSW_HHGH29		65		//遠隔スイッチ情報の読み出し位置
+#define PLC_IF_RMASK_RMTSW_HHGH29		0x0800	//遠隔スイッチ情報のマスク
 
-#define PLC_IF_PC_CTRL_ACTIVE		    0x00000001
-#define PLC_IF_PC_CTRL_DEACTIVE		    0x00000000
+//PLC制御ビットマスク(PLCへの出力信号のビット位置とマスク)
+#define MASK_BIT_PC_CTRL_ACTIVE		0x8000
+#define MASK_BIT_PC_SIM_MODE		0x4000
+#define MASK_BIT_PC_OPEPNL_ACTIVE   0x2000
+#define MASK_BIT_PC_AUTO_ACTIVE		0x1000
+#define MASK_BIT_RMT_ESTP_ACTIVE	0x0800
 
-// PLC_状態信号構造体（機上センサ信号)
-#define PLC_IF_BRK_OPEN				    true
-#define PLC_IF_BRK_CLOSE			    false
+//PG,ABSOデータのインデックス
+#define ID_PLC_HCOUNT_MH			0
+#define ID_PLC_HCOUNT_AH			1
+#define ID_PLC_HCOUNT_BH			2
+#define ID_PLC_HCOUNT_SL			3
+#define ID_PLC_ABSO_MH				0
+#define ID_PLC_ABSO_AH				1
+#define ID_PLC_ABSO_GT				2
 
-#define PLC_IF_INV_DIO_FWD			    0x0001
-#define PLC_IF_INV_DIO_REV			    0x0002
+// ######## OTE PLC関連定義 ##########################
 
-//極限タイプコード
-#define PLC_IF_LIMIT_COM_FWD_NORM		0x0000001
-#define PLC_IF_LIMIT_COM_REV_NORM		0x0000002
-#define PLC_IF_LIMIT_COM_FWD_EMR		0x0000004
-#define PLC_IF_LIMIT_COM_REV_EMR		0x0000008
-#define PLC_IF_LIMIT_COM_FWD_SLOW		0x0000010
-#define PLC_IF_LIMIT_COM_REV_SLOW		0x0000020
-#define PLC_IF_LIMIT_COM_FWD_SLOW2		0x0000040
-#define PLC_IF_LIMIT_COM_REV_SLOW2		0x0000080
-#define PLC_IF_LIMIT_COM_FWD_NORM_EX1	0x0000100
-#define PLC_IF_LIMIT_COM_REV_NORM_EX1	0x0000200
-#define PLC_IF_LIMIT_COM_FWD_EMR_EX1	0x0000400
-#define PLC_IF_LIMIT_COM_REV_EMR_EX1	0x0000800
-#define PLC_IF_LIMIT_COM_FWD_NORM_EX2	0x0001000
-#define PLC_IF_LIMIT_COM_REV_NORM_EX2	0x0002000
-#define PLC_IF_LIMIT_COM_FWD_EMR_EX2	0x0004000
-#define PLC_IF_LIMIT_COM_REV_EMR_EX2	0x0008000
-#define PLC_IF_LIMIT_COM_FWD_NORM_EX3	0x0010000
-#define PLC_IF_LIMIT_COM_REV_NORM_EX3	0x0020000
-#define PLC_IF_LIMIT_COM_FWD_EMR_EX3	0x0040000
-#define PLC_IF_LIMIT_COM_REV_EMR_EX3	0x0080000
+#define N_OTE_OPE_PLC_FAULT_BUF					20
+#define OTE_CODE_OPEPLC_INFO_SHEAT_IL			0x0001	//着座IL条件
+#define OTE_CODE_OPEPLC_INFO_NOTCH_ALL0			0x0002	//全ノッチ0
+#define OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS		0x0001	//着座ILBypass
+#define OTE_CODE_OPEPLC_SET_TOUCH_PB_ACTIVE		0x0002	//タッチPB表示
+#define OTE_CODE_OPEPLC_SET_CTRL_IL_BYPASS		0x0004	//制御遅延ILBypass
+#define OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS	0x0008	//映像遅延ILBypass
 
-#define PLC_IF_ID_MH7               0
-#define PLC_IF_ID_MH14              1
-#define PLC_IF_ID_MH21              2
+/*** PLC IO構造体定義 ***/
 
-#define PLC_IF_ID_AH12              0
-#define PLC_IF_ID_AH24              1
+#define N_ST_PLC_IO_DEF					256
 
-#define PLC_IF_ID_BH57              0
-#define PLC_IF_ID_BH62              1
-#define PLC_IF_ID_BH_REST           2
+#define CODE_PLCIO_WORD					0
+#define CODE_PLCIO_BIT					1
+#define CODE_PLCIO_DWORD				2
+#define CODE_PLCIO_FLOAT				3 
+#define CODE_PLCIO_DOUBLE				4 
+#define CODE_PLCIO_BITS					5 //NOTCH CS等
+#define CODE_PLCIO_BIT_NC				6 //ノーマルクローズ
 
-#define ID_MC_INV_GNT               0
-#define ID_MC_INV_AH                1
-#define ID_MC_INV_SLW               2
-#define ID_MC_INV_BH                3
-#define ID_MC_INV_MH1               4
-#define ID_MC_INV_MH2               5
-
-//INVERTOR CC LINK
-#define ID_CC_LINK_INV_GT           0
-#define ID_CC_LINK_INV_AH           1
-#define ID_CC_LINK_INV_SL           2
-#define ID_CC_LINK_INV_BH           3
-#define ID_CC_LINK_INV_MH1          4
-#define ID_CC_LINK_INV_MH2          5
-
-#define ID_CC_LINK_X                0
-#define ID_CC_LINK_Y                0
-#define ID_CC_LINK_W_COMMON         0
-#define ID_CC_LINK_W_SPDREF         1
-#define ID_CC_LINK_W_COMCODE        2
-#define ID_CC_LINK_W_COMITEM        3
-#define ID_CC_LINK_R_RESMON         0
-#define ID_CC_LINK_R_SPDREF         1
-#define ID_CC_LINK_R_RESCOM         2
-#define ID_CC_LINK_R_RESITEM        3
-
-//CC LINK
-#define CC_PRM_RPM100_MH            6666
-#define CC_PRM_RPM100_AH            10000
-#define CC_PRM_RPM100_BH            20000
-#define CC_PRM_RPM100_SLW           20000
-#define CC_PRM_RPM100_GT            20000
-
-#define PLC_IF_CAB_AI_FOOT_BRK      0
-#define PLC_IF_CAB_AI_BH_R          1
-#define PLC_IF_CAB_AI_MH_LOAD       2
-#define PLC_IF_CAB_AI_AH_LOAD       3
-#define PLC_IF_CAB_AI_BH_ANGLE      4
-
-#define PLC_IF_HCOUNT_MH            0
-#define PLC_IF_HCOUNT_AH            1
-#define PLC_IF_HCOUNT_BH            2
-#define PLC_IF_HCOUNT_SL            3
-
-#define PLC_IF_ABS_MH               0
-#define PLC_IF_ABS_AH               1
-
-#define PLC_IF_CCID_GT              0
-#define PLC_IF_CCID_AH              1
-#define PLC_IF_CCID_SL              2
-#define PLC_IF_CCID_BH              3
-#define PLC_IF_CCID_MH1             4
-#define PLC_IF_CCID_MH2             5
-
-#define PLC_IF_RINDEX_RMTSW_HHGH29 65		//遠隔スイッチ情報の読み出し位置
-#define PLC_IF_RMASK_RMTSW_HHGH29  0x0800	//遠隔スイッチ情報のマスク
-
+#define CODE_PLC_CTRL_PLC_REMOTE		0x8000

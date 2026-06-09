@@ -7,59 +7,9 @@
 #pragma pack(push,2)
 
 
-#define MASK_BIT_PC_CTRL_ACTIVE		0x8000
-#define MASK_BIT_PC_SIM_MODE		0x4000
-#define MASK_BIT_PC_OPEPNL_ACTIVE   0x2000
-#define MASK_BIT_PC_AUTO_ACTIVE		0x1000
-#define MASK_BIT_RMT_ESTP_ACTIVE	0x0800
-
-#define ID_PLC_HCOUNT_MH			0
-#define ID_PLC_HCOUNT_AH			1
-#define ID_PLC_HCOUNT_BH			2
-#define ID_PLC_HCOUNT_SL			3
-#define ID_PLC_ABSO_MH				0
-#define ID_PLC_ABSO_AH				1
-#define ID_PLC_ABSO_GT				2
 
 /*** PLC IFバッファ構造体定義 ***/
-//デフォルト（みらい）の定義
-//typedef struct _ST_PLC_WBUF {//制御PC→PLC
-//	INT16   helthy;               //PCヘルシー出力信号
-//	INT16   ctrl_mode;            //自動制御フラグ
-//	UINT16  cab_ai[8];            //運転室PLC AI信号【将来用】
-//	INT16   cab_bi[6];            //運転室PLC→電気室PLC b出力
-//	INT16   spare0[8];            //運転室PLC→電気室PLC b出力
-//	UINT32  hcounter[4];          //高速カウンタユニット 
-//	UINT32  absocoder[3];         //アブソコーダ 
-//	INT16   spare1[2];            //予備
-//	INT16   pc_fault[2];          //PC検出異常マップ
-//	INT16   spare2[16];           //予備
-//	INT16   erm_unitx[4];         //電気室ユニットX 020-03F：カウンタユニット　040-04F　120-12F：ABSユニット
-//	INT16   erm_x[8];             //電気室X 060-0CF
-//	INT16   inv_cc_x[6];          //インバータFB書き込み値　ｘデバイス
-//	INT16   inv_cc_Wr1[6];        //インバータFB書き込み値　rpm
-//	INT16   inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
-//	INT16   spare3[12];
-//}ST_PLC_WBUF, * LPST_PLC_WBUF;
-//typedef struct _ST_PLC_RBUF {
-//	INT16   helthy;               //PLCヘルシーカウンタ
-//	INT16   plc_ctrl;             // PLC運転モード
-//	UINT16  cab_ai[6];            //運転室PLC→電気室PLC W出力
-//	INT16   cab_bi[5];            //運転室PLC→電気室PLC b出力
-//	INT16   erm_900;
-//	INT16   erm_bo[6];            //電気室PLC b出力
-//	INT32   pos[5];               //各軸位置信号
-//	INT16   spd_tg[6];            //各軸指令速度目標
-//	INT16   plc_fault[18];        //各軸速度信号
-//	INT16   erm_y[4];             //電気室PLC Y出力
-//	INT16   erm_x[8];             //電気室PLC X入力
-//	INT16   inv_cc_y[6];          //インバータPLC DO指令
-//	INT16   inv_cc_Ww1[6];        //インバータPLC 速度指令　rpm
-//	INT16   inv_cc_x[6];          //インバータFB書き込み値　ｘデバイス
-//	INT16   inv_cc_Wr1[6];        //インバータFB書き込み値　rpm
-//	INT16   inv_cc_Wr2[6];        //インバータFB書き込み値　トルク0.1%
-//	INT16   spare1[4];            //予備
-//}ST_PLC_RBUF, * LPST_PLC_RBUF;
+
 //西多度津70tJC102号の定義
 typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC
 	INT16   helthy;						//D10200:PCヘルシー出力信号
@@ -110,38 +60,8 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 
 }ST_PLC_RBUF_HHGH29, * LPST_PLC_RBUF_HHGH29;
 
-union UN_PLC_RBUF {
-	INT16 rbuf[CC_MC_SIZE_W_READ];
-//	ST_PLC_RBUF			st;
-	ST_PLC_RBUF_HHGH29	st_hhgh29;
-};
-
-union UN_PLC_WBUF {
-	INT16 wbuf[CC_MC_SIZE_W_WRITE];
-//	ST_PLC_WBUF			st;
-	ST_PLC_WBUF_HHGH29	st_hhgh29;
-};
-
-
-
 // ######## OTE PLC関連定義 ##########################
 
-#define N_OTE_OPE_PLC_FAULT_BUF				20
-#define OTE_CODE_OPEPLC_REMOTE_PB			0x0001
-#define OTE_CODE_OPEPLC_AUTOMODE_PB			0x0002
-#define OTE_CODE_OPEPLC_AUTO_SEL_MH_PB		0x0004
-#define OTE_CODE_OPEPLC_AUTO_SEL_BH_PB		0x0008
-#define OTE_CODE_OPEPLC_AUTO_SEL_SL_PB		0x0010
-#define OTE_CODE_OPEPLC_AUTO_SEL_GT_PB		0x0020
-#define OTE_CODE_OPEPLC_AUTO_SEL_AH_PB		0x0040
-
-#define OTE_CODE_OPEPLC_INFO_SHEAT_IL		0x0001	//着座IL条件
-#define OTE_CODE_OPEPLC_INFO_NOTCH_ALL0		0x0002	//全ノッチ0
-
-#define OTE_CODE_OPEPLC_SET_SHEAT_IL_BYPASS	0x0001	//着座ILBypass
-#define OTE_CODE_OPEPLC_SET_TOUCH_PB_ACTIVE	0x0002	//タッチPB表示
-#define OTE_CODE_OPEPLC_SET_CTRL_IL_BYPASS	0x0004	//制御遅延ILBypass
-#define OTE_CODE_OPEPLC_SET_VDELAY_IL_BYPASS	0x0008	//映像遅延ILBypass
 
 typedef struct _ST_PLC_AXIS_SET {
 	float	pos_fb;									// 位置
@@ -212,35 +132,7 @@ typedef struct _ST_PLC_RBUF_HHGG38 {
 	INT16   spare2[14];								// D10636: 
 }ST_PLC_RBUF_HHGG38, * LPST_PLC_RBUF_HHGG38;
 
-typedef union _UN_OPE_PLC_RBUF {
-	INT16 rbuf[OTE_MC_SIZE_W_READ];
-	ST_PLC_RBUF_HHGG38	st_hhgg38;
-}UN_OPE_PLC_RBUF, * LPUN_OPE_PLC_RBUF;
-typedef union _UN_OPE_PLC_WBUF {
-	INT16 wbuf[OTE_MC_SIZE_W_WRITE];
-	ST_PLC_WBUF_HHGG38	st_hhgh38;
-}UN_OPE_PLC_WBUF, * LPUN_OPE_PLC_WBUF;
-
-
 // ######## SLBRK PLC関連定義 ##########################
-
-#define SBRK_CODE_FB_WF_BACK_TO_ORIGIN		0x0002
-#define SBRK_CODE_FB_WF_ON_MOVING			0x0004
-#define SBRK_CODE_FB_WF_ALARM				0x0008
-#define SBRK_CODE_FB_WF_SV_READY			0x0010
-#define SBRK_CODE_FB_WF_KARABURI			0x0020	//空振り
-#define SBRK_CODE_FB_WF_PUSHS				0x0040	//押し付け動作中
-#define SBRK_CODE_FB_WF_GOING_TO_ORG		0x0080	//原点復帰中
-#define SBRK_CODE_FB_WF_RMWS				0x0100  //運転モード
-#define SBRK_CODE_FB_WF_TRQS				0x0200  //トルクレベル到達
-#define SBRK_CODE_FB_WF_LOAW				0x0400
-#define SBRK_CODE_FB_WF_PZONE				0x0800
-#define SBRK_CODE_FB_WF_ZONE1				0x1000
-#define SBRK_CODE_FB_WF_ZONE2				0x2000	
-#define SBRK_CODE_FB_WF_CONTROL_READY		0x4000	
-#define SBRK_CODE_FB_WF_EMGS				0x8000	//異常停止
-
-#define SBRK_CODE_FB_WF_POSITIONING_OK		0x0001
 
 typedef struct _ST_PLC_WBUF_SBRK {
 	INT16   pc_ref_D96;		// D96
@@ -255,34 +147,7 @@ typedef struct _ST_PLC_RBUF_SBRK {
 	INT16  spare0[5];						// 
 }ST_PLC_RBUF_SBRK, * LPST_PLC_RBUF_SBRK;
 
-typedef union _UN_SBRK_PLC_RBUF {
-	INT16 rbuf[SLBRK_MC_ADDR_W_READ];
-	ST_PLC_RBUF_SBRK	st_sbrk_r;
-}UN_SBRK_PLC_RBUF, * LPUN_SBRK_PLC_RBUF;
-typedef union _UN_SBRK_PLC_WBUF {
-	INT16 wbuf[SLBRK_MC_ADDR_W_WRITE];
-	ST_PLC_WBUF_SBRK	st_sbrk_w;
-}UN_SBRK_PLC_WBUF, * LPUN_SBRK_PLC_WBUF;
 
-
-#pragma pack(pop)
-
-/*** PLC IO構造体定義 ***/
-#define CODE_PLCIO_WORD					0
-#define CODE_PLCIO_BIT					1
-#define CODE_PLCIO_DWORD				2
-#define CODE_PLCIO_FLOAT				3 
-#define CODE_PLCIO_DOUBLE				4 
-#define CODE_PLCIO_BITS					5 //NOTCH CS等
-#define CODE_PLCIO_BIT_NC				6 //ノーマルクローズ
-
-#define CODE_PLC_CTRL_PC_ENABLE			0x0001
-#define CODE_PLC_CTRL_PC_ACTIVE			0x0002
-#define CODE_PLC_CTRL_PC_SIMMODE		0x0004
-#define CODE_PLC_CTRL_OTE_ACTIVE		0x0008
-#define CODE_PLC_CTRL_PC_AUTO_ACTIVE	0x0010
-#define CODE_PLC_CTRL_OTE_ESTP			0x0020
-#define CODE_PLC_CTRL_PLC_REMOTE		0x8000
 
 typedef union _UN_IF_VALUE {
 	INT16 i16;
@@ -296,6 +161,7 @@ typedef struct _ST_PLC_IO_DEF {
 	INT16	type;	//
 	INT16	shift;	//ビットシフト数
 	INT16   size;	//バッファサイズ
+	INT16   index;	//インデックス(バッファ内の位置）
 }ST_PLC_IO_DEF, * LPST_PLC_IO_DEF;
 
 typedef struct _ST_HHGH29_PLC_R {
@@ -846,18 +712,53 @@ typedef struct _ST_HHFM08_PLC_W {
 
 }ST_HHFM08_PLC_W, * LPST_HHFM08_PLC_W;
 
+
+//クレーンのPLC入出力内容を定義する構造体
+typedef union _UN_PLC_RBUF {
+	INT16 rbuf[CC_MC_SIZE_W_READ];
+	//	ST_PLC_RBUF			st;
+	ST_PLC_RBUF_HHGH29	st_hhgh29;
+}UN_PLC_RBUF, * LPUN_PLC_RBUF;
+typedef union _UN_PLC_WBUF {
+	INT16 wbuf[CC_MC_SIZE_W_WRITE];
+	//	ST_PLC_WBUF			st;
+	ST_PLC_WBUF_HHGH29	st_hhgh29;
+}UN_PLC_WBUF, * LPUN_PLC_WBUF;
+
 typedef union _UN_PLC_IO_RIF {
-	ST_PLC_IO_DEF i[256];
+	ST_PLC_IO_DEF io[N_ST_PLC_IO_DEF];
 	ST_HHGH29_PLC_R hhgh29;
 	ST_HHGQ18_PLC_R hhgq18;
 	ST_HHFM08_PLC_R hhfm08;
 }UN_PLC_IO_RIF, * LPUN_PLC_IO_RIF;
 typedef union _UN_PLC_IO_WIF {
-	ST_PLC_IO_DEF i[256];
+	ST_PLC_IO_DEF io[N_ST_PLC_IO_DEF];
 	ST_HHGH29_PLC_W hhgh29;
 	ST_HHGQ18_PLC_W hhgq18;
 	ST_HHFM08_PLC_W hhfm08;
 }UN_PLC_IO_WIF, * LPUN_PLC_IO_WIF;
+
+//旋回ブレーキ
+typedef union _UN_SBRK_PLC_RBUF {
+	INT16 rbuf[SLBRK_MC_ADDR_W_READ];
+	ST_PLC_RBUF_SBRK	st_sbrk_r;
+}UN_SBRK_PLC_RBUF, * LPUN_SBRK_PLC_RBUF;
+typedef union _UN_SBRK_PLC_WBUF {
+	INT16 wbuf[SLBRK_MC_ADDR_W_WRITE];
+	ST_PLC_WBUF_SBRK	st_sbrk_w;
+}UN_SBRK_PLC_WBUF, * LPUN_SBRK_PLC_WBUF;
+
+//OTE
+typedef union _UN_OPE_PLC_RBUF {
+	INT16 rbuf[OTE_MC_SIZE_W_READ];
+	ST_PLC_RBUF_HHGG38	st_hhgg38;
+}UN_OPE_PLC_RBUF, * LPUN_OPE_PLC_RBUF;
+typedef union _UN_OPE_PLC_WBUF {
+	INT16 wbuf[OTE_MC_SIZE_W_WRITE];
+	ST_PLC_WBUF_HHGG38	st_hhgh38;
+}UN_OPE_PLC_WBUF, * LPUN_OPE_PLC_WBUF;
+
+#pragma pack(pop)
 
 class CPlc
 {
@@ -881,8 +782,8 @@ public:
 
 	virtual ~CPlc() {};
 
-	UN_PLC_IO_RIF plc_io_rif;
-	UN_PLC_IO_WIF plc_io_wif;
+	UN_PLC_IO_RIF un_plc_io_rif;
+	UN_PLC_IO_WIF un_plc_io_wif;
 
 	void set_rbuf(INT16* _pbuf_r) {
 		pbuf_r = _pbuf_r;

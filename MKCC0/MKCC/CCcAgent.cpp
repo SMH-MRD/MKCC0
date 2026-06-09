@@ -104,8 +104,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : CraneObject NULL"; msg2listview(wos.str());
 		return S_FALSE;
 	}else{
-		pPlcWIf = &(pCrane->pPlc->plc_io_wif);
-		pPlcRIf = &(pCrane->pPlc->plc_io_rif);
+		pPlcWIf = &(pCrane->pPlc->un_plc_io_wif);
+		pPlcRIf = &(pCrane->pPlc->un_plc_io_rif);
 	}
 
 	//### IFウィンドウOPEN
@@ -372,7 +372,6 @@ int CAgent::parse() {
 		else {
 			mask &= ~MASK_BIT_PC_SIM_MODE;	//PC操作有効、実機モード
 		}
-
 
 		if (plc_healthy) {
 			pAgent_Inf->pc_ctrl_mode2plc |= mask;
