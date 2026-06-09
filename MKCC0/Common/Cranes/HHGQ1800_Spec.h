@@ -101,7 +101,7 @@ ST_AXIS_ITEMS	base_bh_hhgq18 = {
 	0.0,				// Ndmizo1;		ドラム溝数1
 	2048,				// CntPgR;		PG1回転カウント数×逓倍
 	159990,				// CntPgDrumR　ドラム1回転PGカウント数
-	86673,				// CntPgSet0;	PGプリセット0カウント値
+	86673000,				// CntPgSet0;	PGプリセット0カウント値
 	83.3,				// NdrmPgSet0;	PGプリセット0ドラム回転数
 	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
 	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
