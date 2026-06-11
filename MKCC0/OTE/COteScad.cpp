@@ -827,7 +827,7 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 //	ATOM fb = RegisterClassExW(&wcex);
 
 	if (id == BC_ID_MON1) {
-#if 1
+
 		CMainPanelWindow* pMainWnd = new CMainPanelWindow(
 			hInst, h_parent_wnd,
 			pOteEnvInf->selected_crane,
@@ -835,7 +835,9 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 			&pPanelBase
 		);
 
-		SetLayeredWindowAttributes(pMainWnd->hPnlWnd, 0, 200, LWA_ALPHA);
+		//ウィンドウの透過設定(アルファブレンド:ウィンドウ全体の不透明度を200/255に設定)
+		//SetWindowLongPtr(pMainWnd->hPnlWnd, GWL_EXSTYLE, GetWindowLongPtr(pMainWnd->hPnlWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+		//BOOL b = SetLayeredWindowAttributes(pMainWnd->hPnlWnd, 0, 200, LWA_ALPHA);
 		
 		//show_monitor_wnd(id);
 
@@ -849,39 +851,7 @@ HWND COteScad::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		msg2listview(wos.str());
 
 		return pMainWnd->hPnlWnd;
-#else
-		wcex.cbSize = sizeof(WNDCLASSEX);
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Mon1Proc;
-		wcex.cbClsExtra = 0;
-		wcex.cbWndExtra = 0;
-		wcex.hInstance = hInst;
-		wcex.hIcon = NULL;
-		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("OTE_SCAD_MON1");
-		wcex.lpszClassName = TEXT("OTE_SCAD_MON1");
-		wcex.hIconSm = NULL;
 
-		ATOM fb = RegisterClassExW(&wcex);
-
-		st_mon1.hwnd_mon = CreateWindowW(TEXT("OTE_SCAD_MON1"), TEXT("Operation Panel"), WS_OVERLAPPEDWINDOW,
-			OTE_SCAD_MON1_WND_X, OTE_SCAD_MON1_WND_Y, OTE_SCAD_MON1_WND_W, OTE_SCAD_MON1_WND_H,
-			h_parent_wnd, nullptr, hInst, nullptr);
-
-		SetLayeredWindowAttributes(st_mon1.hwnd_mon, 0, 200, LWA_ALPHA);
-
-		show_monitor_wnd(id);
-
-		wos.str(L"");
-		if (st_mon1.hwnd_mon != NULL) wos << L"Succeed : MON1 open";
-		else                          wos << L"!! Failed : MON1 open";
-		msg2listview(wos.str());
-
-		return st_mon1.hwnd_mon;
-
-
-#endif
 	}
 	else if (id == BC_ID_MON2) {//通信用ウィンドウ
 		wcex.cbSize = sizeof(WNDCLASSEX);

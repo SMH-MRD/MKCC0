@@ -42,9 +42,9 @@ using namespace Gdiplus;
 
 #define CRANE_TXT_NULL          L"不明"
 #define CRANE_TXT_H6R602        L"みらい"
-#define CARNE_TXT_HHGH29        L"西多度津70tJC 102号"   
-#define CARNE_TXT_HHGQ18        L"西多度津300tJC 10号" 
-#define CARNE_TXT_HHFM08        L"西多度津1280tGC"
+#define CARNE_TXT_HHGH29        L"西多度津70tJC 102号(HHGH29)"   
+#define CARNE_TXT_HHGQ18        L"西多度津300tJC 10号(HHGQ18)" 
+#define CARNE_TXT_HHFM08        L"西多度津1280tGC(HHFM08)"
 #define CARNE_ID_XXXXXX         L"多度津OHC"
 
 #pragma endregion 識別ID

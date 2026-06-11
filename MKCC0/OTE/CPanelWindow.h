@@ -100,7 +100,8 @@ public:
 	static CPanelBase* pPanelBase;
 
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static LRESULT CALLBACK WndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK WndProcJC(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK WndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static int close();
 	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf, LPST_OTE_AUX_AGENT_INF pOteAuxAgInf, LPST_OTE_AUX_POL_INF	pOteAuxPolInf) ;

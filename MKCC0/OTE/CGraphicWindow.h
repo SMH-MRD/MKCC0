@@ -63,14 +63,21 @@ public:
 	static Gdiplus::Point org_main;			//クレーン原点位置
 
 	static void OnPaint(HDC hdc, HWND hWnd);
+	static void OnPaint_JC(HDC hdc, HWND hWnd);
+
 	static LRESULT CALLBACK GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static LRESULT CALLBACK GWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK GWndProcJC(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK GWndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static Gdiplus::Point mouse_pos_sub;
 	static Gdiplus::Point bk_pickup_pos;
+
 	static void OnPaintSub(HDC hdc, HWND hWnd);
+	static void OnPaintSub_JC(HDC hdc, HWND hWnd);
+
 	static LRESULT CALLBACK GSubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static LRESULT CALLBACK GSubWndProcHHGH29(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK GSubWndProcJC(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK GSubWndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static int close();
 	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf, int _crane_id);

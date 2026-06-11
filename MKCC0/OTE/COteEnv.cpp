@@ -244,17 +244,17 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 					hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
 			}
-			else if (i == OTE_ENV_ID_MON1_RADIO_CRANE09) {
+			else if (i == OTE_ENV_ID_MON1_RADIO_CRANE02) {
 				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 					hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
 			}
-			else {
+			else {//!!!! ######　未実装クレーンは無効化　EnableWindow(st_mon1.hctrl[i], FALSE);
 				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 					hWnd, (HMENU)(OTE_ENV_ID_MON1_CTRL_BASE + i), hInst, NULL);
 				
-				//!!!! 未実装クレーンは無効化
+				//!!!! ######　未実装クレーンは無効化
 				EnableWindow(st_mon1.hctrl[i], FALSE);
 			}
 		}
@@ -314,9 +314,9 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_RADIO_CRANE01]);
 		}break;
 
-		case OTE_ENV_ID_MON1_RADIO_CRANE09: {
-			crane_id_selected = CARNE_ID_PC0;
-			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_RADIO_CRANE09]);
+		case OTE_ENV_ID_MON1_RADIO_CRANE02: {
+			crane_id_selected = CARNE_ID_HHGQ18;
+			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_RADIO_CRANE02]);
 		}break;
 		case OTE_ENV_ID_MON1_RADIO_CRANE10: {
 			crane_id_selected = CARNE_ID_PC0;
@@ -339,13 +339,14 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			PostQuitMessage(0);
 		}break;
 
-		case OTE_ENV_ID_MON1_RADIO_CRANE02:
+
 		case OTE_ENV_ID_MON1_RADIO_CRANE03:
 		case OTE_ENV_ID_MON1_RADIO_CRANE04:
 		case OTE_ENV_ID_MON1_RADIO_CRANE05:
 		case OTE_ENV_ID_MON1_RADIO_CRANE06:
 		case OTE_ENV_ID_MON1_RADIO_CRANE07:
 		case OTE_ENV_ID_MON1_RADIO_CRANE08:
+		case OTE_ENV_ID_MON1_RADIO_CRANE09:	
 		{
 			crane_id_selected = CRANE_ID_NULL;
 			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_STATIC_SELECTED]);

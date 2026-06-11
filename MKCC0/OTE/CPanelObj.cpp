@@ -24,7 +24,7 @@ extern ST_DRAWING_BASE		drawing_items;
 
 static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_STR_MESSAGE		,Point(920,0)	,Size(1000,40)	,L"-"	},
-		{ID_MAIN_PNL_OBJ_STR_CRANE_TXT		,Point(880,1040),Size(1000,80)	,L"•s–¾"},
+		{ID_MAIN_PNL_OBJ_STR_CRANE_TXT		,Point(750,1040),Size(1000,80)	,L"•s–¾"},
 		{ID_MAIN_PNL_OBJ_PB_REMOTE			,Point(20,50)	,Size(100,100)	,L"‰“Šu"			},
 		{ID_MAIN_PNL_OBJ_LMP_REMOTE			,Point(20,50)	,Size(100,100)	,L"‰“Šu"			},
 		{ID_MAIN_PNL_OBJ_TXT_UID			,Point(20,290)	,Size(100,30)	,L"UID"				},
