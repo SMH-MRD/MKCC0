@@ -122,9 +122,16 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 			pMCSock = new CMCProtocol(ID_SOCK_MC_OTE_CS);
 
 			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE, g_my_code.machine_id) != S_OK) {
-				wos << L"Initialize : MC Init NG(OTE)"; msg2listview(wos.str()); wos.str(L"");
-				wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
-				return S_FALSE;
+				if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
+					wos << L"Initialize : Env Debug Mode Ignore MCSock"; msg2listview(wos.str()); wos.str(L"");
+					pOteCsInf->ote_error = pOteCsInf->ote_interlock = 0;//ˆÙíŒŸoƒNƒŠƒA
+					return S_OK;
+				}
+				else {
+					wos << L"Initialize : MC Init NG(OTE)"; msg2listview(wos.str()); wos.str(L"");
+					wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
+					return S_FALSE;
+				}
 
 				if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG, g_my_code.machine_id) != S_OK) {
 					wos << L"Initialize : MC Init NG(DEBUG)"; msg2listview(wos.str()); wos.str(L"");
