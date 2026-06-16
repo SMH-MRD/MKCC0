@@ -184,7 +184,7 @@ HRESULT COteEnv::open_opening_window() {
 }
 
 HRESULT COteEnv::open_ope_window(int crane_id_selected) {
-	delete pCrane;
+	if(pCrane != NULL) delete pCrane;
 	if (!(NULL == (pCrane = new CCrane(crane_id_selected))))
 	{
 

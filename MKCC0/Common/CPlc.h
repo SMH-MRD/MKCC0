@@ -77,7 +77,7 @@ typedef struct _ST_PLC_WBUF_HHGQ18 {	//制御PC→PLC
 	INT16   trq_ref[2];					//D10274:トルク指令（符号付き　4000/200%）
 	INT16   spear1[24];					//D10276:インバータ速度指令（符号付き　3200が最高速度）
 
-}ST_PLC_WBUF_HHGQ18, * LPST_PLC_WBUF_HHQ18;
+}ST_PLC_WBUF_HHGQ18, * LPST_PLC_WBUF_HHGQ18;
 typedef struct _ST_PLC_RBUF_HHGQ18 {
 	INT16   helthy;						// D10300:PLCヘルシーカウンタ
 	INT16   plc_ctrl;					// D10301: PLC運転モード
@@ -105,7 +105,7 @@ typedef struct _ST_PLC_RBUF_HHGQ18 {
 	INT32   absocoder_fb[3];			// D10388:アブソコーダ FB値
 	INT16   spar4[4];					// D10396:予備
 
-}ST_PLC_RBUF_HHGQ18, * LPST_PLC_RBUF_HHQ18;
+}ST_PLC_RBUF_HHGQ18, * LPST_PLC_RBUF_HHGQ18;
 
 //クレーン
 typedef union _UN_PLC_RBUF {
@@ -299,6 +299,9 @@ typedef struct _ST_JC_PLC_IO_R {
 	ST_PLC_IO_DEF douryoku_ok;		//動力電源確立ランプ
 	ST_PLC_IO_DEF siren_sw;			//モータサイレンスイッチ
 	
+	//X090
+	ST_PLC_IO_DEF remote_mode_sw;	//リモートモードスイッチ
+
 	//X0C0
 	ST_PLC_IO_DEF brk_mc3_fb;		//ブレーキ主幹アンサーバック
 	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック

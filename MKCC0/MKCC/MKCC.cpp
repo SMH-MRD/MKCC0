@@ -194,12 +194,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
   
    if (OK_SHMEM != pAuxInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 
-   //  クレーンオブジェクトセットアップ
-   LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
-   pCrane = new CCrane(CARNE_ID_HHGH29,pPlcIo->buf_io_read,pPlcIo->buf_io_write);
-   LPST_JC_PLC_IO_R pbuf = pCrane->get_plc_rif();
- 
-     //デバイスコードセット
+      //デバイスコードセット
     
    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXXX", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"???????", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
@@ -223,6 +218,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_PRODUCT_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
    swscanf_s(wbuf, L"%d", &(g_app_common_param.product_mode));
     
+   //  クレーンオブジェクトセットアップ
+   LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
+
+   pCrane = new CCrane(g_my_code.machine_id, pPlcIo->buf_io_read, pPlcIo->buf_io_write);
+   LPST_JC_PLC_IO_R pbuf = pCrane->get_plc_rif();
+   
    //コミュニケーションオブジェクトセットアップ
    CComm::setup();
    CComm::addr_list;

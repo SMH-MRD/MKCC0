@@ -133,7 +133,8 @@ void CMainPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OT
 	//### Environmentクラスインスタンスのポインタ取得
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 	pAgentObj = (COteAgent*)VectCtrlObj[st_task_id.AGENT];
-
+	
+	//映像遅延時間計測用
 	pOteAuxAgInf= _pOteAuxAgInf;
 	pOteAuxPolInf = _pOteAuxPolInf;
 	return;
@@ -1442,6 +1443,11 @@ void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE
 
 	//PLCの故障情報ポインタセット
 	switch (crane_id) {
+	case CARNE_ID_HHGQ18:
+	{
+		LPST_PLC_RBUF_HHGQ18 prbuf = (LPST_PLC_RBUF_HHGQ18)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+		pflt_plc = (PINT16)prbuf->plc_fault; //PLCの故障情報ポインタセット
+	}
 	case CARNE_ID_HHGH29:
 	default:
 	{
@@ -1597,9 +1603,6 @@ void CSubPanelWindow::OnPaintFlt(HDC hdc, HWND hwnd) {
 }
 
 static wostringstream monwos;
-
-
-
 
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
@@ -2453,7 +2456,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		
 	}break;
-
 	case WM_TIMER: {
 		//InvalidateRect(pPanelBase->psubobjs->st_mh_ref_v->hWnd, NULL, TRUE);
 		switch (crane_id) {
@@ -2476,6 +2478,29 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			wos.str(L""); wos << pCcIf->msg_snd_seqno_now - pCcIf->msg_rcv_seqno_now;
 			SetWindowText(pPanelBase->psubobjs->st_deff_seq_no->hWnd, wos.str().c_str());
 	
+			wos.str(L""); wos << std::setprecision(4) << pCsInf->video_delay_sec;
+			SetWindowText(pPanelBase->psubobjs->st_v_delay->hWnd, wos.str().c_str());
+
+		}break;
+		case CARNE_ID_HHGQ18: {
+			LPST_PLC_RBUF_HHGQ18 p_plc_rbuf = (LPST_PLC_RBUF_HHGQ18)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+
+			wostringstream wos;
+			wos.str(L""); wos << pCcIf->msg_delay_max_ms;
+			SetWindowText(pPanelBase->psubobjs->st_delay_max->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_delay_min_ms;
+			SetWindowText(pPanelBase->psubobjs->st_delay_min->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_delay_ave_ms;
+			SetWindowText(pPanelBase->psubobjs->st_delay_ave->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_lost_num;
+			SetWindowText(pPanelBase->psubobjs->st_data_lost->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_snd_seqno_now;
+			SetWindowText(pPanelBase->psubobjs->st_snd_seq_no->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_rcv_seqno_now;
+			SetWindowText(pPanelBase->psubobjs->st_rcv_seq_no->hWnd, wos.str().c_str());
+			wos.str(L""); wos << pCcIf->msg_snd_seqno_now - pCcIf->msg_rcv_seqno_now;
+			SetWindowText(pPanelBase->psubobjs->st_deff_seq_no->hWnd, wos.str().c_str());
+
 			wos.str(L""); wos << std::setprecision(4) << pCsInf->video_delay_sec;
 			SetWindowText(pPanelBase->psubobjs->st_v_delay->hWnd, wos.str().c_str());
 
@@ -2507,7 +2532,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		}
 
 	}break;
-
 	case WM_COMMAND: {
 		INT16 code = 0;
 		int wmId = LOWORD(wParam);
@@ -2531,9 +2555,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);
 		}
 	}break;
-
-
-
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wParam, TRANSPARENT);
@@ -2578,7 +2599,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam
 LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
-
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 
@@ -2695,7 +2715,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_RIGHT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 	}break;
-
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
 		InvalidateRect(hwnd, NULL, TRUE); // ウィンドウ全体を再描画
 	}
@@ -2703,11 +2722,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
 		SetBkMode((HDC)wParam, TRANSPARENT);
 	}return (LRESULT)GetStockObject(BLACK_BRUSH); // 背景色に合わせる
-
 	case WM_ERASEBKGND: {//ウィンドウの背景色を黒に
 		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
 	}return 1; // 背景を処理したことを示す
-
 	case WM_TIMER: {
 		//InvalidateRect(pPanelBase->psubobjs->st_mh_ref_v->hWnd, NULL, TRUE);
 		switch (crane_id) {
@@ -2785,6 +2802,88 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_BH];
 			SetWindowText(pPanelBase->psubobjs->st_bh_fb_pg->hWnd, wos.str().c_str());
 			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_SL] ;
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_pg->hWnd, wos.str().c_str());
+			//アブソコーダ
+			wos.str(L""); wos << p_plc_rbuf->absocoder_fb[ID_PLC_ABSO_MH];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_abs->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->absocoder_fb[ID_PLC_ABSO_GT];
+			SetWindowText(pPanelBase->psubobjs->st_gt_fb_abs->hWnd, wos.str().c_str());
+
+		}break;
+		case CARNE_ID_HHGQ18: {
+			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+			wostringstream wos;
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"0");
+
+			//目標速度
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_target_v->hWnd, wos.str().c_str());
+
+			//速度指令
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_ref_v->hWnd, wos.str().c_str());
+
+			//速度FB
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_fb_v->hWnd, wos.str().c_str());
+
+			//ﾄﾙｸ指令
+			wos.str(L""); wos << p_plc_rbuf->inv_trq[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_trq->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_trq[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, wos.str().c_str());
+
+			//PG
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_MH];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_pg->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_BH];
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_pg->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_SL];
 			SetWindowText(pPanelBase->psubobjs->st_sl_fb_pg->hWnd, wos.str().c_str());
 			//アブソコーダ
 			wos.str(L""); wos << p_plc_rbuf->absocoder_fb[ID_PLC_ABSO_MH];

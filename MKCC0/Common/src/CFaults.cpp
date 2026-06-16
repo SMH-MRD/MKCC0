@@ -304,6 +304,12 @@ int CFaults::setup(int crane_id) {
 	case CARNE_ID_HHGQ18: {
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGQ18, sizeof(flt_list_HHGQ18));
+		LPST_PLC_RBUF_HHGQ18 _prbuf = (LPST_PLC_RBUF_HHGQ18)prbuf;
+		LPST_PLC_WBUF_HHGQ18 _pwbuf = (LPST_PLC_WBUF_HHGQ18)pwbuf;
+
+		prfltbuf = _prbuf->plc_fault;
+		pwfltbuf = _pwbuf->pc_fault;
+
 	}break;
 	case CARNE_ID_HHFM08: { 
 		//フォルトリスト

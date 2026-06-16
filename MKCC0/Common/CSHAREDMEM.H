@@ -3,10 +3,6 @@
 #include <string>
 #include "COMMON_DEF.h"
 
-//#include "SmemMain.H"
-//#include "SmemOte.H"
-//#include "SmemAux.H"
-
 using namespace std;
 
 //  共有メモリステータス

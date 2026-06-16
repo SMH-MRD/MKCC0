@@ -13,6 +13,8 @@ extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 extern CSharedMem* pAuxInfObj;
 
+extern CCrane* pCrane;
+
 //共有メモリ
 static LPST_CC_ENV_INF		pEnvInf		= NULL;
 static LPST_CC_PLC_IO		pPlcIo		= NULL;
@@ -103,7 +105,9 @@ int CPolicy::parse() {           //メイン処理
 	 
 	//## 遠隔モードスイッチ警報
 	INT16 XB0 = pPlcIo->buf_io_read[PLC_IF_RINDEX_RMTSW_HHGH29];
-	if (XB0 & PLC_IF_RMASK_RMTSW_HHGH29) {
+//	if (XB0 & PLC_IF_RMASK_RMTSW_HHGH29) {
+	INT16 rmtsw = pPlcIo->remote_mode_sw;
+	if (rmtsw) {
 		pPolInf->pc_fault_map[FLTS_ID_RMTSW_OFF] &= ~FLTS_MASK_RMTSW_OFF;
 	}
 	else {

@@ -193,6 +193,8 @@ int CAgent::input() {
 //### PLC信号を共有メモリに展開
 	//###モード
 	pPLC_IO ->plc_mode_fb = pCrane->pPlc->rval(pPlcRIf->JC.plc_ctrl_fb).i16;
+
+	pPLC_IO->remote_mode_sw = pCrane->pPlc->rval(pPlcRIf->JC.remote_mode_sw).i16;	//遠隔操作モードスイッチ
 	//###荷重, 揚程,
 	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->JC.m).i16;	//MH荷重
 	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->JC.h_mh_mm).i32) / 1000.0;	//揚程

@@ -125,7 +125,6 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 				if (pOteEnvInf->app_common_param.app_mode == OTE_ENV_APP_DEBUG_TYPE1) {
 					wos << L"Initialize : Env Debug Mode Ignore MCSock"; msg2listview(wos.str()); wos.str(L"");
 					pOteCsInf->ote_error = pOteCsInf->ote_interlock = 0;//ˆÙíŒŸoƒNƒŠƒA
-					return S_OK;
 				}
 				else {
 					wos << L"Initialize : MC Init NG(OTE)"; msg2listview(wos.str()); wos.str(L"");

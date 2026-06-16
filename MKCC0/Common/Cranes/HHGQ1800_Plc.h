@@ -58,6 +58,9 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0,15},	//douryoku_ok;		//動力電源確立;
 	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0,15},	//siren_sw;			モータサイレンスイッチ
 
+	//X090
+	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0,63},	//rmote_mode_sw;		//リモートモードスイッチ
+
 	//X0C0
 	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0,66},	//brk_mc3_fb;		//ブレーキ主幹アンサーバック
 	{NULL,BIT10,				CODE_PLCIO_BIT,		0,0,66},	//mh_brk1_fb;		//主巻ブレーキアンサーバック

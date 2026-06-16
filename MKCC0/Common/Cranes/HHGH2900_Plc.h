@@ -59,6 +59,9 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgh29 = {
 	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0,15},	//douryoku_ok;		//動力電源確立;
 	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0,15},	//siren_sw;			モータサイレンスイッチ
 
+	//X090
+	{NULL,BIT11,				CODE_PLCIO_BIT,		0,0,65},	//rmote_mode_sw;		//リモートモードスイッチ
+
 	//X0C0
 	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0,66},	//brk_mc3_fb;		//ブレーキ主幹アンサーバック
 	{NULL,BIT10,				CODE_PLCIO_BIT,		0,0,66},	//mh_brk1_fb;		//主巻ブレーキアンサーバック
@@ -187,3 +190,5 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgh29 = {
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,10},	//ST_PLC_IO_DEF v_delay_device;
 };
 
+#define PLC_IF_RINDEX_RMTSW_HHGH29		65		//遠隔スイッチ情報の読み出し位置
+#define PLC_IF_RMASK_RMTSW_HHGH29		0x0800	//遠隔スイッチ情報のマスク

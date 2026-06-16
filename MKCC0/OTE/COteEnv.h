@@ -67,10 +67,10 @@ typedef struct _ST_OTE_ENV_MON1 {
         80,80, 80,80, 80,20, 80,20, 80,20, 0,0, 80,40, 80,20
     };
     WCHAR text[OTE_ENV_MON1_N_CTRL][OTE_ENV_MON1_N_WCHAR] = {
-        L"今治造船/SHIMH　クレーン遠隔システム", L"JC", L"GC", L"TEST", L"クレーン未選択", L"", L"", L"",
+        L"今治造船/SHIMH　クレーン遠隔システム", L"JC", L"GC", L"OHC", L"クレーン未選択", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
-        L"西多度津102号\nHHGH29", L"西多度津10号\nHHGQ18", L"-", L"-", L"-", L"-", L"-", L"-",
-        L"CHECK",L"-", L"LOCAL", L"WIFI", L"WAN", L"", L"閉じる", L"START"
+        L"西多度津102号\nHHGH29", L"西多度津10号\nHHGQ18", L"-", L"-", L"-", L"西多度津\n1280t門型", L"-", L"-",
+        L"OHC0",L"-", L"LOCAL", L"WIFI", L"WAN", L"", L"閉じる", L"START"
     };
 }ST_OTE_ENV_MON1, * LPST_OTE_ENV_MON1;
 
