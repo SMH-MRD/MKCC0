@@ -75,9 +75,9 @@ int CComm::setup(){
 				default_addr
 			},
 			{//AUX
-				{"192.168.110.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
 				default_addr,
 				default_addr,
+				{"192.168.101.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
 				default_addr
 			},
 		};
