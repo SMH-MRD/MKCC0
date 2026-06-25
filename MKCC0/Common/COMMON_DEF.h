@@ -19,13 +19,19 @@ using namespace Gdiplus;
 #define CRANE_ID_MAX            255          //
 
 //クレーンID（数値）は、IPアドレスの3オクテット
+#define CRANE_TYPE_ID_UNKNOWN    0     //不明
+#define CRANE_TYPE_ID_JC         1     //ジブクレーン
+#define CRANE_TYPE_ID_GC         2     //ゴライアスクレーン
+#define CRANE_TYPE_ID_OHC        4     //天井クレーン
+
+//クレーンID（数値）は、IPアドレスの3オクテット
 #define CRANE_ID_NULL           0x0000      //未定
 #define CRANE_ID_PC             0xFFFF      //制御PC端末
 #define CRANE_ID_H6R602         100     //みらい
-#define CARNE_ID_HHGH29         101     //今造西多度津70tJC　102号  
-#define CARNE_ID_HHGQ18         110     //今造西多度津300tJC 10号
-#define CARNE_ID_HHFM08         102     //今造西多度津1280tGC
-#define CARNE_ID_XXXXXX         1       //多度津OHC
+#define CRANE_ID_HHGH29         101     //今造西多度津70tJC　102号  
+#define CRANE_ID_HHGQ18         110     //今造西多度津300tJC 10号
+#define CRANE_ID_HHFM08         102     //今造西多度津1280tGC
+#define CRANE_ID_XXXXXX         1       //多度津OHC
 
 #define OTE_ID_HHGG3800         101
 #define OTE_ID_HHGG3801         102

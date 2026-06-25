@@ -297,8 +297,6 @@ int CCcCS::parse() {
 				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_OFF;
 				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
 			}
-			//pCrane->pPlc->rval(pPlcRIf->syukan_on).i16;
-			//pCrane->pPlc->rval(pPlcRIf->syukan_off).i16;
 
 			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com	= (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.fault_reset_pb).i16;
 			plamp_com[OTE_PNL_CTRLS::bypass].st.com			= CODE_PNL_COM_ON;
@@ -341,11 +339,9 @@ int CCcCS::parse() {
 		set_ote_flt_info();
 
 		//## クレーン状態セット
-		st_ote_work.st_body.st_load_stat[0].m		= (float)pEnv_Inf->crane_stat.m;		//荷重
-		//st_ote_work.st_body.bh_angle				= (float)pEnv_Inf->crane_stat.th.p;		//起伏角度
-	//	st_ote_work.st_body.bh_angle = (float)(acos(pEnv_Inf->crane_stat.r.p/pCrane->pSpec->st_struct.Lb));		//起伏角度
-		st_ote_work.st_body.bh_angle = (float)(acos(pPLC_IO->r/ pCrane->pSpec->st_struct.Lb));		//起伏角度
-		st_ote_work.st_body.wind_spd				= (float)pPLC_IO->wind_spd;		//起伏角度
+		st_ote_work.st_body.st_load_stat[0].m		= (float)pEnv_Inf->crane_stat.m.p;							//荷重
+		st_ote_work.st_body.bh_angle				= (float)(acos(pPLC_IO->r/ pCrane->pSpec->st_struct.Lb));	//起伏角度
+		st_ote_work.st_body.wind_spd				= (float)pPLC_IO->wind_spd;									//風速
 
 		//## 各軸状態
 		st_ote_work.st_body.st_axis_set[ID_HOIST]	= pPLC_IO->stat_mh;	//主巻

@@ -55,7 +55,7 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 
 	WNDCLASSEXW wcex;
 	switch (crane_id) {
-	case CARNE_ID_HHGH29:
+	case CRANE_ID_HHGH29:
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
 		wcex.lpfnWndProc = WndProcJC;
@@ -70,7 +70,7 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 		wcex.hIconSm = NULL;
 		break;
 
-	case CARNE_ID_HHGQ18:
+	case CRANE_ID_HHGQ18:
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
 		wcex.lpfnWndProc = WndProcJC_HHGQ18;
@@ -1443,12 +1443,12 @@ void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE
 
 	//PLCの故障情報ポインタセット
 	switch (crane_id) {
-	case CARNE_ID_HHGQ18:
+	case CRANE_ID_HHGQ18:
 	{
 		LPST_PLC_RBUF_HHGQ18 prbuf = (LPST_PLC_RBUF_HHGQ18)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 		pflt_plc = (PINT16)prbuf->plc_fault; //PLCの故障情報ポインタセット
 	}
-	case CARNE_ID_HHGH29:
+	case CRANE_ID_HHGH29:
 	default:
 	{
 		LPST_PLC_RBUF_HHGH29 prbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
@@ -2459,7 +2459,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_TIMER: {
 		//InvalidateRect(pPanelBase->psubobjs->st_mh_ref_v->hWnd, NULL, TRUE);
 		switch (crane_id) {
-		case CARNE_ID_HHGH29: {
+		case CRANE_ID_HHGH29: {
 			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 	
 			wostringstream wos;
@@ -2482,7 +2482,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			SetWindowText(pPanelBase->psubobjs->st_v_delay->hWnd, wos.str().c_str());
 
 		}break;
-		case CARNE_ID_HHGQ18: {
+		case CRANE_ID_HHGQ18: {
 			LPST_PLC_RBUF_HHGQ18 p_plc_rbuf = (LPST_PLC_RBUF_HHGQ18)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 
 			wostringstream wos;
@@ -2728,7 +2728,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 	case WM_TIMER: {
 		//InvalidateRect(pPanelBase->psubobjs->st_mh_ref_v->hWnd, NULL, TRUE);
 		switch (crane_id) {
-		case CARNE_ID_HHGH29: {
+		case CRANE_ID_HHGH29: {
 			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 			wostringstream wos;
 
@@ -2810,7 +2810,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 			SetWindowText(pPanelBase->psubobjs->st_gt_fb_abs->hWnd, wos.str().c_str());
 
 		}break;
-		case CARNE_ID_HHGQ18: {
+		case CRANE_ID_HHGQ18: {
 			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 			wostringstream wos;
 

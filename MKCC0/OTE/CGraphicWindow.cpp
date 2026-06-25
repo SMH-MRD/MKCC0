@@ -49,7 +49,7 @@ CGraphicWindow::CGraphicWindow(HINSTANCE _hInstance, HWND hParent, int _crane_id
 	WNDCLASS wc2 = { };
 	switch (crane_id) {
 
-	case CARNE_ID_HHGH29:
+	case CRANE_ID_HHGH29:
 		wc.lpfnWndProc = GWndProcJC;
 		wc.hInstance = hInstance;
 		wc.lpszClassName = pClassName = CLASS_NAME_JC;
@@ -58,7 +58,7 @@ CGraphicWindow::CGraphicWindow(HINSTANCE _hInstance, HWND hParent, int _crane_id
 		wc2.hInstance = hInstance;
 		wc2.lpszClassName = pClassNameSub = CLASS_NAME_JC_SUB;
 		break;
-	case CARNE_ID_HHGQ18:
+	case CRANE_ID_HHGQ18:
 		wc.lpfnWndProc = GWndProcJC_HHGQ18;
 		wc.hInstance = hInstance;
 		wc.lpszClassName = pClassName = CLASS_NAME_JC;
@@ -271,6 +271,14 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 	wo.str(L""); wo << L"走行： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].pos_fb << L"m";
 	pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 走行位置書き込み
 
+	wo.str(L""); wo << L"風速： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.wind_spd << L"m/s";
+	pPanelBase->pgwinobjs->str_wind_spd->update(wo.str().c_str());	// 風速書き込み
+	
+	if(pCrane->st_crane_inf.crane_id == CRANE_ID_HHGH29) {
+		wo.str(L""); wo << L"風向： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.wind_spd << L"°";
+		pPanelBase->pgwinobjs->str_wind_dir->update(wo.str().c_str());	// 風向書き込み
+	}
+	
 	wo.str(L""); wo << L"(" << mouse_pos_main.X << L"," << mouse_pos_main.Y << L") ";
 	pPanelBase->pgwinobjs->str_pos_mouse->update(wo.str().c_str());	// マウス位置書き込み
 
@@ -663,7 +671,6 @@ void CGraphicWindow::OnPaintSub_JC(HDC hdc, HWND hWnd) {
 	// バックバッファの内容を一度に画面に転送
 	pPanelBase->pgsubwinobjs->pgraphic->DrawImage(pPanelBase->pgsubwinobjs->pbmp_bk, 0, 0);
 }
-
 
 LRESULT CALLBACK CGraphicWindow::GSubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {

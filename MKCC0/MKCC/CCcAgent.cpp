@@ -194,18 +194,17 @@ int CAgent::input() {
 	//###モード
 	pPLC_IO ->plc_mode_fb = pCrane->pPlc->rval(pPlcRIf->JC.plc_ctrl_fb).i16;
 
-	pPLC_IO->remote_mode_sw = pCrane->pPlc->rval(pPlcRIf->JC.remote_mode_sw).i16;	//遠隔操作モードスイッチ
-	//###荷重, 揚程,
-	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->JC.m).i16;	//MH荷重
-	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->JC.h_mh_mm).i32) / 1000.0;	//揚程
-	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->JC.r_bh_m).f);		//半径
+	pPLC_IO->remote_mode_sw = pCrane->pPlc->rval(pPlcRIf->JC.remote_mode_sw).i16;			//遠隔操作モードスイッチ
+	//###荷重, 揚程,旋回半径
+	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->JC.m).i16;								//MH荷重
+	pPLC_IO->h_mh	= (double)(pCrane->pPlc->rval(pPlcRIf->JC.h_mh_mm).i32) / 1000.0;		//揚程
+	pPLC_IO->r		= (double)(pCrane->pPlc->rval(pPlcRIf->JC.r_bh_m).f);					//半径
 
 	//###風速
 	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->JC.wind_spd_01m).i16) / 10.0;	//風速m/s単位
+
 	//## 位置（Environmentの計算値）
 	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
-	//pPLC_IO->stat_mh.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_HOIST].p;	//主巻位置
-	//pPLC_IO->stat_bh.pos_fb = (float)pEnv_Inf->crane_stat.r.p;			//旋回半径
 	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;							//旋回半径
 	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//旋回角度
 	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//走行位置 
@@ -231,22 +230,22 @@ int CAgent::input() {
 	pPLC_IO->stat_mh.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_mh).i16;					//インバータ速度指令（絶対値）
 	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_mh).i16);										//インバータ指令（正転）
 	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_mh).i16) pPLC_IO->stat_mh.v_ref *= -1;		//インバータ指令（逆転）
-	else  pPLC_IO->stat_mh.v_ref = 0;														//インバータ指令（無し）
+	else  pPLC_IO->stat_mh.v_ref = 0;															//インバータ指令（無し）
 	//引込
 	pPLC_IO->stat_bh.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_bh).i16;					//インバータ速度指令（絶対値）
 	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_bh).i16);										//インバータ指令（正転）
 	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_bh).i16) pPLC_IO->stat_bh.v_ref *= -1;		//インバータ指令（逆転）
-	else  pPLC_IO->stat_bh.v_ref = 0;														//インバータ指令（無し）
+	else  pPLC_IO->stat_bh.v_ref = 0;															//インバータ指令（無し）
 	//旋回
 	pPLC_IO->stat_sl.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_sl).i16;					//インバータ速度指令（絶対値）
 	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_sl).i16);										//インバータ指令（正転）
 	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_sl).i16) pPLC_IO->stat_sl.v_ref *= -1;		//インバータ指令（逆転）
-	else  pPLC_IO->stat_sl.v_ref = 0;														//インバータ指令（無し）
+	else  pPLC_IO->stat_sl.v_ref = 0;															//インバータ指令（無し）
 	//走行
 	pPLC_IO->stat_gt.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_gt).i16;					//インバータ速度指令（絶対値）
 	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_gt).i16);										//インバータ指令（正転）
 	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_gt).i16) pPLC_IO->stat_gt.v_ref *= -1;		//インバータ指令（逆転）
-	else  pPLC_IO->stat_gt.v_ref = 0;														//インバータ指令（無し）
+	else  pPLC_IO->stat_gt.v_ref = 0;															//インバータ指令（無し）
 
 	//## インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
 	pPLC_IO->stat_mh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_mh).i16;
@@ -254,7 +253,7 @@ int CAgent::input() {
 	pPLC_IO->stat_sl.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_sl).i16;
 	pPLC_IO->stat_gt.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_gt).i16;
 
-	//## インバータリトルク指令
+	//## インバータトルク指令
 	pPLC_IO->stat_mh.trq_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_trqref_mh).i16;
 	pPLC_IO->stat_bh.trq_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_trqref_bh).i16;
 
@@ -266,8 +265,8 @@ int CAgent::input() {
 		
 	//## ブレーキ状態FB
 	pPLC_IO->stat_mh.brake = pCrane->pPlc->rval(pPlcRIf->JC.mh_brk1_fb).i16;		//MHブレーキ状態
-	pPLC_IO->stat_bh.brake = pCrane->pPlc->rval(pPlcRIf->JC.bh_brk_fb).i16;		//BHブレーキ状態
-	pPLC_IO->stat_gt.brake = pCrane->pPlc->rval(pPlcRIf->JC.gt_brk_fb).i16;		//GTブレーキ状態
+	pPLC_IO->stat_bh.brake = pCrane->pPlc->rval(pPlcRIf->JC.bh_brk_fb).i16;			//BHブレーキ状態
+	pPLC_IO->stat_gt.brake = pCrane->pPlc->rval(pPlcRIf->JC.gt_brk_fb).i16;			//GTブレーキ状態
 	pPLC_IO->stat_sl.brake = pCrane->pPlc->rval(pPlcRIf->JC.sl_hydr_press_sw).i16;	//SLブレーキ状態
 
 

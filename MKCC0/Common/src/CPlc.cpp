@@ -19,15 +19,15 @@ int CPlc::setup(int machine_id) {
 	//内容をセット⇒データバッファのアドレスをセット
 	switch (machine_id) {
 	case CRANE_ID_H6R602: break;
-	case CARNE_ID_HHGH29: {
+	case CRANE_ID_HHGH29: {
 		un_plc_io_rif.JC = plc_io_rdef_hhgh29;
 		un_plc_io_wif.JC = plc_io_wdef_hhgh29;	//IOデータインスタンスバッファ先頭アドレス
 	}break;
-	case CARNE_ID_HHGQ18:{
+	case CRANE_ID_HHGQ18:{
 		un_plc_io_rif.JC = plc_io_rdef_hhgq18;
 		un_plc_io_wif.JC = plc_io_wdef_hhgq18;	//IOデータインスタンスバッファ先頭アドレス
 	}break;
-	case CARNE_ID_HHFM08: {
+	case CRANE_ID_HHFM08: {
 		un_plc_io_rif.GC = plc_io_rdef_hhfm08;
 		un_plc_io_wif.GC = plc_io_wdef_hhfm08;	//IOデータインスタンスバッファ先頭アドレス
 	}break;

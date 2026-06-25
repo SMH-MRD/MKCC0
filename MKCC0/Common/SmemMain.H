@@ -50,26 +50,24 @@ typedef struct _ST_FAULT_RECORD {
 }ST_FAULT_RECORD, * LPST_FAULT_RECORD;
 
 typedef struct _ST_FAULTS_LIST {
-	INT16 faults_detected_map[FAULT_TYPE::ALL][N_PLC_FAULT_BUF];	//検出中故障リスト
+	INT16 faults_detected_map[FAULT_TYPE::ALL][N_PLC_FAULT_BUF];	//検出中PLC故障リスト
 	INT16 codes_plc[N_OTE_PC_SET_PLC_FLT];							//発生中PLC故障コード
 	INT16 codes_pc[N_OTE_PC_SET_PC_FLT];							//発生中PC故障コード
 	ST_FAULT_RECORD history[N_FAULTS_HISTORY_BUF];					//故障履歴
 	INT16 history_count=0;											//故障履歴数
-	INT16 iw_history=0;												//書き込みポインタ
+	INT16 iw_history=0;												//故障履歴書き込みポインタ
 }ST_FAULTS_LIST, * LPST_FAULTS_LIST;
 
 typedef struct _ST_CRANE_STAT {
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
 	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
 	double		l_drum[MOTION_ID_MAX];			//ドラムロープ巻取り量
-	ST_MOVE_SET	vdk[MOTION_ID_MAX];				//ドラム回転速度　100%が1000
-	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転数動作
+	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作
 	ST_MOVE_SET	vm[MOTION_ID_MAX];				//軸動作　引込は角度
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
 	ST_MOVE_SET r;								//旋回半径
 	ST_MOVE_SET th;								//起伏角度
-	ST_MOVE_SET	lrm;							//主巻ロープ
-	double		m;								//吊荷質量
+	ST_MOVE_SET	m;								//吊荷質量
 	ST_FAULTS_LIST fault_list;					//故障検出リスト
 	INT32		abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値	
 } ST_CRANE_STAT, * LPST_CRANE_STAT;

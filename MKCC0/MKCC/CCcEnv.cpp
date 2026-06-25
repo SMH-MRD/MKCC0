@@ -78,11 +78,12 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	}
 	pspec = pCrane->pSpec;
 
-	//### ドラムパラメータ初期化
-	set_drum_param();
+
 	//### 対象クレーン用関数ポインタセット
 	fp_set_drum_stat = set_drum_stat;
 
+	//### ドラムパラメータ初期化
+	set_drum_param();
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 	LPARAM lp = BC_ID_MON2;
@@ -157,9 +158,9 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	int code = 0;
 		
 //	st_work.aux_mode = FUNC_ACTIVE;	
-	pEnvInf->app_common_param = st_work.app_common_param = g_app_common_param;
-	pEnvInf->device_code = st_work.device_code = g_my_code;
-	inf.mode_id = st_work.app_common_param.app_mode;
+	pEnvInf->app_common_param	= st_work.app_common_param = g_app_common_param;
+	pEnvInf->device_code		= st_work.device_code = g_my_code;
+	inf.mode_id					= st_work.app_common_param.app_mode;
 	plc_enable_hold = 0;
 
 	return S_OK;
@@ -261,34 +262,34 @@ int CCcEnv::input() {
 
 int CCcEnv::parse() {
 
-	//ドラム状態セット
+	//### ドラム状態セット ###
 	fp_set_drum_stat();
-	//起伏角,旋回半径
+	//起伏角,旋回半径(ドラム回転量から計算)
 	double d = pEnvInf->crane_stat.d.p, Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
 	pEnvInf->crane_stat.th.p = PI90 - acos((d * d - Lb * Lb - Ha * Ha) / (-2.0 * Lb * Ha));	//起伏角度
 	pEnvInf->crane_stat.r.p = Lb * cos(pEnvInf->crane_stat.th.p);					//旋回半径
 
-
-	pEnvInf->crane_stat.m = pPlcIo->weight;//荷重
+	//### 荷重・位置状態セット ###
+	//荷重
+	pEnvInf->crane_stat.m.p = pPlcIo->weight;
 
 	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
 	//揚程
 	pEnvInf->crane_stat.vm[ID_HOIST].p = pPlcIo->h_mh;
 	//旋回角度
-	pEnvInf->crane_stat.vm[ID_SLEW].p = (double)(pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;//旋回角度
+	pEnvInf->crane_stat.vm[ID_SLEW].p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;//旋回角度
 	//走行位置
 	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
 			dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
 
 			pEnvInf->crane_stat.vm[ID_GANTRY].p = pCrane->pSpec->base_gt.PosPreset + dL;	
 	
-	//故障情報セット
-
+	//###  故障情報セット ###
 	if (pPlcIo->plc_enable) {
 		if(plc_enable_hold) {	//PLC有効状態変化無し（前回も有効）
 			set_faults_info();
 		}
-		else {
+		else {					//PLC有効トリガ状態（前回無効）
 			refresh_faults_info();
 		}
 	}

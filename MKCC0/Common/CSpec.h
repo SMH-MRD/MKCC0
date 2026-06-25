@@ -61,8 +61,8 @@ typedef struct _ST_AXIS_ITEMS {
 	double Ta1;							// 加速時間1
 	double Td0;							// 減速時間0
 	double Td1;							// 減速時間1
-	double Ndmizo0;						// ドラム溝数0
-	double Ndmizo1;						// ドラム溝数1
+	double Ndmizo0;						// ドラム溝数0	主ドラム溝数
+	double Ndmizo1;						// ドラム溝数1　補ドラム溝数
 	double CntPgR;						// PG1回転カウント数×逓倍
 	double CntPgDrumR;					// ドラム1回転PGカウント数
 	double CntPgSet0;					// PGプリセット0カウント値

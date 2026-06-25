@@ -146,7 +146,6 @@ public:
 #define HELPER_DATA_COM_REFRESH		1
 #define HELPER_DATA_BUF_MAX			1024
 
-
 union UHelperStatisData {
 	long l;
 	double d;

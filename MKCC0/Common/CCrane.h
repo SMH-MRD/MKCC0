@@ -3,12 +3,17 @@
 #include "CPlc.h"
 #include "CFaults.h"
 
+typedef struct _ST_CRANE_INFO {
+	int crane_id;
+	int crane_type;
+}ST_CRANE_INFO, * LPST_CRANE_INFO;
+
 class CCrane
 {
 private:
 	int crane_id;
 public:
-
+	
 	/// <summary>
 	/// コンストラクタ　
 	/// plc_rbuf,plc_wbuf (MCC用）PLCとの通信バッファのアドレス,(OTE用）MCCとの通信バッファのアドレス
@@ -23,8 +28,11 @@ public:
 	CSpec* pSpec;
 	CPlc* pPlc;
 	CFaults* pFlt;
+	ST_CRANE_INFO st_crane_inf;
 
 	int get_id() { return crane_id; };
+	void set_crane_type();
+
 	//PLC通信バッファ
 	LPST_JC_PLC_IO_R get_plc_rif()	{ if (pPlc != NULL) return &(pPlc->un_plc_io_rif.JC);	return NULL;}
 	LPST_JC_PLC_IO_W get_plc_wif()	{ if (pPlc != NULL) return &(pPlc->un_plc_io_wif.JC);	return NULL;}

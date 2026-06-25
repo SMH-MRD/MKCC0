@@ -248,7 +248,7 @@ int CSpec::setup(int crane_id) {
 		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
 		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
 	}break;
-	case CARNE_ID_HHGH29:{
+	case CRANE_ID_HHGH29:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhgh29, sizeof(ST_STRUCTURE));
 		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_hhgh29, sizeof(ST_AXIS_ITEMS));
 		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_hhgh29, sizeof(ST_AXIS_ITEMS));
@@ -256,7 +256,7 @@ int CSpec::setup(int crane_id) {
 		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_hhgh29, sizeof(ST_AXIS_ITEMS));
 		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_hhgh29, sizeof(ST_AXIS_ITEMS));
 	}break;
-	case CARNE_ID_HHGQ18:{
+	case CRANE_ID_HHGQ18:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhgq18, sizeof(ST_STRUCTURE));
 		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_hhgq18, sizeof(ST_AXIS_ITEMS));
 		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_hhgq18, sizeof(ST_AXIS_ITEMS));
@@ -264,7 +264,7 @@ int CSpec::setup(int crane_id) {
 		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_hhgq18, sizeof(ST_AXIS_ITEMS));
 		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_hhgq18, sizeof(ST_AXIS_ITEMS));
 	}break;
-	case CARNE_ID_HHFM08:{
+	case CRANE_ID_HHFM08:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhfm08, sizeof(ST_STRUCTURE));
 		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_hhfm08, sizeof(ST_AXIS_ITEMS));
 		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_hhfm08, sizeof(ST_AXIS_ITEMS));

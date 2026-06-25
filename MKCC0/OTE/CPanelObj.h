@@ -388,6 +388,9 @@ public:
 #define ID_GWIN_MAIN_OBJ_STR_SLBK_MODE			60825		
 #define ID_GWIN_MAIN_OBJ_STR_SLBK_LEVEL			60826		
 
+#define ID_GWIN_MAIN_OBJ_STR_WIND_SPD			60827		
+#define ID_GWIN_MAIN_OBJ_STR_WIND_DIR			60828		
+
 class CGWindowObj :public CPanelObjBase
 {
 private:
@@ -411,6 +414,9 @@ public:
 	CStringGdi* str_pos_bh;			//旋回半径
 	CStringGdi* str_pos_sl;			//旋回角度
 	CStringGdi* str_pos_gt;			//走行位置
+	CStringGdi* str_wind_spd;		//風速
+	CStringGdi* str_wind_dir;		//風向
+
 	CStringGdi* str_pos_mouse;		//マウス位置
 
 	CStringGdi* str_slbk_mode;		//旋回ブレーキmode

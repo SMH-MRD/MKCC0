@@ -310,12 +310,12 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (wmId)
 		{
 		case OTE_ENV_ID_MON1_RADIO_CRANE01: {
-			crane_id_selected = CARNE_ID_HHGH29;
+			crane_id_selected = CRANE_ID_HHGH29;
 			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_RADIO_CRANE01]);
 		}break;
 
 		case OTE_ENV_ID_MON1_RADIO_CRANE02: {
-			crane_id_selected = CARNE_ID_HHGQ18;
+			crane_id_selected = CRANE_ID_HHGQ18;
 			SetWindowText(st_mon1.hctrl[OTE_ENV_ID_MON1_STATIC_SELECTED], st_mon1.text[OTE_ENV_ID_MON1_RADIO_CRANE02]);
 		}break;
 		case OTE_ENV_ID_MON1_RADIO_CRANE10: {

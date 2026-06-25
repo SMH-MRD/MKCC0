@@ -25,6 +25,12 @@
 #define SIM_PRM_MON1_TIMER_MS  200
 #define SIM_PRM_MON2_TIMER_MS  200
 
+#define SIM_PRM_WIND_SPEED_DEFAULT      5.5     //風速[m/s]初期値
+#define SIM_PRM_WIND_DIR_DEFAULT        10.0    //風向[deg]初期値
+#define SIM_PRM_BHR_DEFAULT             25.0    //旋回半径[m]初期値
+#define SIM_PRM_MH＿LOAD_DEFAULT         0.0    //吊荷荷重[ton]初期値
+#define SIM_PRM_GT_POS_DEFAULT          50.0    //走行位置[m]初期値
+#define SIM_PRM_MH_HEIGHT_DEFAULT       30.0    //揚程[m]初期値
 
 typedef struct _ST_SIM_MON1 {
     int timer_ms = SIM_PRM_MON1_TIMER_MS;
@@ -122,10 +128,13 @@ typedef struct _ST_CC_SIM_WORK {
 
 class CSim : public CBasicControl
 {
+
 public:
     CSim();
     ~CSim();
 
+	int crane_id;
+	int crane_type;
     virtual HRESULT initialize(LPVOID lpParam) override;
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
@@ -159,6 +168,11 @@ private:
 
     static CSpec* pspec;
 
+    void setup_JC(int id);
+    void setup_GC(int id);
+    void setup_OHC(int id);
+
+
     //オーバーライド
 
     virtual HRESULT routine_work(void* pObj) override;
@@ -178,11 +192,14 @@ private:
     int output();
     int close();
 
-	HRESULT init_drm_motion();  //ドラムパラメータ設定(巻取量,層数,速度,加速度）
-    HRESULT set_sensor_fb();            //高速カウンタ,アブソコーダ,LS他
-	
-    HRESULT calc_axis_motion();         //軸荷動作計算
-    HRESULT calc_load_motion();         //吊荷動作計算
-	HRESULT calc_plc_output();          //軸状態出力（PLC IO用）
-
+	//クレーンタイプ別計算関数
+	HRESULT init_drm_motion_JC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
+    HRESULT set_sensor_fb_JC(int id);           //高速カウンタ,アブソコーダ,LS他
+    
+    HRESULT init_drm_motion_GC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
+    HRESULT set_sensor_fb_GC(int id);           //高速カウンタ,アブソコーダ,LS他
+    
+    HRESULT init_drm_motion_OHC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
+    HRESULT set_sensor_fb_OHC(int id);           //高速カウンタ,アブソコーダ,LS他
+    
 };

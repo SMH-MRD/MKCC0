@@ -290,7 +290,7 @@ int CFaults::setup(int crane_id) {
 		prfltbuf = _prbuf->plc_fault;
 		pwfltbuf = _pwbuf->pc_fault;
 	}break;
-	case CARNE_ID_HHGH29: {
+	case CRANE_ID_HHGH29: {
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGH29, sizeof(flt_list_HHGH29));
 
@@ -301,7 +301,7 @@ int CFaults::setup(int crane_id) {
 		pwfltbuf = _pwbuf->pc_fault;
 
 	}break;
-	case CARNE_ID_HHGQ18: {
+	case CRANE_ID_HHGQ18: {
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGQ18, sizeof(flt_list_HHGQ18));
 		LPST_PLC_RBUF_HHGQ18 _prbuf = (LPST_PLC_RBUF_HHGQ18)prbuf;
@@ -311,7 +311,7 @@ int CFaults::setup(int crane_id) {
 		pwfltbuf = _pwbuf->pc_fault;
 
 	}break;
-	case CARNE_ID_HHFM08: { 
+	case CRANE_ID_HHFM08: { 
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHFM08, sizeof(flt_list_HHFM08));
 	}break;

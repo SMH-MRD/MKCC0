@@ -266,7 +266,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
    }
-
    ///##Task2 設定 Client Service
    {
        /// -タスクインスタンス作成->リスト登録
@@ -328,7 +327,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
    }
-
    ///##Task4 設定 Policy
    {
        /// -タスクインスタンス作成->リスト登録
@@ -387,7 +385,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
    }
-
    ///##Task6 設定 Sim
    {
        /// -タスクインスタンス作成->リスト登録

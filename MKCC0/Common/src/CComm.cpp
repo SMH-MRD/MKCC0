@@ -28,7 +28,7 @@ int CComm::setup(){
 	
 	//CARNE_ID_HHGH29
 	{
-		int machine_id = CARNE_ID_HHGH29;
+		int machine_id = CRANE_ID_HHGH29;
 		ST_ADDR_SET st_src =
 		{
 			{//PC
@@ -57,7 +57,7 @@ int CComm::setup(){
 
 	//CARNE_ID_HHGQ18
 	{
-		int machine_id = CARNE_ID_HHGQ18;
+		int machine_id = CRANE_ID_HHGQ18;
 		ST_ADDR_SET st_src =
 		{
 			{//PC

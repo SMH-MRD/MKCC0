@@ -173,9 +173,11 @@ static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 
 	{ID_GWIN_MAIN_OBJ_STR_POS_MOUSE	,Point(900,960)		,Size(100,20)	,L"マウス位置"	},//i=7
 
-
 	{ID_GWIN_MAIN_OBJ_STR_SLBK_MODE,Point(700,830)		,Size(400,20)	,L"SLBK MODE"	},//i=8
 	{ID_GWIN_MAIN_OBJ_STR_SLBK_LEVEL,Point(700,860)		,Size(400,20)	,L"SLBK LEVEL"	},//i=9
+
+	{ID_GWIN_MAIN_OBJ_STR_WIND_SPD,Point(20,180)		,Size(400,40)	,L"風速　　"	},//i=10
+	{ID_GWIN_MAIN_OBJ_STR_WIND_DIR,Point(20,220)		,Size(400,40)	,L"風向　　"	},//i=11
 
 };
 
@@ -674,6 +676,10 @@ Image* pimg_post[N_IMG_SWITCH_MAX]		= { &img_crane_potal,  &img_crane_potal,  &i
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 		i++;	str_slbk_level = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_SLBK_LEVEL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
 											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+		i++;	str_wind_spd = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_WIND_SPD, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
+		i++;	str_wind_dir = new CStringGdi(ID_GWIN_MAIN_OBJ_STR_SLBK_LEVEL, &gwin_set_props[i].pt, &gwin_set_props[i].sz, gwin_set_props[i].txt,
+											pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_BLUE], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_20]);
 
 	return S_OK;
 }
@@ -685,6 +691,9 @@ void CGWindowObj::delete_obj() {
 	delete str_pos_bh;
 	delete str_pos_sl;
 	delete str_pos_gt;
+
+	delete str_wind_spd;
+	delete str_wind_dir;
 
 	delete str_pos_mouse;
 
@@ -709,6 +718,9 @@ void CGWindowObj::refresh_obj_graphics() {
 
 	str_slbk_mode->refresh_graphics(pgraphic_inf);
 	str_slbk_level->refresh_graphics(pgraphic_inf);
+
+	str_wind_spd->refresh_graphics(pgraphic_inf);
+	str_wind_dir->refresh_graphics(pgraphic_inf);
 	return;
 }
 
