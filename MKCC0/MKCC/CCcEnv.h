@@ -110,38 +110,22 @@ public:
     CCcEnv() ;
     ~CCcEnv();
 
+    static ST_ENV_MON1 st_mon1;
+    static ST_ENV_MON2 st_mon2;
+    static ST_CC_ENV_INF st_work;//タスク出力用構造体
+
     virtual HRESULT initialize(LPVOID lpParam) override;
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
-
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
-
-    static ST_ENV_MON1 st_mon1;
-    static ST_ENV_MON2 st_mon2;
-
-    //タスク出力用構造体
-    static ST_CC_ENV_INF st_work;
-
-    //補機通信用
-  //  static HRESULT rcv_uni_aux(LPST_AUX_COM_SERV_MSG pbuf);
-   // static LPST_AUX_COM_CLI_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
-   // static HRESULT snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to);
-
-    //タブパネルのStaticテキストを設定
-    virtual void set_panel_tip_txt() override;
-    //タブパネルのFunctionボタンのStaticテキストを設定
-    virtual void set_func_pb_txt() override;
-    //タブパネルのItem chkテキストを設定
-    virtual void set_item_chk_txt() override;
-    //タブパネルのListViewにコメント出力
-    virtual void msg2listview(wstring wstr) override;
-
-    //パラメータ初期表示値設定
-    virtual void set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) override;
-
-    //タブパネルのFunctionボタンのリセット
-    virtual void reset_panel_func_pb(HWND hDlg) override { return; };
+    
+    virtual void set_panel_tip_txt() override;          //タブパネルのStaticテキストを設定
+    virtual void set_func_pb_txt() override;            //タブパネルのFunctionボタンのStaticテキストを設定
+    virtual void set_item_chk_txt() override;           //タブパネルのItem chkテキストを設定
+    virtual void msg2listview(wstring wstr) override;   //タブパネルのListViewにコメント出力
+    virtual void set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) override;//パラメータ初期表示値設定
+    virtual void reset_panel_func_pb(HWND hDlg) override { return; };//タブパネルのFunctionボタンのリセット
 
 private:
     static CSpec* pspec;
@@ -158,29 +142,34 @@ private:
 
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
+    int input();//入力処理
+    int parse();
+    int output();
+    int close();
+    int set_outbuf(LPVOID) {//出力バッファセット
+        return STAT_NG;
+    }
+
+	void set_faults_info();
+    void refresh_faults_info();
+
+ //   void set_drum_param(int id);
+  //  static HRESULT set_drum_stat(int id);
+	HRESULT(*fp_set_drum_stat)(int id) = NULL; //ドラムの状態をセットする関数ポインタ   
+
+    void set_param_JC(int id);
+    void set_param_GC(int id);
+    void set_param_OHC(int id);
+    HRESULT(*fp_set_stat)(int id) = NULL;       //クレーンの状態をセットする関数ポインタ   
+    static HRESULT set_stat_JC(int id);
+    static HRESULT set_stat_GC(int id);
+    static HRESULT set_stat_OHC(int id);
+ 
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id);
     void close_monitor_wnd(int id);
     void show_monitor_wnd(int id);
     void hide_monitor_wnd(int id);
-
-	void set_faults_info();
-    void refresh_faults_info();
-
-    int set_outbuf(LPVOID) {//出力バッファセット
-        return STAT_NG;
-    }
-
-    int input();//入力処理
-
-    int parse();
-    int output();
-    int close();
-
-    void set_drum_param();
-    static HRESULT set_drum_stat();
-
-	HRESULT(*fp_set_drum_stat)() = NULL; //ドラムの状態をセットする関数ポインタ   
 };
 
 

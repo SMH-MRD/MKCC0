@@ -71,170 +71,104 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		return hr;
 	}
 
-	//### 計算用パラメータ初期化
 	if(pCrane == NULL) {
 		wos.str(L""); wos << L"Initialize : Crane Object NG"; msg2listview(wos.str());
 		return S_FALSE;
 	}
 	pspec = pCrane->pSpec;
 
+	//### パラメータセット
+	{
+		inf.mode_id = BC_ID_MODE0;//モード設定0
 
-	//### 対象クレーン用関数ポインタセット
-	fp_set_drum_stat = set_drum_stat;
+		CCcEnv* pEnvObj = (CCcEnv*)lpParam;
+		pEnvInf->app_common_param = st_work.app_common_param = g_app_common_param;
+		pEnvInf->device_code = st_work.device_code = g_my_code;
+		inf.mode_id = st_work.app_common_param.app_mode;
 
-	//### ドラムパラメータ初期化
-	set_drum_param();
-	//### IFウィンドウOPEN
-	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
-	LPARAM lp = BC_ID_MON2;
-	SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+		//### ドラムパラメータ初期化
+		//set_drum_param(pCrane->st_crane_inf.crane_id);
 
-	//### 通信ソケットアドレスセット
-	//##インスタンス生成
-
-	Sleep(1000);
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Err(MON2 NULL Handle!!):";
-		msg2listview(wos.str()); wos.str(L"");
-		return S_FALSE;
+		switch (pCrane->st_crane_inf.crane_type) {
+		case CRANE_TYPE_ID_JC: {
+			set_param_JC(pCrane->st_crane_inf.crane_id);
+			fp_set_stat = set_stat_JC;
+		} break;
+		case CRANE_TYPE_ID_GC: {
+			set_param_GC(pCrane->st_crane_inf.crane_id);
+			fp_set_stat = set_stat_GC;
+		}break;
+		case CRANE_TYPE_ID_OHC: {
+			set_param_OHC(pCrane->st_crane_inf.crane_id);
+			fp_set_stat = set_stat_OHC;
+		}break;
+		default: 
+			set_param_JC(pCrane->st_crane_inf.crane_id); 
+			fp_set_stat = set_stat_JC;
+		break;
+		}
+		
+		//### 対象クレーン用関数ポインタセット
+	//	fp_set_drum_stat = set_drum_stat;
+		//計算用パラメータ設定
+		pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY] = (INT32)(pCrane->pSpec->base_gt.PosPreset / pCrane->pSpec->base_gt.Ddrm0 / PI180 * pCrane->pSpec->base_gt.CntAbsR);
 	}
-	//### 通信ソケット生成/初期化
-	//##WSA初期化
-	wos.str(L"");
-//	if (pUSockCcEnv->Initialize() != S_OK) { wos << L"Err(IniWSA):" << pUSockCcEnv->err_msg.str(); err |= SOCK_NG_UNICAST;   hr = S_FALSE; }
+	
+	//### IFウィンドウOPEN
+	{
+		WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+		LPARAM lp = BC_ID_MON2;
+		SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 
-	if (hr == S_FALSE)msg2listview(wos.str()); wos.str(L"");
-
-	//##ソケットソケット生成・設定
-
-
-	//##計算用パラメータ設定
-	pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY] = (INT32)(pCrane->pSpec->base_gt.PosPreset/ pCrane->pSpec->base_gt.Ddrm0/PI180* pCrane->pSpec->base_gt.CntAbsR);
+		if (st_mon2.hwnd_mon == NULL) {
+			wos << L"Err(MON2 NULL Handle!!):";
+			msg2listview(wos.str()); wos.str(L"");
+			return S_FALSE;
+		}
+		Sleep(1000);
+		//モニタ2選択CB状態セット
+		{
+			if (st_mon2.hwnd_mon != NULL)
+				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
+			else
+				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+		}
+	}
 
 	//###  オペレーションパネル設定
-	set_func_pb_txt();
+	{
+		inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
+		for (int i = 1; i < 6; i++)	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
-	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
-	for (int i = 1; i < 6; i++)
-		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
-	//モード設定0
-	inf.mode_id = BC_ID_MODE0;
-	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
-	//モニタウィンドウテキスト	
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2,	L"AUX IF");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0,	L"Product");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1,	L"Emulator");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2,	L"Simulator");
-
-	pEnvInf->app_common_param = g_app_common_param;
-
-	if (pEnvInf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
-		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO1);
-		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
-		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
-	}
-	else if (pEnvInf->app_common_param.app_mode == MODE_ENV_APP_SIMURATION) {
-		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2);
-		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
-		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
-	}
-	else {
-		CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
-		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
-		CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
-	}		
-
-	set_item_chk_txt();
-	set_panel_tip_txt();
-	
-	//モニタ2選択CB状態セット	
-	if (st_mon2.hwnd_mon != NULL)
-		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
-	else
-		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
-
-	CCcEnv* pEnvObj = (CCcEnv*)lpParam;
-	int code = 0;
-		
-//	st_work.aux_mode = FUNC_ACTIVE;	
-	pEnvInf->app_common_param	= st_work.app_common_param = g_app_common_param;
-	pEnvInf->device_code		= st_work.device_code = g_my_code;
-	inf.mode_id					= st_work.app_common_param.app_mode;
-	plc_enable_hold = 0;
-
-	return S_OK;
-}
-
-void CCcEnv::set_drum_param() {//出力バッファセット
-	for(int i = 0; i < N_DRUM_LAYER; i++) {
-		pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)i	* pspec->base_mh.dDdrm) * PI180;
-		pEnvInf->Cdrm[ID_BOOM_H][i] = (pspec->base_bh.Ddrm0 + (double)i * pspec->base_bh.dDdrm) * PI180;
-		pEnvInf->Cdrm[ID_SLEW][i]	= (pspec->base_sl.Ddrm0 + (double)i * pspec->base_sl.dDdrm) * PI180;
-		pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)i * pspec->base_gt.dDdrm) * PI180;
-		//引込主巻ドラム 層負荷直径はBHを使用
-		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_mh.Ddrm1 + (double)i * pspec->base_bh.dDdrm) * PI180;
-
-		if(i == 0) {//1層巻取り量
-			pEnvInf->Ldrm[ID_HOIST][i]	= pEnvInf->Cdrm[ID_HOIST][i]	* pspec->base_mh.Ndmizo0;
-			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Cdrm[ID_BOOM_H][i]	* pspec->base_bh.Ndmizo0;
-			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Cdrm[ID_SLEW][i]		* pspec->base_sl.Ndmizo0;
-			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Cdrm[ID_GANTRY][i]	* pspec->base_gt.Ndmizo0;
-			//引込主巻ドラム 
-			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;//Ndmizo1は引込主巻ドラムの溝数
+		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
+		if (pEnvInf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
+			CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO1);
+			CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
+			CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+		}
+		else if (pEnvInf->app_common_param.app_mode == MODE_ENV_APP_SIMURATION) {
+			CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO2);
+			CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, BST_UNCHECKED);
+			CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
 		}
 		else {
-			pEnvInf->Ldrm[ID_HOIST][i]	= pEnvInf->Ldrm[ID_HOIST][i-1]		+pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
-			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Ldrm[ID_BOOM_H][i - 1]	+pEnvInf->Cdrm[ID_BOOM_H][i] * pspec->base_bh.Ndmizo0;
-			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Ldrm[ID_SLEW][i - 1]		+pEnvInf->Cdrm[ID_SLEW][i] * pspec->base_sl.Ndmizo0;
-			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Ldrm[ID_GANTRY][i - 1]	+pEnvInf->Cdrm[ID_GANTRY][i] * pspec->base_gt.Ndmizo0;
-			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1]	+pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;
+			CheckRadioButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, IDC_TASK_MODE_RADIO2, IDC_TASK_MODE_RADIO0);
+			CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, BST_UNCHECKED);
+			CheckDlgButton(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, BST_UNCHECKED);
 		}
+		//モニタウィンドウテキスト	
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"AUX IF");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Emulator");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Simulator");
+		set_func_pb_txt();
+		set_item_chk_txt();
+		set_panel_tip_txt();
 	}
+	//### 変数初期化
+	plc_enable_hold = 0;
 
-	pEnvInf->Lspan[ID_HOIST]	= pspec->base_mh.Lfull;
-	pEnvInf->Lspan[ID_BOOM_H]	= pspec->base_bh.Lfull;
-	pEnvInf->Lspan[ID_SLEW]		= pspec->base_sl.Lfull;
-	pEnvInf->Lspan[ID_GANTRY]	= pspec->base_gt.Lfull;
-	return;
-}
-HRESULT CCcEnv::set_drum_stat() {
-	//#回転数セット
-	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder- pspec->base_mh.CntAbsSet0)/ pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
-	//起伏ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_BOOM_H].p = (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
-	//旋回ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_SLEW].p = (pPlcIo->stat_sl.pg_count - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
-	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
-
-	//#回転速度セット ±0.1％単位 ベース速度が100％で inv fb/1000*定格回転数
-	//主巻
-	pEnvInf->crane_stat.nd[ID_HOIST].v = (double)pPlcIo->stat_mh.v_fb /60.0;//RPS
-	//起伏
-	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.v_fb / 60.0;//RPS
-	//旋回
-	pEnvInf->crane_stat.nd[ID_SLEW].v = (double)pPlcIo->stat_sl.v_fb / 60.0;//RPS
-	//走行
-	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.v_fb / 60.0;//RPS
-
-	//#d ドラム層セット
-	double rd = pspec->base_bh.NdrmPgSet0 - pEnvInf->crane_stat.nd[ID_BOOM_H].p;	//上限からの回転量
-	double chk_n = 0.7;// 初期値　83.3-21*4	5層巻取り数
-	double lout = 0.0;
-
-	for(int i= 0; i < 5; i++) {
-		if (rd < chk_n) {
-			lout += rd * pEnvInf->Cdrm[ID_BOOM_H][4-i];	//巻取り量 index4=5層
-			break;
-		}
-		lout += chk_n * pEnvInf->Cdrm[ID_BOOM_H][4-i];	//巻取り量
-		rd -= chk_n;
-		chk_n = pspec->base_bh.Ndmizo0;	
-	}
-	pEnvInf->crane_stat.d.p = pspec->st_struct.d0 + lout/pspec->base_bh.Nwire0;	//巻取り量
-	
 	return S_OK;
 }
 
@@ -262,27 +196,9 @@ int CCcEnv::input() {
 
 int CCcEnv::parse() {
 
-	//### ドラム状態セット ###
-	fp_set_drum_stat();
-	//起伏角,旋回半径(ドラム回転量から計算)
-	double d = pEnvInf->crane_stat.d.p, Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
-	pEnvInf->crane_stat.th.p = PI90 - acos((d * d - Lb * Lb - Ha * Ha) / (-2.0 * Lb * Ha));	//起伏角度
-	pEnvInf->crane_stat.r.p = Lb * cos(pEnvInf->crane_stat.th.p);					//旋回半径
-
-	//### 荷重・位置状態セット ###
-	//荷重
-	pEnvInf->crane_stat.m.p = pPlcIo->weight;
-
-	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
-	//揚程
-	pEnvInf->crane_stat.vm[ID_HOIST].p = pPlcIo->h_mh;
-	//旋回角度
-	pEnvInf->crane_stat.vm[ID_SLEW].p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;//旋回角度
-	//走行位置
-	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
-			dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
-
-			pEnvInf->crane_stat.vm[ID_GANTRY].p = pCrane->pSpec->base_gt.PosPreset + dL;	
+	//### 状態セット ###
+	//fp_set_drum_stat(pCrane->st_crane_inf.crane_id);
+	fp_set_stat(pCrane->st_crane_inf.crane_id);
 	
 	//###  故障情報セット ###
 	if (pPlcIo->plc_enable) {
@@ -307,9 +223,193 @@ int CCcEnv::close() {
 }
 
 /****************************************************************************/
+/*   クレーン状態														    */
+/****************************************************************************/
+/// <summary>
+/// 
+/// </summary>
+/// <param name="id"></param>
+void CCcEnv::set_param_JC(int id) {
+
+	//### ドラムの周長(層ドラムパラメータ初期化
+	for (int i = 0; i < N_DRUM_LAYER; i++) {
+		pEnvInf->Cdrm[ID_HOIST][i] = (pspec->base_mh.Ddrm0 + (double)i * pspec->base_mh.dDdrm) * PI180;
+		pEnvInf->Cdrm[ID_BOOM_H][i] = (pspec->base_bh.Ddrm0 + (double)i * pspec->base_bh.dDdrm) * PI180;
+		pEnvInf->Cdrm[ID_SLEW][i] = (pspec->base_sl.Ddrm0 + (double)i * pspec->base_sl.dDdrm) * PI180;
+		pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)i * pspec->base_gt.dDdrm) * PI180;
+		//引込主巻ドラム 層負荷直径はBHを使用
+		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_mh.Ddrm1 + (double)i * pspec->base_bh.dDdrm) * PI180;
+
+		if (i == 0) {//1層巻取り量
+			pEnvInf->Ldrm[ID_HOIST][i] = pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
+			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Cdrm[ID_BOOM_H][i] * pspec->base_bh.Ndmizo0;
+			pEnvInf->Ldrm[ID_SLEW][i] = pEnvInf->Cdrm[ID_SLEW][i] * pspec->base_sl.Ndmizo0;
+			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Cdrm[ID_GANTRY][i] * pspec->base_gt.Ndmizo0;
+			//引込主巻ドラム 
+			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;//Ndmizo1は引込主巻ドラムの溝数
+		}
+		else {
+			pEnvInf->Ldrm[ID_HOIST][i] = pEnvInf->Ldrm[ID_HOIST][i - 1] + pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
+			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Ldrm[ID_BOOM_H][i - 1] + pEnvInf->Cdrm[ID_BOOM_H][i] * pspec->base_bh.Ndmizo0;
+			pEnvInf->Ldrm[ID_SLEW][i] = pEnvInf->Ldrm[ID_SLEW][i - 1] + pEnvInf->Cdrm[ID_SLEW][i] * pspec->base_sl.Ndmizo0;
+			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Ldrm[ID_GANTRY][i - 1] + pEnvInf->Cdrm[ID_GANTRY][i] * pspec->base_gt.Ndmizo0;
+			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1] + pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;
+		}
+	}
+	pEnvInf->Lspan[ID_HOIST]	= pspec->base_mh.Lfull;
+	pEnvInf->Lspan[ID_BOOM_H]	= pspec->base_bh.Lfull;
+	pEnvInf->Lspan[ID_SLEW]		= pspec->base_sl.Lfull;
+	pEnvInf->Lspan[ID_GANTRY]	= pspec->base_gt.Lfull;
+
+	switch (id) {
+	case CRANE_ID_HHGQ18:
+	{
+		;
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		;
+	}break;
+	};
+	return;
+};
+void CCcEnv::set_param_GC(int id) {
+	switch (id) {
+	case CRANE_ID_HHGQ18:
+	{
+		;
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		;
+	}break;
+	};
+	return;
+};
+void CCcEnv::set_param_OHC(int id) {
+	switch (id) {
+	case CRANE_ID_HHGQ18:
+	{
+		;
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		;
+	}break;
+	};
+	return;
+};
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="id"></param>
+/// <returns></returns>
+HRESULT CCcEnv::set_stat_JC(int id) {
+	//###　ドラム回転数セット
+	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
+	//起伏ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_BOOM_H].p = (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
+	//旋回ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_SLEW].p = (pPlcIo->stat_sl.pg_count - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
+	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
+
+	//###  回転速度セット ±0.1％単位 ベース速度が100％で inv fb/1000*定格回転数
+	pEnvInf->crane_stat.nd[ID_HOIST].v	= (double)pPlcIo->stat_mh.v_fb / 60.0;//主巻 RPS
+	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.v_fb / 60.0;//起伏 RPS
+	pEnvInf->crane_stat.nd[ID_SLEW].v	= (double)pPlcIo->stat_sl.v_fb / 60.0;//旋回 RPS
+	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.v_fb / 60.0;//走行 RPS
+
+	//#d ドラム層セット
+	double rd = pspec->base_bh.NdrmPgSet0 - pEnvInf->crane_stat.nd[ID_BOOM_H].p;	//上限からの回転量
+	double chk_n = 0.7;// 初期値　83.3-21*4	5層巻取り数
+	double lout = 0.0;
+
+	for (int i = 0; i < 5; i++) {
+		if (rd < chk_n) {
+			lout += rd * pEnvInf->Cdrm[ID_BOOM_H][4 - i];	//巻取り量 index4=5層
+			break;
+		}
+		lout += chk_n * pEnvInf->Cdrm[ID_BOOM_H][4 - i];	//巻取り量
+		rd -= chk_n;
+		chk_n = pspec->base_bh.Ndmizo0;
+	}
+	pEnvInf->crane_stat.d.p = pspec->st_struct.d0 + lout / pspec->base_bh.Nwire0;	//巻取り量
+
+	//起伏角,旋回半径(ドラム回転量から計算)
+	double d = pEnvInf->crane_stat.d.p, Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
+	pEnvInf->crane_stat.th.p = PI90 - acos((d * d - Lb * Lb - Ha * Ha) / (-2.0 * Lb * Ha));	//起伏角度
+	pEnvInf->crane_stat.r.p = Lb * cos(pEnvInf->crane_stat.th.p);					//旋回半径
+
+	//### 荷重・位置状態セット ###
+	//荷重
+	pEnvInf->crane_stat.m.p = pPlcIo->weight;
+
+	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
+	//揚程
+	pEnvInf->crane_stat.vm[ID_HOIST].p = pPlcIo->h_mh;
+	//旋回角度
+	pEnvInf->crane_stat.vm[ID_SLEW].p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;//旋回角度
+	//走行位置
+	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
+	dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
+
+	pEnvInf->crane_stat.vm[ID_GANTRY].p = pCrane->pSpec->base_gt.PosPreset + dL;
+
+	switch (id) {
+	case CRANE_ID_HHGQ18:
+	{
+		;
+	}break;
+	case CRANE_ID_HHGH29: 
+	default:
+	{
+		;
+	}break;
+	};
+	return S_OK;
+};
+
+HRESULT CCcEnv::set_stat_GC(int id) {
+	switch (id) {
+	case CRANE_ID_HHGQ18:
+	{
+		;
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		;
+	}break;
+	};
+	return S_OK;
+};
+
+HRESULT CCcEnv::set_stat_OHC(int id) {
+	switch (id) {
+	case CRANE_ID_HHGQ18:
+	{
+		;
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		;
+	}break;
+	};
+	return S_OK;
+};
+
+
+
+/****************************************************************************/
 /*   故障情報											                    */
 /****************************************************************************/
-
 void CCcEnv::set_faults_info() {
 	PINT16 pflt_rbuf = pCrane->pFlt->prfltbuf;
 
@@ -414,7 +514,6 @@ void CCcEnv::set_faults_info() {
 
 	return;
 }
-
 void CCcEnv::refresh_faults_info() {
 	PINT16 pflt_rbuf = pCrane->pFlt->prfltbuf;
 
@@ -437,49 +536,7 @@ void CCcEnv::refresh_faults_info() {
 	return;
 }
 
-/****************************************************************************/
-/*   通信関数											                    */
-/****************************************************************************/
-#if 0
 
-/// <summary>
-/// AUXEQユニキャスト電文受信処理
-/// </summary>
-HRESULT CCcEnv::rcv_uni_aux(LPST_AUX_COM_SERV_MSG pbuf) {
-	int nRtn = pUSockCcEnv->rcv_msg((char*)pbuf, sizeof(ST_AUX_COM_SERV_MSG));
-	if (nRtn == SOCKET_ERROR) {
-		if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_RCV) {
-			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR rcv:" << pUSockCcEnv->err_msg.str();
-			SetWindowText(st_mon2.hctrl[ENV_ID_MON2_STATIC_MSG], st_mon2.wo_uni.str().c_str());
-			return S_FALSE;
-		}
-	}
-	rcv_count_u++;
-	return S_OK;
-}
-
-/****************************************************************************/
-/// <summary>
-/// PCユニキャスト電文送信処理 
-/// </summary>
-LPST_AUX_COM_CLI_MSG CCcEnv::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
-	return &pEnvInf->st_msg_u_snd;
-}
-
-HRESULT CCcEnv::snd_uni2aux(LPST_AUX_COM_CLI_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
-
-	if (pUSockCcEnv->snd_msg((char*)pbuf, sizeof(ST_AUX_COM_CLI_MSG), *p_addrin_to) == SOCKET_ERROR) {
-		if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_SND) {
-			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockCcEnv->err_msg.str();
-			SetWindowText(st_mon2.hctrl[ENV_ID_MON2_STATIC_MSG], st_mon2.wo_uni.str().c_str());
-		}
-		return S_FALSE;
-	}
-	snd_count_u++;
-	return S_OK;
-}
-
-#endif
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
