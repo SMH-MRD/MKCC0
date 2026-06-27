@@ -239,8 +239,9 @@ void CCcEnv::set_param_JC(int id) {
 		pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)i * pspec->base_gt.dDdrm) * PI180;
 		//引込主巻ドラム 層負荷直径はBHを使用
 		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_mh.Ddrm1 + (double)i * pspec->base_bh.dDdrm) * PI180;
-
-		if (i == 0) {//1層巻取り量
+		
+		//層巻取り量(ドラム周長×ドラム溝数)の積算値を計算)
+		if (i == 0) {
 			pEnvInf->Ldrm[ID_HOIST][i] = pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
 			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Cdrm[ID_BOOM_H][i] * pspec->base_bh.Ndmizo0;
 			pEnvInf->Ldrm[ID_SLEW][i] = pEnvInf->Cdrm[ID_SLEW][i] * pspec->base_sl.Ndmizo0;
@@ -312,8 +313,10 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//###　ドラム回転数セット
 	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
-	//起伏ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
+	//起伏(起伏）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_BOOM_H].p = (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
+	//起伏(主巻）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
+	pEnvInf->crane_stat.nd[ID_BH_HST].p = pspec->st_struct.Nttl_bh - pEnvInf->crane_stat.nd[ID_BOOM_H].p;
 	//旋回ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_SLEW].p = (pPlcIo->stat_sl.pg_count - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
 	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
@@ -321,9 +324,30 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	//###  回転速度セット ±0.1％単位 ベース速度が100％で inv fb/1000*定格回転数
 	pEnvInf->crane_stat.nd[ID_HOIST].v	= (double)pPlcIo->stat_mh.v_fb / 60.0;//主巻 RPS
-	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.v_fb / 60.0;//起伏 RPS
+	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.v_fb / 60.0;//起伏(起伏） RPS
+	pEnvInf->crane_stat.nd[ID_BH_HST].v = -pEnvInf->crane_stat.nd[ID_BOOM_H].v;//起伏（主巻） RPS
 	pEnvInf->crane_stat.nd[ID_SLEW].v	= (double)pPlcIo->stat_sl.v_fb / 60.0;//旋回 RPS
 	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.v_fb / 60.0;//走行 RPS
+
+	//###  巻取量セット
+	// 巻取層
+	pEnvInf->crane_stat.i_layer[ID_HOIST]	= (INT32)(pEnvInf->crane_stat.nd[ID_HOIST].p / pspec->base_mh.Ndmizo0);
+	pEnvInf->crane_stat.i_layer[ID_BOOM_H]	= (INT32)(pEnvInf->crane_stat.nd[ID_BOOM_H].p / pspec->base_bh.Ndmizo0);
+	pEnvInf->crane_stat.i_layer[ID_BH_HST] = (INT32)(pEnvInf->crane_stat.nd[ID_BH_HST].p / pspec->base_bh.Ndmizo1);
+	pEnvInf->crane_stat.i_layer[ID_SLEW]	= (INT32)(pEnvInf->crane_stat.nd[ID_SLEW].p / pspec->base_sl.Ndmizo0);
+	pEnvInf->crane_stat.i_layer[ID_GANTRY]	= (INT32)(pEnvInf->crane_stat.nd[ID_GANTRY].p / pspec->base_gt.Ndmizo0);
+
+	//巻取速度（モータ回転速度Hz×減速比×ドラム層周長
+	if(pEnvInf->crane_stat.i_layer[ID_HOIST] > 0 && pEnvInf->crane_stat.i_layer[ID_HOIST]< N_DRUM_LAYER)
+		pEnvInf->crane_stat.ld[ID_HOIST].v	= pEnvInf->crane_stat.nd[ID_HOIST].v	/ pspec->base_mh.Gear_ratio * pEnvInf->Cdrm[ID_HOIST][pEnvInf->crane_stat.i_layer[ID_HOIST]];
+	if (pEnvInf->crane_stat.i_layer[ID_BOOM_H] > 0 && pEnvInf->crane_stat.i_layer[ID_BOOM_H] < N_DRUM_LAYER)
+		pEnvInf->crane_stat.ld[ID_BOOM_H].v = pEnvInf->crane_stat.nd[ID_BOOM_H].v	/ pspec->base_bh.Gear_ratio * pEnvInf->Cdrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H]];
+	if (pEnvInf->crane_stat.i_layer[ID_BH_HST] > 0 && pEnvInf->crane_stat.i_layer[ID_BH_HST] < N_DRUM_LAYER)
+		pEnvInf->crane_stat.ld[ID_BH_HST].v = pEnvInf->crane_stat.nd[ID_BH_HST].v	/ pspec->base_bh.Gear_ratio * pEnvInf->Cdrm[ID_BH_HST][pEnvInf->crane_stat.i_layer[ID_BH_HST]];
+	if (pEnvInf->crane_stat.i_layer[ID_SLEW] > 0 && pEnvInf->crane_stat.i_layer[ID_SLEW] < N_DRUM_LAYER)
+		pEnvInf->crane_stat.ld[ID_SLEW].v	= pEnvInf->crane_stat.nd[ID_SLEW].v		/ pspec->base_sl.Gear_ratio * pEnvInf->Cdrm[ID_SLEW][pEnvInf->crane_stat.i_layer[ID_SLEW]];
+	if (pEnvInf->crane_stat.i_layer[ID_GANTRY] > 0 && pEnvInf->crane_stat.i_layer[ID_GANTRY] < N_DRUM_LAYER)
+		pEnvInf->crane_stat.ld[ID_GANTRY].v = pEnvInf->crane_stat.nd[ID_GANTRY].v	/ pspec->base_gt.Gear_ratio * pEnvInf->Cdrm[ID_GANTRY][pEnvInf->crane_stat.i_layer[ID_GANTRY]];
 
 	//#d ドラム層セット
 	double rd = pspec->base_bh.NdrmPgSet0 - pEnvInf->crane_stat.nd[ID_BOOM_H].p;	//上限からの回転量
@@ -352,14 +376,13 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
 	//揚程
-	pEnvInf->crane_stat.vm[ID_HOIST].p = pPlcIo->h_mh;
+	pEnvInf->crane_stat.mh.p = pPlcIo->h_mh;
 	//旋回角度
-	pEnvInf->crane_stat.vm[ID_SLEW].p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;//旋回角度
+	pEnvInf->crane_stat.sl_deg.p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
 	//走行位置
 	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
 	dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
-
-	pEnvInf->crane_stat.vm[ID_GANTRY].p = pCrane->pSpec->base_gt.PosPreset + dL;
+	pEnvInf->crane_stat.gt.p = pCrane->pSpec->base_gt.PosPreset + dL;
 
 	switch (id) {
 	case CRANE_ID_HHGQ18:

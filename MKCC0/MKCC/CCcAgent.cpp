@@ -206,8 +206,8 @@ int CAgent::input() {
 	//## 位置（Environmentの計算値）
 	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
 	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;							//旋回半径
-	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_SLEW].p;	//旋回角度
-	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.vm[ID_GANTRY].p;	//走行位置 
+	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_deg.p;			//旋回角度
+	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.gt.p;				//走行位置 
 
 	//## ノッチ指令状態
 	INT16 notch = pCrane->pPlc->rval(pPlcRIf->JC.mh_notch).i16;

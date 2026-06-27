@@ -59,17 +59,23 @@ typedef struct _ST_FAULTS_LIST {
 }ST_FAULTS_LIST, * LPST_FAULTS_LIST;
 
 typedef struct _ST_CRANE_STAT {
+
+
+	ST_MOVE_SET	mh;								//主巻揚程
+	ST_MOVE_SET	sl_deg;							//旋回角度
+	ST_MOVE_SET th;								//起伏角度
+	ST_MOVE_SET r;								//旋回半径
+	ST_MOVE_SET gt;								//走行
+	ST_MOVE_SET	m;								//吊荷質量
+	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
+	
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
 	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
-	double		l_drum[MOTION_ID_MAX];			//ドラムロープ巻取り量
-	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作
-	ST_MOVE_SET	vm[MOTION_ID_MAX];				//軸動作　引込は角度
-	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
-	ST_MOVE_SET r;								//旋回半径
-	ST_MOVE_SET th;								//起伏角度
-	ST_MOVE_SET	m;								//吊荷質量
-	ST_FAULTS_LIST fault_list;					//故障検出リスト
-	INT32		abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値	
+	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作(n,hz,dhz)
+	ST_MOVE_SET	ld[MOTION_ID_MAX];				//軸移動量　（ドラム巻取量）　
+
+	ST_FAULTS_LIST	fault_list;					//故障検出リスト
+	INT32			abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値	
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
 typedef struct _ST_CC_ENV_INF {
