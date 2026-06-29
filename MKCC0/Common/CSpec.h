@@ -22,6 +22,7 @@ typedef struct _ST_STRUCTURE
 	double Hp		= 38.5;		//ポスト下部高さ(ジブピン高さ)
 	double d0		= 52.809;	//起伏上限時d	
 	double Whook	= 10000.0;	//フック重量KG	
+	double lbh_d0	= 260.88;	//起伏入限時のロープ巻取り量
 
 }ST_STRUCTURE, * LPST_STRUCTURE;
 

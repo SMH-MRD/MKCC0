@@ -140,6 +140,8 @@ private:
     INT16 pc_falt_detected_trig_off[N_PC_FAULT_BUF];
     INT16 pc_enable_hold = 0;
 
+    double lbh_d0;//起伏入限時の起伏ドラム巻取り量
+
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
     int input();//入力処理

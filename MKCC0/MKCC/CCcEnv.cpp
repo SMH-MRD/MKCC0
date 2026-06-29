@@ -233,28 +233,37 @@ void CCcEnv::set_param_JC(int id) {
 
 	//### ドラムの周長(層ドラムパラメータ初期化
 	for (int i = 0; i < N_DRUM_LAYER; i++) {
-		pEnvInf->Cdrm[ID_HOIST][i] = (pspec->base_mh.Ddrm0 + (double)i * pspec->base_mh.dDdrm) * PI180;
-		pEnvInf->Cdrm[ID_BOOM_H][i] = (pspec->base_bh.Ddrm0 + (double)i * pspec->base_bh.dDdrm) * PI180;
-		pEnvInf->Cdrm[ID_SLEW][i] = (pspec->base_sl.Ddrm0 + (double)i * pspec->base_sl.dDdrm) * PI180;
-		pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)i * pspec->base_gt.dDdrm) * PI180;
+		if (i == 0) {
+			pEnvInf->Cdrm[ID_HOIST][i]	= 0.0;
+			pEnvInf->Cdrm[ID_BOOM_H][i] = 0.0;
+			pEnvInf->Cdrm[ID_SLEW][i]	= 0.0;
+			pEnvInf->Cdrm[ID_GANTRY][i] = 0.0;
+		}
+		else {
+			pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)(i-1) * pspec->base_mh.dDdrm) * PI180;
+			pEnvInf->Cdrm[ID_BOOM_H][i]	= (pspec->base_bh.Ddrm0 + (double)(i - 1) * pspec->base_bh.dDdrm) * PI180;
+			pEnvInf->Cdrm[ID_SLEW][i]	= (pspec->base_sl.Ddrm0 + (double)(i - 1) * pspec->base_sl.dDdrm) * PI180;
+			pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)(i - 1) * pspec->base_gt.dDdrm) * PI180;
+		}
+
+
 		//引込主巻ドラム 層負荷直径はBHを使用
-		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_mh.Ddrm1 + (double)i * pspec->base_bh.dDdrm) * PI180;
+		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_bh.Ddrm1 + (double)i * pspec->base_mh.dDdrm) * PI180;//ドラム追加半径は主巻ドラムの数値を使う
 		
 		//層巻取り量(ドラム周長×ドラム溝数)の積算値を計算)
 		if (i == 0) {
-			pEnvInf->Ldrm[ID_HOIST][i] = pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
-			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Cdrm[ID_BOOM_H][i] * pspec->base_bh.Ndmizo0;
-			pEnvInf->Ldrm[ID_SLEW][i] = pEnvInf->Cdrm[ID_SLEW][i] * pspec->base_sl.Ndmizo0;
-			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Cdrm[ID_GANTRY][i] * pspec->base_gt.Ndmizo0;
-			//引込主巻ドラム 
-			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;//Ndmizo1は引込主巻ドラムの溝数
+			pEnvInf->Ldrm[ID_HOIST][i] = 0.0;
+			pEnvInf->Ldrm[ID_BOOM_H][i] = 0.0;
+			pEnvInf->Ldrm[ID_SLEW][i] = 0.0;
+			pEnvInf->Ldrm[ID_GANTRY][i] = 0.0;
+			pEnvInf->Ldrm[ID_BH_HST][i] = 0.0;
 		}
 		else {
-			pEnvInf->Ldrm[ID_HOIST][i] = pEnvInf->Ldrm[ID_HOIST][i - 1] + pEnvInf->Cdrm[ID_HOIST][i] * pspec->base_mh.Ndmizo0;
-			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Ldrm[ID_BOOM_H][i - 1] + pEnvInf->Cdrm[ID_BOOM_H][i] * pspec->base_bh.Ndmizo0;
-			pEnvInf->Ldrm[ID_SLEW][i] = pEnvInf->Ldrm[ID_SLEW][i - 1] + pEnvInf->Cdrm[ID_SLEW][i] * pspec->base_sl.Ndmizo0;
-			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Ldrm[ID_GANTRY][i - 1] + pEnvInf->Cdrm[ID_GANTRY][i] * pspec->base_gt.Ndmizo0;
-			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1] + pEnvInf->Cdrm[ID_BH_HST][i] * pspec->base_mh.Ndmizo1;
+			pEnvInf->Ldrm[ID_HOIST][i]	= pEnvInf->Ldrm[ID_HOIST][i - 1]	+ pEnvInf->Cdrm[ID_HOIST][i]	* pspec->base_mh.Ndmizo0;
+			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Ldrm[ID_BOOM_H][i - 1]	+ pEnvInf->Cdrm[ID_BOOM_H][i]	* pspec->base_bh.Ndmizo0;
+			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Ldrm[ID_SLEW][i - 1]		+ pEnvInf->Cdrm[ID_SLEW][i]		* pspec->base_sl.Ndmizo0;
+			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Ldrm[ID_GANTRY][i - 1]	+ pEnvInf->Cdrm[ID_GANTRY][i]	* pspec->base_gt.Ndmizo0;
+			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1]	+ pEnvInf->Cdrm[ID_BH_HST][i]	* pspec->base_mh.Ndmizo1;
 		}
 	}
 	pEnvInf->Lspan[ID_HOIST]	= pspec->base_mh.Lfull;
@@ -313,61 +322,64 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//###　ドラム回転数セット
 	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
+
 	//起伏(起伏）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_BOOM_H].p = (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
+
 	//起伏(主巻）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_BH_HST].p = pspec->st_struct.Nttl_bh - pEnvInf->crane_stat.nd[ID_BOOM_H].p;
+
 	//旋回ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_SLEW].p = (pPlcIo->stat_sl.pg_count - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
+
 	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
 
 	//###  回転速度セット ±0.1％単位 ベース速度が100％で inv fb/1000*定格回転数
 	pEnvInf->crane_stat.nd[ID_HOIST].v	= (double)pPlcIo->stat_mh.v_fb / 60.0;//主巻 RPS
 	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.v_fb / 60.0;//起伏(起伏） RPS
-	pEnvInf->crane_stat.nd[ID_BH_HST].v = -pEnvInf->crane_stat.nd[ID_BOOM_H].v;//起伏（主巻） RPS
+	pEnvInf->crane_stat.nd[ID_BH_HST].v = pEnvInf->crane_stat.nd[ID_BOOM_H].v;//起伏（主巻） RPS
 	pEnvInf->crane_stat.nd[ID_SLEW].v	= (double)pPlcIo->stat_sl.v_fb / 60.0;//旋回 RPS
 	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.v_fb / 60.0;//走行 RPS
 
 	//###  巻取量セット
-	// 巻取層
-	pEnvInf->crane_stat.i_layer[ID_HOIST]	= (INT32)(pEnvInf->crane_stat.nd[ID_HOIST].p / pspec->base_mh.Ndmizo0);
-	pEnvInf->crane_stat.i_layer[ID_BOOM_H]	= (INT32)(pEnvInf->crane_stat.nd[ID_BOOM_H].p / pspec->base_bh.Ndmizo0);
-	pEnvInf->crane_stat.i_layer[ID_BH_HST] = (INT32)(pEnvInf->crane_stat.nd[ID_BH_HST].p / pspec->base_bh.Ndmizo1);
-	pEnvInf->crane_stat.i_layer[ID_SLEW]	= (INT32)(pEnvInf->crane_stat.nd[ID_SLEW].p / pspec->base_sl.Ndmizo0);
-	pEnvInf->crane_stat.i_layer[ID_GANTRY]	= (INT32)(pEnvInf->crane_stat.nd[ID_GANTRY].p / pspec->base_gt.Ndmizo0);
+	// 巻取層(0→1層）
+	pEnvInf->crane_stat.i_layer[ID_HOIST]	= (INT32)(pEnvInf->crane_stat.nd[ID_HOIST].p / pspec->base_mh.Ndmizo0)	+ 1;
+	pEnvInf->crane_stat.i_layer[ID_BOOM_H]	= (INT32)(pEnvInf->crane_stat.nd[ID_BOOM_H].p / pspec->base_bh.Ndmizo0) + 1;
+	pEnvInf->crane_stat.i_layer[ID_BH_HST] = (INT32)(pEnvInf->crane_stat.nd[ID_BH_HST].p / pspec->base_bh.Ndmizo1)	+ 1;
+	pEnvInf->crane_stat.i_layer[ID_SLEW]	= 1;
+	pEnvInf->crane_stat.i_layer[ID_GANTRY]	= 1;
 
 	//巻取速度（モータ回転速度Hz×減速比×ドラム層周長
-	if(pEnvInf->crane_stat.i_layer[ID_HOIST] > 0 && pEnvInf->crane_stat.i_layer[ID_HOIST]< N_DRUM_LAYER)
-		pEnvInf->crane_stat.ld[ID_HOIST].v	= pEnvInf->crane_stat.nd[ID_HOIST].v	/ pspec->base_mh.Gear_ratio * pEnvInf->Cdrm[ID_HOIST][pEnvInf->crane_stat.i_layer[ID_HOIST]];
-	if (pEnvInf->crane_stat.i_layer[ID_BOOM_H] > 0 && pEnvInf->crane_stat.i_layer[ID_BOOM_H] < N_DRUM_LAYER)
-		pEnvInf->crane_stat.ld[ID_BOOM_H].v = pEnvInf->crane_stat.nd[ID_BOOM_H].v	/ pspec->base_bh.Gear_ratio * pEnvInf->Cdrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H]];
-	if (pEnvInf->crane_stat.i_layer[ID_BH_HST] > 0 && pEnvInf->crane_stat.i_layer[ID_BH_HST] < N_DRUM_LAYER)
-		pEnvInf->crane_stat.ld[ID_BH_HST].v = pEnvInf->crane_stat.nd[ID_BH_HST].v	/ pspec->base_bh.Gear_ratio * pEnvInf->Cdrm[ID_BH_HST][pEnvInf->crane_stat.i_layer[ID_BH_HST]];
-	if (pEnvInf->crane_stat.i_layer[ID_SLEW] > 0 && pEnvInf->crane_stat.i_layer[ID_SLEW] < N_DRUM_LAYER)
-		pEnvInf->crane_stat.ld[ID_SLEW].v	= pEnvInf->crane_stat.nd[ID_SLEW].v		/ pspec->base_sl.Gear_ratio * pEnvInf->Cdrm[ID_SLEW][pEnvInf->crane_stat.i_layer[ID_SLEW]];
-	if (pEnvInf->crane_stat.i_layer[ID_GANTRY] > 0 && pEnvInf->crane_stat.i_layer[ID_GANTRY] < N_DRUM_LAYER)
-		pEnvInf->crane_stat.ld[ID_GANTRY].v = pEnvInf->crane_stat.nd[ID_GANTRY].v	/ pspec->base_gt.Gear_ratio * pEnvInf->Cdrm[ID_GANTRY][pEnvInf->crane_stat.i_layer[ID_GANTRY]];
+	if (!(pEnvInf->crane_stat.i_layer[ID_HOIST] > 0 && pEnvInf->crane_stat.i_layer[ID_HOIST] < N_DRUM_LAYER)) pEnvInf->crane_stat.i_layer[ID_HOIST] = 0;
+	if (!(pEnvInf->crane_stat.i_layer[ID_BOOM_H] > 0 && pEnvInf->crane_stat.i_layer[ID_BOOM_H] < N_DRUM_LAYER))pEnvInf->crane_stat.i_layer[ID_BOOM_H] = 0;
+	if (!(pEnvInf->crane_stat.i_layer[ID_BH_HST] > 0 && pEnvInf->crane_stat.i_layer[ID_BH_HST] < N_DRUM_LAYER))pEnvInf->crane_stat.i_layer[ID_BH_HST] = 0;
 
-	//#d ドラム層セット
-	double rd = pspec->base_bh.NdrmPgSet0 - pEnvInf->crane_stat.nd[ID_BOOM_H].p;	//上限からの回転量
-	double chk_n = 0.7;// 初期値　83.3-21*4	5層巻取り数
-	double lout = 0.0;
+	pEnvInf->crane_stat.ld[ID_HOIST].v	= pEnvInf->crane_stat.nd[ID_HOIST].v	* pEnvInf->Cdrm[ID_HOIST][pEnvInf->crane_stat.i_layer[ID_HOIST]];
+	pEnvInf->crane_stat.ld[ID_BOOM_H].v = pEnvInf->crane_stat.nd[ID_BOOM_H].v	* pEnvInf->Cdrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H]];
+	pEnvInf->crane_stat.ld[ID_BH_HST].v = pEnvInf->crane_stat.nd[ID_BH_HST].v	* pEnvInf->Cdrm[ID_BH_HST][pEnvInf->crane_stat.i_layer[ID_BH_HST]];
+	pEnvInf->crane_stat.ld[ID_SLEW].v	= pEnvInf->crane_stat.nd[ID_SLEW].v		* pEnvInf->Cdrm[ID_SLEW][pEnvInf->crane_stat.i_layer[ID_SLEW]];
+	pEnvInf->crane_stat.ld[ID_GANTRY].v	= pEnvInf->crane_stat.nd[ID_GANTRY].v	* pEnvInf->Cdrm[ID_GANTRY][pEnvInf->crane_stat.i_layer[ID_GANTRY]];
 
-	for (int i = 0; i < 5; i++) {
-		if (rd < chk_n) {
-			lout += rd * pEnvInf->Cdrm[ID_BOOM_H][4 - i];	//巻取り量 index4=5層
-			break;
-		}
-		lout += chk_n * pEnvInf->Cdrm[ID_BOOM_H][4 - i];	//巻取り量
-		rd -= chk_n;
-		chk_n = pspec->base_bh.Ndmizo0;
-	}
-	pEnvInf->crane_stat.d.p = pspec->st_struct.d0 + lout / pspec->base_bh.Nwire0;	//巻取り量
-
+	//###d 
+	double lout = 0.0;//引込入限からのワイヤ繰り出し量
+	//現在の層－1の巻取り量
+	lout = pEnvInf->Ldrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H] - 1];
+	//現在の層の巻取り量を付加(現在の層の回転数×現在の層の周長
+	lout += (pEnvInf->crane_stat.nd[ID_BOOM_H].p - (pEnvInf->crane_stat.i_layer[ID_BOOM_H] - 1) * pspec->base_bh.Ndmizo0) * pEnvInf->Cdrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H]];
+	//現在の総巻取り量 - 入限の巻取り量　＝　繰り出し量
+	lout = lout - pspec->st_struct.lbh_d0;
+	//現在のd値
+	double d = pEnvInf->crane_stat.d.p = pspec->st_struct.d0 + lout / pspec->base_bh.Nwire0;
+	double Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
 	//起伏角,旋回半径(ドラム回転量から計算)
-	double d = pEnvInf->crane_stat.d.p, Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
-	pEnvInf->crane_stat.th.p = PI90 - acos((d * d - Lb * Lb - Ha * Ha) / (-2.0 * Lb * Ha));	//起伏角度
+	double dtemp = (Lb * Lb + Ha * Ha - d * d) / (2.0 * Lb * Ha);
+	if((dtemp >= -1.0) &&(dtemp <= 1.0)){
+		pEnvInf->crane_stat.th.p = asin(dtemp);
+	}
+	else {
+		pEnvInf->crane_stat.th.p = 0.0;
+	}
 	pEnvInf->crane_stat.r.p = Lb * cos(pEnvInf->crane_stat.th.p);					//旋回半径
 
 	//### 荷重・位置状態セット ###

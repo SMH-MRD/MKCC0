@@ -171,10 +171,10 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 	switch (id) {
 	case CRANE_ID_HHGQ18:
 	{
-		st_sim_inf.hcount_mh = 96450040;		//主巻PG　(R21,H30）
-		st_sim_inf.hcount_bh = 85167878;		//引込PG　(R21,H30）
+		st_sim_inf.hcount_mh = 98220337;		//主巻PG　(R21,H30）
+		st_sim_inf.hcount_bh = 77388080;		//引込PG　(R21,H30）
 		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
-		st_sim_inf.absocoder_mh = 50000;		//主巻アブソコーダ初期値3層開始位置(R45,H70）
+		st_sim_inf.absocoder_mh = 51274;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
 		st_sim_inf.absocoder_gt = 32595;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024
 	}break;
 	case CRANE_ID_HHGH29: 
@@ -221,6 +221,10 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 				st_sim_inf.trq_ref_bh = 600;	//30%トルク指令
 				st_sim_inf.vfb_bh = 0;			//速度FBは0
 			}
+			//else if (st_sim_inf.hcount_bh <= pspec->base_bh.CntPgSet0) {//引込限以下で停止 　引込方向指令はトルク指令0
+			//	st_sim_inf.trq_ref_bh = 600;	//30%トルク指令
+			//	st_sim_inf.vfb_bh = -(INT16)pPLC_IO->stat_bh.v_ref * 0.01;			//速度FBは0
+			//}
 			else {//ブレーキ開
 				st_sim_inf.trq_ref_bh = 2000;	//100%トルク指令
 				//inv_ref(ベース100%で0.1%単位表現)
@@ -229,7 +233,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		}
 		else {
 			st_sim_inf.trq_ref_bh = 0;	//停止時は速度0
-			st_sim_inf.vfb_bh = 0;	//速度FBは0
+			st_sim_inf.vfb_bh = 0;		//速度FBは0
 		}
 	}
 	
@@ -267,10 +271,16 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	}
 	if(pPLC_IO->stat_bh.brake)//!!!引込は正転でPGはマイナスカウント
 		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v * inf.dt * st_work.axis[ID_BOOM_H].RpsPGCntSec);
+	//下限リミット　入限 
+	if (st_sim_inf.hcount_bh < pspec->base_bh.CntPgSet0) 
+		st_sim_inf.hcount_bh = pspec->base_bh.CntPgSet0 + 30000;//PG無変化異常回避のため微小カウント変化を入れる
+
 	
 	//!!!旋回ブレーキは信号OFFで開
 	if((!pPLC_IO->stat_sl.brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-5)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>5)))
 		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v	* inf.dt * st_work.axis[ID_SLEW].RpsPGCntSec);
+
+
 	//プリセット
 	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360) 
 		st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;

@@ -134,7 +134,7 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
 	{NULL,BIT2 | BIT3 | BIT7,	CODE_PLCIO_BITS,	0,0,6},	//mh_spd_cs;
 	{NULL,BIT4 | BIT5 | BIT6,	CODE_PLCIO_BITS,	0,0,6},	//bh_mode_cs;
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,6},	//ah_use_sel;	 
-	{NULL,0xFC00,				CODE_PLCIO_BITS,	10,0,6},	// ah_notch;
+	{NULL,0xFC00,				CODE_PLCIO_BITS,	10,0,6},// ah_notch;
 	//B230
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0,7},	//mh_notch;
 	{NULL,BIT7 | BIT8,			CODE_PLCIO_BITS,	7,0,7},	//gt_spd_sel;	
