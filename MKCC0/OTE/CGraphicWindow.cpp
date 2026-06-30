@@ -396,7 +396,7 @@ LRESULT CALLBACK CGraphicWindow::GWndProcJC(HWND hwnd, UINT uMsg, WPARAM wParam,
 
 
 		//グラフィックオブジェクトの初期化
-		pPanelBase->pgwinobjs->setup_graphics(hwnd);
+		pPanelBase->pmainobjs->setup_jc_graphics(hwnd);
 		pPanelBase->pgwinobjs->refresh_obj_graphics();
 
 		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
@@ -472,7 +472,7 @@ LRESULT CALLBACK CGraphicWindow::GWndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPARAM 
 
 
 			//グラフィックオブジェクトの初期化
-		pPanelBase->pgwinobjs->setup_graphics(hwnd);
+		pPanelBase->pgwinobjs->setup_jc_graphics(hwnd);
 		pPanelBase->pgwinobjs->refresh_obj_graphics();
 
 		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
@@ -539,7 +539,6 @@ LRESULT CALLBACK CGraphicWindow::GWndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPARAM 
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
-
 // 描画処理関数
 static int gsubwin_count = 0;
 /// <summary>
@@ -748,7 +747,15 @@ LRESULT CALLBACK CGraphicWindow::GSubWndProcJC(HWND hwnd, UINT uMsg, WPARAM wPar
 	switch (uMsg) {
 	case WM_CREATE: {
 		//グラフィックオブジェクトの初期化
-		pPanelBase->pgsubwinobjs->setup_graphics(hwnd);
+		switch (crane_id) {
+		case CRANE_ID_HHGQ18:
+		case CRANE_ID_HHGH29:
+		default:
+		{
+			pPanelBase->pgsubwinobjs->setup_jc_graphics(hwnd);
+		}
+		}
+
 		pPanelBase->pgsubwinobjs->refresh_obj_graphics();
 
 		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
@@ -817,7 +824,14 @@ LRESULT CALLBACK CGraphicWindow::GSubWndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPAR
 	switch (uMsg) {
 	case WM_CREATE: {
 		//グラフィックオブジェクトの初期化
-		pPanelBase->pgsubwinobjs->setup_graphics(hwnd);
+		switch (crane_id) {
+		case CRANE_ID_HHGQ18:
+		case CRANE_ID_HHGH29:
+		default:
+		{
+			pPanelBase->pgsubwinobjs->setup_jc_graphics(hwnd);
+		}
+		}
 		pPanelBase->pgsubwinobjs->refresh_obj_graphics();
 
 		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過

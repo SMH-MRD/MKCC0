@@ -74,12 +74,13 @@ struct ST_OBJ_PROPERTY {
 class CPanelObjBase {
 public:
 
-	CPanelObjBase(HWND _hwnd);
+	CPanelObjBase(HWND _hwnd, int crane_id);
 
 	virtual ~CPanelObjBase(); 
 
 	HRESULT hr = S_OK;
 	int panel_code;	//パネルコード
+	int crane_id;	//クレーンID
 
 	HWND hPnlWnd;			//パネルのウィンドウハンドル
 	Rect rc_panel;			//パネルの表示位置
@@ -109,13 +110,17 @@ public:
 	Color colorkey;			//画像を重ね合わせる時の透過色
 	ImageAttributes attr;	//カラーキーを透過させる設定
 
-	int set_panel_code(int code) { panel_code = code; return panel_code; };
-	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
-	virtual HRESULT setup_graphics(HWND hwnd);
+	virtual HRESULT setup_jc_graphics(HWND hwnd);
+	virtual HRESULT setup_gc_graphics(HWND hwnd);
+	virtual HRESULT setup_ohc_graphics(HWND hwnd);
+
 	virtual void clear_graphics();
 	virtual void reset_graghic_img(Graphics* pg);//グラフィックオブジェクトの描画をクリア
 
-	virtual HRESULT setup_obj() = 0;
+	int set_panel_code(int code) { panel_code = code; return panel_code; };
+	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
+
+	//virtual HRESULT setup_obj() = 0;
 	virtual void delete_obj() = 0;
 
 };
@@ -125,10 +130,18 @@ class CMainPanelObj :public CPanelObjBase
 private:
 	int crane_id;
 public:
-	CMainPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+	CMainPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd, _crane_id) {
 		crane_id = _crane_id;
 		set_panel_code(ID_MAIN_PNL_OBJ_BASE);
-		setup_obj();
+		switch (crane_id) {
+		case CRANE_ID_HHGH29:
+		case CRANE_ID_HHGQ18:
+		default:
+		{
+			setup_jc_obj(crane_id);
+		}break;
+		}
+		
 	}
 	virtual ~CMainPanelObj() {
 	}
@@ -177,7 +190,10 @@ public:
 	CLampCtrl	* lmp_freset;	//故障リセットランプ
 	CStaticCtrl	* txt_freset;	//故障リセット表示テキスト
 
-	virtual HRESULT setup_obj();
+	virtual HRESULT setup_jc_obj(int crane_id);
+	virtual HRESULT setup_gc_obj(int crane_id);
+	virtual HRESULT setup_ohc_obj(int crane_id);
+
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
@@ -273,7 +289,7 @@ private:
 	int crane_id;
 
 public:
-	CSubPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+	CSubPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
 		setup_obj();
 	}
@@ -397,7 +413,7 @@ private:
 	int crane_id;
 
 public:
-	CGWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+	CGWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
 		setup_obj();
 	}
@@ -444,7 +460,7 @@ private:
 	int crane_id;
 
 public:
-	CGSubWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd) {
+	CGSubWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
 		setup_obj();
 	}
