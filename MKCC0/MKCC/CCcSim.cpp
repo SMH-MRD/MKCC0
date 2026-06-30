@@ -172,7 +172,7 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 	case CRANE_ID_HHGQ18:
 	{
 		st_sim_inf.hcount_mh = 98220337;		//主巻PG　(R21,H30）
-		st_sim_inf.hcount_bh = 77388080;		//引込PG　(R21,H30）
+		st_sim_inf.hcount_bh = 76676908;		//引込PG　(R21,H30）
 		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
 		st_sim_inf.absocoder_mh = 51274;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
 		st_sim_inf.absocoder_gt = 32595;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024

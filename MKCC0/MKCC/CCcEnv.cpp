@@ -343,7 +343,6 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.v_fb / 60.0;//走行 RPS
 
 	//###  巻取量セット
-	// 巻取層(0→1層）
 	pEnvInf->crane_stat.i_layer[ID_HOIST]	= (INT32)(pEnvInf->crane_stat.nd[ID_HOIST].p / pspec->base_mh.Ndmizo0)	+ 1;
 	pEnvInf->crane_stat.i_layer[ID_BOOM_H]	= (INT32)(pEnvInf->crane_stat.nd[ID_BOOM_H].p / pspec->base_bh.Ndmizo0) + 1;
 	pEnvInf->crane_stat.i_layer[ID_BH_HST] = (INT32)(pEnvInf->crane_stat.nd[ID_BH_HST].p / pspec->base_bh.Ndmizo1)	+ 1;
