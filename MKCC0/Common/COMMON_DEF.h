@@ -32,13 +32,10 @@ using namespace Gdiplus;
 #define CRANE_ID_HHGQ18         110     //今造西多度津300tJC 10号
 #define CRANE_ID_HHFM08         102     //今造西多度津1280tGC
 #define CRANE_ID_XXXXXX         1       //多度津OHC
+#define CARNE_ID_PC0            0xFF00      //PC単体
 
 #define OTE_ID_HHGG3800         101
 #define OTE_ID_HHGG3801         102
-
-
-//クレーンID（テキスト）は、製番
-#define CARNE_ID_PC0            0xFF00      //PC単体
 
 #define CRANE_ID_TXT_NULL       L"HXXX0000"
 #define CRANE_ID_TXT_H6R602     L"H6R60200"
@@ -47,7 +44,7 @@ using namespace Gdiplus;
 #define CARNE_ID_TXT_HHFM08     L"HHFM0800" 
 
 #define CRANE_TXT_NULL          L"不明"
-#define CRANE_TXT_H6R602        L"みらい"
+#define CRANE_TXT_H6R602        L"みらい(H6R602)"
 #define CARNE_TXT_HHGH29        L"西多度津70tJC 102号(HHGH29)"   
 #define CARNE_TXT_HHGQ18        L"西多度津300tJC 10号(HHGQ18)" 
 #define CARNE_TXT_HHFM08        L"西多度津1280tGC(HHFM08)"

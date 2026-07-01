@@ -2,6 +2,7 @@
 #include "CPlc.h"
 #include ".\Cranes\HHGH2900_Flt.h"
 #include ".\Cranes\HHGQ1800_Flt.h"
+#include ".\Cranes\H6R60200_Flt .h"
 #include ".\Cranes\HHFM0800_Flt.h"
 
 //##### Fault List #####
@@ -283,9 +284,9 @@ int CFaults::setup(int crane_id) {
 	switch (crane_id) {
 	case CRANE_ID_H6R602: {
 		//フォルトリスト
-		memcpy_s(&flt_list, sizeof(flt_list), &flt_list0, sizeof(flt_list0));
-		LPST_PLC_RBUF_HHGH29 _prbuf = (LPST_PLC_RBUF_HHGH29)prbuf;
-		LPST_PLC_WBUF_HHGH29 _pwbuf = (LPST_PLC_WBUF_HHGH29)pwbuf;
+		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_H6R602, sizeof(flt_list_H6R602));
+		LPST_PLC_RBUF_H6R602 _prbuf = (LPST_PLC_RBUF_H6R602)prbuf;
+		LPST_PLC_WBUF_H6R602 _pwbuf = (LPST_PLC_WBUF_H6R602)pwbuf;
 
 		prfltbuf = _prbuf->plc_fault;
 		pwfltbuf = _pwbuf->pc_fault;
@@ -311,12 +312,18 @@ int CFaults::setup(int crane_id) {
 		pwfltbuf = _pwbuf->pc_fault;
 
 	}break;
+
 	case CRANE_ID_HHFM08: { 
 		//フォルトリスト
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHFM08, sizeof(flt_list_HHFM08));
 	}break;
 	default: {
 		memcpy_s(&flt_list, sizeof(flt_list), &flt_list_HHGH29, sizeof(flt_list0));
+		LPST_PLC_RBUF_HHGH29 _prbuf = (LPST_PLC_RBUF_HHGH29)prbuf;
+		LPST_PLC_WBUF_HHGH29 _pwbuf = (LPST_PLC_WBUF_HHGH29)pwbuf;
+
+		prfltbuf = _prbuf->plc_fault;
+		pwfltbuf = _pwbuf->pc_fault;
 	}break;
 	};
 	return 0;

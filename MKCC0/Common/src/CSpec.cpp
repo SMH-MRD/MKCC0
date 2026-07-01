@@ -2,6 +2,7 @@
 #include "COMMON_DEF.h"
 #include ".\Cranes\HHGH2900_Spec.h"
 #include ".\Cranes\HHGQ1800_Spec.h"
+#include ".\Cranes\H6R60200_Spec.h"
 #include ".\Cranes\HHFM0800_Spec.h"
 
 ST_STRUCTURE	CSpec::st_struct;
@@ -241,12 +242,12 @@ ST_AXIS_ITEMS	base_ah0 = {
 int CSpec::setup(int crane_id) {
 	switch (crane_id) {
 	case CRANE_ID_H6R602:{
-		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_h6r602, sizeof(ST_STRUCTURE));
+		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_h6r602, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_h6r602, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl_h6r602, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_h6r602, sizeof(ST_AXIS_ITEMS));
+		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_h6r602, sizeof(ST_AXIS_ITEMS));
 	}break;
 	case CRANE_ID_HHGH29:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhgh29, sizeof(ST_STRUCTURE));

@@ -153,7 +153,7 @@ void CSim::setup_JC(int id) {
 	case CRANE_ID_HHGH29:
 	default:
 	{
-
+		st_sim_inf.wind_spd_AI = (INT16)(SIM_PRM_WIND_SPEED_DEFAULT * 800 / 60);//風速AI値 0-800 0-60m/s
 	}break;
 	}
 	return;
@@ -169,6 +169,14 @@ void CSim::setup_OHC(int id) {
 HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速度,加速度）
 	//ドラム回転数計算用パラメータ初期値設定
 	switch (id) {
+	case CRANE_ID_H6R602:
+	{
+		st_sim_inf.hcount_mh = 98220337;		//主巻PG　(R21,H30）
+		st_sim_inf.hcount_bh = 76676908;		//引込PG　(R21,H30）
+		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
+		st_sim_inf.absocoder_mh = 51274;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
+		st_sim_inf.absocoder_gt = 32595;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		st_sim_inf.hcount_mh = 98220337;		//主巻PG　(R21,H30）
@@ -293,6 +301,15 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 
 	//クレーン別ロジック
 	switch (crane_id) {
+	case CRANE_ID_H6R602:
+	{
+		//荷重
+		st_work.weight_mh = pspec->st_struct.Whook + st_work.axis[ID_HOIST].load.m;	//フック質量＋荷重
+		st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh / 330000.0 * 1600);		//荷重　0－330t→ 0-1600(2V))
+
+		//旋回半径	
+		st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.r.p - 21.0) / 41.0 * 1600.0);	//モーメントリミッタ半径AI入力計算値(0(21)-41(62)m→AD変換値 0-1600(2V))
+	}break;
 	case CRANE_ID_HHGQ18: 
 	{
 		//荷重

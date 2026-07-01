@@ -4,9 +4,6 @@
 #include <string>
 #include "COpePanel.H"
 
-#define CODE_OTE_GWIN_TYPE_MAIN				CRANE_ID_NULL
-#define CODE_OTE_GWIN_TYPE_MAIN_HHGH29		CARNE_ID_HHGH29
-
 #define GMAIN_PNL_WND_X             770
 #define GMAIN_PNL_WND_Y             40
 #define GMAIN_PNL_WND_W             1000
@@ -18,8 +15,6 @@
 #define GMAIN_PNL_BK_ORG_Y          0 //グラフィックク背景IMG原点
 #define GMAIN_PNL_PIX2M				0.2//グラフィックmm/PIXEL レールスパン10m/50PIXEL
 #define GMAIN_PNL_PIX2MM			200//グラフィックmm/PIXEL レールスパン10m/50PIXEL
-
-
 
 #define GSUB_PNL_WND_X				125
 #define GSUB_PNL_WND_Y				40
@@ -62,23 +57,19 @@ public:
 	static Gdiplus::Point mouse_pos_main;	//マウス位置
 	static Gdiplus::Point org_main;			//クレーン原点位置
 
-	static void OnPaint(HDC hdc, HWND hWnd);
 	static void OnPaint_JC(HDC hdc, HWND hWnd);
-
-	static LRESULT CALLBACK GWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		
 	static LRESULT CALLBACK GWndProcJC(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static LRESULT CALLBACK GWndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
+	
 	static Gdiplus::Point mouse_pos_sub;
 	static Gdiplus::Point bk_pickup_pos;
 
-	static void OnPaintSub(HDC hdc, HWND hWnd);
+	//static void OnPaintSub(HDC hdc, HWND hWnd);
 	static void OnPaintSub_JC(HDC hdc, HWND hWnd);
 
 	static LRESULT CALLBACK GSubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK GSubWndProcJC(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static LRESULT CALLBACK GSubWndProcJC_HHGQ18(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
+	
 	static int close();
 	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf, int _crane_id);
 		

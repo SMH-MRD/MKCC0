@@ -2,6 +2,7 @@
 #include "CPlc.h"
 #include ".\Cranes\HHGH2900_Plc.h"
 #include ".\Cranes\HHGQ1800_Plc.h"
+#include ".\Cranes\H6R60200_Plc.h"
 #include ".\Cranes\HHFM0800_Plc.h"
 
 int CPlc::setup(int machine_id) {
@@ -18,7 +19,11 @@ int CPlc::setup(int machine_id) {
 	//ST_PLC_IO_DEF構造体の信号定義（ビットパターン,信号タイプ,ビットシフト数,サイズ）
 	//内容をセット⇒データバッファのアドレスをセット
 	switch (machine_id) {
-	case CRANE_ID_H6R602: break;
+	case CRANE_ID_H6R602: {
+		un_plc_io_rif.JC = plc_io_rdef_h6r602;
+		un_plc_io_wif.JC = plc_io_wdef_h6r602;	//IOデータインスタンスバッファ先頭アドレス
+		break;
+	}
 	case CRANE_ID_HHGH29: {
 		un_plc_io_rif.JC = plc_io_rdef_hhgh29;
 		un_plc_io_wif.JC = plc_io_wdef_hhgh29;	//IOデータインスタンスバッファ先頭アドレス

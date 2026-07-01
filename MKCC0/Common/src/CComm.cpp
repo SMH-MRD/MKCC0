@@ -84,6 +84,36 @@ int CComm::setup(){
 		set_addr_set(CODE_COMM_LOCATION_CRANE, machine_id, &st_src);
 	}
 
+	//CARNE_ID_H6R602
+	{
+		int machine_id = CRANE_ID_H6R602;
+		ST_ADDR_SET st_src =
+		{
+			{//PC
+				{"192.168.100.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3020,0},	//ID_COMM_MAIN_PC_PLC
+				{"192.168.100.101",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
+				{"192.168.100.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3021,0},	//ID_COMM_PC_SLBRK
+				{"192.168.100.102",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_CCOTE_IF 制御PC内部OTE IF用ポート（デバッグ用）
+			},
+			{//WAN
+				{"10.130.7.205",CODE_COMM_TYPE_WAN,CODE_COMM_PROTOCOL_UDP,8001,0},		//ID_COMM_WAN0
+				default_addr
+			},
+			{//PLC
+				{"192.168.100.110",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3010,0},	//ID_COMM_MAIN_PC_PLC
+				default_addr
+			},
+			{//AUX
+				default_addr,
+				default_addr,
+				{"192.168.101.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
+				default_addr
+			},
+		};
+		set_addr_set(CODE_COMM_LOCATION_CRANE, machine_id, &st_src);
+	}
+
+
 	//#############################################################
 	//################ OTEアドレスセット　     ####################
 	//#############################################################

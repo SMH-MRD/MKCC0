@@ -246,7 +246,6 @@ void CCcEnv::set_param_JC(int id) {
 			pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)(i - 1) * pspec->base_gt.dDdrm) * PI180;
 		}
 
-
 		//引込主巻ドラム 層負荷直径はBHを使用
 		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_bh.Ddrm1 + (double)i * pspec->base_mh.dDdrm) * PI180;//ドラム追加半径は主巻ドラムの数値を使う
 		
@@ -272,6 +271,10 @@ void CCcEnv::set_param_JC(int id) {
 	pEnvInf->Lspan[ID_GANTRY]	= pspec->base_gt.Lfull;
 
 	switch (id) {
+	case CRANE_ID_H6R602:
+	{
+		;
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		;
@@ -286,6 +289,10 @@ void CCcEnv::set_param_JC(int id) {
 };
 void CCcEnv::set_param_GC(int id) {
 	switch (id) {
+	case CRANE_ID_H6R602:
+	{
+		;
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		;
@@ -300,6 +307,10 @@ void CCcEnv::set_param_GC(int id) {
 };
 void CCcEnv::set_param_OHC(int id) {
 	switch (id) {
+	case CRANE_ID_H6R602:
+	{
+		;
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		;
@@ -396,6 +407,10 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pEnvInf->crane_stat.gt.p = pCrane->pSpec->base_gt.PosPreset + dL;
 
 	switch (id) {
+	case CRANE_ID_H6R602:
+	{
+		;
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		;

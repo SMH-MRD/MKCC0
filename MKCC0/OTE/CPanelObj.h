@@ -120,7 +120,6 @@ public:
 	int set_panel_code(int code) { panel_code = code; return panel_code; };
 	void set_bk_brush(SolidBrush* pbr) { pBrushBk = pbr; return; };
 
-	//virtual HRESULT setup_obj() = 0;
 	virtual void delete_obj() = 0;
 
 };
@@ -291,7 +290,7 @@ private:
 public:
 	CSubPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
-		setup_obj();
+		setup_obj(crane_id);
 	}
 	virtual ~CSubPanelObj() {
 	}
@@ -384,7 +383,7 @@ public:
 	CStaticCtrl* st_deff_seq_no;		//シーケンス番号差
 	CStaticCtrl* st_v_delay;			//遅延表示
 
-	virtual HRESULT setup_obj();
+	virtual HRESULT setup_obj(int _cran_id);
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
@@ -415,7 +414,7 @@ private:
 public:
 	CGWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
-		setup_obj();
+		setup_obj(crane_id);
 	}
 	virtual ~CGWindowObj() {
 	}
@@ -438,7 +437,7 @@ public:
 	CStringGdi* str_slbk_mode;		//旋回ブレーキmode
 	CStringGdi* str_slbk_level;		//旋回ブレーキレベル
 
-	virtual HRESULT setup_obj();
+	virtual HRESULT setup_obj(int crane_id);
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
@@ -462,7 +461,7 @@ private:
 public:
 	CGSubWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
-		setup_obj();
+		setup_obj(crane_id);
 	}
 	virtual ~CGSubWindowObj() {
 	}
@@ -477,7 +476,7 @@ public:
 	CStringGdi* str_pos_mouse;		//マウス位置
 
 	
-	virtual HRESULT setup_obj();
+	virtual HRESULT setup_obj(int crane_id);
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };

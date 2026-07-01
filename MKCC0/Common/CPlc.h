@@ -7,6 +7,55 @@
 #pragma pack(push,2)
 
 //######################　PLC IFバッファ構造体定義  ##########################/
+//みらいの定義
+typedef struct _ST_PLC_WBUF_H6R602 {	//制御PC→PLC
+	INT16   helthy;						//D10200:PCヘルシー出力信号
+	INT16   ctrl_mode;					//D10201:自動制御フラグ
+	UINT16  cab_ai[4];					//D10202:運転室PLC AI信号【モーメントリミッタ】
+	INT16   cab_bi[4];					//D10206:運転室PLC→電気室PLC b出力
+	INT16   aux_com;					//D10210:補機指令出力 0bit：映像遅延チェックデバイス
+	INT16   spare[1];					//D10211:予備
+	INT16   mh_load;					//D10212:主巻荷重
+	INT16   ah_load;					//D10213:補巻荷重
+	INT16   wind_spd;					//D10214:風速
+	INT16   spear[15];					//D10215:予備
+	UINT32  hcounter[4];				//D10230:高速カウンタユニット 
+	UINT32  absocoder[3];				//D10238　アブソコーダ 
+	INT16   pc_fault[N_PLC_FAULT_BUF];	//D10244　PC　FAULT
+	INT16   spare0[8];					//D10244　予備 
+	INT16   spd_fb[4];					//D10270:速度FB（符号付き　3200が最高速度）
+	INT16   trq_ref[2];					//D10274:トルク指令（符号付き　4000/200%）
+	INT16   spear1[24];					//D10276:インバータ速度指令（符号付き　3200が最高速度）
+
+}ST_PLC_WBUF_H6R602, * LPST_PLC_WBUF_H6R602;
+typedef struct _ST_PLC_RBUF_H6R602 {
+	INT16   helthy;						// D10300:PLCヘルシーカウンタ
+	INT16   plc_ctrl;					// D10301: PLC運転モード
+	UINT16  cab_ai[4];					// D10302:運転室PLC→電気室PLC W出力
+	INT16   cab_bi[4];					// D10306:運転室PLC→電気室PLC b出力
+	INT16   cab_xi[4];					// D10310:運転室PLC→電気室PLC b出力
+	INT16   cab_bo;						// D10314:b2b0-f = Y70-F
+	INT16   cab_yo;						// D10315:b160-f
+	INT16   erm_900;					// D10316:
+	INT16   erm_bo[8];					// D10317:電気室PLC b出力
+	INT32	mh_z;						// D10325:主巻揚程　D1010
+	float	r_mm;						// D10327:引込半径　D2774
+	INT16	spar0[4];					// D10327:予備
+	INT16	cv_tg[4];					// D10333:目標速度％
+	INT16	spar1[2];					// D10337:予備
+	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10339:故障信号
+	INT16   erm_y[5];					// D10357:電気室PLC Y出力
+	INT16   erm_x[7];					// D10362:電気室PLC X入力
+	INT16   spar2;						//
+	INT16   inv_vref[4];				// D10370:インバータ速度指令
+	INT16   inv_vfb[4];					// D10375:インバータ速度FB
+	INT16   inv_trq[2];					// D10378:インバータトルク指令
+	INT16   spar3[2];					// D10369:インバータPLC DO指令	
+	INT32   hcount_fb[4];				// D10380:高速カウンタユニット FB値
+	INT32   absocoder_fb[3];			// D10388:アブソコーダ FB値
+	INT16   spar4[4];					// D10396:予備
+
+}ST_PLC_RBUF_H6R602, * LPST_PLC_RBUF_H6R602;
 
 //西多度津70tJC102号の定義
 typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC

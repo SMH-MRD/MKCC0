@@ -354,7 +354,6 @@ void CPanelObjBase::reset_graghic_img(Graphics* pg) {
 	pg->Clear(Color(0, 0, 0, 0));
 	return;
 }
-
 								//オレンジ　80x80
 static Image* img_o80_of; static Image* img_o80_on; static Image* img_w80_of; static Image* img_b80_on; static Image* img_g80_on; static Image* img_r80_on;
 static Image* img_b1_of; static Image* img_b1_on; static Image* img_y1_on; static Image* img_g1_on; static Image* img_r1_on;
@@ -366,6 +365,14 @@ HRESULT CMainPanelObj::setup_jc_obj(int _crane_id) {
 	int i = 0;
 	//画像ポインタ配列
 	switch (_crane_id) {
+	case CRANE_ID_H6R602:
+	{
+		img_o80_of = new Image(L"../Img/H6R602/sw80_of_o.png"); img_o80_on = new Image(L"../Img/H6R602/sw80_on_o.png");
+		img_b1_of = new Image(L"../Img/H6R602/lmp1_b_of.png"); img_b1_on = new Image(L"../Img/H6R602/lmp1_b_on.png"); img_y1_on = new Image(L"../Img/H6R602/lmp1_y_on.png"); img_g1_on = new Image(L"../Img/H6R602/lmp1_g_on.png"); img_r1_on = new Image(L"../Img/H6R602/lmp1_r_on.png");
+		img_estp_of = new Image(L"../Img/H6R602/estop_of.png"); img_estp_on = new Image(L"../Img/H6R602/estop_on.png"); img_estp_of2 = new Image(L"../Img/H6R602/estop_of2.png"); img_estp_on2 = new Image(L"../Img/H6R602/estop_on2.png");
+		img_w80_of = new Image(L"../Img/H6R602/sw80_of_w.png"); img_b80_on = new Image(L"../Img/H6R602/sw80_on_b.png"); img_g80_on = new Image(L"../Img/H6R602/sw80_on_g.png"); img_r80_on = new Image(L"../Img/H6R602/sw80_on_r.png");
+		img_freset_of = new Image(L"../Img/H6R602/freset_off.png"); img_freset_on = new Image(L"../Img/H6R602/freset_on.png");
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		img_o80_of = new Image(L"../Img/HHGQ18/sw80_of_o.png"); img_o80_on = new Image(L"../Img/HHGQ18/sw80_on_o.png");
@@ -759,13 +766,30 @@ void CMainPanelObj::refresh_obj_graphics() {
 	return;
 }
 
-HRESULT CSubPanelObj::setup_obj() {
-	static Image img_cs_mode0(L"../Img/HHGH29/cs_mode0.png"), img_cs_mode1(L"../Img/HHGH29/cs_mode1.png"), img_cs_mode2(L"../Img/HHGH29/cs_mode2.png"), img_cs_mode3(L"../Img/HHGH29/cs_mode3.png");
-	static Image img_flt_bk_gr(L"../Img/HHGH29/bk_sub_gr.png"), img_flt_bk_rd(L"../Img/HHGH29/bk_sub_rd.png"), img_flt_bk_yl(L"../Img/HHGH29/bk_sub_yl.png"), img_flt_bk_bl(L"../Img/HHGH29/bk_sub_bl.png") ;
+static Image* img_cs_mode0; static Image* img_cs_mode1; static Image* img_cs_mode2; static Image* img_cs_mode3;
+static Image* img_flt_bk_gr; static Image* img_flt_bk_rd; static Image* img_flt_bk_yl; static Image* img_flt_bk_bl;
+
+HRESULT CSubPanelObj::setup_obj(int _crane_id) {
+
+	switch (_crane_id) {
+	case CRANE_ID_HHGQ18:
+	{
+		img_cs_mode0 = new Image(L"../Img/HHGQ18/cs_mode0.png"); img_cs_mode1 = new Image(L"../Img/HHGQ18/cs_mode1.png"); img_cs_mode2 = new Image(L"../Img/HHGQ18/cs_mode2.png"); img_cs_mode3 = new Image(L"../Img/HHGQ18/cs_mode3.png");
+		img_flt_bk_gr = new Image(L"../Img/HHGQ18/bk_sub_gr.png"); img_flt_bk_rd = new Image(L"../Img/HHGQ18/bk_sub_rd.png"); img_flt_bk_yl = new Image(L"../Img/HHGQ18/bk_sub_yl.png"); img_flt_bk_bl = new Image(L"../Img/HHGQ18/bk_sub_bl.png");
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		img_cs_mode0 = new Image(L"../Img/HHGH29/cs_mode0.png"); img_cs_mode1 = new Image(L"../Img/HHGH29/cs_mode1.png"); img_cs_mode2 = new Image(L"../Img/HHGH29/cs_mode2.png"); img_cs_mode3 = new Image(L"../Img/HHGH29/cs_mode3.png");
+		img_flt_bk_gr = new Image(L"../Img/HHGH29/bk_sub_gr.png"); img_flt_bk_rd = new Image(L"../Img/HHGH29/bk_sub_rd.png"); img_flt_bk_yl = new Image(L"../Img/HHGH29/bk_sub_yl.png"); img_flt_bk_bl = new Image(L"../Img/HHGH29/bk_sub_bl.png");
+	}break;
+	};
+
+
 	//画像ポインタ配列
-	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX]	= { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode3, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
-	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX]		= { &img_cs_mode0, &img_cs_mode1 , &img_cs_mode2, &img_cs_mode3, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0, &img_cs_mode0 };
-	Image* pimg_flt_bk[N_IMG_SWITCH_MAX]			= { &img_flt_bk_gr, &img_flt_bk_bl , &img_flt_bk_yl, &img_flt_bk_rd, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr, &img_flt_bk_gr };
+	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX]	= { img_cs_mode0, img_cs_mode1 , img_cs_mode2, img_cs_mode3, img_cs_mode0, img_cs_mode0, img_cs_mode0, img_cs_mode0 };
+	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX]		= { img_cs_mode0, img_cs_mode1 , img_cs_mode2, img_cs_mode3, img_cs_mode0, img_cs_mode0, img_cs_mode0, img_cs_mode0 };
+	Image* pimg_flt_bk[N_IMG_SWITCH_MAX]			= { img_flt_bk_gr, img_flt_bk_bl , img_flt_bk_yl, img_flt_bk_rd, img_flt_bk_gr, img_flt_bk_gr, img_flt_bk_gr, img_flt_bk_gr };
 
 	//設定ウィンドウオブジェクト
 	int i = 0;	cb_mh_spd_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -914,7 +938,8 @@ void CSubPanelObj::delete_obj() {
 	delete pb_setting_update;
 	delete st_v_delay;
 
-
+	delete img_cs_mode0; delete img_cs_mode1; delete img_cs_mode2; delete img_cs_mode3;
+	delete img_flt_bk_gr; delete img_flt_bk_rd; delete img_flt_bk_yl; delete img_flt_bk_bl;
 	return;
 
 }
@@ -941,16 +966,34 @@ void CSubPanelObj::refresh_obj_graphics() {
 	return;
 }
 
-HRESULT CGWindowObj::setup_obj() {
-static Image img_gwin_bk(L"../Img/HHGH29/hhgh29_bk0.png");
-static Image img_boom_xy(L"../Img/HHGH29/hhgh29_bm_top.png");
-static Image img_crane_gt_base(L"../Img/HHGH29/hhgh29_potal_top.png");
-static Image img_crane_potal(L"../Img/HHGH29/hhgh29_post_top.png");
+Image* img_gwin_bk;
+Image* img_boom_xy;
+Image* img_crane_gt_base;
+Image* img_crane_potal;
 
-Image* pimg_gwin_bk[N_IMG_SWITCH_MAX]	= { &img_gwin_bk, &img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk,&img_gwin_bk };
-Image* pimg_boom_xy[N_IMG_SWITCH_MAX]	= { &img_boom_xy, &img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy,&img_boom_xy };
-Image* pimg_gt_base[N_IMG_SWITCH_MAX]	= { &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base,  &img_crane_gt_base};
-Image* pimg_post[N_IMG_SWITCH_MAX]		= { &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal,  &img_crane_potal };
+HRESULT CGWindowObj::setup_obj(int _crane_id) {
+	switch (_crane_id) {
+	case CRANE_ID_HHGQ18:
+	{
+		img_gwin_bk = new Image(L"../Img/HHGQ18/bk0.png");
+		img_boom_xy = new Image(L"../Img/HHGQ18/bm_top.png");
+		img_crane_gt_base = new Image(L"../Img/HHGQ18/potal_top.png");
+		img_crane_potal = new Image(L"../Img/HHGQ18/post_top.png");
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		img_gwin_bk = new Image(L"../Img/HHGH29/hhgh29_bk0.png");
+		img_boom_xy = new Image(L"../Img/HHGH29/hhgh29_bm_top.png");
+		img_crane_gt_base = new Image(L"../Img/HHGH29/hhgh29_potal_top.png");
+		img_crane_potal = new Image(L"../Img/HHGH29/hhgh29_post_top.png");
+	}break;
+	}
+
+	Image* pimg_gwin_bk[N_IMG_SWITCH_MAX] = { img_gwin_bk, img_gwin_bk,img_gwin_bk,img_gwin_bk,img_gwin_bk,img_gwin_bk,img_gwin_bk,img_gwin_bk };
+	Image* pimg_boom_xy[N_IMG_SWITCH_MAX] = { img_boom_xy, img_boom_xy,img_boom_xy,img_boom_xy,img_boom_xy,img_boom_xy,img_boom_xy,img_boom_xy };
+	Image* pimg_gt_base[N_IMG_SWITCH_MAX] = { img_crane_gt_base,  img_crane_gt_base,  img_crane_gt_base,  img_crane_gt_base,  img_crane_gt_base,  img_crane_gt_base,  img_crane_gt_base,  img_crane_gt_base };
+	Image* pimg_post[N_IMG_SWITCH_MAX] = { img_crane_potal,  img_crane_potal,  img_crane_potal,  img_crane_potal,  img_crane_potal,  img_crane_potal,  img_crane_potal,  img_crane_potal };
 
 
 	//設定ウィンドウオブジェクト
@@ -997,6 +1040,11 @@ void CGWindowObj::delete_obj() {
 	delete str_slbk_mode;
 	delete str_slbk_level;
 
+	delete img_gwin_bk;
+	delete img_boom_xy;
+	delete img_crane_gt_base;
+	delete img_crane_potal;
+
 	return;
 }
 void CGWindowObj::refresh_obj_graphics() {
@@ -1021,15 +1069,34 @@ void CGWindowObj::refresh_obj_graphics() {
 	return;
 }
 
-HRESULT CGSubWindowObj::setup_obj() {
-	static Image img_gsubwin_bk(L"../Img/HHGH29/hhgh29_bk1.png");
-	static Image img_boom_yz(L"../Img/HHGH29/hhgh29_bm_side.png");
-	static Image img_hook_mh(L"../Img/HHGH29/hhgh29_hook.png");
-	static Image img_hook_load_mh(L"../Img/HHGH29/hhgh29_hook_load.png");
+Image* img_gsubwin_bk;
+Image* img_boom_yz;
+Image* img_hook_mh;
+Image* img_hook_load_mh;
+HRESULT CGSubWindowObj::setup_obj(int _crane_id) {
+	switch (_crane_id) {
+	case CRANE_ID_HHGQ18:
+	{
+		img_gsubwin_bk = new Image(L"../Img/HHGQ18/bk1.png");
+		img_boom_yz = new Image(L"../Img/HHGQ18/bm_side.png");
+		img_hook_mh = new Image(L"../Img/HHGQ18/hook.png");
+		img_hook_load_mh = new Image(L"../Img/HHGQ18/hook_load.png");
+	}
+	break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		img_gsubwin_bk = new Image(L"../Img/HHGH29/hhgh29_bk1.png");
+		img_boom_yz = new Image(L"../Img/HHGH29/hhgh29_bm_side.png");
+		img_hook_mh = new Image(L"../Img/HHGH29/hhgh29_hook.png");
+		img_hook_load_mh = new Image(L"../Img/HHGH29/hhgh29_hook_load.png");
+	}
+	}
 
-	Image* pimg_gsubwin_bk[N_IMG_SWITCH_MAX] = { &img_gsubwin_bk, &img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk,&img_gsubwin_bk };
-	Image* pimg_boom_yz[N_IMG_SWITCH_MAX] = { &img_boom_yz, &img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz,&img_boom_yz };
-	Image* pimg_hook_mh[N_IMG_SWITCH_MAX] = { &img_hook_mh, &img_hook_load_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh,&img_hook_mh };
+	Image* pimg_gsubwin_bk[N_IMG_SWITCH_MAX] = { img_gsubwin_bk, img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk };
+	Image* pimg_boom_yz[N_IMG_SWITCH_MAX] = { img_boom_yz, img_boom_yz,img_boom_yz,img_boom_yz,img_boom_yz,img_boom_yz,img_boom_yz,img_boom_yz };
+	Image* pimg_hook_mh[N_IMG_SWITCH_MAX] = { img_hook_mh, img_hook_load_mh,img_hook_mh,img_hook_mh,img_hook_mh,img_hook_mh,img_hook_mh,img_hook_mh };
+	Image* pimg_hook_load_mh[N_IMG_SWITCH_MAX] = { img_hook_load_mh, img_hook_load_mh,img_hook_load_mh,img_hook_load_mh,img_hook_load_mh,img_hook_load_mh,img_hook_load_mh,img_hook_load_mh };
 
 	//設定ウィンドウオブジェクト
 	int i = 0;	lmg_bk_gsubwindow = new CSwitchImg(ID_GWIN_SUB_OBJ_IMG_BK, &gsubwin_set_props[i].pt, &gsubwin_set_props[i].sz, gsubwin_set_props[i].txt, pimg_gsubwin_bk, 3, 3, pgraphic);
@@ -1053,6 +1120,11 @@ void CGSubWindowObj::delete_obj() {
 
 	delete str_pos_mh;
 	delete str_angle_bh;
+
+	delete img_gsubwin_bk;
+	delete img_boom_yz;
+	delete img_hook_mh;
+	delete img_hook_load_mh;
 
 	return;
 }

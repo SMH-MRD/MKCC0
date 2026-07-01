@@ -47,9 +47,7 @@ HRESULT CSwitchImg::setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid) {
 /// 画像表示を更新し、パネルランプの状態に応じて描画処理を行います。
 /// </summary>
 /// <returns>処理が正常に完了した場合は S_OK、無効な値の場合は S_FALSE を返します。</returns>
-
 static SolidBrush blackBrush(Color::Black);
-
 HRESULT CSwitchImg::update() {
 	INT16 id = 0;
 	if (value != ID_PANEL_LAMP_FLICK) {
@@ -148,9 +146,6 @@ HRESULT CSwitchImg::update(int x_center, int y_center, float angle, int offset_x
 /// <param name="srcheight">描画元切り取り画像高さ</param>
 /// <returns></returns>
 HRESULT CSwitchImg::update(int dest_x, int dest_y, int srcx, int srcy, int srcwidth, int srcheight) {
-
-//	rc_clear.X = dest_x; rc_clear.Y = dest_y;
-//	pgraphics->FillRectangle(&blackBrush, rc_clear); // 背景色セット
 
 	if (value < 0) return S_FALSE;					//-1は無効値
 	if (value >= n_switch) return S_FALSE;			//n_switch以上は無効値

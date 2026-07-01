@@ -145,6 +145,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN_HHGH29, hWnd);
 		//オブジェクトのグラフィックを設定
 		switch (crane_id) {
+		case CRANE_ID_H6R602:
 		case CRANE_ID_HHGQ18:
 		case CRANE_ID_HHGH29:
 		default:
@@ -545,6 +546,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcJC(HWND hWnd, UINT msg, WPARAM wp, LPA
 		pPanelBase = *ppPanelBase = new CPanelBase(crane_id, CODE_OTE_PNL_TYPE_MAIN_HHGH29, hWnd);
 		//オブジェクトのグラフィックを設定
 		switch (crane_id) {
+		case CRANE_ID_H6R602:
 		case CRANE_ID_HHGQ18:
 		case CRANE_ID_HHGH29:
 		default:
@@ -1044,6 +1046,11 @@ void CSubPanelWindow::set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE
 
 	//PLCの故障情報ポインタセット
 	switch (crane_id) {
+	case CRANE_ID_H6R602:
+	{
+		LPST_PLC_RBUF_H6R602 prbuf = (LPST_PLC_RBUF_H6R602)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+		pflt_plc = (PINT16)prbuf->plc_fault; //PLCの故障情報ポインタセット
+	}
 	case CRANE_ID_HHGQ18:
 	{
 		LPST_PLC_RBUF_HHGQ18 prbuf = (LPST_PLC_RBUF_HHGQ18)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
@@ -1204,7 +1211,6 @@ void CSubPanelWindow::OnPaintFlt(HDC hdc, HWND hwnd) {
 }
 
 static wostringstream monwos;
-
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
@@ -1219,6 +1225,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 		//グラフィックオブジェクトの初期化
 
 		switch (crane_id) {
+		case CRANE_ID_H6R602:
 		case CRANE_ID_HHGQ18:
 		case CRANE_ID_HHGH29:
 		default:
@@ -1616,13 +1623,13 @@ LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam
 static WCHAR wch_chk_aprm[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"-";
 static WCHAR wch_chk_file[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"-";
 bool is_not_same_msg = false;
-
 LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		switch (crane_id) {
+		case CRANE_ID_H6R602:
 		case CRANE_ID_HHGQ18:
 		case CRANE_ID_HHGH29:
 		default:
@@ -1839,11 +1846,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		wostringstream wos;
 		wos.str(L""); 
-//		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status.c_str();
 		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch;
 		SetWindowTextW(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
 		wos.str(L""); 
-//		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_save_status.c_str();
 		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch;
 		SetWindowTextW(pPanelBase->psubobjs->st_v_delay_prm_io_status->hWnd, wos.str().c_str());
 
@@ -1956,6 +1961,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		//グラフィックオブジェクトの初期化
 		switch (crane_id) {
+		case CRANE_ID_H6R602:
 		case CRANE_ID_HHGQ18:
 		case CRANE_ID_HHGH29:
 		default:
@@ -2082,7 +2088,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_TIMER: {
 		//InvalidateRect(pPanelBase->psubobjs->st_mh_ref_v->hWnd, NULL, TRUE);
 		switch (crane_id) {
-		case CRANE_ID_HHGH29: {
+		case CRANE_ID_H6R602:
+		case CRANE_ID_HHGH29: 
+		case CRANE_ID_HHGQ18:
+		{
 			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 	
 			wostringstream wos;
@@ -2105,29 +2114,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			SetWindowText(pPanelBase->psubobjs->st_v_delay->hWnd, wos.str().c_str());
 
 		}break;
-		case CRANE_ID_HHGQ18: {
-			LPST_PLC_RBUF_HHGQ18 p_plc_rbuf = (LPST_PLC_RBUF_HHGQ18)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 
-			wostringstream wos;
-			wos.str(L""); wos << pCcIf->msg_delay_max_ms;
-			SetWindowText(pPanelBase->psubobjs->st_delay_max->hWnd, wos.str().c_str());
-			wos.str(L""); wos << pCcIf->msg_delay_min_ms;
-			SetWindowText(pPanelBase->psubobjs->st_delay_min->hWnd, wos.str().c_str());
-			wos.str(L""); wos << pCcIf->msg_delay_ave_ms;
-			SetWindowText(pPanelBase->psubobjs->st_delay_ave->hWnd, wos.str().c_str());
-			wos.str(L""); wos << pCcIf->msg_lost_num;
-			SetWindowText(pPanelBase->psubobjs->st_data_lost->hWnd, wos.str().c_str());
-			wos.str(L""); wos << pCcIf->msg_snd_seqno_now;
-			SetWindowText(pPanelBase->psubobjs->st_snd_seq_no->hWnd, wos.str().c_str());
-			wos.str(L""); wos << pCcIf->msg_rcv_seqno_now;
-			SetWindowText(pPanelBase->psubobjs->st_rcv_seq_no->hWnd, wos.str().c_str());
-			wos.str(L""); wos << pCcIf->msg_snd_seqno_now - pCcIf->msg_rcv_seqno_now;
-			SetWindowText(pPanelBase->psubobjs->st_deff_seq_no->hWnd, wos.str().c_str());
-
-			wos.str(L""); wos << std::setprecision(4) << pCsInf->video_delay_sec;
-			SetWindowText(pPanelBase->psubobjs->st_v_delay->hWnd, wos.str().c_str());
-
-		}break;
 		default: {
 			SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"?");
 			SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"?");
@@ -2227,6 +2214,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 
 		//グラフィックオブジェクトの初期化
 		switch (crane_id) {
+		case CRANE_ID_H6R602:
 		case CRANE_ID_HHGQ18:
 		case CRANE_ID_HHGH29:
 		default:
