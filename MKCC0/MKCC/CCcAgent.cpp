@@ -43,8 +43,8 @@ static LPST_CC_POL_INF		pPolInf		= NULL;
 static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 
 static PINT16				pOteCtrl	= NULL;	//OTE操作入力信号ポインタ
-static LPUN_PLC_IO_WIF		pPlcWIf = NULL;
-static LPUN_PLC_IO_RIF		pPlcRIf = NULL;
+static LPUN_PLC_IO_WIF		pPlcWIf		= NULL;
+static LPUN_PLC_IO_RIF		pPlcRIf		= NULL;
 
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
@@ -106,6 +106,30 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	}else{
 		pPlcWIf = &(pCrane->pPlc->un_plc_io_wif);
 		pPlcRIf = &(pCrane->pPlc->un_plc_io_rif);
+	}
+
+	crane_id = pCrane->st_crane_inf.crane_id;
+	switch (pCrane->st_crane_inf.crane_type) {
+	case CRANE_TYPE_ID_JC:
+		fp_trans_plc_io_read = trans_plc_io_read_JC; 
+		fp_plc_io_write = plc_io_write_JC;
+		fp_aux_equipment= aux_equipment_JC;
+		break;
+	case CRANE_TYPE_ID_GC:	
+		fp_trans_plc_io_read = trans_plc_io_read_GC; 
+		fp_plc_io_write = plc_io_write_GC;
+		fp_aux_equipment = aux_equipment_GC;
+		break;
+	case CRANE_TYPE_ID_OHC:	
+		fp_trans_plc_io_read = trans_plc_io_read_OHC; 
+		fp_plc_io_write = plc_io_write_OHC;
+		fp_aux_equipment = aux_equipment_OHC;
+		break;
+	default:				
+		fp_trans_plc_io_read = trans_plc_io_read_JC; 
+		fp_plc_io_write = plc_io_write_JC;
+		fp_aux_equipment = aux_equipment_OHC;
+		break;
 	}
 
 	//### IFウィンドウOPEN
@@ -189,7 +213,7 @@ static UINT32	gpad_mode_last = L_OFF;
 /// 
 
 int CAgent::input() {
-
+#if 0
 //### PLC信号を共有メモリに展開
 	//###モード
 	pPLC_IO ->plc_mode_fb = pCrane->pPlc->rval(pPlcRIf->JC.plc_ctrl_fb).i16;
@@ -302,7 +326,9 @@ int CAgent::input() {
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1] = pCrane->pPlc->rval(pPlcRIf->JC.mercury_lamp_sw1).i16;
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp2] = pCrane->pPlc->rval(pPlcRIf->JC.mercury_lamp_sw2).i16;
 	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp3] = pCrane->pPlc->rval(pPlcRIf->JC.mercury_lamp_sw3).i16;
-
+#else
+fp_trans_plc_io_read(crane_id);
+#endif
 	return S_OK;
 }
 
@@ -315,9 +341,9 @@ static INT16 plc_healthy = 0;
 /// <returns></returns>
 /// 
 int CAgent::parse() {
-	//### PLC受信信号処理
-	//## PLCヘルシーカウンタ読み出しチェック
+	//### 異常処理
 	{
+		//#PLCヘルシーカウンタ読み出しチェック
 		if (plc_healthy == pPLC_IO->buf_io_read[0]) {				//PLCヘルシー状態が変化していない場合
 			plc_healthy_chk_count--;								//PLCヘルシー状態が変化している⇒チェックカウントダウン
 			if (plc_healthy_chk_count > 0)plc_healthy_chk_count--;
@@ -346,10 +372,9 @@ int CAgent::parse() {
 		else {
 			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_SOURCE_OFF] &= ~FLTS_MASK_ERR_OTE_SOURCE_OFF;
 		}
-
 	}
-
 	//### PLC書き込み信号処理
+#if 0
 	//## PCヘルシーカウント
 	{
 		pc_healthy++;
@@ -449,9 +474,17 @@ int CAgent::parse() {
 
 	//OTE HEAD COMMAND
 	pCrane->pPlc->wval(pPlcWIf->JC.ote_head_command, pOTE_Inf->st_ote_ctrl.ote_command);
-		
+#else
+	fp_plc_io_write(crane_id);
+#endif	
+	//### 補機処理
+#if 0
 	//旋回ブレーキ制御
 	manage_slbrk();
+#else
+	fp_aux_equipment(crane_id);
+#endif
+
 
 	return S_OK;
 }
@@ -481,6 +514,270 @@ int CAgent::close() {
 
 static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0, slblk_level_fb=0;
 
+HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
+	//### PLC信号を共有メモリに展開
+		//###モード
+	pPLC_IO->plc_mode_fb = pCrane->pPlc->rval(pPlcRIf->JC.plc_ctrl_fb).i16;
+
+	pPLC_IO->remote_mode_sw = pCrane->pPlc->rval(pPlcRIf->JC.remote_mode_sw).i16;			//遠隔操作モードスイッチ
+	//###荷重, 揚程,旋回半径
+	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->JC.m).i16;								//MH荷重
+	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->JC.h_mh_mm).i32) / 1000.0;		//揚程
+	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->JC.r_bh_m).f);					//半径
+
+	//###風速
+	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->JC.wind_spd_01m).i16) / 10.0;	//風速m/s単位
+
+	//## 位置（Environmentの計算値）
+	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
+	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;							//旋回半径
+	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_deg.p;			//旋回角度
+	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.gt.p;				//走行位置 
+
+	//## ノッチ指令状態
+	INT16 notch = pCrane->pPlc->rval(pPlcRIf->JC.mh_notch).i16;
+	pPLC_IO->stat_mh.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
+	notch = pCrane->pPlc->rval(pPlcRIf->JC.bh_notch).i16;
+	pPLC_IO->stat_bh.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//BHノッチFB
+	notch = pCrane->pPlc->rval(pPlcRIf->JC.sl_notch).i16;
+	pPLC_IO->stat_sl.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//SLノッチFB
+	notch = pCrane->pPlc->rval(pPlcRIf->JC.gt_notch).i16;
+	pPLC_IO->stat_gt.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//GTノッチFB
+
+	//## 目標速度
+	pPLC_IO->stat_mh.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_mh).i16;
+	pPLC_IO->stat_bh.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_bh).i16;
+	pPLC_IO->stat_sl.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_sl).i16;
+	pPLC_IO->stat_gt.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_gt).i16;
+
+	//## インバータ速度指令
+	//主巻
+	pPLC_IO->stat_mh.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_mh).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_mh).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_mh).i16) pPLC_IO->stat_mh.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_mh.v_ref = 0;															//インバータ指令（無し）
+	//引込
+	pPLC_IO->stat_bh.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_bh).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_bh).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_bh).i16) pPLC_IO->stat_bh.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_bh.v_ref = 0;															//インバータ指令（無し）
+	//旋回
+	pPLC_IO->stat_sl.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_sl).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_sl).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_sl).i16) pPLC_IO->stat_sl.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_sl.v_ref = 0;															//インバータ指令（無し）
+	//走行
+	pPLC_IO->stat_gt.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_gt).i16;					//インバータ速度指令（絶対値）
+	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_gt).i16);										//インバータ指令（正転）
+	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_rev_gt).i16) pPLC_IO->stat_gt.v_ref *= -1;		//インバータ指令（逆転）
+	else  pPLC_IO->stat_gt.v_ref = 0;															//インバータ指令（無し）
+
+	//## インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
+	pPLC_IO->stat_mh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_mh).i16;
+	pPLC_IO->stat_bh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_bh).i16;
+	pPLC_IO->stat_sl.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_sl).i16;
+	pPLC_IO->stat_gt.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_gt).i16;
+
+	//## インバータトルク指令
+	pPLC_IO->stat_mh.trq_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_trqref_mh).i16;
+	pPLC_IO->stat_bh.trq_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_trqref_bh).i16;
+
+	//## ドラム層数
+	pPLC_IO->stat_mh.drum_layer;
+	pPLC_IO->stat_bh.drum_layer;
+	pPLC_IO->stat_gt.drum_layer;
+	pPLC_IO->stat_sl.drum_layer;
+
+	//## ブレーキ状態FB
+	pPLC_IO->stat_mh.brake = pCrane->pPlc->rval(pPlcRIf->JC.mh_brk1_fb).i16;		//MHブレーキ状態
+	pPLC_IO->stat_bh.brake = pCrane->pPlc->rval(pPlcRIf->JC.bh_brk_fb).i16;			//BHブレーキ状態
+	pPLC_IO->stat_gt.brake = pCrane->pPlc->rval(pPlcRIf->JC.gt_brk_fb).i16;			//GTブレーキ状態
+	pPLC_IO->stat_sl.brake = pCrane->pPlc->rval(pPlcRIf->JC.sl_hydr_press_sw).i16;	//SLブレーキ状態
+
+	//## limit	
+	pPLC_IO->stat_mh.limit;
+	pPLC_IO->stat_bh.limit;
+	pPLC_IO->stat_gt.limit;
+	pPLC_IO->stat_sl.limit;
+
+	//## fault
+	pPLC_IO->stat_mh.fault;
+	pPLC_IO->stat_bh.fault;
+	pPLC_IO->stat_gt.fault;
+	pPLC_IO->stat_sl.fault;
+
+	//## アブソコーダ
+	pPLC_IO->stat_mh.absocoder = pCrane->pPlc->rval(pPlcRIf->JC.absocoder_mh).i32;	//MHアブソコーダ
+	pPLC_IO->stat_gt.absocoder = pCrane->pPlc->rval(pPlcRIf->JC.absocoder_gt).i32;	//走行アブソコーダ
+
+	//## PG
+	pPLC_IO->stat_mh.pg_count = pCrane->pPlc->rval(pPlcRIf->JC.hcounter_mh).i32;	//MH　PG
+	pPLC_IO->stat_bh.pg_count = pCrane->pPlc->rval(pPlcRIf->JC.hcounter_bh).i32;	//BH　PG
+	pPLC_IO->stat_sl.pg_count = pCrane->pPlc->rval(pPlcRIf->JC.hcounter_sl).i32;	//SL　PG
+
+	//### PB,SW,LAMP,etc
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren] = pCrane->pPlc->rval(pPlcRIf->JC.siren_sw).i16;
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1] = pCrane->pPlc->rval(pPlcRIf->JC.mercury_lamp_sw1).i16;
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp2] = pCrane->pPlc->rval(pPlcRIf->JC.mercury_lamp_sw2).i16;
+	pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp3] = pCrane->pPlc->rval(pPlcRIf->JC.mercury_lamp_sw3).i16;
+
+	//### クレーン別処理
+	//## MODE(主巻速度、引込、旋回)
+
+	pPLC_IO->stat_gt.mode;
+	pPLC_IO->stat_sl.mode;
+
+	switch (crane_id) {
+	case CRANE_ID_HHGH29: {
+		pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A);
+		pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
+	}break;
+	case CRANE_ID_HHGQ18: 
+	case CRANE_ID_H6R602:
+	{
+		pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_B);
+		pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
+	}break;
+	
+	default: {
+	}break;
+	}
+	return S_OK;
+}
+HRESULT CAgent::trans_plc_io_read_GC(int crane_id) {
+
+	return S_OK;
+}
+HRESULT CAgent::trans_plc_io_read_OHC(int crane_id) {
+
+	return S_OK;
+}
+
+HRESULT CAgent::plc_io_write_JC(int crane_id) {
+	//### PLC書き込み信号処理
+//## PCヘルシーカウント
+	{
+		pc_healthy++;
+		pCrane->pPlc->wval(pPlcWIf->JC.pc_healthy, pc_healthy);
+	}
+
+	//### PCコントロール信号
+	{
+		INT16 mask = MASK_BIT_PC_CTRL_ACTIVE;
+
+
+		if (pCS_Inf->cs_ctrl.ope_pnl_status)	mask |= MASK_BIT_PC_OPEPNL_ACTIVE;	//操作有効端末有
+		else									mask &= ~MASK_BIT_PC_OPEPNL_ACTIVE;
+
+		if (pCS_Inf->cs_ctrl.remote_estop)		mask |= MASK_BIT_RMT_ESTP_ACTIVE;	//遠隔非常停止有
+		else									mask &= ~MASK_BIT_RMT_ESTP_ACTIVE;
+
+		if (pEnv_Inf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
+			mask |= MASK_BIT_PC_SIM_MODE;	//PC操作有効、SIMULATORモード
+		}
+		else {
+			mask &= ~MASK_BIT_PC_SIM_MODE;	//PC操作有効、実機モード
+		}
+
+		if (plc_healthy) {
+			pAgent_Inf->pc_ctrl_mode2plc |= mask;
+		}
+		else {
+			pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
+		}
+
+
+		pCrane->pPlc->wval(pPlcWIf->JC.pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
+	}
+
+	//### OTE操作信号転送
+	// CS受信のバッファ	pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl;
+
+	//## PB,スイッチ類
+	pCrane->pPlc->wval(pPlcWIf->JC.syukan_on, pOteCtrl[OTE_PNL_CTRLS::syukan_on]);	//主幹ON
+	pCrane->pPlc->wval(pPlcWIf->JC.syukan_off, pOteCtrl[OTE_PNL_CTRLS::syukan_off]);	//主幹OFF
+
+	pCrane->pPlc->wval(pPlcWIf->JC.estop, pOteCtrl[OTE_PNL_CTRLS::estop]);		//非常停止
+	if (pOTE_Inf->st_ote_ctrl.ote_command & OTE_CODE_COM_ESTP)
+		pCrane->pPlc->wval(pPlcWIf->JC.estop, L_ON);		//非常停止
+
+	pCrane->pPlc->wval(pPlcWIf->JC.fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
+	pCrane->pPlc->wval(pPlcWIf->JC.alarm_stp_pb, pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
+
+	pCrane->pPlc->wval(pPlcWIf->JC.mh_spd_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A));
+	pCrane->pPlc->wval(pPlcWIf->JC.bh_mode_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A));
+
+	pCrane->pPlc->wval(pPlcWIf->JC.siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);		//モータサイレンスイッチ
+	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw1, pOteCtrl[OTE_PNL_CTRLS::hd_lamp1]);	//水銀ランプ切替スイッチ
+	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw2, pOteCtrl[OTE_PNL_CTRLS::hd_lamp2]);	//水銀ランプ切替スイッチ
+	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw3, pOteCtrl[OTE_PNL_CTRLS::hd_lamp3]);	//水銀ランプ切替スイッチ
+
+	//映像遅延検出デバイス
+	pCrane->pPlc->wval(pPlcWIf->JC.v_delay_device, pOteCtrl[OTE_PNL_CTRLS::v_delay_device]);	//映像遅延検出ランプ
+
+	//Notch信号
+	if (pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] & FLTS_MASK_ERR_OTE_TMOV) {//操作端末タイムオーバー
+		pCrane->pPlc->wval(pPlcWIf->JC.mh_notch, CNotchHelper::get_code4_by_notch(0, 0));
+		pCrane->pPlc->wval(pPlcWIf->JC.bh_notch, CNotchHelper::get_code4_by_notch(0, 0));
+		pCrane->pPlc->wval(pPlcWIf->JC.sl_notch, CNotchHelper::get_code4_by_notch(0, 0));
+		pCrane->pPlc->wval(pPlcWIf->JC.gt_notch, CNotchHelper::get_code4_by_notch(0, 0));
+	}
+	else {
+		//!!! 主巻と引込はPAD入力の＋が下,出(逆転）
+		pCrane->pPlc->wval(pPlcWIf->JC.mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
+		pCrane->pPlc->wval(pPlcWIf->JC.bh_notch, CNotchHelper::get_code4_by_notch(-pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
+		pCrane->pPlc->wval(pPlcWIf->JC.sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
+		pCrane->pPlc->wval(pPlcWIf->JC.gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
+	}
+
+	//### SIMULATOR計算値セット(シミュレータモードでないときはPLCロジック内で反映されない）
+	//高速カウンタ・アブソコーダ
+	pCrane->pPlc->wval(pPlcWIf->JC.hcounter_mh, pSim_Inf->hcount_mh);
+	pCrane->pPlc->wval(pPlcWIf->JC.hcounter_bh, pSim_Inf->hcount_bh);
+	pCrane->pPlc->wval(pPlcWIf->JC.hcounter_sl, pSim_Inf->hcount_sl);
+	pCrane->pPlc->wval(pPlcWIf->JC.absocoder_mh, pSim_Inf->absocoder_mh);
+	pCrane->pPlc->wval(pPlcWIf->JC.absocoder_gt, pSim_Inf->absocoder_gt);
+
+	//速度FB(INVの出力）
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, INT16((double)pSim_Inf->vfb_mh * 1.254));	//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, INT16((double)pSim_Inf->vfb_bh * 3.2));		//4000/1200 ： 速度FBは4000が120％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, INT16((double)pSim_Inf->vfb_sl * 3.2));		//4000/2000 ： 速度FBは4000が200％　vfbは0.1%単位
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, INT16((double)pSim_Inf->vfb_gt * 3.2));		//3200/1000 ： 速度FBは3200が100％　vfbは0.1%単位
+	//トルク指令(INV出力）
+	pCrane->pPlc->wval(pPlcWIf->JC.trqref_mh, pSim_Inf->trq_ref_mh);
+	pCrane->pPlc->wval(pPlcWIf->JC.trqref_bh, pSim_Inf->trq_ref_bh);
+	//モーメントリミッタフック質量,半径
+	pCrane->pPlc->wval(pPlcWIf->JC.mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
+	pCrane->pPlc->wval(pPlcWIf->JC.mlim_r_ai, pSim_Inf->mlim_r_AI);//0.1m単位
+	//風速
+	pCrane->pPlc->wval(pPlcWIf->JC.wind_spd_ai, pSim_Inf->wind_spd_AI);//0.1m単位
+
+	//OTE HEAD COMMAND
+	pCrane->pPlc->wval(pPlcWIf->JC.ote_head_command, pOTE_Inf->st_ote_ctrl.ote_command);
+
+	return S_OK;
+}
+HRESULT CAgent::plc_io_write_GC(int crane_id) {
+
+	return S_OK;
+}
+HRESULT CAgent::plc_io_write_OHC(int crane_id) {
+
+	return S_OK;
+}
+
+HRESULT CAgent::aux_equipment_JC(int crane_id) {
+	manage_slbrk();
+	return S_OK;
+}
+HRESULT CAgent::aux_equipment_GC(int crane_id) {
+
+	return S_OK;
+}
+HRESULT CAgent::aux_equipment_OHC(int crane_id) {
+
+	return S_OK;
+}
 int CAgent::manage_slbrk() {
 
 	slblk_level_fb = (pAUX_CS_Inf->fb_slbrk.brk_fb_rbsl_pos + 100)/600;//旋回ブレーキ制御シリンダ位置レベル判定値

@@ -55,6 +55,7 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 
 	WNDCLASSEXW wcex;
 	switch (crane_id) {
+	case CRANE_ID_H6R602:
 	case CRANE_ID_HHGH29:
 	case CRANE_ID_HHGQ18:
 		wcex.cbSize = sizeof(WNDCLASSEX);
@@ -66,7 +67,7 @@ CMainPanelWindow::CMainPanelWindow(HINSTANCE hInstance, HWND hParent, int _crane
 		wcex.hIcon = NULL;
 		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = TEXT("OTE MAIN PANEL HHGH29");
+		wcex.lpszMenuName = TEXT("OTE MAIN PANEL JC");
 		wcex.lpszClassName = pClassName = CLASS_NAME_JC;
 		wcex.hIconSm = NULL;
 		break;
@@ -1873,9 +1874,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pPanelBase->psubobjs ->pb_v_delay_chk_prm_auto_set->update(false);
 		pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(false);
 		pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(false);
-
-
-
 	}break;
 
 	case WM_COMMAND: {
@@ -2149,9 +2147,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		switch (wmId)
 		{
 		case ID_SUB_PNL_COM_UPDATE_SETTING: {
-
 			pAgentObj->update_msg_cycle(OTE_AGENT_MODE_SND_MSG_FIXED, 500, 20, 50);
-
 			wostringstream wos;
 			wos.str(L""); wos << pCcIf->umsg_snd_interval_ms;
 			SetWindowText(pPanelBase->psubobjs->st_snd_period->hWnd, wos.str().c_str());
@@ -2159,7 +2155,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 			SetWindowText(pPanelBase->psubobjs->st_delay_chk_cycle->hWnd, wos.str().c_str());
 			wos.str(L""); wos << pCcIf->msg_data_loss_chk_count * pCcIf->umsg_snd_interval_ms;
 			SetWindowText(pPanelBase->psubobjs->st_lost_chk_cycle->hWnd, wos.str().c_str());
-
 		}break; 
 		default:
 			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);

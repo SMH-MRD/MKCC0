@@ -34,6 +34,9 @@ ST_CS_MON2 CCcCS::st_mon2;
 ST_CC_CS_INF CCcCS::st_cs_work;
 ST_CC_OTE_INF CCcCS::st_ote_work;
 
+INT16 CCcCS::ote_disp_com_hold;
+INT16 CCcCS::disp_mask[N_PLC_FAULT_BUF];
+
 //共有メモリ
 static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
 static LPST_CC_CS_INF		pCS_Inf		= NULL;
@@ -51,6 +54,8 @@ static INT32 rcv_count_ote_u = 0, snd_count_ote_u = 0;
 static INT32 rcv_count_pc_m = 0, snd_count_m2pc = 0;
 static INT32 rcv_count_ote_m = 0, snd_count_m2ote = 0;
 static INT32 rcv_u_seqno = 0;
+
+
 
 /****************************************************************************/
 /*   デフォルト関数											                    */
@@ -191,6 +196,22 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	st_ote_work.st_msg_pc_m_snd.head.addr = pMSockOte->addr_in_rcv;
 
 
+	crane_id = pCrane->st_crane_inf.crane_id;
+	switch (pCrane->st_crane_inf.crane_type) {
+	case CRANE_TYPE_ID_JC:
+		fp_set_ote_data = set_ote_data_JC;
+		break;
+	case CRANE_TYPE_ID_GC:
+		fp_set_ote_data = set_ote_data_GC;
+		break;
+	case CRANE_TYPE_ID_OHC:
+		fp_set_ote_data = set_ote_data_OHC;
+		break;
+	default:
+		fp_set_ote_data = set_ote_data_JC;
+		break;
+	}
+
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -231,44 +252,11 @@ int CCcCS::input() {
 }
 
 int CCcCS::parse() {
-	//#### 制御状態監視
-	//### 操作有効端末通信途切れカウンタ　上限まで周期毎カウントアップ　カウントは操作有効端末有でクリア
-	if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00)) 
-		st_ote_work.ope_ote_silent_cnt++;
-	
-	//# 操作有効端末との通信断で有効端末クリア
-	if (st_ote_work.ope_ote_silent_cnt > OTE_IF_RELEASE_COUNTUP) {
-		st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;			//保持IPアドレスクリア
-		st_ote_work.st_ote_ctrl.addr_in_active_ote.sin_addr.S_un.S_addr = 0;	//保持IPアドレスクリア
-		st_ote_work.st_ote_ctrl.active_ote_type = OTE_STAT_TYPE_UNKOWN;
-	}
+//#### OTE制御
+	ote_control();
+//### OTE送信データ設定
+#if 0
 
-	//### 操作有効端末有無判定　異常,警報フラグ設定
-	if (st_ote_work.st_ote_ctrl.id_ope_active) {
-		st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_ACTIVE;
-		pPolInf->pc_fault_map[FLTS_ID_RMT_OPE_DEACTIVE] &= ~FLTS_MASK_RMT_OPE_DEACTIVE;
-	}
-	else {
-		st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;
-		pPolInf->pc_fault_map[FLTS_ID_RMT_OPE_DEACTIVE] |= FLTS_MASK_RMT_OPE_DEACTIVE;
-	}
-
-	//### OTE通信異常フラグ設定
-	if (pUSockOte == NULL)	st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SOCK;	//ソケット生成失敗
-	else					st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SOCK;
-	//受信、送信エラーは通信ウィンドウ処理部でフラグセット,リセット
-	//CC_POL管理共有メモリにセット
-	if(st_ote_work.err_ote_comm) pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] |= FLTS_ID_ERR_CPC_RPC_COMM;
-	else                         pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] &= ~FLTS_ID_ERR_CPC_RPC_COMM;
-	
-	//## 操作有効端末タイムオーバー
-	if ((st_ote_work.ope_ote_silent_cnt > OTE_IF_TMOV_COUNTUP)&&(st_ote_work.st_ote_ctrl.id_ope_active != OTE_NON_OPEMODE_ACTIVE))
-		pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] |= FLTS_MASK_ERR_OTE_TMOV;
-	else
-		pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] &= ~FLTS_MASK_ERR_OTE_TMOV;
-
-	
-	//### OTE送信データ設定
 		//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
 		//## ランプ,ブザー表示指令
 	{
@@ -332,7 +320,6 @@ int CCcCS::parse() {
 
 			plamp_com[OTE_PNL_CTRLS::alm_lamp].code = plamp_com[OTE_PNL_CTRLS::fault_lamp].code;
 			plamp_com[OTE_PNL_CTRLS::ope_ready].code = pCrane->pPlc->rval(pPlcRIf->JC.syukairo_comp).i16;
-
 		}
 
 		//##　故障情報セット
@@ -357,16 +344,9 @@ int CCcCS::parse() {
 		st_ote_work.st_body.sl_brk_fb[4]			= pAUX_CS_Inf->fb_slbrk.d20;				//WF
 		st_ote_work.st_body.sl_brk_fb[5]			= (INT16)pAgent_Inf->slew_brake_ctrl_mode;
 }
-
-
-	//### OTE受信ヘッダコマンドリセット（コマンドセットは受信処理部で実施）
-	//操作有効端末の故障リセット入力でクリアコマンドセット
-	if (pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
-		st_ote_work.st_ote_ctrl.ote_command = OTE_CODE_COM_CLR;
-
-	if(st_ote_work.st_ote_ctrl.ote_command & OTE_CODE_COM_RESET)
-		st_ote_work.st_ote_ctrl.ote_command = OTE_CODE_COM_CLR;
-	
+#else
+	fp_set_ote_data(crane_id);
+#endif
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
@@ -408,6 +388,152 @@ int CCcCS::close() {
 	return 0;
 }
 
+HRESULT CCcCS::set_ote_data_JC(int crane_id) {
+	//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
+	//## ランプ,ブザー表示指令
+	{
+		UN_LAMP_COM* plamp_com = st_ote_work.st_body.lamp;
+		if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
+			st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;
+			st_ote_work.st_ote_ctrl.gpad_mode = L_OFF;
+			st_ote_work.st_ote_ctrl.auto_sel =	L_OFF;
+			st_ote_work.st_ote_ctrl.auto_mode = L_OFF;
+			//ランプクリア
+			memset(plamp_com, 0, sizeof(UN_LAMP_COM) * N_OTE_PNL_CTRL);
+		}
+		else {
+			//# PLC受信バッファをコピー
+			memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
+
+			//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
+			plamp_com[OTE_PNL_CTRLS::estop].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.estop).i16;
+
+			//#主幹ランプ
+			if (pCrane->pPlc->rval(pPlcRIf->JC.syukan_mc_comp).i16) {
+				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_ON;
+				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
+			}
+			else {
+				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com = CODE_PNL_COM_OFF;
+				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
+			}
+
+			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.fault_reset_pb).i16;
+			plamp_com[OTE_PNL_CTRLS::bypass].st.com = CODE_PNL_COM_ON;
+
+			//#PLC側CSスイッチの状態
+			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com = (UINT8)pPLC_IO->stat_mh.mode;
+			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com = (UINT8)pPLC_IO->stat_bh.mode;
+
+			//#自動給脂　動力確立ランプ
+			plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.douryoku_ok).i16;
+			plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.auto_kyusi).i16;
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren])	plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_OFF;
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1])	plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = L_OFF;
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp2])	plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = L_OFF;
+
+			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp3])	plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_ON;
+			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_OFF;
+
+			//#ノッチ信号FB
+			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = (UINT8)pPLC_IO->stat_mh.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = (UINT8)pPLC_IO->stat_bh.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = (UINT8)pPLC_IO->stat_sl.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = (UINT8)pPLC_IO->stat_gt.notch_ref;
+
+			//#ブザー,故障、警報ランプ
+			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->JC.fault_bz).i16 & 0x000F;
+			plamp_com[OTE_PNL_CTRLS::fault_lamp].code = pCrane->pPlc->rval(pPlcRIf->JC.fault_pl).i16;
+
+			plamp_com[OTE_PNL_CTRLS::alm_lamp].code = plamp_com[OTE_PNL_CTRLS::fault_lamp].code;
+			plamp_com[OTE_PNL_CTRLS::ope_ready].code = pCrane->pPlc->rval(pPlcRIf->JC.syukairo_comp).i16;
+		}
+
+		//##　故障情報セット
+		set_ote_flt_info();
+
+		//## クレーン状態セット
+		st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m.p;							//荷重
+		st_ote_work.st_body.bh_angle = (float)(acos(pPLC_IO->r / pCrane->pSpec->st_struct.Lb));	//起伏角度
+		st_ote_work.st_body.wind_spd = (float)pPLC_IO->wind_spd;									//風速
+
+		//## 各軸状態
+		st_ote_work.st_body.st_axis_set[ID_HOIST] = pPLC_IO->stat_mh;	//主巻
+		st_ote_work.st_body.st_axis_set[ID_BOOM_H] = pPLC_IO->stat_bh;	//引込
+		st_ote_work.st_body.st_axis_set[ID_SLEW] = pPLC_IO->stat_sl;	//旋回
+		st_ote_work.st_body.st_axis_set[ID_GANTRY] = pPLC_IO->stat_gt;	//走行
+
+		//## 旋回ブレーキFB
+		st_ote_work.st_body.sl_brk_fb[0] = pAUX_CS_Inf->fb_slbrk.d16;
+		st_ote_work.st_body.sl_brk_fb[1] = pAUX_CS_Inf->fb_slbrk.d17;
+		st_ote_work.st_body.sl_brk_fb[2] = pAUX_CS_Inf->fb_slbrk.d18;
+		st_ote_work.st_body.sl_brk_fb[3] = (pAUX_CS_Inf->fb_slbrk.d19 + 200) / 600;			//9000->15
+		st_ote_work.st_body.sl_brk_fb[4] = pAUX_CS_Inf->fb_slbrk.d20;				//WF
+		st_ote_work.st_body.sl_brk_fb[5] = (INT16)pAgent_Inf->slew_brake_ctrl_mode;
+	}
+	return S_OK;
+}
+HRESULT CCcCS::set_ote_data_GC(int crane_id) {
+	return S_OK;
+}
+HRESULT CCcCS::set_ote_data_OHC(int crane_id) {
+	return S_OK;
+}
+void CCcCS::ote_control() {
+
+//### 操作有効端末状態管理
+	{
+		// 通信途切れチェック用カウンタ更新,上限まで周期毎カウントアップ　操作有効端末メッセージ受信でカウントクリア
+		if (!(st_ote_work.ope_ote_silent_cnt & 0xFFFFFF00))
+			st_ote_work.ope_ote_silent_cnt++;
+
+		// 操作有効端末との通信断で有効端末クリア
+		if (st_ote_work.ope_ote_silent_cnt > OTE_IF_RELEASE_COUNTUP) {
+			st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;			//保持IPアドレスクリア
+			st_ote_work.st_ote_ctrl.addr_in_active_ote.sin_addr.S_un.S_addr = 0;	//保持IPアドレスクリア
+			st_ote_work.st_ote_ctrl.active_ote_type = OTE_STAT_TYPE_UNKOWN;
+		}
+		// 操作有効端末有無判定
+		if (st_ote_work.st_ote_ctrl.id_ope_active) {
+			st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_ACTIVE;
+			pPolInf->pc_fault_map[FLTS_ID_RMT_OPE_DEACTIVE] &= ~FLTS_MASK_RMT_OPE_DEACTIVE;
+		}
+		else {
+			st_cs_work.cs_ctrl.ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;
+			pPolInf->pc_fault_map[FLTS_ID_RMT_OPE_DEACTIVE] |= FLTS_MASK_RMT_OPE_DEACTIVE;
+		}
+		// 操作有効端末タイムオーバー
+		if ((st_ote_work.ope_ote_silent_cnt > OTE_IF_TMOV_COUNTUP) && (st_ote_work.st_ote_ctrl.id_ope_active != OTE_NON_OPEMODE_ACTIVE))
+			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] |= FLTS_MASK_ERR_OTE_TMOV;
+		else
+			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] &= ~FLTS_MASK_ERR_OTE_TMOV;
+	}
+
+//### OTE通信異常フラグ設定
+	if (pUSockOte == NULL)	st_ote_work.err_ote_comm |= CODE_CC_CS_OTE_COM_ERR_SOCK;	//ソケット生成失敗
+	else					st_ote_work.err_ote_comm &= ~CODE_CC_CS_OTE_COM_ERR_SOCK;
+	//受信、送信エラーは通信ウィンドウ処理部でフラグセット,リセット
+	//CC_POL管理共有メモリにセット
+	if (st_ote_work.err_ote_comm) pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] |= FLTS_ID_ERR_CPC_RPC_COMM;
+	else                         pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_RPC_COMM] &= ~FLTS_ID_ERR_CPC_RPC_COMM;
+
+//### OTE受信ヘッダコマンドリセット（コマンドセットは受信処理部で実施）
+	//操作有効端末の故障リセット入力でクリアコマンドセット
+	if ((pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]) ||
+		(st_ote_work.st_ote_ctrl.ote_command & OTE_CODE_COM_RESET)) 
+	{
+		st_ote_work.st_ote_ctrl.ote_command = OTE_CODE_COM_CLR;
+	}
+	return;	
+}
+
+
 /****************************************************************************/
 /*   通信関数											                    */
 /****************************************************************************/
@@ -415,14 +541,14 @@ int CCcCS::close() {
 void CCcCS::set_ote_flt_info() {
 	INT16 com_ote;
 	
-	//故障表示内容要求コード設定(OTEからの受信データ)
-	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {//操作権獲得端末が無い時はモニタモードの端末の要求を受付
-		com_ote = pOTE_Inf->st_msg_ote_u_rcv_mon.body.st.faults_disp_req;
+	//### 故障表示内容要求コード設定(OTEからの受信データ)
+	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {
+		com_ote = pOTE_Inf->st_msg_ote_u_rcv_mon.body.st.faults_disp_req;//操作権獲得端末が無い時はモニタモードの端末の要求を受付
 	}
 	else {
-		com_ote = pOTE_Inf->st_msg_ote_u_rcv.body.st.faults_disp_req;
+		com_ote = pOTE_Inf->st_msg_ote_u_rcv.body.st.faults_disp_req;	//操作権獲得端末の要求を受付
 	}
-
+	//### 表示故障抽出用マスク生成
 	if (ote_disp_com_hold != com_ote) {//要求内容が変わったらマスク更新
 		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {
 			disp_mask[i] = 0;
@@ -436,6 +562,7 @@ void CCcCS::set_ote_flt_info() {
 		st_ote_work.st_body.faults_set.set_type = com_ote;//表示要求タイプアンサバックセット
 	}
 
+	//### 表示故障抽出用マスク生成
 	int flt_count = 0;	//表示故障数
 	INT16 i16work;
 	if (com_ote & FAULT_HISTORY) {	//履歴表示要求時
@@ -450,6 +577,7 @@ void CCcCS::set_ote_flt_info() {
 	}
 	else {	
 		flt_count = 0;
+		//PLC検出故障項目の抽出
 		for (int i = 0; i < N_PLC_FAULT_BUF; i++) {				//PLC IOの故障バッファ数ループ
 			i16work = disp_mask[i] & pEnv_Inf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][i];
 
@@ -471,6 +599,7 @@ void CCcCS::set_ote_flt_info() {
 
 		st_ote_work.st_body.faults_set.set_pc_count = 0;
 
+		//PC検出故障項目の抽出
 		if (com_ote & FAULT_PC_CTRL) {//PC制御系故障表示要求時
 			flt_count = 0;	//PC故障数カウント用クリア
 			for (int i = 0; i < N_PC_FAULT_BUF; i++) {//PCの故障バッファ数ループ
@@ -504,7 +633,6 @@ void CCcCS::set_ote_flt_info() {
 /// <summary>
 /// OTEユニキャスト電文受信処理
 /// </summary>
- 
 static ST_OTE_U_MSG chkbuf_u_msg;
 HRESULT CCcCS::rcv_uni_ote(LPST_OTE_U_MSG pbuf) {
 	//# 操作有効端末との通信断で有効端末クリア
@@ -659,7 +787,6 @@ HRESULT CCcCS::snd_uni2ote(LPST_PC_U_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
 /// <summary>
 /// PCマルチキャスト電文送信処理 
 /// </summary>
-
 //マルチキャストメッセージセット
 LPST_PC_M_MSG CCcCS::set_msg_m(INT32 code, INT32 stat) {	
 	//#Header部
@@ -672,7 +799,6 @@ LPST_PC_M_MSG CCcCS::set_msg_m(INT32 code, INT32 stat) {
 
 	return &st_ote_work.st_msg_pc_m_snd;
 }
-
 //PCへ送信
 HRESULT CCcCS::snd_mul2pc(LPST_PC_M_MSG pbuf) {
 	if (pMSockPC == NULL) return S_FALSE;
@@ -687,7 +813,6 @@ HRESULT CCcCS::snd_mul2pc(LPST_PC_M_MSG pbuf) {
 	snd_count_m2pc++;
 	return S_OK;
 }
-
 //OTEへ送信
 HRESULT CCcCS::snd_mul2ote(LPST_PC_M_MSG pbuf) {
 	if (pMSockOte == NULL) return S_FALSE;

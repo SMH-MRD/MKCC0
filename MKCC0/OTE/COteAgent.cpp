@@ -310,32 +310,36 @@ int COteAgent::input() {
 }
 
 int COteAgent::parse() {
-
-	//CC受信データ解析
+//##################### CC受信データ解析　##########################################
+	//現在のクレーン操作有効端末id（クレーン操作有効端末idは、受信データのヘッダのTGIDを参照する）
 	st_work.cc_active_ote_id = pOteCCIf->st_msg_pc_u_rcv.head.tgid;
 
-	//送信データ解析
-	//操作ボタン類（SCADA共有メモリ部）
+//##################### 送信データ解析　############################################
+//### 送信バッファセット　
 
-	//##################### 送信バッファセット　############################################
-
+//#　操作信号
 	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.pnl_ctrl;//送信バッファのOTE操作信号情報部のポインタ
+	//OTE操作信号情報部のポインタに、Csタスクで取り込んだ操作パネル信号情報をコピー　
+	// Csタスクは、操作台,GamePad,PC Windowからの操作信号を取りまとめ、共有メモリにセットしている
 	memcpy_s(pctrl, sizeof(INT16) * OTE_PNL_CTRLS::MAX, pOteCsInf->pnl_ctrl, sizeof(INT16)* OTE_PNL_CTRLS::MAX);
 
-	//故障信号要求コード
+//#故障信号要求コード
+	//SCADAタスクがPC Windowの操作パネル入力から取得した故障表示要求コード
 	st_work.st_msg_ote_u_snd.body.st.faults_disp_req = pOteUI->flt_req_code;	//故障信号要求コード
 
-	//##################### クレーンとの通信チェック　############################################
+//##################### クレーンとの通信チェック　###################################
 	//CC通信状態ステータスセット（モニタ用）
-	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
+	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; 
+	pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
 
-	//カウンタは、受信時0値セット カウンタ値0より大でカウントアップ
+	//カウンタ値0より大でカウントアップ(カウンタは、メッセージ送信時に1セット　受信時0セット ）
 	if(st_work.cc_comm_chk_cnt) st_work.cc_comm_chk_cnt++;
-
 	if (st_work.cc_comm_chk_cnt > PRM_OTE_PC_COM_TMOV_CNT) 
 		st_work.cc_comm_chk_cnt = PRM_OTE_PC_COM_TMOV_CNT;
-
-	if (st_work.cc_comm_chk_cnt == PRM_OTE_PC_COM_TMOV_CNT){//通信異常
+	
+	//クレーンからの操作有効端末id, 接続先クレーン情報を共有メモリにセット
+	if ((st_work.cc_comm_chk_cnt == PRM_OTE_PC_COM_TMOV_CNT)||	//受信タイムオーバー
+		(pOteUI->hWnd_crane_ope_panel == NULL)) {				//操作パネルがクレーン接続されていない
 		//クレーン操作有効端末idクリア
 		pOteCCIf->cc_active_ote_id	= st_work.cc_active_ote_id = CRANE_ID_NULL;
 		pOteCCIf->id_conected_crane = st_work.id_conected_crane = CRANE_ID_NULL;
@@ -367,13 +371,7 @@ int COteAgent::output() {          //出力処理
 	//CC通信状態ステータスセット（CSモニタ用）
 	pOteCCIf->cc_comm_chk_cnt = st_work.cc_comm_chk_cnt;
 	pOteCCIf->ote_mode = st_work.ote_mode;
-	
-	//操作パネルがクレーン接続されていない場合、接続クレーンIDクリア
-	if (pOteUI->hWnd_crane_ope_panel == NULL) {
-		pOteCCIf->id_conected_crane = NULL;
-		pOteCCIf->crane_product_id.i64[0] = 0;
-		pOteCCIf->crane_product_id.i64[1] = 0;
-	}
+
 	return STAT_OK;
 }
 
@@ -391,7 +389,6 @@ int COteAgent::update_msg_cycle(int mode, int snd_cycle, int delay_sample_cycle,
 		UINT rtn = SetTimer(st_mon2.hwnd_mon, OTE_AG_ID_MON2_TIMER, pOteCCIf->umsg_snd_interval_ms, NULL);
 
 	}
-
 	UHelperStatisData min_value={0}, max_value={0};
 	min_value.ll = 10000000; max_value.ll = 0;
 	pStatisHelper->init(HELPER_DATA_TYPE_LONGLONG, buf_ll, HELPER_DATA_BUF_MAX, delay_sample_cycle, min_value, max_value);

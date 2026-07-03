@@ -38,9 +38,9 @@ CGraphicWindow::CGraphicWindow(HINSTANCE _hInstance, HWND hParent, int _crane_id
 	hInstance = _hInstance;
 	
 	const wchar_t CLASS_NAME[]				= L"GWindowClass";
-	const wchar_t CLASS_NAME_JC[]		= L"GWindowJC_Class";
+	const wchar_t CLASS_NAME_JC[]			= L"GWindowJC_Class";
 	const wchar_t CLASS_NAME_SUB[]			= L"GSubWinClass";
-	const wchar_t CLASS_NAME_JC_SUB[]	= L"GSubWinJC_Class";
+	const wchar_t CLASS_NAME_JC_SUB[]		= L"GSubWinJC_Class";
 
 	const wchar_t* pClassName;
 	const wchar_t* pClassNameSub;
@@ -90,7 +90,7 @@ CGraphicWindow::CGraphicWindow(HINSTANCE _hInstance, HWND hParent, int _crane_id
 
 	hGSubWnd = CreateWindowEx(
 		0,																// Optional window styles
-		pClassNameSub,														// Window class
+		pClassNameSub,													// Window class
 		L"Sub GRAPHIC",													// Window text
 		WS_CHILD | WS_BORDER,											// Window style
 		GSUB_PNL_WND_X, GSUB_PNL_WND_Y, GSUB_PNL_WND_W, GSUB_PNL_WND_H,
@@ -150,7 +150,6 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 
 	// 1. 背景画像の描画(pbmp_bk）
 	pPanelBase->pgwinobjs->lmg_bk_gwindow->set(0);		// 背景画像選択(Main)
-	
 	pPanelBase->pgwinobjs->lmg_bk_gwindow->update(0, 0, bk_pt_x, bk_pt_y, width, height);
 	pPanelBase->pgwinobjs->lmg_crane_gt_base->set(0);
 	pPanelBase->pgwinobjs->lmg_crane_gt_base->update();	// クレーン走行装置画像書き込み
@@ -288,6 +287,9 @@ LRESULT CALLBACK CGraphicWindow::GWndProcJC(HWND hwnd, UINT uMsg, WPARAM wParam,
 	case WM_DESTROY: {
 		//表示更新用タイマー
 		// PostQuitMessage(0);
+
+		//pPanelBase->pgwinobjs->delete_obj();
+
 	}return 0;
 	case WM_CLOSE: {
 		DestroyWindow(hwnd);
@@ -435,7 +437,7 @@ LRESULT CALLBACK CGraphicWindow::GSubWndProcJC(HWND hwnd, UINT uMsg, WPARAM wPar
 	}return true;
 	case WM_DESTROY: {
 		//表示更新用タイマー
-
+		//pPanelBase->pgsubwinobjs->delete_obj();
 		// PostQuitMessage(0);
 	}return 0;
 	case WM_CLOSE: {

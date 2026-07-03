@@ -4,7 +4,6 @@
 #include "SmemMain.H"
 #include "SmemAux.H"
 
-
 #include "CValue.h"
 
 #define CS_SEMIAUTO_TG_SEL_DEFAULT      0
@@ -21,11 +20,11 @@
 #define CS_CODE_OTE_REMOTE_ENABLE		0x0001	//PLCへの操作信号有効
 #define CS_CODE_OTE_SOURCE_ENABLE		0x0002	//主幹ON可能
 
-#define CS_ID_MON1_TIMER  51190
-#define CS_ID_MON2_TIMER  51191
+#define CS_ID_MON1_TIMER                51190
+#define CS_ID_MON2_TIMER                51191
 
-#define CS_PRM_MON1_TIMER_MS  200
-#define CS_PRM_MON2_TIMER_MS  200
+#define CS_PRM_MON1_TIMER_MS            200
+#define CS_PRM_MON2_TIMER_MS            200
 
 #define CS_MON1_WND_X     0
 #define CS_MON1_WND_Y     620
@@ -213,10 +212,19 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-    INT16 ote_disp_com_hold;
-    INT16 disp_mask[N_PLC_FAULT_BUF];
-	void set_ote_flt_info();
-    //オーバーライド
+    int crane_id;
+      
+    HRESULT(*fp_set_ote_data)(int id) = NULL;       //OTEへの送信データをセット   
+    HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
+    HRESULT(*fp_aux_equipment)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
+    static INT16 ote_disp_com_hold;
+    static INT16 disp_mask[N_PLC_FAULT_BUF];
+    static HRESULT set_ote_data_JC(int crane_id);
+    static HRESULT set_ote_data_GC(int crane_id);
+    static HRESULT set_ote_data_OHC(int crane_id);
+	static void set_ote_flt_info();
+
+    void ote_control();
 
     virtual HRESULT routine_work(void* pObj) override;
 

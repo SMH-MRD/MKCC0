@@ -220,31 +220,37 @@ INT16 CPlcCSHelper::get_mode_by_code(INT16 value, int cs_code, int type) {
 	switch (cs_code) {
 	case PLC_IO_CS_MH_SPD_MODE: {
 		if(type == PLC_IO_CS_TYPE_A) {
-			if (value & PLC_IO_CS_MH_SPD_MODE0) return CODE_MODE0;
-			if (value & PLC_IO_CS_MH_SPD_MODE1) return CODE_MODE1;
-			if (value & PLC_IO_CS_MH_SPD_MODE2) return CODE_MODE3;//2接点タイプはMODE2のビットパターンがMODE3表示
-			if (value & PLC_IO_CS_MH_SPD_MODE3) return CODE_MODE3;
+			if (value & BITOFF) return CODE_MODE0;
+			if (value & BIT2) return CODE_MODE1;
+		//	if (value & PLC_IO_CS_MH_SPD_MODE2) return CODE_MODE3;//2接点タイプはMODE2のビットパターンがMODE3表示
+			if (value & BIT3) return CODE_MODE3;
+		}
+		else if (type == PLC_IO_CS_TYPE_B) {
+			if (value & BITOFF) return CODE_MODE0;
+			if (value & BIT2) return CODE_MODE1;
+			if (value & BIT3) return CODE_MODE2;
+			if (value & BIT7) return CODE_MODE3;
 		}
 		else{
-			if (value & PLC_IO_CS_MH_SPD_MODE0) return CODE_MODE0;
-			if (value & PLC_IO_CS_MH_SPD_MODE1) return CODE_MODE1;
-			if (value & PLC_IO_CS_MH_SPD_MODE2) return CODE_MODE2;
-			if (value & PLC_IO_CS_MH_SPD_MODE3) return CODE_MODE3;
+			if (value & BITOFF) return CODE_MODE0;
+			if (value & BIT2) return CODE_MODE1;
+			if (value & BIT3) return CODE_MODE2;
+			if (value & BIT7) return CODE_MODE3;
 		}
 
 	}break;
 	case PLC_IO_CS_BH_R_MODE: {
 		if (type == PLC_IO_CS_TYPE_A) {
-			if (value & PLC_IO_CS_BH_R_MODE0) return CODE_MODE0;
-			if (value & PLC_IO_CS_BH_R_MODE1) return CODE_MODE1;
-			if (value & PLC_IO_CS_BH_R_MODE2) return CODE_MODE2;
-			if (value & PLC_IO_CS_BH_R_MODE3) return CODE_MODE3;
+			if (value & BITOFF) return CODE_MODE0;
+			if (value & BIT4) return CODE_MODE1;
+			if (value & BIT5) return CODE_MODE2;
+			if (value & BIT6) return CODE_MODE3;
 		}
 		else{
-			if (value & PLC_IO_CS_BH_R_MODE0) return CODE_MODE0;
-			if (value & PLC_IO_CS_BH_R_MODE1) return CODE_MODE1;
-			if (value & PLC_IO_CS_BH_R_MODE2) return CODE_MODE2;
-			if (value & PLC_IO_CS_BH_R_MODE3) return CODE_MODE3;
+			if (value & BITOFF) return CODE_MODE0;
+			if (value & BIT4) return CODE_MODE1;
+			if (value & BIT5) return CODE_MODE2;
+			if (value & BIT6) return CODE_MODE3;
 		}
 	}break;
 	default:

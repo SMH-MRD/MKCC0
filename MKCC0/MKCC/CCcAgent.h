@@ -121,11 +121,8 @@ typedef struct _ST_AGENT_MON2 {
     };
 }ST_AGENT_MON2, * LPST_AGENT_MON2;
 
-
-
 #define AGENT_PRM_SLBK_CHK_COUNT_STANDBY   20   //スレーブブレーキチェックシーケンスカウント値　400msec
 #define AGENT_PRM_SLBK_CHK_COUNT_RUNNING   200  //スレーブブレーキチェックシーケンスカウント値　6sec
-
 
 class CAgent : public CBasicControl
 {
@@ -164,6 +161,8 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
+	int crane_id = 0;
+
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
 
@@ -171,6 +170,21 @@ private:
     void close_monitor_wnd(int id);
     void show_monitor_wnd(int id);
     void hide_monitor_wnd(int id);
+
+
+    HRESULT(*fp_trans_plc_io_read)(int id) = NULL;  //PLC読み出しデータを共有メモリに展開   
+    HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
+    HRESULT(*fp_aux_equipment)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
+
+	static HRESULT trans_plc_io_read_JC(int crane_id);
+    static HRESULT trans_plc_io_read_GC(int crane_id);
+    static HRESULT trans_plc_io_read_OHC(int crane_id);
+    static HRESULT plc_io_write_JC(int crane_id);
+    static HRESULT plc_io_write_GC(int crane_id);
+    static HRESULT plc_io_write_OHC(int crane_id);
+    static HRESULT aux_equipment_JC(int crane_id);
+    static HRESULT aux_equipment_GC(int crane_id);
+    static HRESULT aux_equipment_OHC(int crane_id);
 
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;
@@ -181,7 +195,7 @@ private:
     int output(); 
     int close();
 
-	int manage_slbrk();
+	static int manage_slbrk();
 };
 
 

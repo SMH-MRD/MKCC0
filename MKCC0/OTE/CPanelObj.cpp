@@ -772,6 +772,12 @@ static Image* img_flt_bk_gr; static Image* img_flt_bk_rd; static Image* img_flt_
 HRESULT CSubPanelObj::setup_obj(int _crane_id) {
 
 	switch (_crane_id) {
+	case  CRANE_ID_H6R602:
+	{
+		img_cs_mode0 = new Image(L"../Img/H6R602/cs_mode0.png"); img_cs_mode1 = new Image(L"../Img/H6R602/cs_mode1.png"); img_cs_mode2 = new Image(L"../Img/H6R602/cs_mode2.png"); img_cs_mode3 = new Image(L"../Img/H6R602/cs_mode3.png");
+		img_flt_bk_gr = new Image(L"../Img/H6R602/bk_sub_gr.png"); img_flt_bk_rd = new Image(L"../Img/H6R602/bk_sub_rd.png"); img_flt_bk_yl = new Image(L"../Img/H6R602/bk_sub_yl.png"); img_flt_bk_bl = new Image(L"../Img/H6R602/bk_sub_bl.png");
+	}break;
+
 	case CRANE_ID_HHGQ18:
 	{
 		img_cs_mode0 = new Image(L"../Img/HHGQ18/cs_mode0.png"); img_cs_mode1 = new Image(L"../Img/HHGQ18/cs_mode1.png"); img_cs_mode2 = new Image(L"../Img/HHGQ18/cs_mode2.png"); img_cs_mode3 = new Image(L"../Img/HHGQ18/cs_mode3.png");
@@ -973,6 +979,14 @@ Image* img_crane_potal;
 
 HRESULT CGWindowObj::setup_obj(int _crane_id) {
 	switch (_crane_id) {
+
+	case  CRANE_ID_H6R602:
+	{
+		img_gwin_bk = new Image(L"../Img/H6R602/bk0.png");
+		img_boom_xy = new Image(L"../Img/H6R602/bm_top.png");
+		img_crane_gt_base = new Image(L"../Img/H6R602/potal_top.png");
+		img_crane_potal = new Image(L"../Img/H6R602/post_top.png");
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		img_gwin_bk = new Image(L"../Img/HHGQ18/bk0.png");
@@ -1075,14 +1089,21 @@ Image* img_hook_mh;
 Image* img_hook_load_mh;
 HRESULT CGSubWindowObj::setup_obj(int _crane_id) {
 	switch (_crane_id) {
+
+	case  CRANE_ID_H6R602:
+	{
+		img_gsubwin_bk = new Image(L"../Img/H6R602/bk1.png");
+		img_boom_yz = new Image(L"../Img/H6R602/bm_side.png");
+		img_hook_mh = new Image(L"../Img/H6R602/hook.png");
+		img_hook_load_mh = new Image(L"../Img/H6R602/hook_load.png");
+	}break;
 	case CRANE_ID_HHGQ18:
 	{
 		img_gsubwin_bk = new Image(L"../Img/HHGQ18/bk1.png");
 		img_boom_yz = new Image(L"../Img/HHGQ18/bm_side.png");
 		img_hook_mh = new Image(L"../Img/HHGQ18/hook.png");
 		img_hook_load_mh = new Image(L"../Img/HHGQ18/hook_load.png");
-	}
-	break;
+	}break;
 	case CRANE_ID_HHGH29:
 	default:
 	{
@@ -1090,7 +1111,7 @@ HRESULT CGSubWindowObj::setup_obj(int _crane_id) {
 		img_boom_yz = new Image(L"../Img/HHGH29/hhgh29_bm_side.png");
 		img_hook_mh = new Image(L"../Img/HHGH29/hhgh29_hook.png");
 		img_hook_load_mh = new Image(L"../Img/HHGH29/hhgh29_hook_load.png");
-	}
+	}break;
 	}
 
 	Image* pimg_gsubwin_bk[N_IMG_SWITCH_MAX] = { img_gsubwin_bk, img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk,img_gsubwin_bk };

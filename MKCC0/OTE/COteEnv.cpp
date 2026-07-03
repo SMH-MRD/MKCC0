@@ -285,7 +285,7 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 
 		//初期値セット
-//通信IFモード
+		//通信IFモード
 		if (st_work.app_common_param.product_mode == OTE_ENV_MODE_OTE_PORT_WIFI) {
 			SendMessage(st_mon1.hctrl[OTE_ENV_ID_MON1_RADIO_COM_WIFI], BM_SETCHECK, BST_CHECKED, 0);
 		}
@@ -328,7 +328,10 @@ LRESULT CALLBACK COteEnv::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				MessageBox(hWnd, TEXT("既にクレーンが接続されています！"), TEXT("Error"), MB_OK | MB_ICONERROR);
 			}
 			else if (crane_id_selected != CRANE_ID_NULL) {
+				if (pCrane != NULL) delete pCrane;
+				pCrane = new CCrane(crane_id_selected);
 				open_ope_window(crane_id_selected);
+				pCsObj->setup_ctrl_function(pCrane->st_crane_inf.crane_type, crane_id_selected);
 			}
 			else {
 				MessageBox(hWnd, TEXT("クレーンを選択して下さい！"), TEXT("Error"), MB_OK | MB_ICONERROR);

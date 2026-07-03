@@ -943,6 +943,11 @@ void COteCS::update_sock_stat() {
 	return ;
 }
 
+void COteCS::setup_ctrl_function(int _crane_type, int _crane_id) {
+	crane_type = _crane_type;  crane_id = _crane_id;
+	return;
+}
+
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/

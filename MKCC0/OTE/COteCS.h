@@ -189,6 +189,7 @@ public:
     static HRESULT rcv_mul_pc(LPST_PC_M_MSG pbuf);
     static HRESULT rcv_mul_ote(LPST_OTE_M_MSG pbuf);
 
+    void setup_ctrl_function(int crane_type,int crane_id);
     static void update_sock_stat();
 
     static LPST_OTE_U_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
@@ -216,9 +217,11 @@ public:
 
 private:
 
-    //オーバーライド
+	int crane_type ; 
+	int crane_id ;
 
-    virtual HRESULT routine_work(void* pObj) override;
+    //オーバーライド
+     virtual HRESULT routine_work(void* pObj) override;
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id);
     void close_monitor_wnd(int id);
