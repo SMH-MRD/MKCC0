@@ -1647,7 +1647,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		//ウィンドウにコントロール追加
 		//LABEL 
 		CreateWindowW(TEXT("STATIC"), L"巻上モード", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			100, 70, 150, 30, hwnd, (HMENU)(100), hInst, NULL);
+			100, 50, 150, 30, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"引込モード", WS_CHILD | WS_VISIBLE | SS_LEFT,
 			100, 220, 500, 30, hwnd, (HMENU)(100), hInst, NULL);
 		
@@ -1655,10 +1655,12 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		CCbCtrl* pcb = pPanelBase->psubobjs->cb_mh_spd_mode1;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-		//HHGH29は2モード
-		//pcb = pPanelBase->psubobjs->cb_mh_spd_mode2;
-		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
-		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		
+		if (crane_id == CRANE_ID_HHGQ18) {//HHGH29は2モード HHGQ18は3モード
+			pcb = pPanelBase->psubobjs->cb_mh_spd_mode2;
+			pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+				pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		}
 		pcb = pPanelBase->psubobjs->cb_mh_spd_mode3;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
@@ -1845,35 +1847,38 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
 		}
 
-		wostringstream wos;
-		wos.str(L""); 
-		wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch;
-		SetWindowTextW(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
-		wos.str(L""); 
-		wos << pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch;
-		SetWindowTextW(pPanelBase->psubobjs->st_v_delay_prm_io_status->hWnd, wos.str().c_str());
+		//映像遅延検出関連
+		{
+			wostringstream wos;
+			wos.str(L"");
+			wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch;
+			SetWindowTextW(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
+			wos.str(L"");
+			wos << pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch;
+			SetWindowTextW(pPanelBase->psubobjs->st_v_delay_prm_io_status->hWnd, wos.str().c_str());
 
-		//テキストの変化があったと表示更新（テキスト変化がない場合は更新しない）
-		//とりあえず仮処置
-		is_not_same_msg = false;
-		for(int i = 0; i < 16; i++) {
-			if(wch_chk_aprm[i] != pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch[i]) {
-				is_not_same_msg = true;
+			//テキストの変化があったと表示更新（テキスト変化がない場合は更新しない）
+			//とりあえず仮処置
+			is_not_same_msg = false;
+			for (int i = 0; i < 16; i++) {
+				if (wch_chk_aprm[i] != pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch[i]) {
+					is_not_same_msg = true;
+				}
+				if (wch_chk_file[i] != pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch[i]) {
+					is_not_same_msg = true;
+				}
+				wch_chk_aprm[i] = pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch[i];
+				wch_chk_file[i] = pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch[i];
 			}
-			if (wch_chk_file[i] != pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch[i]) {
-				is_not_same_msg = true;
-			}
-			wch_chk_aprm[i] = pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch[i];
-			wch_chk_file[i] = pOteAuxPolInf->st_img_proc.video_delay_prm_file_status_wch[i];
+
+			if (is_not_same_msg) InvalidateRect(hwnd, NULL, TRUE);
+
+
+			//PBの状態更新（カウントダウン）
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->update(false);
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(false);
+			pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(false);
 		}
-
-		if (is_not_same_msg) InvalidateRect(hwnd, NULL, TRUE);
-
-
-		//PBの状態更新（カウントダウン）
-		pPanelBase->psubobjs ->pb_v_delay_chk_prm_auto_set->update(false);
-		pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(false);
-		pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(false);
 	}break;
 
 	case WM_COMMAND: {
@@ -1940,9 +1945,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	case WM_DESTROY:
 		//表示更新用タイマー
 		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
-
-	//	pPanelBase->psubobjs->clear_graphics();
-		// PostQuitMessage(0);
 		return 0;
 	case WM_CLOSE:
 		DestroyWindow(hwnd);

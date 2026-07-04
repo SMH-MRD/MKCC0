@@ -46,15 +46,15 @@ static ST_OBJ_PROPERTY main_props_hhgq18[N_MAIN_PNL_OBJ] = {
 static ST_OBJ_PROPERTY sub_set_props_hhgq18[N_SUB_PNL_OBJ] = {
 	//設定サブウィンドウ
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0 ,Point(85,80)	,Size(30,30)	,L"-"			},//i=0
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(85,110)	,Size(30,30)	,L"14"			},
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(155,80)	,Size(30,30)	,L"-"			},
-	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_3	,Point(225,110)	,Size(30,30)	,L"36"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_1	,Point(85,110)	,Size(30,30)	,L"7"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_2	,Point(155,80)	,Size(30,30)	,L"14"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD_3	,Point(225,110)	,Size(30,30)	,L"21"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_MHSPD	,Point(20,110)	,Size(30,30)	,L"主巻モード"	},
 	{ID_SUB_PNL_SET_OBJ_LMP_MHSPD	,Point(130,120)	,Size(80,80)	,L"主巻モード"	},
 
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR_0	,Point(85,280)	,Size(30,30)	,L"-"			},//i=6
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(85,280)	,Size(30,30)	,L"75"			},
-	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(155,250)	,Size(30,30)	,L"80"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_1	,Point(85,280)	,Size(30,30)	,L"57"			},
+	{ID_SUB_PNL_SET_OBJ_RDO_BHR_2	,Point(155,250)	,Size(30,30)	,L"62"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR_3	,Point(225,280)	,Size(35,30)	,L"ﾚｽﾄ"			},
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,280)	,Size(30,30)	,L"引込モード"	},
 	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(130,290)	,Size(80,80)	,L"引込モード"	},

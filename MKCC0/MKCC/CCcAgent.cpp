@@ -628,19 +628,18 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	pPLC_IO->stat_sl.mode;
 
 	switch (crane_id) {
-	case CRANE_ID_HHGH29: {
-		pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A);
-		pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
-	}break;
 	case CRANE_ID_HHGQ18: 
 	case CRANE_ID_H6R602:
 	{
 		pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_B);
 		pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
 	}break;
-	
-	default: {
-	}break;
+	case CRANE_ID_HHGH29: 
+	default: 
+	{
+		pPLC_IO->stat_mh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A);
+		pPLC_IO->stat_bh.mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
+	}break;	
 	}
 	return S_OK;
 }
@@ -704,9 +703,6 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 	pCrane->pPlc->wval(pPlcWIf->JC.fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
 	pCrane->pPlc->wval(pPlcWIf->JC.alarm_stp_pb, pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
 
-	pCrane->pPlc->wval(pPlcWIf->JC.mh_spd_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A));
-	pCrane->pPlc->wval(pPlcWIf->JC.bh_mode_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A));
-
 	pCrane->pPlc->wval(pPlcWIf->JC.siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);		//モータサイレンスイッチ
 	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw1, pOteCtrl[OTE_PNL_CTRLS::hd_lamp1]);	//水銀ランプ切替スイッチ
 	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw2, pOteCtrl[OTE_PNL_CTRLS::hd_lamp2]);	//水銀ランプ切替スイッチ
@@ -754,6 +750,22 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 
 	//OTE HEAD COMMAND
 	pCrane->pPlc->wval(pPlcWIf->JC.ote_head_command, pOTE_Inf->st_ote_ctrl.ote_command);
+
+	switch (crane_id) {
+	case CRANE_ID_HHGQ18:
+	case CRANE_ID_H6R602:
+	{
+		pCrane->pPlc->wval(pPlcWIf->JC.mh_spd_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_B));
+		pCrane->pPlc->wval(pPlcWIf->JC.bh_mode_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A));
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		pCrane->pPlc->wval(pPlcWIf->JC.mh_spd_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::mh_spd_mode], PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_A));
+		pCrane->pPlc->wval(pPlcWIf->JC.bh_mode_cs, CPlcCSHelper::get_code_by_mode(pOteCtrl[OTE_PNL_CTRLS::bh_r_mode], PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A));
+	}break;
+	}
+
 
 	return S_OK;
 }
