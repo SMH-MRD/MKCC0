@@ -3,6 +3,10 @@
 #include "CFaults.h"
 
 using namespace std;
+#define N_MAIN_PNL_OBJ		64
+#define N_SUB_PNL_OBJ		128
+#define N_GWIN_OBJ			32
+#define N_GSUBWIN_OBJ		32
 
 #define ID_MAIN_PNL_OBJ_BASE				60000
 #define ID_MAIN_PNL_OBJ_STR_MESSAGE			60000
@@ -135,12 +139,12 @@ public:
 		switch (crane_id) {
 		case CRANE_ID_HHGH29:
 		case CRANE_ID_HHGQ18:
+		case CRANE_ID_H6R602:
 		default:
 		{
 			setup_jc_obj(crane_id);
 		}break;
-		}
-		
+		};
 	}
 	virtual ~CMainPanelObj() {
 	}
@@ -288,9 +292,16 @@ private:
 	int crane_id;
 
 public:
-	CSubPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
+	CSubPanelObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd, _crane_id) {
 		crane_id = _crane_id;
-		setup_obj(crane_id);
+
+		switch (crane_id) {
+		case CRANE_ID_HHGH29:
+		case CRANE_ID_HHGQ18:
+		case CRANE_ID_H6R602:
+		default:
+			setup_jc_obj(crane_id); break;
+		}
 	}
 	virtual ~CSubPanelObj() {
 	}
@@ -383,7 +394,10 @@ public:
 	CStaticCtrl* st_deff_seq_no;		//シーケンス番号差
 	CStaticCtrl* st_v_delay;			//遅延表示
 
-	virtual HRESULT setup_obj(int _cran_id);
+	virtual HRESULT setup_jc_obj(int crane_id);
+	virtual HRESULT setup_gc_obj(int crane_id);
+	virtual HRESULT setup_ohc_obj(int crane_id);
+	//virtual HRESULT setup_obj(int _cran_id);
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
@@ -414,7 +428,15 @@ private:
 public:
 	CGWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
-		setup_obj(crane_id);
+		switch (crane_id) {
+		case CRANE_ID_HHGH29:
+		case CRANE_ID_HHGQ18:
+		case CRANE_ID_H6R602:
+		default:
+		{
+			setup_jc_obj(crane_id);
+		}break;
+		};
 	}
 	virtual ~CGWindowObj() {
 	}
@@ -437,7 +459,9 @@ public:
 	CStringGdi* str_slbk_mode;		//旋回ブレーキmode
 	CStringGdi* str_slbk_level;		//旋回ブレーキレベル
 
-	virtual HRESULT setup_obj(int crane_id);
+	virtual HRESULT setup_jc_obj(int crane_id);
+	virtual HRESULT setup_gc_obj(int crane_id);
+	virtual HRESULT setup_ohc_obj(int crane_id);
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
@@ -461,7 +485,15 @@ private:
 public:
 	CGSubWindowObj(HWND _hwnd, int _crane_id) : CPanelObjBase(_hwnd,_crane_id) {
 		crane_id = _crane_id;
-		setup_obj(crane_id);
+		switch (crane_id) {
+		case CRANE_ID_HHGH29:
+		case CRANE_ID_HHGQ18:
+		case CRANE_ID_H6R602:
+		default:
+		{
+			setup_jc_obj(crane_id);
+		}break;
+		};
 	}
 	virtual ~CGSubWindowObj() {
 	}
@@ -476,7 +508,9 @@ public:
 	CStringGdi* str_pos_mouse;		//マウス位置
 
 	
-	virtual HRESULT setup_obj(int crane_id);
+	virtual HRESULT setup_jc_obj(int crane_id);
+	virtual HRESULT setup_gc_obj(int crane_id);
+	virtual HRESULT setup_ohc_obj(int crane_id);
 	virtual void delete_obj();
 	void refresh_obj_graphics();//オブジェクトのグラフィックオブジェクトの設定更新
 };
