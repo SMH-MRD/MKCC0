@@ -190,6 +190,7 @@ public:
     static HRESULT rcv_mul_ote(LPST_OTE_M_MSG pbuf);
 
     void setup_ctrl_function(int crane_type,int crane_id);
+
     static void update_sock_stat();
 
     static LPST_OTE_U_MSG set_msg_u(BOOL is_ope_mode, INT32 code, INT32 stat);
@@ -220,6 +221,14 @@ private:
 	int crane_type ; 
 	int crane_id ;
 
+    HRESULT(*fp_opration_input)(int id) = NULL;             //操作入力信号取り込み
+    HRESULT(*fp_fault_check)(int id) = NULL;                //OTE検出異常処理
+    HRESULT(*fp_video_delay_check_manage)(int id) = NULL;   //映像遅延チェック機能処理
+
+	static HRESULT operation_input_hhgg38(int id);
+    static HRESULT fault_check_hhgg38(int id);
+    static HRESULT video_delay_check_manage_hhgg38(int id);
+
     //オーバーライド
      virtual HRESULT routine_work(void* pObj) override;
 
@@ -237,8 +246,8 @@ private:
     int output();
     int close();
 
-	int flg_0notch_hold = L_OFF;
-	INT16 otecs_plc_setting = 0;
-    INT16 forced_opedesk = L_OFF;
+	static int flg_0notch_hold ;
+    static INT16 otecs_plc_setting;
+    static INT16 forced_opedesk;
 };
 

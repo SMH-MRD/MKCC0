@@ -310,7 +310,7 @@ public:
 	CCbCtrl*	cb_bh_r_mode2;		//引込速度モード選択ラジオボタン
 	CCbCtrl*	cb_bh_r_mode3;		//引込速度モード選択ラジオボタン
 	CRadioCtrl* rdo_bh_r_mode;		//引込速度モード選択ラジオボタン
-	CSwitchImg*	lmp_bh_r_mode;		//主巻速度モードランプ
+	CSwitchImg*	lmp_bh_r_mode;		//引込速度モードランプ
 
 	CCbCtrl		*cb_v_delay_chk_device;			//映像遅延測定用デバイス強制ON/OFFチェックボックス
 	CPbCtrl		*pb_v_delay_chk_prm_auto_set;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット起動PB

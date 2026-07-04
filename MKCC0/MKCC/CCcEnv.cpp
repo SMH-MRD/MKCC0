@@ -396,11 +396,10 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//‰×d
 	pEnvInf->crane_stat.m.p = pPlcIo->weight;
 
-	LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
+
 	//—g’ö
 	pEnvInf->crane_stat.mh.p = pPlcIo->h_mh;
-	//ù‰ñŠp“x
-	pEnvInf->crane_stat.sl_deg.p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
+
 	//‘–sˆÊ’u
 	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
 	dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
@@ -413,12 +412,16 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	}break;
 	case CRANE_ID_HHGQ18:
 	{
-		;
+		LPST_PLC_RBUF_HHGQ18 pPlcRbuf = (LPST_PLC_RBUF_HHGQ18)pPlcIo->buf_io_read;
+		//ù‰ñŠp“x
+		pEnvInf->crane_stat.sl_deg.p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
 	}break;
 	case CRANE_ID_HHGH29: 
 	default:
 	{
-		;
+		LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
+		//ù‰ñŠp“x
+		pEnvInf->crane_stat.sl_deg.p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
 	}break;
 	};
 	return S_OK;
