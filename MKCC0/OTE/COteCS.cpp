@@ -375,7 +375,7 @@ int COteCS::output() {
 	pPcWBuf->pc_status = ote_helthy;	
 	
 	//接続中クレーンID
-	pPcWBuf->crane_id = (INT16)(pOteCCInf->id_conected_crane & 0x0000FFFF);	//接続先クレーンID	
+	pPcWBuf->crane_id = (INT16)(pOteCCInf->id_conected_crane);	//接続先クレーンID	
 
 	//##操作卓遠隔モード表示
 	pPcWBuf->rmt_status = st_work.st_body.remote;
