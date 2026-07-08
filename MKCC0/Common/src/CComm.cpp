@@ -35,7 +35,11 @@ int CComm::setup(){
 				{"192.168.101.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3020,0},	//ID_COMM_MAIN_PC_PLC
 				{"192.168.101.101",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
 				{"192.168.101.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3021,0},	//ID_COMM_PC_SLBRK
-				{"192.168.101.102",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_OPTION 制御PC内部OTE IF用ポート（デバッグ用）
+				{"192.168.101.103",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,10080,0},	//ID_COMM_SENSOR
+				default_addr,
+				default_addr,
+				default_addr,
+				default_addr
 			},	
 			{//WAN
 				{"10.130.7.205",CODE_COMM_TYPE_WAN,CODE_COMM_PROTOCOL_UDP,8001,0},		//ID_COMM_WAN0
@@ -49,7 +53,7 @@ int CComm::setup(){
 				default_addr,
 				default_addr,
 				{"192.168.101.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
-				default_addr
+				{"192.168.101.121",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,10081,0},	//ID_COMM_SENSOR
 			},	
 		};
 		set_addr_set(CODE_COMM_LOCATION_CRANE, machine_id, &st_src);
@@ -64,7 +68,11 @@ int CComm::setup(){
 				{"192.168.110.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3020,0},	//ID_COMM_MAIN_PC_PLC
 				{"192.168.110.101",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
 				{"192.168.110.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3021,0},	//ID_COMM_PC_SLBRK
-				{"192.168.110.102",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_CCOTE_IF 制御PC内部OTE IF用ポート（デバッグ用）
+				{"192.168.101.103",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,10080,0},	//ID_COMM_SENSOR
+				default_addr,
+				default_addr,
+				default_addr,
+				default_addr
 			},
 			{//WAN
 				{"10.130.7.205",CODE_COMM_TYPE_WAN,CODE_COMM_PROTOCOL_UDP,8001,0},		//ID_COMM_WAN0
@@ -78,7 +86,7 @@ int CComm::setup(){
 				default_addr,
 				default_addr,
 				{"192.168.101.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
-				default_addr
+				{"192.168.101.121",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,10081,0},	//ID_COMM_SENSOR
 			},
 		};
 		set_addr_set(CODE_COMM_LOCATION_CRANE, machine_id, &st_src);
@@ -90,10 +98,14 @@ int CComm::setup(){
 		ST_ADDR_SET st_src =
 		{
 			{//PC
-				{"192.168.100.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3020,0},	//ID_COMM_MAIN_PC_PLC
-				{"192.168.100.101",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
-				{"192.168.100.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3021,0},	//ID_COMM_PC_SLBRK
-				{"192.168.100.102",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_CCOTE_IF 制御PC内部OTE IF用ポート（デバッグ用）
+				{"192.168.110.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3020,0},	//ID_COMM_MAIN_PC_PLC
+				{"192.168.110.101",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
+				{"192.168.110.100",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3021,0},	//ID_COMM_PC_SLBRK
+				{"192.168.110.103",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,10080,0},	//ID_COMM_SWAY_SENSOR
+				default_addr,
+				default_addr,
+				default_addr,
+				default_addr
 			},
 			{//WAN
 				{"10.130.7.205",CODE_COMM_TYPE_WAN,CODE_COMM_PROTOCOL_UDP,8001,0},		//ID_COMM_WAN0
@@ -106,13 +118,12 @@ int CComm::setup(){
 			{//AUX
 				default_addr,
 				default_addr,
-				{"192.168.101.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
-				default_addr
+				{"192.168.110.120",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3011,0},	//ID_COMM_PC_SLBRK
+				{"192.168.110.121",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,10081,0},	//ID_COMM_SENSOR
 			},
 		};
 		set_addr_set(CODE_COMM_LOCATION_CRANE, machine_id, &st_src);
 	}
-
 
 	//#############################################################
 	//################ OTEアドレスセット　     ####################
@@ -127,6 +138,10 @@ int CComm::setup(){
 				{"192.168.101.150",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_MC,3040,0},	//ID_COMM_MAIN_PC_PLC
 				{"192.168.101.151",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_CRANE_OTE_IF
 				{"192.168.101.152",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_WIFI
+				default_addr,
+				default_addr,
+				default_addr,
+				default_addr,
 				{"192.168.101.102",CODE_COMM_TYPE_LAN,CODE_COMM_PROTOCOL_UDP,8001,0},	//ID_COMM_OPTION 制御PC内部OTE IF用ポート（デバッグ用）
 			},
 			{//WAN
@@ -155,6 +170,10 @@ int CComm::setup(){
 			{//PC
 				default_addr,	//ID_COMM_MAIN_PC_PLC
 				default_addr,	//ID_COMM_CRANE_OTE_IF
+				default_addr,
+				default_addr,
+				default_addr,
+				default_addr,
 				default_addr,
 				default_addr
 			},
