@@ -678,12 +678,13 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 			mask &= ~MASK_BIT_PC_SIM_MODE;	//PC操作有効、実機モード
 		}
 
+		pAgent_Inf->pc_ctrl_mode2plc = 0;
 		if (plc_healthy) {
 			pAgent_Inf->pc_ctrl_mode2plc |= mask;
 		}
-		else {
-			pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
-		}
+		//else {
+		//	pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
+		//}
 
 
 		pCrane->pPlc->wval(pPlcWIf->JC.pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
