@@ -120,18 +120,21 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 		else {
 			pMCSock = new CMCProtocol(ID_SOCK_MC_OTE_CS);
 
-			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE) != S_OK) {
-				wos << L"Initialize : MC Init NG(OTE)"; msg2listview(wos.str()); wos.str(L"");
-				wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
-				return S_FALSE;
+			if (pOteEnvInf->app_common_param.app_mode != OTE_ENV_APP_DEBUG_TYPE1) {
 
-				if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG) != S_OK) {
-					wos << L"Initialize : MC Init NG(DEBUG)"; msg2listview(wos.str()); wos.str(L"");
+				if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE) != S_OK) {
+					wos << L"Initialize : MC Init NG(OTE)"; msg2listview(wos.str()); wos.str(L"");
 					wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
 					return S_FALSE;
+
+					if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_OTE_DEBUG) != S_OK) {
+						wos << L"Initialize : MC Init NG(DEBUG)"; msg2listview(wos.str()); wos.str(L"");
+						wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
+						return S_FALSE;
+					}
 				}
+				wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 			}
-			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
 	}
 
