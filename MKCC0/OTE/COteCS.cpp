@@ -723,15 +723,6 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_ah] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_ah];
 		if (!(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux]))	pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::notch_aux] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::notch_aux];
 	}
-
-
-
-
-
-
-
-
-
 	return S_OK;
 }
 HRESULT COteCS::fault_check_hhgg38(int id) {
@@ -1134,7 +1125,6 @@ LRESULT CALLBACK COteCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		monwos.str(L""); monwos << L"W:" << i_page_w + 1 << L"/" << n_page_w;
 		SetWindowText(st_mon2.hctrl[OTE_CS_ID_MON2_PB_W_BLOCK_SEL], monwos.str().c_str());
-
 
 		st_mon2.msg_disp_mode = OTE_CS_MON2_MSG_DISP_HEX;
 		monwos.str(L""); monwos << L"•\Ž¦’†";

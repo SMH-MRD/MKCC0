@@ -171,10 +171,10 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 	switch (id) {
 	case CRANE_ID_H6R602:
 	{
-		st_sim_inf.hcount_mh = 98220337;		//主巻PG　(R21,H30）
-		st_sim_inf.hcount_bh = 76676908;		//引込PG　(R21,H30）
+		st_sim_inf.hcount_mh = 97791220;		//主巻PG　(R21,H30）
+		st_sim_inf.hcount_bh = 72354000;		//引込PG　(R21,H30）
 		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
-		st_sim_inf.absocoder_mh = 51274;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
+		st_sim_inf.absocoder_mh = 51273;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
 		st_sim_inf.absocoder_gt = 32595;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024
 	}break;
 	case CRANE_ID_HHGQ18:
@@ -188,8 +188,8 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 	case CRANE_ID_HHGH29: 
 	default:
 	{
-		st_sim_inf.hcount_mh = 96450040;		//主巻PG　(R45,H70）
-		st_sim_inf.hcount_bh = 85167878;		//引込PG　(R45,H70）
+		st_sim_inf.hcount_mh = 91936418;		//主巻PG　(R30,H30）
+		st_sim_inf.hcount_bh = 86673000;		//引込PG　(R30,H30）
 		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
 		st_sim_inf.absocoder_mh = 50000;		//主巻アブソコーダ初期値3層開始位置(R45,H70）
 		st_sim_inf.absocoder_gt = 32595;		//走行アブソコーダ初期値50m
@@ -323,7 +323,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	default:
 	{
 		//荷重
-		st_work.weight_mh = pspec->st_struct.Whook + st_work.axis[ID_HOIST].load.m;	//フック質量＋荷重
+		st_work.weight_mh = pspec->st_struct.Whook + st_work.axis[ID_HOIST].load.m;		//フック質量＋荷重
 		st_sim_inf.mlim_weight_AI = (INT16)(st_work.weight_mh / 80000.0 * 1600);		//荷重　フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
 
 		//旋回半径	
