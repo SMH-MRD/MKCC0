@@ -238,16 +238,22 @@ void CCcEnv::set_param_JC(int id) {
 			pEnvInf->Cdrm[ID_BOOM_H][i] = 0.0;
 			pEnvInf->Cdrm[ID_SLEW][i]	= 0.0;
 			pEnvInf->Cdrm[ID_GANTRY][i] = 0.0;
+			pEnvInf->Cdrm[ID_AHOIST][i] = 0.0;
+
+			pEnvInf->Cdrm[ID_BH_HST][i] = 0.0;
 		}
 		else {
 			pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)(i-1) * pspec->base_mh.dDdrm) * PI180;
 			pEnvInf->Cdrm[ID_BOOM_H][i]	= (pspec->base_bh.Ddrm0 + (double)(i - 1) * pspec->base_bh.dDdrm) * PI180;
 			pEnvInf->Cdrm[ID_SLEW][i]	= (pspec->base_sl.Ddrm0 + (double)(i - 1) * pspec->base_sl.dDdrm) * PI180;
 			pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)(i - 1) * pspec->base_gt.dDdrm) * PI180;
+			pEnvInf->Cdrm[ID_AHOIST][i] = (pspec->base_ah.Ddrm0 + (double)(i - 1) * pspec->base_ah.dDdrm) * PI180;
+
+			//引込主巻ドラム 層負荷直径はBHを使用
+			pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_bh.Ddrm1 + (double)(i-1) * pspec->base_mh.dDdrm) * PI180;//ドラム追加半径は主巻ドラムの数値を使う
 		}
 
-		//引込主巻ドラム 層負荷直径はBHを使用
-		pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_bh.Ddrm1 + (double)i * pspec->base_mh.dDdrm) * PI180;//ドラム追加半径は主巻ドラムの数値を使う
+
 		
 		//層巻取り量(ドラム周長×ドラム溝数)の積算値を計算)
 		if (i == 0) {
@@ -255,6 +261,7 @@ void CCcEnv::set_param_JC(int id) {
 			pEnvInf->Ldrm[ID_BOOM_H][i] = 0.0;
 			pEnvInf->Ldrm[ID_SLEW][i] = 0.0;
 			pEnvInf->Ldrm[ID_GANTRY][i] = 0.0;
+			pEnvInf->Ldrm[ID_AHOIST][i] = 0.0;
 			pEnvInf->Ldrm[ID_BH_HST][i] = 0.0;
 		}
 		else {
@@ -262,13 +269,16 @@ void CCcEnv::set_param_JC(int id) {
 			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Ldrm[ID_BOOM_H][i - 1]	+ pEnvInf->Cdrm[ID_BOOM_H][i]	* pspec->base_bh.Ndmizo0;
 			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Ldrm[ID_SLEW][i - 1]		+ pEnvInf->Cdrm[ID_SLEW][i]		* pspec->base_sl.Ndmizo0;
 			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Ldrm[ID_GANTRY][i - 1]	+ pEnvInf->Cdrm[ID_GANTRY][i]	* pspec->base_gt.Ndmizo0;
-			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1]	+ pEnvInf->Cdrm[ID_BH_HST][i]	* pspec->base_mh.Ndmizo1;
+			pEnvInf->Ldrm[ID_AHOIST][i] = pEnvInf->Ldrm[ID_AHOIST][i - 1] + pEnvInf->Cdrm[ID_AHOIST][i] * pspec->base_ah.Ndmizo0;
+			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1]	+ pEnvInf->Cdrm[ID_BH_HST][i]	* pspec->base_bh.Ndmizo1;
+
 		}
 	}
 	pEnvInf->Lspan[ID_HOIST]	= pspec->base_mh.Lfull;
 	pEnvInf->Lspan[ID_BOOM_H]	= pspec->base_bh.Lfull;
 	pEnvInf->Lspan[ID_SLEW]		= pspec->base_sl.Lfull;
 	pEnvInf->Lspan[ID_GANTRY]	= pspec->base_gt.Lfull;
+	pEnvInf->Lspan[ID_AHOIST]	= pspec->base_ah.Lfull;
 
 	switch (id) {
 	case CRANE_ID_H6R602:
@@ -289,15 +299,7 @@ void CCcEnv::set_param_JC(int id) {
 };
 void CCcEnv::set_param_GC(int id) {
 	switch (id) {
-	case CRANE_ID_H6R602:
-	{
-		;
-	}break;
-	case CRANE_ID_HHGQ18:
-	{
-		;
-	}break;
-	case CRANE_ID_HHGH29:
+	case CRANE_ID_HHFM08:
 	default:
 	{
 		;
@@ -307,15 +309,7 @@ void CCcEnv::set_param_GC(int id) {
 };
 void CCcEnv::set_param_OHC(int id) {
 	switch (id) {
-	case CRANE_ID_H6R602:
-	{
-		;
-	}break;
-	case CRANE_ID_HHGQ18:
-	{
-		;
-	}break;
-	case CRANE_ID_HHGH29:
+	case CRANE_ID_XXXXXX:
 	default:
 	{
 		;
@@ -330,6 +324,25 @@ void CCcEnv::set_param_OHC(int id) {
 /// <param name="id"></param>
 /// <returns></returns>
 HRESULT CCcEnv::set_stat_JC(int id) {
+	LPUN_PLC_RBUF pPlcRbuf = (LPUN_PLC_RBUF)pPlcIo->buf_io_read;
+	double hcount_sl = 0.0;
+	switch (id) {
+	case CRANE_ID_H6R602:
+	{
+		hcount_sl = pPlcRbuf->st_h6r602.hcount_fb[ID_PLC_HCOUNT_SL];
+	}break;
+	case CRANE_ID_HHGQ18:
+	{
+		hcount_sl = pPlcRbuf->st_hhgq18.hcount_fb[ID_PLC_HCOUNT_SL];
+	}break;
+	case CRANE_ID_HHGH29:
+	default:
+	{
+		hcount_sl = pPlcRbuf->st_hhgh29.hcount_fb[ID_PLC_HCOUNT_SL];
+
+	}break;
+	};
+
 	//###　ドラム回転数セット
 	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
@@ -400,30 +413,15 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//揚程
 	pEnvInf->crane_stat.mh.p = pPlcIo->h_mh;
 
+	//旋回角度
+	pEnvInf->crane_stat.sl_deg.p = (hcount_sl - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
+
 	//走行位置
 	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
 	dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
 	pEnvInf->crane_stat.gt.p = pCrane->pSpec->base_gt.PosPreset + dL;
 
-	switch (id) {
-	case CRANE_ID_H6R602:
-	{
-		;
-	}break;
-	case CRANE_ID_HHGQ18:
-	{
-		LPST_PLC_RBUF_HHGQ18 pPlcRbuf = (LPST_PLC_RBUF_HHGQ18)pPlcIo->buf_io_read;
-		//旋回角度
-		pEnvInf->crane_stat.sl_deg.p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
-	}break;
-	case CRANE_ID_HHGH29: 
-	default:
-	{
-		LPST_PLC_RBUF_HHGH29 pPlcRbuf = (LPST_PLC_RBUF_HHGH29)pPlcIo->buf_io_read;
-		//旋回角度
-		pEnvInf->crane_stat.sl_deg.p = ((double)pPlcRbuf->hcount_fb[ID_PLC_HCOUNT_SL] - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
-	}break;
-	};
+
 	return S_OK;
 };
 

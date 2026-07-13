@@ -18,42 +18,62 @@ typedef struct _ST_PLC_WBUF_H6R602 {	//制御PC→PLC
 	INT16   mh_load;					//D10212:主巻荷重
 	INT16   ah_load;					//D10213:補巻荷重
 	INT16   wind_spd;					//D10214:風速
-	INT16   spear[15];					//D10215:予備
+	INT16   aux_switch_B160;			//D10215:追加リレー出力用
+	INT16   spear[14];					//D10216:予備
 	UINT32  hcounter[4];				//D10230:高速カウンタユニット 
 	UINT32  absocoder[3];				//D10238　アブソコーダ 
 	INT16   pc_fault[N_PLC_FAULT_BUF];	//D10244　PC　FAULT
 	INT16   spare0[8];					//D10244　予備 
 	INT16   spd_fb[4];					//D10270:速度FB（符号付き　3200が最高速度）
-	INT16   trq_ref[2];					//D10274:トルク指令（符号付き　4000/200%）
-	INT16   spear1[24];					//D10276:インバータ速度指令（符号付き　3200が最高速度）
-
+	INT16   trq_ref[3];					//D10274:トルク指令（符号付き　4000/200%）
+	INT16   spear1[3];					//D10277:予備
+	INT16	INV_IW_CC_GT_X0;			//D10280:走行インバータDI
+	INT16	INV_IW_CC_AH_X0;			//D10281:補巻インバータDI
+	INT16	INV_IW_CC_SLW_X0;			//D10282:旋回インバータDI
+	INT16	INV_IW_CC_BH_X0;			//D10283:引込インバータDI
+	INT16	INV_IW_CC_MH1_X0;			//D10284:主巻1インバータDI
+	INT16	INV_IW_CC_MH2_X0;			//D10285:主巻2インバータDI		
+	INT16	INV_IR_CC_GT_Wr1;			//D10286:走行インバータAI1
+	INT16	INV_IR_CC_AH_Wr1;			//D10287:補巻インバータAI1
+	INT16	INV_IR_CC_SLW_Wr1;			//D10288:旋回インバータAI1
+	INT16	INV_IR_CC_BH_Wr1;			//D10289:引込インバータAI1
+	INT16	INV_IR_CC_MH1_Wr1;			//D10290:主巻1インバータAI1
+	INT16	INV_IR_CC_MH2_Wr1;			//D10291:主巻2インバータAI1	
+	INT16	INV_IR_CC_GT_Wr2;			//D10292:走行インバータAI2
+	INT16	INV_IR_CC_AH_Wr2;			//D10293:補巻インバータAI2
+	INT16	INV_IR_CC_SLW_Wr2;			//D10294:旋回インバータAI2
+	INT16	INV_IR_CC_BH_Wr2;			//D10295:引込インバータAI2
+	INT16	INV_IR_CC_MH1_Wr2;			//D10296:主巻1インバータAI2
+	INT16	INV_IR_CC_MH2_Wr2;			//D10297:主巻2インバータAI2
+	INT16   spear2[2];					//D10298:予備
 }ST_PLC_WBUF_H6R602, * LPST_PLC_WBUF_H6R602;
 typedef struct _ST_PLC_RBUF_H6R602 {
 	INT16   helthy;						// D10300:PLCヘルシーカウンタ
 	INT16   plc_ctrl;					// D10301: PLC運転モード
 	UINT16  cab_ai[4];					// D10302:運転室PLC→電気室PLC W出力
 	INT16   cab_bi[4];					// D10306:運転室PLC→電気室PLC b出力
-	INT16   cab_xi[4];					// D10310:運転室PLC→電気室PLC b出力
-	INT16   cab_bo;						// D10314:b2b0-f = Y70-F
-	INT16   cab_yo;						// D10315:b160-f
+	INT16   cab_xi[5];					// D10310:運転室PLC→電気室PLC b出力
+	INT16   cab_bo;						// D10315:b2b0-f = Y70-F
 	INT16   erm_900;					// D10316:
 	INT16   erm_bo[8];					// D10317:電気室PLC b出力
 	INT32	mh_z;						// D10325:主巻揚程　D1010
 	float	r_mm;						// D10327:引込半径　D2774
-	INT16	spar0[4];					// D10327:予備
-	INT16	cv_tg[4];					// D10333:目標速度％
-	INT16	spar1[2];					// D10337:予備
+	INT32	ah_z;						// D10329:補巻揚程　D1008
+	INT16	wind_dir; 					// D10331:風向計
+	INT16	spar0[1];					// D10327:予備
+	INT16	cv_tg[5];					// D10333:目標速度％
+	INT16	alarm;						// D10338:警報鳴動信号
 	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10339:故障信号
 	INT16   erm_y[5];					// D10357:電気室PLC Y出力
 	INT16   erm_x[7];					// D10362:電気室PLC X入力
-	INT16   spar2;						//
+	INT16   spar2;						// D10369:予備
 	INT16   inv_vref[4];				// D10370:インバータ速度指令
-	INT16   inv_vfb[4];					// D10375:インバータ速度FB
-	INT16   inv_trq[2];					// D10378:インバータトルク指令
-	INT16   spar3[2];					// D10369:インバータPLC DO指令	
+	INT16   inv_vfb[4];					// D10374:インバータ速度FB
+	INT16   inv_trq[3];					// D10378:インバータトルク指令
+	INT16   spar3[1];					// D10381:予備	
 	INT32   hcount_fb[4];				// D10380:高速カウンタユニット FB値
 	INT32   absocoder_fb[3];			// D10388:アブソコーダ FB値
-	INT16   spar4[4];					// D10396:予備
+	INT16   spar4[3];					// D10396:予備
 
 }ST_PLC_RBUF_H6R602, * LPST_PLC_RBUF_H6R602;
 
@@ -68,7 +88,8 @@ typedef struct _ST_PLC_WBUF_HHGH29 {	//制御PC→PLC
 	INT16   mh_load;					//D10212:主巻荷重
 	INT16   ah_load;					//D10213:補巻荷重
 	INT16   wind_spd;					//D10214:風速
-	INT16   spear[15];					//D10215:予備
+	INT16   aux_switch_B160;			//D10215:追加リレー出力用
+	INT16   spear[14];					//D10216:予備
 	UINT32  hcounter[4];				//D10230:高速カウンタユニット 
 	UINT32  absocoder[3];				//D10238　アブソコーダ 
 	INT16   pc_fault[N_PLC_FAULT_BUF];	//D10244　PC　FAULT
@@ -90,7 +111,9 @@ typedef struct _ST_PLC_RBUF_HHGH29 {
 	INT16   erm_bo[8];					// D10317:電気室PLC b出力
 	INT32	mh_z;						// D10325:主巻揚程　D1010
 	float	r_mm;						// D10327:引込半径　D2774
-	INT16	spar0[4];					// D10327:予備
+	INT16	spar0[2];					// D10327:予備
+	INT16	wind_dir; 					// D10331:予備
+	INT16	spar6[1];					// D10332:予備
 	INT16	cv_tg[4];					// D10333:目標速度％
 	INT16	spar1[2];					// D10337:予備
 	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10339:故障信号
@@ -117,7 +140,8 @@ typedef struct _ST_PLC_WBUF_HHGQ18 {	//制御PC→PLC
 	INT16   mh_load;					//D10212:主巻荷重
 	INT16   ah_load;					//D10213:補巻荷重
 	INT16   wind_spd;					//D10214:風速
-	INT16   spear[15];					//D10215:予備
+	INT16   aux_switch_B160;			//D10215:追加リレー出力用
+	INT16   spear[14];					//D10216:予備
 	UINT32  hcounter[4];				//D10230:高速カウンタユニット 
 	UINT32  absocoder[3];				//D10238　アブソコーダ 
 	INT16   pc_fault[N_PLC_FAULT_BUF];	//D10244　PC　FAULT
@@ -139,20 +163,22 @@ typedef struct _ST_PLC_RBUF_HHGQ18 {
 	INT16   erm_bo[8];					// D10317:電気室PLC b出力
 	INT32	mh_z;						// D10325:主巻揚程　D1010
 	float	r_mm;						// D10327:引込半径　D2774
-	INT16	spar0[4];					// D10327:予備
+	INT16	spar0[2];					// D10327:予備
+	INT16	wind_dir; 					// D10331:予備
+	INT16	spar1[1];					// D10332:予備
 	INT16	cv_tg[4];					// D10333:目標速度％
-	INT16	spar1[2];					// D10337:予備
+	INT16	spar2[2];					// D10337:予備
 	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10339:故障信号
 	INT16   erm_y[5];					// D10357:電気室PLC Y出力
 	INT16   erm_x[7];					// D10362:電気室PLC X入力
-	INT16   spar2;						//
+	INT16   spar3;						//
 	INT16   inv_vref[4];				// D10370:インバータ速度指令
 	INT16   inv_vfb[4];					// D10375:インバータ速度FB
 	INT16   inv_trq[2];					// D10378:インバータトルク指令
-	INT16   spar3[2];					// D10369:インバータPLC DO指令	
+	INT16   spar4[2];					// D10369:インバータPLC DO指令	
 	INT32   hcount_fb[4];				// D10380:高速カウンタユニット FB値
 	INT32   absocoder_fb[3];			// D10388:アブソコーダ FB値
-	INT16   spar4[4];					// D10396:予備
+	INT16   spar5[4];					// D10396:予備
 
 }ST_PLC_RBUF_HHGQ18, * LPST_PLC_RBUF_HHGQ18;
 
@@ -162,12 +188,14 @@ typedef union _UN_PLC_RBUF {
 	//	ST_PLC_RBUF			st;
 	ST_PLC_RBUF_HHGH29	st_hhgh29;
 	ST_PLC_RBUF_HHGQ18	st_hhgq18;
+	ST_PLC_RBUF_H6R602	st_h6r602;
 }UN_PLC_RBUF, * LPUN_PLC_RBUF;
 typedef union _UN_PLC_WBUF {
 	INT16 wbuf[CC_MC_SIZE_W_WRITE];
 	//	ST_PLC_WBUF			st;
 	ST_PLC_WBUF_HHGH29	st_hhgh29;
 	ST_PLC_WBUF_HHGQ18	st_hhgq18;
+	ST_PLC_WBUF_H6R602	st_h6r602;
 }UN_PLC_WBUF, * LPUN_PLC_WBUF;
 
 // ######## OTE PLC関連定義 ##########################
