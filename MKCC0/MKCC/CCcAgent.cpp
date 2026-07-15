@@ -543,6 +543,8 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	pPLC_IO->stat_sl.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//SLノッチFB
 	notch = pCrane->pPlc->rval(pPlcRIf->JC.gt_notch).i16;
 	pPLC_IO->stat_gt.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//GTノッチFB
+	notch = pCrane->pPlc->rval(pPlcRIf->JC.ah_notch).i16;
+	pPLC_IO->stat_ah.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//GTノッチFB
 
 	//## 目標速度
 	pPLC_IO->stat_mh.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_mh).i16;

@@ -198,7 +198,13 @@ void COteScad::set_panel_io() {
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_load->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = pPanelBase->psubobjs->cb_v_delay_chk_device->get();
 
-		
+		//### ノッチ指令
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_bh];
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_sl];
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_gt];
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_ah];
+
 		//故障情報要求コード
 		st_work.flt_req_code = pPanelBase->psubobjs->flt_req_code;
 	}

@@ -15,7 +15,7 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BIT2 | BIT3 | BIT7,	CODE_PLCIO_BITS,	0,0,6},	//mh_spd_cs;
 	{NULL,BIT4 | BIT5 | BIT6,	CODE_PLCIO_BITS,	0,0,6},	//bh_mode_cs;
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,6},	//ah_use_sel;	 
-	{NULL,0xFC00,				CODE_PLCIO_BITS,	10,0,6},	// ah_notch;
+	{NULL,0xFC00,				CODE_PLCIO_BITS,	10,0,6},// ah_notch;
 	//B230
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0,7},	//mh_notch;
 	{NULL,BIT7 | BIT8,			CODE_PLCIO_BITS,	7,0,7},	//gt_spd_sel;	
@@ -66,6 +66,7 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BIT10,				CODE_PLCIO_BIT,		0,0,66},	//mh_brk1_fb;		//主巻ブレーキアンサーバック
 	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0,66},	//bh_brk_fb;		//引込ブレーキアンサーバック
 	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0,66},	//gt_brk_fb;		//走行ブレーキアンサーバック
+	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0,66},	//ah_brk_fb;		//ホイップブレーキアンサーバック
 
 	//インバータへの指令出力内容
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,57},//inv_fwd_mh
@@ -76,41 +77,50 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0,58},//inv_rev_sl
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,59},//inv_fwd_gt
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,59},//inv_rev_gt
+	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,59},//inv_fwd_ah
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,59},//inv_rev_ah
 
 	//インバータ速度指令
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,70},//inv_vref_mh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,71},//inv_vref_bh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,72},//inv_vref_sl
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,73},//inv_vref_gt
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,73},//inv_vref_ah
 
 	//インバータ速度FB
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,74},//inv_vfb_mh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,75},//inv_vfb_bh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,76},//inv_vfb_sl
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,77},//inv_vfb_gt
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,77},//inv_vfb_ah
 
 	//目標速度％
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,33},//target_v_m
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,34},//target_v_b
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,35},//target_v_s
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,36},//target_v_g
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,36},//target_v_ah
 
 	//インバータトルク指令
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,78},//inv_trqref_mh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,79},//inv_trqref_bh
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,79},//inv_trqref_ah
 
 	//SIM　高速カウンタ　アブソコーダ
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,82},	//hcounter_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,82},	//hcounter_ah
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,86},	//hcounter_bh
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,88},	//hcounter_sl
 
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,90},	//absocoder_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,90},	//absocoder_ah
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,94},	//absocoder_gt
 	//荷重
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//荷重
 	//揚程　旋回半径
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,25},	//h_mh_mm
 	{NULL,BITFF,				CODE_PLCIO_FLOAT,	0,0,27},	//r_bh_m
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,25},	//h_ah_mm
 
 	//風速
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0,5},	//wind_spd_01m
@@ -164,9 +174,12 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
 
 	//SIM　高速カウンタ　アブソコーダ
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,30},	//hcounter_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,36},	//hcounter_ah
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,34},	//hcounter_bh
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,36},	//hcounter_sl
+
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,38},	//absocoder_mh
+	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,38},	//absocoder_ah
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,42},	//absocoder_gt
 
 	//SIM　INV 出力
@@ -174,8 +187,11 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,71},//vfb_bh;
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,72},//vfb_sl;
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,73},//vfb_gt;
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,70},//vfb_ah;
+
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,74},//trqref_mh
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,75},//trqref_bh
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,74},//trqref_ah
 
 	//モーメントリミッタ
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//h_mh_mm	//モーメントリミッタ荷重AI

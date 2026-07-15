@@ -331,7 +331,7 @@ typedef struct _ST_JC_PLC_IO_R {
 	ST_PLC_IO_DEF mh_spd_cs;
 	ST_PLC_IO_DEF bh_mode_cs;
 	ST_PLC_IO_DEF ah_use_sel;
-	ST_PLC_IO_DEF ah_notch; //補巻ノッチ
+	ST_PLC_IO_DEF ah_notch;			//補巻ノッチ
 	//B230
 	ST_PLC_IO_DEF mh_notch;
 	ST_PLC_IO_DEF gt_spd_sel;
@@ -384,6 +384,7 @@ typedef struct _ST_JC_PLC_IO_R {
 	ST_PLC_IO_DEF mh_brk1_fb;		//主巻ブレーキアンサーバック
 	ST_PLC_IO_DEF bh_brk_fb;		//引込ブレーキアンサーバック
 	ST_PLC_IO_DEF gt_brk_fb;		//走行ブレーキアンサーバック
+	ST_PLC_IO_DEF ah_brk_fb;		//ホイップブレーキアンサーバック
 
 	//インバータへの指令出力内容
 	ST_PLC_IO_DEF inv_fwd_mh;		//主巻インバータ指令FWD
@@ -394,31 +395,39 @@ typedef struct _ST_JC_PLC_IO_R {
 	ST_PLC_IO_DEF inv_rev_sl;		//旋回インバータ指令REV
 	ST_PLC_IO_DEF inv_fwd_gt;		//走行インバータ指令FWD
 	ST_PLC_IO_DEF inv_rev_gt;		//走行インバータ指令REV
+	ST_PLC_IO_DEF inv_fwd_ah;		//補巻インバータ指令FWD
+	ST_PLC_IO_DEF inv_rev_ah;		//補巻インバータ指令REV
 
 	ST_PLC_IO_DEF inv_vref_mh;		//主巻インバータ速度指令
 	ST_PLC_IO_DEF inv_vref_bh;		//引込インバータ速度指令
 	ST_PLC_IO_DEF inv_vref_sl;		//旋回インバータ速度指令
 	ST_PLC_IO_DEF inv_vref_gt;		//走行インバータ速度指令
+	ST_PLC_IO_DEF inv_vref_ah;		//補巻インバータ速度指令
 
 	ST_PLC_IO_DEF inv_vfb_mh;		//主巻インバータ速度FB
 	ST_PLC_IO_DEF inv_vfb_bh;		//引込インバータ速度FB
 	ST_PLC_IO_DEF inv_vfb_sl;		//旋回インバータ速度FB
 	ST_PLC_IO_DEF inv_vfb_gt;		//走行インバータ速度FB
+	ST_PLC_IO_DEF inv_vfb_ah;		//補巻インバータ速度FB
 
 	ST_PLC_IO_DEF target_v_mh;		//主巻目標速度
 	ST_PLC_IO_DEF target_v_bh;		//引込目標速度
 	ST_PLC_IO_DEF target_v_sl;		//旋回目標速度
 	ST_PLC_IO_DEF target_v_gt;		//走行目標速度
+	ST_PLC_IO_DEF target_v_ah;		//補巻目標速度
 
 	ST_PLC_IO_DEF inv_trqref_mh;	//主巻インバータトルク指令
 	ST_PLC_IO_DEF inv_trqref_bh;	//引込インバータトルク指令
+	ST_PLC_IO_DEF inv_trqref_ah;	//補巻インバータトルク指令
 
 	//高速カウンタユニット
 	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_ah;
 	ST_PLC_IO_DEF hcounter_bh;
 	ST_PLC_IO_DEF hcounter_sl;
 	//アブソコーダ
 	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_ah;
 	ST_PLC_IO_DEF absocoder_gt;
 	
 	//荷重
@@ -427,6 +436,7 @@ typedef struct _ST_JC_PLC_IO_R {
 	//揚程、旋回半径
 	ST_PLC_IO_DEF h_mh_mm;
 	ST_PLC_IO_DEF r_bh_m;
+	ST_PLC_IO_DEF h_ah_mm;
 
 	//風速
 	ST_PLC_IO_DEF wind_spd_01m;
@@ -478,10 +488,13 @@ typedef struct _ST_JC_PLC_IO_W {
 
 	//高速カウンタユニット
 	ST_PLC_IO_DEF hcounter_mh;
+	ST_PLC_IO_DEF hcounter_ah;
 	ST_PLC_IO_DEF hcounter_bh;
 	ST_PLC_IO_DEF hcounter_sl;
+
 	//アブソコーダ
 	ST_PLC_IO_DEF absocoder_mh;
+	ST_PLC_IO_DEF absocoder_ah;
 	ST_PLC_IO_DEF absocoder_gt;
 
 	//INV出力
@@ -489,8 +502,11 @@ typedef struct _ST_JC_PLC_IO_W {
 	ST_PLC_IO_DEF vfb_bh;
 	ST_PLC_IO_DEF vfb_sl;
 	ST_PLC_IO_DEF vfb_gt;
+	ST_PLC_IO_DEF vfb_ah;
+
 	ST_PLC_IO_DEF trqref_mh;
 	ST_PLC_IO_DEF trqref_bh;
+	ST_PLC_IO_DEF trqref_ah;
 
 	//モーメントリミッタ
 	ST_PLC_IO_DEF mlim_weight_ai;	//モーメントリミッタ荷重AI
