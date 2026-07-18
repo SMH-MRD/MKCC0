@@ -106,6 +106,8 @@ public:
 
 #define PLC_IO_CS_MH_SPD_MODE	20
 #define PLC_IO_CS_BH_R_MODE		21
+#define PLC_IO_CS_AH_SPD_MODE	22
+#define PLC_IO_CS_GT_SPD_MODE	23
 
 //CSの出力パターン
 #define PLC_IO_CS_TYPE_A		0	//HHGH29

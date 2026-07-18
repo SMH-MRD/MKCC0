@@ -556,24 +556,30 @@ typedef struct _ST_CC_SIM_INF {
 //	ST_AUX_ENV_INF aux_io;							//センサ,補機SIMULATION結果(Emulator, Simulation Mode)
 //	ST_SWAY_SERVER_MSG rcv_msg;						//振れセンサセンサ受信バッファ計算値
 
-	INT16 mlim_weight_AI;				//モーメントリミッタフック質量 AI入力計算値 
+	INT16 mlim_weight_AI;				//モーメントリミッタ主巻質量 AI入力計算値 
+	INT16 mlim_weight_ah_AI;			//モーメントリミッタ補巻質量 AI入力計算値 
 	INT16 mlim_r_AI;					//モーメントリミッタ半径AI入力計算値
 	
 	INT32 hcount_mh;					//主巻高速カウンタ計算値
 	INT32 hcount_bh;					//引込高速カウンタ計算値
 	INT32 hcount_sl;					//旋回高速カウンタ計算値
+	INT32 hcount_ah;					//補巻高速カウンタ計算値
 	INT32 absocoder_mh;					//主巻アブソコーダ計算値
 	INT32 absocoder_gt;					//走行アブソコーダ計算値
+	INT32 absocoder_ah;					//補巻アブソコーダ計算値
 	
 	INT16 vfb_mh;						//主巻速度FB計算値
 	INT16 vfb_bh;						//引込速度FB計算値
 	INT16 vfb_sl;						//旋回速度FB計算値
 	INT16 vfb_gt;						//走行速度FB計算値
+	INT16 vfb_ah;						//補巻速度FB計算値
 
 	INT16 trq_ref_mh;					//主巻トルク指令計算値
 	INT16 trq_ref_bh;					//引込トルク指令計算値
+	INT16 trq_ref_ah;					//補巻トルク指令計算値
 
-	INT16 wind_spd_AI;					//モーメントリミッタ半径AI入力計算値
+	INT16 wind_spd_AI;					//風速計算値
+	INT16 wind_dir_AI;					//風向計算値
 }ST_CC_SIM_INF, * LPST_CC_SIM_INF;
 #pragma endregion シミュレーション信号定義構造体
 

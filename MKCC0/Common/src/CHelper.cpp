@@ -237,7 +237,6 @@ INT16 CPlcCSHelper::get_mode_by_code(INT16 value, int cs_code, int type) {
 			if (value & BIT3) return CODE_MODE2;
 			if (value & BIT7) return CODE_MODE3;
 		}
-
 	}break;
 	case PLC_IO_CS_BH_R_MODE: {
 		if (type == PLC_IO_CS_TYPE_A) {
@@ -252,6 +251,19 @@ INT16 CPlcCSHelper::get_mode_by_code(INT16 value, int cs_code, int type) {
 			if (value & BIT5) return CODE_MODE2;
 			if (value & BIT6) return CODE_MODE3;
 		}
+	}break;
+	case PLC_IO_CS_AH_SPD_MODE: {
+		if (type == PLC_IO_CS_TYPE_A) {
+			if (value & BITOFF) return CODE_MODE0;
+			if (value & BIT11) return CODE_MODE1;
+			if (value & BIT12) return CODE_MODE2;
+		}
+		else {
+			return CODE_MODE0;
+		}
+	}break;
+	case PLC_IO_CS_GT_SPD_MODE: {
+			return CODE_MODE0;
 	}break;
 	default:
 		break;
@@ -286,6 +298,20 @@ INT16 CPlcCSHelper::get_code_by_mode(INT16 mode, int cs_code, int type) {
 		if (mode == CODE_MODE1) return BIT4;
 		if (mode == CODE_MODE2) return BIT5;
 		if (mode == CODE_MODE3) return BIT6;
+	}break;
+	case PLC_IO_CS_AH_SPD_MODE: {
+		if (type == PLC_IO_CS_TYPE_A) {
+			if (mode == CODE_MODE0) return BITOFF;
+			if (mode == CODE_MODE1) return BIT11;
+			if (mode == CODE_MODE2) return BIT12;
+		}
+		else
+		{
+			return BITOFF;
+		}
+	}break;
+	case PLC_IO_CS_GT_SPD_MODE: {
+			return BITOFF;
 	}break;
 	default:
 		break;

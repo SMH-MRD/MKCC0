@@ -359,12 +359,18 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
 	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
 
-	//###  回転速度セット ±0.1％単位 ベース速度が100％で inv fb/1000*定格回転数
+	//###  回転速度セット ±rpm単位 →rps単位に変換
 	pEnvInf->crane_stat.nd[ID_HOIST].v	= (double)pPlcIo->stat_mh.v_fb / 60.0;//主巻 RPS
 	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.v_fb / 60.0;//起伏(起伏） RPS
 	pEnvInf->crane_stat.nd[ID_BH_HST].v = pEnvInf->crane_stat.nd[ID_BOOM_H].v;//起伏（主巻） RPS
 	pEnvInf->crane_stat.nd[ID_SLEW].v	= (double)pPlcIo->stat_sl.v_fb / 60.0;//旋回 RPS
 	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.v_fb / 60.0;//走行 RPS
+
+	if(g_my_code.machine_id == CRANE_ID_H6R602) {
+		pEnvInf->crane_stat.nd[ID_AHOIST].p = (pPlcIo->stat_ah.absocoder - pspec->base_ah.CntAbsSet0) / pspec->base_ah.CntAbsR + pspec->base_ah.NdrmAbsSet0;
+		pEnvInf->crane_stat.nd[ID_AHOIST].v = (double)pPlcIo->stat_ah.v_fb / 60.0;//補助巻 RPS
+	}
+
 
 	//###  巻取量セット
 	pEnvInf->crane_stat.i_layer[ID_HOIST]	= (INT32)(pEnvInf->crane_stat.nd[ID_HOIST].p / pspec->base_mh.Ndmizo0)	+ 1;

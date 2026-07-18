@@ -36,6 +36,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	notch_ah,
 	notch_aux,
 	mh_spd_mode,	//主巻モード
+	ah_spd_mode,	//補巻モード
 	bh_r_mode,		//引込モード
 	alm_stop,
 	motor_siren,

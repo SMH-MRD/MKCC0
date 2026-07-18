@@ -2402,7 +2402,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 			SetWindowText(pPanelBase->psubobjs->st_bh_fb_v->hWnd, wos.str().c_str());
 			wos.str(L""); wos << p_plc_rbuf->inv_vfb[2];
 			SetWindowText(pPanelBase->psubobjs->st_sl_fb_v->hWnd, wos.str().c_str());
-			wos.str(L""); wos << p_plc_rbuf->inv_vref[3];
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[3];
 			SetWindowText(pPanelBase->psubobjs->st_gt_fb_v->hWnd, wos.str().c_str());
 
 			//ﾄﾙｸ指令
@@ -2426,7 +2426,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 
 		}break;
 		case CRANE_ID_HHGQ18: {
-			LPST_PLC_RBUF_HHGH29 p_plc_rbuf = (LPST_PLC_RBUF_HHGH29)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+			LPST_PLC_RBUF_HHGQ18 p_plc_rbuf = (LPST_PLC_RBUF_HHGQ18)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
 			wostringstream wos;
 
 			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].notch_ref > 0)
@@ -2484,7 +2484,89 @@ LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wPara
 			SetWindowText(pPanelBase->psubobjs->st_bh_fb_v->hWnd, wos.str().c_str());
 			wos.str(L""); wos << p_plc_rbuf->inv_vfb[2];
 			SetWindowText(pPanelBase->psubobjs->st_sl_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_fb_v->hWnd, wos.str().c_str());
+
+			//ﾄﾙｸ指令
+			wos.str(L""); wos << p_plc_rbuf->inv_trq[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_trq->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_trq[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_trq->hWnd, wos.str().c_str());
+
+			//PG
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_MH];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_pg->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_BH];
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_pg->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->hcount_fb[ID_PLC_HCOUNT_SL];
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_pg->hWnd, wos.str().c_str());
+			//アブソコーダ
+			wos.str(L""); wos << p_plc_rbuf->absocoder_fb[ID_PLC_ABSO_MH];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_abs->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->absocoder_fb[ID_PLC_ABSO_GT];
+			SetWindowText(pPanelBase->psubobjs->st_gt_fb_abs->hWnd, wos.str().c_str());
+
+		}break;
+		case CRANE_ID_H6R602: {
+			LPST_PLC_RBUF_H6R602 p_plc_rbuf = (LPST_PLC_RBUF_H6R602)pCcIf->st_msg_pc_u_rcv.body.st.buf_io_read;
+			wostringstream wos;
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_mh_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_bh_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_sl_notch_dir->hWnd, L"0");
+
+			if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].notch_ref > 0)
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"+");
+			else if (pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].notch_ref < 0)
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"-");
+			else
+				SetWindowText(pPanelBase->psubobjs->st_gt_notch_dir->hWnd, L"0");
+
+			//目標速度
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_target_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->cv_tg[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_target_v->hWnd, wos.str().c_str());
+
+			//速度指令
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_ref_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vref[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_ref_v->hWnd, wos.str().c_str());
 			wos.str(L""); wos << p_plc_rbuf->inv_vref[3];
+			SetWindowText(pPanelBase->psubobjs->st_gt_ref_v->hWnd, wos.str().c_str());
+
+			//速度FB
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[0];
+			SetWindowText(pPanelBase->psubobjs->st_mh_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[1];
+			SetWindowText(pPanelBase->psubobjs->st_bh_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[2];
+			SetWindowText(pPanelBase->psubobjs->st_sl_fb_v->hWnd, wos.str().c_str());
+			wos.str(L""); wos << p_plc_rbuf->inv_vfb[3];
 			SetWindowText(pPanelBase->psubobjs->st_gt_fb_v->hWnd, wos.str().c_str());
 
 			//ﾄﾙｸ指令

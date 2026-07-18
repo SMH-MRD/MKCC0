@@ -174,8 +174,8 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 		st_sim_inf.hcount_mh = 97791220;		//主巻PG　(R21,H30）
 		st_sim_inf.hcount_bh = 72354000;		//引込PG　(R21,H30）
 		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
-		st_sim_inf.absocoder_mh = 51273;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
-		st_sim_inf.absocoder_gt = 325949;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024
+		st_sim_inf.absocoder_mh = 60348;		//主巻アブソコーダ初期値開始位置(R21,H30）
+		st_sim_inf.absocoder_gt = 160000;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024
 	}break;
 	case CRANE_ID_HHGQ18:
 	{
@@ -207,13 +207,13 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	{
 		if (pPLC_IO->stat_mh.v_ref != 0) {
 			if (pPLC_IO->stat_mh.brake == 0) {//ブレーキ閉
-				st_sim_inf.trq_ref_mh = 600;	//30%トルク指令
+				st_sim_inf.trq_ref_mh = 300;	//30%トルク指令
 				st_sim_inf.vfb_mh = 0;			//速度FBは0
 			}
 			else {//ブレーキ開
-				st_sim_inf.trq_ref_mh = 2000;	//100%トルク指令
+				st_sim_inf.trq_ref_mh = 1000;	//100%トルク指令
 				//inv_ref(ベース100%で0.1%単位表現)
-				st_sim_inf.vfb_mh = (INT16)pPLC_IO->stat_mh.v_ref;
+				st_sim_inf.vfb_mh = (INT16)((double)pPLC_IO->stat_mh.v_ref * pspec->base_mh.Rpm_rated/1000.0);
 			}
 		}
 		else {
@@ -226,17 +226,13 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	{
 		if (pPLC_IO->stat_bh.v_ref != 0) {
 			if (pPLC_IO->stat_bh.brake == 0) {//ブレーキ閉
-				st_sim_inf.trq_ref_bh = 600;	//30%トルク指令
+				st_sim_inf.trq_ref_bh = 300;	//30%トルク指令
 				st_sim_inf.vfb_bh = 0;			//速度FBは0
 			}
-			//else if (st_sim_inf.hcount_bh <= pspec->base_bh.CntPgSet0) {//引込限以下で停止 　引込方向指令はトルク指令0
-			//	st_sim_inf.trq_ref_bh = 600;	//30%トルク指令
-			//	st_sim_inf.vfb_bh = -(INT16)pPLC_IO->stat_bh.v_ref * 0.01;			//速度FBは0
-			//}
 			else {//ブレーキ開
-				st_sim_inf.trq_ref_bh = 2000;	//100%トルク指令
+				st_sim_inf.trq_ref_bh = 1000;	//100%トルク指令
 				//inv_ref(ベース100%で0.1%単位表現)
-				st_sim_inf.vfb_bh = -(INT16)pPLC_IO->stat_bh.v_ref;
+				st_sim_inf.vfb_bh = (INT16)((double)pPLC_IO->stat_bh.v_ref * pspec->base_bh.Rpm_rated / 1000.0);
 			}
 		}
 		else {
@@ -251,7 +247,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 			if (pPLC_IO->stat_sl.brake) //!!!旋回ブレーキは信号ONで閉
 				st_sim_inf.vfb_sl = 0;			//速度FBは0
 			else {//ブレーキ開
-				st_sim_inf.vfb_sl = (INT16)pPLC_IO->stat_sl.v_ref;
+				st_sim_inf.vfb_sl = (INT16)((double)pPLC_IO->stat_sl.v_ref * pspec->base_sl.Rpm_rated / 1000.0);
 			}
 		}
 		else st_sim_inf.vfb_sl = 0;			//速度FBは0
@@ -263,7 +259,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 			if (pPLC_IO->stat_gt.brake == 0)
 				st_sim_inf.vfb_gt = 0;		//速度FBは0
 			else { //ブレーキ開
-				st_sim_inf.vfb_gt = (INT16)pPLC_IO->stat_gt.v_ref;
+				st_sim_inf.vfb_gt = (INT16)((double)pPLC_IO->stat_gt.v_ref * pspec->base_gt.Rpm_rated / 1000.0);
 			}
 		}
 		else st_sim_inf.vfb_gt = 0;			//速度FBは0
@@ -281,11 +277,11 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v * inf.dt * st_work.axis[ID_BOOM_H].RpsPGCntSec);
 	//下限リミット　入限 
 	if (st_sim_inf.hcount_bh < pspec->base_bh.CntPgSet0) 
-		st_sim_inf.hcount_bh = pspec->base_bh.CntPgSet0 + 30000;//PG無変化異常回避のため微小カウント変化を入れる
+		st_sim_inf.hcount_bh = pspec->base_bh.CntPgSet0 + 30000;
 
 	
 	//!!!旋回ブレーキは信号OFFで開
-	if((!pPLC_IO->stat_sl.brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-5)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>5)))
+	if((!pPLC_IO->stat_sl.brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-0.1)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>0.1)))
 		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v	* inf.dt * st_work.axis[ID_SLEW].RpsPGCntSec);
 
 

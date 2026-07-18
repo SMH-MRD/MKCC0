@@ -14,13 +14,15 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BIT1,					CODE_PLCIO_BIT_NC,	0,0,6},	//syukan_off;
 	{NULL,BIT2 | BIT3 | BIT7,	CODE_PLCIO_BITS,	0,0,6},	//mh_spd_cs;
 	{NULL,BIT4 | BIT5 | BIT6,	CODE_PLCIO_BITS,	0,0,6},	//bh_mode_cs;
-	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,6},	//ah_use_sel;	 
+	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,6},	//ah_use_sel;	
 	{NULL,0xFC00,				CODE_PLCIO_BITS,	10,0,6},// ah_notch;
+
 	//B230
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0,7},	//mh_notch;
 	{NULL,BIT7 | BIT8,			CODE_PLCIO_BITS,	7,0,7},	//gt_spd_sel;	
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0,7},	//gt_notch;	
-	{NULL,BIT15,				CODE_PLCIO_BIT_NC,	0,0,7},	//estop;	
+	{NULL,BIT15,				CODE_PLCIO_BIT_NC,	0,0,7},	//estop;
+
 	//B240
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,8},	//ah_under_limit;補巻制限荷重以下
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,8},	//mlim_warn_1;	ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下//ah_under_limit;
@@ -37,8 +39,11 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0,8},	//mhbk_emr_ss;
 	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0,8},	//mhbk_opn_pb;
 	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0,8},	//ahbk_emr_low_ss;
+
+
 	//B250
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0,9},	//bh_notch;
+	{NULL, BIT6 | BIT7,			CODE_PLCIO_BITS,	0,0,9},	//ah_spd_cs;
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,9},	//sl_brake;
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0,9},	//sl_notch;
 	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0,9},	//sl_hydr_press_sw;	旋回油圧圧力スイッチ
@@ -70,15 +75,15 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 
 	//インバータへの指令出力内容
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,57},//inv_fwd_mh
-	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,57},//inv_rev_mh
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,57},//inv_ref_mh
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,58},//inv_fwd_bh
-	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,58},//inv_rev_bh
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,58},//inv_ref_bh
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,58},//inv_fwd_sl
-	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0,58},//inv_rev_sl
+	{NULL,BIT9,					CODE_PLCIO_BIT,		0,0,58},//inv_ref_sl
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,59},//inv_fwd_gt
-	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,59},//inv_rev_gt
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,59},//inv_ref_gt
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,59},//inv_fwd_ah
-	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,59},//inv_rev_ah
+	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,59},//inv_ref_ah
 
 	//インバータ速度指令
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,70},//inv_vref_mh
@@ -116,7 +121,8 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,90},	//absocoder_ah
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,94},	//absocoder_gt
 	//荷重
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//荷重
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//m荷重
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},	//m_ah 荷重
 	//揚程　旋回半径
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,25},	//h_mh_mm
 	{NULL,BITFF,				CODE_PLCIO_FLOAT,	0,0,27},	//r_bh_m
@@ -124,6 +130,8 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 
 	//風速
 	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0,5},	//wind_spd_01m
+	//風向
+	{ NULL,BITFF,				CODE_PLCIO_WORD,	0,0,5 },	//wind_dir_deg
 };
 
 ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
@@ -131,6 +139,7 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
 	//PLC制御
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1,0},	//pc_healthy;
 	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1,1},	//pc_ctrl_mode;
+
 	//運転室操作台
 	//B160
 	{NULL,BIT11,				CODE_PLCIO_BIT,		0,0,15},	//mercury_lamp_sw1;	水銀灯スイッチ1
@@ -143,13 +152,15 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
 	{NULL,BIT1,					CODE_PLCIO_BIT_NC,	0,0,6},	//syukan_off;
 	{NULL,BIT2 | BIT3 | BIT7,	CODE_PLCIO_BITS,	0,0,6},	//mh_spd_cs;
 	{NULL,BIT4 | BIT5 | BIT6,	CODE_PLCIO_BITS,	0,0,6},	//bh_mode_cs;
-	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,6},	//ah_use_sel;	 
+	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,6},	//ah_use_sel;	
 	{NULL,0xFC00,				CODE_PLCIO_BITS,	10,0,6},// ah_notch;
+
 	//B230
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0,7},	//mh_notch;
 	{NULL,BIT7 | BIT8,			CODE_PLCIO_BITS,	7,0,7},	//gt_spd_sel;	
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0,7},	//gt_notch;	
-	{NULL,BIT15,				CODE_PLCIO_BIT_NC,	0,0,7},	//estop;	
+	{NULL,BIT15,				CODE_PLCIO_BIT_NC,	0,0,7},	//estop;
+
 	//B240
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,8},	//ah_under_limit;補巻制限荷重以下
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,8},	//mlim_warn_1;	ﾓｰﾒﾝﾄﾘﾐｯﾀ旋回加速切替荷重以下//ah_under_limit;
@@ -166,8 +177,10 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
 	{NULL,BIT12,				CODE_PLCIO_BIT,		0,0,8},	//mhbk_emr_ss;
 	{NULL,BIT13,				CODE_PLCIO_BIT,		0,0,8},	//mhbk_opn_pb;
 	{NULL,BIT14,				CODE_PLCIO_BIT,		0,0,8},	//ahbk_emr_low_ss;
+
 	//B250
 	{NULL,0x003F,				CODE_PLCIO_BITS,	0,0,9},	//bh_notch;
+	{NULL, BIT6 | BIT7,			CODE_PLCIO_BITS,	0,0,9},	//ah_spd_cs;
 	{NULL,BIT8,					CODE_PLCIO_BIT,		0,0,9},	//sl_brake;
 	{NULL,0x7E00,				CODE_PLCIO_BITS,	9,0,9},	//sl_notch;
 	{NULL,BIT15,				CODE_PLCIO_BIT,		0,0,9},	//sl_hydr_press_sw;	旋回油圧圧力スイ
@@ -194,10 +207,15 @@ ST_JC_PLC_IO_W plc_io_wdef_hhgq18 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,74},//trqref_ah
 
 	//モーメントリミッタ
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//h_mh_mm	//モーメントリミッタ荷重AI
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,3},//r_bh_m	//モーメントリミッタ旋回半径AI
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//mlim_weight_ai	//モーメントリミッタ荷重AI
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//mlim_weight_ah_ai	//モーメントリミッタ荷重AI
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,3},//mlim_r_ai	//モーメントリミッタ旋回半径AI
+
 	//風速AI
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,5},//wind_spd_ai 
+
+	//風向
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,5},// wind_dir_ai 
 
 	//OTEヘッダコマンド
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,16},// 

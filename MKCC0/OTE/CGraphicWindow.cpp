@@ -176,16 +176,17 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 	wo.str(L""); wo << L"半径： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb << L"m";
 	pPanelBase->pgwinobjs->str_pos_bh->update(wo.str().c_str());	// 半径書き込み
 	wo.str(L""); wo << L"旋回： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].pos_fb << L"°";
-	pPanelBase->pgwinobjs->str_pos_sl->update(wo.str().c_str());	// 旋回各書き込み
+	pPanelBase->pgwinobjs->str_pos_sl->update(wo.str().c_str());	// 旋回角書き込み
 	wo.str(L""); wo << L"走行： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].pos_fb << L"m";
 	pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 走行位置書き込み
 
-	wo.str(L""); wo << L"風速： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.wind_spd << L"m/s";
-	pPanelBase->pgwinobjs->str_wind_spd->update(wo.str().c_str());	// 風速書き込み
-	
-	if(pCrane->st_crane_inf.crane_id == CRANE_ID_HHGH29) {
+
+	if((pCrane->st_crane_inf.crane_id == CRANE_ID_HHGH29)||(pCrane->st_crane_inf.crane_id == CRANE_ID_HHGQ18)) {
 		wo.str(L""); wo << L"風向： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.wind_spd << L"°";
 		pPanelBase->pgwinobjs->str_wind_dir->update(wo.str().c_str());	// 風向書き込み
+		wo.str(L""); wo << L"風速： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.wind_spd << L"m/s";
+		pPanelBase->pgwinobjs->str_wind_spd->update(wo.str().c_str());	// 風速書き込み
+
 	}
 	
 	wo.str(L""); wo << L"(" << mouse_pos_main.X << L"," << mouse_pos_main.Y << L") ";
