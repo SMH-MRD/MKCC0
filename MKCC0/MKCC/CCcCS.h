@@ -213,6 +213,7 @@ public:
 
 private:
     int crane_id;
+
       
     HRESULT(*fp_set_ote_data)(int id) = NULL;       //OTEへの送信データをセット   
     HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  

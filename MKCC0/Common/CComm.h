@@ -15,7 +15,7 @@
 #define N_COMM_SET_PC_LAN_PORT		8
 #define N_COMM_SET_WAN_PORT			2
 #define N_COMM_SET_PLC_LAN_PORT		2
-#define N_COMM_SET_AUX_LAN_PORT		4
+#define N_COMM_SET_AUX_LAN_PORT		8
 
 #define CODE_COMM_LOCATION_CRANE	0	//クレーン
 #define CODE_COMM_LOCATION_OTE		1	//操作端末
@@ -25,6 +25,7 @@
 #define ID_COMM_PC_SLBRK			2	//メインのPCと旋回ブレーキPLC間通信
 #define ID_COMM_PC_WIFI				2	//OTE WIFIポート
 #define ID_COMM_SWAY_SENSOR			3	//振れセンサ
+#define ID_COMM_LANIO				4	//振れセンサ
 #define ID_COMM_PC_OPTION			7	//デバッグ用
 
 #define ID_COMM_WAN0				0	//デフォルトのWAN

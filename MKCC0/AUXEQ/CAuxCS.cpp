@@ -5,6 +5,11 @@
 #include "AUXEQ_DEF.H"
 #include "SmemAux.H"
 #include "CComm.h"
+#include "LELanio.h"
+
+#pragma comment(lib, "LELanio.lib")
+
+extern ST_DEVICE_CODE g_my_code;
 
 //ソケット
 static CSockUDP* pUSockAuxCs;	//ユニキャストOTE通信受信用
@@ -23,6 +28,10 @@ static LPST_AUX_AGENT_INF	pAgentInf;
 
 static LONG rcv_count_u = 0, snd_count_u = 0;
 
+int CAuxCS::nLANIO;
+
+hLANIO LANIO;
+
 /****************************************************************************/
 /*   デフォルト関数											                    */
 /****************************************************************************/
@@ -38,6 +47,7 @@ CAuxCS::~CAuxCS() {
 	delete pEnvInfObj; 
 	delete pAgentInfObj;
 	delete pCsInfObj;
+	LELanioEnd();// LANIO終了
 }
 
 HRESULT CAuxCS::initialize(LPVOID lpParam) {
@@ -68,6 +78,34 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return hr;
 	};
+
+	//### LANIO初期化
+	if (LELanioInit() == 0) {
+		wos.str(L""); wos << "!ERR LELANioInit" << std::endl;
+	}
+	else {
+		wos.str(L""); wos << "LELANioInit Success" << std::endl;
+	}
+	msg2listview(wos.str());
+
+	nLANIO = LELanioSearch();	// LANIOを検索する
+	if (nLANIO == 0 || nLANIO == -1) {
+		wos.str(L""); wos << L"LANIOが見つかりません";
+	}
+	else {
+		wos.str(L""); wos << L"nLANIO="<<nLANIO;
+	}
+	msg2listview(wos.str());
+
+	//char ip_lanio[16] = "192.168.0.31";
+	LANIO = LELanioConnectByIpAddress(CComm::addr_list.crn[g_my_code.machine_id].aux[ID_COMM_LANIO].ip);	// 指定IPアドレスでLANIOと接続を行う
+	if (LANIO == -1) {
+		wos.str(L""); wos << L"LANIO 接続失敗";
+	}
+	else{
+		wos.str(L""); wos << L"LANIO 接続成功";
+	}
+	msg2listview(wos.str());
 
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -127,50 +165,6 @@ int CAuxCS::close() {
 	return 0;
 }
 
-/****************************************************************************/
-/*   通信関数											                    */
-/****************************************************************************/
-#if 0
-
-/// <summary>
-/// MKCCユニキャスト電文受信処理
-/// </summary>
-HRESULT CAuxCS::rcv_uni_main(LPST_AUX_COM_CLI_MSG pbuf) {
-	int nRtn = pUSockAuxCs->rcv_msg((char*)pbuf, sizeof(ST_PC_U_MSG));
-	if (nRtn == SOCKET_ERROR) {
-		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
-			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR rcv:" << pUSockAuxCs->err_msg.str();
-			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
-			return S_FALSE;
-		}
-	}
-	rcv_count_u++;
-	return S_OK;
-}
-
-/****************************************************************************/
-/// <summary>
-/// AUXEQユニキャスト電文送信処理 
-/// </summary>
-
-
-LPST_AUX_COM_SERV_MSG CAuxCS::set_msg_u(BOOL is_monitor_mode, INT32 code, INT32 stat) {
-	return &pCsInf->st_msg_u_snd;
-}
-
-HRESULT CAuxCS::snd_uni2main(LPST_AUX_COM_SERV_MSG pbuf, SOCKADDR_IN* p_addrin_to) {
-
-	if (pUSockAuxCs->snd_msg((char*)pbuf, sizeof(ST_AUX_COM_SERV_MSG), *p_addrin_to) == SOCKET_ERROR) {
-		if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
-			st_mon2.wo_uni.str(L""); st_mon2.wo_uni << L"ERR snd:" << pUSockAuxCs->err_msg.str();
-			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
-		}
-		return S_FALSE;
-	}
-	snd_count_u++;
-	return S_OK;
-}
-#endif
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
@@ -276,47 +270,12 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 	}break;
 	case WM_TIMER: {
-		//UniCast送信
-		//折り返し送信
-		//通信カウントをタイトルバーに表示
-		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"MKCC_IF% PC_U (R:" << rcv_count_u << L" S:" << snd_count_u  << L")";
+	
+		int input;
+		LELanioInPioAll(LANIO, &input);	// 全DIの現在の入力を取得
+		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"LANIO IN:" << input;
 		SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
 
-		//モニター表示
-		if (st_mon2.is_monitor_active) {
-			SOCKADDR_IN	addr;
-			if (pUSockAuxCs != NULL) {
-				addr = pUSockAuxCs->addr_in_rcv; st_mon2.wo_work.str(L"");
-				st_mon2.wo_work << L"UNI>>IP R:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
-					<< htons(addr.sin_port) << L" ";
-				addr = pUSockAuxCs->addr_in_dst;
-				st_mon2.wo_work << L" S:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
-					<< htons(addr.sin_port) << L" ";
-				addr = pUSockAuxCs->addr_in_from; ;
-				st_mon2.wo_work << L" F:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
-					<< htons(addr.sin_port) << L" ";
-				SetWindowText(st_mon2.hctrl[CS_ID_MON2_LABEL_UNI], st_mon2.wo_work.str().c_str());
-			}
-#if 0
-			st_mon2.wo_uni.str(L"");
-			if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_RCV) {
-				LPST_AUX_COM_MSG_HEAD	ph0 = &pCsInf->st_msg_u_rcv.head;
-				LPST_AUX_COM_CLI_BODY	pb0 = &pCsInf->st_msg_u_rcv.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->id << L"\n";
-				st_mon2.wo_uni << L"[BODY]" << L"OPEMODE:" << pb0->mode;
-			}
-			else if (st_mon2.sock_inf_id == CS_ID_MON2_RADIO_SND) {
-				LPST_AUX_COM_MSG_HEAD	ph0 = &pCsInf->st_msg_u_snd.head;
-				LPST_AUX_COM_SERV_BODY  pb0 = &pCsInf->st_msg_u_snd.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->id << L"\n";
-				st_mon2.wo_uni << L"[BODY]";
-			}
-			else {
-				st_mon2.wo_uni << L"No Message";
-			}
-			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_UNI], st_mon2.wo_uni.str().c_str());
-#endif
-		}
 	}break;
 
 	case WM_PAINT: {
