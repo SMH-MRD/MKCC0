@@ -448,7 +448,7 @@ typedef struct _ST_CC_AXIS_CTRL {
 typedef struct _ST_CC_AGENT_INF {
 	//プロセス外から参照可能
 	INT16 pc_ctrl_mode;								//PCからの指令で動作させる軸の指定
-	INT16 pc_ctrl_mode2plc = 0;							//PLCへのPC制御フラグ出力信号
+	INT16 pc_ctrl_mode2plc = 0;						//PLCへのPC制御フラグ出力信号
 	ST_CC_AXIS_CTRL st_mh_ctrl;
 	ST_CC_AXIS_CTRL st_bh_ctrl;
 	ST_CC_AXIS_CTRL st_sl_ctrl;

@@ -7,6 +7,7 @@
 #include "CComm.h"
 #include "LELanio.h"
 
+
 #pragma comment(lib, "LELanio.lib")
 
 extern ST_DEVICE_CODE g_my_code;
@@ -17,10 +18,15 @@ static CSockUDP* pUSockAuxCs;	//ユニキャストOTE通信受信用
 ST_CS_MON1 CAuxCS::st_mon1;
 ST_CS_MON2 CAuxCS::st_mon2;
 
+static ST_AUX_CS_INF st_work;
+
+int CAuxCS::lanio_enable;
+bool CAuxCS::is_lanio_connected = false;
+
 //共有メモリ参照用定義
-static CSharedMem* pEnvInfObj;
-static CSharedMem* pAgentInfObj;
-static CSharedMem* pCsInfObj;
+extern CSharedMem* pEnvInfObj;
+extern CSharedMem* pAgentInfObj;
+extern CSharedMem* pCsInfObj;
 
 static LPST_AUX_ENV_INF		pEnvInf;
 static LPST_AUX_CS_INF		pCsInf;
@@ -37,16 +43,10 @@ hLANIO LANIO;
 /****************************************************************************/
 CAuxCS::CAuxCS() {
 	// 共有メモリオブジェクトのインスタンス化
-	pEnvInfObj	= new CSharedMem;
-	pAgentInfObj= new CSharedMem;
-	pCsInfObj	= new CSharedMem;
 }
 
 CAuxCS::~CAuxCS() {
 	// 共有メモリオブジェクトの解放
-	delete pEnvInfObj; 
-	delete pAgentInfObj;
-	delete pCsInfObj;
 	LELanioEnd();// LANIO終了
 }
 
@@ -67,9 +67,9 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		return(FALSE);
 	}
 
-	pEnvInf		= (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
-	pAgentInf	= (LPST_AUX_AGENT_INF)(pAgentInfObj->get_pMap());
-	pCsInf		= (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
+	pEnvInf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
+	pAgentInf = (LPST_AUX_AGENT_INF)(pAgentInfObj->get_pMap());
+	pCsInf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
 
 	if ((pEnvInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL))
 		hr = S_FALSE;
@@ -79,33 +79,43 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
+	
+	//### LANIO有効フラグ取得
+	lanio_enable = (g_my_code.option >> 24) & 0x0F;
+
 	//### LANIO初期化
-	if (LELanioInit() == 0) {
-		wos.str(L""); wos << "!ERR LELANioInit" << std::endl;
+	if (lanio_enable) {
+		if (LELanioInit() == 0) {
+			wos.str(L""); wos << "!ERR LELANioInit" << std::endl;
+		}
+		else {
+			wos.str(L""); wos << "LELANioInit Success" << std::endl;
+		}
+		msg2listview(wos.str());
+
+		nLANIO = LELanioSearch();	// LANIOを検索する
+		if (nLANIO == 0 || nLANIO == -1) {
+			wos.str(L""); wos << L"LANIOが見つかりません";
+		}
+		else {
+			wos.str(L""); wos << L"nLANIO=" << nLANIO;
+		}
+		msg2listview(wos.str());
+		LANIO = LELanioConnectByIpAddress(CComm::addr_list.crn[g_my_code.machine_id].aux[ID_COMM_LANIO].ip);	// 指定IPアドレスでLANIOと接続を行う
+		if (LANIO == -1) {
+			wos.str(L""); wos << L"LANIO 接続失敗";
+			is_lanio_connected = false;
+		}
+		else {
+			wos.str(L""); wos << L"LANIO 接続成功";
+			is_lanio_connected = true;
+		}
+		msg2listview(wos.str());
 	}
 	else {
-		wos.str(L""); wos << "LELANioInit Success" << std::endl;
+		wos.str(L""); wos << L"LANIO 無効設定　ini file";
+		msg2listview(wos.str());
 	}
-	msg2listview(wos.str());
-
-	nLANIO = LELanioSearch();	// LANIOを検索する
-	if (nLANIO == 0 || nLANIO == -1) {
-		wos.str(L""); wos << L"LANIOが見つかりません";
-	}
-	else {
-		wos.str(L""); wos << L"nLANIO="<<nLANIO;
-	}
-	msg2listview(wos.str());
-
-	//char ip_lanio[16] = "192.168.0.31";
-	LANIO = LELanioConnectByIpAddress(CComm::addr_list.crn[g_my_code.machine_id].aux[ID_COMM_LANIO].ip);	// 指定IPアドレスでLANIOと接続を行う
-	if (LANIO == -1) {
-		wos.str(L""); wos << L"LANIO 接続失敗";
-	}
-	else{
-		wos.str(L""); wos << L"LANIO 接続成功";
-	}
-	msg2listview(wos.str());
 
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -129,7 +139,7 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 	//モニタウィンドウテキスト	
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"MAIN IF");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"LAN IO");
 	set_item_chk_txt();
 	set_panel_tip_txt();
 	//モニタ2 CB状態セット	
@@ -157,11 +167,29 @@ int CAuxCS::parse() {
 }
 
 int CAuxCS::output() {          //出力処理
+	
+	{
+		std::lock_guard<std::mutex> lock(m_CSinfMutex);
+		if (lanio_enable) {
+			if (is_lanio_connected == false) {
+				pCsInf->lanio_status = AUX_CS_CODE_LANIO_FAIL;
+			}
+			else if (LELanioInPioAll(LANIO, &(st_work.fb_lanio_di))) {// 全DIの現在の入力を取得
+				pCsInf->lanio_status = AUX_CS_CODE_LANIO_ACTIVE;	//LELanioInPioAllは正常で以外リターン
+			}
+			else {
+				pCsInf->lanio_status = AUX_CS_CODE_LANIO_INPIO_ERR;	//LELanioInPioAllはエラーで0リターン
+			}
+		}
+		pCsInf->fb_lanio_di = st_work.fb_lanio_di;
+
+	}
 
 	return S_OK;
 }
 
 int CAuxCS::close() {
+	LELanioEnd();// LANIO終了
 	return 0;
 }
 
@@ -223,26 +251,10 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
 		//STATIC,LABEL
-		for (int i = CS_ID_MON2_STATIC_UNI; i <= CS_ID_MON2_STATIC_MSG; i++) {
+		for (int i = CS_ID_MON2_STATIC_MSG; i <= CS_ID_MON2_STATIC_MSG; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
 				st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
 				hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
-		}
-		//RADIO PB
-		for (int i = CS_ID_MON2_RADIO_RCV; i <= CS_ID_MON2_RADIO_INFO; i++) {
-			if (i == CS_ID_MON2_RADIO_RCV) {
-				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
-					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
-					hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
-
-				st_mon2.sock_inf_id = CS_ID_MON2_RADIO_RCV;
-				SendMessage(st_mon2.hctrl[i], BM_SETCHECK, BST_CHECKED, 0L);
-			}
-			else {
-				st_mon2.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
-					st_mon2.pt[i].x, st_mon2.pt[i].y, st_mon2.sz[i].cx, st_mon2.sz[i].cy,
-					hWnd, (HMENU)(CS_ID_MON2_CTRL_BASE + i), hInst, NULL);
-			}
 		}
 
 		SetTimer(hWnd, CS_ID_MON2_TIMER, CS_PRM_MON2_TIMER_MS, NULL);
@@ -256,26 +268,15 @@ LRESULT CALLBACK CAuxCS::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		switch (_Id)
 		{
 
-		case CS_ID_MON2_RADIO_RCV: {
-			st_mon2.sock_inf_id = CS_ID_MON2_RADIO_RCV;
-		}break;
-		case CS_ID_MON2_RADIO_SND: {
-			st_mon2.sock_inf_id = CS_ID_MON2_RADIO_SND;
-		}break;
-		case CS_ID_MON2_RADIO_INFO: {
-			st_mon2.sock_inf_id = CS_ID_MON2_RADIO_INFO;
-		}break;
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
 	case WM_TIMER: {
-	
-		int input;
-		LELanioInPioAll(LANIO, &input);	// 全DIの現在の入力を取得
-		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"LANIO IN:" << input;
-		SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
 
+			st_mon2.wo_work.str(L""); st_mon2.wo_work << L"LANIO STAT:" << pCsInf->lanio_status << L"   DI:" << pCsInf->fb_lanio_di;
+			SetWindowText(st_mon2.hctrl[CS_ID_MON2_STATIC_MSG], st_mon2.wo_work.str().c_str());
+	
 	}break;
 
 	case WM_PAINT: {

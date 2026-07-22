@@ -162,6 +162,9 @@ public:
 
 private:
 	int crane_id = 0;
+    static int ote_option_site_estop;
+    static std::mutex m_AgInfMutex;  // 共有メモリアクセス保護用ミューテックス
+    static bool is_site_estop_detected;
 
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;

@@ -37,6 +37,8 @@ ST_CC_OTE_INF CCcCS::st_ote_work;
 INT16 CCcCS::ote_disp_com_hold;
 INT16 CCcCS::disp_mask[N_PLC_FAULT_BUF];
 
+int CCcCS::ote_option_setting;
+
 //共有メモリ
 static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
 static LPST_CC_CS_INF		pCS_Inf		= NULL;
@@ -199,15 +201,19 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	crane_id = pCrane->st_crane_inf.crane_id;
 	switch (pCrane->st_crane_inf.crane_type) {
 	case CRANE_TYPE_ID_JC:
+		fp_get_ote_data = get_ote_data_JC;
 		fp_set_ote_data = set_ote_data_JC;
 		break;
 	case CRANE_TYPE_ID_GC:
+		fp_get_ote_data = get_ote_data_GC;
 		fp_set_ote_data = set_ote_data_GC;
 		break;
 	case CRANE_TYPE_ID_OHC:
+		fp_get_ote_data = get_ote_data_OHC;
 		fp_set_ote_data = set_ote_data_OHC;
 		break;
 	default:
+		fp_get_ote_data = get_ote_data_OHC;
 		fp_set_ote_data = set_ote_data_JC;
 		break;
 	}
@@ -247,7 +253,7 @@ HRESULT CCcCS::routine_work(void* pObj) {
 }
 
 int CCcCS::input() {
-
+	fp_get_ote_data(crane_id);
 	return S_OK;
 }
 
@@ -387,7 +393,14 @@ int CCcCS::output() {          //出力処理
 int CCcCS::close() {
 	return 0;
 }
-
+HRESULT CCcCS::get_ote_data_JC(int crane_id) {
+	ote_option_setting = st_ote_work.st_msg_ote_u_rcv.body.st.ope_mode;
+	return S_OK; 
+}
+HRESULT CCcCS::get_ote_data_GC(int crane_id) { 
+	return S_OK; 
+}
+HRESULT CCcCS::get_ote_data_OHC(int crane_id) { return S_OK; }
 HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 	//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
 	//## ランプ,ブザー表示指令

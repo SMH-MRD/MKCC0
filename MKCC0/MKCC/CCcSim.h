@@ -124,6 +124,9 @@ typedef struct _ST_CC_SIM_WORK {
     double wah;										//補巻振れ角周波数
     double tht_swx_mh, tht_swy_mh, tht_swx_ah, tht_swy_ah;
 
+    INT16 trq30[MOTION_ID_MAX] = { 600,600,600,600,600,600,600,600 };//ブレーキ解放用30%トルク設定値
+    INT16 trq[MOTION_ID_MAX] = { 4000,4000,4000,4000,4000,4000,4000,4000 };  //トルク設定値
+
 }ST_CC_SIM_WORK, * LPST_CC_SIM_WORK;
 
 class CSim : public CBasicControl
@@ -165,8 +168,7 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-
-    static CSpec* pspec;
+     static CSpec* pspec;
 
     void setup_JC(int id);
     void setup_GC(int id);

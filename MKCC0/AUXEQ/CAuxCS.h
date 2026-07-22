@@ -1,5 +1,6 @@
 #include "CBasicControl.h"
 #include "CSHAREDMEM.H"
+#include <mutex> 
 
 #define CS_ID_MON1_TIMER  71190
 #define CS_ID_MON2_TIMER  71191
@@ -61,19 +62,18 @@ typedef struct _ST_CS_MON1 {
 
 #define CS_ID_MON2_CTRL_BASE   71140
 
-#define CS_ID_MON2_STATIC_UNI      0
-#define CS_ID_MON2_LABEL_UNI       1
-#define CS_ID_MON2_STATIC_MSG      2
+#define CS_ID_MON2_STATIC_MSG      0
+//#define CS_ID_MON2_LABEL_UNI       1
+//#define CS_ID_MON2_STATIC_MSG      2
 
-#define CS_ID_MON2_RADIO_RCV       8
-#define CS_ID_MON2_RADIO_SND       9
-#define CS_ID_MON2_RADIO_INFO      10
+//#define CS_ID_MON2_RADIO_RCV       8
+//#define CS_ID_MON2_RADIO_SND       9
+//#define CS_ID_MON2_RADIO_INFO      10
 
 typedef struct _ST_CS_MON2 {
     HWND hwnd_mon;
     int timer_ms    = CS_PRM_MON2_TIMER_MS;
-    int sock_inf_id = CS_ID_MON2_RADIO_RCV;//ソケット情報を表示する内容コード
-
+ 
     bool is_monitor_active = false; //モニタ画面表示中フラグ
 
     wostringstream wo_uni, wo_work;
@@ -85,20 +85,20 @@ typedef struct _ST_CS_MON2 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[CS_MON2_N_CTRL] = {
-        5,95, 5,50, 5,5, 0,0, 0,0, 0,0, 0,0, 0,0,
-        470,5,520,5,570,5, 0,0, 0,0, 0,0, 0,0, 0,0,
+        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[CS_MON2_N_CTRL] = {
-        CS_MON2_WND_W - 25,120, CS_MON2_WND_W - 25,40, CS_MON2_WND_W - 25,40, 0,0, 0,0, 0,0, 0,0,
-        CS_MON2_WND_W - 180,20,40,20,40,20, 40,20,  0,0, 0,0, 0,0, 0,0, 0,0,
+        CS_MON2_WND_W - 25,20, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        0,0,0,0,0,0, 0,0,  0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[CS_MON2_N_CTRL][CS_MON2_N_WCHAR] = {
-        L"UNI:", L"-", L"MSG:", L"-", L"-", L"-", L"-", L"",
-        L"RCV", L"SND",L"INFO",  L"", L"", L"", L"", L"",
+        L"MSG:", L"-", L"", L"-", L"-", L"-", L"-", L"",
+        L"", L"",L"",  L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L"",
         L"", L"", L"", L"", L"", L"", L"", L""
     };
@@ -139,9 +139,10 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-
+    std::mutex m_CSinfMutex;  // 共有メモリアクセス保護用ミューテックス
     static int nLANIO;
-
+	static int lanio_enable;
+    static bool is_lanio_connected;
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
 

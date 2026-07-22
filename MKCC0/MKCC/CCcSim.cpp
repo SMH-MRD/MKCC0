@@ -12,6 +12,7 @@ extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
 extern CCrane* pCrane;
+extern ST_DEVICE_CODE g_my_code;
 
 //共有メモリ
 static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
@@ -144,16 +145,21 @@ void CSim::setup_JC(int id) {
 	case CRANE_ID_H6R602:
 	{
 		st_sim_inf.wind_spd_AI = (INT16)(SIM_PRM_WIND_SPEED_DEFAULT * 4000 / 60);//風速AI値 0-4000 0-60m/s
+		st_work.trq30[ID_HOIST] = st_work.trq30[ID_BOOM_H] = 300; 
+		st_work.trq[ID_HOIST] = st_work.trq[ID_BOOM_H] = 1000;
 	}break;
 	case CRANE_ID_HHGQ18:
 	{	
 		st_sim_inf.wind_spd_AI = (INT16)(SIM_PRM_WIND_SPEED_DEFAULT * 800 / 60);//風速AI値 0-800 0-60m/s
-
+		st_work.trq30[ID_HOIST] = st_work.trq30[ID_BOOM_H] = 600; 
+		st_work.trq[ID_HOIST] = st_work.trq[ID_BOOM_H] = 4000;
 	}break;
 	case CRANE_ID_HHGH29:
 	default:
 	{
 		st_sim_inf.wind_spd_AI = (INT16)(SIM_PRM_WIND_SPEED_DEFAULT * 800 / 60);//風速AI値 0-800 0-60m/s
+		st_work.trq30[ID_HOIST] = st_work.trq30[ID_BOOM_H] = 600; 
+		st_work.trq[ID_HOIST] = st_work.trq[ID_BOOM_H] = 4000;
 	}break;
 	}
 	return;
@@ -207,11 +213,11 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	{
 		if (pPLC_IO->stat_mh.v_ref != 0) {
 			if (pPLC_IO->stat_mh.brake == 0) {//ブレーキ閉
-				st_sim_inf.trq_ref_mh = 300;	//30%トルク指令
+				st_sim_inf.trq_ref_mh = st_work.trq30[ID_HOIST];	//30%トルク指令
 				st_sim_inf.vfb_mh = 0;			//速度FBは0
 			}
 			else {//ブレーキ開
-				st_sim_inf.trq_ref_mh = 1000;	//100%トルク指令
+				st_sim_inf.trq_ref_mh = st_work.trq[ID_HOIST];	//100%トルク指令
 				//inv_ref(ベース100%で0.1%単位表現)
 				st_sim_inf.vfb_mh = (INT16)((double)pPLC_IO->stat_mh.v_ref * pspec->base_mh.Rpm_rated/1000.0);
 			}
@@ -226,11 +232,11 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	{
 		if (pPLC_IO->stat_bh.v_ref != 0) {
 			if (pPLC_IO->stat_bh.brake == 0) {//ブレーキ閉
-				st_sim_inf.trq_ref_bh = 300;	//30%トルク指令
+				st_sim_inf.trq_ref_bh = st_work.trq30[ID_BOOM_H];;	//30%トルク指令
 				st_sim_inf.vfb_bh = 0;			//速度FBは0
 			}
 			else {//ブレーキ開
-				st_sim_inf.trq_ref_bh = 1000;	//100%トルク指令
+				st_sim_inf.trq_ref_bh = st_work.trq[ID_BOOM_H];	//100%トルク指令
 				//inv_ref(ベース100%で0.1%単位表現)
 				st_sim_inf.vfb_bh = (INT16)((double)pPLC_IO->stat_bh.v_ref * pspec->base_bh.Rpm_rated / 1000.0);
 			}

@@ -99,7 +99,7 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
-
+    int crane_id = 0;
     //オーバーライド
 
     virtual HRESULT routine_work(void* pObj) override;
@@ -109,6 +109,10 @@ private:
     void show_monitor_wnd(int id);
     void hide_monitor_wnd(int id);
 
+    HRESULT(*fp_fault_check)(int id) = NULL;  //異常チェック   
+    static HRESULT fault_check_JC(int crane_id);
+    static HRESULT fault_check_GC(int crane_id);
+    static HRESULT fault_check_OHC(int crane_id);
 
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;

@@ -152,6 +152,11 @@ public:
 #define FLTS_ID_ERR_OTE_TMOV			1		//操作有効端末タイムオーバー
 #define FLTS_MASK_ERR_OTE_TMOV			0x0040
 
+#define FLTS_ID_ERR_SITE_ESTOP			1		//機側非常停止
+#define FLTS_MASK_ERR_SITE_ESTOP		0x0100
+#define FLTS_ID_ERR_LANIO_FAIL			1		//機側非常停止LANIO未接続
+#define FLTS_MASK_ERR_LANIO_FAIL		0x0200
+
 //## 操作端末インターロックマップ定義
 #define FLTS_ID_ERR_OTE_CAM_TM_OVER		2		//映像遅延過大
 #define FLTS_MASK_ERR_OTE_CAM_TM_OVER	0x0001

@@ -228,10 +228,14 @@ typedef struct _ST_GPAD_IN {
 #define CODE_OTE_FLT_INF_TRIG		BIT8		//PCからトリガ通知
 #define CODE_OTE_FLT_REQ_REFRESH	BIT8		//OTEからリスト更新要求（トリガクリア,表示選択変更時）
 
+#define CODE_OTE_OPE_MODE_SITE_ESTP_DEACTIVE	0x0001	//機側非常停止解除
+#define CODE_OTE_OPE_MODE_AUTO_ENABLE			0x1000	//自動有効
+#define CODE_OTE_OPE_MODE_PRE_CHECK				0x0100	//始業前点検モード
+
 #define N_OTE_OPEPNL_XIN			10			//重故障1	
 
 typedef struct OteUBody {
-	INT16		ope_mode;						//操作モード（自動/手動/ビギナー）
+	INT16		ope_mode;						//操作モード
 	INT16		remote;							//
 	INT16		auto_mode;						//
 	INT16		ctrl_device_mode;				//操作デバイスモード（操作卓/JOYPAD/パネル）

@@ -39,6 +39,9 @@ typedef struct _ST_AUX_ENV_INF {
 
 	ST_DEVICE_CODE device_code;
 	DWORD helthy_cnt;
+	int slbrk_enable;
+	int lanio_enable;
+	int sway_sensor_enable;
 
 }ST_AUX_ENV_INF, * LPST_AUX_ENV_INF;
 
@@ -79,14 +82,29 @@ typedef struct _ST_AUX_AGENT_INF {	//MCprotocolの送受信バッファ
 	INT16 slbrk_rbuf[16];
 }ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 
+#define AUX_CS_CODE_LANIO_FAIL			-1
+#define AUX_CS_CODE_LANIO_ACTIVE		0x0001
+#define AUX_CS_CODE_LANIO_INPIO_ERR		0x0010
+
 typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	//MAINプロセスからAUXEQへ
 	DWORD main_helthy_cnt;
 	ST_SLBRK_COM com_slbrk;
+	int com_lanio;
+	int com_sway_sensor;
 
 	//AUXEQからMAINプロセスへ
 	DWORD aux_helthy_cnt;
+
+	int slbrk_enable;	
 	ST_SLBRK_FB fb_slbrk;
+
+	int lanio_enable;	
+	int fb_lanio_di;
+	int lanio_status;
+
+	int sway_sensor_enable;
+	int sway_sensor_status;
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 
 

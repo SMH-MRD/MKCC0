@@ -55,7 +55,22 @@ HRESULT CPolicy::initialize(LPVOID lpParam) {
 	pSimInf = (LPST_CC_SIM_INF)(pSimuStatObj->get_pMap());
 	pOteInf = (LPST_CC_OTE_INF)(pOteInfObj->get_pMap());
 
-	set_func_pb_txt();
+	crane_id = pCrane->st_crane_inf.crane_id;
+	switch (pCrane->st_crane_inf.crane_type) {
+	case CRANE_TYPE_ID_JC:
+		fp_fault_check = fault_check_JC;
+		break;
+	case CRANE_TYPE_ID_GC:
+		fp_fault_check = fault_check_GC;
+		break;
+	case CRANE_TYPE_ID_OHC:
+		fp_fault_check = fault_check_OHC;
+		break;
+	default:
+
+		break;
+	}
+		set_func_pb_txt();
 	set_item_chk_txt();
 	set_panel_tip_txt();
 
@@ -94,18 +109,30 @@ int CPolicy::input() {
 int CPolicy::parse() {           //メイン処理
 //### 制御PC検出異常、警報状態設定処理
  
+	fp_fault_check(crane_id);
+
+	return STAT_OK;
+}
+int CPolicy::output() {          //出力処理
+	return STAT_OK;
+}
+
+int CPolicy::close() {
+
+	return 0;
+}
+
+HRESULT CPolicy::fault_check_JC(int crane_id) {
 	//## 機上PLC通信異常
-	//CC_AGENTでセットされる　PLCヘルシーチェック
-	 
-	//## 操作端末通信異常
-	//CC_CSでセットされる　	ソケット未生成,送受信時のエラー
-	 
-	//## 旋回ブレーキ通信異常
-	//CC_AGENTでセットされる　	AUX_CSとのヘルシーチェック
-	 
-	//## 遠隔モードスイッチ警報
-	INT16 XB0 = pPlcIo->buf_io_read[PLC_IF_RINDEX_RMTSW_HHGH29];
-//	if (XB0 & PLC_IF_RMASK_RMTSW_HHGH29) {
+//CC_AGENTでセットされる　PLCヘルシーチェック
+
+//## 操作端末通信異常
+//CC_CSでセットされる　	ソケット未生成,送受信時のエラー
+
+//## 旋回ブレーキ通信異常
+//CC_AGENTでセットされる　	AUX_CSとのヘルシーチェック
+
+//## 遠隔モードスイッチ警報
 	INT16 rmtsw = pPlcIo->remote_mode_sw;
 	if (rmtsw) {
 		pPolInf->pc_fault_map[FLTS_ID_RMTSW_OFF] &= ~FLTS_MASK_RMTSW_OFF;
@@ -119,16 +146,13 @@ int CPolicy::parse() {           //メイン処理
 	// 
 	//## 旋回ブレーキ関連
 	//CC_AGENTでセットされる
-
-	return STAT_OK;
+	return S_OK;
 }
-int CPolicy::output() {          //出力処理
-	return STAT_OK;
+HRESULT CPolicy::fault_check_GC(int crane_id) {
+	return S_OK;
 }
-
-int CPolicy::close() {
-
-	return 0;
+HRESULT CPolicy::fault_check_OHC(int crane_id) {
+	return S_OK;
 }
 
 /****************************************************************************/

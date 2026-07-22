@@ -327,6 +327,9 @@ int COteAgent::parse() {
 	//SCADAタスクがPC Windowの操作パネル入力から取得した故障表示要求コード
 	st_work.st_msg_ote_u_snd.body.st.faults_disp_req = pOteUI->flt_req_code;	//故障信号要求コード
 
+	//#オプション機能要求
+	//CsタスクがPLCの入力信号から取得したオプション機能要求コード
+	st_work.st_msg_ote_u_snd.body.st.ope_mode = (INT16)pOteCsInf->ote_option;	//オプション機能要求コード
 //##################### クレーンとの通信チェック　###################################
 	//CC通信状態ステータスセット（モニタ用）
 	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; 

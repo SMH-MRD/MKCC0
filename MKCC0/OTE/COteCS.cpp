@@ -209,6 +209,7 @@ HRESULT COteCS::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 		wos << L"  VdelayCom:" << pOteCsInf->video_delay_chk_ctrl<<L"  Lamp:" << pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device];
+		wos << L"  Opion:" << pOteCsInf->ote_option;
 
 
 		msg2host(wos.str());
@@ -355,6 +356,9 @@ int COteCS::parse()
 			pOteCsInf->ope_source_mode |= OTE_OPE_SOURCE_CODE_PCPNL;
 		else
 			pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_PCPNL;
+
+
+
 	}
 	return STAT_OK;
 }
@@ -499,10 +503,17 @@ int COteCS::output() {
 	pOteCsInf->plc_com_stat_s = st_work.plc_com_stat_s;	//PLC送信通信状態
 //### 制御PCへの出力処理
 	pOteCsInf->st_body.ote_err[0] = pOteCsInf->ote_error;	//遠隔操作PC検出故障セット
+	pOteCsInf->st_body.ope_mode = st_work.st_body.ope_mode = (INT16)st_work.ote_option;		//### オプション機能設定
+		
+
 //###　映像遅延チェック用指令出力
 	video_delay_check_manage_hhgg38(crane_id);
+
 //##　送信バッファ内容出力（CSで収集したユーザ操作内容）を共有メモリにコピー
 	memcpy_s(&pOteCsInf->st_body, sizeof(ST_OTE_U_BODY), &st_work.st_body, sizeof(ST_OTE_U_BODY));
+
+//## 共有メモリへ情報セット
+	pOteCsInf->ote_option = st_work.ote_option;
 	return STAT_OK;
 }
 int COteCS::close() {
@@ -1586,8 +1597,17 @@ LRESULT CALLBACK COteCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	case WM_COMMAND:
 		switch (LOWORD(wp)) {
+
+		case IDC_TASK_FUNC_RADIO2: {
+			if (st_work.ote_option & OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE) {
+				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);//チェックを入れる
+			}
+			else {
+				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);//チェックを外す
+			}
+		}
 		case IDC_TASK_FUNC_RADIO1:
-		case IDC_TASK_FUNC_RADIO2:
+
 		case IDC_TASK_FUNC_RADIO3:
 		case IDC_TASK_FUNC_RADIO4:
 		case IDC_TASK_FUNC_RADIO5:
@@ -1611,6 +1631,16 @@ LRESULT CALLBACK COteCS::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 				else  dbg_plc_yout[0] = 0;
 				//チェックを外す
 				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+			}break;
+			case IDC_TASK_FUNC_RADIO2: {
+				if (st_work.ote_option & OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE) {
+					st_work.ote_option &= ~OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE;
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else {
+					st_work.ote_option |= OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE;
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
+				}
 			}break;
 			default:break;
 			}
@@ -1761,7 +1791,7 @@ void COteCS::set_panel_tip_txt() {
 		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM8), wstr.c_str());
 	}break;
 	case IDC_TASK_FUNC_RADIO1:
-	case IDC_TASK_FUNC_RADIO2:
+	case IDC_TASK_FUNC_RADIO2: 
 	case IDC_TASK_FUNC_RADIO3:
 	case IDC_TASK_FUNC_RADIO5:
 	case IDC_TASK_FUNC_RADIO6:
@@ -1786,7 +1816,7 @@ void COteCS::set_panel_tip_txt() {
 //タブパネルのFunctionボタンのStaticテキストを設定
 void COteCS::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"Debug");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"Option");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO5, L"-");
@@ -1796,10 +1826,11 @@ void COteCS::set_func_pb_txt() {
 //タブパネルのItem chkテキストを設定
 void COteCS::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
-	switch (inf.panel_func_id) {
-	case IDC_TASK_FUNC_RADIO4: {
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
+	switch (inf.panel_func_id) 
+{
+	case IDC_TASK_FUNC_RADIO2: {
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"SiteESTP");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"PreOpeChk");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
@@ -1813,7 +1844,7 @@ void COteCS::set_item_chk_txt() {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
 	}break;
-	case IDC_TASK_FUNC_RADIO2:
+	case IDC_TASK_FUNC_RADIO4:
 	case IDC_TASK_FUNC_RADIO3:
 	case IDC_TASK_FUNC_RADIO5:
 	case IDC_TASK_FUNC_RADIO6:

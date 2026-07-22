@@ -213,13 +213,17 @@ public:
 
 private:
     int crane_id;
-
+    static int ote_option_setting;
       
+    HRESULT(*fp_get_ote_data)(int id) = NULL;       //OTEからの受信データをセット  
     HRESULT(*fp_set_ote_data)(int id) = NULL;       //OTEへの送信データをセット   
     HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
     HRESULT(*fp_aux_equipment)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
     static INT16 ote_disp_com_hold;
     static INT16 disp_mask[N_PLC_FAULT_BUF];
+    static HRESULT get_ote_data_JC(int crane_id);
+    static HRESULT get_ote_data_GC(int crane_id);
+    static HRESULT get_ote_data_OHC(int crane_id);
     static HRESULT set_ote_data_JC(int crane_id);
     static HRESULT set_ote_data_GC(int crane_id);
     static HRESULT set_ote_data_OHC(int crane_id);

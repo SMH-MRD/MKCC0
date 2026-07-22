@@ -6,6 +6,7 @@
 #include "CMCProtocol.h"
 #include "CPlc.h"
 #include "CComm.h"
+#include <mutex> 
 
 LPST_AUXEQ CAuxAgent::pst_work;
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
@@ -241,6 +242,7 @@ int CAuxAgent::output() {          //出力処理
 	pCS_Inf->fb_slbrk.brk_fb_emg		= pAgent_Inf->slbrk_rbuf[0] & 0x0040;	//旋回ブレーキフィードバック非常停止
 	pCS_Inf->fb_slbrk.brk_fb_time_over	= pAgent_Inf->slbrk_rbuf[1] & 0x0010;	//旋回ブレーキフィードバックタイムオーバー
 	pCS_Inf->fb_slbrk.brk_fb_release	= pAgent_Inf->slbrk_rbuf[0] & 0x0100;	//旋回ブレーキフィードバック解除
+
 	pCS_Inf->fb_slbrk.brk_fb_sys_err	= pCS_Inf->fb_slbrk.d17		& 0x000F;	//旋回ブレーキフィードバックシステム異常
 	pCS_Inf->fb_slbrk.brk_fb_karaburi	= pCS_Inf->fb_slbrk.d20		& 0x0020;	//旋回ブレーキフィードバック空振
 	pCS_Inf->fb_slbrk.brk_fb_org_pt		= pCS_Inf->fb_slbrk.d20		& 0x0002;	//旋回ブレーキフィードバック原点復帰

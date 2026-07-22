@@ -127,9 +127,12 @@ typedef struct _ST_OTE_ENV_INF {
 #define OTE_CS_CODE_V_DELAY_COM_PRM_LOAD	0x0008	//パラメータ設定読込要求
 
 
+#define OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE			0x0001	//機側非常停止検出有効
+#define OTE_CS_CODE_OPTION_PRE_CHECK_MODE_ACTIVE	0x0002	//始業前点検モード
+
 typedef struct _ST_OTE_CS_INF {
 	INT32 ote_type	 = OTE_CS_CODE_OPEPNL_PC;		//PLCとの通信状態
-	INT32 ote_option = 0;							//予備
+	INT32 ote_option = 0;							//オプション選択状態
 
 	INT32 ope_plc_stat = L_OFF;						//PLCとの通信状態
 	INT32 cc_ope_active = L_OFF;

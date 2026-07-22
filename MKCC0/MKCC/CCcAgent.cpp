@@ -6,6 +6,9 @@
 #include "CSpec.h"
 #include "CHelper.h"
 #include "CComm.h"
+#include "SmemOte.h"
+#include <mutex> 
+
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -30,6 +33,9 @@ ST_AGENT_MON2 CAgent::st_mon2;
 
 ST_CC_AGENT_INF CAgent::st_work;
 ST_CC_PLC_IO CAgent::st_work_plcio;
+int CAgent::ote_option_site_estop;
+std::mutex CAgent::m_AgInfMutex;
+bool CAgent::is_site_estop_detected = false;
 
 //共有メモリ
 static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
@@ -54,6 +60,9 @@ static LONGLONG res_delay_max_w,res_delay_max_r;	//PLC応答時間
 
 static DWORD slbrk_healthy_last = 0, slbrk_healthy_cnt;
 static INT32 slblk_chk_cnt;
+static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0, slblk_level_fb = 0;
+
+
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
@@ -485,7 +494,6 @@ int CAgent::parse() {
 	fp_aux_equipment(crane_id);
 #endif
 
-
 	return S_OK;
 }
 
@@ -495,6 +503,7 @@ int CAgent::parse() {
 /// <returns></returns>
 static INT16 healthy_count = 0;
 int CAgent::output() {
+
 	//ヘルシー出力
 	pPLC_IO->plc_enable = plc_healthy_chk_count;
 	//制御指令出力
@@ -511,8 +520,6 @@ int CAgent::close() {
 
 	return 0;
 }
-
-static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0, slblk_level_fb=0;
 
 HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	//### PLC信号を共有メモリに展開
@@ -715,17 +722,23 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 	// CS受信のバッファ	pOteCtrl = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl;
 
 	//## PB,スイッチ類
-	pCrane->pPlc->wval(pPlcWIf->JC.syukan_on, pOteCtrl[OTE_PNL_CTRLS::syukan_on]);	//主幹ON
-	pCrane->pPlc->wval(pPlcWIf->JC.syukan_off, pOteCtrl[OTE_PNL_CTRLS::syukan_off]);	//主幹OFF
+	pCrane->pPlc->wval(pPlcWIf->JC.syukan_on, pOteCtrl[OTE_PNL_CTRLS::syukan_on]);			//主幹ON
+	pCrane->pPlc->wval(pPlcWIf->JC.syukan_off, pOteCtrl[OTE_PNL_CTRLS::syukan_off]);		//主幹OFF
 
-	pCrane->pPlc->wval(pPlcWIf->JC.estop, pOteCtrl[OTE_PNL_CTRLS::estop]);		//非常停止
-	if (pOTE_Inf->st_ote_ctrl.ote_command & OTE_CODE_COM_ESTP)
-		pCrane->pPlc->wval(pPlcWIf->JC.estop, L_ON);		//非常停止
+	//非常停止
+	pCrane->pPlc->wval(pPlcWIf->JC.estop, pOteCtrl[OTE_PNL_CTRLS::estop]);					//OTE操作有効操作卓　	
+
+	if ((pOTE_Inf->st_ote_ctrl.ote_command & OTE_CODE_COM_ESTP) ||							//OTEモニタ操作端末
+		//(pPolInf->pc_fault_map[FLTS_ID_ERR_SITE_ESTOP] & FLTS_MASK_ERR_SITE_ESTOP))	{		//リモコン非常停止
+		(is_site_estop_detected))	{		//リモコン非常停止
+		
+		pCrane->pPlc->wval(pPlcWIf->JC.estop, L_ON);
+	}
 
 	pCrane->pPlc->wval(pPlcWIf->JC.fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
 	pCrane->pPlc->wval(pPlcWIf->JC.alarm_stp_pb, pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
 
-	pCrane->pPlc->wval(pPlcWIf->JC.siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);		//モータサイレンスイッチ
+	pCrane->pPlc->wval(pPlcWIf->JC.siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);			//モータサイレンスイッチ
 	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw1, pOteCtrl[OTE_PNL_CTRLS::hd_lamp1]);	//水銀ランプ切替スイッチ
 	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw2, pOteCtrl[OTE_PNL_CTRLS::hd_lamp2]);	//水銀ランプ切替スイッチ
 	pCrane->pPlc->wval(pPlcWIf->JC.mercury_lamp_sw3, pOteCtrl[OTE_PNL_CTRLS::hd_lamp3]);	//水銀ランプ切替スイッチ
@@ -764,13 +777,6 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 	pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb_bh);
 	pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb_sl);
 	pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb_gt);
-
-
-	//pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, INT16((double)pSim_Inf->vfb_mh * 1.254));	//3200/2570 ： 速度FBは3200が257％　vfbは0.1%単位
-	//pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, INT16((double)pSim_Inf->vfb_bh * 3.2));		//4000/1250 ： 速度FBは3200が100％　vfbは0.1%単位
-	//pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, INT16((double)pSim_Inf->vfb_sl * 3.2));		//4000/2000 ： 速度FBは3200が100％　vfbは0.1%単位
-	//pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, INT16((double)pSim_Inf->vfb_gt * 3.2));		//3200/1000 ： 速度FBは3200が100％　vfbは0.1%単位
-	
 
 	//トルク指令(INV出力）
 	pCrane->pPlc->wval(pPlcWIf->JC.trqref_mh, pSim_Inf->trq_ref_mh);
@@ -830,6 +836,38 @@ HRESULT CAgent::plc_io_write_OHC(int crane_id) {
 }
 
 HRESULT CAgent::aux_equipment_JC(int crane_id) {
+	//機側非常停止SW
+	{
+		std::lock_guard<std::mutex> lock(m_AgInfMutex);
+		if (pOTE_Inf->st_msg_ote_u_rcv.body.st.ope_mode & OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE) {
+
+			if (pAUX_CS_Inf->lanio_status == AUX_CS_CODE_LANIO_FAIL) {
+				pPolInf->pc_fault_map[FLTS_ID_ERR_LANIO_FAIL] |= FLTS_MASK_ERR_LANIO_FAIL;
+				pPolInf->pc_fault_map[FLTS_ID_ERR_SITE_ESTOP] |= FLTS_MASK_ERR_SITE_ESTOP;
+				is_site_estop_detected = true;
+			}
+			else {
+				pPolInf->pc_fault_map[FLTS_ID_ERR_LANIO_FAIL] &= ~FLTS_MASK_ERR_LANIO_FAIL;
+				if (pAUX_CS_Inf->fb_lanio_di) {
+					pPolInf->pc_fault_map[FLTS_ID_ERR_SITE_ESTOP] &= ~FLTS_MASK_ERR_SITE_ESTOP;
+					is_site_estop_detected = false;
+				}
+				else {
+					pPolInf->pc_fault_map[FLTS_ID_ERR_SITE_ESTOP] |= FLTS_MASK_ERR_SITE_ESTOP;
+					is_site_estop_detected = true;
+				}
+			}
+		}
+		else {
+			pPolInf->pc_fault_map[FLTS_ID_ERR_LANIO_FAIL] &= ~FLTS_MASK_ERR_LANIO_FAIL;
+			pPolInf->pc_fault_map[FLTS_ID_ERR_SITE_ESTOP] &= ~FLTS_MASK_ERR_SITE_ESTOP;
+			is_site_estop_detected = false;
+		}
+
+
+	}
+
+	//旋回ブレーキ装置
 	manage_slbrk();
 	return S_OK;
 }
@@ -939,61 +977,14 @@ int CAgent::manage_slbrk() {
 		pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_CHK_NG] &= ~FLTS_MASK_ERR_SLBRK_CHK_NG;
 	}
 
-	//### 旋回ブレーキ制御出力設定
-	if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
-
-		if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_OPE_CTRL_OFF) {
-		}
-		else {
-
-			if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_PARK_BRK) {	//サイドブレーキ指令
-				pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
-				//フィードバックレベルが15以上でブレーキアクチュエータが移動中で無い時　ハードウェアブレーキ指令ON
-				if ((slblk_level_fb >= 15) && !(pAUX_CS_Inf->fb_slbrk.d20 & 0x0004)) {
-					pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
-				}
-				else {
-					pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
-				}
-			}
-			else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_STANDBY) {//ブレーキチェックシーケンススタンバイ
-				pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 14;
-				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
-			}
-			else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_RUNNING) {//ブレーキチェックシーケンス中
-				pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
-				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
-			}
-			else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_CHK_FIN) {	//通常指令
-				//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
-				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
-				pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
-			}
-			else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_PARK_FIN) {	//通常指令
-				//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
-				pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
-				//			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
-			}
-			else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL) {	//通常指令
-				//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
-				pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
-				pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
-				pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
-			}
-			else;//AG_MODE_SLBK_OPT_CHK_FIN
-			//pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0;//ハードウェアブレーキ指令解除
-		}
-	}
-	else {
-		pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 0;
-	}
-
-	//### 旋回ブレーキ異常信号処理
 	{
+		std::lock_guard<std::mutex> lock(m_AgInfMutex);
+
+		//### 旋回ブレーキ異常信号処理
 		//## ヘルシーチェック
 		if (slbrk_healthy_last == pAUX_CS_Inf->aux_helthy_cnt) 	slbrk_healthy_cnt++;
 		else 													slbrk_healthy_cnt = 0;
-	
+
 		if (slbrk_healthy_cnt > 10)	pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_SLBRK_COMM] |= FLTS_MASK_ERR_CPC_SLBRK_COMM;
 		else			            pPolInf->pc_fault_map[FLTS_ID_ERR_CPC_SLBRK_COMM] &= ~FLTS_MASK_ERR_CPC_SLBRK_COMM;
 
@@ -1016,7 +1007,7 @@ int CAgent::manage_slbrk() {
 			if (slbrk_pressuer_chk > 150) {
 				pPolInf->pc_fault_map[FLTS_ID_WRN_SLBRK_PSWITCH_OFF] |= FLTS_MASK_WRN_SLBRK_PSWITCH_OFF;
 			}
-			else{
+			else {
 				slbrk_pressuer_chk++;
 			}
 		}
@@ -1050,6 +1041,59 @@ int CAgent::manage_slbrk() {
 			pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] |= FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
 		else
 			pPolInf->pc_fault_map[FLTS_ID_ERR_SLBRK_LOCAL_MODE] &= ~FLTS_MASK_ERR_SLBRK_LOCAL_MODE;
+	}
+
+
+	//### 旋回ブレーキ制御出力設定
+	{
+		std::lock_guard<std::mutex> lock(m_AgInfMutex);
+		if (pAUX_CS_Inf->com_slbrk.pc_com_autosel & 0x0080) {	//AUTO MODE
+
+			if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_OPE_CTRL_OFF) {
+			}
+			else {
+
+				if (st_work.slew_brake_ctrl_mode == AG_MODE_SLBK_PARK_BRK) {	//サイドブレーキ指令
+					pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
+					//フィードバックレベルが15以上でブレーキアクチュエータが移動中で無い時　ハードウェアブレーキ指令ON
+					if ((slblk_level_fb >= 15) && !(pAUX_CS_Inf->fb_slbrk.d20 & 0x0004)) {
+						pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = AUX_SLBRK_COM_HW_BRK;
+					}
+					else {
+						pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
+					}
+				}
+				else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_STANDBY) {//ブレーキチェックシーケンススタンバイ
+					pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 14;
+					pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
+				}
+				else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_CHECK_RUNNING) {//ブレーキチェックシーケンス中
+					pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 15;
+					pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = L_OFF;
+				}
+				else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_CHK_FIN) {	//通常指令
+					//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
+					pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+					pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
+				}
+				else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_OPT_PARK_FIN) {	//通常指令
+					//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
+					pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
+					//			pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+				}
+				else if (pAgent_Inf->slew_brake_ctrl_mode == AG_MODE_SLBK_NORMAL) {	//通常指令
+					//### 旋回ブレーキ操作信号設定をAUXプロセスへの出力用共有メモリへセット
+					pAUX_CS_Inf->com_slbrk.pc_com_brk_level = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & 0x000F;
+					pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_HW_BRK;
+					pAUX_CS_Inf->com_slbrk.pc_com_reset = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::sl_brk] & AUX_SLBRK_COM_RESET;
+				}
+				else;//AG_MODE_SLBK_OPT_CHK_FIN
+				//pAUX_CS_Inf->com_slbrk.pc_com_hw_brk = 0;//ハードウェアブレーキ指令解除
+			}
+		}
+		else {
+			pAUX_CS_Inf->com_slbrk.pc_com_brk_level = 0;
+		}
 	}
 
 	//### 旋回ブレーキユニットリセット指令

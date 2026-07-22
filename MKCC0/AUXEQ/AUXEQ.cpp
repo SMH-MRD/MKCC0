@@ -172,9 +172,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AUX_AGENT_INF_NAME, sizeof(ST_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 
-   //デバイスコードセット
-   LPST_AUX_ENV_INF pEnvStat = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
-
+ 
    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
 
@@ -184,13 +182,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
    swscanf_s(wbuf, L"%x", &g_my_code.option);
-
-   //マシンコード設定
+    
    str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_MACHINE_ID, L"0", wbuf, 32, PATH_OF_INIFILE);
    swscanf_s(wbuf, L"%d", &(g_my_code.machine_id));
-
-   pEnvStat->device_code = g_my_code;
-
+  
    //コミュニケーションオブジェクトセットアップ
    CComm::setup();
    CComm::addr_list;
