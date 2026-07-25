@@ -3,7 +3,7 @@
 #include <string>
 #include "COMMON_DEF.h"
 
-using namespace std;
+//using namespace std;
 
 //  共有メモリステータス
 #define	OK_SHMEM						0	// 共有メモリ 生成/破棄正常
@@ -31,7 +31,7 @@ public:
 	int delete_smem();
 	int clear_smem();
 
-	wstring wstr_smem_name;
+	std::wstring wstr_smem_name;
 
 	HANDLE get_hmutex() { return hMutex; }
 	LPVOID get_pMap() { return pMapTop; }

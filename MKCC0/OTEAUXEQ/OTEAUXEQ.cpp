@@ -24,7 +24,7 @@
 
 using namespace OTEAUXEQ;
 using namespace cv;
-using namespace std;
+//using namespace std;
 
 extern std::atomic<bool> g_keepRunning;
 
@@ -199,7 +199,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    WCHAR wbuf[32];
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_SERIAL_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
-   swscanf_s(wbuf, L"%d", &(g_my_code.serial_no));
+   swscanf_s(wbuf, L"%x", &(g_my_code.serial_no));
 
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_OPTION_KEY_OF_INIFILE, L"-1", wbuf, 32, PATH_OF_INIFILE);
    swscanf_s(wbuf, L"%x", &(g_my_code.option));

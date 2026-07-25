@@ -116,13 +116,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\spec;..\Common;..\Inc;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\spec;..\Common;..\Inc;$(TeliCamSDK)TeliCamAPI\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\Lib\x64;..\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>PCIFLib.lib;LELanio.lib;LALANIO.lib;winmm.lib;comctl32.lib;ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\opencv\build\x64\vc16\lib;..\Lib\x64;..\Lib;$(TeliCamSDK)TeliCamApi\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PCIFLib.lib;LELanio.lib;LALANIO.lib;winmm.lib;comctl32.lib;ws2_32.lib;TeliCamApi64.lib;TeliCamUtl64.lib;opencv_world4120d.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,7 +134,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\inc\spec;..\Common;..\Inc;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc\spec;..\Common;..\Inc;$(TeliCamSDK)TeliCamAPI\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -141,11 +142,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\Lib\x64;..\Lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>PCIFLib.lib;LELanio.lib;winmm.lib;comctl32.lib;ws2_32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\opencv\build\x64\vc16\lib;..\Lib\x64;..\Lib;$(TeliCamSDK)TeliCamApi\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PCIFLib.lib;LELanio.lib;winmm.lib;comctl32.lib;ws2_32.lib;TeliCamApi64.lib;TeliCamUtl64.lib;opencv_world4120.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\CCamera.h" />
+    <ClInclude Include="..\Common\CHelper.h" />
     <ClInclude Include="AUXEQ.h" />
     <ClInclude Include="CAuxAgent.h" />
     <ClInclude Include="CAuxCS.h" />
@@ -157,7 +160,9 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\src\CCamera.cpp" />
     <ClCompile Include="..\Common\src\CComm.cpp" />
+    <ClCompile Include="..\Common\src\CHelper.cpp" />
     <ClCompile Include="..\Common\src\CMCProtocol.cpp" />
     <ClCompile Include="..\Common\src\CSock.cpp" />
     <ClCompile Include="..\MKCC\CBasicControl.cpp" />

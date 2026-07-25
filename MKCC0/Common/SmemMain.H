@@ -9,7 +9,7 @@
 #include "CCrane.h"
 #include "CFaults.h"
 
-using namespace std;
+//using namespace std;
 
 /****************************************************************************/
 /*	クレーンコントローラ（CC）構造体定義									*/	

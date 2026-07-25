@@ -57,6 +57,18 @@ HRESULT CAuxEnv::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
+	//### 有効機能の設定
+	pEnvInf->device_code = g_my_code;
+	//旋回ブレーキ
+	int enable = (g_my_code.option >> 28) & 0x0F;
+	pEnvInf->slbrk_enable = enable;
+	//LANIO
+	enable = (g_my_code.option >> 24) & 0x0F;
+	pEnvInf->lanio_enable = enable;
+	//振れセンサー
+	enable = (g_my_code.option >> 20) & 0x0F;
+	pEnvInf->sway_sensor_enable = enable;
+
 #if 0
 	//### IFウィンドウOPEN
 	WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -99,21 +111,7 @@ HRESULT CAuxEnv::routine_work(void* pObj) {
 }
 
 int CAuxEnv::input() {
-	//### 有効期の設定
-	if (!(pEnvInf->device_code.machine_id)) {
-		//マシンコード設定
-		pEnvInf->device_code = g_my_code;
-		//有効化機能設定
-		//旋回ブレーキ
-		int enable = (g_my_code.option >> 28) & 0x0F;
-		pEnvInf->slbrk_enable = enable;
-		//LANIO
-		enable = (g_my_code.option >> 24) & 0x0F;
-		pEnvInf->lanio_enable = enable;
-		//振れセンサー
-		enable = (g_my_code.option >> 20) & 0x0F;
-		pEnvInf->sway_sensor_enable = enable;
-	}
+
 
 	return S_OK;
 }

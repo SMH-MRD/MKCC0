@@ -144,6 +144,18 @@ void CStrHelper::Str2Wstr(const std::string& src, std::wstring& dest) {
 	return;
 }
 
+std::wstring CStrHelper::conv_string(const std::string& src)
+{
+	size_t   ptr;
+	wchar_t* buffer = new wchar_t[src.size() + 1];
+
+	mbstowcs_s(&ptr, buffer, src.size() + 1, src.c_str(), _TRUNCATE);
+	std::wstring str = static_cast<std::wstring>(buffer);
+	delete[] buffer;
+
+	return str;
+}
+
 /*****************************************************************************************
 BmpHelper
 ******************************************************************************************/
@@ -322,7 +334,7 @@ INT16 CPlcCSHelper::get_code_by_mode(INT16 mode, int cs_code, int type) {
 /*****************************************************************************
 UIHelper
 *****************************************************************************/
-wstring CUIHelper::crane_txt;
+std::wstring CUIHelper::crane_txt;
 LPCWSTR CUIHelper::get_crane_txt_by_code(INT32 value) {
 	switch (value) {
 	case CRANE_ID_H6R602:	crane_txt = CRANE_TXT_H6R602; break;

@@ -22,6 +22,12 @@
     <Filter Include="Infrastructure">
       <UniqueIdentifier>{e44a2088-a934-481e-b31d-542c59820538}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Domain\Entity">
+      <UniqueIdentifier>{2e0181be-2b1a-4a66-8945-78e9630ec255}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain\Helpers">
+      <UniqueIdentifier>{641adcf5-2bb9-4ced-98e9-5ca2afcdb8be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -50,6 +56,12 @@
     </ClInclude>
     <ClInclude Include="AUXEQ.h">
       <Filter>Kernel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\CHelper.h">
+      <Filter>Domain\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\CCamera.h">
+      <Filter>Domain\Entity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -85,6 +97,12 @@
     </ClCompile>
     <ClCompile Include="..\Common\src\CComm.cpp">
       <Filter>Infrastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CHelper.cpp">
+      <Filter>Domain\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\src\CCamera.cpp">
+      <Filter>Domain\Entity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

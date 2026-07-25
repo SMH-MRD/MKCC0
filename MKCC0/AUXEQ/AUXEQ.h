@@ -3,10 +3,8 @@
 #include "resource.h"
 namespace AUXEQ
 {
-
 #define N_AUXEQ_TASK                  6
-
-    //-各タスクアイコン用イメージリスト設定値
+//-各タスクアイコン用イメージリスト設定値
 #define ICON_IMG_W					32		//アイコンイメージ幅
 #define ICON_IMG_H					32		//アイコンイメージ高さ
 

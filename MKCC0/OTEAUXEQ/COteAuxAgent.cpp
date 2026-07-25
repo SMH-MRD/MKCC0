@@ -257,9 +257,6 @@ int COteAuxAgent::parse() {           //メイン処理
 	return STAT_OK;
 }
 int COteAuxAgent::output() {          //出力処理
-	
-
-
 	return STAT_OK;
 }
 int COteAuxAgent::close() {
@@ -336,7 +333,6 @@ LRESULT CALLBACK COteAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 	//	g_hStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		// スレッドを起動してカメラキャプチャを開始
 	//	camera_capture_start();
-
 		setup_graphics(hWnd);
 
 		break;

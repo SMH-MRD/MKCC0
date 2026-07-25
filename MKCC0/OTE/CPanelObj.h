@@ -2,7 +2,7 @@
 #include "CPanelIo.h"
 #include "CFaults.h"
 
-using namespace std;
+//using namespace std;
 #define N_MAIN_PNL_OBJ		64
 #define N_SUB_PNL_OBJ		128
 #define N_GWIN_OBJ			32

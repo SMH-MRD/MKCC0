@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include "CBasicControl.h"
 
-using namespace std;
+//using namespace std;
 /****************************************************************************/
 /*   補機信号定義構造体                                  　         　		*/
 /* 　AUXEQがセットする共有メモリ上の情報　      　　　　　　				*/
@@ -42,6 +42,7 @@ typedef struct _ST_AUX_ENV_INF {
 	int slbrk_enable;
 	int lanio_enable;
 	int sway_sensor_enable;
+	int gt_sensor_enable;
 
 }ST_AUX_ENV_INF, * LPST_AUX_ENV_INF;
 
@@ -77,9 +78,16 @@ typedef struct _ST_SLBRK_FB {
 	INT16 d22;
 }ST_SLBRK_FB, * LPST_SLBRK_FB;
 
+typedef struct _GE_CAM
+{
+	int retry_count = 0;
+}ST_GE_CAM, LPST_GE_CAM;
+
 typedef struct _ST_AUX_AGENT_INF {	//MCprotocolの送受信バッファ
 	INT16 slbrk_wbuf[16];
 	INT16 slbrk_rbuf[16];
+
+	ST_GE_CAM st_ge_cam;
 }ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 
 #define AUX_CS_CODE_LANIO_FAIL			-1
@@ -107,6 +115,10 @@ typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	int sway_sensor_status;
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 
+typedef struct _ST_AUX_POL_INF {
+	int tmp;
+
+}ST_AUX_POL_INF, * LPST_AUX_POL_INF;
 
 /****************************************************************************/
 /*   補機信号定義構造体(OTE)                                  　         　	*/
@@ -238,8 +250,6 @@ typedef struct _ST_AUXPOL_IMG_PRM {
 	int hsv_filter_mode = OTEAUXPOL_MOD_VIDEO_CHK_MASK_HSV;	//0:通常、1:H値の範囲が0-180を跨ぐモード
 } ST_AUXPOL_IMG_PRM, * LPST_AUXPOL_IMG_PRM;
 
-
-
 typedef struct _ST_AUXPOL_IMG_PROC {
 	ST_AUXPOL_IMG_PRM param;
 	int status = 0;
@@ -248,8 +258,8 @@ typedef struct _ST_AUXPOL_IMG_PROC {
 	int whiteCountInWorkRoi = 0;    //画像処理対象範囲ROI内の白画素数
 	int whiteCountInWorkRoi_Last = 0;
 	int whiteCountInCriterionRoi = 0;//基準(検出対象）ROI内の白画素数
-	wstring video_delay_auto_prm_status = L"-";
-	wstring video_delay_prm_file_status = L"-";
+	std::wstring video_delay_auto_prm_status = L"-";
+	std::wstring video_delay_prm_file_status = L"-";
 	WCHAR video_delay_auto_prm_status_wch[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"APRM WCH";
 	WCHAR video_delay_prm_file_status_wch[OTEAUXPOL_PRM_MSG_WCH_SIZE] = L"PRM_FILE";
 	INT32 v_delay_prm_io_status = L_OFF;

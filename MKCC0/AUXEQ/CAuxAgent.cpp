@@ -1,5 +1,6 @@
 
 #include "CAuxAgent.h"
+#include "CAuxPol.h"
 #include "resource.h"
 #include "CSHAREDMEM.H"
 #include "SmemAux.H"
@@ -8,9 +9,25 @@
 #include "CComm.h"
 #include <mutex> 
 
+#include <thread>
+#include <mutex>
+#include <atomic>
+
+#include "TeliCamApi.h" //SDKのフォルダからIncフォルダにコピー
+#include "TeliCamUtl.h"//SDKのフォルダからIncフォルダにコピー
+
+using namespace Teli;
+
+#pragma comment (lib, "Gdiplus.lib")
+//#pragma comment(lib, "..\\Lib\\x64\\TeliCamApi64.lib")
+//#pragma comment(lib, "..\\Lib\\x64\\TeliCamUtl64.lib")
+
 LPST_AUXEQ CAuxAgent::pst_work;
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
 ST_AUXAG_MON2 CAuxAgent::st_mon2;
+
+extern BC_TASK_ID st_task_id;
+extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
@@ -25,6 +42,21 @@ static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
 static LPST_AUX_ENV_INF		pEnv_Inf = NULL;
 static LPST_AUX_CS_INF		pCS_Inf = NULL;
 static LPST_AUX_AGENT_INF	pAgent_Inf = NULL;
+static LPST_AUX_POL_INF		pAuxPolInf = NULL;
+
+static CAuxAgent* pAgentObj;
+static CAuxPol* pPolObj;
+
+//GE Camera
+std::thread g_capThread;// スレッド変数が消えないようにグローバル領域に保持
+std::atomic<bool> g_keepRunning = false;
+HANDLE g_hStopEvent = NULL;   // 停止指示用イベント
+
+std::unique_ptr<Bitmap>   CAuxAgent::m_pOffscreenBitmap;
+std::unique_ptr<Gdiplus::Graphics> CAuxAgent::m_pOffscreenGraphics;
+Graphics* CAuxAgent::pgraphic_img;	//描画用グラフィックス
+
+static wostringstream wos_cam;
 
 static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
 
@@ -33,6 +65,26 @@ static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
 static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
 static LARGE_INTEGER frequency;				//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
+
+CAuxAgent::CAuxAgent() {
+
+	pst_work = &(st_work);
+
+	// 1. GDI+ 初期化
+	GdiplusStartupInput gdiplusStartupInput;
+	GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
+
+	m_pOffscreenBitmap = std::make_unique<Bitmap>(AUXAG_MON1_WND_W, AUXAG_MON1_WND_H, PixelFormat32bppARGB);
+
+	// 2. そのバッファに描き込むための Graphics オブジェクトを作成
+	m_pOffscreenGraphics = std::unique_ptr<Graphics>(Graphics::FromImage(m_pOffscreenBitmap.get()));
+
+}
+CAuxAgent::~CAuxAgent() {
+	GdiplusShutdown(m_gdiplusToken);
+	g_keepRunning = false;//USBデバイス監視スレッド終了フラグセット
+	Sleep(1000);//スレッド終了待機
+}
 
 HRESULT CAuxAgent::initialize(LPVOID lpParam){
 
@@ -49,40 +101,80 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	pEnv_Inf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
 	pCS_Inf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
 
-	//### IFウィンドウOPEN
-	if (st_mon2.hwnd_mon == NULL) {
-		WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
-		LPARAM lp = BC_ID_MON2;
-		SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
-		Sleep(1000);
-	}
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Err(MON2 NULL Handle!!):";
-		msg2listview(wos.str()); wos.str(L"");
-		return S_FALSE;
-	}
+	pAgentObj = (CAuxAgent*)VectCtrlObj[st_task_id.AGENT];
 
-	//### 初期化
-	wos.str(L"");//初期化
-	if (st_mon2.hwnd_mon == NULL) {
-		wos << L"Initialize : MON NG"; msg2listview(wos.str());
-		return S_FALSE;
+	//### 有効機能の設定
+
+	//旋回ブレーキ
+	int enable = (g_my_code.option >> 28) & 0x0F;
+	slbrk_enable = enable;
+	//LANIO
+	enable = (g_my_code.option >> 24) & 0x0F;
+	lanio_enable = enable;
+	//振れセンサー
+	enable = (g_my_code.option >> 20) & 0x0F;
+	sway_sensor_enable = enable;
+	//走行位置検出
+	enable = (g_my_code.option >> 16) & 0x0F;
+	gt_sensor_enable = enable;
+
+	//### GE Camera IFウィンドウ
+	if (sway_sensor_enable) {
+		if (st_mon1.hwnd_mon == NULL) {
+			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+			LPARAM lp = BC_ID_MON1;
+			SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+			Sleep(1000);
+		}
+		if (st_mon1.hwnd_mon == NULL) {
+			wos << L"Err(MON1 NULL Handle!!):";
+			msg2listview(wos.str()); wos.str(L"");
+			return S_FALSE;
+		}
+		//### 初期化
+		wos.str(L"");//初期化
+		if (st_mon1.hwnd_mon == NULL) {
+			wos << L"Initialize : MON1 NG"; msg2listview(wos.str());
+			return S_FALSE;
+		}
 	}
-	else {
-		pMCSock = new CMCProtocol(ID_SOCK_MC_AUX_BRK);
 	
-		if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_SLBRK, g_my_code.machine_id) != S_OK) {
-			wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
-			wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
+	//### SLBRK IFウィンドウ
+	if(slbrk_enable){
+		if (st_mon2.hwnd_mon == NULL) {
+			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
+			LPARAM lp = BC_ID_MON2;
+			SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
+			Sleep(1000);
+		}
+		if (st_mon2.hwnd_mon == NULL) {
+			wos << L"Err(MON2 NULL Handle!!):";
+			msg2listview(wos.str()); wos.str(L"");
+			return S_FALSE;
+		}
+		//### 初期化
+		wos.str(L"");//初期化
+		if (st_mon2.hwnd_mon == NULL) {
+			wos << L"Initialize : MON2 NG";
 			return S_FALSE;
 		}
 		else {
-			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
+			pMCSock = new CMCProtocol(ID_SOCK_MC_AUX_BRK);
+
+			if (pMCSock->Initialize(st_mon2.hwnd_mon, PLC_IF_TYPE_SLBRK, g_my_code.machine_id) != S_OK) {
+				wos << L"Initialize : MC Init NG"; msg2listview(wos.str()); wos.str(L"");
+				wos << L"Err :" << pMCSock->msg_wos.str(); msg2listview(wos.str()); wos.str(L"");
+				//			return S_FALSE;
+			}
+			else {
+				wos << L"MCProtocol Init OK"; 
+			}
 		}
+		msg2listview(wos.str());
 	}
 
 	//モニタウィンドウテキスト	
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"GE_Cam");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"SL BRK");
 	
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -97,101 +189,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	set_item_chk_txt();
 	set_panel_tip_txt();
 
-#if 0
 
-	CAuxAgent* pTiltObj = (CAuxAgent*)lpParam;
-	pst_work = &(pTiltObj->st_work);
-
-	int code = 0;
-
-	wos.str(L"");
-	if ((code = LALanioInit()) == 0) {
-		wos<<L"LANIO Init NG : Code "<< LALanioGetLastError();
-		msg2listview(wos.str());
-		return S_FALSE;
-	}
-	else{
-		wos <<L"LANIO Init OK : Code "<< code;
-	}
-	msg2listview(wos.str());
-
-	wos.str(L"");
-
-	if ((st_work.laniocount = LALanioSearch(st_work.timeout)) < 0) {
-		wos << L"LANIO Search ERROR : Code "<< LALanioGetLastError();
-		msg2listview(wos.str());
-		return S_FALSE;
-	}
-	else if(st_work.laniocount == 0){
-	//	LALanioConnectDirect(L"192,168,100,30", 1000);
-		wos << L"LANIO Search CANNOT FIND";
-		msg2listview(wos.str());
-		return S_FALSE;
-	}
-	else {
-		//IPアドレス確認
-		wos << L"LANIO Search OK : Count " << st_work.laniocount;
-		msg2listview(wos.str());
-
-		for (int i = 0; i < st_work.laniocount; i++) {
-
-			//ID,モデル確認
-			int error = LALanioGetId(0, &st_work.lanio_id[i]);
-			error = LALanioGetModel(i, &st_work.lanio_model[i]);
-			wos.str(L"");
-			if ((0 < st_work.lanio_model[i]) && (LANIO_N_MODEL > st_work.lanio_model[i]))
-				wos << L"ID : " << st_work.lanio_id[i] << L"    MODEL : " << st_work.model_text[st_work.lanio_model[i]];
-			else
-				wos << L"ID : " << st_work.lanio_id[i] << L"    MODEL : ??";
-
-			msg2listview(wos.str());
-
-			char ipaddress[16];
-			error = LALanioGetIpAddress(i, ipaddress);
-			wos.str(L"");
-			wos << L"IP : " << ipaddress;
-			msg2listview(wos.str());
-
-			st_work.hlanio[i] = LALanioConnect(i);
-			wos.str(L"");
-			if (st_work.hlanio[i] == -1) {
-				wos << L"  Connect ERROR Code " << LALanioGetLastError();
-				msg2listview(wos.str());
-				return S_FALSE;;
-			}
-			else {
-				wos << L" Connect OK : Handle " << st_work.hlanio;
-				msg2listview(wos.str());
-			}
-
-			if (st_work.lanio_model[i] == LANIO_MODEL_LA_5AI) {
-
-				wos.str(L"");
-				wos << st_work.model_text[st_work.lanio_model[i]] << L" Set Range Code |";
-				for (int j = 0; j < LANIO_N_CH_LA_5AI; j++) {
-					if (LALanioSetAIRange(st_work.hlanio[i], j,st_work.lanio_ai_range[j])) {
-						wos << st_work.lanio_ai_range[j] << L"|";
-					}
-					else {
-						wos << L"NG|";
-					}
-				}
-				msg2listview(wos.str());
-
-				wos.str(L"");
-				if( LALanioSetADCsps(st_work.hlanio[i], st_work.lanio_sps[LANIO_MODEL_LA_5AI])){
-					wos << st_work.model_text[st_work.lanio_model[i]] << L" SPS set OK CODE:" << st_work.lanio_sps[LANIO_MODEL_LA_5AI];
-				}
-				else {
-					wos << st_work.model_text[st_work.lanio_model[i]] << L" SPS set NG";
-				}
-				msg2listview(wos.str());
-
-			}
-		}
-	}
-
-#endif
 	return S_OK;
 }
 
@@ -208,7 +206,6 @@ int CAuxAgent::input() {
 }
 
 static INT16 slbrk_healthy_hold, slbrk_healthy_cnt;
-
 int CAuxAgent::parse() {           //メイン処理
 
 	//旋回ブレーキヘルシーチェック
@@ -220,7 +217,14 @@ int CAuxAgent::parse() {           //メイン処理
 
 	//ヘルシー異常検出
 	if (slbrk_healthy_cnt >= 50) pCS_Inf->fb_slbrk.healthy_err = L_ON;	
-	else                          pCS_Inf->fb_slbrk.healthy_err = L_OFF;
+	else                         pCS_Inf->fb_slbrk.healthy_err = L_OFF;
+
+	//GE Camera
+	if (sway_sensor_enable) {
+		if ((!g_keepRunning) && (pAgent_Inf->st_ge_cam.retry_count == 0)) {
+			camera_capture_start();
+		}
+	}
 
 	return STAT_OK;
 }
@@ -262,6 +266,59 @@ int CAuxAgent::output() {          //出力処理
 int CAuxAgent::close() {
 	int error = LALanioEnd();
 	return 0;
+}
+
+// GEカメラ
+void CAuxAgent::SaveParameters_GECamera() {
+	return; 
+}
+void CAuxAgent::LoadParameters_GECamera() {
+	return; 
+}
+void CAuxAgent::camera_capture_start() {
+	return; 
+}
+void CAuxAgent::camera_capture_stop() {
+	return; 
+}
+
+static wostringstream wosGE;
+
+void CAuxAgent::GECameraThreadAG() {
+	//初期化
+	wosGE.str(L"");
+	CAM_API_STATUS  uiStatus = CAM_API_STS_SUCCESS;
+	uiStatus = Sys_Initialize();
+	if (uiStatus != CAM_API_STS_SUCCESS) {
+		if ((uiStatus & 0xF0000000) == 0x10000000) {// Warning
+			wosGE << L"Warning:Sys_Initialize() >> Code :" << uiStatus;
+		}
+		else {
+			wosGE << L"Failed:Sys_Initialize() >> Code :" << uiStatus;
+		}
+	}
+	else {
+		wosGE << L"TeliCamApi Initialize Success ";
+	}
+	uiStatus = Sys_Initialize();
+	if (uiStatus != CAM_API_STS_SUCCESS) {
+		if ((uiStatus & 0xF0000000) == 0x10000000) {// Warning
+			wosGE << L"Warning:Sys_Initialize() >> Code :" << uiStatus;
+		}
+		else {
+			wosGE << L"Failed:Sys_Initialize() >> Code :" << uiStatus;
+		}
+	}
+	else {
+		wosGE << L"TeliCamApi Initialize Success ";
+	}
+	pAgentObj->msg2listview(wosGE.str());
+	return; 
+}
+
+
+void CAuxAgent::OnPaintMon1(HWND hWnd, HDC hdc) {
+	return; 
 }
 
 static wostringstream monwos;
@@ -681,7 +738,8 @@ HWND CAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 		st_mon1.hwnd_mon = CreateWindowW(TEXT("AUXAG_MON1"), TEXT("AUXAG_MON1"), WS_OVERLAPPEDWINDOW,
 			AUXAG_MON1_WND_X, AUXAG_MON1_WND_Y, AUXAG_MON1_WND_W, AUXAG_MON1_WND_H,
 			h_parent_wnd, nullptr, hInst, nullptr);
-		show_monitor_wnd(id);
+	//	show_monitor_wnd(id);
+		return st_mon1.hwnd_mon;
 	}
 	else if (id == BC_ID_MON2) {
 		wcex.cbSize = sizeof(WNDCLASSEX);

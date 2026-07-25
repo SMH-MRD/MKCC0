@@ -12,7 +12,7 @@
 #include "CCrane.h"
 #include <dinput.h>
 
-using namespace std;
+//using namespace std;
 
 /****************************************************************************/
 /*   操作端末側信号定義構造体                                    　			*/

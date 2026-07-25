@@ -33,7 +33,7 @@ struct ST_NOTCH_CODE {
 	INT16 r4[N_NOTCH_MAX] = { PTN_NOTCH4_0,PTN_NOTCH4_R1,PTN_NOTCH4_R2,PTN_NOTCH4_R3,PTN_NOTCH4_R4,PTN_NOTCH4_R4 };
 };
 
-using namespace std;
+
 ///ノッチコード変換クラス
 class CNotchHelper
 {
@@ -60,24 +60,6 @@ public:
 	static INT16 get_iui4_by_v(double v, double* vtbl_f, double* vtbl_r);
 };
 
-class CStrHelper
-{
-public:
-	CStrHelper() {};
-	~CStrHelper() {};
-	//文字列
-	static void Str2Wstr(const string& src, wstring& dest);									//string→wstringに変換
-	//Bitmap
-	static void put_bmp_built(HDC hdc, HBITMAP hbmp, POINT dst_pt, POINT src_pt);						//ビットマップ表示
-	static void put_bmp_stretch(HDC hdc, HBITMAP hbmp, POINT dst_pt, POINT src_pt, int retio_persent);  //ビットマップ拡大縮小表示
-
-	//ビット数カウント
-	static UINT	bits_count(UINT16 x);
-	static UINT	bits_count(UINT32 x);
-	static UINT	bits_count(UINT64 x);
-	static void fit_ph_range_upto_pi(double* th); //　位相座標を±πのレンジに校正する
-
-};
 class CBitHelper
 {
 public:
@@ -134,12 +116,7 @@ public:
 	static INT16 get_code_by_mode(INT16 mode, int cs_code, int type);
 };
 
-class CUIHelper
-{
-public:
-	static wstring crane_txt;
-	static LPCWSTR get_crane_txt_by_code(INT32 value);
-};
+
 
 #define HELPER_DATA_TYPE_LONG		0
 #define HELPER_DATA_TYPE_DOUBLE		1
@@ -321,4 +298,22 @@ class CFileHelper
 
 		return fullPath;
 	}
+};
+
+class CStrHelper
+{
+public:
+	CStrHelper() {};
+	~CStrHelper() {};
+	//文字列
+	static void Str2Wstr(const std::string& src, std::wstring& dest);									//string→wstringに変換
+	static std::wstring conv_string(const std::string& src);
+
+};
+
+class CUIHelper
+{
+public:
+	static std::wstring crane_txt;
+	static LPCWSTR get_crane_txt_by_code(INT32 value);
 };

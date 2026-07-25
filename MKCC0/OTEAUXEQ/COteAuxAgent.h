@@ -124,6 +124,13 @@ public:
     
     virtual HRESULT initialize(LPVOID lpParam) override;
 
+    // カメラキャプチャスレッド
+    static void UsbCameraThreadAG();
+    static void OnPaintMon2(HWND hWnd, HDC hdc);
+
+    void SaveParameters_Vdelay();
+    void LoadParameters_Vdelay();
+
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
@@ -140,21 +147,12 @@ public:
     virtual void set_item_chk_txt() override;
     //タブパネルのListViewにコメント出力
     virtual void msg2listview(wstring wstr) override;
-
     //パラメータ初期表示値設定
     virtual void set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) override;
-
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
-    // カメラキャプチャスレッド
-    static void UsbCameraThreadAG();
-    static void OnPaintMon2(HWND hWnd, HDC hdc);
-
-     void SaveParameters_Vdelay(); 
-     void LoadParameters_Vdelay();
-
-private:
+  private:
      // --- GDI+ 関連 ---
     ULONG_PTR m_gdiplusToken;
     static std::unique_ptr<Bitmap>   m_pOffscreenBitmap;

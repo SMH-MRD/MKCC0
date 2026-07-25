@@ -7,6 +7,10 @@
 #include "CBasicControl.h"
 #include "LALANIO.h"
 
+// Include files for using OpenCV.
+#include <opencv2/opencv.hpp>
+#include <gdiplus.h>
+
 //LANIO関連定義
 #if 0
 
@@ -77,8 +81,8 @@ typedef struct _ST_AUXEQ {
 
 #define AUXAG_MON1_WND_X     1280
 #define AUXAG_MON1_WND_Y     0
-#define AUXAG_MON1_WND_W     320
-#define AUXAG_MON1_WND_H     240
+#define AUXAG_MON1_WND_W     640
+#define AUXAG_MON1_WND_H     480
 #define AUXAG_MON1_N_CTRL    32
 #define AUXAG_MON1_N_WCHAR   64
 
@@ -120,7 +124,7 @@ typedef struct _AUXAG_MON1 {
 
 
 //MON2---------------------------------------------------
-#define AUXAG_MON2_WND_X                    AUXAG_MON1_WND_X
+#define AUXAG_MON2_WND_X                    1280
 #define AUXAG_MON2_WND_Y                    620   
 #define AUXAG_MON2_WND_W                    640
 #define AUXAG_MON2_WND_H                    400
@@ -193,11 +197,18 @@ typedef struct _AUXAG_MON2 {
 class CAuxAgent :  public CBasicControl
 {
 public:
-    CAuxAgent() { pst_work = &(st_work); };
-    ~CAuxAgent() {};
+    CAuxAgent();
+    ~CAuxAgent();
     
-
     virtual HRESULT initialize(LPVOID lpParam) override;
+  
+    // GEカメラ
+    void SaveParameters_GECamera();
+    void LoadParameters_GECamera();
+    static void camera_capture_start();
+    static void camera_capture_stop();
+    static void GECameraThreadAG();
+    static void OnPaintMon1(HWND hWnd, HDC hdc);
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
@@ -227,8 +238,20 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
         	
 private:
-    //オーバーライド
+    int slbrk_enable;
+    int lanio_enable;
+    int sway_sensor_enable;
+    int gt_sensor_enable;
 
+    // --- GDI+ 関連 ---
+    ULONG_PTR m_gdiplusToken;
+    static std::unique_ptr<Bitmap>   m_pOffscreenBitmap;
+    static std::unique_ptr<Graphics> m_pOffscreenGraphics;
+    static Graphics* pgraphic_img;	//描画用グラフィックス
+    static HRESULT setup_graphics(HWND hwnd);
+    static void clear_graphics();
+
+    //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
 
     HWND open_monitor_wnd(HWND h_parent_wnd, int id);
