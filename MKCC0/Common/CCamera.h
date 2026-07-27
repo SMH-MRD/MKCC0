@@ -3,7 +3,6 @@
 #include <windows.h>
 #include <string>
 
-
 #include "..\Inc\TeliCamApi.h" // For Teli Camera
 #include "..\Inc\TeliCamUtl.h" // For Teli Camera
 
@@ -34,17 +33,12 @@ typedef struct _TELI_CAM_CONFIG {
     std::wstring ipaddress;         // カメラのIPアドレス
     uint32_t     packetsize;        // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
     float64_t    framerate_drop;    // フレームレート低下の判定値[fps]
-
-    _TELI_CAM_CONFIG()
-        : valid(FALSE)
-        , ipaddress(L"0.0.0.0")
-        , packetsize(0)
-        , framerate_drop(0.0)
-    {
-    }
+    LONG         period;            // カメラキャプチャ周期ms
 } TELI_CAM_CONFIG, * PTELI_CAM_CONFIG;
 // カメラのステータス
 typedef struct _TELI_CAM_STATUS {
+    int32_t               control_status;
+    int32_t               retry_count;
     int32_t               camidx;           // カメラのインデックス
     Teli::CAM_HANDLE      camhndl;          // オープンしたカメラのカメラハンドル
     Teli::CAM_STRM_HANDLE strmhndl;         // オープンしたストリームインターフェースのストリームハンドル
@@ -52,7 +46,6 @@ typedef struct _TELI_CAM_STATUS {
     Teli::CAM_API_STATUS  errstat;          // 画像ストリーム受信時のエラーステータスコード
     uint32_t              pyldsize;         // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
     std::wstring          camname;          // カメラの名前
-    Teli::CAM_INFO        caminfo;          // カメラの情報
     uint32_t              camwidth;         // 映像の幅
     uint32_t              camheight;        // 映像の高さ
     uint32_t              framecount;       // FPSを計算するためのフレームカウンター
@@ -76,7 +69,6 @@ typedef struct _TELI_CAM_STATUS {
         , errstat(Teli::CAM_API_STS_SUCCESS)
         , pyldsize(0)
         , camname(L"Not found camera")
-        , caminfo()
         , camwidth(0)
         , camheight(0)
         , framecount(0)
@@ -94,44 +86,7 @@ typedef struct _TELI_CAM_STATUS {
     {
     }
 } TELI_CAM_STATUS, * PTELI_CAM_STATUS;
-// カメラの詳細情報
-typedef struct _TELI_CAM_DETAILS {
-    HANDLE EventHndlCamRemoval; // カメラ取り外し通知用のイベント(シグナル)オブジェクトのハンドル
-    //
-    HANDLE td_camera_remove_hndl;       // スレッドハンドル
-    BOOL   td_camera_remove_stat;       // スレッドステータス(FALSE:Exit TRUE:Run)
-    HANDLE td_gain_control_hndl;        // スレッドハンドル
-    BOOL   td_gain_control_stat;        // スレッドステータス(FALSE:Exit TRUE:Run)
-    HANDLE td_expstime_control_hndl;    // スレッドハンドル
-    BOOL   td_expstime_control_stat;    // スレッドステータス(FALSE:Exit TRUE:Run)
-    //
-    TELI_CAM_CONFIG cnfg; // カメラの設定
-    TELI_CAM_STATUS stat; // カメラのステータス
 
-    _TELI_CAM_DETAILS()
-        : EventHndlCamRemoval(NULL)
-        , td_camera_remove_hndl(NULL)
-        , td_camera_remove_stat(FALSE)
-        , td_gain_control_hndl(NULL)
-        , td_gain_control_stat(FALSE)
-        , td_expstime_control_hndl(NULL)
-        , td_expstime_control_stat(FALSE)
-        , cnfg()
-        , stat()
-    {
-    }
-} TELI_CAM_DETAILS, * PTELI_CAM_DETAILS;
-// カメラの情報
-typedef struct _TELI_CAM_INFO {
-    uint32_t       camcount;    // 検出したカメラの数
-    TELI_CAM_DETAILS details;     // カメラの詳細情報
-
-    _TELI_CAM_INFO()
-        : camcount(0)
-        , details()
-    {
-    }
-} TELI_CAM_INFO, * PTELI_CAM_INFO;
 #pragma endregion STRUCTURE_DEFINITION
 
 //////////////////////////////////////////////////////////////////////////////
@@ -141,7 +96,7 @@ class CTeliCamLib
 {
 public:
     CTeliCamLib(void);
-    CTeliCamLib(TELI_CAM_INFO caminfo);
+    CTeliCamLib(int type);
     virtual ~CTeliCamLib(void);
 
     // メンバー変数
@@ -178,18 +133,26 @@ public:
     Teli::CAM_INFO get_stat_caminfo(void);  // カメラ情報の取得
     std::wstring   get_camera_name(void);   // カメラ名の取得
     std::wstring   get_error_message(void); // エラーメッセージの取得
+   
+    // カメラの情報
+    uint32_t       camcount;    // 検出したカメラの数
+    Teli::CAM_INFO m_caminfo;
+    TELI_CAM_CONFIG cnfg;       // カメラの設定
+    TELI_CAM_STATUS stat;
+ 
+    LONG get_cam_period() { return cnfg.period; }
 
 protected:
 
 private:
-    // メンバー変数
+   // メンバー変数
    // CMyCriticalSection m_cscam;     // Critical section (exclusion processing)
-    _TELI_CAM_INFO   m_caminfo;   // カメラの情報
+
     std::wstring       m_errmsg;    // エラーメッセージ
 
     // メンバー関数
     int32_t get_caminfo_camindex(uint32_t camidx);  // カメラをオープンしたときのカメラのインデックスの取得
-
+  
     static void CALLBACK cb_image_acquired(Teli::CAM_HANDLE hCam,
         Teli::CAM_STRM_HANDLE hStrm,
         Teli::PCAM_IMAGE_INFO psImageInfo,

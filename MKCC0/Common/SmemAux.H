@@ -83,6 +83,9 @@ typedef struct _GE_CAM
 	int retry_count = 0;
 }ST_GE_CAM, LPST_GE_CAM;
 
+#define AUXAG_CAMERA_STAT_NORMAL		0//正常
+#define AUXAG_CAMERA_STAT_INIT_ERR		1//初期化エラー停止中
+#define AUXAG_CAMERA_STAT_SUSPEND		2//停止待機中
 typedef struct _ST_AUX_AGENT_INF {	//MCprotocolの送受信バッファ
 	INT16 slbrk_wbuf[16];
 	INT16 slbrk_rbuf[16];

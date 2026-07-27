@@ -1,4 +1,4 @@
-
+ï»¿
 #include "CAuxAgent.h"
 #include "CAuxPol.h"
 #include "resource.h"
@@ -7,14 +7,15 @@
 #include "CMCProtocol.h"
 #include "CPlc.h"
 #include "CComm.h"
-#include <mutex> 
+#include <mutex>
+#include "CCamera.h"
 
 #include <thread>
 #include <mutex>
 #include <atomic>
 
-#include "TeliCamApi.h" //SDK‚ÌƒtƒHƒ‹ƒ_‚©‚çIncƒtƒHƒ‹ƒ_‚ÉƒRƒs[
-#include "TeliCamUtl.h"//SDK‚ÌƒtƒHƒ‹ƒ_‚©‚çIncƒtƒHƒ‹ƒ_‚ÉƒRƒs[
+#include "TeliCamApi.h" //SDKã®ãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰Incãƒ•ã‚©ãƒ«ãƒ€ã«ã‚³ãƒ”ãƒ¼
+#include "TeliCamUtl.h"//SDKã®ãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰Incãƒ•ã‚©ãƒ«ãƒ€ã«ã‚³ãƒ”ãƒ¼
 
 using namespace Teli;
 
@@ -22,12 +23,14 @@ using namespace Teli;
 //#pragma comment(lib, "..\\Lib\\x64\\TeliCamApi64.lib")
 //#pragma comment(lib, "..\\Lib\\x64\\TeliCamUtl64.lib")
 
+CTeliCamLib* pCamera = nullptr;//GEã‚«ãƒ¡ãƒ©ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¸ã®ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒã‚¤ãƒ³ã‚¿
+
 LPST_AUXEQ CAuxAgent::pst_work;
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
 ST_AUXAG_MON2 CAuxAgent::st_mon2;
 
 extern BC_TASK_ID st_task_id;
-extern vector<CBasicControl*>	    VectCtrlObj;	    //ƒXƒŒƒbƒhƒIƒuƒWƒFƒNƒg‚Ìƒ|ƒCƒ“ƒ^
+extern vector<CBasicControl*>	    VectCtrlObj;	    //ã‚¹ãƒ¬ãƒƒãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒã‚¤ãƒ³ã‚¿
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
@@ -35,10 +38,10 @@ extern CSharedMem* pCsInfObj;
 
 extern ST_DEVICE_CODE g_my_code;
 
-//ƒ\ƒPƒbƒg
-static CMCProtocol* pMCSock;				//MCƒvƒƒgƒRƒ‹ƒIƒuƒWƒFƒNƒgƒ|ƒCƒ“ƒ^
+//ã‚½ã‚±ãƒƒãƒˆ
+static CMCProtocol* pMCSock;				//MCãƒ—ãƒ­ãƒˆã‚³ãƒ«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒã‚¤ãƒ³ã‚¿
 
-//‹¤—Lƒƒ‚ƒŠ
+//å…±æœ‰ãƒ¡ãƒ¢ãƒª
 static LPST_AUX_ENV_INF		pEnv_Inf = NULL;
 static LPST_AUX_CS_INF		pCS_Inf = NULL;
 static LPST_AUX_AGENT_INF	pAgent_Inf = NULL;
@@ -48,80 +51,87 @@ static CAuxAgent* pAgentObj;
 static CAuxPol* pPolObj;
 
 //GE Camera
-std::thread g_capThread;// ƒXƒŒƒbƒh•Ï”‚ªÁ‚¦‚È‚¢‚æ‚¤‚ÉƒOƒ[ƒoƒ‹—Ìˆæ‚É•Û
+std::thread g_capThread;// ã‚¹ãƒ¬ãƒƒãƒ‰å¤‰æ•°ãŒæ¶ˆãˆãªã„ã‚ˆã†ã«ã‚°ãƒ­ãƒ¼ãƒãƒ«é ˜åŸŸã«ä¿æŒ
 std::atomic<bool> g_keepRunning = false;
-HANDLE g_hStopEvent = NULL;   // ’â~w¦—pƒCƒxƒ“ƒg
+HANDLE g_hStopEvent = NULL;   // åœæ­¢æŒ‡ç¤ºç”¨ã‚¤ãƒ™ãƒ³ãƒˆ
 
 std::unique_ptr<Bitmap>   CAuxAgent::m_pOffscreenBitmap;
 std::unique_ptr<Gdiplus::Graphics> CAuxAgent::m_pOffscreenGraphics;
-Graphics* CAuxAgent::pgraphic_img;	//•`‰æ—pƒOƒ‰ƒtƒBƒbƒNƒX
+Graphics* CAuxAgent::pgraphic_img;	//æç”»ç”¨ã‚°ãƒ©ãƒ•ã‚£ãƒƒã‚¯ã‚¹
 
 static wostringstream wos_cam;
 
-static PINT16				pOteCtrl = NULL;	//OTE‘€ì“ü—ÍM†ƒ|ƒCƒ“ƒ^
+static PINT16				pOteCtrl = NULL;	//OTEæ“ä½œå…¥åŠ›ä¿¡å·ãƒã‚¤ãƒ³ã‚¿
 
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
-static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //ƒVƒXƒeƒ€ƒJƒEƒ“ƒg
-static LARGE_INTEGER frequency;				//ƒVƒXƒeƒ€ü”g”
-static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC‰“šŠÔ
+static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //ã‚·ã‚¹ãƒ†ãƒ ã‚«ã‚¦ãƒ³ãƒˆ
+static LARGE_INTEGER frequency;				//ã‚·ã‚¹ãƒ†ãƒ å‘¨æ³¢æ•°
+static LONGLONG res_delay_max_w, res_delay_max_r;	//PLCå¿œç­”æ™‚é–“
 
 CAuxAgent::CAuxAgent() {
 
 	pst_work = &(st_work);
 
-	// 1. GDI+ ‰Šú‰»
+	// 1. GDI+ åˆæœŸåŒ–
 	GdiplusStartupInput gdiplusStartupInput;
 	GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
 
 	m_pOffscreenBitmap = std::make_unique<Bitmap>(AUXAG_MON1_WND_W, AUXAG_MON1_WND_H, PixelFormat32bppARGB);
 
-	// 2. ‚»‚Ìƒoƒbƒtƒ@‚É•`‚«‚Ş‚½‚ß‚Ì Graphics ƒIƒuƒWƒFƒNƒg‚ğì¬
+	// 2. ãã®ãƒãƒƒãƒ•ã‚¡ã«æãè¾¼ã‚€ãŸã‚ã® Graphics ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä½œæˆ
 	m_pOffscreenGraphics = std::unique_ptr<Graphics>(Graphics::FromImage(m_pOffscreenBitmap.get()));
 
 }
 CAuxAgent::~CAuxAgent() {
 	GdiplusShutdown(m_gdiplusToken);
-	g_keepRunning = false;//USBƒfƒoƒCƒXŠÄ‹ƒXƒŒƒbƒhI—¹ƒtƒ‰ƒOƒZƒbƒg
-	Sleep(1000);//ƒXƒŒƒbƒhI—¹‘Ò‹@
+	g_keepRunning = false;//USBãƒ‡ãƒã‚¤ã‚¹ç›£è¦–ã‚¹ãƒ¬ãƒƒãƒ‰çµ‚äº†ãƒ•ãƒ©ã‚°ã‚»ãƒƒãƒˆ
+	if (pCamera != nullptr) delete pCamera;
+
+	Sleep(1000);//ã‚¹ãƒ¬ãƒƒãƒ‰çµ‚äº†å¾…æ©Ÿ
 }
 
 HRESULT CAuxAgent::initialize(LPVOID lpParam){
 
 	HRESULT hr = S_OK;
-	//ƒVƒXƒeƒ€ü”g”“Ç‚İ‚İ
+	//ã‚·ã‚¹ãƒ†ãƒ å‘¨æ³¢æ•°èª­ã¿è¾¼ã¿
 	QueryPerformanceFrequency(&frequency);
 
-	//### o—Í—p‹¤—Lƒƒ‚ƒŠæ“¾
+	//### å‡ºåŠ›ç”¨å…±æœ‰ãƒ¡ãƒ¢ãƒªå–å¾—
 	out_size = sizeof(ST_AUX_AGENT_INF);
 	set_outbuf(pAgentInfObj->get_pMap());
 
-	//### “ü—Í—p‹¤—Lƒƒ‚ƒŠæ“¾
+	//### å…¥åŠ›ç”¨å…±æœ‰ãƒ¡ãƒ¢ãƒªå–å¾—
 	pAgent_Inf = (LPST_AUX_AGENT_INF)pAgentInfObj->get_pMap();
 	pEnv_Inf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
 	pCS_Inf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
 
 	pAgentObj = (CAuxAgent*)VectCtrlObj[st_task_id.AGENT];
 
-	//### —LŒø‹@”\‚Ìİ’è
+	//### æœ‰åŠ¹æ©Ÿèƒ½ã®è¨­å®š
 
-	//ù‰ñƒuƒŒ[ƒL
+	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­
 	int enable = (g_my_code.option >> 28) & 0x0F;
 	slbrk_enable = enable;
 	//LANIO
 	enable = (g_my_code.option >> 24) & 0x0F;
 	lanio_enable = enable;
-	//U‚êƒZƒ“ƒT[
+	//æŒ¯ã‚Œã‚»ãƒ³ã‚µãƒ¼
 	enable = (g_my_code.option >> 20) & 0x0F;
 	sway_sensor_enable = enable;
-	//‘–sˆÊ’uŒŸo
+	//èµ°è¡Œä½ç½®æ¤œå‡º
 	enable = (g_my_code.option >> 16) & 0x0F;
 	gt_sensor_enable = enable;
 
-	//### GE Camera IFƒEƒBƒ“ƒhƒE
+	//### GE Camera
+
 	if (sway_sensor_enable) {
+		pCamera = new CTeliCamLib();
+		pCamera->cnfg.period = 25;//ã‚«ãƒ¡ãƒ©ã®ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°å‘¨æœŸ
+
+		//IFã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 		if (st_mon1.hwnd_mon == NULL) {
-			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:ƒRƒ}ƒ“ƒhƒR[ƒh, LWORD:ƒ^ƒXƒNƒCƒ“ƒfƒbƒNƒX
+			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:ã‚³ãƒãƒ³ãƒ‰ã‚³ãƒ¼ãƒ‰, LWORD:ã‚¿ã‚¹ã‚¯ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 			LPARAM lp = BC_ID_MON1;
 			SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 			Sleep(1000);
@@ -131,18 +141,18 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 			msg2listview(wos.str()); wos.str(L"");
 			return S_FALSE;
 		}
-		//### ‰Šú‰»
-		wos.str(L"");//‰Šú‰»
+		//### åˆæœŸåŒ–
+		wos.str(L"");//åˆæœŸåŒ–
 		if (st_mon1.hwnd_mon == NULL) {
 			wos << L"Initialize : MON1 NG"; msg2listview(wos.str());
 			return S_FALSE;
 		}
 	}
 	
-	//### SLBRK IFƒEƒBƒ“ƒhƒE
+	//### SLBRK IFã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 	if(slbrk_enable){
 		if (st_mon2.hwnd_mon == NULL) {
-			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:ƒRƒ}ƒ“ƒhƒR[ƒh, LWORD:ƒ^ƒXƒNƒCƒ“ƒfƒbƒNƒX
+			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:ã‚³ãƒãƒ³ãƒ‰ã‚³ãƒ¼ãƒ‰, LWORD:ã‚¿ã‚¹ã‚¯ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 			LPARAM lp = BC_ID_MON2;
 			SendMessage(inf.hwnd_opepane, WM_USER_TASK_REQ, wp, lp);
 			Sleep(1000);
@@ -152,8 +162,8 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 			msg2listview(wos.str()); wos.str(L"");
 			return S_FALSE;
 		}
-		//### ‰Šú‰»
-		wos.str(L"");//‰Šú‰»
+		//### åˆæœŸåŒ–
+		wos.str(L"");//åˆæœŸåŒ–
 		if (st_mon2.hwnd_mon == NULL) {
 			wos << L"Initialize : MON2 NG";
 			return S_FALSE;
@@ -173,7 +183,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 		msg2listview(wos.str());
 	}
 
-	//ƒ‚ƒjƒ^ƒEƒBƒ“ƒhƒEƒeƒLƒXƒg	
+	//ãƒ¢ãƒ‹ã‚¿ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ†ã‚­ã‚¹ãƒˆ	
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"GE_Cam");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"SL BRK");
 	
@@ -181,7 +191,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
 	for (int i = 1; i < 6; i++)
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
-	//ƒ‚[ƒhİ’è0
+	//ãƒ¢ãƒ¼ãƒ‰è¨­å®š0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
@@ -206,53 +216,60 @@ int CAuxAgent::input() {
 }
 
 static INT16 slbrk_healthy_hold, slbrk_healthy_cnt;
-int CAuxAgent::parse() {           //ƒƒCƒ“ˆ—
+int CAuxAgent::parse() {           //ãƒ¡ã‚¤ãƒ³å‡¦ç†
 
-	//ù‰ñƒuƒŒ[ƒLƒwƒ‹ƒV[ƒ`ƒFƒbƒN
-	if (slbrk_healthy_hold == pAgent_Inf->slbrk_rbuf[0]) {
-		if(! (slbrk_healthy_cnt & 0xF000)) slbrk_healthy_cnt++;
+	
+	{//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­å‡¦ç†
+		if (slbrk_enable) {
+			//ãƒ˜ãƒ«ã‚·ãƒ¼ãƒã‚§ãƒƒã‚¯
+			if (slbrk_healthy_hold == pAgent_Inf->slbrk_rbuf[0]) {
+				if (!(slbrk_healthy_cnt & 0xF000)) slbrk_healthy_cnt++;
+			}
+			else slbrk_healthy_cnt = 0;
+			slbrk_healthy_hold = pAgent_Inf->slbrk_rbuf[0];
+
+			//ãƒ˜ãƒ«ã‚·ãƒ¼ç•°å¸¸æ¤œå‡º
+			if (slbrk_healthy_cnt >= 50) pCS_Inf->fb_slbrk.healthy_err = L_ON;
+			else                         pCS_Inf->fb_slbrk.healthy_err = L_OFF;
+		}
 	}
-	else slbrk_healthy_cnt = 0;
-	slbrk_healthy_hold = pAgent_Inf->slbrk_rbuf[0];
-
-	//ƒwƒ‹ƒV[ˆÙíŒŸo
-	if (slbrk_healthy_cnt >= 50) pCS_Inf->fb_slbrk.healthy_err = L_ON;	
-	else                         pCS_Inf->fb_slbrk.healthy_err = L_OFF;
 
 	//GE Camera
-	if (sway_sensor_enable) {
-		if ((!g_keepRunning) && (pAgent_Inf->st_ge_cam.retry_count == 0)) {
-			camera_capture_start();
+	{
+		if (sway_sensor_enable) {
+			if ((!g_keepRunning) && (pAgent_Inf->st_ge_cam.retry_count == 0)) {
+				camera_capture_start();
+			}
 		}
 	}
 
 	return STAT_OK;
 }
-int CAuxAgent::output() {          //o—Íˆ—
-	//### MAINƒvƒƒZƒX‚Öo—Í
+int CAuxAgent::output() {          //å‡ºåŠ›å‡¦ç†
+	//### MAINãƒ—ãƒ­ã‚»ã‚¹ã¸å‡ºåŠ›
 	LPST_PLC_RBUF_SBRK0 pfb = (LPST_PLC_RBUF_SBRK0)pAgent_Inf->slbrk_rbuf;
 
-	pCS_Inf->fb_slbrk.d16				= pAgent_Inf->slbrk_rbuf[0];			//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒND16
-	pCS_Inf->fb_slbrk.d17				= pAgent_Inf->slbrk_rbuf[1];			//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒND17
-	pCS_Inf->fb_slbrk.d18				= pAgent_Inf->slbrk_rbuf[2];			//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒND18
-	pCS_Inf->fb_slbrk.d19				= pAgent_Inf->slbrk_rbuf[3];			//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒND19
-	pCS_Inf->fb_slbrk.d20				= pfb->fb_WF_D20;						//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒND20
+	pCS_Inf->fb_slbrk.d16				= pAgent_Inf->slbrk_rbuf[0];			//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯D16
+	pCS_Inf->fb_slbrk.d17				= pAgent_Inf->slbrk_rbuf[1];			//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯D17
+	pCS_Inf->fb_slbrk.d18				= pAgent_Inf->slbrk_rbuf[2];			//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯D18
+	pCS_Inf->fb_slbrk.d19				= pAgent_Inf->slbrk_rbuf[3];			//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯D19
+	pCS_Inf->fb_slbrk.d20				= pfb->fb_WF_D20;						//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯D20
 
 	pCS_Inf->aux_helthy_cnt++;
 
-	pCS_Inf->fb_slbrk.brk_fb_level		= pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒNƒŒƒxƒ‹
-	pCS_Inf->fb_slbrk.brk_fb_hw_brk		= pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒNHWƒuƒŒ[ƒL
-	pCS_Inf->fb_slbrk.brk_fb_autosel	= pAgent_Inf->slbrk_rbuf[0] & 0x0080;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒNAutoMode
-	pCS_Inf->fb_slbrk.brk_fb_emg		= pAgent_Inf->slbrk_rbuf[0] & 0x0040;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒN”ñí’â~
-	pCS_Inf->fb_slbrk.brk_fb_time_over	= pAgent_Inf->slbrk_rbuf[1] & 0x0010;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒNƒ^ƒCƒ€ƒI[ƒo[
-	pCS_Inf->fb_slbrk.brk_fb_release	= pAgent_Inf->slbrk_rbuf[0] & 0x0100;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒN‰ğœ
+	pCS_Inf->fb_slbrk.brk_fb_level		= pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯ãƒ¬ãƒ™ãƒ«
+	pCS_Inf->fb_slbrk.brk_fb_hw_brk		= pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯HWãƒ–ãƒ¬ãƒ¼ã‚­
+	pCS_Inf->fb_slbrk.brk_fb_autosel	= pAgent_Inf->slbrk_rbuf[0] & 0x0080;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯AutoMode
+	pCS_Inf->fb_slbrk.brk_fb_emg		= pAgent_Inf->slbrk_rbuf[0] & 0x0040;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯éå¸¸åœæ­¢
+	pCS_Inf->fb_slbrk.brk_fb_time_over	= pAgent_Inf->slbrk_rbuf[1] & 0x0010;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯ã‚¿ã‚¤ãƒ ã‚ªãƒ¼ãƒãƒ¼
+	pCS_Inf->fb_slbrk.brk_fb_release	= pAgent_Inf->slbrk_rbuf[0] & 0x0100;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯è§£é™¤
 
-	pCS_Inf->fb_slbrk.brk_fb_sys_err	= pCS_Inf->fb_slbrk.d17		& 0x000F;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒNƒVƒXƒeƒ€ˆÙí
-	pCS_Inf->fb_slbrk.brk_fb_karaburi	= pCS_Inf->fb_slbrk.d20		& 0x0020;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒN‹óU
-	pCS_Inf->fb_slbrk.brk_fb_org_pt		= pCS_Inf->fb_slbrk.d20		& 0x0002;	//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒNŒ´“_•œ‹A
-	pCS_Inf->fb_slbrk.brk_fb_rbsl_pos	= pCS_Inf->fb_slbrk.d19;				//ù‰ñƒuƒŒ[ƒLƒtƒB[ƒhƒoƒbƒNˆÊ’u
+	pCS_Inf->fb_slbrk.brk_fb_sys_err	= pCS_Inf->fb_slbrk.d17		& 0x000F;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯ã‚·ã‚¹ãƒ†ãƒ ç•°å¸¸
+	pCS_Inf->fb_slbrk.brk_fb_karaburi	= pCS_Inf->fb_slbrk.d20		& 0x0020;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯ç©ºæŒ¯
+	pCS_Inf->fb_slbrk.brk_fb_org_pt		= pCS_Inf->fb_slbrk.d20		& 0x0002;	//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯åŸç‚¹å¾©å¸°
+	pCS_Inf->fb_slbrk.brk_fb_rbsl_pos	= pCS_Inf->fb_slbrk.d19;				//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ãƒ•ã‚£ãƒ¼ãƒ‰ãƒãƒƒã‚¯ä½ç½®
 
-	//### ù‰ñƒuƒŒ[ƒLƒVƒXƒeƒ€‚Öo—Í
+	//### æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­ã‚·ã‚¹ãƒ†ãƒ ã¸å‡ºåŠ›
 	if (!st_mon2.slbrk_dbg_mode) {
 		pAgent_Inf->slbrk_wbuf[0] = 0;
 		pAgent_Inf->slbrk_wbuf[0] = 
@@ -268,7 +285,7 @@ int CAuxAgent::close() {
 	return 0;
 }
 
-// GEƒJƒƒ‰
+// GEã‚«ãƒ¡ãƒ©
 void CAuxAgent::SaveParameters_GECamera() {
 	return; 
 }
@@ -276,19 +293,41 @@ void CAuxAgent::LoadParameters_GECamera() {
 	return; 
 }
 void CAuxAgent::camera_capture_start() {
+	// 1. ã‚‚ã—æ—¢ã«å‹•ã„ã¦ã„ãŸã‚Šã€å¤ã„æ®‹éª¸ãŒã‚ã‚Œã°ç‰‡ä»˜ã‘ã‚‹
+	camera_capture_stop();
+
+	// 2. ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ç›´ã™
+	g_keepRunning = true;
+
+	// 3. æ–°ã—ã„ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’ç”Ÿæˆã—ã¦ä»£å…¥ï¼ˆãƒ ãƒ¼ãƒ–ä»£å…¥ï¼‰
+	// ã“ã‚Œã«ã‚ˆã‚Šã€åŒã˜ g_workerThread å¤‰æ•°ã§æ–°ã—ã„å‡¦ç†ãŒå§‹ã¾ã‚‹
+	g_capThread = std::thread(GECameraThreadAG);
+	pAgentObj->wos.str(L""); pAgentObj->wos << "New thread launched." << std::endl;
+	pAgentObj->msg2listview(pAgentObj->wos.str().c_str());
 	return; 
 }
 void CAuxAgent::camera_capture_stop() {
+
+	if (g_capThread.joinable()) {
+		g_keepRunning = false;			// ãƒ•ãƒ©ã‚°ã‚’å€’ã—ã¦ã‚¹ãƒ¬ãƒƒãƒ‰ã«çµ‚äº†ã‚’ä¿ƒã™
+		g_capThread.join();				// ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå®Œå…¨ã«çµ‚ã‚ã‚‹ã®ã‚’å¾…ã£ã¦ç‰‡ä»˜ã‘ã‚‹
+		pAgentObj->wos.str(L""); pAgentObj->wos << "Thread joined and cleaned up." << std::endl;
+		pAgentObj->msg2listview(pAgentObj->wos.str().c_str());
+	}
+
 	return; 
 }
 
 static wostringstream wosGE;
 
 void CAuxAgent::GECameraThreadAG() {
-	//‰Šú‰»
-	wosGE.str(L"");
+	U3V_CAM_INFO* psU3vCamInfo;
+	GEV_CAM_INFO* psGevCamInfo;
+
+	// Initialize system.
 	CAM_API_STATUS  uiStatus = CAM_API_STS_SUCCESS;
 	uiStatus = Sys_Initialize();
+	wosGE.str(L"");
 	if (uiStatus != CAM_API_STS_SUCCESS) {
 		if ((uiStatus & 0xF0000000) == 0x10000000) {// Warning
 			wosGE << L"Warning:Sys_Initialize() >> Code :" << uiStatus;
@@ -296,26 +335,147 @@ void CAuxAgent::GECameraThreadAG() {
 		else {
 			wosGE << L"Failed:Sys_Initialize() >> Code :" << uiStatus;
 		}
+		pAgentObj->msg2listview(wosGE.str());
+		return;
 	}
 	else {
 		wosGE << L"TeliCamApi Initialize Success ";
+		pAgentObj->msg2listview(wosGE.str());
 	}
-	uiStatus = Sys_Initialize();
-	if (uiStatus != CAM_API_STS_SUCCESS) {
-		if ((uiStatus & 0xF0000000) == 0x10000000) {// Warning
-			wosGE << L"Warning:Sys_Initialize() >> Code :" << uiStatus;
-		}
-		else {
-			wosGE << L"Failed:Sys_Initialize() >> Code :" << uiStatus;
-		}
-	}
-	else {
-		wosGE << L"TeliCamApi Initialize Success ";
-	}
-	pAgentObj->msg2listview(wosGE.str());
-	return; 
-}
 
+	// Get number of cameras.
+	uiStatus = Sys_GetNumOfCameras(&(pCamera->camcount));
+	wosGE.str(L"");
+	if (uiStatus != CAM_API_STS_SUCCESS) {
+		wosGE << L"Failed:GetNumOfCameras code:" << uiStatus;
+		pAgentObj->msg2listview(wosGE.str());
+	
+
+		// Terminate system.
+		Sys_Terminate();
+		return;
+	}
+	else {
+		wosGE << L"GetNumOfCameras = " << pCamera->camcount;
+		pAgentObj->msg2listview(wosGE.str());
+	}
+
+	// Get information of a camera.
+	wosGE.str(L"");
+	for (uint32_t i = 0; i < pCamera->camcount; i++) {
+		memset((void*)&(pCamera->m_caminfo), 0, sizeof(CAM_INFO));
+
+		uiStatus = Cam_GetInformation((CAM_HANDLE)NULL, i, &(pCamera->m_caminfo));
+		if (uiStatus != CAM_API_STS_SUCCESS) {
+
+			// Terminate system.
+			Sys_Terminate();
+			return;
+		}
+		wosGE << L"<Camera" << i << L" information>    " ;
+		if (pCamera->m_caminfo.eCamType == CAM_TYPE_U3V) {
+			wosGE << L" Type : USB3 camera"; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			psU3vCamInfo = &pCamera->m_caminfo.sU3vCamInfo;
+			wosGE << L" Adapter default MaxPacketSize :" << psU3vCamInfo->uiAdapterDfltMaxPacketSize ; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			pAgentObj->msg2listview(wosGE.str());
+		}
+		else if (pCamera->m_caminfo.eCamType == CAM_TYPE_GEV) {
+			wosGE << L" Type : GigE camera"; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			
+			psGevCamInfo = &pCamera->m_caminfo.sGevCamInfo;
+			wosGE << L" Gev display name :" << psGevCamInfo->szDisplayName; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Gev IP:" << psGevCamInfo->aucIPAddress[0] << L"." << psGevCamInfo->aucIPAddress[1] << L"." << psGevCamInfo->aucIPAddress[2] << L"." << psGevCamInfo->aucIPAddress[3]; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" adapter IP:" << psGevCamInfo->aucAdapterIPAddress[0] << L"." << psGevCamInfo->aucAdapterIPAddress[1] << L"." << psGevCamInfo->aucAdapterIPAddress[2] << L"." << psGevCamInfo->aucAdapterIPAddress[3]; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		}
+		else {
+			wosGE << L" Type : Unknown Camera";
+			pAgentObj->msg2listview(wosGE.str());
+			// Terminate system.
+			Sys_Terminate();
+			return;
+		}
+	}
+
+	// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°å‘¨æœŸã®ã‚¿ã‚¤ãƒãƒ¼ä½œæˆ
+	HANDLE hTimer = CreateWaitableTimer(NULL, FALSE, NULL);
+	LARGE_INTEGER liDueTime;
+	liDueTime.QuadPart = -1000000LL; // åˆå›ï¼š100mså¾Œ (100ãƒŠãƒç§’å˜ä½ã€è² ã®å€¤ã¯ç›¸å¯¾)
+	
+	SetWaitableTimer(hTimer, &liDueTime, pCamera->get_cam_period(), NULL, NULL, 0); // ä»¥é™20msé–“éš”
+
+	HANDLE hEvents[2] = { g_hStopEvent, hTimer };
+
+
+	//GEã‚«ãƒ¡ãƒ©ã‚­ãƒ£ãƒ—ãƒãƒ£é–‹å§‹
+
+	g_keepRunning = true; // ãƒ«ãƒ¼ãƒ—åˆ¶å¾¡ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
+
+	while (g_keepRunning) {
+		// WaitForMultipleObjects ã§åœæ­¢ã‚¤ãƒ™ãƒ³ãƒˆã¾ãŸã¯ã‚¿ã‚¤ãƒãƒ¼ã‚’å¾…æ©Ÿ
+		DWORD dwWait = WaitForMultipleObjects(2, hEvents, FALSE, INFINITE);
+
+		if (dwWait == WAIT_OBJECT_0) {		//çµ‚äº†ã‚¤ãƒ™ãƒ³ãƒˆ
+			// StopEventãŒã‚»ãƒƒãƒˆã•ã‚ŒãŸã‚‰ãƒ«ãƒ¼ãƒ—è„±å‡º
+			pCamera->stat.control_status = AUXAG_CAMERA_STAT_SUSPEND;
+			pCamera->stat.retry_count = 0;
+			break;
+		}
+
+
+		if (dwWait == WAIT_OBJECT_0 + 1) {	//ã‚¿ã‚¤ãƒãƒ¼ã‚¤ãƒ™ãƒ³ãƒˆ
+#if 0
+
+			pAgent_Inf->st_usb_cam.isRawMatUpdated = false;
+
+			auto pBuffer = pDataStream->RetrieveBuffer(50);
+
+			if (pBuffer != nullptr) {
+				CIStStreamBufferPtr pIStStreamBuffer(pBuffer);
+				auto pIStImage = pBuffer->GetIStImage();
+
+				if (pIStImage != nullptr) {
+					// 2. ç”»åƒæƒ…å ±ã®å–å¾—
+					pAuxAgInf->st_usb_cam.width = (int)pIStImage->GetImageWidth();
+					pAuxAgInf->st_usb_cam.height = (int)pIStImage->GetImageHeight();
+					pAuxAgInf->st_usb_cam.stride = pIStImage->GetImageLinePitch(); // 1è¡Œã®ãƒã‚¤ãƒˆæ•°
+					pAuxAgInf->st_usb_cam.pRawData = pIStImage->GetImageBuffer();
+
+					{
+						std::lock_guard<std::mutex> lock(pAuxAgInf->st_usb_cam.g_mtx);
+						// 3. OpenCVã®Matã«ç”Ÿã®Bayerãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã¿ â€» 8bit (CV_8UC1) ã§ã‚ã‚‹ã“ã¨ã‚’å‰æã¨ã—ã¦ã„ã¾ã™
+						cv::Mat rawMat(pAuxAgInf->st_usb_cam.height, pAuxAgInf->st_usb_cam.width, CV_8UC1, pAuxAgInf->st_usb_cam.pRawData, pAuxAgInf->st_usb_cam.stride);
+
+						// 4. OpenCVã§BGRã¸å¤‰æ›
+						// æ³¨æ„: ã“ã“ã§ã¯BayerGR2RGBã‚’ä½¿ç”¨ã—ã¦ã„ã¾ã™ãŒã€‚bgrMatFrameã®ä¸­èº«ã¯ã€BGRé †ã®ãƒ‡ãƒ¼ã‚¿ã«ãªã‚‹æ§˜ã§ã™ã€‚è¡¨ç¤ºã‚„å‡¦ç†ã®éš›ã¯ã€OpenCVã®æ…£ç¿’ã«å¾“ã£ã¦BGRã¨ã—ã¦æ‰±ã£ã¦ãã ã•ã„ã€‚
+						cv::cvtColor(rawMat, pAuxAgInf->st_usb_cam.bgrMatFrame, cv::COLOR_BayerGR2RGB);
+
+						// 5. OpenCVã§HSV Matã‚’ä½œæˆ
+						{
+							std::lock_guard<std::mutex> lock(pAuxAgInf->hsvMutex);// HSV Matã¸ã®ã‚¢ã‚¯ã‚»ã‚¹ã‚’ä¿è­·ã™ã‚‹ãŸã‚ã®ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹
+							cv::cvtColor(pAuxAgInf->st_usb_cam.bgrMatFrame, pAuxAgInf->st_usb_cam.hsvMatFrame, cv::COLOR_BGR2HSV);
+							pAuxAgInf->st_usb_cam.isRawMatUpdated = true; // ãƒ•ãƒ¬ãƒ¼ãƒ ãŒæ›´æ–°ã•ã‚ŒãŸã“ã¨ã‚’ç¤ºã™ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
+						}
+					}
+				}
+				st_mon2.thrad_counter++;
+			}
+#endif
+		}
+	}
+	pCamera->stop_stream();
+
+	wos_cam.str(L""); wos_cam << "Exit Thread Loop: " << endl;
+	pAgentObj->msg2listview(wos_cam.str().c_str());
+
+	CloseHandle(hTimer);
+	g_keepRunning = false;
+
+	// Terminate system.
+	Sys_Terminate();
+
+}
 
 void CAuxAgent::OnPaintMon1(HWND hWnd, HDC hdc) {
 	return; 
@@ -327,22 +487,22 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	switch (msg)
 	{
 	case WM_CREATE: {
-		InitCommonControls();//ƒRƒ‚ƒ“ƒRƒ“ƒgƒ[ƒ‹‰Šú‰»
+		InitCommonControls();//ã‚³ãƒ¢ãƒ³ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«åˆæœŸåŒ–
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-		//ƒEƒBƒ“ƒhƒE‚ÉƒRƒ“ƒgƒ[ƒ‹’Ç‰Á
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«è¿½åŠ 
 		st_mon1.hctrl[AUXAG_ID_MON1_STATIC_INF] = CreateWindowW(TEXT("STATIC"), st_mon1.text[AUXAG_ID_MON1_STATIC_INF], WS_CHILD | WS_VISIBLE | SS_LEFT,
 			st_mon1.pt[AUXAG_ID_MON1_STATIC_INF].x, st_mon1.pt[AUXAG_ID_MON1_STATIC_INF].y, 
 			st_mon1.sz[AUXAG_ID_MON1_STATIC_INF].cx, st_mon1.sz[AUXAG_ID_MON1_STATIC_INF].cy, 
 			hWnd, (HMENU)(AUXAG_ID_MON1_CTRL_BASE + AUXAG_ID_MON1_STATIC_INF), hInst, NULL);
 
-		//•\¦XV—pƒ^ƒCƒ}[
+		//è¡¨ç¤ºæ›´æ–°ç”¨ã‚¿ã‚¤ãƒãƒ¼
 		SetTimer(hWnd, AUXAG_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
-		// ‘I‘ğ‚³‚ê‚½ƒƒjƒ…[‚Ì‰ğÍ:
+		// é¸æŠã•ã‚ŒãŸãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®è§£æ:
 		switch (wmId)
 		{
 		case 1:break;
@@ -381,15 +541,15 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 	return S_OK;
 };
 
-static bool is_write_req_turn = false;//‘‚«‚İ—v‹‘—M‚Ì‡”Ô‚Åtrue
+static bool is_write_req_turn = false;//æ›¸ãè¾¼ã¿è¦æ±‚é€ä¿¡ã®é †ç•ªã§true
 
 LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
-		InitCommonControls();//ƒRƒ‚ƒ“ƒRƒ“ƒgƒ[ƒ‹‰Šú‰»
+		InitCommonControls();//ã‚³ãƒ¢ãƒ³ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«åˆæœŸåŒ–
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-		//ƒEƒBƒ“ƒhƒE‚ÉƒRƒ“ƒgƒ[ƒ‹’Ç‰Á
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«è¿½åŠ 
 		//STATIC,LABEL
 		for (int i = AUXAG_ID_MON2_STATIC_MSG; i <= AUXAG_ID_MON2_STATIC_MAIN_INF; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
@@ -403,24 +563,24 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				hWnd, (HMENU)(AUXAG_ID_MON2_CTRL_BASE + i), hInst, NULL);
 		}
 
-		//ƒ^ƒCƒ}[‹N“®
+		//ã‚¿ã‚¤ãƒãƒ¼èµ·å‹•
 		UINT rtn = SetTimer(hWnd, AUXAG_ID_MON2_TIMER, AUXAG_PRM_MON2_TIMER_MS, NULL);
 		break;
 
 	}
 	case WM_TIMER: {
 		if (pMCSock == NULL)break;
-		if (is_write_req_turn) {//‘‚«‚İ—v‹‘—M
+		if (is_write_req_turn) {//æ›¸ãè¾¼ã¿è¦æ±‚é€ä¿¡
 			st_mon2.wo_req_w.str(L"");
-			//3EƒtƒH[ƒ}ƒbƒg DƒfƒoƒCƒX‘‚«‚İ—v‹‘—M
+			//3Eãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ Dãƒ‡ãƒã‚¤ã‚¹æ›¸ãè¾¼ã¿è¦æ±‚é€ä¿¡
 			if (pMCSock->send_write_req_D_3E(pAgent_Inf->slbrk_wbuf) != S_OK) {
 				st_mon2.wo_req_w << L"ERROR : send_read_req_D_3E()\n";
 			}
 			else snd_count_plc_w++;
 
-			//“d•¶“à—e•\¦o—Í
+			//é›»æ–‡å†…å®¹è¡¨ç¤ºå‡ºåŠ›
 			if ((st_mon2.msg_disp_mode != AUXAG_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
-				//ƒwƒbƒ_•”•ª
+				//ãƒ˜ãƒƒãƒ€éƒ¨åˆ†
 				st_mon2.wo_req_w << L"Sw>>"
 					<< L"#sub:" << std::hex << pMCSock->mc_req_msg_w.subcode
 					<< L"#serial:" << pMCSock->mc_req_msg_w.serial
@@ -444,12 +604,12 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_REQ_W], st_mon2.wo_req_w.str().c_str());
 			}
 
-			QueryPerformanceCounter(&start_count_w);  // ‘‚«‚İ—v‹‘—MƒJƒEƒ“ƒg’læ‚è‚İ
+			QueryPerformanceCounter(&start_count_w);  // æ›¸ãè¾¼ã¿è¦æ±‚é€ä¿¡æ™‚ã‚«ã‚¦ãƒ³ãƒˆå€¤å–ã‚Šè¾¼ã¿
 			is_write_req_turn = false;
 		}
 		else {
 			st_mon2.wo_req_r.str(L"");
-			//“Ç‚İo‚µ—v‹‘—M
+			//èª­ã¿å‡ºã—è¦æ±‚é€ä¿¡
 			if (pMCSock->send_read_req_D_3E() != S_OK) {
 				st_mon2.wo_req_r << L"ERROR : send_read_req_D_3E()";
 			}
@@ -473,10 +633,10 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_REQ_R], st_mon2.wo_req_r.str().c_str());
 			}
 
-			QueryPerformanceCounter(&start_count_r);  // ‘‚«‚İ—v‹‘—MƒJƒEƒ“ƒg’læ‚è‚İ
+			QueryPerformanceCounter(&start_count_r);  // æ›¸ãè¾¼ã¿è¦æ±‚é€ä¿¡æ™‚ã‚«ã‚¦ãƒ³ãƒˆå€¤å–ã‚Šè¾¼ã¿
 			is_write_req_turn = true;
 		}
-		//‹¤’Ê•\¦ (‘—óMƒJƒEƒ“ƒg,’x‰„ŠÔ,IPî•ñj
+		//å…±é€šè¡¨ç¤º (é€å—ä¿¡ã‚«ã‚¦ãƒ³ãƒˆ,é…å»¶æ™‚é–“,IPæƒ…å ±ï¼‰
 		if (st_mon2.is_monitor_active) {
 			monwos.str(L""); monwos << L"RCV:R " << rcv_count_plc_r
 				<< L"  W " << rcv_count_plc_w
@@ -484,7 +644,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 				<< L"  W " << snd_count_plc_w
 				<< L"    ERR:R " << rcv_errcount_plc_r
 				<< L"  W " << rcv_errcount_plc_w
-				<< L"    ’x‰„ƒÊs:R " << res_delay_max_r
+				<< L"    é…å»¶Î¼s:R " << res_delay_max_r
 				<< L"  W " << res_delay_max_w;
 
 			SetWindowText(hWnd, monwos.str().c_str());
@@ -513,13 +673,13 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			monwos << L" MAIN CS >> LEVEL:" << pCS_Inf->com_slbrk.pc_com_brk_level << L"  HW:" << pCS_Inf->com_slbrk.pc_com_hw_brk << L" RST:" << pCS_Inf ->com_slbrk.pc_com_reset << L" EMG:" << pCS_Inf->com_slbrk.pc_com_emg << L" AUTO:" << pCS_Inf->com_slbrk.pc_com_autosel << L" \n";
 
 			monwos <<L"SLBR FB >> LV:"<< pCS_Inf->fb_slbrk.brk_fb_level	<<L" HW:"<< pCS_Inf->fb_slbrk.brk_fb_hw_brk<<L" EMG:"<< pCS_Inf->fb_slbrk.brk_fb_emg<<L" AUTO:"<< pCS_Inf->fb_slbrk.brk_fb_autosel<<L" ERR MAP:"<< pCS_Inf->fb_slbrk.brk_fb_err_map << L" ERR CODE:" << pCS_Inf->fb_slbrk.brk_fb_err_code << L" ERR HTHY:" << pCS_Inf->fb_slbrk.healthy_err << L" \n";
-			monwos <<L" POS:"<< pCS_Inf->fb_slbrk.brk_fb_rbsl_pos<<L" ‹óU:"<< pCS_Inf->fb_slbrk.brk_fb_karaburi<<L" ORG PT:"<< pCS_Inf->fb_slbrk.brk_fb_org_pt<<L" TMOV:"<< pCS_Inf->fb_slbrk.brk_fb_time_over<<L" RELEASE:"<< pCS_Inf->fb_slbrk.brk_fb_release<<L" SYS ERR:"<< pCS_Inf->fb_slbrk.brk_fb_sys_err;
+			monwos <<L" POS:"<< pCS_Inf->fb_slbrk.brk_fb_rbsl_pos<<L" ç©ºæŒ¯:"<< pCS_Inf->fb_slbrk.brk_fb_karaburi<<L" ORG PT:"<< pCS_Inf->fb_slbrk.brk_fb_org_pt<<L" TMOV:"<< pCS_Inf->fb_slbrk.brk_fb_time_over<<L" RELEASE:"<< pCS_Inf->fb_slbrk.brk_fb_release<<L" SYS ERR:"<< pCS_Inf->fb_slbrk.brk_fb_sys_err;
 			SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_MAIN_INF], monwos.str().c_str());
 		}
 	}break;
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
-		// ‘I‘ğ‚³‚ê‚½ƒƒjƒ…[‚Ì‰ğÍ:
+		// é¸æŠã•ã‚ŒãŸãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®è§£æ:
 		switch (wmId - AUXAG_ID_MON2_CTRL_BASE)
 		{
 		case AUXAG_ID_MON2_CB_COM_LEVEL_BIT0: {
@@ -616,7 +776,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
 	}break;
-	case ID_SOCK_MC_AUX_BRK://MCƒ\ƒPƒbƒgóMƒCƒxƒ“ƒg
+	case ID_SOCK_MC_AUX_BRK://MCã‚½ã‚±ãƒƒãƒˆå—ä¿¡ã‚¤ãƒ™ãƒ³ãƒˆ
 	{
 		if (pMCSock == NULL)break;
 		int nEvent = WSAGETSELECTEVENT(lp);
@@ -624,11 +784,11 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		st_mon2.wo_res_w.str(L"");
 		switch (nEvent) {
 		case FD_READ: {
-			UINT nRtn = pMCSock->rcv_msg_3E(pAgent_Inf->slbrk_rbuf);//“Ç‚İo‚µ‰“š‚Ì‚Íƒf[ƒ^•”‚Ì‚İw’èƒoƒbƒtƒ@‚ÉƒRƒs[
-			if (nRtn == MC_RES_READ) {//“Ç‚İo‚µ‰“š
+			UINT nRtn = pMCSock->rcv_msg_3E(pAgent_Inf->slbrk_rbuf);//èª­ã¿å‡ºã—å¿œç­”ã®æ™‚ã¯ãƒ‡ãƒ¼ã‚¿éƒ¨ã®ã¿æŒ‡å®šãƒãƒƒãƒ•ã‚¡ã«ã‚³ãƒ”ãƒ¼
+			if (nRtn == MC_RES_READ) {//èª­ã¿å‡ºã—å¿œç­”
 				rcv_count_plc_r++;
 
-				//ƒ‚ƒjƒ^Window•\¦’†‚È‚ç‚ÎAƒ‚ƒjƒ^•\¦o—Íˆ—
+				//ãƒ¢ãƒ‹ã‚¿Windowè¡¨ç¤ºä¸­ãªã‚‰ã°ã€ãƒ¢ãƒ‹ã‚¿è¡¨ç¤ºå‡ºåŠ›å‡¦ç†
 				if ((st_mon2.msg_disp_mode != AUXAG_MON2_MSG_DISP_OFF) && st_mon2.is_monitor_active) {
 					st_mon2.wo_res_r << L"Rr>>"
 						<< L"#sub:" << std::hex << pMCSock->mc_res_msg_r.subcode
@@ -649,9 +809,9 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_RES_R], st_mon2.wo_res_r.str().c_str());
 				}
 
-				/**************** “Ç‚İ‚İ‰“šŠÔŒv‘ª(400‰ñ‚ÌÅ‘å’lj*************************************/
-				QueryPerformanceCounter(&end_count_r);    // Œ»İ‚ÌƒJƒEƒ“ƒg”
-				LONGLONG lspan = (end_count_r.QuadPart - start_count_r.QuadPart) * 1000000L / frequency.QuadPart;// ŠÔ‚ÌŠÔŠu[usec]
+				/**************** èª­ã¿è¾¼ã¿å¿œç­”æ™‚é–“è¨ˆæ¸¬(400å›ã®æœ€å¤§å€¤ï¼‰*************************************/
+				QueryPerformanceCounter(&end_count_r);    // ç¾åœ¨ã®ã‚«ã‚¦ãƒ³ãƒˆæ•°
+				LONGLONG lspan = (end_count_r.QuadPart - start_count_r.QuadPart) * 1000000L / frequency.QuadPart;// æ™‚é–“ã®é–“éš”[usec]
 				if (res_delay_max_r < lspan) res_delay_max_r = lspan;
 				if (rcv_count_plc_r % 400 == 0) res_delay_max_r = 0;
 				/******************************************************************************************/
@@ -671,8 +831,8 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 					SetWindowText(st_mon2.hctrl[AUXAG_ID_MON2_STATIC_RES_W], st_mon2.wo_res_w.str().c_str());
 				}
 
-				QueryPerformanceCounter(&end_count_w);    // Œ»İ‚ÌƒJƒEƒ“ƒg”
-				LONGLONG lspan = (end_count_w.QuadPart - start_count_w.QuadPart) * 1000000L / frequency.QuadPart;// ŠÔ‚ÌŠÔŠu[usec]
+				QueryPerformanceCounter(&end_count_w);    // ç¾åœ¨ã®ã‚«ã‚¦ãƒ³ãƒˆæ•°
+				LONGLONG lspan = (end_count_w.QuadPart - start_count_w.QuadPart) * 1000000L / frequency.QuadPart;// æ™‚é–“ã®é–“éš”[usec]
 				if (res_delay_max_w < lspan) res_delay_max_w = lspan;
 				if (rcv_count_plc_w % 400 == 0) {
 					res_delay_max_w = 0;
@@ -713,7 +873,7 @@ LRESULT CALLBACK CAuxAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 HWND CAuxAgent::open_monitor_wnd(HWND h_parent_wnd, int id) {
 	
-	InitCommonControls();//ƒRƒ‚ƒ“ƒRƒ“ƒgƒ[ƒ‹‰Šú‰»
+	InitCommonControls();//ã‚³ãƒ¢ãƒ³ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«åˆæœŸåŒ–
 	HINSTANCE hInst = GetModuleHandle(0);
 
 	WNDCLASSEXW wcex;
@@ -803,7 +963,7 @@ void CAuxAgent::hide_monitor_wnd(int id) {
 }
 											
 /****************************************************************************/
-/*   ƒ^ƒXƒNİ’èƒ^ƒuƒpƒlƒ‹ƒEƒBƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ”                       */
+/*   ã‚¿ã‚¹ã‚¯è¨­å®šã‚¿ãƒ–ãƒ‘ãƒãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°                       */
 /****************************************************************************/
 LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
@@ -907,7 +1067,7 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 	return 0;
 };
 
-///###	ƒ^ƒuƒpƒlƒ‹‚ÌListView‚ÉƒƒbƒZ[ƒW‚ğo—Í
+///###	ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®ListViewã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å‡ºåŠ›
 void CAuxAgent::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
@@ -916,17 +1076,17 @@ void CAuxAgent::msg2listview(wstring wstr) {
 	LVITEM item;
 
 	item.mask = LVIF_TEXT;
-	item.pszText = (wchar_t*)pwc;								// ƒeƒLƒXƒg
-	item.iItem = inf.panel_msglist_count % BC_LISTVIEW_ROW_MAX;	// ”Ô†
-	item.iSubItem = 1;											// ƒTƒuƒAƒCƒeƒ€‚Ì”Ô†
+	item.pszText = (wchar_t*)pwc;								// ãƒ†ã‚­ã‚¹ãƒˆ
+	item.iItem = inf.panel_msglist_count % BC_LISTVIEW_ROW_MAX;	// ç•ªå·
+	item.iSubItem = 1;											// ã‚µãƒ–ã‚¢ã‚¤ãƒ†ãƒ ã®ç•ªå·
 	ListView_SetItem(inf.hwnd_msglist, &item);
 
 	SYSTEMTIME st; TCHAR tbuf[32];
 	::GetLocalTime(&st);
 	wsprintf(tbuf, L"%02d:%02d:%02d.%01d", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds / 100);
 
-	item.pszText = tbuf;   // ƒeƒLƒXƒg
-	item.iSubItem = 0;											// ƒTƒuƒAƒCƒeƒ€‚Ì”Ô†
+	item.pszText = tbuf;   // ãƒ†ã‚­ã‚¹ãƒˆ
+	item.iSubItem = 0;											// ã‚µãƒ–ã‚¢ã‚¤ãƒ†ãƒ ã®ç•ªå·
 	ListView_SetItem(inf.hwnd_msglist, &item);
 
 	//InvalidateRect(inf.hWnd_msgList, NULL, TRUE);
@@ -944,7 +1104,7 @@ void CAuxAgent::set_PNLparam_value(float p1, float p2, float p3, float p4, float
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 
-//ƒ^ƒuƒpƒlƒ‹‚ÌStaticƒeƒLƒXƒg‚ğİ’è
+//ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®Staticãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void CAuxAgent::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
@@ -972,7 +1132,7 @@ void CAuxAgent::set_panel_tip_txt() {
 	}
 	return;
 }
-//ƒ^ƒuƒpƒlƒ‹‚ÌFunctionƒ{ƒ^ƒ“‚ÌStaticƒeƒLƒXƒg‚ğİ’è
+//ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®Functionãƒœã‚¿ãƒ³ã®Staticãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void CAuxAgent::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
@@ -982,7 +1142,7 @@ void CAuxAgent::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO6, L"-");
 	return;
 }
-//ƒ^ƒuƒpƒlƒ‹‚ÌItem chkƒeƒLƒXƒg‚ğİ’è
+//ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®Item chkãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void CAuxAgent::set_item_chk_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");

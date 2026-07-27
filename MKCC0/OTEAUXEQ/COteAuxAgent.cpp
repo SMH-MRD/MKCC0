@@ -78,15 +78,14 @@ HRESULT COteAuxAgent::initialize(LPVOID lpParam){
 	set_outbuf(pAuxAgentInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	pAuxAgInf = (LPST_OTE_AUX_AGENT_INF)pAuxAgentInfObj->get_pMap();
-	pAuxEnvInf = (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
-	pAuxCSInf = (LPST_OTE_AUX_CS_INF)pAuxCsInfObj->get_pMap();
-	pAuxPolInf = (LPST_OTE_AUX_POL_INF)pAuxPolInfObj->get_pMap();
+	pAuxAgInf	= (LPST_OTE_AUX_AGENT_INF)pAuxAgentInfObj->get_pMap();
+	pAuxEnvInf	= (LPST_OTE_AUX_ENV_INF)(pAuxEnvInfObj->get_pMap());
+	pAuxCSInf	= (LPST_OTE_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+	pAuxPolInf	= (LPST_OTE_AUX_POL_INF)pAuxPolInfObj->get_pMap();
 
 	pAgentObj = (COteAuxAgent*)VectCtrlObj[st_task_id.AGENT];
 	// スレッド停止用のイベントを作成（マニュアルリセット型）
 	g_hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL);//自動リセット,初期値非シグナル
-
 
 	//### 初期化
 	 // GDI+ の初期化

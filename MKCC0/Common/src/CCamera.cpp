@@ -13,7 +13,6 @@ static wostringstream wos_msg;
 #pragma comment(lib, "..\\Lib\\x64\\TeliCamApi64.lib")
 #pragma comment(lib, "..\\Lib\\x64\\TeliCamUtl64.lib")
 
-
 //////////////////////////////////////////////////////////////////////////////
 // Public method
 
@@ -24,97 +23,64 @@ static wostringstream wos_msg;
 CTeliCamLib::CTeliCamLib(void)
 {
     m_errmsg = L""; // エラーメッセージ
+    camcount = 0; // 検出したカメラの数
 
-    m_caminfo.camcount = 0; // 検出したカメラの数
-    PTELI_CAM_DETAILS camdetails = &m_caminfo.details;    // カメラの詳細情報
-    // カメラ取外し通知イベント
-    camdetails->EventHndlCamRemoval = NULL;             // カメラ取り外し通知用のイベント(シグナル)オブジェクトのハンドル
-    // スレッド情報
-    camdetails->td_camera_remove_hndl = NULL;           // スレッドハンドル
-    camdetails->td_camera_remove_stat = FALSE;          // スレッドステータス(FALSE:Exit TRUE:Run)
-    camdetails->td_gain_control_hndl = NULL;            // スレッドハンドル
-    camdetails->td_gain_control_stat = FALSE;           // スレッドステータス(FALSE:Exit TRUE:Run)
-    camdetails->td_expstime_control_hndl = NULL;        // スレッドハンドル
-    camdetails->td_expstime_control_stat = FALSE;       // スレッドステータス(FALSE:Exit TRUE:Run)
-    // カメラの設定
-    camdetails->cnfg.valid = FALSE;                     // カメラの有効または無効[0:無効 1:有効]
-    camdetails->cnfg.ipaddress = L"0.0.0.0";                   // カメラのIPアドレス
-    camdetails->cnfg.packetsize = 0;                            // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
-    camdetails->cnfg.framerate_drop = 10.0;                         // フレームレート低下の判定値[fps]
     // カメラのステータス
-    camdetails->stat.camidx = -1;                           // カメラのインデックス
-    camdetails->stat.camhndl = NULL;                         // オープンしたカメラのカメラハンドル
-    camdetails->stat.strmhndl = NULL;                         // オープンしたストリームインターフェースのストリームハンドル
-    camdetails->stat.apistat = Teli::CAM_API_STS_SUCCESS;    // TeliCamAPIのステータスコード
-    camdetails->stat.errstat = Teli::CAM_API_STS_SUCCESS;    // 画像ストリーム受信時のエラーステータスコード
-    camdetails->stat.pyldsize = 0;                            // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
-    camdetails->stat.camname = L"Not found camera";          // カメラの名前
-    camdetails->stat.camwidth = 0;                            // 映像の幅
-    camdetails->stat.camheight = 0;                            // 映像の高さ
-    camdetails->stat.framecount = 0;                            // FPSを計算するためのフレームカウンター
-    camdetails->stat.frameidx = 0;                            // カメラから出力されるビデオデータのフレーム番号
-    camdetails->stat.frameidx_valid = FALSE;                        // "frameidx"に有効な値があることを示すフラグ
-    camdetails->stat.fpstimer = timeGetTime();                // フレーム更新タイマー
-    camdetails->stat.fps = 0.0;                          // 実際のFPS
-    camdetails->stat.framechk_valid = FALSE;                        // フレームレート損失チェック
-    camdetails->stat.expstime_min = 0.0;                          // 露光時間(最小)
-    camdetails->stat.expstime_max = 0.0;                          // 露光時間(最大)
-    camdetails->stat.expstime = 0.0;                          // 露光時間
-    camdetails->stat.gainmin = 0.0;                          // ゲイン(最小)
-    camdetails->stat.gainmax = 0.0;                          // ゲイン(最大)
-    camdetails->stat.gain = 0.0;                          // ゲイン
-    ZeroMemory(&camdetails->stat.caminfo, sizeof(Teli::CAM_INFO));  // カメラの情報
-}
+    stat.camidx = -1;                           // カメラのインデックス
+    stat.camhndl = NULL;                         // オープンしたカメラのカメラハンドル
+    stat.strmhndl = NULL;                         // オープンしたストリームインターフェースのストリームハンドル
+    stat.apistat = Teli::CAM_API_STS_SUCCESS;    // TeliCamAPIのステータスコード
+    stat.errstat = Teli::CAM_API_STS_SUCCESS;    // 画像ストリーム受信時のエラーステータスコード
+    stat.pyldsize = 0;                            // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
+    stat.camname = L"Not found camera";          // カメラの名前
+    stat.camwidth = 0;                            // 映像の幅
+    stat.camheight = 0;                            // 映像の高さ
+    stat.framecount = 0;                            // FPSを計算するためのフレームカウンター
+    stat.frameidx = 0;                            // カメラから出力されるビデオデータのフレーム番号
+    stat.frameidx_valid = FALSE;                        // "frameidx"に有効な値があることを示すフラグ
+    stat.fpstimer = timeGetTime();                // フレーム更新タイマー
+    stat.fps = 0.0;                          // 実際のFPS
+    stat.framechk_valid = FALSE;                        // フレームレート損失チェック
+    stat.expstime_min = 0.0;                          // 露光時間(最小)
+    stat.expstime_max = 0.0;                          // 露光時間(最大)
+    stat.expstime = 0.0;                          // 露光時間
+    stat.gainmin = 0.0;                          // ゲイン(最小)
+    stat.gainmax = 0.0;                          // ゲイン(最大)
+    stat.gain = 0.0;                          // ゲイン
+ }
 
 /// @brief Constructor
 /// @param caminfo カメラの情報  
 /// @return
 /// @note
-CTeliCamLib::CTeliCamLib(TELI_CAM_INFO caminfo)
+CTeliCamLib::CTeliCamLib(int type)
 {
     m_errmsg = L""; // エラーメッセージ
-
-    m_caminfo.camcount = 0;  // 検出したカメラの数
-    PTELI_CAM_DETAILS camdetails = &m_caminfo.details;                // カメラの詳細情報
-    // カメラ取外し通知イベント
-    camdetails->EventHndlCamRemoval = NULL;                         // カメラ取り外し通知用のイベント(シグナル)オブジェクトのハンドル
-    // スレッド情報
-    camdetails->td_camera_remove_hndl = NULL;                    // スレッドハンドル
-    camdetails->td_camera_remove_stat = FALSE;                   // スレッドステータス(FALSE:Exit TRUE:Run)
-    camdetails->td_gain_control_hndl = NULL;                    // スレッドハンドル
-    camdetails->td_gain_control_stat = FALSE;                   // スレッドステータス(FALSE:Exit TRUE:Run)
-    camdetails->td_expstime_control_hndl = NULL;                    // スレッドハンドル
-    camdetails->td_expstime_control_stat = FALSE;                   // スレッドステータス(FALSE:Exit TRUE:Run)
-    // カメラの設定
-    PTELI_CAM_CONFIG pCamCnfg = &caminfo.details.cnfg;                // カメラの設定
-    camdetails->cnfg.valid = pCamCnfg->valid;              // カメラの有効または無効[0:無効 1:有効]
-    camdetails->cnfg.ipaddress = pCamCnfg->ipaddress;          // カメラのIPアドレス
-    camdetails->cnfg.packetsize = pCamCnfg->packetsize;         // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
-    camdetails->cnfg.framerate_drop = pCamCnfg->framerate_drop;     // フレームレート低下の判定値[fps]
+    camcount = 0;  // 検出したカメラの数
+  
     // カメラのステータス
-    camdetails->stat.camidx = -1;                         // カメラのインデックス
-    camdetails->stat.camhndl = NULL;                         // オープンしたカメラのカメラハンドル
-    camdetails->stat.strmhndl = NULL;                         // オープンしたストリームインターフェースのストリームハンドル
-    camdetails->stat.apistat = Teli::CAM_API_STS_SUCCESS;    // TeliCamAPIのステータスコード
-    camdetails->stat.errstat = Teli::CAM_API_STS_SUCCESS;    // 画像ストリーム受信時のエラーステータスコード
-    camdetails->stat.pyldsize = 0;                            // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
-    camdetails->stat.camname = L"Not found camera";          // カメラの名前
-    camdetails->stat.camwidth = 0;                            // 映像の幅
-    camdetails->stat.camheight = 0;                            // 映像の高さ
-    camdetails->stat.framecount = 0;                            // FPSを計算するためのフレームカウンター
-    camdetails->stat.frameidx = 0;                            // カメラから出力されるビデオデータのフレーム番号
-    camdetails->stat.frameidx_valid = FALSE;                        // "frameidx"に有効な値があることを示すフラグ
-    camdetails->stat.fpstimer = timeGetTime();                // フレーム更新タイマー
-    camdetails->stat.fps = 0.0;                          // 実際のFPS
-    camdetails->stat.framechk_valid = FALSE;                        // フレームレート損失チェック 
-    camdetails->stat.expstime_min = 0.0;                          // 露光時間(最小)
-    camdetails->stat.expstime_max = 0.0;                          // 露光時間(最大)
-    camdetails->stat.expstime = 0.0;                          // 露光時間
-    camdetails->stat.gainmin = 0.0;                          // ゲイン(最小)
-    camdetails->stat.gainmax = 0.0;                          // ゲイン(最大)
-    camdetails->stat.gain = 0.0;                          // ゲイン
-    ZeroMemory(&camdetails->stat.caminfo, sizeof(Teli::CAM_INFO));  // カメラの情報
-}
+    stat.camidx = -1;                         // カメラのインデックス
+    stat.camhndl = NULL;                         // オープンしたカメラのカメラハンドル
+    stat.strmhndl = NULL;                         // オープンしたストリームインターフェースのストリームハンドル
+    stat.apistat = Teli::CAM_API_STS_SUCCESS;    // TeliCamAPIのステータスコード
+    stat.errstat = Teli::CAM_API_STS_SUCCESS;    // 画像ストリーム受信時のエラーステータスコード
+    stat.pyldsize = 0;                            // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
+    stat.camname = L"Not found camera";          // カメラの名前
+    stat.camwidth = 0;                            // 映像の幅
+    stat.camheight = 0;                            // 映像の高さ
+    stat.framecount = 0;                            // FPSを計算するためのフレームカウンター
+    stat.frameidx = 0;                            // カメラから出力されるビデオデータのフレーム番号
+    stat.frameidx_valid = FALSE;                        // "frameidx"に有効な値があることを示すフラグ
+    stat.fpstimer = timeGetTime();                // フレーム更新タイマー
+    stat.fps = 0.0;                          // 実際のFPS
+    stat.framechk_valid = FALSE;                        // フレームレート損失チェック 
+    stat.expstime_min = 0.0;                          // 露光時間(最小)
+    stat.expstime_max = 0.0;                          // 露光時間(最大)
+    stat.expstime = 0.0;                          // 露光時間
+    stat.gainmin = 0.0;                          // ゲイン(最小)
+    stat.gainmax = 0.0;                          // ゲイン(最大)
+    stat.gain = 0.0;                          // ゲイン
+ }
 
 /// @brief Destructor
 /// @param
@@ -139,49 +105,13 @@ int32_t CTeliCamLib::initialize(void)
     //----------------------------------------------------------------------------
     // TeliCamAPIの初期化処理
     if ((apistat = Teli::Sys_Initialize()) != Teli::CAM_API_STS_SUCCESS) {
-        PTELI_CAM_DETAILS camdetails = &m_caminfo.details;    // カメラの詳細情報
-        if (camdetails->cnfg.valid) {
-            camdetails->stat.apistat = apistat;
+          if (cnfg.valid) {
+            stat.apistat = apistat;
         }
         wos_msg.str(L""); wos_msg << L"[CTeliCamLib::initialize]<Error>Teli::Sys_Initialize(" << apistat <<")";
         m_errmsg = wos_msg.str();
-        //m_errmsg = std::format(L"[CTeliCamLib::initialize]<Error>Teli::Sys_Initialize({:#08x})", apistat);
         return -1;
     }   // if ((apistat = Teli::Sys_Initialize()) != CAM_API_STS_SUCCESS)
-
-    PTELI_CAM_DETAILS camdetails = &m_caminfo.details;    // カメラの詳細情報
-    if (camdetails->cnfg.valid) {
-        //----------------------------------------------------------------------------
-        // ゲインコントロール　スレッド起動
-        camdetails->td_gain_control_stat = TRUE;
-        if ((camdetails->td_gain_control_hndl = reinterpret_cast<HANDLE>(_beginthreadex(NULL,
-            0,
-            td_gain_control,
-            reinterpret_cast<LPVOID>(camdetails),
-            0,
-            NULL))) == NULL) {
-            camdetails->td_gain_control_stat = FALSE;
-            _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::initialize]<Error>Thread(td_gain_control) handle");
-            return -2;;
-        }
-        SetThreadPriority(camdetails->td_gain_control_hndl, THREAD_PRIORITY_NORMAL);
-
-        //----------------------------------------------------------------------------
-        // 露光時間コントロール　スレッド起動
-        camdetails->td_expstime_control_stat = TRUE;
-        if ((camdetails->td_expstime_control_hndl = reinterpret_cast<HANDLE>(_beginthreadex(NULL,
-            0,
-            td_expstime_control,
-            (LPVOID)camdetails,
-            0,
-            NULL))) == NULL) {
-            camdetails->td_expstime_control_stat = FALSE;
-            _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::initialize]<Error>Thread(td_expstime_control) handle");
-            return -3;
-        }
-        SetThreadPriority(camdetails->td_expstime_control_hndl, THREAD_PRIORITY_NORMAL);
-    }   // if (camdetails->cnfg.valid)
-
     return 0;
 }
 
@@ -192,46 +122,8 @@ int32_t CTeliCamLib::initialize(void)
 void CTeliCamLib::close(void)
 {
     Teli::CAM_API_STATUS apistat = Teli::CAM_API_STS_SUCCESS;    // TeliCamAPIのステータスコード
-    PTELI_CAM_DETAILS      camdetails = &m_caminfo.details;           // カメラの詳細情報
-
     //----------------------------------------------------------------------------
     // End of thread
-    // Exposure time control thread function
-    if (camdetails->td_expstime_control_hndl != NULL) {
-        if (camdetails->td_expstime_control_stat) {
-            camdetails->td_expstime_control_stat = FALSE;
-            ResumeThread(camdetails->td_expstime_control_hndl);
-            WaitForSingleObject(camdetails->td_expstime_control_hndl, 500); // It waits until the thread ends.
-        }
-        CloseHandle(camdetails->td_expstime_control_hndl);  // Handle is closed.
-        camdetails->td_expstime_control_hndl = NULL;
-    }
-    camdetails->td_expstime_control_stat = FALSE;
-
-    // Gain control thread function
-    if (camdetails->td_gain_control_hndl != NULL) {
-        if (camdetails->td_gain_control_stat) {
-            camdetails->td_gain_control_stat = FALSE;
-            ResumeThread(camdetails->td_gain_control_hndl);
-            WaitForSingleObject(camdetails->td_gain_control_hndl, 500); // It waits until the thread ends.
-        }
-        CloseHandle(camdetails->td_gain_control_hndl);  // Handle is closed.
-        camdetails->td_gain_control_hndl = NULL;
-    }
-    camdetails->td_gain_control_stat = FALSE;
-
-    // Camera remove thread function
-    if (camdetails->td_camera_remove_hndl != NULL) {
-        if (camdetails->td_camera_remove_stat) {
-            camdetails->td_camera_remove_stat = FALSE;
-            ResumeThread(camdetails->td_camera_remove_hndl);
-            WaitForSingleObject(camdetails->td_camera_remove_hndl, GEV_CAMERA_REMOVE_EVENT_WAITIME + 500);   // It waits until the thread ends.
-        }
-        CloseHandle(camdetails->td_camera_remove_hndl);
-        camdetails->td_camera_remove_hndl = NULL;   // Handle is closed.
-    }
-    camdetails->td_camera_remove_stat = FALSE;
-
     //----------------------------------------------------------------------------
     // 画像ストリームの転送停止
     stop_stream();
@@ -246,22 +138,12 @@ void CTeliCamLib::close(void)
     // Close camera
     close_camera();
     _RPTWN(_CRT_WARN, L"%s%s\n", L">>>[CTeliCamLib::close]", get_error_message());
-
-    //----------------------------------------------------------------------------
-    // Close a signal object
-    if (camdetails->EventHndlCamRemoval != NULL) {
-        if ((apistat = Teli::Sys_CloseSignal(camdetails->EventHndlCamRemoval)) != Teli::CAM_API_STS_SUCCESS) {
-            _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::close]<Error>Teli::Sys_CloseSignal", apistat);
-        }
-        camdetails->EventHndlCamRemoval = NULL;
-    }
-
+    
     //----------------------------------------------------------------------------
     // Termination process of TeliCamAPI
     if ((apistat = Teli::Sys_Terminate()) != Teli::CAM_API_STS_SUCCESS) {
         _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::close]<Error>Teli::Sys_Terminate", apistat);
     }
-
     return;
 }
 
@@ -278,45 +160,42 @@ int32_t CTeliCamLib::update_camera_list(void)
 
     //----------------------------------------------------------------------------
     // カメラのステータスのクリア
-    m_caminfo.details.stat.camidx = -1;                             // カメラのインデックス
-    m_caminfo.details.stat.camhndl = NULL;                           // オープンしたカメラのカメラハンドル
-    m_caminfo.details.stat.strmhndl = NULL;                           // オープンしたストリームインターフェースのストリームハンドル
-    m_caminfo.details.stat.apistat = Teli::CAM_API_STS_SUCCESS;      // TeliCamAPIのステータスコード
-    m_caminfo.details.stat.errstat = Teli::CAM_API_STS_SUCCESS;      // 画像ストリーム受信時のエラーステータスコード
-    m_caminfo.details.stat.pyldsize = 0;                              // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
-    m_caminfo.details.stat.camname = L"Not found camera";            // カメラの名前
-    m_caminfo.details.stat.camwidth = 0;                              // 映像の幅
-    m_caminfo.details.stat.camheight = 0;                              // 映像の高さ
-    m_caminfo.details.stat.framecount = 0;                              // FPSを計算するためのフレームカウンター
-    m_caminfo.details.stat.frameidx = 0;                              // カメラから出力されるビデオデータのフレーム番号
-    m_caminfo.details.stat.frameidx_valid = FALSE;                          // "frameidx"に有効な値があることを示すフラグ
-    m_caminfo.details.stat.fpstimer = timeGetTime();                  // フレーム更新タイマー
-    m_caminfo.details.stat.fps = 0.0;                            // 実際のFPS
-    m_caminfo.details.stat.expstime_min = 0.0;                            // 露光時間(最小)
-    m_caminfo.details.stat.expstime_max = 0.0;                            // 露光時間(最大)
-    m_caminfo.details.stat.expstime = 0.0;                            // 露光時間(最大)
-    m_caminfo.details.stat.gainmin = 0.0;                            // ゲイン(最小)
-    m_caminfo.details.stat.gainmax = 0.0;                            // ゲイン(最大)
-    m_caminfo.details.stat.gain = 0.0;                            // ゲイン
-    ZeroMemory(&m_caminfo.details.stat.caminfo, sizeof(Teli::CAM_INFO));    // カメラの情報
-
+    stat.camidx = -1;                             // カメラのインデックス
+    stat.camhndl = NULL;                           // オープンしたカメラのカメラハンドル
+    stat.strmhndl = NULL;                           // オープンしたストリームインターフェースのストリームハンドル
+    stat.apistat = Teli::CAM_API_STS_SUCCESS;      // TeliCamAPIのステータスコード
+    stat.errstat = Teli::CAM_API_STS_SUCCESS;      // 画像ストリーム受信時のエラーステータスコード
+    stat.pyldsize = 0;                              // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
+    stat.camname = L"Not found camera";            // カメラの名前
+    stat.camwidth = 0;                              // 映像の幅
+    stat.camheight = 0;                              // 映像の高さ
+    stat.framecount = 0;                              // FPSを計算するためのフレームカウンター
+    stat.frameidx = 0;                              // カメラから出力されるビデオデータのフレーム番号
+    stat.frameidx_valid = FALSE;                          // "frameidx"に有効な値があることを示すフラグ
+    stat.fpstimer = timeGetTime();                  // フレーム更新タイマー
+    stat.fps = 0.0;                            // 実際のFPS
+    stat.expstime_min = 0.0;                            // 露光時間(最小)
+    stat.expstime_max = 0.0;                            // 露光時間(最大)
+    stat.expstime = 0.0;                            // 露光時間(最大)
+    stat.gainmin = 0.0;                            // ゲイン(最小)
+    stat.gainmax = 0.0;                            // ゲイン(最大)
+    stat.gain = 0.0;                            // ゲイン
     //----------------------------------------------------------------------------
     // PCに接続されているカメラの探索
-    if ((apistat = Teli::Sys_GetNumOfCameras(&m_caminfo.camcount)) != Teli::CAM_API_STS_SUCCESS) {
-        m_caminfo.details.stat.apistat = apistat;
+    if ((apistat = Teli::Sys_GetNumOfCameras(&camcount)) != Teli::CAM_API_STS_SUCCESS) {
+       stat.apistat = apistat;
         ret = -1;
 
         wos_msg.str(L""); wos_msg << L"[CTeliCamLib::update_camera_list]<Error>Teli::Sys_Initialize(" << apistat<<")";
         m_errmsg = wos_msg.str();
-        //m_errmsg = std::format(L"[CTeliCamLib::update_camera_list]<Error>Teli::Sys_GetNumOfCameras({:#08x})", apistat);
-    }
+     }
     else
     {
-        if (m_caminfo.camcount > 0) {
+        if (camcount > 0) {
             Teli::CAM_INFO      teli_caminfo;   // カメラの情報
             Teli::PGEV_CAM_INFO gevcaminfo;     // カメラの情報(GEV)
             std::wstring        ipaddrs;        // Camera IP address
-            for (uint32_t camidx = 0; camidx < m_caminfo.camcount; camidx++) {
+            for (uint32_t camidx = 0; camidx < camcount; camidx++) {
                 //----------------------------------------------------------------------------
                 // カメラの情報の取得
                 apistat = Teli::Cam_GetInformation(NULL, camidx, &teli_caminfo);
@@ -333,19 +212,17 @@ int32_t CTeliCamLib::update_camera_list(void)
 
                 //----------------------------------------------------------------------------
                 // IPアドレスをキーに関連付ける
-
                 wos_msg.str(L""); wos_msg << L"["<< gevcaminfo->aucIPAddress[0] <<"]." << L"[" << gevcaminfo->aucIPAddress[1] << "]." << L"[" << gevcaminfo->aucIPAddress[2] << "]." << L"[" << gevcaminfo->aucIPAddress[3] << "]";
                 ipaddrs = wos_msg.str();
                //ipaddrs = std::format(L"{:d}.{:d}.{:d}.{:d}", gevcaminfo->aucIPAddress[0], gevcaminfo->aucIPAddress[1], gevcaminfo->aucIPAddress[2],gevcaminfo->aucIPAddress[3]);
 
-                if (ipaddrs.compare(m_caminfo.details.cnfg.ipaddress) == 0) {
-                    m_caminfo.details.stat.camidx = camidx;             // カメラのインデックス
+                if (ipaddrs.compare(cnfg.ipaddress) == 0) {
+                    stat.camidx = camidx;             // カメラのインデックス
                     std::string modelname(teli_caminfo.szModelName);    // カメラのモデル名
 
                     wos_msg.str(L""); wos_msg << L"{" << CStrHelper::conv_string(modelname) << "}." << L"{" << ipaddrs << "}" ;
-                    m_caminfo.details.stat.camname = wos_msg.str();
+                    stat.camname = wos_msg.str();
                     //m_caminfo.details.stat.camname = std::format(L"{:s}({:s})", CStrHelper::conv_string(modelname), ipaddrs);   // カメラの名前
-                    memcpy(&m_caminfo.details.stat.caminfo, &teli_caminfo, sizeof(Teli::CAM_INFO)); // カメラの情報
                     break;
                 }
             }   // for (uint32_t camcount = 0; camcount < m_caminfo.camcount; camcount++)
@@ -365,10 +242,10 @@ int32_t CTeliCamLib::open_camera(Teli::CAM_ACCESS_MODE accessmode)
     
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     uint32_t       camwidth;    // 映像の幅
     uint32_t       camheight;   // 映像の高さ
-    if ((camstat->camidx < 0) || (camstat->camidx >= (int32_t)m_caminfo.camcount)) {
+    if ((camstat->camidx < 0) || (camstat->camidx >= (int32_t)camcount)) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::open_camera]<Error>camstat->camidx";
     }
@@ -431,7 +308,7 @@ int32_t CTeliCamLib::close_camera(void)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::close_camera]<Error>camstat->camhndl";
@@ -462,7 +339,7 @@ int32_t CTeliCamLib::open_stream(void)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
 
@@ -471,7 +348,7 @@ int32_t CTeliCamLib::open_stream(void)
        // m_errmsg = L"[CTeliCamLib::open_stream]<Error>camstat->camhndl";
     }
     else {
-        PTELI_CAM_CONFIG camcnfg = &m_caminfo.details.cnfg;   // カメラの設定
+        PTELI_CAM_CONFIG camcnfg = &cnfg;   // カメラの設定
         //----------------------------------------------------------------------------
         // 画像取得用のストリームインターフェースのオープン
         // TeliCamAPI内部に画像一時保管用のストリームリクエストリングバッファを作成
@@ -486,7 +363,6 @@ int32_t CTeliCamLib::open_stream(void)
 
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::open_stream]<Error>Teli::Strm_OpenSimple(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::open_stream]<Error>Teli::Strm_OpenSimple({:#08x})", camstat->apistat);
         }
         //----------------------------------------------------------------------------
         // コールバック関数のTeliCamAPIに登録
@@ -499,8 +375,7 @@ int32_t CTeliCamLib::open_stream(void)
     
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::open_stream]<Error>Teli::Strm_SetCallbackImageAcquired(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-           // m_errmsg = std::format(L"[CTeliCamLib::open_stream]<Error>Teli::Strm_SetCallbackImageAcquired({:#08x})", camstat->apistat);
-        }
+         }
         //----------------------------------------------------------------------------
         // コールバック関数をTeliCamAPIに登録
         // ストリームを正常に受信できず、TeliCamAPI内部のストリームリクエストリングバッファの内容が
@@ -511,7 +386,6 @@ int32_t CTeliCamLib::open_stream(void)
             ret = -4;
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::open_stream]<Error>Teli::Strm_SetCallbackImageError(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::open_stream]<Error>Teli::Strm_SetCallbackImageError({:#08x})", camstat->apistat);
         }
         else {
             ;
@@ -531,7 +405,7 @@ int32_t CTeliCamLib::close_stream(void)
 
      m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->strmhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::close_stream]<Error>camstat->strmhndl";
@@ -562,7 +436,7 @@ int32_t CTeliCamLib::start_stream(void)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->strmhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::start_stream]<Error>camstat->strmhndl";
@@ -596,7 +470,7 @@ int32_t CTeliCamLib::stop_stream(void)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->strmhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::stop_stream]<Error>camstat->strmhndl";
@@ -609,7 +483,6 @@ int32_t CTeliCamLib::stop_stream(void)
 
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::stop_stream]<Error>Teli::Strm_Stop(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-           // m_errmsg = std::format(L"[CTeliCamLib::stop_stream]<Error>Teli::Strm_Stop({:#08x})", camstat->apistat);
         }
     }   // if (camstat->hstrm == NULL) else
     camstat->framecount = 0;        // FPSを計算するためのフレームカウンター
@@ -630,7 +503,7 @@ int32_t CTeliCamLib::set_pixelformat(Teli::CAM_PIXEL_FORMAT pixelformat)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_pixelformat]<Error>camstat->camhndl";
@@ -643,8 +516,6 @@ int32_t CTeliCamLib::set_pixelformat(Teli::CAM_PIXEL_FORMAT pixelformat)
             ret = -2;
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_pixelformat]<Error>Teli::SetCamPixelFormat(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            
-            //m_errmsg = std::format(L"[CTeliCamLib::set_pixelformat]<Error>Teli::SetCamPixelFormat({:#08x})", camstat->apistat);
         }
     }   // if (camstat->camhndl == NULL) else
      return ret;
@@ -663,7 +534,7 @@ int32_t CTeliCamLib::set_camroi(uint32_t offset_x, uint32_t offset_y, uint32_t w
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat; // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat; // カメラのステータス
     uint32_t       camwidth = 0;                       // 映像の幅
     uint32_t       camheight = 0;                       // 映像の高さ
     if (camstat->camhndl == NULL) {
@@ -680,8 +551,7 @@ int32_t CTeliCamLib::set_camroi(uint32_t offset_x, uint32_t offset_y, uint32_t w
    
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_pixelformat]<Error>Teli::SetCamPixelFormat(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-  //          m_errmsg = std::format(L"[CTeliCamLib::set_camroi]<Error>Teli::SetCamRoi({:#08x})", camstat->apistat);
-        }
+         }
         else {
             //----------------------------------------------------------------------------
             // カメラの映像の幅を取得
@@ -691,7 +561,6 @@ int32_t CTeliCamLib::set_camroi(uint32_t offset_x, uint32_t offset_y, uint32_t w
   
                 wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_camroi]GetCamWidth:{" << camstat->apistat << "}";
                 m_errmsg = wos_msg.str();
-               // m_errmsg = std::format(L"[CTeliCamLib::set_camroi]GetCamWidth:{:#08x}", camstat->apistat);
             }
             //----------------------------------------------------------------------------
             // カメラの映像の高さを取得
@@ -701,7 +570,6 @@ int32_t CTeliCamLib::set_camroi(uint32_t offset_x, uint32_t offset_y, uint32_t w
 
                 wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_camroi]<Error>Teli::GetCamHeight(" << camstat->apistat << ")";
                 m_errmsg = wos_msg.str();
-               // m_errmsg = std::format(L"[CTeliCamLib::set_camroi]<Error>Teli::GetCamHeight({:#08x})", camstat->apistat);
             }
             else {
                 ;
@@ -731,7 +599,7 @@ int32_t CTeliCamLib::set_framerate(float64_t framerate, Teli::CAM_ACQ_FRAME_RATE
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_framerate]<Error>camstat->camhndl";
@@ -745,16 +613,14 @@ int32_t CTeliCamLib::set_framerate(float64_t framerate, Teli::CAM_ACQ_FRAME_RATE
  
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_framerate]<Error>Teli::SetCamAcquisitionFrameRateControl(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::set_framerate]<Error>Teli::SetCamAcquisitionFrameRateControl({:#08x})", camstat->apistat);
-        }
+         }
         else if ((camstat->apistat = Teli::SetCamAcquisitionFrameRate(camstat->camhndl,
             framerate)) != Teli::CAM_API_STS_SUCCESS) {
             ret = -3;
 
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_framerate]<Error>Teli::SetCamAcquisitionFrameRate(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-           // m_errmsg = std::format(L"[CTeliCamLib::set_framerate]<Error>Teli::SetCamAcquisitionFrameRate({:#08x})", camstat->apistat);
-        }
+         }
         else {
             ;
         }
@@ -772,14 +638,12 @@ int32_t CTeliCamLib::set_triggermode(bool8_t triggermode)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
 
         wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_triggermode]<Error>" << camstat->camhndl;
         m_errmsg = wos_msg.str();
-
-       // m_errmsg = L"[CTeliCamLib::set_triggermode]<Error>camstat->camhndl";
     }
     else {
         //----------------------------------------------------------------------------
@@ -790,7 +654,6 @@ int32_t CTeliCamLib::set_triggermode(bool8_t triggermode)
 
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_triggermode]<Error>Teli::SetCamTriggerMode(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::set_triggermode]<Error>Teli::SetCamTriggerMode({:#08x})", camstat->apistat);
         }
     }   // if (camstat->camhndl == NULL) else	
  
@@ -807,7 +670,7 @@ int32_t CTeliCamLib::set_blacklevel(float64_t blacklevel)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_blacklevel]<Error>camstat->camhndl";
@@ -823,8 +686,7 @@ int32_t CTeliCamLib::set_blacklevel(float64_t blacklevel)
 
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_blacklevel]<Error>Teli::GetCamBlackLevelMinMax(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::set_blacklevel]<Error>Teli::GetCamBlackLevelMinMax({:#08x})", camstat->apistat);
-        }
+         }
         //----------------------------------------------------------------------------
         // カメラの黒レベルを設定
         else {
@@ -843,7 +705,6 @@ int32_t CTeliCamLib::set_blacklevel(float64_t blacklevel)
               
                 wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_blacklevel]<Error>Teli::SetCamBlackLevel(" << camstat->apistat << ")";
                 m_errmsg = wos_msg.str();
-               // m_errmsg = std::format(L"[CTeliCamLib::set_blacklevel]<Error>Teli::SetCamBlackLevel({:#08x})", camstat->apistat);
             }
         }
     }   // if (camstat->camhndl == NULL) else
@@ -860,7 +721,7 @@ int32_t CTeliCamLib::set_gamma(float64_t gamma)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_gamma]<Error>camstat->camhndl";
@@ -896,7 +757,6 @@ int32_t CTeliCamLib::set_gamma(float64_t gamma)
 
                 wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_gamma]<Error>Teli::SetCamGamma(" << camstat->apistat << ")";
                 m_errmsg = wos_msg.str();
-               // m_errmsg = std::format(L"[CTeliCamLib::set_gamma]<Error>Teli::SetCamGamma({:#08x})", camstat->apistat);
             }
         }
     }   // if (camstat->camhndl == NULL) else
@@ -914,7 +774,7 @@ int32_t CTeliCamLib::set_wbalance_auto(Teli::CAM_BALANCE_WHITE_AUTO_TYPE autotyp
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_wbalance_auto]<Error>camstat->camhndl";
@@ -945,7 +805,7 @@ int32_t CTeliCamLib::set_wbalance_ratio(float64_t wbratio, Teli::CAM_BALANCE_RAT
 
      m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_wbalance_ratio]<Error>camstat->camhndl";
@@ -961,7 +821,6 @@ int32_t CTeliCamLib::set_wbalance_ratio(float64_t wbratio, Teli::CAM_BALANCE_RAT
             ret = -2;
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_wbalance_ratio]<Error>Teli::GetCamBalanceRatioMinMax(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::set_wbalance_ratio]<Error>Teli::GetCamBalanceRatioMinMax({:#08x})", camstat->apistat);
         }
         //----------------------------------------------------------------------------
         // カメラのホワイトバランスゲイン(倍率)を設定
@@ -981,8 +840,7 @@ int32_t CTeliCamLib::set_wbalance_ratio(float64_t wbratio, Teli::CAM_BALANCE_RAT
                 ret = -3;
                 wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_wbalance_ratio]<Error>Teli::SetCamBalanceRatio(" << camstat->apistat << ")";
                 m_errmsg = wos_msg.str();
-                //m_errmsg = std::format(L"[CTeliCamLib::set_wbalance_ratio]<Error>Teli::SetCamBalanceRatio({:#08x})", camstat->apistat);
-            }
+             }
         }
     }   // if (camstat->camhndl == NULL) else
 
@@ -999,7 +857,7 @@ int32_t CTeliCamLib::set_gain_auto(Teli::CAM_GAIN_AUTO_TYPE autotype)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_gain_auto]<Error>camstat->camhndl";
@@ -1012,8 +870,7 @@ int32_t CTeliCamLib::set_gain_auto(Teli::CAM_GAIN_AUTO_TYPE autotype)
             ret = -2;
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_gain_auto]<Error>Teli::SetCamGainAuto(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::set_gain_auto]<Error>Teli::SetCamGainAuto({:#08x})", camstat->apistat);
-        }
+         }
         //----------------------------------------------------------------------------
         // カメラのAGC動作モードがManualに設定されているときの、ゲインの最小値と最大値を取得
         else if ((camstat->apistat = Teli::GetCamGainMinMax(camstat->camhndl,
@@ -1023,7 +880,6 @@ int32_t CTeliCamLib::set_gain_auto(Teli::CAM_GAIN_AUTO_TYPE autotype)
  
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_gain_auto]<Error>Teli::GetCamGainMinMax(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-           // m_errmsg = std::format(L"[CTeliCamLib::set_gain_auto]<Error>Teli::GetCamGainMinMax({:#08x})", camstat->apistat);
         }
         else {
             ;
@@ -1042,7 +898,7 @@ int32_t CTeliCamLib::set_gain(float64_t gain)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_gain]<Error>camstat->camhndl";
@@ -1074,11 +930,6 @@ int32_t CTeliCamLib::set_gain(float64_t gain)
             ;
         }
         camstat->gain = gain;
-
-        PTELI_CAM_DETAILS camdtail = &m_caminfo.details;  // カメラの詳細情報
-        if (camdtail->td_gain_control_hndl != NULL) {
-            ResumeThread(camdtail->td_gain_control_hndl);
-        }
     }   // if (camstat->camhndl == NULL)
  
     return ret;
@@ -1094,7 +945,7 @@ int32_t CTeliCamLib::set_expstime_control(Teli::CAM_EXPOSURE_TIME_CONTROL_TYPE c
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // カメラのステータス
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_expstime_control]<Error>camstat->camhndl";
@@ -1138,7 +989,7 @@ int32_t CTeliCamLib::set_expstime(float64_t expstime)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // Camera status
+    PTELI_CAM_STATUS camstat = &stat;   // Camera status
     if (camstat->camhndl == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::set_expstime]<Error>camstat->camhndl";
@@ -1168,11 +1019,6 @@ int32_t CTeliCamLib::set_expstime(float64_t expstime)
             ;
         }
         camstat->expstime = expstime;
-
-        PTELI_CAM_DETAILS camdtail = &m_caminfo.details;  // カメラの詳細情報
-        if (camdtail->td_expstime_control_hndl != NULL) {
-            ResumeThread(camdtail->td_expstime_control_hndl);
-        }
     }
     return ret;
 }
@@ -1187,7 +1033,7 @@ int32_t CTeliCamLib::get_image(uint32_t bufsize, uint8_t* image)
     int32_t ret = 0;
      m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // Camera status
+    PTELI_CAM_STATUS camstat = &stat;   // Camera status
     if (image == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::get_image]<Error>image";
@@ -1250,7 +1096,7 @@ int32_t CTeliCamLib::get_image(uint32_t bufsize, uint8_t* image)
                     CopyMemory(image, imginfo.pvBuf, camstat->pyldsize);
                     // フレームレート損失チェック
                     if (camstat->framechk_valid) {
-                        PTELI_CAM_CONFIG camcnfg = &m_caminfo.details.cnfg;   // Camera cofig
+                        PTELI_CAM_CONFIG camcnfg = &cnfg;   // Camera cofig
                         if (camstat->fps <= camcnfg->framerate_drop) {
                             ret = -10;
                             m_errmsg = L"[CTeliCamLib::get_image]<Error>Frame rate drop";
@@ -1297,7 +1143,7 @@ int32_t CTeliCamLib::get_image(void* image)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // Camera status
+    PTELI_CAM_STATUS camstat = &stat;   // Camera status
     if (image == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::get_image]<Error>image";
@@ -1361,7 +1207,7 @@ int32_t CTeliCamLib::get_image(void* image)
                 else {
                     // フレームレート損失チェック
                     if (camstat->framechk_valid) {
-                        PTELI_CAM_CONFIG camcnfg = &m_caminfo.details.cnfg;   // Camera cofig
+                        PTELI_CAM_CONFIG camcnfg = &cnfg;   // Camera cofig
                         if (camstat->fps <= camcnfg->framerate_drop) {
                             ret = -10;
                             m_errmsg = L"[CTeliCamLib::get_image]<Error>Frame rate drop";
@@ -1409,7 +1255,7 @@ int32_t CTeliCamLib::get_image_size(uint32_t* width, uint32_t* height)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // Camera status
+    PTELI_CAM_STATUS camstat = &stat;   // Camera status
     if ((width == NULL) || (height == NULL)) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::get_image_size]<Error>width/height";
@@ -1445,7 +1291,7 @@ int32_t CTeliCamLib::get_image_fps(float64_t* fps)
 
     m_errmsg = L""; // エラーメッセージ
 
-    PTELI_CAM_STATUS camstat = &m_caminfo.details.stat;   // Camera status
+    PTELI_CAM_STATUS camstat = &stat;   // Camera status
     if (fps == NULL) {
         ret = -1;
         m_errmsg = L"[CTeliCamLib::get_image_fps]<Error>fps";
@@ -1475,7 +1321,7 @@ int32_t CTeliCamLib::get_image_fps(float64_t* fps)
 /// @note
 Teli::CAM_INFO CTeliCamLib::get_stat_caminfo(void)
 {
-    return m_caminfo.details.stat.caminfo;
+    return m_caminfo;
 }
 
 /// @brief カメラ名の取得
@@ -1484,7 +1330,7 @@ Teli::CAM_INFO CTeliCamLib::get_stat_caminfo(void)
 /// @note
 std::wstring CTeliCamLib::get_camera_name(void)
 {
-    return m_caminfo.details.stat.camname;
+    return stat.camname;
 }
 
 /// @brief エラーメッセージの取得
@@ -1507,8 +1353,7 @@ int32_t CTeliCamLib::get_caminfo_camindex(uint32_t camidx)
 {
     int32_t val = -1;
 
-    PTELI_CAM_DETAILS camdetails = &m_caminfo.details;   // Camera details
-    if (camdetails->stat.camidx == camidx) {
+    if (stat.camidx == camidx) {
         val = camidx;
     }
 
@@ -1534,7 +1379,7 @@ void CTeliCamLib::cb_image_acquired(Teli::CAM_HANDLE hCam, Teli::CAM_STRM_HANDLE
     // Get camera index from camera handle
     if ((apistat = Teli::GetCamIndexFromCamHandle(hCam, &camidx)) != Teli::CAM_API_STS_SUCCESS) {
         if (telicamlib->get_caminfo_camindex(camidx) >= 0) {
-            telicamlib->m_caminfo.details.stat.apistat = apistat;   // TeliCamAPIのステータスコード
+            telicamlib->stat.apistat = apistat;   // TeliCamAPIのステータスコード
         }
         _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::cb_image_acquired]<Error>Teli::GetCamIndexFromCamHandle", apistat);
         return;
@@ -1550,7 +1395,7 @@ void CTeliCamLib::cb_image_acquired(Teli::CAM_HANDLE hCam, Teli::CAM_STRM_HANDLE
     // Image processing which will take a long time should not be executed in this method
 
     if (telicamlib->get_caminfo_camindex(camidx) >= 0) {
-        PTELI_CAM_STATUS camstat = &telicamlib->m_caminfo.details.stat;   // Camera status
+        PTELI_CAM_STATUS camstat = &telicamlib->stat;   // Camera status
         if (camstat->frameidx_valid) {
             camstat->framecount += ((uint32_t)(psImageInfo->ullBlockId) - camstat->frameidx);   // FPSを計算するためのフレームカウンター
             camstat->frameidx = static_cast<uint32_t>(psImageInfo->ullBlockId);              // カメラから出力されるビデオデータのフレーム番号
@@ -1593,7 +1438,7 @@ void CTeliCamLib::cb_error_image(Teli::CAM_HANDLE hCam, Teli::CAM_STRM_HANDLE hS
     // Get camera index from camera handle
     if ((apistat = Teli::GetCamIndexFromCamHandle(hCam, &camidx)) != Teli::CAM_API_STS_SUCCESS) {
         if (telicamlib->get_caminfo_camindex(camidx) >= 0) {
-            PTELI_CAM_STATUS camstat = &telicamlib->m_caminfo.details.stat;   // Camera status
+            PTELI_CAM_STATUS camstat = &telicamlib->stat;   // Camera status
             camstat->apistat = apistat;          // TeliCamAPIのステータスコード
             camstat->framecount = 0;                // FPSを計算するためのフレームカウンター
             camstat->frameidx = 0;                // カメラから出力されるビデオデータのフレーム番号
@@ -1605,7 +1450,7 @@ void CTeliCamLib::cb_error_image(Teli::CAM_HANDLE hCam, Teli::CAM_STRM_HANDLE hS
     }
     else {
         if (telicamlib->get_caminfo_camindex(camidx) >= 0) {
-            PTELI_CAM_STATUS camstat = &telicamlib->m_caminfo.details.stat;   // Camera status
+            PTELI_CAM_STATUS camstat = &telicamlib->stat;   // Camera status
             switch (uiErrorStatus) {
             case Teli::CAM_API_STS_RESPONSE_TIMEOUT:
             case Teli::CAM_API_STS_BUFFER_FULL:
@@ -1638,110 +1483,3 @@ void CTeliCamLib::cb_error_image(Teli::CAM_HANDLE hCam, Teli::CAM_STRM_HANDLE hS
 //  pdummy = &hStrm;
 }
 
-/// @brief カメラ取外し検出スレッド関数(未使用)
-/// @param [in] lpParam
-/// @return 0
-/// @note
-unsigned WINAPI CTeliCamLib::td_camera_remove(LPVOID lpParam)
-{
-    HRESULT              hr = S_OK;
-    PTELI_CAM_DETAILS      camdetails = reinterpret_cast<TELI_CAM_DETAILS*>(lpParam);
-    Teli::CAM_API_STATUS apistat = Teli::CAM_API_STS_SUCCESS;    // TeliCamAPIのステータスコード
-
-    _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_camera_remove]<Start>");
-    while (camdetails->td_camera_remove_stat) {
-        if ((apistat = Teli::Sys_WaitForSignal(camdetails->EventHndlCamRemoval, GEV_CAMERA_REMOVE_EVENT_WAITIME)) != Teli::CAM_API_STS_SUCCESS) {
-            if (apistat == Teli::CAM_API_STS_TIMEOUT) {
-                _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_camera_remove]<Error>Teli::Sys_WaitForSignal(CAM_API_STS_TIMEOUT)");
-            }
-            else {
-                camdetails->stat.apistat = apistat;
-                _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::td_camera_remove]<Error>Teli::Sys_WaitForSignal", apistat);
-            }
-        }
-        else {
-            _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_camera_remove]<Normal>Teli::Sys_WaitForSignal(CAM_API_STS_SUCCESS)");
-        }
-    }   // while(camdetails->td_camera_remove_stat)
-    _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_camera_remove]<End>");
-    camdetails->td_camera_remove_stat = FALSE;
-    _endthreadex(0);
-
-    return 0;
-}
-
-/// @brief ゲイン設定スレッド関数
-/// @param [in] lpParam
-/// @return 0
-/// @note
-unsigned WINAPI CTeliCamLib::td_gain_control(LPVOID lpParam)
-{
-    HRESULT         hr = S_OK;
-    PTELI_CAM_DETAILS camdetails = reinterpret_cast<TELI_CAM_DETAILS*>(lpParam);
-
-    _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_gain_control]<Start>");
-    while (camdetails->td_gain_control_stat) {
-        //----------------------------------------------------------------------------
-        // Standby of thread
-        SuspendThread(camdetails->td_gain_control_hndl);    // Suspend thread
-
-        PTELI_CAM_STATUS camstat = &camdetails->stat; // Camera status
-        if (camstat->camhndl == NULL) {
-            _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_gain_control]<Error>camstat->camhndl");
-        }
-        else if (camstat->apistat != Teli::CAM_API_STS_SUCCESS) {   // TeliCamAPIのエラー
-            _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::td_gain_control]<Error>camstat->apistat", camstat->apistat);
-        }
-        else if (camstat->errstat != Teli::CAM_API_STS_SUCCESS) {   // 画像ストリーム受信時のエラー
-            _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::td_gain_control]<Error>camstat->errstat", camstat->errstat);
-        }
-        else {
-            if ((camstat->apistat = Teli::SetCamGain(camstat->camhndl, camstat->gain)) != Teli::CAM_API_STS_SUCCESS) {
-                _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::td_gain_control]<Error>Teli::SetCamGain", camstat->apistat);
-            }
-        }
-    }   // while(camdetails->td_gain_control_stat)
-    _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_gain_control]<End>");
-    camdetails->td_gain_control_stat = FALSE;
-    _endthreadex(0);
-
-    return 0;
-}
-
-/// @brief 露光時間設定スレッド関数
-/// @param [in] lpParam
-/// @return 0
-/// @note
-unsigned WINAPI CTeliCamLib::td_expstime_control(LPVOID lpParam)
-{
-    HRESULT         hr = S_OK;
-    PTELI_CAM_DETAILS camdetails = reinterpret_cast<TELI_CAM_DETAILS*>(lpParam);
-
-    _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_expstime_control]<Start>");
-    while (camdetails->td_expstime_control_stat) {
-        //----------------------------------------------------------------------------
-        // Standby of thread
-        SuspendThread(camdetails->td_expstime_control_hndl);    // Suspend thread
-
-        PTELI_CAM_STATUS camstat = &camdetails->stat; // Camera status
-        if (camstat->camhndl == NULL) {
-            _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_expstime_control]<Error>camstat->camhndl");
-        }
-        else if (camstat->apistat != Teli::CAM_API_STS_SUCCESS) {   // TeliCamAPI status
-            _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::td_expstime_control]<Error>camstat->apistat", camstat->apistat);
-        }
-        else if (camstat->errstat != Teli::CAM_API_STS_SUCCESS) {   // Error status code when receiving image stream
-            _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::td_expstime_control]<Error>camstat->errstat", camstat->errstat);
-        }
-        else {
-            if ((camstat->apistat = Teli::SetCamExposureTime(camstat->camhndl, camstat->expstime)) != Teli::CAM_API_STS_SUCCESS) {
-                _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[td_expstime_control]<Error>Teli::SetCamExposureTime", camstat->apistat);
-            }
-        }
-    }   // while(camdetails->td_expstime_control_stat)
-    _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::td_expstime_control]<End>");
-    camdetails->td_expstime_control_stat = FALSE;
-    _endthreadex(0);
-
-    return 0;
-}
