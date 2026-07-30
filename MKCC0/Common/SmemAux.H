@@ -4,6 +4,7 @@
 #include "Windows.h"
 #include <opencv2/opencv.hpp>
 #include "CBasicControl.h"
+#include "SWYSENSOR_DEF.H"
 
 //using namespace std;
 /****************************************************************************/
@@ -14,11 +15,13 @@
 #define SMEM_AUX_AGENT_INF_NAME			L"AUX_AGENT_INF"
 #define SMEM_AUX_CS_INF_NAME			L"AUX_CS_INF"
 #define SMEM_AUX_POL_INF_NAME			L"AUX_POL_INF"
+#define SMEM_AUX_SCAD_INF_NAME			L"AUX_SCAD_INF"
 
 #define MUTEX_AUX_ENV_INF_NAME			L"MU_AUX_ENV_INF"
 #define MUTEX_AUX_AGENT_INF_NAME		L"MU_AUX_AGENT_INF"
 #define MUTEX_AUX_CS_INF_NAME			L"MU_AUX_CS_INF"
 #define MUTEX_AUX_POL_INF_NAME			L"MU_AUX_POL_INF"
+#define MUTEX_AUX_SCAD_INF_NAME			L"MU_AUX_SCAD_INF"
 
 #define SMEM_OTE_AUX_ENV_INF_NAME		L"OTE_AUX_ENV_INF"
 #define SMEM_OTE_AUX_AGENT_INF_NAME		L"OTE_AUX_AGENT_INF"
@@ -78,25 +81,31 @@ typedef struct _ST_SLBRK_FB {
 	INT16 d22;
 }ST_SLBRK_FB, * LPST_SLBRK_FB;
 
+typedef struct _ST_AUX_SCAD_INF {
+	DWORD helthy_cnt;
+}ST_AUX_SCAD_INF, * LPST_AUX_SCAD_INF;
+
+typedef struct _ST_AUX_POL_INF {
+	DWORD helthy_cnt;
+}ST_AUX_POL_INF, * LPST_AUX_POL_INF;
+
 typedef struct _GE_CAM
 {
 	int retry_count = 0;
 }ST_GE_CAM, LPST_GE_CAM;
 
-#define AUXAG_CAMERA_STAT_NORMAL		0//正常
-#define AUXAG_CAMERA_STAT_INIT_ERR		1//初期化エラー停止中
-#define AUXAG_CAMERA_STAT_SUSPEND		2//停止待機中
-typedef struct _ST_AUX_AGENT_INF {	//MCprotocolの送受信バッファ
+#define AUXAG_CAMERA_STAT_NORMAL		0	//正常
+#define AUXAG_CAMERA_STAT_INIT_ERR		1	//初期化エラー停止中
+#define AUXAG_CAMERA_STAT_SUSPEND		2	//停止待機中
+typedef struct _ST_AUX_AGENT_INF {			//MCprotocolの送受信バッファ
 	INT16 slbrk_wbuf[16];
 	INT16 slbrk_rbuf[16];
-
 	ST_GE_CAM st_ge_cam;
 }ST_AUX_AGENT_INF, * LPST_AUX_AGENT_INF;
 
 #define AUX_CS_CODE_LANIO_FAIL			-1
 #define AUX_CS_CODE_LANIO_ACTIVE		0x0001
 #define AUX_CS_CODE_LANIO_INPIO_ERR		0x0010
-
 typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	//MAINプロセスからAUXEQへ
 	DWORD main_helthy_cnt;
@@ -116,12 +125,9 @@ typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 
 	int sway_sensor_enable;
 	int sway_sensor_status;
+
+	ST_SWAY_SERVER_MSG swayinf;
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
-
-typedef struct _ST_AUX_POL_INF {
-	int tmp;
-
-}ST_AUX_POL_INF, * LPST_AUX_POL_INF;
 
 /****************************************************************************/
 /*   補機信号定義構造体(OTE)                                  　         　	*/
@@ -139,7 +145,6 @@ typedef struct _ST_OTE_AUX_ENV_INF {
 	int app_mode = BC_ID_MODE0;
 
 }ST_OTE_AUX_ENV_INF, * LPST_OTE_AUX_ENV_INF;
-
 
 #define OTEAUXAG_CAMERA_STAT_NORMAL			0//正常
 #define OTEAUXAG_CAMERA_STAT_INIT_ERR		1//初期化エラー停止中
@@ -239,7 +244,6 @@ typedef struct _ST_OTE_AUX_CS_INF {					//OTEプロセスとのIF用共有メモリバッファ
 #define OTEAUXPOL_PRM_CAMERA_WIDTH						1280	//映像チェックマスクHSV全範囲設定
 #define OTEAUXPOL_PRM_CAMERA_HEIGHT						1024	//映像チェックマスクHV範囲設定Sフリー
 #define OTEAUXPOL_PRM_MSG_WCH_SIZE						32	//映像チェックマスクHV範囲設定Sフリー
-
 
 typedef struct _ST_AUXPOL_IMG_PRM {
 	uint32_t magic = OTEAUXPOL_CODE_MAGIC;			//構造体の識別用マジックナンバー

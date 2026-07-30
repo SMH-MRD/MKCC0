@@ -19,9 +19,11 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
+
 extern CCrane* pCrane;
 
-extern CSharedMem* pAuxInfObj;
+extern CSharedMem* pAuxCsInfObj;
+
 extern ST_DEVICE_CODE g_my_code;
 
 //ソケット
@@ -82,7 +84,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	wos.str(L"初期化中…"); msg2host(wos.str());
 
 	///-共有メモリ割付&設定##################
-	if (OK_SHMEM != pAuxInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
+	if (OK_SHMEM != pAuxCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 	
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_CC_AGENT_INF);
@@ -97,7 +99,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pSim_Inf	= (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
 	pPolInf		= (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
 
-	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
+	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+	
 
 	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());

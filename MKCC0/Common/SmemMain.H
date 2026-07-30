@@ -8,6 +8,7 @@
 #include "CVector3.h"
 #include "CCrane.h"
 #include "CFaults.h"
+#include "SWYSENSOR_DEF.H"
 
 //using namespace std;
 
@@ -467,6 +468,9 @@ typedef struct _ST_CC_AGENT_INF {
 	//旋回ブレーキ制御
 	int slew_brake_ctrl_mode;//0:通常 1:機能チェックモード
 	int slew_brake_chk_enable;
+
+	//SWAY SENSOR
+	ST_SWAY_CLIENT_MSG sway_sensor_req;
 
 }ST_CC_AGENT_INF, * LPST_CC_AGENT_INF;
 

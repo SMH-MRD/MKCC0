@@ -3,6 +3,7 @@
 #include "CBasicControl.h"
 #include "AUXEQ_DEF.H"
 #include "CSHAREDMEM.H"
+#include "SWYSENSOR_DEF.H"
 
 #define ENV_ID_MON1_TIMER  11190
 #define ENV_ID_MON2_TIMER  11191
@@ -123,6 +124,13 @@ public:
     static ST_ENV_MON1 st_mon1;
     static ST_ENV_MON2 st_mon2;
 
+    CONFIG_COMMON    m_cnfgcmn;      // 共通設定
+    CONFIG_CAMERA    m_cnfgcam;      // カメラ設定
+    CONFIG_IMGPROC   m_cnfgprc;      // 画像処理条件設定
+    INFO_ADJUST_DATA m_infoajs_data; // 調整情報データ
+    INFO_IMGPRC_DATA m_infoprc_data; // 画像処理情報データ
+    INFO_SYSTEM_DATA m_infosys_data; // システム情報データ
+
     //タスク出力用構造体
 
     //タブパネルのStaticテキストを設定
@@ -152,12 +160,14 @@ private:
     int set_outbuf(LPVOID) {//出力バッファセット
         return STAT_NG;
     }
-
+        
     int input();//入力処理
 
     int parse();
     int output();
     int close();
+
+    void init_camera_parameters(int type);
 };
 
 

@@ -29,12 +29,11 @@
 #pragma region STRUCTURE_DEFINITION
 // カメラの設定
 typedef struct _TELI_CAM_CONFIG {
-    BOOL         valid;             // カメラの有効または無効[0:無効 1:有効]
-    std::wstring ipaddress;         // カメラのIPアドレス
-    uint32_t     packetsize;        // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
-    float64_t    framerate_drop;    // フレームレート低下の判定値[fps]
-    LONG         period;            // カメラキャプチャ周期ms
-} TELI_CAM_CONFIG, * PTELI_CAM_CONFIG;
+    BOOL         valid = 1;             // カメラの有効または無効[0:無効 1:有効]
+    std::wstring ipaddress = L"172.31.0.30";         // カメラのIPアドレス
+    uint32_t     packetsize = 0;        // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
+    float64_t    framerate_drop = 20.0;    // フレームレート低下の判定値[fps]
+ } TELI_CAM_CONFIG, * PTELI_CAM_CONFIG;
 // カメラのステータス
 typedef struct _TELI_CAM_STATUS {
     int32_t               control_status;
@@ -140,8 +139,7 @@ public:
     TELI_CAM_CONFIG cnfg;       // カメラの設定
     TELI_CAM_STATUS stat;
  
-    LONG get_cam_period() { return cnfg.period; }
-
+   
 protected:
 
 private:

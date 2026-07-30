@@ -238,7 +238,7 @@ int32_t CTeliCamLib::update_camera_list(void)
 /// @note
 int32_t CTeliCamLib::open_camera(Teli::CAM_ACCESS_MODE accessmode)
 {
-    int32_t ret = 0;
+    int32_t ret = Teli::CAM_API_STS_SUCCESS;
     
     m_errmsg = L""; // エラーメッセージ
 
@@ -253,18 +253,17 @@ int32_t CTeliCamLib::open_camera(Teli::CAM_ACCESS_MODE accessmode)
     {
         //----------------------------------------------------------------------------
         // カメラをオープンし、アプリケーションがカメラを使用できるようにします。
-        if ((camstat->apistat = Teli::Cam_Open(camstat->camidx,                             // カメラのインデックス
-            &camstat->camhndl,                           // オープンしたカメラのカメラハンドル
-            NULL,                                        // カメラ取り外し通知用のイベント(シグナル)オブジェクトのハンドル
-            true,                                        // GenICamアクセスの有効／無効
-            NULL,                                        // PC内のカメラ記述情報(XMLデータ)
-            accessmode)) != Teli::CAM_API_STS_SUCCESS) { // カメラのアクセスモード
-            //          camstat->camhndl = NULL;
+        if ((camstat->apistat = Teli::Cam_Open(camstat->camidx,      // カメラのインデックス
+            &camstat->camhndl,                                       // オープンしたカメラのカメラハンドル
+            NULL,                                                   // カメラ取り外し通知用のイベント(シグナル)オブジェクトのハンドル
+            true,                                                   // GenICamアクセスの有効／無効
+            NULL,                                                   // PC内のカメラ記述情報(XMLデータ)
+            accessmode)) != Teli::CAM_API_STS_SUCCESS) {            // カメラのアクセスモード
+            camstat->camhndl = NULL;
             ret = -2;
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::open_camera]<Error>Teli::Cam_Open(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-           // m_errmsg = std::format(L"[CTeliCamLib::open_camera]<Error>Teli::Cam_Open({:#08x})", camstat->apistat);
-        }
+          }
         else {
             //----------------------------------------------------------------------------
             // カメラの映像の幅の取得
@@ -352,14 +351,17 @@ int32_t CTeliCamLib::open_stream(void)
         //----------------------------------------------------------------------------
         // 画像取得用のストリームインターフェースのオープン
         // TeliCamAPI内部に画像一時保管用のストリームリクエストリングバッファを作成
-        if ((camstat->apistat = Teli::Strm_OpenSimple(camstat->camhndl,                                     // カメラのカメラハンドル
+        camstat->apistat = Teli::Strm_OpenSimple(
+            camstat->camhndl,                                     // カメラのカメラハンドル
             &camstat->strmhndl,                                   // オープンしたストリームインターフェースのストリームハンドル
             &camstat->pyldsize,                                   // 1つのストリームリクエストで受信するペイロードのサイズ(画像サイズ)
             NULL,                                                 // ストリームを受信し、ストリームリクエストリングバッファが更新されたことを通知するイベント（シグナル）オブジェクトのハンドル
             DEFAULT_API_BUFFER_CNT,                               // TeliCamAPI内部に作成するストリームリクエストリングバッファの数
-            camcnfg->packetsize)) != Teli::CAM_API_STS_SUCCESS) { // ドライバが受け取るパケットの最大サイズ
-            //          camstat->strmhndl = NULL;
-            ret = -2;
+            camcnfg->packetsize
+        );
+      
+        if ((camstat->apistat) != Teli::CAM_API_STS_SUCCESS) { // ドライバが受け取るパケットの最大サイズ
+              ret = -2;
 
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::open_stream]<Error>Teli::Strm_OpenSimple(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
@@ -368,11 +370,13 @@ int32_t CTeliCamLib::open_stream(void)
         // コールバック関数のTeliCamAPIに登録
         // TeliCamAPI内部のストリームリクエストリングバッファの内容を
         // 正常受信した画像データで更新した時にコールバック関数を呼び出す
-        else if ((camstat->apistat = Teli::Strm_SetCallbackImageAcquired(camstat->strmhndl,                                                         // ストリームインターフェースのストリームハンドル
-            this,                                                                      // コールバック関数を実行するときに引数として渡すオブジェクトへのポインタ
-            &CTeliCamLib::cb_image_acquired)) != Teli::CAM_API_STS_SUCCESS) {    // コールバック関数
+        else if ((camstat->apistat = Teli::Strm_SetCallbackImageAcquired(
+                        camstat->strmhndl,                                                         // ストリームインターフェースのストリームハンドル
+                        this,                                                                      // コールバック関数を実行するときに引数として渡すオブジェクトへのポインタ
+                        &CTeliCamLib::cb_image_acquired)) != Teli::CAM_API_STS_SUCCESS
+                 ) 
+        {    // コールバック関数
             ret = -3;
-    
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::open_stream]<Error>Teli::Strm_SetCallbackImageAcquired(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
          }
@@ -448,12 +452,11 @@ int32_t CTeliCamLib::start_stream(void)
             ret = -2;
             wos_msg.str(L""); wos_msg << L"[CTeliCamLib::start_stream]<Error>Teli::Strm_Start(" << camstat->apistat << ")";
             m_errmsg = wos_msg.str();
-            //m_errmsg = std::format(L"[CTeliCamLib::start_stream]<Error>Teli::Strm_Start({:#08x})", camstat->apistat);
         }
         camstat->framecount = 0;                // FPSを計算するためのフレームカウンター
-        camstat->frameidx = 0;                // カメラから出力されるビデオデータのフレーム番号
-        camstat->frameidx_valid = FALSE;            // "frameidx"に有効な値があることを示すフラグ
-        camstat->fpstimer = timeGetTime();    // フレーム更新タイマー
+        camstat->frameidx = 0;                  // カメラから出力されるビデオデータのフレーム番号
+        camstat->frameidx_valid = FALSE;        // "frameidx"に有効な値があることを示すフラグ
+        camstat->fpstimer = timeGetTime();      // フレーム更新タイマー
         camstat->fps = 0.0;              // 実際のFPS
     }   // if (camstat->StrmHandl == NULL) else
  
@@ -485,10 +488,10 @@ int32_t CTeliCamLib::stop_stream(void)
             m_errmsg = wos_msg.str();
         }
     }   // if (camstat->hstrm == NULL) else
-    camstat->framecount = 0;        // FPSを計算するためのフレームカウンター
-    camstat->frameidx = 0;        // カメラから出力されるビデオデータのフレーム番号
+    camstat->framecount = 0;            // FPSを計算するためのフレームカウンター
+    camstat->frameidx = 0;              // カメラから出力されるビデオデータのフレーム番号
     camstat->frameidx_valid = FALSE;    // "frameidx"に有効な値があることを示すフラグ
-    camstat->fps = 0.0;      // 実際のFPS
+    camstat->fps = 0.0;                 // 実際のFPS
  
     return ret;
 }
@@ -1374,25 +1377,13 @@ void CTeliCamLib::cb_image_acquired(Teli::CAM_HANDLE hCam, Teli::CAM_STRM_HANDLE
     Teli::CAM_API_STATUS apistat = Teli::CAM_API_STS_SUCCESS;    // TeliCamAPIのステータスコード
     uint32_t             camidx;                                    // Camera index when the camera is opened
 
-    _RPTWN(_CRT_WARN, L"%s\n", L">>>[CTeliCamLib::cb_image_acquired]<Call>");
-    //----------------------------------------------------------------------------
-    // Get camera index from camera handle
+     // Get camera index from camera handle
     if ((apistat = Teli::GetCamIndexFromCamHandle(hCam, &camidx)) != Teli::CAM_API_STS_SUCCESS) {
         if (telicamlib->get_caminfo_camindex(camidx) >= 0) {
             telicamlib->stat.apistat = apistat;   // TeliCamAPIのステータスコード
         }
-        _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::cb_image_acquired]<Error>Teli::GetCamIndexFromCamHandle", apistat);
         return;
     }
-
-    //----------------------------------------------------------------------------
-    // Dummy code for avoiding not refered warning of compliler. 
-//  void *pdummy = (void*)&uiBufferIndex;
-//  pdummy = &hStrm;
-
-    //----------------------------------------------------------------------------
-    // Insert image processing code here
-    // Image processing which will take a long time should not be executed in this method
 
     if (telicamlib->get_caminfo_camindex(camidx) >= 0) {
         PTELI_CAM_STATUS camstat = &telicamlib->stat;   // Camera status
@@ -1477,9 +1468,5 @@ void CTeliCamLib::cb_error_image(Teli::CAM_HANDLE hCam, Teli::CAM_STRM_HANDLE hS
         _RPTWN(_CRT_WARN, L"%s(%08X)\n", L">>>[CTeliCamLib::cb_error_image]uiErrorStatus", uiErrorStatus);
     }
 
-    //----------------------------------------------------------------------------
-    // Dummy code for avoiding not refered warning of compliler. 
-//  void *pdummy = (void*)&uiBufferIndex;
-//  pdummy = &hStrm;
 }
 

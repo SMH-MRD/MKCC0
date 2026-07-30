@@ -59,7 +59,6 @@ public:
 	static INT16 get_iui4_by_notch(int notch);
 	static INT16 get_iui4_by_v(double v, double* vtbl_f, double* vtbl_r);
 };
-
 class CBitHelper
 {
 public:
@@ -115,8 +114,6 @@ public:
 	static INT16 get_mode_by_code(INT16 value,int cs_code, int type);
 	static INT16 get_code_by_mode(INT16 mode, int cs_code, int type);
 };
-
-
 
 #define HELPER_DATA_TYPE_LONG		0
 #define HELPER_DATA_TYPE_DOUBLE		1
@@ -308,6 +305,7 @@ public:
 	//•¶š—ñ
 	static void Str2Wstr(const std::string& src, std::wstring& dest);									//string¨wstring‚É•ÏŠ·
 	static std::wstring conv_string(const std::string& src);
+	static std::string conv_string(const std::wstring& src);
 
 };
 

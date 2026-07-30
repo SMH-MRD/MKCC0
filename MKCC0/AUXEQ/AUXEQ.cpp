@@ -16,6 +16,8 @@
 #include "CAuxPol.h"
 //#include "CAuxSim.h"
 #include "CComm.h"
+#include "CCamera.h"
+#include "SWYSENSOR_DEF.H"
 
 #define MAX_LOADSTRING 100
 
@@ -30,6 +32,18 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ ク
 CSharedMem* pEnvInfObj;
 CSharedMem* pAgentInfObj;
 CSharedMem* pCsInfObj;
+CSharedMem* pScadInfObj;
+CSharedMem* pPolInfObj;
+
+//SwaySensor 
+CTeliCamLib* pCamera = nullptr;
+APP_INFO g_app_info;
+CONFIG_CAMERA g_config_camera;
+CONFIG_IMGPROC g_config_imgproc;
+CONFIG_COMMON g_config_common;
+INFO_ADJUST_DATA g_infoajs_data;    // 調整情報データ
+INFO_IMGPRC_DATA g_infoprc_data;    // 画像処理情報データ
+
 
 ST_DEVICE_CODE g_my_code;
 ST_APP_COMMON_PARAM g_app_common_param;//共通パラメータ
@@ -84,6 +98,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     pEnvInfObj = new CSharedMem;
     pAgentInfObj = new CSharedMem;
     pCsInfObj = new CSharedMem;
+    pScadInfObj = new CSharedMem;
+    pPolInfObj = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -171,8 +187,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AUX_AGENT_INF_NAME, sizeof(ST_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) return(FALSE);
    if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
-
- 
+   if (OK_SHMEM != pScadInfObj->create_smem(SMEM_AUX_SCAD_INF_NAME, sizeof(ST_AUX_SCAD_INF), MUTEX_AUX_SCAD_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pPolInfObj->create_smem(SMEM_AUX_POL_INF_NAME, sizeof(ST_AUX_POL_INF), MUTEX_AUX_POL_INF_NAME)) return(FALSE);
+    
    DWORD	str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, ODER_CODE_KEY_OF_INIFILE, L"XXXXXX00", g_my_code.crane_id, _countof(g_my_code.crane_id), PATH_OF_INIFILE);
    str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, PC_TYPE_KEY_OF_INIFILE, L"XXXX", g_my_code.pc_type, _countof(g_my_code.pc_type), PATH_OF_INIFILE);
 
@@ -189,6 +206,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //コミュニケーションオブジェクトセットアップ
    CComm::setup();
    CComm::addr_list;
+   //カメラオブジェクト
+   pCamera = new CTeliCamLib();
+
 
    HBITMAP hBmp;
    CBasicControl* pobj;
@@ -228,6 +248,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
 
+       pobj->inf.hInstance = pobj->inf.hinstance = hInst;
+
    }
 
    ///##Task2 設定 Client Service
@@ -259,11 +281,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+
+       pobj->inf.hInstance = pobj->inf.hinstance = hInst;
    }
    ///##Task3 設定 SCADA
    {
        /// -タスクインスタンス作成->リスト登録
-       pobj = new CScada;
+       pobj = new CAuxScada;
        VectCtrlObj.push_back(pobj);
 
        st_task_id.SCAD = pobj->inf.index = knl_manage_set.num_of_task;
@@ -289,6 +313,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+
+       pobj->inf.hInstance = pobj->inf.hinstance = hInst;
    }
 
    ///##Task4 設定 Policy
@@ -319,6 +345,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+
+       pobj->inf.hInstance = pobj->inf.hinstance = hInst;
    }
    ///##Task5 設定 Agent
    {
@@ -348,6 +376,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        ///スレッド起動に使うイベント数（定周期タイマーのみの場合１）
        pobj->inf.n_active_events = 1;
        pobj->inf.status = BC_CODE_STAT_INIT_REQ;
+
+       pobj->inf.hInstance = pobj->inf.hinstance = hInst;
    }
 
    st_work_wnd.hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX,
@@ -358,7 +388,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        nullptr, nullptr, hInstance, nullptr);
 
    SetWindowTextW(st_work_wnd.hWnd, VERSION_CODE);
-
 
    if (!st_work_wnd.hWnd) return FALSE;
    ShowWindow(st_work_wnd.hWnd, nCmdShow);
@@ -432,6 +461,9 @@ VOID CloseApp()
     delete pEnvInfObj;
     delete pAgentInfObj;
     delete pCsInfObj;
+    delete pScadInfObj;
+
+    delete pCamera;
     return;
 }
 

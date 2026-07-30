@@ -139,9 +139,13 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
 private:
+    static int slbrk_enable;
+    static int lanio_enable;
+    static int sway_sensor_enable;
+    static int gt_sensor_enable;
+
     std::mutex m_CSinfMutex;  // 共有メモリアクセス保護用ミューテックス
     static int nLANIO;
-	static int lanio_enable;
     static bool is_lanio_connected;
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;

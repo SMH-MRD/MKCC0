@@ -37,7 +37,7 @@ CSharedMem* pCsInfObj;
 CSharedMem* pSimuStatObj;
 CSharedMem* pOteInfObj;
 
-CSharedMem* pAuxInfObj;
+CSharedMem* pAuxCsInfObj;
 
 CCrane* pCrane;
 ST_DEVICE_CODE g_my_code;
@@ -98,7 +98,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     pSimuStatObj    = new CSharedMem;
     pOteInfObj       = new CSharedMem;
 
-    pAuxInfObj      = new CSharedMem;
+    pAuxCsInfObj      = new CSharedMem;
 
     // グローバル文字列を初期化する
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -192,7 +192,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (OK_SHMEM != pSimuStatObj->create_smem(SMEM_SIM_INF_CC_NAME,   sizeof(ST_CC_SIM_INF),     MUTEX_SIM_INF_CC_NAME   )) return(FALSE);
    if (OK_SHMEM != pOteInfObj->create_smem(  SMEM_OTE_INF_NAME,      sizeof(ST_CC_OTE_INF),     MUTEX_OTE_INF_NAME      )) return(FALSE);
   
-   if (OK_SHMEM != pAuxInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
+   if (OK_SHMEM != pAuxCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) return(FALSE);
 
       //デバイスコードセット
     
@@ -502,7 +502,7 @@ VOID CloseApp()
     delete pSimuStatObj;
     delete pOteInfObj;
 
-    delete pAuxInfObj;
+    delete pAuxCsInfObj;
     return;
 }
 

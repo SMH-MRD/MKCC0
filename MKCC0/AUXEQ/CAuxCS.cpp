@@ -6,11 +6,16 @@
 #include "SmemAux.H"
 #include "CComm.h"
 #include "LELanio.h"
-
+#include "CCamera.h"
+#include "SWYSENSOR_DEF.H"
 
 #pragma comment(lib, "LELanio.lib")
 
 extern ST_DEVICE_CODE g_my_code;
+
+extern CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
+extern APP_INFO g_app_info;
+extern CONFIG_CAMERA g_config_camera;
 
 //ソケット
 static CSockUDP* pUSockAuxCs;	//ユニキャストOTE通信受信用
@@ -21,20 +26,26 @@ ST_CS_MON2 CAuxCS::st_mon2;
 static ST_AUX_CS_INF st_work;
 
 int CAuxCS::lanio_enable;
+int CAuxCS::slbrk_enable;
+int CAuxCS::sway_sensor_enable;
+int CAuxCS::gt_sensor_enable;
 bool CAuxCS::is_lanio_connected = false;
 
 //共有メモリ参照用定義
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
 extern CSharedMem* pCsInfObj;
+extern CSharedMem* pScadInfObj;
 
 static LPST_AUX_ENV_INF		pEnvInf;
 static LPST_AUX_CS_INF		pCsInf;
 static LPST_AUX_AGENT_INF	pAgentInf;
+static LPST_AUX_SCAD_INF    pScadInf;
 
 static LONG rcv_count_u = 0, snd_count_u = 0;
 
 int CAuxCS::nLANIO;
+
 
 hLANIO LANIO;
 
@@ -67,6 +78,10 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		return(FALSE);
 	}
 
+	if (OK_SHMEM != pScadInfObj->create_smem(SMEM_AUX_SCAD_INF_NAME, sizeof(ST_AUX_SCAD_INF), MUTEX_AUX_SCAD_INF_NAME)) {
+		return(FALSE);
+	}
+
 	pEnvInf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
 	pAgentInf = (LPST_AUX_AGENT_INF)(pAgentInfObj->get_pMap());
 	pCsInf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
@@ -79,9 +94,18 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
-	
-	//### LANIO有効フラグ取得
-	lanio_enable = (g_my_code.option >> 24) & 0x0F;
+	//旋回ブレーキ
+	int enable = (g_my_code.option >> 28) & 0x0F;
+	slbrk_enable = enable;
+	//LANIO
+	enable = (g_my_code.option >> 24) & 0x0F;
+	lanio_enable = enable;
+	//振れセンサー
+	enable = (g_my_code.option >> 20) & 0x0F;
+	sway_sensor_enable = enable;
+	//走行位置検出
+	enable = (g_my_code.option >> 16) & 0x0F;
+	gt_sensor_enable = enable;
 
 	//### LANIO初期化
 	if (lanio_enable) {

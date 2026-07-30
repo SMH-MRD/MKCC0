@@ -16,7 +16,7 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
-extern CSharedMem* pAuxInfObj;
+extern CSharedMem* pAuxCsInfObj;
 extern CCrane* pCrane;
 extern ST_DEVICE_CODE g_my_code;
 
@@ -87,7 +87,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
 	pPolInf		= (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
 
-	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxInfObj->get_pMap();
+	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
 
 	//### クレーンオブジェクト取得
 	if (pCrane == NULL) {

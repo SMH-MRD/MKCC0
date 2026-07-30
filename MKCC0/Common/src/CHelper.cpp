@@ -156,6 +156,18 @@ std::wstring CStrHelper::conv_string(const std::string& src)
 	return str;
 }
 
+std::string CStrHelper::conv_string(const std::wstring& src)
+{
+	size_t ptr;
+	char* buffer = new char[src.size() * MB_CUR_MAX + 1];
+
+	wcstombs_s(&ptr, buffer, src.size() * MB_CUR_MAX + 1, src.c_str(), _TRUNCATE);
+	std::string str = static_cast<std::string>(buffer);
+	delete[] buffer;
+
+	return str;
+}
+
 /*****************************************************************************************
 BmpHelper
 ******************************************************************************************/

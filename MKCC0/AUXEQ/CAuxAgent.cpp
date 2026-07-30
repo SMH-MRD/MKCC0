@@ -9,6 +9,7 @@
 #include "CComm.h"
 #include <mutex>
 #include "CCamera.h"
+#include "SWYSENSOR_DEF.H"
 
 #include <thread>
 #include <mutex>
@@ -23,11 +24,19 @@ using namespace Teli;
 //#pragma comment(lib, "..\\Lib\\x64\\TeliCamApi64.lib")
 //#pragma comment(lib, "..\\Lib\\x64\\TeliCamUtl64.lib")
 
-CTeliCamLib* pCamera = nullptr;//GEカメラオブジェクトへのグローバルポインタ
+extern CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
+extern APP_INFO g_app_info;
+extern CONFIG_CAMERA g_config_camera;
 
-LPST_AUXEQ CAuxAgent::pst_work;
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
 ST_AUXAG_MON2 CAuxAgent::st_mon2;
+
+CONFIG_COMMON    CAuxAgent::m_cnfgcmn;      // 共通設定
+CONFIG_CAMERA    CAuxAgent::m_cnfgcam;      // カメラ設定
+CONFIG_IMGPROC   CAuxAgent::m_cnfgprc;      // 画像処理条件設定
+INFO_ADJUST_DATA CAuxAgent::m_infoajs_data; // 調整情報データ
+INFO_IMGPRC_DATA CAuxAgent::m_infoprc_data; // 画像処理情報データ
+INFO_SYSTEM_DATA CAuxAgent::m_infosys_data; // システム情報データ
 
 extern BC_TASK_ID st_task_id;
 extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
@@ -35,6 +44,7 @@ extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェク
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
 extern CSharedMem* pCsInfObj;
+extern CSharedMem* pScadInfObj;
 
 extern ST_DEVICE_CODE g_my_code;
 
@@ -46,6 +56,7 @@ static LPST_AUX_ENV_INF		pEnv_Inf = NULL;
 static LPST_AUX_CS_INF		pCS_Inf = NULL;
 static LPST_AUX_AGENT_INF	pAgent_Inf = NULL;
 static LPST_AUX_POL_INF		pAuxPolInf = NULL;
+static LPST_AUX_SCAD_INF    pAuxScadInf = NULL;
 
 static CAuxAgent* pAgentObj;
 static CAuxPol* pPolObj;
@@ -53,7 +64,8 @@ static CAuxPol* pPolObj;
 //GE Camera
 std::thread g_capThread;// スレッド変数が消えないようにグローバル領域に保持
 std::atomic<bool> g_keepRunning = false;
-HANDLE g_hStopEvent = NULL;   // 停止指示用イベント
+HANDLE g_hStopEvent = NULL;				// 停止指示用イベント
+HANDLE g_hGECamStreamEvent = NULL;		// カメラからのストリーム受信通知
 
 std::unique_ptr<Bitmap>   CAuxAgent::m_pOffscreenBitmap;
 std::unique_ptr<Gdiplus::Graphics> CAuxAgent::m_pOffscreenGraphics;
@@ -71,8 +83,6 @@ static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 
 CAuxAgent::CAuxAgent() {
 
-	pst_work = &(st_work);
-
 	// 1. GDI+ 初期化
 	GdiplusStartupInput gdiplusStartupInput;
 	GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
@@ -87,6 +97,11 @@ CAuxAgent::~CAuxAgent() {
 	GdiplusShutdown(m_gdiplusToken);
 	g_keepRunning = false;//USBデバイス監視スレッド終了フラグセット
 	if (pCamera != nullptr) delete pCamera;
+
+	if (sway_sensor_enable) {
+		Teli::Sys_CloseSignal(g_hGECamStreamEvent);
+		CloseHandle(g_hStopEvent);
+	}
 
 	Sleep(1000);//スレッド終了待機
 }
@@ -105,6 +120,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	pAgent_Inf = (LPST_AUX_AGENT_INF)pAgentInfObj->get_pMap();
 	pEnv_Inf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
 	pCS_Inf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
+	pAuxScadInf = (LPST_AUX_SCAD_INF)pScadInfObj->get_pMap();
 
 	pAgentObj = (CAuxAgent*)VectCtrlObj[st_task_id.AGENT];
 
@@ -124,11 +140,12 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	gt_sensor_enable = enable;
 
 	//### GE Camera
-
 	if (sway_sensor_enable) {
-		pCamera = new CTeliCamLib();
-		pCamera->cnfg.period = 25;//カメラのサンプリング周期
-
+	
+		// スレッド用のイベントを作成
+		g_hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL);//スレッド停止用　自動リセット,初期値非シグナル
+		Teli::Sys_CreateSignal(&g_hGECamStreamEvent);
+		
 		//IFウィンドウ
 		if (st_mon1.hwnd_mon == NULL) {
 			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -147,6 +164,9 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 			wos << L"Initialize : MON1 NG"; msg2listview(wos.str());
 			return S_FALSE;
 		}
+	}
+	else {
+
 	}
 	
 	//### SLBRK IFウィンドウ
@@ -199,7 +219,6 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	set_item_chk_txt();
 	set_panel_tip_txt();
 
-
 	return S_OK;
 }
 
@@ -211,14 +230,11 @@ HRESULT CAuxAgent::routine_work(void* pObj){
 }
 
 int CAuxAgent::input() {
-		
 	return S_OK;
 }
 
 static INT16 slbrk_healthy_hold, slbrk_healthy_cnt;
 int CAuxAgent::parse() {           //メイン処理
-
-	
 	{//旋回ブレーキ処理
 		if (slbrk_enable) {
 			//ヘルシーチェック
@@ -236,7 +252,7 @@ int CAuxAgent::parse() {           //メイン処理
 
 	//GE Camera
 	{
-		if (sway_sensor_enable) {
+		if (sway_sensor_enable){
 			if ((!g_keepRunning) && (pAgent_Inf->st_ge_cam.retry_count == 0)) {
 				camera_capture_start();
 			}
@@ -281,7 +297,6 @@ int CAuxAgent::output() {          //出力処理
 	return STAT_OK;
 }
 int CAuxAgent::close() {
-	int error = LALanioEnd();
 	return 0;
 }
 
@@ -301,26 +316,22 @@ void CAuxAgent::camera_capture_start() {
 
 	// 3. 新しいスレッドを生成して代入（ムーブ代入）
 	// これにより、同じ g_workerThread 変数で新しい処理が始まる
-	g_capThread = std::thread(GECameraThreadAG);
-	pAgentObj->wos.str(L""); pAgentObj->wos << "New thread launched." << std::endl;
-	pAgentObj->msg2listview(pAgentObj->wos.str().c_str());
+	GECameraStart();
+
 	return; 
 }
 void CAuxAgent::camera_capture_stop() {
-
-	if (g_capThread.joinable()) {
-		g_keepRunning = false;			// フラグを倒してスレッドに終了を促す
-		g_capThread.join();				// スレッドが完全に終わるのを待って片付ける
-		pAgentObj->wos.str(L""); pAgentObj->wos << "Thread joined and cleaned up." << std::endl;
-		pAgentObj->msg2listview(pAgentObj->wos.str().c_str());
+	if (g_keepRunning == true) {
+		GECameraStop();
+		Sys_Terminate();
+		g_keepRunning = false;
 	}
-
 	return; 
 }
 
 static wostringstream wosGE;
-
-void CAuxAgent::GECameraThreadAG() {
+HRESULT CAuxAgent::GECameraStart() {
+	int32_t ret;
 	U3V_CAM_INFO* psU3vCamInfo;
 	GEV_CAM_INFO* psGevCamInfo;
 
@@ -336,7 +347,7 @@ void CAuxAgent::GECameraThreadAG() {
 			wosGE << L"Failed:Sys_Initialize() >> Code :" << uiStatus;
 		}
 		pAgentObj->msg2listview(wosGE.str());
-		return;
+		return S_FALSE;
 	}
 	else {
 		wosGE << L"TeliCamApi Initialize Success ";
@@ -349,17 +360,16 @@ void CAuxAgent::GECameraThreadAG() {
 	if (uiStatus != CAM_API_STS_SUCCESS) {
 		wosGE << L"Failed:GetNumOfCameras code:" << uiStatus;
 		pAgentObj->msg2listview(wosGE.str());
-	
+
 
 		// Terminate system.
 		Sys_Terminate();
-		return;
+		return S_FALSE;
 	}
 	else {
 		wosGE << L"GetNumOfCameras = " << pCamera->camcount;
 		pAgentObj->msg2listview(wosGE.str());
 	}
-
 	// Get information of a camera.
 	wosGE.str(L"");
 	for (uint32_t i = 0; i < pCamera->camcount; i++) {
@@ -367,116 +377,260 @@ void CAuxAgent::GECameraThreadAG() {
 
 		uiStatus = Cam_GetInformation((CAM_HANDLE)NULL, i, &(pCamera->m_caminfo));
 		if (uiStatus != CAM_API_STS_SUCCESS) {
-
 			// Terminate system.
 			Sys_Terminate();
-			return;
+			return S_FALSE;
 		}
-		wosGE << L"<Camera" << i << L" information>    " ;
+		else {
+			pCamera->stat.camidx = i;
+		}
+
+		wosGE << L"<Camera" << i << L" information>    ";
 		if (pCamera->m_caminfo.eCamType == CAM_TYPE_U3V) {
-			wosGE << L" Type : USB3 camera"; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Type : USB3 camera  CamIndex = " << pCamera->stat.camidx;
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName;
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 			psU3vCamInfo = &pCamera->m_caminfo.sU3vCamInfo;
-			wosGE << L" Adapter default MaxPacketSize :" << psU3vCamInfo->uiAdapterDfltMaxPacketSize ; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Adapter default MaxPacketSize :" << psU3vCamInfo->uiAdapterDfltMaxPacketSize; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 			pAgentObj->msg2listview(wosGE.str());
 		}
 		else if (pCamera->m_caminfo.eCamType == CAM_TYPE_GEV) {
-			wosGE << L" Type : GigE camera"; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			
+			wosGE << L" Type : GigE camera  CamIndex = " << pCamera->stat.camidx;
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName;
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+
 			psGevCamInfo = &pCamera->m_caminfo.sGevCamInfo;
-			wosGE << L" Gev display name :" << psGevCamInfo->szDisplayName; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Gev display name :" << psGevCamInfo->szDisplayName;
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 			wosGE << L" Gev IP:" << psGevCamInfo->aucIPAddress[0] << L"." << psGevCamInfo->aucIPAddress[1] << L"." << psGevCamInfo->aucIPAddress[2] << L"." << psGevCamInfo->aucIPAddress[3]; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			wosGE << L" adapter IP:" << psGevCamInfo->aucAdapterIPAddress[0] << L"." << psGevCamInfo->aucAdapterIPAddress[1] << L"." << psGevCamInfo->aucAdapterIPAddress[2] << L"." << psGevCamInfo->aucAdapterIPAddress[3]; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" adapter IP:" << psGevCamInfo->aucAdapterIPAddress[0] << L"." << psGevCamInfo->aucAdapterIPAddress[1] << L"." << psGevCamInfo->aucAdapterIPAddress[2] << L"." << psGevCamInfo->aucAdapterIPAddress[3];
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 		}
 		else {
 			wosGE << L" Type : Unknown Camera";
 			pAgentObj->msg2listview(wosGE.str());
 			// Terminate system.
 			Sys_Terminate();
-			return;
+			return S_FALSE;
 		}
 	}
 
-	// サンプリング周期のタイマー作成
-	HANDLE hTimer = CreateWaitableTimer(NULL, FALSE, NULL);
-	LARGE_INTEGER liDueTime;
-	liDueTime.QuadPart = -1000000LL; // 初回：100ms後 (100ナノ秒単位、負の値は相対)
-	
-	SetWaitableTimer(hTimer, &liDueTime, pCamera->get_cam_period(), NULL, NULL, 0); // 以降20ms間隔
+	//open camera -> 画像ストリーム転送開始
+	wosGE.str(L"");
 
-	HANDLE hEvents[2] = { g_hStopEvent, hTimer };
-
-
-	//GEカメラキャプチャ開始
-
-	g_keepRunning = true; // ループ制御フラグを立てる
-
-	while (g_keepRunning) {
-		// WaitForMultipleObjects で停止イベントまたはタイマーを待機
-		DWORD dwWait = WaitForMultipleObjects(2, hEvents, FALSE, INFINITE);
-
-		if (dwWait == WAIT_OBJECT_0) {		//終了イベント
-			// StopEventがセットされたらループ脱出
-			pCamera->stat.control_status = AUXAG_CAMERA_STAT_SUSPEND;
-			pCamera->stat.retry_count = 0;
-			break;
-		}
-
-
-		if (dwWait == WAIT_OBJECT_0 + 1) {	//タイマーイベント
-#if 0
-
-			pAgent_Inf->st_usb_cam.isRawMatUpdated = false;
-
-			auto pBuffer = pDataStream->RetrieveBuffer(50);
-
-			if (pBuffer != nullptr) {
-				CIStStreamBufferPtr pIStStreamBuffer(pBuffer);
-				auto pIStImage = pBuffer->GetIStImage();
-
-				if (pIStImage != nullptr) {
-					// 2. 画像情報の取得
-					pAuxAgInf->st_usb_cam.width = (int)pIStImage->GetImageWidth();
-					pAuxAgInf->st_usb_cam.height = (int)pIStImage->GetImageHeight();
-					pAuxAgInf->st_usb_cam.stride = pIStImage->GetImageLinePitch(); // 1行のバイト数
-					pAuxAgInf->st_usb_cam.pRawData = pIStImage->GetImageBuffer();
-
-					{
-						std::lock_guard<std::mutex> lock(pAuxAgInf->st_usb_cam.g_mtx);
-						// 3. OpenCVのMatに生のBayerデータを読み込み ※ 8bit (CV_8UC1) であることを前提としています
-						cv::Mat rawMat(pAuxAgInf->st_usb_cam.height, pAuxAgInf->st_usb_cam.width, CV_8UC1, pAuxAgInf->st_usb_cam.pRawData, pAuxAgInf->st_usb_cam.stride);
-
-						// 4. OpenCVでBGRへ変換
-						// 注意: ここではBayerGR2RGBを使用していますが。bgrMatFrameの中身は、BGR順のデータになる様です。表示や処理の際は、OpenCVの慣習に従ってBGRとして扱ってください。
-						cv::cvtColor(rawMat, pAuxAgInf->st_usb_cam.bgrMatFrame, cv::COLOR_BayerGR2RGB);
-
-						// 5. OpenCVでHSV Matを作成
-						{
-							std::lock_guard<std::mutex> lock(pAuxAgInf->hsvMutex);// HSV Matへのアクセスを保護するためのミューテックス
-							cv::cvtColor(pAuxAgInf->st_usb_cam.bgrMatFrame, pAuxAgInf->st_usb_cam.hsvMatFrame, cv::COLOR_BGR2HSV);
-							pAuxAgInf->st_usb_cam.isRawMatUpdated = true; // フレームが更新されたことを示すフラグを立てる
-						}
-					}
-				}
-				st_mon2.thrad_counter++;
-			}
-#endif
-		}
+	ret = pCamera->open_camera(Teli::CAM_ACCESS_MODE::CAM_ACCESS_MODE_CONTROL);
+	if (ret != CAM_API_STS_SUCCESS) {
+		wosGE << L" Fail: open_camera()  Code:" << ret;
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		return S_FALSE;
 	}
-	pCamera->stop_stream();
+	else {
+		wosGE << L" open_camera SUCCESS Width:" << pCamera->stat.camwidth << L" Height:" << pCamera->stat.camheight;
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+	}
 
-	wos_cam.str(L""); wos_cam << "Exit Thread Loop: " << endl;
-	pAgentObj->msg2listview(wos_cam.str().c_str());
+	//カメラの基本設定セット
+	if (update_camera_parameter_base()) {
+		Sys_Terminate(); return S_FALSE;
+	}
 
-	CloseHandle(hTimer);
-	g_keepRunning = false;
+	// 画像取得用のストリームインターフェースのオープン
+	ret = pCamera->open_stream();
+	if (ret != 0) {
+		wosGE << L" Fail: open_stream  Code:" << ret;
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		return S_FALSE;
+	}
+	else {
+		wosGE << L" open_stream SUCCESS";
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+	}
 
-	// Terminate system.
-	Sys_Terminate();
+	// 画像ストリームの転送開始
+	ret = pCamera->start_stream();
+	if (ret != 0) {
+		wosGE << L" Fail: start_stream  Code:" << ret;
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		return S_FALSE;
+	}
+	else {
+		wosGE << L"Camera stream started";
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+	}
 
+	return S_OK;
+}
+HRESULT CAuxAgent::GECameraStop() {
+	// Close the stream interface.
+	if (pCamera->stat.strmhndl != (CAM_STRM_HANDLE)NULL)
+	{
+		Strm_Close(pCamera->stat.strmhndl);
+		pCamera->stat.strmhndl = (CAM_STRM_HANDLE)NULL;
+	}
+
+	// Close the camera.
+	if (pCamera->stat.camhndl != (CAM_HANDLE)NULL)
+	{
+		Cam_Close(pCamera->stat.camhndl);
+		pCamera->stat.camhndl = (CAM_HANDLE)NULL;
+	}
+		
+	return S_OK;
 }
 
+int CAuxAgent::update_camera_parameter_base() {
+	int ret = 0;
+
+	// カメラのビデオストリームのピクセル形式の設定
+	wosGE.str(L"");
+	if (pCamera->set_pixelformat(Teli::_CAM_PIXEL_FORMAT::PXL_FMT_BayerBG8) != 0) {
+		pAgentObj->msg2listview(wosGE.str());wosGE.str(L"");
+		wosGE << L" Fail: set_pixelformat";
+		ret = 1;
+	}
+	else wosGE << L"pixel:BG8 >> ";
+	
+	// カメラのROI(領域)の設定
+	if (pCamera->set_camroi(g_config_camera.basis.roi[(int)ENUM_AXIS::X].offset,
+		g_config_camera.basis.roi[(int)ENUM_AXIS::Y].offset,
+		g_config_camera.basis.roi[(int)ENUM_AXIS::X].size,
+		g_config_camera.basis.roi[(int)ENUM_AXIS::Y].size) != 0) {
+
+		wosGE << L" Fail: set_ROI";
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		ret =2;
+	}
+	else {
+		if (!ret) {
+			wosGE << L"ROI:X " << g_config_camera.basis.roi[(int)ENUM_AXIS::X].offset << L" Y " << g_config_camera.basis.roi[(int)ENUM_AXIS::Y].offset
+				<< L" W " << g_config_camera.basis.roi[(int)ENUM_AXIS::X].size << L" H " << g_config_camera.basis.roi[(int)ENUM_AXIS::Y].size;
+		}
+	}
+	
+	// カメラのフレームレートの設定
+	if (pCamera->set_framerate(static_cast<float64_t>(g_config_camera.basis.framerate),
+		Teli::CAM_ACQ_FRAME_RATE_CTRL_TYPE::CAM_ACQ_FRAME_RATE_CTRL_MANUAL) != 0) {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L" Fail: set_framerate";
+		ret = 3;
+	}
+	else {
+		if(!ret) wosGE << L"  framerate: " << g_config_camera.basis.framerate;
+	}
+	
+	// カメラのトリガー動作モードの設定
+	if (pCamera->set_triggermode(false) != 0) {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L" Fail: set_trig mode";
+		ret = 4;
+	}
+	else {
+		if (!ret) wosGE << L"   trig:false ";
+	}
+	pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+
+	// カメラの黒レベルの設定
+	if (pCamera->set_blacklevel(static_cast<float64_t>(g_config_camera.basis.blacklevel)) != 0) {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L" Fail: black level";
+		ret = 5;
+	}
+	else {
+		if (!ret) wosGE << L"black level: " << g_config_camera.basis.blacklevel;
+	}
+	
+	// カメラのガンマ補正値の設定
+	if (pCamera->set_gamma(static_cast<float64_t>(g_config_camera.basis.gamma)) != 0) {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L" Fail: gamma";
+		ret = 6;
+	}
+	else {
+		if (!ret) wosGE << L"   gamma: " << g_config_camera.basis.gamma;
+	}
+	
+	// カメラのホワイトバランスゲイン自動調整モードの設定
+	if ((static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(g_config_camera.basis.wb.wb_auto) == Teli::CAM_BALANCE_WHITE_AUTO_TYPE::CAM_BALANCE_WHITE_AUTO_CONTINUOUS) ||
+		(static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(g_config_camera.basis.wb.wb_auto) == Teli::CAM_BALANCE_WHITE_AUTO_TYPE::CAM_BALANCE_WHITE_AUTO_ONCE)) {
+		if (pCamera->set_wbalance_auto(static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(g_config_camera.basis.wb.wb_auto)) != 0) {
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Fail: wb auto";
+			ret = 7;
+		}
+	}
+	else {
+		if (pCamera->set_wbalance_auto(Teli::CAM_BALANCE_WHITE_AUTO_TYPE::CAM_BALANCE_WHITE_AUTO_OFF) != 0) {
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Fail: wb auto off";
+			ret = 15;
+		}
+		else {
+			//----------------------------------------------------------------------------
+			// カメラのホワイトバランスゲイン(倍率)の設定
+			if (pCamera->set_wbalance_ratio(static_cast<float64_t>(g_config_camera.basis.wb.wb_ratio_red),
+				Teli::CAM_BALANCE_RATIO_SELECTOR_TYPE::CAM_BALANCE_RATIO_SELECTOR_RED) != 0) {
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				wosGE << L" Fail: wb set red";
+				ret = 16;
+			}
+			else if (pCamera->set_wbalance_ratio(static_cast<float64_t>(g_config_camera.basis.wb.wb_ratio_blue),
+				Teli::CAM_BALANCE_RATIO_SELECTOR_TYPE::CAM_BALANCE_RATIO_SELECTOR_BLUE) != 0) {
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				wosGE << L" Fail: wb set blue";
+				ret = 17;
+			}
+			else {
+				if (!ret)wosGE << L"   white red: " << g_config_camera.basis.wb.wb_ratio_red << L" blue:" << g_config_camera.basis.wb.wb_ratio_blue;
+			}
+		}
+	}
+
+	// 輝度コントロール設定(露光時間)
+	// カメラの露光時間の制御モードの設定
+	if (pCamera->set_expstime_control(Teli::CAM_EXPOSURE_TIME_CONTROL_TYPE::CAM_EXPOSURE_TIME_CONTROL_MANUAL) != 0) {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L" Fail: expstime ctrl";
+		ret = 18;
+	}
+	// カメラの露光時間の設定(APIへの設定はスレッドで実行される)
+	if (pCamera->set_expstime(static_cast<float64_t>(g_config_camera.expstime.val)) != 0) {
+		wosGE << L" Fail: expstime set";
+		pAgentObj->msg2listview(wosGE.str());
+		ret = 8;
+	}
+	else {
+		if (!ret)wosGE << L"  expstime ctrl" << g_config_camera.expstime.val;
+	}
+	// 輝度コントロール設定(ゲイン)
+	// カメラのAGC(Automatic gain control)動作モードの設定
+	if (pCamera->set_gain_auto(Teli::CAM_GAIN_AUTO_TYPE::CAM_GAIN_AUTO_OFF) != 0) {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L" Fail: gain auto";
+		ret = 9;
+	}
+	else {
+		if (!ret) wosGE << L"  gain auto off";
+	}
+	// カメラのゲインの設定(APIへの設定はスレッドで実行される)
+	if (pCamera->set_gain(static_cast<float64_t>(g_config_camera.gain.val)) != 0) {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L" Fail: gain set";
+		ret = 10;
+	}
+	else {
+		if (!ret) wosGE << L"  gain set" << g_config_camera.gain.val;
+	}
+	if (ret) wosGE << L"!! Fail Parameter Update Code:" << ret;
+	else {
+		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+		wosGE << L"!! All Parameters Updated Normally";
+	}
+	pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+
+	return ret;
+}
 void CAuxAgent::OnPaintMon1(HWND hWnd, HDC hdc) {
 	return; 
 }
@@ -511,17 +665,10 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 	}break;
 	case WM_TIMER: {
+		monwos.str(L""); monwos << L"GE Frame Index:" << pCamera->stat.frameidx;
+		SetWindowText(st_mon1.hwnd_mon, monwos.str().c_str());
+
 		monwos.str(L"");
-
-		//for (int i = 0; i < pst_work->laniocount; i++) {
-		//	if (pst_work->lanio_model[i] == LANIO_MODEL_LA_5AI) {
-		//		monwos << L"AI DATA  STATUS[" << pst_work->lanio_stat[i] << L"]\n";
-		//		for (int j = 0; j < LANIO_N_CH_LA_5AI; j++) {
-		//			monwos << L"Ch" << j + 1 << L": " << pst_work->lanio_ai_data[j] << L"\n";
-		//		}
-		//	}
-		//}
-
 		SetWindowText(st_mon1.hctrl[AUXAG_ID_MON1_STATIC_INF], monwos.str().c_str());
 	}break;
 
@@ -1031,10 +1178,12 @@ LRESULT CALLBACK CAuxAgent::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		case IDC_TASK_MON_CHECK1:
 		{
 			if (IsDlgButtonChecked(hDlg, IDC_TASK_MON_CHECK1) == BST_CHECKED) {
-				open_monitor_wnd(inf.hwnd_parent, BC_ID_MON1);
+			//	open_monitor_wnd(inf.hwnd_parent, BC_ID_MON1);
+				show_monitor_wnd(BC_ID_MON1);
 			}
 			else {
-				close_monitor_wnd(BC_ID_MON1);
+			//	close_monitor_wnd(BC_ID_MON1);
+				hide_monitor_wnd(BC_ID_MON1);
 			}
 		}break;
 

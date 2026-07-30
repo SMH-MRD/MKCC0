@@ -179,6 +179,14 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Img\agent.bmp" />
+    <Image Include="..\Img\BmpBlue.bmp" />
+    <Image Include="..\Img\BmpGray.bmp" />
+    <Image Include="..\Img\BmpGreen.bmp" />
+    <Image Include="..\Img\BmpLightBlue.bmp" />
+    <Image Include="..\Img\BmpMagenta.bmp" />
+    <Image Include="..\Img\BmpRed.bmp" />
+    <Image Include="..\Img\BmpWhite.bmp" />
+    <Image Include="..\Img\BmpYellow.bmp" />
     <Image Include="..\Img\cs.bmp" />
     <Image Include="..\Img\env.bmp" />
     <Image Include="..\Img\policy.bmp" />

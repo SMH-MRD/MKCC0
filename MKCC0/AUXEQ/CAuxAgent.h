@@ -1,83 +1,15 @@
 #pragma once
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-//#include <ws2tcpip.h>
 #include "framework.h"
-
 #include "CBasicControl.h"
-#include "LALANIO.h"
+#include "AUXEQ_DEF.H"
+#include "SWYSENSOR_DEF.H"
 
 // Include files for using OpenCV.
 #include <opencv2/opencv.hpp>
 #include <gdiplus.h>
 
-//LANIO関連定義
-#if 0
-
-#define LANIO_TMOUT_MS 3000
-#define LANIO_N_MODEL  16
-
-#define LANIO_N_MAX             16       //取り扱うLANIO最大値
-
-#define LANIO_MODEL_LA_2R3A     8
-#define LANIO_MODEL_LA_2A3P_P   9
-#define LANIO_MODEL_LA_2R3A_V2  10
-#define LANIO_MODEL_LA_3A2P_P   11
-#define LANIO_MODEL_LA_5AI      12
-
-//LAN IO AIのレンジ設定コード
-#define LANIO_CODE_AI_RANGE_100mV   0
-#define LANIO_CODE_AI_RANGE_1V      1
-#define LANIO_CODE_AI_RANGE_10V     2
-#define LANIO_CODE_AI_RANGE_30V     3
-#define LANIO_CODE_AI_RANGE_20mA250 4
-#define LANIO_CODE_AI_RANGE_20mA50  5
-#define LANIO_CODE_AI_RANGE_THERMO  6
-
-//LAN IO AI AD変換速度コード
-#define LANIO_CODE_AI_ADCSPS_10     0
-#define LANIO_CODE_AI_ADCSPS_16_6   1
-#define LANIO_CODE_AI_ADCSPS_50     2
-#define LANIO_CODE_AI_ADCSPS_60     3
-#define LANIO_CODE_AI_ADCSPS_400    4
-#define LANIO_CODE_AI_ADCSPS_1200   5
-#define LANIO_CODE_AI_ADCSPS_3600   6
-#define LANIO_CODE_AI_ADCSPS_14400  7
-
-#define LANIO_RANGE_AI_MIN_AMPEARE  0
-#define LANIO_RANGE_AI_MAX_AMPEARE  8388607     //0x7FFFFF
-#define LANIO_RANGE_AI_MIN_VOLT     -8388608    //0x800000
-#define LANIO_RANGE_AI_MAX_VOLT     8388607     //0x7FFFFF
-
-#define LANIO_N_CH_LA_5AI            5
-
-#endif
-
-typedef struct _ST_AUXEQ {
-#if 0
-    hLANIO hlanio[LANIO_N_MAX] = { -1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1} ;
-    int laniocount = 0;
-    int timeout = LANIO_TMOUT_MS;
-    int lanio_id[LANIO_N_MAX];
-    int lanio_stat[LANIO_N_MAX] = { -1,-1,-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-    int lanio_model[LANIO_N_MAX];
-    int lanio_ai_data[LANIO_N_CH_LA_5AI] = { -1,-1,-1, -1, -1 };
-    int lanio_ai_range[LANIO_N_CH_LA_5AI] = { LANIO_CODE_AI_RANGE_10V ,LANIO_CODE_AI_RANGE_10V  ,LANIO_CODE_AI_RANGE_20mA250,LANIO_CODE_AI_RANGE_10V ,LANIO_CODE_AI_RANGE_20mA250 };
-    int lanio_sps[LANIO_N_MODEL] = {
-        LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,
-        LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50 ,LANIO_CODE_AI_ADCSPS_50
-    };
-    
-    int tilt_x = 0;
-    int tilt_y = 0;
-    int tilt_z = 0;
-    WCHAR model_text[LANIO_N_MODEL][16] = {
-        L"",L"",L"",L"",L"",L"",L"",L"",
-        L"LA-2R3A",L"LA-2A3P-P",L"LA-2R3A-V2",L"LA-3A2P-P",L"LA-5AI",L"",L"",L""
-    };
-#endif
-	INT16 dummy = -1;
-}ST_AUXEQ,*LPST_AUXEQ;
 
 #define AUXAG_MON1_WND_X     1280
 #define AUXAG_MON1_WND_Y     0
@@ -109,7 +41,7 @@ typedef struct _AUXAG_MON1 {
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[AUXAG_MON1_N_CTRL] = {
-        295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        625,40, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
@@ -202,25 +134,33 @@ public:
     
     virtual HRESULT initialize(LPVOID lpParam) override;
   
+    static CONFIG_COMMON    m_cnfgcmn;      // 共通設定
+    static CONFIG_CAMERA    m_cnfgcam;      // カメラ設定
+    static CONFIG_IMGPROC   m_cnfgprc;      // 画像処理条件設定
+    static INFO_ADJUST_DATA m_infoajs_data; // 調整情報データ
+    static INFO_IMGPRC_DATA m_infoprc_data; // 画像処理情報データ
+    static INFO_SYSTEM_DATA m_infosys_data; // システム情報データ
+
     // GEカメラ
     void SaveParameters_GECamera();
     void LoadParameters_GECamera();
     static void camera_capture_start();
     static void camera_capture_stop();
-    static void GECameraThreadAG();
+    static int update_camera_parameter_base();
+
+    static HRESULT GECameraStart();
+    static HRESULT GECameraStop();
     static void OnPaintMon1(HWND hWnd, HDC hdc);
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
-     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
+    static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
-
-    static LPST_AUXEQ pst_work;
-
-	static ST_AUXAG_MON1 st_mon1;
+    
+    static ST_AUXAG_MON1 st_mon1;
     static ST_AUXAG_MON2 st_mon2;
 
-    ST_AUXEQ st_work;
+    static CONFIG_CAMERA st_cnfgcam;
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -238,6 +178,8 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
         	
 private:
+    bool sway_config_ok = false;
+
     int slbrk_enable;
     int lanio_enable;
     int sway_sensor_enable;
