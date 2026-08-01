@@ -15,7 +15,7 @@ PAPP_INFO   gp_app_info; // アプリケーション情報
 PCONFIG_COMMON    gp_cnfg_common;        // 共通設定
 PCONFIG_CAMERA    gp_cnfg_camera;        // カメラ設定
 PCONFIG_MOUNTING  gp_cnfg_mounting;      // 取付寸法設定
-PCONFIG_IMGPROC   gp_cnfg_imgprc;  // 画像処理条件設定
+PCONFIG_IMGPROC   gp_cnfg_imgprc;        // 画像処理条件設定
 
 // ***アプリケーション情報アクセスポインタ  
 PINFO_IMGBUF_DATA gp_app_imgbuf[static_cast<uint32_t>(ENUM_IMAGE::E_MAX)];   // 画像情報

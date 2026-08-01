@@ -232,8 +232,9 @@ int CAuxPol::input() {
 		// 画像取込み
 		get_opencv_image();
 
-		(g_img_src.status & (uint32_t)(ENUM_IMAGE_STATUS::ENABLED)) ? (gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :   // 画像処理状態:画像データ有効
-			(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))); // 画像処理状態:画像データ無効
+		(g_img_src.status & (uint32_t)(ENUM_IMAGE_STATUS::ENABLED)) ?	(gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :   // 画像処理状態:画像データ有効
+																		(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))); // 画像処理状態:画像データ無効
+		
 		gp_app_imgprc->img_fps = g_img_src.fps;   // フレームレート[fps]
 	}
 
@@ -243,7 +244,7 @@ int CAuxPol::input() {
 static bool chk_flg = FALSE;
 
 int CAuxPol::parse() {
-	
+
 	cv::Mat    img_roi; // 切抜き画像
 	cv::Mat    img_hsv;
 	cv::Mat    img_hsv_bin;
@@ -259,6 +260,7 @@ int CAuxPol::parse() {
 	
 	std::vector<cv::Mat> planes;
 	if (g_sway_sensor_enable) {
+
 		// 検出処理
 #pragma region PROCESS_TAGET
 		if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) {
@@ -631,9 +633,9 @@ int CAuxPol::parse() {
 					// 部分画像を生成
 					// * 部分画像とその元画像は共通の画像データを参照するため、
 					//   部分画像に変更を加えると、元画像も変更される。
-					img_roi = g_img_src.data_mat(target_data->roi);
+//					img_roi = g_img_src.data_mat(target_data->roi);
 					// 画像色をBGR→HSVに変換
-					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);
+//					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);
 				}
 				else {
 					target_data->roi.x = 0;
@@ -699,6 +701,7 @@ int CAuxPol::parse() {
 
 		if (maintenance_mode == CODE_POL_MAINTE_COMCHECK)   proc_comchk_mode();    // 制御PCとのIF CHECK　MODE
 	}
+
 	return S_OK;
 }
 int CAuxPol::output() {          //出力処理
@@ -720,15 +723,15 @@ HRESULT CAuxPol::get_opencv_image(void)
 		g_img_src.data_mat = cv::imread(CStrHelper::conv_string(gp_cnfg_common->img_source_fname));
 		if (g_img_src.data_mat.data != NULL) {
 			g_img_src.status |= (uint32_t)ENUM_IMAGE_STATUS::ENABLED;					// 画像ステータス:画像有効
-			g_img_src.width = g_img_src.data_mat.cols;								// 画像サイズ(水平画素) [pixel]
-			g_img_src.height = g_img_src.data_mat.rows;								// 画像サイズ(垂直画素) [pixel]
+			g_img_src.width = g_img_src.data_mat.cols;									// 画像サイズ(水平画素) [pixel]
+			g_img_src.height = g_img_src.data_mat.rows;									// 画像サイズ(垂直画素) [pixel]
 			g_img_src.fps = gp_cnfg_camera->basis.framerate;							// 画像フレームレート[fps]
 			return S_OK;
 		}
 		g_img_src.status &= (~(uint32_t)ENUM_IMAGE_STATUS::ENABLED);					// 画像ステータス:画像有効
 		g_img_src.width		= gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::X].size;   // 画像サイズ(水平画素) [pixel]
-		g_img_src.height	= gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;			// 画像サイズ(垂直画素) [pixel]
-		g_img_src.fps		= 0.0;                                                                // 画像フレームレート[fps]
+		g_img_src.height	= gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;	// 画像サイズ(垂直画素) [pixel]
+		g_img_src.fps		= 0.0;                                                      // 画像フレームレート[fps]
 	}
 
 	//----------------------------------------------------------------------------
