@@ -126,7 +126,9 @@ typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	int sway_sensor_enable;
 	int sway_sensor_status;
 
-	ST_SWAY_SERVER_MSG swayinf;
+	ST_SWAY_CLIENT_MSG msg_client;
+	ST_SWAY_SERVER_MSG msg_server;
+
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 
 /****************************************************************************/

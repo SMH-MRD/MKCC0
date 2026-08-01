@@ -63,6 +63,9 @@
     <ClInclude Include="..\Common\CCamera.h">
       <Filter>Domain\Entity</Filter>
     </ClInclude>
+    <ClInclude Include="CSwayShared.h">
+      <Filter>Infrastructure</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AUXEQ.cpp">
@@ -103,6 +106,9 @@
     </ClCompile>
     <ClCompile Include="..\Common\src\CCamera.cpp">
       <Filter>Domain\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="CSwayShared.cpp">
+      <Filter>Infrastructure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

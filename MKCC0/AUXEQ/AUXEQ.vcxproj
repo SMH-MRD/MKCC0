@@ -155,6 +155,7 @@
     <ClInclude Include="CAuxEnv.h" />
     <ClInclude Include="CAuxPol.h" />
     <ClInclude Include="CAuxScad.h" />
+    <ClInclude Include="CSwayShared.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -173,6 +174,7 @@
     <ClCompile Include="CAuxEnv.cpp" />
     <ClCompile Include="CAuxPol.cpp" />
     <ClCompile Include="CAuxScad.cpp" />
+    <ClCompile Include="CSwayShared.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AUXEQ.rc" />

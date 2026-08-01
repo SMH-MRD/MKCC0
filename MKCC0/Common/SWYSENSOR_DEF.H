@@ -63,14 +63,19 @@
 //============================================================================
 // enum定義
 #pragma region ENUM_DEFINITION
+// 画像データ状態
+enum class ENUM_IMAGE_STATUS : uint32_t {
+    DEFAULT = 0x00000000,   // デフォルト
+    ENABLED = 0x00000001    // 画像有効
+};
 // 画像処理状態
 enum class ENUM_PROCCESS_STATUS : uint32_t {
-    DEFAULT = 0x00000000,   // デフォルト
-    IMAGE_ENABLE = 0x00000001,   // 画像データ有効
-    TARGET_ENABLE = 0x00000002,   // ターゲット検出有効
-    ZERO_SET_RUN = 0x00000010,   // 0点設定中(カメラ)
-    ZERO_SET_MCC_RUN = 0x00000020,   // 0点設定中(カメラ)(MCC)
-    ZERO_SET_COMPLETED = 0x00000100    // 0点設定完了(カメラ)
+    DEFAULT             = 0x00000000, // デフォルト
+    IMAGE_ENABLE        = 0x00000001, // 画像データ有効
+    TARGET_ENABLE       = 0x00000002, // ターゲット検出有効
+    ZERO_SET_RUN        = 0x00000010, // 0点設定中(カメラ)
+    ZERO_SET_MCC_RUN    = 0x00000020, // 0点設定中(カメラ)(MCC)
+    ZERO_SET_COMPLETED  = 0x00000100  // 0点設定完了(カメラ)
 };
 // システム状態
 enum class ENUM_SYSTEM_STATUS : uint32_t {
@@ -185,8 +190,10 @@ enum class ENUM_AXIS : uint32_t {
 
 #define CAM1_SPEC_PIXEL_H       2048
 #define CAM1_SPEC_PIXEL_V       1536        // PIX
-#define CAM1_SPEC_ANGLE_RAD_H   0.7315
-#define CAM1_SPEC_ANGLE_RAD_V   0.5592
+#define CAM1_SPEC_ANGLE_RAD_H   0.7485      //東芝テリーBG302LMCG+9mmレンズ　42.89°
+#define CAM1_SPEC_ANGLE_RAD_V   0.5726      //東芝テリーBG302LMCG+9mmレンズ　32.81°
+//#define CAM1_SPEC_ANGLE_RAD_H   1.5813    //東芝テリーBG302LMCG+9mmレンズ　90.6°
+//#define CAM1_SPEC_ANGLE_RAD_V   1.2968    //東芝テリーBG302LMCG+9mmレンズ　74.3°
 
 #define CAM1_SPEC_RESOLUTION_H  2800.0        // PIX/rad
 #define CAM1_SPEC_RESOLUTION_V  2746.0        // PIX/rad
@@ -216,6 +223,7 @@ typedef struct StSwySensParam{
      };
 }ST_SWY_SENS_PRM, *LPST_SWY_SENS_PRM;
 
+#pragma pack(push, 1)
 //============================================================================
 // 構造体/共用体定義
 #pragma region STRUCTURE_DEFINITION
@@ -238,9 +246,12 @@ typedef struct TAG_CONFIG_COMMON_IMAGE_SCREEN_LAYOUT {
 } CONFIG_COMMON_IMAGE_SCREEN_LAYOUT, * PCONFIG_COMMON_IMAGE_SCREEN_LAYOUT;
 // 共通設定
 typedef struct TAG_CONFIG_COMMON {
-    uint32_t     img_source_camera; // カメラ画像取込み(カメラ[1]/画像ファイル[0])
-    std::wstring img_source_fname;  // 取込み画像ファイル名(CMN_IMAGE_SOURCE_CAMERA=0のときの画像)
-    std::wstring img_output_fname;  // 画像保存ファイル名
+    uint32_t     img_source_camera;                 // カメラ画像取込み(カメラ[1]/画像ファイル[0])
+    std::wstring img_source_fname;                  // 取込み画像ファイル名(CMN_IMAGE_SOURCE_CAMERA=0のときの画像)
+    std::wstring img_output_fname;                  // 画像保存ファイル名
+    double full_pix[(int)ENUM_AXIS::E_MAX];         // カメラのピクセルサイズ
+    double view_angle_rad[(int)ENUM_AXIS::E_MAX];   // カメラの画角rad
+    double pix1rad[(int)ENUM_AXIS::E_MAX];          // 1radのPixel数
 
     CONFIG_COMMON_IMAGE_SCREEN_LAYOUT img_screen_layout;    // 画像表示レイアウト設定
 
@@ -253,8 +264,9 @@ typedef struct TAG_CONFIG_COMMON {
 
 // ROI設定
 typedef struct TAG_CONFIG_CAMERA_ROI {
-    uint32_t offset = 0;    // ROI(領域)の開始位置(X, Y)
-    uint32_t size = 512;      // ROI(領域)のサイズ(X(32の倍数, 2592以下), Y(2の倍数, 2048以下))
+    uint32_t offset = 0;        // ROI(領域)の開始位置(X, Y)
+    uint32_t size = 512;        // ROI(領域)のサイズ(X(32の倍数, 2592以下), Y(2の倍数, 2048以下))
+    uint32_t margin_pix = 200;  // 
 } CONFIG_CAMERA_ROI, * PCONFIG_CAMERA_ROI;
 // ホワイトバランスゲイン設定
 typedef struct TAG_CONFIG_CAMERA_BALANCE_WHITE {
@@ -386,8 +398,28 @@ typedef struct TAG_CONFIG_IMGPROC {
 //----------------------------------------------------------------------------
 // アプリケーション情報の構造体
 //----------------------------------------------------------------------------
-// 画像情報
-// 画像情報データ
+// 調整情報
+// 調整情報データ
+typedef struct TAG_INFO_ADJUST_DATA {
+    BOOL   target_distance_fixed;                   // 吊点～ターゲット間距離固定
+    double target_distance;                         // 吊点～ターゲット間距離[mm]
+    double coef_roi_margin[(int)ENUM_AXIS::E_MAX];  // ROI設定マージン計算用係数
+    double T[(int)ENUM_AXIS::E_MAX];                // 振れ周期sec
+    double w[(int)ENUM_AXIS::E_MAX];                // 振れ角周波数 /s
+ 
+    TAG_INFO_ADJUST_DATA()
+        : target_distance_fixed(FALSE)
+        , target_distance(EXTN_TARGETDIST_MIN)
+     {}
+} INFO_ADJUST_DATA, * PINFO_ADJUST_DATA;
+// 調整情報
+typedef struct _stExtnInfo {
+    CRITICAL_SECTION cs;
+    INFO_ADJUST_DATA data;  // 調整情報データ
+} INFO_ADJUST, * PINFO_ADJUST;
+
+
+// 元画像データ
 typedef struct TAG_INFO_IMGBUF_DATA {
     cv::Mat cv_mat; // CpenCV
 } INFO_IMGBUF_DATA, * PINFO_IMGBUF_DATA;
@@ -396,25 +428,24 @@ typedef struct TAG_INFO_IMGBUF {
     CRITICAL_SECTION cs;
     INFO_IMGBUF_DATA data;  // 画像情報データ
 } INFO_IMGBUF, * PINFO_IMGBUF;
-// 調整情報
-// 調整情報データ
-typedef struct TAG_INFO_ADJUST_DATA {
-    BOOL   target_distance_fixed;   // 吊点～ターゲット間距離固定
-    double target_distance;         // 吊点～ターゲット間距離[mm]
-    int32_t     T_ms;               // 振れ周期ms
 
-    TAG_INFO_ADJUST_DATA()
-        : target_distance_fixed(FALSE)
-        , target_distance(EXTN_TARGETDIST_MIN)
-        , T_ms(10000)
-    {}
-} INFO_ADJUST_DATA, * PINFO_ADJUST_DATA;
-// 調整情報
-typedef struct _stExtnInfo {
-    CRITICAL_SECTION cs;
-    INFO_ADJUST_DATA data;  // 調整情報データ
-} INFO_ADJUST, * PINFO_ADJUST;
+typedef struct TAG_IMAGE_DATA {
+    uint32_t status;        // 画像ステータス
+    uint32_t width;         // 画像サイズ(水平画素) [pixel]
+    uint32_t height;        // 画像サイズ(垂直画素) [pixel]
+    double   fps;           // 画像フレームレート [fps]
+    uint8_t* data_bgr;      // 画像データバッファのポインタ(BGR 24bit)
+    cv::Mat  data_mat;   // 画像データ(OpenCV変換画像)
 
+    TAG_IMAGE_DATA()
+        : status(static_cast<uint32_t>(ENUM_IMAGE_STATUS::DEFAULT))
+        , width(0)
+        , height(0)
+        , fps(0.0)
+        , data_bgr(NULL)
+    {
+    }
+} IMAGE_DATA, * PIMAGE_DATA;
 // 画像処理情報
 // ターゲット検出データ
 #define  SWAY_SENSOR__RANGE_OVER_COUNT_LIMIT    40
@@ -429,8 +460,7 @@ typedef struct TAG_TARGET_DATA {
     cv::Size2i size_expected;                              // カメラとの距離による想定ターゲットサイズ
     cv::Size2i size_detected;                              // 検出ターゲットサイズ
     cv::Size2i size_roi_spd_margin;                        // scan後roiの移動
-    double dist_camera;                                     // カメラ－ターゲット間距離
-       
+        
     BOOL    chk_flg;                                        //デバッグ用
 
     TAG_TARGET_DATA()
@@ -444,7 +474,6 @@ typedef struct TAG_TARGET_DATA {
         , size_expected(10, 10)
         , size_detected(10, 10)
         , size_roi_spd_margin(50,50)
-        , dist_camera(1.0)
         ,chk_flg(FALSE)
     {}
 } TARGET_DATA, * PTARGET_DATA;
@@ -499,6 +528,7 @@ typedef struct TAG_INFO_IMGPRC {
 // システム情報データ
 typedef struct TAG_INFO_SYSTEM_DATA {
     uint32_t status;    // ステータス
+    double sample_cycle;
 
     TAG_INFO_SYSTEM_DATA()
         : status(static_cast<uint32_t>(ENUM_SYSTEM_STATUS::DEFAULT))
@@ -509,14 +539,47 @@ typedef struct TAG_INFO_SYSTEM {
     CRITICAL_SECTION cs;
     INFO_SYSTEM_DATA data;  // システム情報データ
 } INFO_SYSTEM, * PINFO_SYSTEM;
+// クライアント情報
+// クライアント情報データ
+typedef struct TAG_INFO_CLIENT_DATA {
+    char         device_id[4];                                              // 機器ID
+    uint32_t     command;                                                   // コマンド
+    uint32_t     mode;                                                      // モード
+    uint32_t     cycle;                                                     // 最小受信周期[ms]
+    double       tgt_len[static_cast<uint32_t>(ENUM_SWAY_SENSOR::E_MAX)];   // ターゲット距離[m]
+    uint32_t     scan_agent;                                                // AGENTのスキャンタイム（送信タイミング計算用
+
+    TAG_INFO_CLIENT_DATA()
+        : device_id{ '0','0', '0', '0' }
+        , command(0)
+        , mode(0)
+        , cycle(0)
+        , tgt_len{ EXTN_TARGETDIST_MIN,EXTN_TARGETDIST_MIN }
+        , scan_agent(50)
+    {
+    }
+} INFO_CLIENT_DATA, * PINFO_CLIENT_DATA;
+typedef struct TAG_INFO_CLIENT {
+    CRITICAL_SECTION cs;
+    INFO_CLIENT_DATA data;  // クライアント情報データ
+} INFO_CLIENT, * PINFO_CLIENT;
 
 // ***アプリケーション情報
 typedef struct TAG_APP_INFO {
     INFO_IMGBUF imgbuf[static_cast<uint32_t>(ENUM_IMAGE::E_MAX)];   // 画像情報
+    INFO_CLIENT client;                                             // クライアント情報
     INFO_ADJUST adjust;                                             // 調整情報
     INFO_IMGPRC imgprc;                                             // 画像処理情報
     INFO_SYSTEM system;                                             // システム情報
 } APP_INFO, * PAPP_INFO;
+
+// ***アプリケーション設定
+typedef struct TAG_APP_CONFIG {
+    CONFIG_COMMON    common;        // 共通設定
+    CONFIG_CAMERA    camera;        // カメラ設定
+    CONFIG_MOUNTING  mounting;      // 取付寸法設定
+    CONFIG_IMGPROC   imageprocess;  // 画像処理条件設定
+} APP_CONFIG, * PAPP_CONFIG;
 
 // ***通信データ
 //送信データコード
@@ -567,8 +630,8 @@ typedef struct TAG_APP_INFO {
 #define SW_TXT_STAT_TG2_DETECTED    L"ターゲット２検出中"
 #define SW_TXT_STAT_INIT_SENSOR     L"センサ準備中"
 #define SW_TXT_STAT_INIT_TILT       L"傾斜計準備中"
-#define SW_TXT_STAT_0SET_SENSOR     L"センサ０セット中"
-#define SW_TXT_STAT_0SET_TILT       L"傾斜計０セット中"
+#define SW_TXT_STAT_0SET_SENSOR     L"センサ0セット中"
+#define SW_TXT_STAT_0SET_TILT       L"傾斜計0セット中"
 
 #define SWAY_SENSOR_N_CAM       2
 #define SWAY_SENSOR_CAM1        0
@@ -632,32 +695,33 @@ typedef struct TargetStatus {
 } ST_TARGET_STAT, * LPST_TARGET_STAT;
 
 typedef struct SwayComServerHead { //振れセンサ受信メッセージヘッダ部
-    char	id[SWAY_SENSOR_N_CHAR_ID];			//PC ID
-    SYSTEMTIME time;		//タイムスタンプ
+    char	id[SWAY_SENSOR_N_CHAR_ID];			    //PC ID
+    SYSTEMTIME time;		                        //タイムスタンプ
 }ST_SWAY_SERVER_HEAD, * LPST_SWAY_SERVER_HEAD;
-typedef struct SwayComServerBody {                          //振れセンサ送信メッセージボディ部
+typedef struct SwayComServerBody {                  //振れセンサ送信メッセージボディ部
     ST_SWAY_CAM_SPEC cam_spec;
     ST_SWAY_SENS_STAT cam_stat;
-    ST_TARGET_STAT tg_stat[SWAY_SENSOR_N_TARGET];           //カメラ２ｘターゲット２
+    ST_TARGET_STAT tg_stat[SWAY_SENSOR_N_TARGET];   //カメラ２ｘターゲット２
     char info[SWAY_SENSOR_N_CHAR_INFO];
 }ST_SWAY_SERVER_BODY, * LPST_SWAY_SERVER_BODY;
-typedef struct SwayComServerMsg {                           //振れセンサ送信メッセージ
+typedef struct SwayComServerMsg {                   //振れセンサ送信メッセージ
     ST_SWAY_SERVER_HEAD head;
     ST_SWAY_SERVER_BODY body[SWAY_SENSOR_N_CAM];
 }ST_SWAY_SERVER_MSG, * LPST_SWAY_SERVER_MSG;
 
-typedef struct SwayComClientHead {                          //制御PC送信メッセージヘッダ部
+typedef struct SwayComClientHead {                  //制御PC送信メッセージヘッダ部
     char	id[SWAY_SENSOR_N_CHAR_ID];			    //機器個体情報
- //   sockaddr_in sockaddr;       //送信元IPアドレス
+ //   sockaddr_in sockaddr;                         //送信元IPアドレス
 }ST_SWAY_CLIENT_HEAD, * LPST_SWAY_CLIENT_HEAD;
-typedef struct SwayComClientBody {                          //制御PC送信メッセージボディ部
+typedef struct SwayComClientBody {                  //制御PC送信メッセージボディ部
     INT32 command;
     INT32 mode;
-    INT32 freq;                         //最小受信周期 msec      
-    INT32 d[SWAY_SENSOR_N_CAM];         //カメラ-ターゲット間距離
+    INT32 freq;                                     //最小受信周期 msec      
+    INT32 d[SWAY_SENSOR_N_CAM];                     //カメラ-ターゲット間距離
 }ST_SWAY_CLIENT_BODY, * LPST_SWAY_CLIENT_BODY;
-typedef struct SwayComClientMsg {                           //制御PC送信メッセージ
+typedef struct SwayComClientMsg {                   //制御PC送信メッセージ
     ST_SWAY_CLIENT_HEAD head;
     ST_SWAY_CLIENT_BODY body;
 }ST_SWAY_CLIENT_MSG, * LPST_SWAY_CLIENT_MSG;
 
+#pragma pack(pop)

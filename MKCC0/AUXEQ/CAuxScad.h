@@ -143,6 +143,7 @@ public:
     static BOOL       m_target_roi[static_cast<uint32_t>(ENUM_IMAGE_MASK::E_MAX)];
     static BOOL       m_target_pos[static_cast<uint32_t>(ENUM_IMAGE_MASK::E_MAX)];
     static BOOL       m_target_contours[static_cast<uint32_t>(ENUM_IMAGE_MASK::E_MAX)];
+    static BOOL       req_dialog_display;
 
     //タスク出力用構造体
   
@@ -164,12 +165,6 @@ public:
     };
 
 private:
-    bool sway_config_ok = false;
-
-    int slbrk_enable;
-    int lanio_enable;
-    int sway_sensor_enable;
-    int gt_sensor_enable;
 
     HWND create_dlg_wnd();  // ダイアログのオープン
     static LRESULT CALLBACK cb_dlg_wnd(HWND hwnd,uint32_t msg, WPARAM wp, LPARAM lp);  // ダイアログ画面用コールバック関数

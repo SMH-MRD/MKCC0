@@ -24,19 +24,29 @@ using namespace Teli;
 //#pragma comment(lib, "..\\Lib\\x64\\TeliCamApi64.lib")
 //#pragma comment(lib, "..\\Lib\\x64\\TeliCamUtl64.lib")
 
+// 組み込み機能
+extern int g_slbrk_enable;//旋回ブレーキ
+extern int g_lanio_enable;//LANIO
+extern int g_sway_sensor_enable;//振れセンサー
+extern int g_gt_sensor_enable;//走行位置検出
+
+//Swayセンサ関連
 extern CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
-extern APP_INFO g_app_info;
-extern CONFIG_CAMERA g_config_camera;
+// ***アプリケーション設定アクセスポインタ
+extern PCONFIG_COMMON    gp_cnfg_common;        // 共通設定
+extern PCONFIG_CAMERA    gp_cnfg_camera;        // カメラ設定
+extern PCONFIG_MOUNTING  gp_cnfg_mounting;      // 取付寸法設定
+extern PCONFIG_IMGPROC   gp_cnfg_imageprocess;  // 画像処理条件設定
+
+// ***アプリケーション情報アクセスポインタ  
+extern PINFO_CLIENT_DATA gp_app_client;        // クライアント情報
+extern PINFO_ADJUST_DATA gp_app_adjust;        // 調整情報
+extern PINFO_IMGPRC_DATA gp_app_imgprc;        // 画像処理情報
+extern PINFO_SYSTEM_DATA gp_app_system;        // システム情報
+
 
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
 ST_AUXAG_MON2 CAuxAgent::st_mon2;
-
-CONFIG_COMMON    CAuxAgent::m_cnfgcmn;      // 共通設定
-CONFIG_CAMERA    CAuxAgent::m_cnfgcam;      // カメラ設定
-CONFIG_IMGPROC   CAuxAgent::m_cnfgprc;      // 画像処理条件設定
-INFO_ADJUST_DATA CAuxAgent::m_infoajs_data; // 調整情報データ
-INFO_IMGPRC_DATA CAuxAgent::m_infoprc_data; // 画像処理情報データ
-INFO_SYSTEM_DATA CAuxAgent::m_infosys_data; // システム情報データ
 
 extern BC_TASK_ID st_task_id;
 extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
@@ -98,7 +108,7 @@ CAuxAgent::~CAuxAgent() {
 	g_keepRunning = false;//USBデバイス監視スレッド終了フラグセット
 	if (pCamera != nullptr) delete pCamera;
 
-	if (sway_sensor_enable) {
+	if (g_sway_sensor_enable) {
 		Teli::Sys_CloseSignal(g_hGECamStreamEvent);
 		CloseHandle(g_hStopEvent);
 	}
@@ -124,23 +134,8 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 
 	pAgentObj = (CAuxAgent*)VectCtrlObj[st_task_id.AGENT];
 
-	//### 有効機能の設定
-
-	//旋回ブレーキ
-	int enable = (g_my_code.option >> 28) & 0x0F;
-	slbrk_enable = enable;
-	//LANIO
-	enable = (g_my_code.option >> 24) & 0x0F;
-	lanio_enable = enable;
-	//振れセンサー
-	enable = (g_my_code.option >> 20) & 0x0F;
-	sway_sensor_enable = enable;
-	//走行位置検出
-	enable = (g_my_code.option >> 16) & 0x0F;
-	gt_sensor_enable = enable;
-
 	//### GE Camera
-	if (sway_sensor_enable) {
+	if (g_sway_sensor_enable) {
 	
 		// スレッド用のイベントを作成
 		g_hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL);//スレッド停止用　自動リセット,初期値非シグナル
@@ -170,7 +165,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	}
 	
 	//### SLBRK IFウィンドウ
-	if(slbrk_enable){
+	if(g_slbrk_enable){
 		if (st_mon2.hwnd_mon == NULL) {
 			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
 			LPARAM lp = BC_ID_MON2;
@@ -236,7 +231,7 @@ int CAuxAgent::input() {
 static INT16 slbrk_healthy_hold, slbrk_healthy_cnt;
 int CAuxAgent::parse() {           //メイン処理
 	{//旋回ブレーキ処理
-		if (slbrk_enable) {
+		if (g_slbrk_enable) {
 			//ヘルシーチェック
 			if (slbrk_healthy_hold == pAgent_Inf->slbrk_rbuf[0]) {
 				if (!(slbrk_healthy_cnt & 0xF000)) slbrk_healthy_cnt++;
@@ -252,7 +247,7 @@ int CAuxAgent::parse() {           //メイン処理
 
 	//GE Camera
 	{
-		if (sway_sensor_enable){
+		if (g_sway_sensor_enable){
 			if ((!g_keepRunning) && (pAgent_Inf->st_ge_cam.retry_count == 0)) {
 				camera_capture_start();
 			}
@@ -493,10 +488,10 @@ int CAuxAgent::update_camera_parameter_base() {
 	else wosGE << L"pixel:BG8 >> ";
 	
 	// カメラのROI(領域)の設定
-	if (pCamera->set_camroi(g_config_camera.basis.roi[(int)ENUM_AXIS::X].offset,
-		g_config_camera.basis.roi[(int)ENUM_AXIS::Y].offset,
-		g_config_camera.basis.roi[(int)ENUM_AXIS::X].size,
-		g_config_camera.basis.roi[(int)ENUM_AXIS::Y].size) != 0) {
+	if (pCamera->set_camroi(gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].offset,
+		gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].offset,
+		gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].size,
+		gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].size) != 0) {
 
 		wosGE << L" Fail: set_ROI";
 		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
@@ -504,20 +499,20 @@ int CAuxAgent::update_camera_parameter_base() {
 	}
 	else {
 		if (!ret) {
-			wosGE << L"ROI:X " << g_config_camera.basis.roi[(int)ENUM_AXIS::X].offset << L" Y " << g_config_camera.basis.roi[(int)ENUM_AXIS::Y].offset
-				<< L" W " << g_config_camera.basis.roi[(int)ENUM_AXIS::X].size << L" H " << g_config_camera.basis.roi[(int)ENUM_AXIS::Y].size;
+			wosGE << L"ROI:X " << gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].offset << L" Y " << gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].offset
+				<< L" W " << gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].size << L" H " << gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].size;
 		}
 	}
 	
 	// カメラのフレームレートの設定
-	if (pCamera->set_framerate(static_cast<float64_t>(g_config_camera.basis.framerate),
+	if (pCamera->set_framerate(static_cast<float64_t>(gp_cnfg_camera->basis.framerate),
 		Teli::CAM_ACQ_FRAME_RATE_CTRL_TYPE::CAM_ACQ_FRAME_RATE_CTRL_MANUAL) != 0) {
 		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 		wosGE << L" Fail: set_framerate";
 		ret = 3;
 	}
 	else {
-		if(!ret) wosGE << L"  framerate: " << g_config_camera.basis.framerate;
+		if(!ret) wosGE << L"  framerate: " << gp_cnfg_camera->basis.framerate;
 	}
 	
 	// カメラのトリガー動作モードの設定
@@ -532,29 +527,29 @@ int CAuxAgent::update_camera_parameter_base() {
 	pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 
 	// カメラの黒レベルの設定
-	if (pCamera->set_blacklevel(static_cast<float64_t>(g_config_camera.basis.blacklevel)) != 0) {
+	if (pCamera->set_blacklevel(static_cast<float64_t>(gp_cnfg_camera->basis.blacklevel)) != 0) {
 		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 		wosGE << L" Fail: black level";
 		ret = 5;
 	}
 	else {
-		if (!ret) wosGE << L"black level: " << g_config_camera.basis.blacklevel;
+		if (!ret) wosGE << L"black level: " << gp_cnfg_camera->basis.blacklevel;
 	}
 	
 	// カメラのガンマ補正値の設定
-	if (pCamera->set_gamma(static_cast<float64_t>(g_config_camera.basis.gamma)) != 0) {
+	if (pCamera->set_gamma(static_cast<float64_t>(gp_cnfg_camera->basis.gamma)) != 0) {
 		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 		wosGE << L" Fail: gamma";
 		ret = 6;
 	}
 	else {
-		if (!ret) wosGE << L"   gamma: " << g_config_camera.basis.gamma;
+		if (!ret) wosGE << L"   gamma: " << gp_cnfg_camera->basis.gamma;
 	}
 	
 	// カメラのホワイトバランスゲイン自動調整モードの設定
-	if ((static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(g_config_camera.basis.wb.wb_auto) == Teli::CAM_BALANCE_WHITE_AUTO_TYPE::CAM_BALANCE_WHITE_AUTO_CONTINUOUS) ||
-		(static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(g_config_camera.basis.wb.wb_auto) == Teli::CAM_BALANCE_WHITE_AUTO_TYPE::CAM_BALANCE_WHITE_AUTO_ONCE)) {
-		if (pCamera->set_wbalance_auto(static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(g_config_camera.basis.wb.wb_auto)) != 0) {
+	if ((static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(gp_cnfg_camera->basis.wb.wb_auto) == Teli::CAM_BALANCE_WHITE_AUTO_TYPE::CAM_BALANCE_WHITE_AUTO_CONTINUOUS) ||
+		(static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(gp_cnfg_camera->basis.wb.wb_auto) == Teli::CAM_BALANCE_WHITE_AUTO_TYPE::CAM_BALANCE_WHITE_AUTO_ONCE)) {
+		if (pCamera->set_wbalance_auto(static_cast<Teli::CAM_BALANCE_WHITE_AUTO_TYPE>(gp_cnfg_camera->basis.wb.wb_auto)) != 0) {
 			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 			wosGE << L" Fail: wb auto";
 			ret = 7;
@@ -569,20 +564,20 @@ int CAuxAgent::update_camera_parameter_base() {
 		else {
 			//----------------------------------------------------------------------------
 			// カメラのホワイトバランスゲイン(倍率)の設定
-			if (pCamera->set_wbalance_ratio(static_cast<float64_t>(g_config_camera.basis.wb.wb_ratio_red),
+			if (pCamera->set_wbalance_ratio(static_cast<float64_t>(gp_cnfg_camera->basis.wb.wb_ratio_red),
 				Teli::CAM_BALANCE_RATIO_SELECTOR_TYPE::CAM_BALANCE_RATIO_SELECTOR_RED) != 0) {
 				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 				wosGE << L" Fail: wb set red";
 				ret = 16;
 			}
-			else if (pCamera->set_wbalance_ratio(static_cast<float64_t>(g_config_camera.basis.wb.wb_ratio_blue),
+			else if (pCamera->set_wbalance_ratio(static_cast<float64_t>(gp_cnfg_camera->basis.wb.wb_ratio_blue),
 				Teli::CAM_BALANCE_RATIO_SELECTOR_TYPE::CAM_BALANCE_RATIO_SELECTOR_BLUE) != 0) {
 				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 				wosGE << L" Fail: wb set blue";
 				ret = 17;
 			}
 			else {
-				if (!ret)wosGE << L"   white red: " << g_config_camera.basis.wb.wb_ratio_red << L" blue:" << g_config_camera.basis.wb.wb_ratio_blue;
+				if (!ret)wosGE << L"   white red: " << gp_cnfg_camera->basis.wb.wb_ratio_red << L" blue:" << gp_cnfg_camera->basis.wb.wb_ratio_blue;
 			}
 		}
 	}
@@ -595,13 +590,13 @@ int CAuxAgent::update_camera_parameter_base() {
 		ret = 18;
 	}
 	// カメラの露光時間の設定(APIへの設定はスレッドで実行される)
-	if (pCamera->set_expstime(static_cast<float64_t>(g_config_camera.expstime.val)) != 0) {
+	if (pCamera->set_expstime(static_cast<float64_t>(gp_cnfg_camera->expstime.val)) != 0) {
 		wosGE << L" Fail: expstime set";
 		pAgentObj->msg2listview(wosGE.str());
 		ret = 8;
 	}
 	else {
-		if (!ret)wosGE << L"  expstime ctrl" << g_config_camera.expstime.val;
+		if (!ret)wosGE << L"  expstime ctrl" << gp_cnfg_camera->expstime.val;
 	}
 	// 輝度コントロール設定(ゲイン)
 	// カメラのAGC(Automatic gain control)動作モードの設定
@@ -614,13 +609,13 @@ int CAuxAgent::update_camera_parameter_base() {
 		if (!ret) wosGE << L"  gain auto off";
 	}
 	// カメラのゲインの設定(APIへの設定はスレッドで実行される)
-	if (pCamera->set_gain(static_cast<float64_t>(g_config_camera.gain.val)) != 0) {
+	if (pCamera->set_gain(static_cast<float64_t>(gp_cnfg_camera->gain.val)) != 0) {
 		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 		wosGE << L" Fail: gain set";
 		ret = 10;
 	}
 	else {
-		if (!ret) wosGE << L"  gain set" << g_config_camera.gain.val;
+		if (!ret) wosGE << L"  gain set" << gp_cnfg_camera->gain.val;
 	}
 	if (ret) wosGE << L"!! Fail Parameter Update Code:" << ret;
 	else {

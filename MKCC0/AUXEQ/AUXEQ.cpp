@@ -14,10 +14,11 @@
 #include "CAuxCS.h"
 #include "CAuxScad.h"
 #include "CAuxPol.h"
-//#include "CAuxSim.h"
+#include "CSwayShared.h"
 #include "CComm.h"
 #include "CCamera.h"
 #include "SWYSENSOR_DEF.H"
+
 
 #define MAX_LOADSTRING 100
 
@@ -35,15 +36,13 @@ CSharedMem* pCsInfObj;
 CSharedMem* pScadInfObj;
 CSharedMem* pPolInfObj;
 
-//SwaySensor 
-CTeliCamLib* pCamera = nullptr;
-APP_INFO g_app_info;
-CONFIG_CAMERA g_config_camera;
-CONFIG_IMGPROC g_config_imgproc;
-CONFIG_COMMON g_config_common;
-INFO_ADJUST_DATA g_infoajs_data;    // 調整情報データ
-INFO_IMGPRC_DATA g_infoprc_data;    // 画像処理情報データ
+CSwayShared* pSwaySharedObj;	//振れセンサー共有メモリオブジェクトポインタ
 
+//組み込み機能
+int g_slbrk_enable;//旋回ブレーキ
+int g_lanio_enable;//LANIO
+int g_sway_sensor_enable;//振れセンサー
+int g_gt_sensor_enable;//走行位置検出
 
 ST_DEVICE_CODE g_my_code;
 ST_APP_COMMON_PARAM g_app_common_param;//共通パラメータ
@@ -206,9 +205,22 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //コミュニケーションオブジェクトセットアップ
    CComm::setup();
    CComm::addr_list;
-   //カメラオブジェクト
-   pCamera = new CTeliCamLib();
+ 
+   //組み込み機能
+   int enable = (g_my_code.option >> 28) & 0x0F;
+   g_slbrk_enable = enable;
+   //LANIO
+   enable = (g_my_code.option >> 24) & 0x0F;
+   g_lanio_enable = enable;
+   //振れセンサー
+   enable = (g_my_code.option >> 20) & 0x0F;
+   g_sway_sensor_enable = enable;
+   if(g_sway_sensor_enable) 
+	   pSwaySharedObj = new CSwayShared(true);//振れセンサー共有メモリオブジェクトポインタ コンストラクタでグローバル変数のポインタセット
 
+   //走行位置検出
+   enable = (g_my_code.option >> 16) & 0x0F;
+   g_gt_sensor_enable = enable;
 
    HBITMAP hBmp;
    CBasicControl* pobj;
@@ -463,7 +475,6 @@ VOID CloseApp()
     delete pCsInfObj;
     delete pScadInfObj;
 
-    delete pCamera;
     return;
 }
 

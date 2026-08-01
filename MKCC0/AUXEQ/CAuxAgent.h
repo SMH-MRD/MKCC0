@@ -134,13 +134,6 @@ public:
     
     virtual HRESULT initialize(LPVOID lpParam) override;
   
-    static CONFIG_COMMON    m_cnfgcmn;      // 共通設定
-    static CONFIG_CAMERA    m_cnfgcam;      // カメラ設定
-    static CONFIG_IMGPROC   m_cnfgprc;      // 画像処理条件設定
-    static INFO_ADJUST_DATA m_infoajs_data; // 調整情報データ
-    static INFO_IMGPRC_DATA m_infoprc_data; // 画像処理情報データ
-    static INFO_SYSTEM_DATA m_infosys_data; // システム情報データ
-
     // GEカメラ
     void SaveParameters_GECamera();
     void LoadParameters_GECamera();
@@ -179,12 +172,7 @@ public:
         	
 private:
     bool sway_config_ok = false;
-
-    int slbrk_enable;
-    int lanio_enable;
-    int sway_sensor_enable;
-    int gt_sensor_enable;
-
+ 
     // --- GDI+ 関連 ---
     ULONG_PTR m_gdiplusToken;
     static std::unique_ptr<Bitmap>   m_pOffscreenBitmap;
