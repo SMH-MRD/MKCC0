@@ -60,9 +60,7 @@ static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC‰ž“šŽžŠÔ
 static INT32 read_chk_plc = 0, write_chk_plc = 0;
 
 //static LPST_PLC_RBUF_HHGG38 pin_opepnl;
-
 LPUN_OPE_PLC_RBUF pin_opepnl;
-
 static INT16 dbg_plc_yout[4];
 
 COteCS::COteCS() {
@@ -356,9 +354,6 @@ int COteCS::parse()
 			pOteCsInf->ope_source_mode |= OTE_OPE_SOURCE_CODE_PCPNL;
 		else
 			pOteCsInf->ope_source_mode &= ~OTE_OPE_SOURCE_CODE_PCPNL;
-
-
-
 	}
 	return STAT_OK;
 }

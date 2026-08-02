@@ -435,7 +435,7 @@ typedef struct TAG_IMAGE_DATA {
     uint32_t height;        // 画像サイズ(垂直画素) [pixel]
     double   fps;           // 画像フレームレート [fps]
     uint8_t* data_bgr;      // 画像データバッファのポインタ(BGR 24bit)
-    cv::Mat  data_mat;   // 画像データ(OpenCV変換画像)
+    cv::Mat  data_mat;      // 画像データ(OpenCV変換画像)
 
     TAG_IMAGE_DATA()
         : status(static_cast<uint32_t>(ENUM_IMAGE_STATUS::DEFAULT))

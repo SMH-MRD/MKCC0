@@ -29,15 +29,16 @@
 #pragma region STRUCTURE_DEFINITION
 // カメラの設定
 typedef struct _TELI_CAM_CONFIG {
-    BOOL         valid = 1;             // カメラの有効または無効[0:無効 1:有効]
-    std::wstring ipaddress = L"172.31.0.30";         // カメラのIPアドレス
+    BOOL         valid = FALSE;             // カメラの有効または無効[0:無効 1:有効]
+    std::wstring ipaddress = L"0.0.0.0";         // カメラのIPアドレス
     uint32_t     packetsize = 0;        // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
-    float64_t    framerate_drop = 20.0;    // フレームレート低下の判定値[fps]
+    float64_t    framerate_drop = 15.0;    // フレームレート低下の判定値[fps]
  } TELI_CAM_CONFIG, * PTELI_CAM_CONFIG;
 // カメラのステータス
 typedef struct _TELI_CAM_STATUS {
     int32_t               control_status;
     int32_t               retry_count;
+
     int32_t               camidx;           // カメラのインデックス
     Teli::CAM_HANDLE      camhndl;          // オープンしたカメラのカメラハンドル
     Teli::CAM_STRM_HANDLE strmhndl;         // オープンしたストリームインターフェースのストリームハンドル
@@ -86,6 +87,46 @@ typedef struct _TELI_CAM_STATUS {
     }
 } TELI_CAM_STATUS, * PTELI_CAM_STATUS;
 
+// カメラの詳細情報
+typedef struct _TELI_CAM_DETAILS {
+    HANDLE EventHndlCamRemoval; // カメラ取り外し通知用のイベント(シグナル)オブジェクトのハンドル
+    //
+    HANDLE td_camera_remove_hndl;       // スレッドハンドル
+    BOOL   td_camera_remove_stat;       // スレッドステータス(FALSE:Exit TRUE:Run)
+    HANDLE td_gain_control_hndl;        // スレッドハンドル
+    BOOL   td_gain_control_stat;        // スレッドステータス(FALSE:Exit TRUE:Run)
+    HANDLE td_expstime_control_hndl;    // スレッドハンドル
+    BOOL   td_expstime_control_stat;    // スレッドステータス(FALSE:Exit TRUE:Run)
+    //
+    TELI_CAM_CONFIG cnfg; // カメラの設定
+    TELI_CAM_STATUS stat; // カメラのステータス
+
+    _TELI_CAM_DETAILS()
+        : EventHndlCamRemoval(NULL)
+        , td_camera_remove_hndl(NULL)
+        , td_camera_remove_stat(FALSE)
+        , td_gain_control_hndl(NULL)
+        , td_gain_control_stat(FALSE)
+        , td_expstime_control_hndl(NULL)
+        , td_expstime_control_stat(FALSE)
+        , cnfg()
+        , stat()
+    {
+    }
+} TELI_CAM_DETAILS, * PTELI_CAMERA_DETAILS;
+// カメラの情報
+typedef struct TAG_TELICAM_LIB_INFO {
+    uint32_t       camcount;    // 検出したカメラの数
+    TELI_CAM_DETAILS details;     // カメラの詳細情報
+
+    TAG_TELICAM_LIB_INFO()
+        : camcount(0)
+        , details()
+    {
+    }
+} TELICAM_LIB_INFO, * PTELICAM_LIB_INFO;
+
+
 #pragma endregion STRUCTURE_DEFINITION
 
 //////////////////////////////////////////////////////////////////////////////
@@ -95,10 +136,8 @@ class CTeliCamLib
 {
 public:
     CTeliCamLib(void);
-    CTeliCamLib(int type);
+    CTeliCamLib(TELICAM_LIB_INFO caminfo);
     virtual ~CTeliCamLib(void);
-
-    // メンバー変数
 
     // メンバー関数
     int32_t initialize(void);                               // TeliCamAPIの初期化処理

@@ -25,6 +25,7 @@ PINFO_IMGPRC_DATA gp_app_imgprc;        // 画像処理情報
 PINFO_SYSTEM_DATA gp_app_system;        // システム情報
 
 CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
+IMAGE_DATA g_img_src;// 画像データバッファのポインタ(BGR 24bit)
 
 //////////////////////////////////////////////////////////////////////////////
 // Public method
@@ -50,6 +51,13 @@ CSwayShared::CSwayShared(BOOL init)
   
     //カメラオブジェクト
     pCamera = new CTeliCamLib();
+
+    //----------------------------------------------------------------------------
+    // カメラデータ受信バッファ準備
+    if (g_img_src.data_bgr == NULL) {
+        g_img_src.data_bgr = new (uint8_t[IMAGE_SIZE * IMAGE_FORMAT_SIZE]);                     // 画像データバッファのポインタ(BGR 24bit)
+    }
+    ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));         // The all clear the data area
 
     //----------------------------------------------------------------------------
     // 共有データアクセス用クリティカルセクションの初期化
@@ -122,6 +130,7 @@ CSwayShared::CSwayShared(BOOL init)
 CSwayShared::~CSwayShared()
 {
 	delete pCamera;
+    delete g_img_src.data_bgr;
 }
 
 /// @brief ini file読み込みパラメータ設定
@@ -1142,11 +1151,11 @@ BOOL CSwayShared::set_app_config_ini(wchar_t* file_name)
 /// @note 
 BOOL CSwayShared::set_app_config(CONFIG_COMMON data)
 {
-    PCONFIG_COMMON cnfg_data = gp_cnfg_common;  // 共通設定
+    PCONFIG_COMMON cnfg_data = gp_cnfg_common;                          // 共通設定
 
-    cnfg_data->img_source_camera = data.img_source_camera;  // カメラ画像取込み(カメラ[1]/画像ファイル[0])
-    cnfg_data->img_source_fname = data.img_source_fname;   // 取込み画像ファイル名CMN_IMAGE_SOURCE_CAMERA=0のときの画像)
-    cnfg_data->img_output_fname = data.img_output_fname;   // 画像保存ファイル名
+    cnfg_data->img_source_camera = data.img_source_camera;              // カメラ画像取込み(カメラ[1]/画像ファイル[0])
+    cnfg_data->img_source_fname = data.img_source_fname;                // 取込み画像ファイル名CMN_IMAGE_SOURCE_CAMERA=0のときの画像)
+    cnfg_data->img_output_fname = data.img_output_fname;                // 画像保存ファイル名
 
     cnfg_data->img_screen_layout.x0 = data.img_screen_layout.x0;        // 原点座標X
     cnfg_data->img_screen_layout.y0 = data.img_screen_layout.y0;        // 原点座標Y

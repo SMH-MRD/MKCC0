@@ -187,7 +187,8 @@ private:
     int close();
 
     void proc_comchk_mode();    // 制御PCとのIF CHECK　MODE
-    HRESULT get_opencv_image();
+    
+	uint32_t get_opencv_image();// 画像ソース有無効判定
 
     BOOL proc_center_gravity(std::vector<std::vector<cv::Point>> contours,
         double* outPosX,

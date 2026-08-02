@@ -53,7 +53,7 @@ CTeliCamLib::CTeliCamLib(void)
 /// @param caminfo カメラの情報  
 /// @return
 /// @note
-CTeliCamLib::CTeliCamLib(int type)
+CTeliCamLib::CTeliCamLib(TELICAM_LIB_INFO caminfo)
 {
     m_errmsg = L""; // エラーメッセージ
     camcount = 0;  // 検出したカメラの数

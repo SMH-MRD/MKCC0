@@ -13,6 +13,7 @@ public:
     // メンバー変数
 
     // メンバー関数
+    static HRESULT initialize();                                    // 初期化
     static BOOL set_app_config_ini(wchar_t* file_name);             // ini file読み込みパラメータ設定
     static BOOL set_app_config(CONFIG_COMMON data);                 // 共通設定書込み
     static BOOL get_app_config(PCONFIG_COMMON data);                // 共通設定読込み

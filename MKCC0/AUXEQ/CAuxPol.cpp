@@ -33,7 +33,7 @@ extern PINFO_ADJUST_DATA gp_app_adjust;        // 調整情報
 extern PINFO_IMGPRC_DATA gp_app_imgprc;        // 画像処理情報
 extern PINFO_SYSTEM_DATA gp_app_system;        // システム情報
 
-IMAGE_DATA g_img_src;
+extern IMAGE_DATA g_img_src;
 
 static CAuxEnv * pAuxEnvObj;				// CAuxEnvインスタンスのポインタ
 
@@ -106,6 +106,8 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 	//振れセンサ機能セットアップ
 	if (g_sway_sensor_enable) {
 		init_sway_sensor();
+
+		g_img_src.data_mat = cv::imread("C:\/Work\/NonImg.bmp");
 	}
 
 	//###  オペレーションパネル設定
@@ -206,11 +208,23 @@ HRESULT CAuxPol::init_sway_sensor(){
 }
 
 HRESULT CAuxPol::routine_work(void* pObj) {
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
+
 	input();
 	parse();
 	output();
 	return S_OK;
 }
+
+static IMAGE_DATA img_src;
+static cv::Mat    img_roi; // 切抜き画像
+static cv::Mat    img_hsv;
+static cv::Mat    img_hsv_bin;
+static cv::Mat    img_mask[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
+static cv::Mat    lut;
 
 int CAuxPol::input() {
 	if (g_sway_sensor_enable) {
@@ -230,10 +244,11 @@ int CAuxPol::input() {
 		}
 		
 		// 画像取込み
-		get_opencv_image();
+		uint32_t img_valid = get_opencv_image();
 
-		(g_img_src.status & (uint32_t)(ENUM_IMAGE_STATUS::ENABLED)) ?	(gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :   // 画像処理状態:画像データ有効
-																		(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))); // 画像処理状態:画像データ無効
+		(img_valid & (uint32_t)(ENUM_IMAGE_STATUS::ENABLED)) ?	
+			(gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :   // 画像処理状態:画像データ有効
+			(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))); // 画像処理状態:画像データ無効
 		
 		gp_app_imgprc->img_fps = g_img_src.fps;   // フレームレート[fps]
 	}
@@ -244,24 +259,16 @@ int CAuxPol::input() {
 static bool chk_flg = FALSE;
 
 int CAuxPol::parse() {
-
-	cv::Mat    img_roi; // 切抜き画像
-	cv::Mat    img_hsv;
-	cv::Mat    img_hsv_bin;
-	cv::Mat    img_mask[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
-	cv::Mat    lut;
-
 	cv::Scalar mean_val;    //読込画素データの平均値
 	uint32_t   width = 0;
 	uint32_t   height = 0;
 	uint32_t   mask_low[(uint32_t)(ENUM_HSV_MODEL::E_MAX)];
 	uint32_t   mask_upp[(uint32_t)(ENUM_HSV_MODEL::E_MAX)];
 	BOOL       ret = FALSE;
-	
 	std::vector<cv::Mat> planes;
-	if (g_sway_sensor_enable) {
 
-		// 検出処理
+	if (g_sway_sensor_enable) {
+	// 検出処理
 #pragma region PROCESS_TAGET
 		if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) {
 			//----------------------------------------------------------------------------
@@ -633,9 +640,11 @@ int CAuxPol::parse() {
 					// 部分画像を生成
 					// * 部分画像とその元画像は共通の画像データを参照するため、
 					//   部分画像に変更を加えると、元画像も変更される。
-//					img_roi = g_img_src.data_mat(target_data->roi);
-					// 画像色をBGR→HSVに変換
-//					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);
+					if (g_img_src.data_mat.data != nullptr) {
+						img_roi = g_img_src.data_mat(target_data->roi);
+						// 画像色をBGR→HSVに変換
+						cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);
+					}
 				}
 				else {
 					target_data->roi.x = 0;
@@ -668,8 +677,6 @@ int CAuxPol::parse() {
 #pragma endregion IMAGE_PROC
 		}   // if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) else
 #pragma endregion PROCESS_TAGET
-
-	//----------------------------------------------------------------------------
 	// 画像保存
 #pragma region PUT_IMAGE
 		// マスク画像1
@@ -686,22 +693,17 @@ int CAuxPol::parse() {
 		// 処理画像
 		CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), g_img_src.data_mat);
 #pragma endregion PUT_IMAGE
-
-		//----------------------------------------------------------------------------
-		// 振れ検出処理
+	// 振れ検出処理
 #pragma region SWAY_PROC
 		proc_sway();
 #pragma endregion SWAY_PROC
-
-		//----------------------------------------------------------------------------
-		// シャッタコントロール
+	// シャッタコントロール
 #pragma region EXPOSURE_CONTROL
 		set_expstime();
 #pragma endregion EXPOSURE_CONTROL
-
-		if (maintenance_mode == CODE_POL_MAINTE_COMCHECK)   proc_comchk_mode();    // 制御PCとのIF CHECK　MODE
+	// 制御PCとのIF CHECK　MODE
+		if (maintenance_mode == CODE_POL_MAINTE_COMCHECK)   proc_comchk_mode();   
 	}
-
 	return S_OK;
 }
 int CAuxPol::output() {          //出力処理
@@ -715,7 +717,7 @@ int CAuxPol::close() {
 	return 0;
 }
 
-HRESULT CAuxPol::get_opencv_image(void)
+uint32_t CAuxPol::get_opencv_image(void)
 {
 	//----------------------------------------------------------------------------
 	// 画像データ取得(画像ファイル)
@@ -726,55 +728,59 @@ HRESULT CAuxPol::get_opencv_image(void)
 			g_img_src.width = g_img_src.data_mat.cols;									// 画像サイズ(水平画素) [pixel]
 			g_img_src.height = g_img_src.data_mat.rows;									// 画像サイズ(垂直画素) [pixel]
 			g_img_src.fps = gp_cnfg_camera->basis.framerate;							// 画像フレームレート[fps]
-			return S_OK;
-		}
-		g_img_src.status &= (~(uint32_t)ENUM_IMAGE_STATUS::ENABLED);					// 画像ステータス:画像有効
-		g_img_src.width		= gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::X].size;   // 画像サイズ(水平画素) [pixel]
-		g_img_src.height	= gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;	// 画像サイズ(垂直画素) [pixel]
-		g_img_src.fps		= 0.0;                                                      // 画像フレームレート[fps]
-	}
-
-	//----------------------------------------------------------------------------
-	// 画像データ取得(カメラ)
-	if (g_img_src.data_bgr != NULL) {
-		if ((pCamera != NULL) &&
-			(!(gp_app_system->status & (uint32_t)(ENUM_SYSTEM_STATUS::CAMERA_RESET_RUN)))) { // カメラ再接続中
-			// 画像情報を取得
-			if ((pCamera->get_image(g_img_src.data_bgr) >= 0) &&
-				(pCamera->get_image_size(&g_img_src.width, &g_img_src.height) >= 0) &&
-				(pCamera->get_image_fps(&g_img_src.fps) >= 0)) {
-				g_img_src.status |= ((uint32_t)(ENUM_IMAGE_STATUS::ENABLED));            // 画像ステータス:画像有効
-			}
-			else {
-				g_img_src.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));						// 画像ステータス:画像有効
-				g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// 画像サイズ(水平画素) [pixel]
-				g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;		// 画像サイズ(垂直画素) [pixel]
-				g_img_src.fps = 0.0;                                                                // 画像フレームレート [fps]
-				ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE)); // 画像データバッファのポインタ(BGR 24bit)
-			}
 		}
 		else {
-			g_img_src.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));							// 画像ステータス:画像有効
-			g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;				// 画像サイズ(水平画素) [pixel]
-			g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// 画像サイズ(垂直画素) [pixel]
-			g_img_src.fps = 0.0;                                                                    // 画像フレームレート [fps]
-			ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));     // 画像データバッファのポインタ(BGR 24bit)
+			g_img_src.status &= (~(uint32_t)ENUM_IMAGE_STATUS::ENABLED);					// 画像ステータス:画像有効
+			g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::X].size;   // 画像サイズ(水平画素) [pixel]
+			g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;	// 画像サイズ(垂直画素) [pixel]
+			g_img_src.fps = 0.0;                                                      // 画像フレームレート[fps]
 		}
-		// OpenCV画像への変換
-		g_img_src.data_mat = cv::Mat(
-			g_img_src.height,
-			g_img_src.width,
-			CV_8UC3,
-			g_img_src.data_bgr
-		);    // 画像データ(OpenCV変換画像)    
-	}   // if (g_img_src.data_bgr != NULL)
+	}
 	else {
-		g_img_src.status	&= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));							// 画像ステータス:画像有効
-		g_img_src.width		= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;				// 画像サイズ(水平画素) [pixel]
-		g_img_src.height	= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;				// 画像サイズ(垂直画素) [pixel]
-		g_img_src.fps		= 0.0;																	// 画像フレームレート[fps]
-	}   // else
-	return S_OK;
+		// 画像データ取得(カメラ)
+		if (g_img_src.data_bgr != NULL) {
+			if ((pCamera != NULL) &&
+				(!(gp_app_system->status & (uint32_t)(ENUM_SYSTEM_STATUS::CAMERA_RESET_RUN)))) { // カメラ再接続中
+				// 画像情報を取得
+				if ((pCamera->get_image(g_img_src.data_bgr) >= 0) &&
+					(pCamera->get_image_size(&g_img_src.width, &g_img_src.height) >= 0) &&
+					(pCamera->get_image_fps(&g_img_src.fps) >= 0)) {
+					g_img_src.status |= ((uint32_t)(ENUM_IMAGE_STATUS::ENABLED));            // 画像ステータス:画像有効
+				}
+				else {
+					g_img_src.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));						// 画像ステータス:画像有効
+					g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// 画像サイズ(水平画素) [pixel]
+					g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;		// 画像サイズ(垂直画素) [pixel]
+					g_img_src.fps = 0.0;                                                                // 画像フレームレート [fps]
+					ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE)); // 画像データバッファのポインタ(BGR 24bit)
+				}
+			}
+			else {
+				g_img_src.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));							// 画像ステータス:画像有効
+				g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;				// 画像サイズ(水平画素) [pixel]
+				g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// 画像サイズ(垂直画素) [pixel]
+				g_img_src.fps = 0.0;                                                                    // 画像フレームレート [fps]
+				ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));     // 画像データバッファのポインタ(BGR 24bit)
+			}
+
+			if (g_img_src.status & (uint32_t)ENUM_IMAGE_STATUS::ENABLED) {
+				// OpenCV画像への変換
+				g_img_src.data_mat = cv::Mat(
+					g_img_src.height,
+					g_img_src.width,
+					CV_8UC3,
+					g_img_src.data_bgr
+				);    // 画像データ(OpenCV変換画像)    
+			}
+		}   // if (g_img_src.data_bgr != NULL)
+		else {
+			g_img_src.status	&= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));				// 画像ステータス:画像有効
+			g_img_src.width		= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;	// 画像サイズ(水平画素) [pixel]
+			g_img_src.height	= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;	// 画像サイズ(垂直画素) [pixel]
+			g_img_src.fps		= 0.0;														// 画像フレームレート[fps]
+		} 
+	}
+	return g_img_src.status;
 }
 
 /// @brief 重心検出
@@ -1433,7 +1439,6 @@ void CAuxPol::proc_comchk_mode() {
 	return;
 }
 
-
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
 /****************************************************************************/
@@ -1672,25 +1677,31 @@ LRESULT CALLBACK CAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 		}break;
 
-		case IDC_TASK_ITEM_CHECK1: {
-			switch (inf.panel_func_id) {
-			case IDC_TASK_FUNC_RADIO4:
-				set_item_chk_txt();
-				break;
-			default:break;
-			}
-
-		}break;
+		case IDC_TASK_ITEM_CHECK1:
 		case IDC_TASK_ITEM_CHECK2:
 		case IDC_TASK_ITEM_CHECK3:
 		case IDC_TASK_ITEM_CHECK4:
 		case IDC_TASK_ITEM_CHECK5:
-		case IDC_TASK_ITEM_CHECK6:
 		{
 			if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED)
 				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = true;
 			else
 				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = false;
+		}break;
+		case IDC_TASK_ITEM_CHECK6:
+		{
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1: {
+				if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED) {
+					SendMessage(inf.hwnd_parent, WM_USER_AUX_DISP_CAMERA_CHK, WP_CODE_IMSHOW_SHOW, 0);
+				}
+				else {
+					SendMessage(inf.hwnd_parent, WM_USER_AUX_DISP_CAMERA_CHK, WP_CODE_IMSHOW_CLOSE, 0);
+				}
+			}break;
+			default:break;
+			}
+
 		}break;
 
 		case IDSET:
@@ -1826,17 +1837,17 @@ void CAuxPol::set_item_chk_txt() {
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO1: {
 		wstr = L"ｶﾒﾗ0点設定";
-		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM3), wstr.c_str());
-		wstr = L"COMCHK MODE";
-		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM4), wstr.c_str());
-		wstr = L"3:-";
-		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM5), wstr.c_str());
-		wstr = L"4:-";
-		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM6), wstr.c_str());
-		wstr = L"5:-";
-		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM7), wstr.c_str());
-		wstr = L"6:-";
-		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_STATIC_ITEM8), wstr.c_str());
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), wstr.c_str());
+		wstr = L"COMCHK";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2), wstr.c_str());
+		wstr = L"-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3), wstr.c_str());
+		wstr = L"-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4), wstr.c_str());
+		wstr = L"-";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5), wstr.c_str());
+		wstr = L"imshow";
+		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6), wstr.c_str());
 	}
 	case IDC_TASK_FUNC_RADIO2:
 	case IDC_TASK_FUNC_RADIO3:

@@ -47,6 +47,7 @@ int g_gt_sensor_enable;//走行位置検出
 ST_DEVICE_CODE g_my_code;
 ST_APP_COMMON_PARAM g_app_common_param;//共通パラメータ
 
+extern IMAGE_DATA g_img_src;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_AUXEQ_WND        st_work_wnd;        //センサーウィンドウ管理用構造体   
@@ -216,7 +217,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    enable = (g_my_code.option >> 20) & 0x0F;
    g_sway_sensor_enable = enable;
    if(g_sway_sensor_enable) 
-	   pSwaySharedObj = new CSwayShared(true);//振れセンサー共有メモリオブジェクトポインタ コンストラクタでグローバル変数のポインタセット
+	   pSwaySharedObj = new CSwayShared(true);//振れセンサー共有オブジェクトポインタ 　コンストラクタでグローバル変数のポインタセット
 
    //走行位置検出
    enable = (g_my_code.option >> 16) & 0x0F;
@@ -464,7 +465,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
            return((DWORD)FALSE);
        }
    }
-
+      
    return TRUE;
 }
 
@@ -499,6 +500,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SendMessage(st_work_wnd.hWnd_status_bar, SB_SETTEXT, 0, (LPARAM)L"-");
 
     } break;
+
+    case WM_USER_AUX_DISP_CAMERA_CHK://
+    {
+        if (wParam == WP_CODE_IMSHOW_SHOW) {
+            cv::namedWindow("g_img_src", cv::WINDOW_NORMAL);
+            cv::resizeWindow("g_img_src", 512, 384);
+            cv::imshow("g_img_src", g_img_src.data_mat);
+        }
+        if (wParam == WP_CODE_IMSHOW_CLOSE) {
+            cv::destroyAllWindows();
+        }
+    }break;
     case WM_COMMAND:
     {
         int wmId = LOWORD(wParam);
@@ -510,6 +523,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case IDM_EXIT:
             DestroyWindow(hWnd);
+
+
             break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);

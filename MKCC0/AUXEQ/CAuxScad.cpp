@@ -9,6 +9,7 @@
 #include "CCamera.h"
 #include "SWYSENSOR_DEF.H"
 #include "CHelper.h"
+#include "CSwayShared.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // CAuxScada
@@ -41,6 +42,7 @@ extern ST_DEVICE_CODE g_my_code;
 
 // Swayセンサ関連
 extern CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
+extern CSwayShared* pSwaySharedObj;
 
 // ***アプリケーション設定アクセスポインタ
 extern PCONFIG_COMMON    gp_cnfg_common;        // 共通設定
@@ -213,7 +215,325 @@ int CAuxScada::parse() {
         }
     }
 
+    //----------------------------------------------------------------------------
+// 処理情報
+// ターゲット位置
+    {
+        if (gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid) {
+            wostr.str(L"");wostr<< gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].pos[(uint32_t)(ENUM_AXIS::X)];
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_X_1), wostr.str().c_str());
+            wostr.str(L"");wostr<< gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].pos[(uint32_t)(ENUM_AXIS::Y)];
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_Y_1), wostr.str().c_str());
+        }
+        else {
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_X_1), wostr.str().c_str());
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_Y_1), wostr.str().c_str());
+        }
+        if (gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid) {
+            wostr.str(L"");wostr<< gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[(uint32_t)(ENUM_AXIS::X)];
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_X_2), wostr.str().c_str());
+            wostr.str(L"");wostr<< gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[(uint32_t)(ENUM_AXIS::Y)];
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_Y_2), wostr.str().c_str());
+        }
+        else {
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_X_2), wostr.str().c_str());
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TARGET_POS_Y_2), wostr.str().c_str());
+        }
+    }
+    // 振れ
+    {
+        if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
+            wostr.str(L"");wostr<<gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].sway_angle;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_X), wostr.str().c_str());
+            wostr.str(L"");wostr<<gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].sway_angle;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_Y), wostr.str().c_str());
+            wostr.str(L"");wostr<<gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].sway_speed;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_X), wostr.str().c_str());
+            wostr.str(L"");wostr<<gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].sway_speed;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_Y), wostr.str().c_str());
+        }
+        else {
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_X), wostr.str().c_str());
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_Y), wostr.str().c_str());
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_X), wostr.str().c_str());
+            wostr.str(L"");wostr<< L"-";
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_Y), wostr.str().c_str());
+        }
+        wostr.str(L"");wostr<< gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].sway_zero;
+        SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_ZERO_X), wostr.str().c_str());
+        wostr.str(L"");wostr<< gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].sway_zero;
+        SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_ZERO_Y), wostr.str().c_str());
+    }
+    //----------------------------------------------------------------------------
+    // 露光時間
+    {
+        wostr.str(L"");wostr<<gp_app_imgprc->exps_time;
+        SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_VAL_CAMERA_EXPOSURE), wostr.str().c_str());
+    }
+    //----------------------------------------------------------------------------
+    // ターゲット距離
+    {
+        if (gp_app_adjust->target_distance_fixed) {
+            wostr.str(L"");wostr<< (UINT)(gp_app_adjust->target_distance);
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_VAL_TARGET_LEN), wostr.str().c_str());
+        }
+        else {
+            wostr.str(L"");wostr<< (UINT)(gp_app_client->tgt_len[(uint32_t)(ENUM_SWAY_SENSOR::SENSOR_1)]);
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_VAL_TARGET_LEN), wostr.str().c_str());
+        }
+    }
 
+    //----------------------------------------------------------------------------
+    // 処理画像読込み
+    if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), &m_img_src)) {
+        return S_FALSE;
+    }
+
+    //----------------------------------------------------------------------------
+    // 画像表示
+    {   //生画像
+        if (m_sel_img == 0) {   // 元画像
+            // 画像取得(元画像は保存用に保持しておく)
+            m_img_src.copyTo(img_proc);
+
+            int w = LINE_TKN;
+            int wx = LINE_TKN;
+            int wy = LINE_TKN;
+            int csx = CURSOR_LEN;
+            int csy = CURSOR_LEN;
+            if (m_scale_img_src) {
+                w   *= (int)(m_img_src.rows / gp_cnfg_common->img_screen_layout.height);
+                wx  *= (int)(m_img_src.rows / gp_cnfg_common->img_screen_layout.height);
+                wy  *= (int)(m_img_src.cols / gp_cnfg_common->img_screen_layout.width);
+                csx *= (int)(m_img_src.rows / gp_cnfg_common->img_screen_layout.height);
+                csy *= (int)(m_img_src.cols / gp_cnfg_common->img_screen_layout.width);
+            }
+
+            cv::Scalar color;
+            int x0, y0, x1, y1;
+
+            // カーソル表示
+            if (m_cursor) {
+                color = SCALAR_WHITE;
+                cv::line(img_proc, cv::Point(0, m_cursor_pt.y), cv::Point((m_img_src.cols - 1), m_cursor_pt.y), color, wx, cv::LINE_4);  // 横線
+                cv::line(img_proc, cv::Point(m_cursor_pt.x, 0), cv::Point(m_cursor_pt.x, (m_img_src.rows - 1)), color, wy, cv::LINE_4);  // 縦線
+            }
+
+            for (int32_t i = 0; i < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); i++) {
+                color = (i == (uint32_t)(ENUM_IMAGE_MASK::MASK_1)) ? SCALAR_MAGENTA : SCALAR_GREEN;
+                // ROI表示
+                if (m_target_roi[i]) {
+                    cv::rectangle(img_proc, gp_app_imgprc->target_data[i].roi, color, w, cv::LINE_4);
+                }
+
+                // 輪郭表示
+                if (m_target_contours[i]) {
+                    std::vector<cv::Vec4i> hierarchy;
+                    x0 = gp_app_imgprc->target_data[i].roi.x;
+                    y0 = gp_app_imgprc->target_data[i].roi.y;
+                    cv::drawContours(img_proc,
+                        gp_app_imgprc->contours[i],
+                        -1,
+                        color,
+                        1,
+                        cv::LINE_4,
+                        hierarchy,
+                        INT_MAX,
+                        cv::Point(x0, y0));
+                }
+                // ターゲット位置表示
+                if (m_target_pos[i]) {
+                    if (gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid) {
+                        x0 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::X)] - csx);
+                        y0 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::Y)]);
+                        x1 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::X)] + csx);
+                        y1 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::Y)]);
+                        cv::line(img_proc, cv::Point(x0, y0), cv::Point(x1, y1), color, wx, cv::LINE_4);    // 横線
+                        x0 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::X)]);
+                        y0 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::Y)] - csy);
+                        x1 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::X)]);
+                        y1 = (int)(gp_app_imgprc->target_data[i].pos[(uint32_t)(ENUM_AXIS::Y)] + csy);
+                        cv::line(img_proc, cv::Point(x0, y0), cv::Point(x1, y1), color, wy, cv::LINE_4);    // 縦線
+                    }
+                }
+            }
+
+            // 振れ位置表示
+            if (m_sway_pos) {
+                color = SCALAR_RED;
+                if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
+                    x0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos - csx);
+                    y0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos);
+                    x1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos + csx);
+                    y1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos);
+                    cv::line(img_proc, cv::Point(x0, y0), cv::Point(x1, y1), color, wx, cv::LINE_4);    // 横線
+                    x0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos);
+                    y0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos - csy);
+                    x1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos);
+                    y1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos + csy);
+                    cv::line(img_proc, cv::Point(x0, y0), cv::Point(x1, y1), color, wy, cv::LINE_4);    // 縦線
+                }
+            }
+
+            // 表示画像サイズ調整
+            if (!m_scale_img_src) {//レイアウトウィンドウに合わせて切り取り表示　スクロール位置に合わせて切り取り起点調整
+                cv::Rect rct;
+                rct.width = gp_cnfg_common->img_screen_layout.width;
+                rct.height = gp_cnfg_common->img_screen_layout.height;
+                if ((rct.width <= img_proc.cols) && (rct.height <= img_proc.rows)) {//幅,高さともはみ出しの時の切り取り起点
+                    rct.x = ((m_scrlinf_img_src_h.nPos + rct.width) <= img_proc.cols) ? m_scrlinf_img_src_h.nPos : (img_proc.cols - rct.width);
+                    rct.y = ((m_scrlinf_img_src_v.nPos + rct.height) <= img_proc.rows) ? m_scrlinf_img_src_v.nPos : (img_proc.rows - rct.height);
+                    img_disp = img_proc(rct);
+                }
+                else {                                                              //一方が収まっているとき
+                    double scale, scalex, scaley;
+                    scalex = (rct.width <= img_proc.cols) ? 1.0 : (static_cast<double>(rct.width) / static_cast<double>(img_proc.cols));
+                    scaley = (rct.height <= img_proc.rows) ? 1.0 : (static_cast<double>(rct.height) / static_cast<double>(img_proc.rows));
+                    scale = (scalex > scaley) ? scalex : scaley;
+                    
+                    if (img_proc.data != nullptr) {
+                        cv::resize(img_proc, img_disp, cv::Size(), static_cast<double>(scale), static_cast<double>(scale));
+
+                        rct.x = ((m_scrlinf_img_src_h.nPos + rct.width) <= img_disp.cols) ? m_scrlinf_img_src_h.nPos : (img_disp.cols - rct.width);
+                        rct.y = ((m_scrlinf_img_src_v.nPos + rct.height) <= img_disp.rows) ? m_scrlinf_img_src_v.nPos : (img_disp.rows - rct.height);
+                        img_disp = img_disp(rct);
+                    }
+                }
+            }
+            else {//全画面縮小表示
+                cv::resize(img_proc, img_disp, cv::Size(),
+                    static_cast<double>(gp_cnfg_common->img_screen_layout.width) / static_cast<double>(m_img_src.cols),
+                    static_cast<double>(gp_cnfg_common->img_screen_layout.height) / static_cast<double>(m_img_src.rows));
+            }
+
+            // テキスト表示(H,S,V)
+            if (m_cursor) {
+                cv::Mat img_hsv;
+                cv::cvtColor(m_img_src, img_hsv, cv::COLOR_BGR2HSV);
+                int h = img_hsv.data[m_cursor_pt.y * img_hsv.step + m_cursor_pt.x * img_hsv.elemSize() + (uint32_t)(ENUM_HSV_MODEL::H)];
+                int s = img_hsv.data[m_cursor_pt.y * img_hsv.step + m_cursor_pt.x * img_hsv.elemSize() + (uint32_t)(ENUM_HSV_MODEL::S)];
+                int v = img_hsv.data[m_cursor_pt.y * img_hsv.step + m_cursor_pt.x * img_hsv.elemSize() + (uint32_t)(ENUM_HSV_MODEL::V)];
+                color = SCALAR_WHITE;
+                cv::putText(img_disp,
+                    cv::format("(%d,%d)H:%03d S:%03d V:%03d", m_cursor_pt.x, m_cursor_pt.y, h, s, v),
+                    cv::Point(6, (int)(gp_cnfg_common->img_screen_layout.height - 6)), cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
+            }
+
+            // 画像表示
+            int8_t* color_buf = static_cast<int8_t*>(calloc(static_cast<size_t>(img_disp.cols)
+                * static_cast<size_t>(img_disp.rows)
+                * 4, sizeof(RGBQUAD)));
+            for (int y = 0; y < img_disp.rows; y++) {
+                for (int x = 0; x < img_disp.cols; x++) {
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 0] = img_disp.data[y * img_disp.step + static_cast<int64>(x) * 3 + 0];    // Blue
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 1] = img_disp.data[y * img_disp.step + static_cast<int64>(x) * 3 + 1];    // Green
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 2] = img_disp.data[y * img_disp.step + static_cast<int64>(x) * 3 + 2];    // Red
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 3] = 0;                                                                   // Reserved
+                }
+            }
+            bmp = CreateBitmap(img_disp.cols, img_disp.rows, 1, 32, color_buf);
+            free(color_buf);
+
+            SendMessage(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_BMP_IMAGE), STM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmp);
+            DeleteObject(bmp);
+        }   // if (m_sel_img == 0)
+        // マスク画像
+        else {
+            // 画像取得
+            if (gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid &&
+                gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid) {     //画像1,2共OK
+                if (m_sel_img == 1) {   // 画像1 
+                    if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::MASK_1), &img_mask)) {
+                        return S_FALSE;    // 成功以外のため、終了
+                    }
+                }
+                else {                  // 画像2
+                    if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::MASK_2), &img_mask)) {
+                        return S_FALSE;    // 成功以外のため、終了
+                    }
+                }
+            }
+            else if (gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid) {    // 画像1のみOK
+                if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::MASK_1), &img_mask)) {
+                    return S_FALSE;    // 成功以外のため、終了
+                }
+            }
+            else if (gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid) {    // 画像2のみOK
+                if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::MASK_2), &img_mask)) {
+                    return S_FALSE;    // 成功以外のため、終了
+                }
+            }
+            else {
+                if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::MASK_1), &img_mask)) { // 両方NG　⇒　画像1選択
+                    return S_FALSE;    // 成功以外のため、終了
+                }
+            }
+
+            // 表示画像サイズ調整
+            if (!m_scale_img_src) {
+                cv::Rect rct;
+                rct.width = gp_cnfg_common->img_screen_layout.width;
+                rct.height = gp_cnfg_common->img_screen_layout.height;
+                if ((rct.width <= img_mask.cols) && (rct.height <= img_mask.rows)) {
+                    rct.x = ((m_scrlinf_img_src_h.nPos + rct.width) <= img_mask.cols) ? m_scrlinf_img_src_h.nPos :
+                        (img_mask.cols - rct.width);
+                    rct.y = ((m_scrlinf_img_src_v.nPos + rct.height) <= img_mask.rows) ? m_scrlinf_img_src_v.nPos :
+                        (img_mask.rows - rct.height);
+                    img_disp = img_mask(rct);
+                }
+                else {
+                    double scale, scalex, scaley;
+                    scalex = (rct.width <= img_mask.cols) ? 1.0 : static_cast<double>(rct.width) / static_cast<double>(img_mask.cols);
+                    scaley = (rct.height <= img_mask.rows) ? 1.0 : static_cast<double>(rct.height) / static_cast<double>(img_mask.rows);
+                    scale = (scalex > scaley) ? scalex : scaley;
+                    cv::resize(img_mask, img_disp, cv::Size(), static_cast<double>(scale), static_cast<double>(scale));
+
+                    rct.x = ((m_scrlinf_img_src_h.nPos + rct.width) <= img_disp.cols) ? m_scrlinf_img_src_h.nPos :
+                        (img_disp.cols - rct.width);
+                    rct.y = ((m_scrlinf_img_src_v.nPos + rct.height) <= img_disp.rows) ? m_scrlinf_img_src_v.nPos :
+                        (img_disp.rows - rct.height);
+                    img_disp = img_disp(rct);
+                }
+            }
+            else
+            {
+                cv::resize(img_mask, img_disp, cv::Size(),
+                    static_cast<double>(gp_cnfg_common->img_screen_layout.width) / static_cast<double>(img_mask.cols),
+                    static_cast<double>(gp_cnfg_common->img_screen_layout.height) / static_cast<double>(img_mask.rows));
+            }
+
+            // 画像表示
+            int8_t* color_buf = static_cast<int8_t*>(calloc(static_cast<size_t>(img_disp.cols)
+                * static_cast<size_t>(img_disp.rows)
+                * 4, sizeof(RGBQUAD)));
+            for (int y = 0; y < img_disp.rows; y++) {
+                for (int x = 0; x < img_disp.cols; x++) {
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 0] = img_disp.data[y * img_disp.step + x];    // Blue
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 1] = img_disp.data[y * img_disp.step + x];    // Green
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 2] = img_disp.data[y * img_disp.step + x];    // Red
+                    color_buf[y * img_disp.cols * 4 + x * 4 + 3] = 0;                                       // Reserved
+                }
+            }
+            bmp = CreateBitmap(img_disp.cols, img_disp.rows, 1, 32, color_buf);
+            free(color_buf);
+
+            SendMessage(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_BMP_IMAGE), STM_SETIMAGE, static_cast<WPARAM>(IMAGE_BITMAP), reinterpret_cast<LPARAM>(bmp));
+            DeleteObject(bmp);
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    // 共有データ書込み
+   // pSwaySharedObj->set_app_config(m_cnfgcam);            // カメラ設定
+   // pSwaySharedObj->set_app_config(m_cnfgprc);            // 画像処理条件設定
+   // pSwaySharedObj->set_app_info_data(m_infoajs_data);    // 調整情報データ
     	
 	return S_OK;
 }
@@ -564,7 +884,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             }
 
             wnd_hndl = GetDlgItem(hwnd, IDC_STATIC_VAL_CAMERA_EXPOSURE);
-            wosstr <<static_cast<int>(gp_app_imgprc->exps_time);
+            wosstr <<(int)(gp_app_imgprc->exps_time);
             SetWindowText(wnd_hndl, wosstr.str().c_str());
 
             if (gp_cnfg_common->img_source_camera) {
@@ -601,7 +921,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             SendMessage(wnd_hndl, TBM_SETRANGEMIN, TRUE, (UINT)EXTN_TARGETDIST_MIN);                    // レンジを指定
             SendMessage(wnd_hndl, TBM_SETRANGEMAX, TRUE, (UINT)EXTN_TARGETDIST_MAX);                    // レンジを指定
             SendMessage(wnd_hndl, TBM_SETTICFREQ, 1000, 0);                                             // 目盛りの増分
-            SendMessage(wnd_hndl, TBM_SETPOS, TRUE, static_cast<UINT>(gp_app_adjust->target_distance)); // 位置の設定
+            SendMessage(wnd_hndl, TBM_SETPOS, TRUE, (UINT)(gp_app_adjust->target_distance)); // 位置の設定
             SendMessage(wnd_hndl, TBM_SETPAGESIZE, 0, 1);                                               // クリック時の移動量
             if (gp_app_adjust->target_distance_fixed) {
                 SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_LEN), BM_SETCHECK, BST_CHECKED, 0);
@@ -1011,7 +1331,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             break;
         case IDC_COMBO_IMAGE:
             if (HIWORD(wp) == CBN_SELCHANGE) {
-                m_sel_img = static_cast<UINT>(SendMessage(GetDlgItem(hwnd, IDC_COMBO_IMAGE), CB_GETCURSEL, 0, 0));
+                m_sel_img = (UINT)(SendMessage(GetDlgItem(hwnd, IDC_COMBO_IMAGE), CB_GETCURSEL, 0, 0));
             }
             break;
         case IDC_CHECK_SWAY_POS:

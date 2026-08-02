@@ -44,6 +44,7 @@ extern PINFO_ADJUST_DATA gp_app_adjust;        // 調整情報
 extern PINFO_IMGPRC_DATA gp_app_imgprc;        // 画像処理情報
 extern PINFO_SYSTEM_DATA gp_app_system;        // システム情報
 
+extern IMAGE_DATA g_img_src;
 
 ST_AUXAG_MON1 CAuxAgent::st_mon1;
 ST_AUXAG_MON2 CAuxAgent::st_mon2;
@@ -136,11 +137,20 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 
 	//### GE Camera
 	if (g_sway_sensor_enable) {
-	
-		// スレッド用のイベントを作成
-		g_hStopEvent = CreateEvent(NULL, FALSE, FALSE, NULL);//スレッド停止用　自動リセット,初期値非シグナル
-		Teli::Sys_CreateSignal(&g_hGECamStreamEvent);
-		
+
+		//----------------------------------------------------------------------------
+		 // カメラ起動準備
+		g_img_src.status	= static_cast<uint32_t>(ENUM_IMAGE_STATUS::DEFAULT);                    // 画像ステータス:デフォルト
+		g_img_src.width		= gp_cnfg_camera->basis.roi[static_cast<uint32_t>(ENUM_AXIS::X)].size;  // 画像サイズ(水平画素) [pixel]
+		g_img_src.height	= gp_cnfg_camera->basis.roi[static_cast<uint32_t>(ENUM_AXIS::Y)].size;  // 画像サイズ(垂直画素) [pixel]
+
+		TELICAM_LIB_INFO caminfo;   // カメラ情報セット
+		caminfo.details.cnfg.valid			= TRUE;													// カメラの有効または無効[0:無効 1:有効]
+		caminfo.details.cnfg.ipaddress		= gp_cnfg_camera->basis.ipaddress;                      // カメラのIPアドレス
+		caminfo.details.cnfg.packetsize		= gp_cnfg_camera->basis.packetsize;                     // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
+		caminfo.details.cnfg.framerate_drop = gp_cnfg_camera->error.framedrop;                      // フレームレート低下の判定値[fps]
+
+
 		//IFウィンドウ
 		if (st_mon1.hwnd_mon == NULL) {
 			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -160,9 +170,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 			return S_FALSE;
 		}
 	}
-	else {
 
-	}
 	
 	//### SLBRK IFウィンドウ
 	if(g_slbrk_enable){
@@ -218,6 +226,11 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 }
 
 HRESULT CAuxAgent::routine_work(void* pObj){
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
+
 	input();
 	parse();
 	output();

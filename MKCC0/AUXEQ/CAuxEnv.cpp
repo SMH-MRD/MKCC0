@@ -129,6 +129,12 @@ HRESULT CAuxEnv::initialize(LPVOID lpParam) {
 }
 
 HRESULT CAuxEnv::routine_work(void* pObj) {
+
+	if (inf.total_act % 20 == 0) {
+		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		msg2host(wos.str());
+	}
+
 	input();
 	parse();
 	output();
@@ -158,8 +164,8 @@ int CAuxEnv::close() {
 void CAuxEnv::init_camera_parameters(int type) {
 	//##### CONFIG_COMMON g_config_common ########
 	gp_cnfg_common->img_source_camera = 1;							// カメラ画像取込み(カメラ[1] / 画像ファイル[0])
-	gp_cnfg_common->img_source_fname = L"C:\\Work\\Image.bmp";		//取込み画像ファイル名(CMN_IMAGE_SOURCE_CAMERA = 0のときの画像)
-	gp_cnfg_common->img_output_fname = L"C:\\Work\\ImageSave.bmp";	// 画像保存ファイル名
+	gp_cnfg_common->img_source_fname = L"C:\/Work\/Image.bmp";		//取込み画像ファイル名(CMN_IMAGE_SOURCE_CAMERA = 0のときの画像)
+	gp_cnfg_common->img_output_fname = L"C:\/Work\/ImageSave.bmp";	// 画像保存ファイル名
 	gp_cnfg_common->img_screen_layout.x0 = 25;						//画像表示レイアウト(原点座標X, 原点座標Y, 横幅サイズ, 高さサイズ)
 	gp_cnfg_common->img_screen_layout.y0 = 120;
 	gp_cnfg_common->img_screen_layout.width = 680;
@@ -174,7 +180,7 @@ void CAuxEnv::init_camera_parameters(int type) {
 
 
 	//##### CONFIG_CAMERA g_config_common ########
-	gp_cnfg_camera->basis.ipaddress = L"172.31.0.30";
+	gp_cnfg_camera->basis.ipaddress = L"172.31.0.32";
 	// カメラのROI(領域)の設定
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].offset = gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].offset = 0;
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].size = 2048; 

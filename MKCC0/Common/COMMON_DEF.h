@@ -169,7 +169,11 @@ using namespace Gdiplus;
 #define WM_USER_SET_BK_COLOR_REQ 0x0406         // wp LOW:タスクID　HIGH:コマンドコード　lp パラメータD
 #define WM_USER_GOT_COMMAND      0x0407         // wp コマンドコード　lp パラメータ
 #define WM_USER_OPEN_CRANE_WND   0x0408         // クレーン操作パネルOPEN要求
-#define WM_USER_OTE_AUX_DISP_CAMERA_CTRL    0x0600  // wp コマンドコード　lp パラメータD
+
+#define WM_USER_OTE_AUX_DISP_CAMERA_CTRL    0x0600 // wp コマンドコード　lp パラメータD
+#define WM_USER_AUX_DISP_CAMERA_CHK         0x0601 // wp コマンドコード　lp パラメータD
+#define WP_CODE_IMSHOW_SHOW                      1 //
+#define WP_CODE_IMSHOW_CLOSE                     2 //
 
 #define WM_USER_WPH_OPEN_IF_WND  0x0001         // wp HWORD　code IFウィンドウOPEN 
 #define WM_USER_WPH_CLOSE_IF_WND 0x0002         // wp HWORD  code IFウィンドウCLOSE
