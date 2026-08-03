@@ -100,7 +100,7 @@ typedef struct _TELI_CAM_DETAILS {
     //
     TELI_CAM_CONFIG cnfg; // カメラの設定
     TELI_CAM_STATUS stat; // カメラのステータス
-
+  
     _TELI_CAM_DETAILS()
         : EventHndlCamRemoval(NULL)
         , td_camera_remove_hndl(NULL)
@@ -113,7 +113,7 @@ typedef struct _TELI_CAM_DETAILS {
         , stat()
     {
     }
-} TELI_CAM_DETAILS, * PTELI_CAMERA_DETAILS;
+} TELI_CAM_DETAILS, * PTELI_CAM_DETAILS;
 // カメラの情報
 typedef struct TAG_TELICAM_LIB_INFO {
     uint32_t       camcount;    // 検出したカメラの数
@@ -175,10 +175,10 @@ public:
     // カメラの情報
     uint32_t       camcount;    // 検出したカメラの数
     Teli::CAM_INFO m_caminfo;
+   
     TELI_CAM_CONFIG cnfg;       // カメラの設定
     TELI_CAM_STATUS stat;
- 
-   
+    
 protected:
 
 private:

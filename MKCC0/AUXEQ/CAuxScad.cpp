@@ -187,6 +187,14 @@ int CAuxScada::input() {
 	return S_OK;
 }
 
+/// <summary>
+/// メイン処理
+/// </summary>
+/// <scenario>
+/// 1. カメラ情報の取得と表示(カメラ入力状態、画像取込時間(fps))
+/// 2. 処理情報の取得と表示(ターゲット位置、振れ角、振れ速度)
+/// </scenario>
+/// <returns></returns>
 int CAuxScada::parse() {
 
 	HBITMAP      bmp;       // 画像(bitmapファイル)
@@ -426,10 +434,11 @@ int CAuxScada::parse() {
                     cv::Point(6, (int)(gp_cnfg_common->img_screen_layout.height - 6)), cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
             }
 
-            // 画像表示
-            int8_t* color_buf = static_cast<int8_t*>(calloc(static_cast<size_t>(img_disp.cols)
-                * static_cast<size_t>(img_disp.rows)
-                * 4, sizeof(RGBQUAD)));
+			// 画像表示 callocで確保しないと、CreateBitmapで落ちる
+            int8_t* color_buf = static_cast<int8_t*>(
+                calloc(static_cast<size_t>(img_disp.cols)* static_cast<size_t>(img_disp.rows)* 4, sizeof(RGBQUAD) //要素数, 要素サイズ                                                          
+                )
+            );
             for (int y = 0; y < img_disp.rows; y++) {
                 for (int x = 0; x < img_disp.cols; x++) {
                     color_buf[y * img_disp.cols * 4 + x * 4 + 0] = img_disp.data[y * img_disp.step + static_cast<int64>(x) * 3 + 0];    // Blue

@@ -49,9 +49,6 @@ CSwayShared::CSwayShared(BOOL init)
     gp_app_imgprc          = &g_app_info.imgprc.data;   // 画像処理情報
     gp_app_system          = &g_app_info.system.data;   // システム情報
   
-    //カメラオブジェクト
-    pCamera = new CTeliCamLib();
-
     //----------------------------------------------------------------------------
     // カメラデータ受信バッファ準備
     if (g_img_src.data_bgr == NULL) {

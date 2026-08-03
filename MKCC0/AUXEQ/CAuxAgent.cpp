@@ -73,23 +73,22 @@ static CAuxAgent* pAgentObj;
 static CAuxPol* pPolObj;
 
 //GE Camera
-std::thread g_capThread;// スレッド変数が消えないようにグローバル領域に保持
+std::thread g_capThread;							// スレッド変数が消えないようにグローバル領域に保持
 std::atomic<bool> g_keepRunning = false;
-HANDLE g_hStopEvent = NULL;				// 停止指示用イベント
-HANDLE g_hGECamStreamEvent = NULL;		// カメラからのストリーム受信通知
+HANDLE g_hStopEvent = NULL;							// 停止指示用イベント
+HANDLE g_hGECamStreamEvent = NULL;					// カメラからのストリーム受信通知
 
 std::unique_ptr<Bitmap>   CAuxAgent::m_pOffscreenBitmap;
 std::unique_ptr<Gdiplus::Graphics> CAuxAgent::m_pOffscreenGraphics;
-Graphics* CAuxAgent::pgraphic_img;	//描画用グラフィックス
+Graphics* CAuxAgent::pgraphic_img;					//描画用グラフィックス
 
 static wostringstream wos_cam;
 
 static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
-
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
 static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
-static LARGE_INTEGER frequency;				//システム周波数
+static LARGE_INTEGER frequency;						//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 
 CAuxAgent::CAuxAgent() {
@@ -128,28 +127,19 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 	set_outbuf(pAgentInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
-	pAgent_Inf = (LPST_AUX_AGENT_INF)pAgentInfObj->get_pMap();
-	pEnv_Inf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
-	pCS_Inf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
+	pAgent_Inf	= (LPST_AUX_AGENT_INF)pAgentInfObj->get_pMap();
+	pEnv_Inf	= (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
+	pCS_Inf		= (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
 	pAuxScadInf = (LPST_AUX_SCAD_INF)pScadInfObj->get_pMap();
 
-	pAgentObj = (CAuxAgent*)VectCtrlObj[st_task_id.AGENT];
+	pAgentObj	= (CAuxAgent*)VectCtrlObj[st_task_id.AGENT];
 
 	//### GE Camera
 	if (g_sway_sensor_enable) {
-
-		//----------------------------------------------------------------------------
 		 // カメラ起動準備
-		g_img_src.status	= static_cast<uint32_t>(ENUM_IMAGE_STATUS::DEFAULT);                    // 画像ステータス:デフォルト
+		g_img_src.status	= (uint32_t)(ENUM_IMAGE_STATUS::DEFAULT);								// 画像ステータス:デフォルト
 		g_img_src.width		= gp_cnfg_camera->basis.roi[static_cast<uint32_t>(ENUM_AXIS::X)].size;  // 画像サイズ(水平画素) [pixel]
 		g_img_src.height	= gp_cnfg_camera->basis.roi[static_cast<uint32_t>(ENUM_AXIS::Y)].size;  // 画像サイズ(垂直画素) [pixel]
-
-		TELICAM_LIB_INFO caminfo;   // カメラ情報セット
-		caminfo.details.cnfg.valid			= TRUE;													// カメラの有効または無効[0:無効 1:有効]
-		caminfo.details.cnfg.ipaddress		= gp_cnfg_camera->basis.ipaddress;                      // カメラのIPアドレス
-		caminfo.details.cnfg.packetsize		= gp_cnfg_camera->basis.packetsize;                     // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
-		caminfo.details.cnfg.framerate_drop = gp_cnfg_camera->error.framedrop;                      // フレームレート低下の判定値[fps]
-
 
 		//IFウィンドウ
 		if (st_mon1.hwnd_mon == NULL) {
@@ -170,8 +160,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 			return S_FALSE;
 		}
 	}
-
-	
+		
 	//### SLBRK IFウィンドウ
 	if(g_slbrk_enable){
 		if (st_mon2.hwnd_mon == NULL) {
@@ -315,19 +304,26 @@ void CAuxAgent::SaveParameters_GECamera() {
 void CAuxAgent::LoadParameters_GECamera() {
 	return; 
 }
+/// <summary>
+/// カメラ起動処理
+/// </summary>
+/// <scenario>
+/// 1. もし既に動いていたり、古い残骸があれば片付ける camera_capture_stop()
+/// 2. g_keepRunning = true
+/// 3.
+/// </scenario>
 void CAuxAgent::camera_capture_start() {
 	// 1. もし既に動いていたり、古い残骸があれば片付ける
 	camera_capture_stop();
-
 	// 2. フラグを立て直す
 	g_keepRunning = true;
-
-	// 3. 新しいスレッドを生成して代入（ムーブ代入）
-	// これにより、同じ g_workerThread 変数で新しい処理が始まる
+	// 3. GE Camera
 	GECameraStart();
-
 	return; 
 }
+/// <summary>
+/// GECameraStop()を実行してSys_Terminate()でシステムを閉じる
+/// </summary>
 void CAuxAgent::camera_capture_stop() {
 	if (g_keepRunning == true) {
 		GECameraStop();
@@ -338,105 +334,129 @@ void CAuxAgent::camera_capture_stop() {
 }
 
 static wostringstream wosGE;
+/// <summary>
+/// GEカメラの初期化と起動
+/// </summary>
+/// <scenario>
+/// 1. TeliCAM Apiの初期化
+/// 2. カメラの数を取得(Sys_GetNumOfCamerasでApi内にカメラのリスト作成)
+/// 3. カメラ情報の取得と表示
+/// 　　Cam_GetInformationでカメラ情報をカメラオブジェクトのメンバ変数に取り込み表示
+/// 　　メンバ変数への取り込みは最後のカメラのみ
+/// 4. カメラオープン
+/// 5. カメラのパラメータ設定書き込み(update_camera_parameter_base())
+///		ピクセルフォーマット、ROI、フレームレート、、トリガーモード、黒レベル、ガンマ補正、ホワイトバランス、露光時間、ゲイン
+/// 
+/// 　　　※初期書き込み設定値は、CAuxEnvの初期化(init_camera_parameters())で設定済み
+/// 
+/// 6.  画像取得用のストリームインターフェースのオープン
+/// 7.  カメラストリーム開始
+/// /// 　　
+/// </scenario>
+/// <returns></returns>
 HRESULT CAuxAgent::GECameraStart() {
 	int32_t ret;
 	U3V_CAM_INFO* psU3vCamInfo;
 	GEV_CAM_INFO* psGevCamInfo;
+	CAM_API_STATUS  uiStatus = CAM_API_STS_SUCCESS;
 
 	// Initialize system.
-	CAM_API_STATUS  uiStatus = CAM_API_STS_SUCCESS;
-	uiStatus = Sys_Initialize();
-	wosGE.str(L"");
-	if (uiStatus != CAM_API_STS_SUCCESS) {
-		if ((uiStatus & 0xF0000000) == 0x10000000) {// Warning
-			wosGE << L"Warning:Sys_Initialize() >> Code :" << uiStatus;
+	{
+		uiStatus = Teli::Sys_Initialize();
+		wosGE.str(L"");
+		if (uiStatus != CAM_API_STS_SUCCESS) {
+			if ((uiStatus & 0xF0000000) == 0x10000000) {// Warning
+				wosGE << L"Warning:Sys_Initialize() >> Code :" << uiStatus;
+			}
+			else {
+				wosGE << L"Failed:Sys_Initialize() >> Code :" << uiStatus;
+			}
+			pAgentObj->msg2listview(wosGE.str());
+			return S_FALSE;
 		}
 		else {
-			wosGE << L"Failed:Sys_Initialize() >> Code :" << uiStatus;
+			wosGE << L"TeliCamApi Initialize Success ";
+			pAgentObj->msg2listview(wosGE.str());
 		}
-		pAgentObj->msg2listview(wosGE.str());
-		return S_FALSE;
-	}
-	else {
-		wosGE << L"TeliCamApi Initialize Success ";
-		pAgentObj->msg2listview(wosGE.str());
 	}
 
 	// Get number of cameras.
-	uiStatus = Sys_GetNumOfCameras(&(pCamera->camcount));
-	wosGE.str(L"");
-	if (uiStatus != CAM_API_STS_SUCCESS) {
-		wosGE << L"Failed:GetNumOfCameras code:" << uiStatus;
-		pAgentObj->msg2listview(wosGE.str());
-
-
-		// Terminate system.
-		Sys_Terminate();
-		return S_FALSE;
-	}
-	else {
-		wosGE << L"GetNumOfCameras = " << pCamera->camcount;
-		pAgentObj->msg2listview(wosGE.str());
+	{
+		uiStatus = Teli::Sys_GetNumOfCameras(&(pCamera->camcount));
+		wosGE.str(L"");
+		if (uiStatus != CAM_API_STS_SUCCESS) {
+			wosGE << L"Failed:GetNumOfCameras code:" << uiStatus;
+			pAgentObj->msg2listview(wosGE.str());
+			// Terminate system.
+			Sys_Terminate();
+			return S_FALSE;
+		}
+		else {
+			wosGE << L"GetNumOfCameras = " << pCamera->camcount;
+			pAgentObj->msg2listview(wosGE.str());
+		}
 	}
 	// Get information of a camera.
-	wosGE.str(L"");
-	for (uint32_t i = 0; i < pCamera->camcount; i++) {
-		memset((void*)&(pCamera->m_caminfo), 0, sizeof(CAM_INFO));
+	{
+		wosGE.str(L"");
+		for (uint32_t i = 0; i < pCamera->camcount; i++) {
+			memset((void*)&(pCamera->m_caminfo), 0, sizeof(CAM_INFO));
 
-		uiStatus = Cam_GetInformation((CAM_HANDLE)NULL, i, &(pCamera->m_caminfo));
-		if (uiStatus != CAM_API_STS_SUCCESS) {
-			// Terminate system.
-			Sys_Terminate();
+			uiStatus = Cam_GetInformation((CAM_HANDLE)NULL, i, &(pCamera->m_caminfo));
+			if (uiStatus != CAM_API_STS_SUCCESS) {
+				// Terminate system.
+				Sys_Terminate();
+				return S_FALSE;
+			}
+			else {
+				pCamera->stat.camidx = i;
+			}
+
+			wosGE << L"<Camera" << i << L" information>    ";
+			if (pCamera->m_caminfo.eCamType == CAM_TYPE_U3V) {
+				wosGE << L" Type : USB3 camera  CamIndex = " << pCamera->stat.camidx;
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName;
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				psU3vCamInfo = &pCamera->m_caminfo.sU3vCamInfo;
+				wosGE << L" Adapter default MaxPacketSize :" << psU3vCamInfo->uiAdapterDfltMaxPacketSize; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				pAgentObj->msg2listview(wosGE.str());
+			}
+			else if (pCamera->m_caminfo.eCamType == CAM_TYPE_GEV) {
+				wosGE << L" Type : GigE camera  CamIndex = " << pCamera->stat.camidx;
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName;
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+
+				psGevCamInfo = &pCamera->m_caminfo.sGevCamInfo;
+				wosGE << L" Gev display name :" << psGevCamInfo->szDisplayName;
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				wosGE << L" Gev IP:" << psGevCamInfo->aucIPAddress[0] << L"." << psGevCamInfo->aucIPAddress[1] << L"." << psGevCamInfo->aucIPAddress[2] << L"." << psGevCamInfo->aucIPAddress[3]; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+				wosGE << L" adapter IP:" << psGevCamInfo->aucAdapterIPAddress[0] << L"." << psGevCamInfo->aucAdapterIPAddress[1] << L"." << psGevCamInfo->aucAdapterIPAddress[2] << L"." << psGevCamInfo->aucAdapterIPAddress[3];
+				pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			}
+			else {
+				wosGE << L" Type : Unknown Camera";
+				pAgentObj->msg2listview(wosGE.str());
+				// Terminate system.
+				Sys_Terminate();
+				return S_FALSE;
+			}
+		}
+	}
+	//open camera
+	{
+		wosGE.str(L"");
+		ret = pCamera->open_camera(Teli::CAM_ACCESS_MODE::CAM_ACCESS_MODE_CONTROL);
+		if (ret != CAM_API_STS_SUCCESS) {
+			wosGE << L" Fail: open_camera()  Code:" << ret;
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 			return S_FALSE;
 		}
 		else {
-			pCamera->stat.camidx = i;
-		}
-
-		wosGE << L"<Camera" << i << L" information>    ";
-		if (pCamera->m_caminfo.eCamType == CAM_TYPE_U3V) {
-			wosGE << L" Type : USB3 camera  CamIndex = " << pCamera->stat.camidx;
-			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName;
-			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			psU3vCamInfo = &pCamera->m_caminfo.sU3vCamInfo;
-			wosGE << L" Adapter default MaxPacketSize :" << psU3vCamInfo->uiAdapterDfltMaxPacketSize; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			pAgentObj->msg2listview(wosGE.str());
-		}
-		else if (pCamera->m_caminfo.eCamType == CAM_TYPE_GEV) {
-			wosGE << L" Type : GigE camera  CamIndex = " << pCamera->stat.camidx;
-			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			wosGE << L" Manufacturer :" << pCamera->m_caminfo.szManufacturer << L" Model name :" << pCamera->m_caminfo.szModelName << L" Serial number : " << pCamera->m_caminfo.szSerialNumber << L" User defined name :" << pCamera->m_caminfo.szUserDefinedName;
-			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-
-			psGevCamInfo = &pCamera->m_caminfo.sGevCamInfo;
-			wosGE << L" Gev display name :" << psGevCamInfo->szDisplayName;
-			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			wosGE << L" Gev IP:" << psGevCamInfo->aucIPAddress[0] << L"." << psGevCamInfo->aucIPAddress[1] << L"." << psGevCamInfo->aucIPAddress[2] << L"." << psGevCamInfo->aucIPAddress[3]; pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-			wosGE << L" adapter IP:" << psGevCamInfo->aucAdapterIPAddress[0] << L"." << psGevCamInfo->aucAdapterIPAddress[1] << L"." << psGevCamInfo->aucAdapterIPAddress[2] << L"." << psGevCamInfo->aucAdapterIPAddress[3];
+			wosGE << L" open_camera SUCCESS Width:" << pCamera->stat.camwidth << L" Height:" << pCamera->stat.camheight;
 			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 		}
-		else {
-			wosGE << L" Type : Unknown Camera";
-			pAgentObj->msg2listview(wosGE.str());
-			// Terminate system.
-			Sys_Terminate();
-			return S_FALSE;
-		}
-	}
-
-	//open camera -> 画像ストリーム転送開始
-	wosGE.str(L"");
-
-	ret = pCamera->open_camera(Teli::CAM_ACCESS_MODE::CAM_ACCESS_MODE_CONTROL);
-	if (ret != CAM_API_STS_SUCCESS) {
-		wosGE << L" Fail: open_camera()  Code:" << ret;
-		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
-		return S_FALSE;
-	}
-	else {
-		wosGE << L" open_camera SUCCESS Width:" << pCamera->stat.camwidth << L" Height:" << pCamera->stat.camheight;
-		pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
 	}
 
 	//カメラの基本設定セット
@@ -470,18 +490,26 @@ HRESULT CAuxAgent::GECameraStart() {
 
 	return S_OK;
 }
+
+/// <summary>
+/// GEカメラの停止
+/// </summary>
+/// <scenario>
+/// 1.ストリームのハンドルクリア
+/// 2.カメラクローズ
+/// </scenario>
+/// <returns></returns>
 HRESULT CAuxAgent::GECameraStop() {
 	// Close the stream interface.
 	if (pCamera->stat.strmhndl != (CAM_STRM_HANDLE)NULL)
 	{
-		Strm_Close(pCamera->stat.strmhndl);
+		Teli::Strm_Close(pCamera->stat.strmhndl);
 		pCamera->stat.strmhndl = (CAM_STRM_HANDLE)NULL;
 	}
-
 	// Close the camera.
 	if (pCamera->stat.camhndl != (CAM_HANDLE)NULL)
 	{
-		Cam_Close(pCamera->stat.camhndl);
+		Teli::Cam_Close(pCamera->stat.camhndl);
 		pCamera->stat.camhndl = (CAM_HANDLE)NULL;
 	}
 		

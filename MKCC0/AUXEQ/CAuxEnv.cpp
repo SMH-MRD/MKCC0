@@ -91,8 +91,19 @@ HRESULT CAuxEnv::initialize(LPVOID lpParam) {
 	enable = (g_my_code.option >> 20) & 0x0F;
 	pEnvInf->sway_sensor_enable = enable;
 
-	if (pEnvInf->sway_sensor_enable)
+	//### 振れセンサーのカメラパラメータ初期化
+	if (pEnvInf->sway_sensor_enable) {
 		init_camera_parameters(ID_SWAY_CAMERA_SETTING_TYPE0);
+
+		TELICAM_LIB_INFO caminfo;   // カメラ情報セット
+		caminfo.details.cnfg.valid			= TRUE;													// カメラの有効または無効[0:無効 1:有効]
+		caminfo.details.cnfg.ipaddress		= gp_cnfg_camera->basis.ipaddress;                      // カメラのIPアドレス
+		caminfo.details.cnfg.packetsize		= gp_cnfg_camera->basis.packetsize;                     // ドライバが受け取るパケットの最大サイズ(通常は0を指定)[byte]
+		caminfo.details.cnfg.framerate_drop = gp_cnfg_camera->error.framedrop;                      // フレームレート低下の判定値[fps]
+
+		//カメラオブジェクト
+		pCamera = new CTeliCamLib(caminfo);
+	}
 
 #if 0
 	//### IFウィンドウOPEN
@@ -141,7 +152,6 @@ HRESULT CAuxEnv::routine_work(void* pObj) {
 	return S_OK;
 }
 
-
 int CAuxEnv::input() {
 
 
@@ -185,7 +195,8 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].offset = gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].offset = 0;
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].size = 2048; 
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].size = 1536;
-	gp_cnfg_camera->basis.packetsize= pCamera->cnfg.packetsize = 0; 
+	gp_cnfg_camera->basis.packetsize= 0; 
+	//gp_cnfg_camera->basis.packetsize = pCamera->cnfg.packetsize = 0;
 	gp_cnfg_camera->basis.framerate			= 25.0;			//カメラのフレームレートの設定 フル画像では3fps　512x368で最大50fps位が上限
 	gp_cnfg_camera->basis.blacklevel		= 0.0;			// カメラの黒レベルの設定
 	gp_cnfg_camera->basis.gamma				= 1.0;			// カメラのガンマ補正値の設定
@@ -246,7 +257,7 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_imgprc->swayzeroset_time = 20000;	//振れゼロ点設定(計測時間[ms])
 
 	// カメラのゲインの設定(APIへの設定はスレッドで実行される)
-	pCamera->cnfg.packetsize = 0;
+	//pCamera->cnfg.packetsize = 0;
 
 	return;
 }

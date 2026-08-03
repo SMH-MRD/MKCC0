@@ -681,14 +681,11 @@ int CAuxPol::parse() {
 #pragma region PUT_IMAGE
 		// マスク画像1
 		if (gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid) {
-			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_1),
-				img_mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)]);
+			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_1),img_mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)]);
 		}
 		// マスク画像2
 		if (gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid) {
-			CSwayShared::set_app_info_data(
-				(uint32_t)(ENUM_IMAGE::MASK_2),
-				img_mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)]);
+			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_2),img_mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)]);
 		}
 		// 処理画像
 		CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), g_img_src.data_mat);
@@ -1236,37 +1233,40 @@ double CAuxPol::get_sway_zero()
 /// @return
 /// @note
 
-static bool was_over_expose = false;
-static bool was_under_expose = false;
+static bool was_over_expose = false;		//輝度が上限設定値を超えたことがあるかどうかのフラグ
+static bool was_under_expose	= false;	//輝度が下限設定値を超えたことがあるかどうかのフラグ
 static double exps_time_upper_limit;
 static double exps_time_lower_limit;
+
+/// <summary>
+/// シャッタコントロール
+/// </summary>
+/// <scenario>
+/// 
+/// </scenario>
 void CAuxPol::set_expstime()
 {
-	if (!gp_cnfg_common->img_source_camera) {
+	if (!gp_cnfg_common->img_source_camera) {//カメラ:1 画像データ:0
 		return;
 	}
 
-	if (gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].max_val >
-		gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].max_val) {
-		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].max_val;
+	//%２つのマスク処理後画像の最大輝度のうち大きい方を評価対象輝度にセット
+	if (gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val > gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val) {
+		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val;
 	}
 	else {
-		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].max_val;
+		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val;
 	}
 
-	//----------------------------------------------------------------------------
-	// シャッターコントロール禁止判定
-	// 備考：画像入力異常またはシャッターコントロール固定で禁止
-	if (!(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) ||
-		!(gp_cnfg_camera->expstime.auto_control)) {
+	//% シャッターコントロール禁止判定 （画像入力異常またはシャッターコントロール固定で禁止)
+	if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) || !(gp_cnfg_camera->expstime.auto_control)) {
+	
+		//露光時間は初期値に固定
 		gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;
 		gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;
 
 		ZeroMemory(m_move_avrg_data.data, sizeof(m_move_avrg_data.data));
-		m_move_avrg_data.wptr = 0;
-		m_move_avrg_data.data_count = 0;
-		m_move_avrg_data.total_val = 0;
-		m_move_avrg_data.max_val = 0.0f;
+		m_move_avrg_data.wptr = 0;m_move_avrg_data.data_count = 0;m_move_avrg_data.total_val = 0;m_move_avrg_data.max_val = 0.0f;
 
 		was_over_expose = false;
 		was_under_expose = false;
@@ -1299,7 +1299,6 @@ void CAuxPol::set_expstime()
 			gp_app_imgprc->exps_time = gp_app_imgprc->exps_time;
 		}
 		else {//初期化ステップ
-
 			if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_RESET_STEP) {
 				//              gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_min;
 				gp_app_imgprc->exps_time = 1000;
