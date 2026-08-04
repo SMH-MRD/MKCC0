@@ -20,6 +20,7 @@ extern int g_gt_sensor_enable;//走行位置検出
 
 // Swayセンサ関連
 extern CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
+extern CSwayShared* pSwaySharedObj;
 
 // ***アプリケーション設定アクセスポインタ
 extern PCONFIG_COMMON    gp_cnfg_common;        // 共通設定
@@ -28,12 +29,13 @@ extern PCONFIG_MOUNTING  gp_cnfg_mounting;      // 取付寸法設定
 extern PCONFIG_IMGPROC   gp_cnfg_imgprc;		// 画像処理条件設定
 
 // ***アプリケーション情報アクセスポインタ  
+extern PINFO_IMGBUF_DATA gp_app_imgbuf[static_cast<uint32_t>(ENUM_IMAGE::E_MAX)];
 extern PINFO_CLIENT_DATA gp_app_client;        // クライアント情報
 extern PINFO_ADJUST_DATA gp_app_adjust;        // 調整情報
 extern PINFO_IMGPRC_DATA gp_app_imgprc;        // 画像処理情報
 extern PINFO_SYSTEM_DATA gp_app_system;        // システム情報
 
-extern IMAGE_DATA g_img_src;
+extern IMAGE_DATA g_img_src_work;
 
 static CAuxEnv * pAuxEnvObj;				// CAuxEnvインスタンスのポインタ
 
@@ -69,6 +71,7 @@ CAuxPol::~CAuxPol() {
 }
 
 HRESULT CAuxPol::initialize(LPVOID lpParam) {
+
 	HRESULT hr = S_OK;
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_AUX_ENV_INF);
@@ -103,11 +106,16 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
+	//EnvInfの初期化完了待ち
+	while(pEnvInf->initialized != L_ON) {
+		Sleep(100);
+	}
+
 	//振れセンサ機能セットアップ
 	if (g_sway_sensor_enable) {
 		init_sway_sensor();
-
-		g_img_src.data_mat = cv::imread("C:\/Work\/NonImg.bmp");
+		//ダミー画像書き込み
+		g_img_src_work.data_mat = cv::imread("C:\/Work\/NonImg.bmp");
 	}
 
 	//###  オペレーションパネル設定
@@ -131,41 +139,46 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 	return hr;
 }
 
-static double   coef_tg_size_w[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
-static double   coef_tg_size_h[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
+static double   coef_tg_size_w[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)][(uint32_t)(ENUM_AXIS::E_MAX)];
+static double   coef_tg_size_h[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)][(uint32_t)(ENUM_AXIS::E_MAX)];
+
+static IMAGE_DATA img_src;
+static cv::Mat    img_roi; // 切抜き画像
+static cv::Mat    img_hsv;
+static cv::Mat    img_hsv_bin;
+static cv::Mat    img_mask[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
+static cv::Mat    lut;
 
 HRESULT CAuxPol::init_sway_sensor(){
+	// 画像処理用画像データ初期化(起動直後のエラー回避用)
+	cv::Mat init_img(2048, 1536, CV_8UC3, cv::Scalar(255, 0, 0));
+	for (int idx = 0; idx < (int)(ENUM_IMAGE::E_MAX); idx++) {
+		pSwaySharedObj->set_app_info_data(idx, init_img);
+	}
+
 	// 共有データ初期化
 	for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 		gp_app_imgprc->target_data[idx].valid = FALSE;							// 検出状態
 		gp_app_imgprc->target_data[idx].max_val = 0.0;							// 最大輝度
-		for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-			gp_app_imgprc->target_data[idx].pos[axis] = 0.0;					// 検出位置[pixel]
-		}
 		gp_app_imgprc->target_data[idx].size			= 0;					// 検出サイズ
 		gp_app_imgprc->target_data[idx].roi.x			= 0;					// ROI:x coordinate of the top-left corner
 		gp_app_imgprc->target_data[idx].roi.y			= 0;					// ROI:y coordinate of the top-left corner
 		gp_app_imgprc->target_data[idx].roi.width		= 0;					// ROI:width of the rectangle
 		gp_app_imgprc->target_data[idx].roi.height		= 0;					// ROI:height of the rectangle
 
-		//　検出ターゲット特徴評価計算用係数　ターゲット距離依存の検出PIXサイズ評価用
-		// size_real:mm単位の実寸法(int)から1m距離での角度を求める→この値を距離で割ると視野上のターゲットの角度幅が求まる
-		double size_w_rad1m = (double)(gp_app_imgprc->target_data[idx].size_real.width)	/ 1000.0;	//1m距離幅rad
-		double size_h_rad1m = (double)(gp_app_imgprc->target_data[idx].size_real.height) / 1000.0;	//1m距離r高さrad
-		double k = gp_cnfg_imgprc->PIXperRAD;//1RadあたりのPIX数
-
-		//1mの距離でのPIX数(w(or h）/ 1.0m * k  評価時にはターゲット間距離で割る
-		coef_tg_size_w[idx] = size_w_rad1m * k;//1m距離時の幅pix
-		coef_tg_size_h[idx] = size_h_rad1m * k;//1m距離時の幅pix
+		for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
+			gp_app_imgprc->target_data[idx].pos[axis] = 0.0;					// 検出位置[pixel]
+		}
 	}
 
 	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
 		gp_app_imgprc->sway_data[axis].target_pos = 0.0;   // ターゲット位置[pixel]
-		gp_app_imgprc->sway_data[axis].target_tilt = 0.0;   // ターゲット傾き[pixel]
+		gp_app_imgprc->sway_data[axis].target_tilt = 0.0;  // ターゲット傾き[pixel]
 		gp_app_imgprc->sway_data[axis].sway_angle = 0.0;   // 振れ角[pixel]
 		gp_app_imgprc->sway_data[axis].sway_speed = 0.0;   // 振れ速度[pixel/s]
-		gp_app_imgprc->sway_data[axis].sway_zero = 0.0;   // 振れ中心[pixel]
+		gp_app_imgprc->sway_data[axis].sway_zero = 0.0;    // 振れ中心[pixel]
 	}
+
 	gp_app_imgprc->target_size = 0.0;                                   // ターゲットサイズ(ターゲット検出データの平均)
 	gp_app_imgprc->status = (uint32_t)(ENUM_PROCCESS_STATUS::DEFAULT);  // 検出状態
 	gp_app_imgprc->img_fps = 0.0;                                       // フレームレート
@@ -188,22 +201,32 @@ HRESULT CAuxPol::init_sway_sensor(){
 	pmove_avrg_data->total_val	= 0;		// 輝度積算
 	pmove_avrg_data->max_val	= 0.0;		// 最大輝度(移動平均後)
 
-	// 振れ中心計測データ
-	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-		m_sway_zero_data.sway_min[axis] = static_cast<double>((gp_cnfg_camera->basis.roi[axis].offset
-			+ gp_cnfg_camera->basis.roi[axis].size));            // 振れ角最小値
-		m_sway_zero_data.sway_max[axis] = 0.0;                                         // 振れ角最大値
-		m_sway_zero_data.sway_zero[axis] = gp_app_imgprc->sway_data[axis].sway_zero;    // 振れゼロ点
-	}
-
 	//サンプリング周期
 	gp_app_system->sample_cycle = (double)inf.cycle_ms * 0.001; //サンプリング周期[s]
+		
+	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
+		// 振れ中心計測データ
+		m_sway_zero_data.sway_min[axis]		= (double)((gp_cnfg_camera->basis.roi[axis].offset+ gp_cnfg_camera->basis.roi[axis].size));            // 振れ角最小値
+		m_sway_zero_data.sway_max[axis]		= 0.0;											// 振れ角最大値
+		m_sway_zero_data.sway_zero[axis]	= gp_app_imgprc->sway_data[axis].sway_zero;    // 振れゼロ点
+
+		//　ROI　Margin	設定用係数 (振れ角30°のときのPIXEL振幅)
+		//  角周波数を掛けて30°振幅振れの振れ速度（PIX)振幅を評価する
+		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X];
+		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y];
+
+		for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+			// PIX単位ターゲットサイズ計算用係数　この値を距離で割るとターゲットのPIXELサイズ期待値が算出される
+			coef_tg_size_w[idx][axis] = (double)gp_app_imgprc->target_data[idx].size_real.width * gp_cnfg_common->PIXperRAD[axis];
+			coef_tg_size_w[idx][axis] /= 1000.0;	//mm→m変換
+			coef_tg_size_h[idx][axis] = (double)gp_app_imgprc->target_data[idx].size_real.height * gp_cnfg_common->PIXperRAD[axis];
+			coef_tg_size_h[idx][axis] /= 1000.0;	//mm→m変換
+		}
+	}
 
 
-	//　ROI　Margin	設定用係数 (振れ角30°のときのPIXEL振幅)
-	//  角周波数を掛けて30°振幅振れの振れ速度（PIX)振幅を評価する
-	gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X] = PI30 * gp_cnfg_common->pix1rad[(int)ENUM_AXIS::X];
-	gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y] = PI30 * gp_cnfg_common->pix1rad[(int)ENUM_AXIS::Y];
+	// LUT Table 初期化
+	lut = cv::Mat(256, 1, CV_8UC3); // LUT:Look Up Table　縦に256画素、横に1画素の、縦に細長い3チャンネル（カラー）画像
 	return S_OK;
 }
 
@@ -219,13 +242,6 @@ HRESULT CAuxPol::routine_work(void* pObj) {
 	return S_OK;
 }
 
-static IMAGE_DATA img_src;
-static cv::Mat    img_roi; // 切抜き画像
-static cv::Mat    img_hsv;
-static cv::Mat    img_hsv_bin;
-static cv::Mat    img_mask[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
-static cv::Mat    lut;
-
 int CAuxPol::input() {
 	if (g_sway_sensor_enable) {
 		//カメラ‐ターゲット間距離（クライアントからの情報）
@@ -236,6 +252,12 @@ int CAuxPol::input() {
 			double w = sqrt(GA/gp_app_adjust->target_distance);
 			gp_app_adjust->w[(int)ENUM_AXIS::X] = gp_app_adjust->w[(int)ENUM_AXIS::Y] = w;			//振れ角周波数
 			gp_app_adjust->T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = PI360/w;    //振れ周期
+		
+			//ターゲット検出予定角度幅（実寸法/ターゲットとの距離）
+			for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+				gp_app_imgprc->target_data[idx].size_expected.width  = (int)(coef_tg_size_w[idx][(int)ENUM_AXIS::X] / gp_app_adjust->target_distance);
+				gp_app_imgprc->target_data[idx].size_expected.height = (int)(coef_tg_size_h[idx][(int)ENUM_AXIS::Y] / gp_app_adjust->target_distance);
+			}
 		}
 		else {
 			gp_app_adjust->target_distance != GA;
@@ -243,14 +265,14 @@ int CAuxPol::input() {
 			gp_app_adjust->T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = 1.0;		//振れ周期
 		}
 		
-		// 画像取込み
+		// 画像取込み　g_img_src_work.data_mat g_img_src_work.data_bgr
 		uint32_t img_valid = get_opencv_image();
 
 		(img_valid & (uint32_t)(ENUM_IMAGE_STATUS::ENABLED)) ?	
-			(gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :   // 画像処理状態:画像データ有効
-			(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))); // 画像処理状態:画像データ無効
+			(gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :				// 画像処理状態:画像データ有効
+			(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)));			// 画像処理状態:画像データ無効
 		
-		gp_app_imgprc->img_fps = g_img_src.fps;   // フレームレート[fps]
+		gp_app_imgprc->img_fps = g_img_src_work.fps;   // フレームレート[fps]
 	}
 
 	return S_OK;
@@ -271,189 +293,139 @@ int CAuxPol::parse() {
 	// 検出処理
 #pragma region PROCESS_TAGET
 		if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) {
-			//----------------------------------------------------------------------------
-			// 画像色をBGR→HSVに変換
+
 			if (!gp_cnfg_imgprc->roi.valid) {//ROI処理無効選択時
-				cv::cvtColor(g_img_src.data_mat, img_hsv, cv::COLOR_BGR2HSV);
+				cv::cvtColor(g_img_src_work.data_mat, img_hsv, cv::COLOR_BGR2HSV);//元mat画像を直接hsv画像に変換
 			}
 
-			//----------------------------------------------------------------------------
-			// 各チャンネルごとに2値化(LUT変換)し、3チャンネル全てのANDを取り、マスク画像を作成する
-#pragma region CREATE_MASK_IMAGE
+//#####  マスク画像の生成 各チャンネルごとに2値化(LUT変換)し3チャンネル全てのANDを取り、マスク画像を作成する
+			{
+				for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) { //Mask画像1(赤色ターゲット）,2(緑色ターゲット）を生成	
 
-			lut = cv::Mat(256, 1, CV_8UC3); // LUT:Look Up Table
-			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {            //Mask画像1,2
-				PTARGET_DATA ptarget_data = &gp_app_imgprc->target_data[idx];    // ターゲット検出データ
-
-				//マスクのvalidは、iniファイルで選択されていたらtrue
-				if (!gp_cnfg_imgprc->mask[idx].valid) {
-					ptarget_data->max_val = 0.0; // 最大輝度
-					continue;
-				}
-
-				// ROIの範囲(長方形)を設定する
-				if (gp_cnfg_imgprc->roi.valid) {//roi処理有効
-					// * (x, y, width, height)で指定
-					if (ptarget_data->valid) {
-						// ROIの振れ角速度移動補償値計算
-						if (gp_app_adjust->target_distance != 0.0) {//カメラーターゲット間距離　!=0
-							//30°振れ角度振幅x2
-							ptarget_data->size_roi_spd_margin.width = (int)(gp_app_adjust->w[(int)ENUM_AXIS::X]) * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X];
-							ptarget_data->size_roi_spd_margin.height = (int)(gp_app_adjust->w[(int)ENUM_AXIS::Y]) * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y];
-						}
-						else {
-							ptarget_data->size_roi_spd_margin.width = ptarget_data->size_roi_spd_margin.height = SWAY_SENSOR_ROI_MIN_W;
-						}
-
-						// 水平方向　ROIの範囲を画面からはみ出さないように開始位置決定
-						{
-							int32_t roi_size = (int32_t)(ptarget_data->size_expected.width)
-								+ ptarget_data->size_roi_spd_margin.width;
-							if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src.width))) {
-								roi_size = g_img_src.width;
-							}
-							else if (roi_size < SWAY_SENSOR_ROI_MIN_W) {
-								//サイズ下限リミット
-								roi_size = SWAY_SENSOR_ROI_MIN_W;
-							}
-							else;
-
-							int32_t tmp_val = (int32_t)((double)roi_size / 2.0 + 0.5); //roi sizeの半分
-
-							if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val) <= 0) {
-								ptarget_data->roi.x = 0;
-							}
-							else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) + tmp_val) > (int32_t)(g_img_src.width)) {
-								ptarget_data->roi.x = g_img_src.width - roi_size;
-							}
-							else {
-								ptarget_data->roi.x = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val;
-							}
-							ptarget_data->roi.width = roi_size;
-						}
-
-						// 垂直方向　ROIの範囲を画面からはみ出さないように開始位置決定
-						{
-							//int32_t roi_size = (int32_t)(static_cast<double>(target_data->size) * gp_cnfg_imgprc->roi.scale)
-							int32_t roi_size = (int32_t)(ptarget_data->size_expected.height)
-								+ ptarget_data->size_roi_spd_margin.height;
-							if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src.height))) {
-								roi_size = g_img_src.height;
-							}
-							else if (roi_size < SWAY_SENSOR_ROI_MIN_H) {
-								//サイズ下限リミット
-								roi_size = SWAY_SENSOR_ROI_MIN_H;
-							}
-							else;
-#if 1
-							int32_t tmp_val = (int32_t)((static_cast<double>(roi_size) / 2.0) + 0.5);
-#else
-							int32_t tmp_val = roi_size;
-#endif
-							if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val) <= 0) {
-								ptarget_data->roi.y = 0;
-							}
-							else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) + tmp_val) > (int32_t)(g_img_src.height)) {
-								ptarget_data->roi.y = g_img_src.height - roi_size;
-							}
-							else {
-								ptarget_data->roi.y = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val;
-							}
-							ptarget_data->roi.height = roi_size;
-						}
-						ptarget_data->range_over_count = SWAY_SENSOR_RANGE_OVER_COUNT;
-					}   // if (target_data->valid)
-#if 0
-					else if (target_data->range_over_count > 0) {//レンジオーバーでROI保持
-						target_data->range_over_count--;
-						if (target_data->range_over_count <= 0)target_data->range_over_count = 0;
-						gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_ROI_KEEP;
+					PTARGET_DATA ptarget_data = &gp_app_imgprc->target_data[idx];// ターゲット検出データ
+					
+					if (!gp_cnfg_imgprc->mask[idx].valid) {		//マスクの validは、初期設定でセット　基本 true有効
+						ptarget_data->max_val = 0.0; continue;  // マスク処理無効なので最大輝度　0でスルー
 					}
-#endif
-					else {
-						ptarget_data->roi.x = 0;
-						ptarget_data->roi.y = 0;
-						ptarget_data->roi.width = g_img_src.width;
-						ptarget_data->roi.height = g_img_src.height;
-					}   // if (target_data->valid) else
 
-					// 部分画像を生成
-					// * 部分画像とその元画像は共通の画像データを参照するため、
-					//   部分画像に変更を加えると、元画像も変更される。
-					img_roi = g_img_src.data_mat(ptarget_data->roi);
+				// ## ROIの範囲(長方形)を設定する (x, y, width, height)で指定
+					if (gp_cnfg_imgprc->roi.valid) {			//roiの validは、初期設定でセット　基本 true有効処理有効
+						if (ptarget_data->valid) {				//target_dataの validは、重心演算の正常完了でターゲット位置が求まっていたらセット
+							// ROIの振れ角速度移動補償値計算
+							if (gp_app_adjust->target_distance != 0.0) {//カメラーターゲット間距離の情報アリ→30°振れ角速度振幅(角周波数×振れ角PIXEL単位振幅）×2　
+								ptarget_data->size_roi_spd_margin.width	= (int)(gp_app_adjust->w[(int)ENUM_AXIS::X] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X]) *2;
+								ptarget_data->size_roi_spd_margin.height= (int)(gp_app_adjust->w[(int)ENUM_AXIS::Y] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y]) *2;
+							}
+							else {//カメラーターゲット間距離の情報無し→下限設定値固定
+								ptarget_data->size_roi_spd_margin.width = ptarget_data->size_roi_spd_margin.height = SWAY_SENSOR_ROI_MIN_W;
+							}
+							// 水平方向　ROIの範囲を画面からはみ出さないように開始位置決定
+							{	//roiの幅は、ターゲットの期待サイズ＋振れ角速度補償値で決定する
+								int32_t roi_size = (int32_t)(ptarget_data->size_expected.width)	+ ptarget_data->size_roi_spd_margin.width;
+								if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src_work.width))) {
+									roi_size = g_img_src_work.width;//サイズ計算値が範囲外の場合は、画面幅に設定
+								};
+								if (roi_size < SWAY_SENSOR_ROI_MIN_W) {
+									roi_size = SWAY_SENSOR_ROI_MIN_W;//サイズ下限リミット
+								};
+								int32_t tmp_val = roi_size / 2; //roi sizeの半分
+								if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val) <= 0) {
+									ptarget_data->roi.x = 0;//ROIの開始位置が画面左端より左に行かないようにする
+								}
+								else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) + tmp_val) > (int32_t)(g_img_src_work.width)) {
+									ptarget_data->roi.x = g_img_src_work.width - roi_size;//ROIの開始位置が画面右端より右に行かないようにする
+								}
+								else {
+									ptarget_data->roi.x = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val;
+								}
+								ptarget_data->roi.width = roi_size;
+							}
+							// 垂直方向　ROIの範囲を画面からはみ出さないように開始位置決定
+							{//roiの高さは、ターゲットの期待サイズ＋振れ角速度補償値で決定する
+								int32_t roi_size = (int32_t)(ptarget_data->size_expected.height)+ ptarget_data->size_roi_spd_margin.height;
+								if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src_work.height))) {
+									roi_size = g_img_src_work.height;//サイズ計算値が範囲外の場合は、画面高さに設定
+								};
+								if (roi_size < SWAY_SENSOR_ROI_MIN_H) {
+									roi_size = SWAY_SENSOR_ROI_MIN_H;//サイズ下限リミット
+								};
+								int32_t tmp_val = roi_size / 2;
+								if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val) <= 0) {
+									ptarget_data->roi.y = 0;//ROIの開始位置が画面上端より上に行かないようにする
+								}
+								else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) + tmp_val) > (int32_t)(g_img_src_work.height)) {
+									ptarget_data->roi.y = g_img_src_work.height - roi_size;//ROIの開始位置が画面下端より下に行かないようにする
+								}
+								else {
+									ptarget_data->roi.y = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val;
+								}
+								ptarget_data->roi.height = roi_size;
+							}
+							ptarget_data->range_over_count = SWAY_SENSOR_RANGE_OVER_COUNT;
+						}   // if (target_data->valid)
+						else {//重心演算の未完了でターゲット位置が求まっていない場合は、ROIを画面全体に設定する
+							ptarget_data->roi.x = 0;ptarget_data->roi.y = 0;
+							ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
+						}   // if (target_data->valid) else
+					} // ROI処理有効モード　if (gp_cnfg_imgprc->roi.valid)
+					else {//ROI処理無効モードでROIを画面全体に設定する
+						ptarget_data->roi.x = 0;ptarget_data->roi.y = 0;
+						ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
+					}   // if (gp_cnfg_imgprc->roi.valid) else
 
-					// ####### 画像色をBGR→HSVに変換 ###########
-					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);
-					gp_app_imgprc->mean_hsv = cv::mean(img_hsv);        //各チャンネルの平均値　現在未使用
+				// ## HSV変換した部分画像を生成
+					//　!! 部分画像とその元画像は共通の画像データを参照するため 部分画像に変更を加えると元画像も変更される。
+					img_roi = g_img_src_work.data_mat(ptarget_data->roi);
+					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV); // 画像色をBGR→HSVに変換画像をセット
 
-				} // ROI処理有効モード　if (gp_cnfg_imgprc->roi.valid > 0)
-				else {
-					ptarget_data->roi.x = 0;
-					ptarget_data->roi.y = 0;
-					ptarget_data->roi.width = g_img_src.width;
-					ptarget_data->roi.height = g_img_src.height;
-				}   // if (gp_cnfg_imgprc->roi.valid > 0) else
-
-				//ターゲット検出予定角度幅（実寸法/ターゲットとの距離）
-				ptarget_data->size_expected.width = static_cast<int>(coef_tg_size_w[idx] / gp_app_adjust->target_distance);
-				ptarget_data->size_expected.height = static_cast<int>(coef_tg_size_h[idx] / gp_app_adjust->target_distance);
-
-				// 3チャンネルのLUT:Look Up Table 作成
-				for (uint32_t i = 0; i < (uint32_t)(ENUM_HSV_MODEL::E_MAX); i++) {
-					if (i == (uint32_t)(ENUM_HSV_MODEL::V)) {
-#if 0
-						if (target_data->valid) {
-							mask_low[i] = 0; // HSVマスク判定値(下限)
-						}
-						else {//ターゲット未検出時は全体輝度の平均以下はノイズとしてカット
-							mask_low[i] = (uint32_t)(gp_app_imgprc->mean_hsv(i)); // HSVマスク判定値(下限)
-						}
-#endif
-						mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVマスク判定値(下限)
-
-						mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVマスク判定値(上限)
-					}
-					else {
-						mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVマスク判定値(下限)
-						mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVマスク判定値(上限)
-					}
-				}
-				// LTUテーブル作成　256の配列にそのインデックスの輝度が0か255を入れる
-				for (uint32_t i = 0; i < 256; i++) {
-					//上限値　下限値が個別設定になっているので上限設定<下限設定となっている時がある
-					for (uint32_t k = 0; k < (uint32_t)(ENUM_HSV_MODEL::E_MAX); k++) {
-						if (mask_low[k] <= mask_upp[k]) {                                                   //下限値<=上限値　
-							((mask_low[k] <= i) && (i <= mask_upp[k])) ? lut.data[i * lut.step + k] = 255 : //⇒　下限値 <= i and i<=上限値で255(ON)
-								lut.data[i * lut.step + k] = 0;
-						}
-						else {                                                                              //下限値 >=上限値(Hの0付近用）) 
-							((i <= mask_upp[k]) || (mask_low[k] <= i)) ? lut.data[i * lut.step + k] = 255 : //⇒　下限値 <= i or i <= 上限値で255
-								lut.data[i * lut.step + k] = 0;
+				// ## 3チャンネルのLUT:Look Up Table 作成
+					//gp_app_imgprc->mean_hsv = cv::mean(img_hsv);        //各チャンネルの平均値　現在未使用
+					//マスキングフィルタ値セット
+					for (uint32_t i = 0; i < (uint32_t)(ENUM_HSV_MODEL::E_MAX); i++) {//閾値はSCAD画面のスライダで設定できる様にするのでここでセット
+						if (i == (uint32_t)(ENUM_HSV_MODEL::V)) {// Vチャンネルは、調整するかも・・・しれない
+							mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVマスク判定値(下限)
+							mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVマスク判定値(上限)
+						}else {
+							mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVマスク判定値(下限)
+							mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVマスク判定値(上限)
 						}
 					}
-				}
+					// LTUテーブル作成　256の配列にそのインデックスの輝度が0か255を入れる
+					for (uint32_t i = 0; i < 256; i++) {
+						//上限値　下限値が個別設定になっているので上限設定<下限設定となっている時がある
+						for (uint32_t k = 0; k < (uint32_t)(ENUM_HSV_MODEL::E_MAX); k++) {
+							if (mask_low[k] <= mask_upp[k]) { //下限値<=上限値　
+								((mask_low[k] <= i) && (i <= mask_upp[k])) ? lut.data[i * lut.step + k] = 255 : //⇒　下限値 <= i and i<=上限値で255(ON) : iが上下限値の間にある時
+																			 lut.data[i * lut.step + k] = 0;    //⇒　iが上下限値の間に無い時
+							}
+							else {//下限値 >上限値 @下限値 >=上限値(Hの0付近用）) 
+								((i <= mask_upp[k]) || (mask_low[k] <= i)) ? lut.data[i * lut.step + k] = 255 : //⇒　下限値 <= i or i <= 上限値で255
+																			 lut.data[i * lut.step + k] = 0;
+							}
+						}
+					}
 
-				// チャンネルごとのLUT変換(各チャンネルごとに2値化処理)
-				//img_hsvはroiサイズになっている
-				cv::LUT(img_hsv, lut, img_hsv_bin);//LUT:Look Up Table
+				// ## チャンネルごとのLUT変換(各チャンネルごとに2値化処理) img_hsvはroiサイズになっている
+					//LUT:Look Up Table 入力画素値がlutのインデックスとなり、lutの値が出力画素値となる。
+					// 256の配列にそのインデックスの輝度が0か255を入れるので、各チャンネルごとに2値化される
+					cv::LUT(img_hsv, lut, img_hsv_bin);
 
-				// マスク画像の作成
-				cv::split(img_hsv_bin, planes); // チャンネルごとに2値化された画像をそれぞれのチャンネルに分解する
+				// ## マスク画像の作成
+					cv::split(img_hsv_bin, planes); // チャンネルごとに2値化された画像をそれぞれのチャンネルに分解する
 
 
-				cv::bitwise_and(planes[(uint32_t)(ENUM_HSV_MODEL::H)], planes[(uint32_t)(ENUM_HSV_MODEL::V)], img_mask[idx]);
-				cv::bitwise_and(img_mask[idx], planes[(uint32_t)(ENUM_HSV_MODEL::S)], img_mask[idx]);
+					cv::bitwise_and(planes[(uint32_t)(ENUM_HSV_MODEL::H)], planes[(uint32_t)(ENUM_HSV_MODEL::V)], img_mask[idx]);
+					cv::bitwise_and(img_mask[idx], planes[(uint32_t)(ENUM_HSV_MODEL::S)], img_mask[idx]);
 
-				// 最大輝度抽出
-				//img_hsvはroiサイズになっている
-				cv::split(img_hsv, planes);
-				// Vチャンネルの最大値を取り込む
-				cv::minMaxLoc(planes[(uint32_t)(ENUM_HSV_MODEL::V)], NULL, &ptarget_data->max_val);
+					// 最大輝度抽出
+					//img_hsvはroiサイズになっている
+					cv::split(img_hsv, planes);
+					// Vチャンネルの最大値を取り込む
+					cv::minMaxLoc(planes[(uint32_t)(ENUM_HSV_MODEL::V)], NULL, &ptarget_data->max_val);
 
-			}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
+				}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
 
-#pragma endregion CREATE_MASK_IMAGE
-
+ }//CREATE_MASK_IMAGE
 		 //----------------------------------------------------------------------------
 		// ノイズ除去
 		// ガウスフィルタ 未使用
@@ -466,6 +438,7 @@ int CAuxPol::parse() {
 #endif       
 			// ゴマ塩（Opening or 中央値）
 #pragma region NOISE_CUT_1
+#if 0
 			switch (gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].type) {
 				case (uint32_t)(ENUM_NOISE_FILTER1::MEDIAN) :     // 中央値フィルター
 					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
@@ -503,7 +476,6 @@ int CAuxPol::parse() {
 					break;
 			}
 #pragma endregion NOISE_CUT_1
-#if 1
 			// 穴埋め（Opening or 中央値）
 #pragma region NOISE_CUT_2
 			switch (gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].type) {
@@ -545,9 +517,9 @@ int CAuxPol::parse() {
 			}
 #endif
 #pragma endregion NOISE_CUT_2
-			//----------------------------------------------------------------------------
-			// 画像処理
-#if 1
+
+// 画像処理
+#if 0			
 #pragma region IMAGE_PROC
 			double  pos_x, pos_y;
 			gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
@@ -621,62 +593,32 @@ int CAuxPol::parse() {
 			}   // for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
 
 #pragma endregion IMAGE_PROC
+
 #endif
 		}   // if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))
 		else {
-			//----------------------------------------------------------------------------
-			// マスク画像を作成する
-#pragma region CREATE_MASK_IMAGE
+			// マスク画像　画像処理データをクリアする
 			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 				PTARGET_DATA target_data = &gp_app_imgprc->target_data[idx];    // ターゲット検出データ
-				// ROIの範囲(長方形)を設定する
-				if (gp_cnfg_imgprc->roi.valid) {
-					// * (x, y, width, height)で指定
-					target_data->roi.x = 0;
-					target_data->roi.y = 0;
-					target_data->roi.width = g_img_src.width;
-					target_data->roi.height = g_img_src.height;
-
-					// 部分画像を生成
-					// * 部分画像とその元画像は共通の画像データを参照するため、
-					//   部分画像に変更を加えると、元画像も変更される。
-					if (g_img_src.data_mat.data != nullptr) {
-						img_roi = g_img_src.data_mat(target_data->roi);
-						// 画像色をBGR→HSVに変換
-						cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);
-					}
+				// 受信画像全体をROIとして設定する
+				target_data->roi.x = 0;	target_data->roi.y = 0;	
+				target_data->roi.width = g_img_src_work.width;	target_data->roi.height = g_img_src_work.height;
+				target_data->valid = FALSE;							// 検出状態
+				target_data->max_val = 0.0;							// 最大輝度
+				target_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;   // 検出位置X[pixel]
+				target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;   // 検出位置Y[pixel]
+				target_data->size = 0;      // 検出サイズ				
+				if ((gp_cnfg_imgprc->roi.valid)&&(g_img_src_work.data_mat.data != nullptr)) {//ROI有効モード
+					g_img_src_work.data_mat.copyTo(img_roi);
+					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);// 画像色をBGR→HSVに変換
 				}
-				else {
-					target_data->roi.x = 0;
-					target_data->roi.y = 0;
-					target_data->roi.width = g_img_src.width;
-					target_data->roi.height = g_img_src.height;
-				}
-
 				gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
-
 				img_hsv.copyTo(img_mask[idx]);
-			}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
-#pragma endregion CREATE_MASK_IMAGE
 
-		//----------------------------------------------------------------------------
-		// 画像処理
-#pragma region IMAGE_PROC
-			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-				PTARGET_DATA target_data = &gp_app_imgprc->target_data[idx];    // ターゲット検出データ
-				target_data->valid = FALSE;  // 検出状態
-				target_data->max_val = 0.0;    // 最大輝度
-				target_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;    // 検出位置X[pixel]
-				target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;    // 検出位置Y[pixel]
-				target_data->size = 0;      // 検出サイズ
-				target_data->roi.x = 0;      // ROI:x coordinate of the top-left corner
-				target_data->roi.y = 0;      // ROI:y coordinate of the top-left corner
-				target_data->roi.width = 0;      // ROI:width of the rectangle
-				target_data->roi.height = 0;      // ROI:height of the rectangle
-			}
-#pragma endregion IMAGE_PROC
+			}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
 		}   // if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) else
 #pragma endregion PROCESS_TAGET
+
 	// 画像保存
 #pragma region PUT_IMAGE
 		// マスク画像1
@@ -688,8 +630,10 @@ int CAuxPol::parse() {
 			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_2),img_mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)]);
 		}
 		// 処理画像
-		CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), g_img_src.data_mat);
+		CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), g_img_src_work.data_mat);
 #pragma endregion PUT_IMAGE
+
+#if 0
 	// 振れ検出処理
 #pragma region SWAY_PROC
 		proc_sway();
@@ -700,7 +644,9 @@ int CAuxPol::parse() {
 #pragma endregion EXPOSURE_CONTROL
 	// 制御PCとのIF CHECK　MODE
 		if (maintenance_mode == CODE_POL_MAINTE_COMCHECK)   proc_comchk_mode();   
-	}
+#endif
+
+	}//if (g_sway_sensor_enable)
 	return S_OK;
 }
 int CAuxPol::output() {          //出力処理
@@ -714,70 +660,81 @@ int CAuxPol::close() {
 	return 0;
 }
 
+/// <summary>
+/// 作業用の画像バッファに画像を読み込む(g_img_src_work)
+/// 設定により保存済 bmpファイルかカメラ映像を選択取り込み
+/// </summary>
+/// <scenario>
+/// 画像ファイル選択時：
+/// 　　指定したファイルを直接matに読み込む　g_img_src_work.data_mat
+/// カメラ画像時:
+/// 　　カメラから画像を取得し、g_img_src_work.data_bgrに格納し、OpenCVのMatに変換してg_img_src_work.data_matに格納する
+/// </scenario>
+/// <param name=""></param>
+/// <returns></returns>
 uint32_t CAuxPol::get_opencv_image(void)
 {
 	//----------------------------------------------------------------------------
 	// 画像データ取得(画像ファイル)
 	if (gp_cnfg_common->img_source_camera != (uint32_t)ENUM_GRAB_IMAGE::GRAB_CAMERA) {	//画像ファイル読込
-		g_img_src.data_mat = cv::imread(CStrHelper::conv_string(gp_cnfg_common->img_source_fname));
-		if (g_img_src.data_mat.data != NULL) {
-			g_img_src.status |= (uint32_t)ENUM_IMAGE_STATUS::ENABLED;					// 画像ステータス:画像有効
-			g_img_src.width = g_img_src.data_mat.cols;									// 画像サイズ(水平画素) [pixel]
-			g_img_src.height = g_img_src.data_mat.rows;									// 画像サイズ(垂直画素) [pixel]
-			g_img_src.fps = gp_cnfg_camera->basis.framerate;							// 画像フレームレート[fps]
+		g_img_src_work.data_mat = cv::imread(CStrHelper::conv_string(gp_cnfg_common->img_source_fname));
+		if (g_img_src_work.data_mat.data != NULL) {
+			g_img_src_work.status |= (uint32_t)ENUM_IMAGE_STATUS::ENABLED;					// 画像ステータス:画像有効
+			g_img_src_work.width = g_img_src_work.data_mat.cols;									// 画像サイズ(水平画素) [pixel]
+			g_img_src_work.height = g_img_src_work.data_mat.rows;									// 画像サイズ(垂直画素) [pixel]
+			g_img_src_work.fps = gp_cnfg_camera->basis.framerate;							// 画像フレームレート[fps]
 		}
 		else {
-			g_img_src.status &= (~(uint32_t)ENUM_IMAGE_STATUS::ENABLED);					// 画像ステータス:画像有効
-			g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::X].size;   // 画像サイズ(水平画素) [pixel]
-			g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;	// 画像サイズ(垂直画素) [pixel]
-			g_img_src.fps = 0.0;                                                      // 画像フレームレート[fps]
+			g_img_src_work.status &= (~(uint32_t)ENUM_IMAGE_STATUS::ENABLED);					// 画像ステータス:画像有効
+			g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::X].size;   // 画像サイズ(水平画素) [pixel]
+			g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;	// 画像サイズ(垂直画素) [pixel]
+			g_img_src_work.fps = 0.0;                                                      // 画像フレームレート[fps]
 		}
 	}
 	else {
 		// 画像データ取得(カメラ)
-		if (g_img_src.data_bgr != NULL) {
-			if ((pCamera != NULL) &&
-				(!(gp_app_system->status & (uint32_t)(ENUM_SYSTEM_STATUS::CAMERA_RESET_RUN)))) { // カメラ再接続中
+		if (g_img_src_work.data_bgr != NULL) {//作業用画像バッファのポインタ有効
+			if ((pCamera != NULL) &&(!(gp_app_system->status & (uint32_t)(ENUM_SYSTEM_STATUS::CAMERA_RESET_RUN)))) { // カメラ再接続中
 				// 画像情報を取得
-				if ((pCamera->get_image(g_img_src.data_bgr) >= 0) &&
-					(pCamera->get_image_size(&g_img_src.width, &g_img_src.height) >= 0) &&
-					(pCamera->get_image_fps(&g_img_src.fps) >= 0)) {
-					g_img_src.status |= ((uint32_t)(ENUM_IMAGE_STATUS::ENABLED));            // 画像ステータス:画像有効
+				if ((pCamera->get_image(g_img_src_work.data_bgr) >= 0) &&									// 画像データ取得 0:成功、-:失敗
+					(pCamera->get_image_size(&g_img_src_work.width, &g_img_src_work.height) >= 0) &&		// 画像サイズ取得 0:成功、-:失敗
+					(pCamera->get_image_fps(&g_img_src_work.fps) >= 0)) {
+					g_img_src_work.status |= ((uint32_t)(ENUM_IMAGE_STATUS::ENABLED));            // 画像ステータス:画像有効
 				}
 				else {
-					g_img_src.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));						// 画像ステータス:画像有効
-					g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// 画像サイズ(水平画素) [pixel]
-					g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;		// 画像サイズ(垂直画素) [pixel]
-					g_img_src.fps = 0.0;                                                                // 画像フレームレート [fps]
-					ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE)); // 画像データバッファのポインタ(BGR 24bit)
+					g_img_src_work.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));						// 画像ステータス:画像有効
+					g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// 画像サイズ(水平画素) [pixel]
+					g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;		// 画像サイズ(垂直画素) [pixel]
+					g_img_src_work.fps = 0.0;                                                                // 画像フレームレート [fps]
+					ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE)); // 画像データバッファのポインタ(BGR 24bit)
 				}
 			}
 			else {
-				g_img_src.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));							// 画像ステータス:画像有効
-				g_img_src.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;				// 画像サイズ(水平画素) [pixel]
-				g_img_src.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// 画像サイズ(垂直画素) [pixel]
-				g_img_src.fps = 0.0;                                                                    // 画像フレームレート [fps]
-				ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));     // 画像データバッファのポインタ(BGR 24bit)
+				g_img_src_work.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));							// 画像ステータス:画像有効
+				g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// 画像サイズ(水平画素) [pixel]
+				g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// 画像サイズ(垂直画素) [pixel]
+				g_img_src_work.fps = 0.0;                                                                   // 画像フレームレート [fps]
+				ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));    // 画像データバッファのポインタ(BGR 24bit)
 			}
 
-			if (g_img_src.status & (uint32_t)ENUM_IMAGE_STATUS::ENABLED) {
+			if (g_img_src_work.status & (uint32_t)ENUM_IMAGE_STATUS::ENABLED) {
 				// OpenCV画像への変換
-				g_img_src.data_mat = cv::Mat(
-					g_img_src.height,
-					g_img_src.width,
+				g_img_src_work.data_mat = cv::Mat(
+					g_img_src_work.height,
+					g_img_src_work.width,
 					CV_8UC3,
-					g_img_src.data_bgr
+					g_img_src_work.data_bgr
 				);    // 画像データ(OpenCV変換画像)    
 			}
-		}   // if (g_img_src.data_bgr != NULL)
+		}   // if (g_img_src_work.data_bgr != NULL)
 		else {
-			g_img_src.status	&= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));				// 画像ステータス:画像有効
-			g_img_src.width		= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;	// 画像サイズ(水平画素) [pixel]
-			g_img_src.height	= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;	// 画像サイズ(垂直画素) [pixel]
-			g_img_src.fps		= 0.0;														// 画像フレームレート[fps]
+			g_img_src_work.status	&= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));				// 画像ステータス:画像有効
+			g_img_src_work.width		= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;	// 画像サイズ(水平画素) [pixel]
+			g_img_src_work.height	= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;	// 画像サイズ(垂直画素) [pixel]
+			g_img_src_work.fps		= 0.0;														// 画像フレームレート[fps]
 		} 
 	}
-	return g_img_src.status;
+	return g_img_src_work.status;
 }
 
 /// @brief 重心検出

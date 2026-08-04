@@ -39,6 +39,8 @@ typedef struct _TELI_CAM_STATUS {
     int32_t               control_status;
     int32_t               retry_count;
 
+    bool                  is_img_valid;     //
+    bool                  is_fps_valid;     //
     int32_t               camidx;           // カメラのインデックス
     Teli::CAM_HANDLE      camhndl;          // オープンしたカメラのカメラハンドル
     Teli::CAM_STRM_HANDLE strmhndl;         // オープンしたストリームインターフェースのストリームハンドル
@@ -172,12 +174,13 @@ public:
     std::wstring   get_camera_name(void);   // カメラ名の取得
     std::wstring   get_error_message(void); // エラーメッセージの取得
    
+    bool is_stat_img_valid();
     // カメラの情報
     uint32_t       camcount;    // 検出したカメラの数
     Teli::CAM_INFO m_caminfo;
    
-    TELI_CAM_CONFIG cnfg;       // カメラの設定
-    TELI_CAM_STATUS stat;
+ static   TELI_CAM_CONFIG cnfg;       // カメラの設定
+ static   TELI_CAM_STATUS stat;
     
 protected:
 
@@ -188,7 +191,7 @@ private:
     std::wstring       m_errmsg;    // エラーメッセージ
 
     // メンバー関数
-    int32_t get_caminfo_camindex(uint32_t camidx);  // カメラをオープンしたときのカメラのインデックスの取得
+    static int32_t get_caminfo_camindex(uint32_t camidx);  // カメラをオープンしたときのカメラのインデックスの取得
   
     static void CALLBACK cb_image_acquired(Teli::CAM_HANDLE hCam,
         Teli::CAM_STRM_HANDLE hStrm,

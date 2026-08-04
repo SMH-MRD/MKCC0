@@ -251,7 +251,7 @@ typedef struct TAG_CONFIG_COMMON {
     std::wstring img_output_fname;                  // 画像保存ファイル名
     double full_pix[(int)ENUM_AXIS::E_MAX];         // カメラのピクセルサイズ
     double view_angle_rad[(int)ENUM_AXIS::E_MAX];   // カメラの画角rad
-    double pix1rad[(int)ENUM_AXIS::E_MAX];          // 1radのPixel数
+    double PIXperRAD[(int)ENUM_AXIS::E_MAX];          // 1radのPixel数
 
     CONFIG_COMMON_IMAGE_SCREEN_LAYOUT img_screen_layout;    // 画像表示レイアウト設定
 
@@ -380,18 +380,17 @@ typedef struct TAG_CONFIG_IMGPROC_MASK {
 // 画像処理条件設定
 typedef struct TAG_CONFIG_IMGPROC {
     CONFIG_IMGPROC_ROI    roi;                                                      // ROI設定
-    CONFIG_IMGPROC_MASK   mask[static_cast<uint32_t>(ENUM_IMAGE_MASK::E_MAX)];      // マスク設定
-    CONFIG_IMGPROC_FILTER filter[static_cast<uint32_t>(ENUM_NOISE_FILTER::E_MAX)];  // ノイズフィルター(0=ゴマ塩, 1=穴埋め)
-    uint32_t              imgprc;                                                   // ターゲット検出アルゴリズム(0=最大輪郭面積, 1=最大輪郭長)
-    double                swayspdfilter;                                            // 振れ速度フィルター時定数
-    uint32_t              swayzeroset_time;                                         // 振れゼロ点設定(計測時間[ms])
-    double                PIXperRAD;                                                // 角度分解能
-
+    CONFIG_IMGPROC_MASK   mask[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];      // マスク設定
+    CONFIG_IMGPROC_FILTER filter[(uint32_t)(ENUM_NOISE_FILTER::E_MAX)];  // ノイズフィルター(0=ゴマ塩, 1=穴埋め)
+    uint32_t              imgprc;                                        // ターゲット検出アルゴリズム(0=最大輪郭面積, 1=最大輪郭長)
+    double                swayspdfilter;                                 // 振れ速度フィルター時定数
+    uint32_t              swayzeroset_time;                              // 振れゼロ点設定(計測時間[ms])
+ 
     TAG_CONFIG_IMGPROC()
         : imgprc(0)
         , swayspdfilter(0.0)
         , swayzeroset_time(0)
-        , PIXperRAD(2773.3)    
+         
     {}
 } CONFIG_IMGPROC, * PCONFIG_IMGPROC;
 

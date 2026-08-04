@@ -163,7 +163,7 @@ int CAuxEnv::parse() {
 }
 
 int CAuxEnv::output() {          //出力処理
-
+	pEnvInf->initialized = L_ON;
 	return S_OK;
 }
 
@@ -185,16 +185,16 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_common->full_pix[(int)ENUM_AXIS::Y] = CAM1_SPEC_PIXEL_V;
 	gp_cnfg_common->view_angle_rad[(int)ENUM_AXIS::X] = CAM1_SPEC_ANGLE_RAD_H;
 	gp_cnfg_common->view_angle_rad[(int)ENUM_AXIS::Y] = CAM1_SPEC_ANGLE_RAD_V;
-	gp_cnfg_common->pix1rad[(int)ENUM_AXIS::X] = CAM1_SPEC_PIXEL_H/CAM1_SPEC_ANGLE_RAD_H;
-	gp_cnfg_common->pix1rad[(int)ENUM_AXIS::Y] = CAM1_SPEC_PIXEL_V/CAM1_SPEC_ANGLE_RAD_V;
+	gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X] = CAM1_SPEC_PIXEL_H/CAM1_SPEC_ANGLE_RAD_H;
+	gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y] = CAM1_SPEC_PIXEL_V/CAM1_SPEC_ANGLE_RAD_V;
 
 
 	//##### CONFIG_CAMERA g_config_common ########
 	gp_cnfg_camera->basis.ipaddress = L"172.31.0.32";
 	// カメラのROI(領域)の設定
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].offset = gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].offset = 0;
-	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].size = 2048; 
-	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].size = 1536;
+	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].size = gp_cnfg_common->full_pix[(int)ENUM_AXIS::X];
+	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].size = gp_cnfg_common->full_pix[(int)ENUM_AXIS::Y];
 	gp_cnfg_camera->basis.packetsize= 0; 
 	//gp_cnfg_camera->basis.packetsize = pCamera->cnfg.packetsize = 0;
 	gp_cnfg_camera->basis.framerate			= 25.0;			//カメラのフレームレートの設定 フル画像では3fps　512x368で最大50fps位が上限
@@ -228,6 +228,7 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->expstime.auto_stop_h	= 245.0;	//自動露光判定輝度  (停止上限(この値より輝度が低い場合、停止する)　　[0 - 255]
 	gp_cnfg_camera->expstime.auto_stop_l	= 235.0;	//自動露光判定輝度  (停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
 	
+
 	//カメラの異常判定設定
 	gp_cnfg_camera->error.framedrop			= 15.0;			//カメラの異常判定設定(フレームレート低下の判定値[fps], 異常判定時間[msec])
 	gp_cnfg_camera->error.errtime			= 100;			//カメラの異常判定設定(フレームレート低下の判定値[fps], 異常判定時間[msec])
@@ -241,13 +242,17 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_imgprc->roi.valid = 1;		//画像ROI設定               (ROI有効設定(なし[0]/あり[1]),ROI倍率)
 	gp_cnfg_imgprc->roi.scale = 1,5;	//画像ROI設定               (ROI有効設定(なし[0]/あり[1]),ROI倍率)
 	
-	gp_cnfg_imgprc->mask[0].valid = 0;						//マスク画像選択(両方[0] / 画像1のみ[1] / 画像2のみ[2])
+	//マスク画像有効
+	gp_cnfg_imgprc->mask[0].valid = true;
+	gp_cnfg_imgprc->mask[1].valid = true;
+
 	//画像マスクH[0-179] (下限,上限)  画像マスクS[0-255](下限,上限) 画像1マスクV[0-255](下限,上限)
 	gp_cnfg_imgprc->mask[0].hsv_l[0] = 0;	gp_cnfg_imgprc->mask[0].hsv_l[1] = 50;	gp_cnfg_imgprc->mask[0].hsv_l[2] = 150;
 	gp_cnfg_imgprc->mask[0].hsv_u[0] = 30;	gp_cnfg_imgprc->mask[0].hsv_u[1] = 255; gp_cnfg_imgprc->mask[0].hsv_u[2] = 255;
 	gp_cnfg_imgprc->mask[1].hsv_l[0] = 50;	gp_cnfg_imgprc->mask[1].hsv_l[1] = 50;	gp_cnfg_imgprc->mask[1].hsv_l[2] = 150;
 	gp_cnfg_imgprc->mask[1].hsv_u[0] = 90;	gp_cnfg_imgprc->mask[1].hsv_u[1] = 255; gp_cnfg_imgprc->mask[1].hsv_u[2] = 255;
 
+	//filter設定
 	gp_cnfg_imgprc->filter[0].val	= 2;//ゴマ塩ノイズフィルター(フィルター設定(なし[0] / 中央値フィルター[1] / オープニング処理[2]), フィルター値(中央値フィルター[1, 3, 5, ...] / オープニング処理[1, 2, ...]))
 	gp_cnfg_imgprc->filter[0].type	= 2;
 	gp_cnfg_imgprc->filter[1].val	= 0;//穴埋めノイズフィルター(フィルター設定(なし[0] / クロージング処理[1]), フィルター値[1, 2, ...])

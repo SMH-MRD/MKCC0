@@ -25,7 +25,7 @@ PINFO_IMGPRC_DATA gp_app_imgprc;        // 画像処理情報
 PINFO_SYSTEM_DATA gp_app_system;        // システム情報
 
 CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
-IMAGE_DATA g_img_src;// 画像データバッファのポインタ(BGR 24bit)
+IMAGE_DATA g_img_src_work;// 作業用画像データ(BGR 24bit)
 
 //////////////////////////////////////////////////////////////////////////////
 // Public method
@@ -51,10 +51,10 @@ CSwayShared::CSwayShared(BOOL init)
   
     //----------------------------------------------------------------------------
     // カメラデータ受信バッファ準備
-    if (g_img_src.data_bgr == NULL) {
-        g_img_src.data_bgr = new (uint8_t[IMAGE_SIZE * IMAGE_FORMAT_SIZE]);                     // 画像データバッファのポインタ(BGR 24bit)
+    if (g_img_src_work.data_bgr == NULL) {
+        g_img_src_work.data_bgr = new (uint8_t[IMAGE_SIZE * IMAGE_FORMAT_SIZE]);                     // 画像データバッファのポインタ(BGR 24bit)
     }
-    ZeroMemory(g_img_src.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));         // The all clear the data area
+    ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));         // The all clear the data area
 
     //----------------------------------------------------------------------------
     // 共有データアクセス用クリティカルセクションの初期化
@@ -127,7 +127,7 @@ CSwayShared::CSwayShared(BOOL init)
 CSwayShared::~CSwayShared()
 {
 	delete pCamera;
-    delete g_img_src.data_bgr;
+    delete g_img_src_work.data_bgr;
 }
 
 /// @brief ini file読み込みパラメータ設定
@@ -1569,39 +1569,38 @@ BOOL CSwayShared::set_app_info_data(INFO_IMGPRC_DATA data)
     }
 
     for (uint32_t idx = 0; idx < static_cast<uint32_t>(ENUM_IMAGE_MASK::E_MAX); idx++) {
-        info_data->target_data[idx].valid = data.target_data[idx].valid;                    // 検出状態
-        info_data->target_data[idx].max_val = data.target_data[idx].max_val;                // 最大輝度
+        info_data->target_data[idx].valid                               = data.target_data[idx].valid;              // 検出状態
+        info_data->target_data[idx].max_val                             = data.target_data[idx].max_val;            // 最大輝度
         for (int axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-            info_data->target_data[idx].pos[axis] = data.target_data[idx].pos[axis];        // 検出位置[pixel]
+            info_data->target_data[idx].pos[axis]                       = data.target_data[idx].pos[axis];          // 検出位置[pixel]
         }
-        info_data->target_data[idx].size = data.target_data[idx].size;                      // 検出サイズ
-        info_data->target_data[idx].roi.x = data.target_data[idx].roi.x;                    // ROI:x coordinate of the top-left corner
-        info_data->target_data[idx].roi.y = data.target_data[idx].roi.y;                    // ROI:y coordinate of the top-left corner
-        info_data->target_data[idx].roi.width = data.target_data[idx].roi.width;            // ROI:width of the rectangle
-        info_data->target_data[idx].roi.height = data.target_data[idx].roi.height;          // ROI:height of the rectangle
+        info_data->target_data[idx].size                                = data.target_data[idx].size;               // 検出サイズ
+        info_data->target_data[idx].roi.x                               = data.target_data[idx].roi.x;              // ROI:x coordinate of the top-left corner
+        info_data->target_data[idx].roi.y                               = data.target_data[idx].roi.y;              // ROI:y coordinate of the top-left corner
+        info_data->target_data[idx].roi.width                           = data.target_data[idx].roi.width;          // ROI:width of the rectangle
+        info_data->target_data[idx].roi.height                          = data.target_data[idx].roi.height;         // ROI:height of the rectangle
 
-        info_data->target_data[idx].size_detected = data.target_data[idx].size_detected;    //
-        info_data->target_data[idx].size_expected = data.target_data[idx].size_expected;    //
-        info_data->target_data[idx].size_roi_spd_margin = data.target_data[idx].size_roi_spd_margin;  //
+        info_data->target_data[idx].size_detected                       = data.target_data[idx].size_detected;      //
+        info_data->target_data[idx].size_expected                       = data.target_data[idx].size_expected;      //
+        info_data->target_data[idx].size_roi_spd_margin                 = data.target_data[idx].size_roi_spd_margin;//
     }
 
     for (int axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-        info_data->sway_data[axis].target_pos = data.sway_data[axis].target_pos;            // ターゲット位置[pixel]
-        info_data->sway_data[axis].target_tilt = data.sway_data[axis].target_tilt;          // ターゲット傾き[pixel]
-        info_data->sway_data[axis].sway_angle = data.sway_data[axis].sway_angle;            // 振れ角[pixel]
-        info_data->sway_data[axis].sway_speed = data.sway_data[axis].sway_speed;            // 振れ速度[pixel/s]
-        info_data->sway_data[axis].sway_zero = data.sway_data[axis].sway_zero;              // 振れ中心[pixel]
+        info_data->sway_data[axis].target_pos                           = data.sway_data[axis].target_pos;          // ターゲット位置[pixel]
+        info_data->sway_data[axis].target_tilt                          = data.sway_data[axis].target_tilt;         // ターゲット傾き[pixel]
+        info_data->sway_data[axis].sway_angle                           = data.sway_data[axis].sway_angle;          // 振れ角[pixel]
+        info_data->sway_data[axis].sway_speed                           = data.sway_data[axis].sway_speed;          // 振れ速度[pixel/s]
+        info_data->sway_data[axis].sway_zero                            = data.sway_data[axis].sway_zero;           // 振れ中心[pixel]
     }
 
-    info_data->target_size = data.target_size;  // ターゲットサイズ(ターゲット検出データの平均)
-    info_data->status = data.status;       // 状態
-    info_data->img_fps = data.img_fps;      // フレームレート[fps]
-    info_data->img_val = data.img_val;      // 明度
-    info_data->exps_mode = data.exps_mode;    // シャッタコントロールモード(0:停止 1:Up -1:Down)
-    info_data->exps_time = data.exps_time;    // 露光時間[us]
+    info_data->target_size                                              = data.target_size;                         // ターゲットサイズ(ターゲット検出データの平均)
+    info_data->status                                                   = data.status;                              // 状態
+    info_data->img_fps                                                  = data.img_fps;                             // フレームレート[fps]
+    info_data->img_val                                                  = data.img_val;                             // 明度
+    info_data->exps_mode                                                = data.exps_mode;                           // シャッタコントロールモード(0:停止 1:Up -1:Down)
+    info_data->exps_time                                                = data.exps_time;                           // 露光時間[us]
 
-    info_data->mean_hsv = data.mean_hsv;
-
+    info_data->mean_hsv                                                 = data.mean_hsv;
 
     LeaveCriticalSection(&g_app_info.imgprc.cs);
 
@@ -1651,14 +1650,14 @@ BOOL CSwayShared::get_app_info_data(PINFO_IMGPRC_DATA data)
         data->sway_data[axis].sway_zero = info_data->sway_data[axis].sway_zero;   // 振れ中心[pixel]
     }
 
-    data->target_size = info_data->target_size; // ターゲットサイズ(ターゲット検出データの平均)
-    data->status = info_data->status;      // 状態
-    data->img_fps = info_data->img_fps;     // フレームレート[fps]
-    data->img_val = info_data->img_val;     // 明度
-    data->exps_mode = info_data->exps_mode;   // シャッタコントロールモード(0:停止 1:Up -1:Down)
-    data->exps_time = info_data->exps_time;   // 露光時間[us]
+    data->target_size   = info_data->target_size; // ターゲットサイズ(ターゲット検出データの平均)
+    data->status        = info_data->status;      // 状態
+    data->img_fps       = info_data->img_fps;     // フレームレート[fps]
+    data->img_val       = info_data->img_val;     // 明度
+    data->exps_mode     = info_data->exps_mode;   // シャッタコントロールモード(0:停止 1:Up -1:Down)
+    data->exps_time     = info_data->exps_time;   // 露光時間[us]
 
-    data->mean_hsv = info_data->mean_hsv;
+    data->mean_hsv      = info_data->mean_hsv;
 
     LeaveCriticalSection(&g_app_info.imgprc.cs);
 

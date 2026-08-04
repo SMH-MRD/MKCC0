@@ -46,6 +46,7 @@ typedef struct _ST_AUX_ENV_INF {
 	int lanio_enable;
 	int sway_sensor_enable;
 	int gt_sensor_enable;
+	int initialized = L_OFF;
 
 }ST_AUX_ENV_INF, * LPST_AUX_ENV_INF;
 

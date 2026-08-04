@@ -47,7 +47,7 @@ int g_gt_sensor_enable;//走行位置検出
 ST_DEVICE_CODE g_my_code;
 ST_APP_COMMON_PARAM g_app_common_param;//共通パラメータ
 
-extern IMAGE_DATA g_img_src;
+extern IMAGE_DATA g_img_src_work;
 
 static ST_KNL_MANAGE_SET    knl_manage_set;     //マルチスレッド管理用構造体
 static ST_AUXEQ_WND        st_work_wnd;        //センサーウィンドウ管理用構造体   
@@ -504,9 +504,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_USER_AUX_DISP_CAMERA_CHK://
     {
         if (wParam == WP_CODE_IMSHOW_SHOW) {
-            cv::namedWindow("g_img_src", cv::WINDOW_NORMAL);
-            cv::resizeWindow("g_img_src", 512, 384);
-            cv::imshow("g_img_src", g_img_src.data_mat);
+            cv::namedWindow("g_img_src_work", cv::WINDOW_NORMAL);
+            cv::resizeWindow("g_img_src_work", 512, 384);
+            cv::imshow("g_img_src_work", g_img_src_work.data_mat);
         }
         if (wParam == WP_CODE_IMSHOW_CLOSE) {
             cv::destroyAllWindows();
