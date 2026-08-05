@@ -227,27 +227,25 @@ int CAuxAgent::input() {
 
 static INT16 slbrk_healthy_hold, slbrk_healthy_cnt;
 int CAuxAgent::parse() {           //メイン処理
-	{//旋回ブレーキ処理
-		if (g_slbrk_enable) {
-			//ヘルシーチェック
-			if (slbrk_healthy_hold == pAgent_Inf->slbrk_rbuf[0]) {
-				if (!(slbrk_healthy_cnt & 0xF000)) slbrk_healthy_cnt++;
-			}
-			else slbrk_healthy_cnt = 0;
-			slbrk_healthy_hold = pAgent_Inf->slbrk_rbuf[0];
-
-			//ヘルシー異常検出
-			if (slbrk_healthy_cnt >= 50) pCS_Inf->fb_slbrk.healthy_err = L_ON;
-			else                         pCS_Inf->fb_slbrk.healthy_err = L_OFF;
+	//旋回ブレーキ処理
+	if (g_slbrk_enable) {
+		//ヘルシーチェック
+		if (slbrk_healthy_hold == pAgent_Inf->slbrk_rbuf[0]) {
+			if (!(slbrk_healthy_cnt & 0xF000)) slbrk_healthy_cnt++;
 		}
+		else slbrk_healthy_cnt = 0;
+		slbrk_healthy_hold = pAgent_Inf->slbrk_rbuf[0];
+
+		//ヘルシー異常検出
+		if (slbrk_healthy_cnt >= 50) pCS_Inf->fb_slbrk.healthy_err = L_ON;
+		else                         pCS_Inf->fb_slbrk.healthy_err = L_OFF;
 	}
+	
 
 	//GE Camera
-	{
-		if (g_sway_sensor_enable){
-			if ((!g_keepRunning) && (pAgent_Inf->st_ge_cam.retry_count == 0)) {
-				camera_capture_start();
-			}
+	if (g_sway_sensor_enable){
+		if ((!g_keepRunning) && (pAgent_Inf->st_ge_cam.retry_count == 0)) {
+			camera_capture_start();
 		}
 	}
 
@@ -255,37 +253,52 @@ int CAuxAgent::parse() {           //メイン処理
 }
 int CAuxAgent::output() {          //出力処理
 	//### MAINプロセスへ出力
-	LPST_PLC_RBUF_SBRK0 pfb = (LPST_PLC_RBUF_SBRK0)pAgent_Inf->slbrk_rbuf;
+	
+	if (g_slbrk_enable) {
+		LPST_PLC_RBUF_SBRK0 pfb = (LPST_PLC_RBUF_SBRK0)pAgent_Inf->slbrk_rbuf;
 
-	pCS_Inf->fb_slbrk.d16				= pAgent_Inf->slbrk_rbuf[0];			//旋回ブレーキフィードバックD16
-	pCS_Inf->fb_slbrk.d17				= pAgent_Inf->slbrk_rbuf[1];			//旋回ブレーキフィードバックD17
-	pCS_Inf->fb_slbrk.d18				= pAgent_Inf->slbrk_rbuf[2];			//旋回ブレーキフィードバックD18
-	pCS_Inf->fb_slbrk.d19				= pAgent_Inf->slbrk_rbuf[3];			//旋回ブレーキフィードバックD19
-	pCS_Inf->fb_slbrk.d20				= pfb->fb_WF_D20;						//旋回ブレーキフィードバックD20
+		pCS_Inf->fb_slbrk.d16 = pAgent_Inf->slbrk_rbuf[0];			//旋回ブレーキフィードバックD16
+		pCS_Inf->fb_slbrk.d17 = pAgent_Inf->slbrk_rbuf[1];			//旋回ブレーキフィードバックD17
+		pCS_Inf->fb_slbrk.d18 = pAgent_Inf->slbrk_rbuf[2];			//旋回ブレーキフィードバックD18
+		pCS_Inf->fb_slbrk.d19 = pAgent_Inf->slbrk_rbuf[3];			//旋回ブレーキフィードバックD19
+		pCS_Inf->fb_slbrk.d20 = pfb->fb_WF_D20;						//旋回ブレーキフィードバックD20
 
-	pCS_Inf->aux_helthy_cnt++;
+		pCS_Inf->aux_helthy_cnt++;
 
-	pCS_Inf->fb_slbrk.brk_fb_level		= pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
-	pCS_Inf->fb_slbrk.brk_fb_hw_brk		= pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHWブレーキ
-	pCS_Inf->fb_slbrk.brk_fb_autosel	= pAgent_Inf->slbrk_rbuf[0] & 0x0080;	//旋回ブレーキフィードバックAutoMode
-	pCS_Inf->fb_slbrk.brk_fb_emg		= pAgent_Inf->slbrk_rbuf[0] & 0x0040;	//旋回ブレーキフィードバック非常停止
-	pCS_Inf->fb_slbrk.brk_fb_time_over	= pAgent_Inf->slbrk_rbuf[1] & 0x0010;	//旋回ブレーキフィードバックタイムオーバー
-	pCS_Inf->fb_slbrk.brk_fb_release	= pAgent_Inf->slbrk_rbuf[0] & 0x0100;	//旋回ブレーキフィードバック解除
+		pCS_Inf->fb_slbrk.brk_fb_level = pAgent_Inf->slbrk_rbuf[0] & 0x000F;	//旋回ブレーキフィードバックレベル
+		pCS_Inf->fb_slbrk.brk_fb_hw_brk = pAgent_Inf->slbrk_rbuf[0] & 0x0010;	//旋回ブレーキフィードバックHWブレーキ
+		pCS_Inf->fb_slbrk.brk_fb_autosel = pAgent_Inf->slbrk_rbuf[0] & 0x0080;	//旋回ブレーキフィードバックAutoMode
+		pCS_Inf->fb_slbrk.brk_fb_emg = pAgent_Inf->slbrk_rbuf[0] & 0x0040;	//旋回ブレーキフィードバック非常停止
+		pCS_Inf->fb_slbrk.brk_fb_time_over = pAgent_Inf->slbrk_rbuf[1] & 0x0010;	//旋回ブレーキフィードバックタイムオーバー
+		pCS_Inf->fb_slbrk.brk_fb_release = pAgent_Inf->slbrk_rbuf[0] & 0x0100;	//旋回ブレーキフィードバック解除
 
-	pCS_Inf->fb_slbrk.brk_fb_sys_err	= pCS_Inf->fb_slbrk.d17		& 0x000F;	//旋回ブレーキフィードバックシステム異常
-	pCS_Inf->fb_slbrk.brk_fb_karaburi	= pCS_Inf->fb_slbrk.d20		& 0x0020;	//旋回ブレーキフィードバック空振
-	pCS_Inf->fb_slbrk.brk_fb_org_pt		= pCS_Inf->fb_slbrk.d20		& 0x0002;	//旋回ブレーキフィードバック原点復帰
-	pCS_Inf->fb_slbrk.brk_fb_rbsl_pos	= pCS_Inf->fb_slbrk.d19;				//旋回ブレーキフィードバック位置
+		pCS_Inf->fb_slbrk.brk_fb_sys_err = pCS_Inf->fb_slbrk.d17 & 0x000F;	//旋回ブレーキフィードバックシステム異常
+		pCS_Inf->fb_slbrk.brk_fb_karaburi = pCS_Inf->fb_slbrk.d20 & 0x0020;	//旋回ブレーキフィードバック空振
+		pCS_Inf->fb_slbrk.brk_fb_org_pt = pCS_Inf->fb_slbrk.d20 & 0x0002;	//旋回ブレーキフィードバック原点復帰
+		pCS_Inf->fb_slbrk.brk_fb_rbsl_pos = pCS_Inf->fb_slbrk.d19;				//旋回ブレーキフィードバック位置
 
-	//### 旋回ブレーキシステムへ出力
-	if (!st_mon2.slbrk_dbg_mode) {
-		pAgent_Inf->slbrk_wbuf[0] = 0;
-		pAgent_Inf->slbrk_wbuf[0] = 
-		pCS_Inf->com_slbrk.pc_com_brk_level	|
-		pCS_Inf->com_slbrk.pc_com_autosel	|
-		pCS_Inf->com_slbrk.pc_com_reset		| 
-		pCS_Inf->com_slbrk.pc_com_hw_brk ;
+		//### 旋回ブレーキシステムへ出力
+		if (!st_mon2.slbrk_dbg_mode) {
+			pAgent_Inf->slbrk_wbuf[0] = 0;
+			pAgent_Inf->slbrk_wbuf[0] =
+				pCS_Inf->com_slbrk.pc_com_brk_level |
+				pCS_Inf->com_slbrk.pc_com_autosel |
+				pCS_Inf->com_slbrk.pc_com_reset |
+				pCS_Inf->com_slbrk.pc_com_hw_brk;
+		}
 	}
+	
+	//### GE Camera
+	//シャッターコントロル
+	if (g_sway_sensor_enable) {
+		if ((gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_RESET_STEP) ||
+			(gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_ROI_MODE)) {
+			if ((pCamera->stat.apistat = Teli::SetCamExposureTime(pCamera->stat.camhndl, pCamera->stat.expstime)) != Teli::CAM_API_STS_SUCCESS) {
+				wos.str(L""); wos << L" Fail: SetExpsureTime  Code:" << pCamera->stat.apistat;
+			}
+		}
+	}
+
 	return STAT_OK;
 }
 int CAuxAgent::close() {

@@ -1,4 +1,4 @@
-#include "CAuxPol.h"
+ï»¿#include "CAuxPol.h"
 #include "CAuxEnv.h"
 #include "resource.h"
 #include "SmemAux.h"
@@ -8,36 +8,36 @@
 #include "CHelper.h"
 #include "CSwayShared.h"
 
-extern std::vector<void*> VectpCTaskObj;    // TaskObj‚Ìƒ|ƒCƒ“ƒ^
-extern BC_TASK_ID         g_task_index;     // TaskObj‚ÌƒCƒ“ƒfƒbƒNƒX
+extern std::vector<void*> VectpCTaskObj;    // TaskObjã®ãƒã‚¤ãƒ³ã‚¿
+extern BC_TASK_ID         g_task_index;     // TaskObjã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 
 
-//‘g‚İ‚İ‹@”\
-extern int g_slbrk_enable;//ù‰ñƒuƒŒ[ƒL
+//çµ„ã¿è¾¼ã¿æ©Ÿèƒ½
+extern int g_slbrk_enable;//æ—‹å›ãƒ–ãƒ¬ãƒ¼ã‚­
 extern int g_lanio_enable;//LANIO
-extern int g_sway_sensor_enable;//U‚êƒZƒ“ƒT[
-extern int g_gt_sensor_enable;//‘–sˆÊ’uŒŸo
+extern int g_sway_sensor_enable;//æŒ¯ã‚Œã‚»ãƒ³ã‚µãƒ¼
+extern int g_gt_sensor_enable;//èµ°è¡Œä½ç½®æ¤œå‡º
 
-// SwayƒZƒ“ƒTŠÖ˜A
-extern CTeliCamLib* pCamera;//GEƒJƒƒ‰ƒIƒuƒWƒFƒNƒg‚Ö‚ÌƒOƒ[ƒoƒ‹ƒ|ƒCƒ“ƒ^
+// Swayã‚»ãƒ³ã‚µé–¢é€£
+extern CTeliCamLib* pCamera;//GEã‚«ãƒ¡ãƒ©ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¸ã®ã‚°ãƒ­ãƒ¼ãƒãƒ«ãƒã‚¤ãƒ³ã‚¿
 extern CSwayShared* pSwaySharedObj;
 
-// ***ƒAƒvƒŠƒP[ƒVƒ‡ƒ“İ’èƒAƒNƒZƒXƒ|ƒCƒ“ƒ^
-extern PCONFIG_COMMON    gp_cnfg_common;        // ‹¤’Êİ’è
-extern PCONFIG_CAMERA    gp_cnfg_camera;        // ƒJƒƒ‰İ’è
-extern PCONFIG_MOUNTING  gp_cnfg_mounting;      // æ•t¡–@İ’è
-extern PCONFIG_IMGPROC   gp_cnfg_imgprc;		// ‰æ‘œˆ—ğŒİ’è
+// ***ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³è¨­å®šã‚¢ã‚¯ã‚»ã‚¹ãƒã‚¤ãƒ³ã‚¿
+extern PCONFIG_COMMON    gp_cnfg_common;        // å…±é€šè¨­å®š
+extern PCONFIG_CAMERA    gp_cnfg_camera;        // ã‚«ãƒ¡ãƒ©è¨­å®š
+extern PCONFIG_MOUNTING  gp_cnfg_mounting;      // å–ä»˜å¯¸æ³•è¨­å®š
+extern PCONFIG_IMGPROC   gp_cnfg_imgprc;		// ç”»åƒå‡¦ç†æ¡ä»¶è¨­å®š
 
-// ***ƒAƒvƒŠƒP[ƒVƒ‡ƒ“î•ñƒAƒNƒZƒXƒ|ƒCƒ“ƒ^  
-extern PINFO_IMGBUF_DATA gp_app_imgbuf[static_cast<uint32_t>(ENUM_IMAGE::E_MAX)];
-extern PINFO_CLIENT_DATA gp_app_client;        // ƒNƒ‰ƒCƒAƒ“ƒgî•ñ
-extern PINFO_ADJUST_DATA gp_app_adjust;        // ’²®î•ñ
-extern PINFO_IMGPRC_DATA gp_app_imgprc;        // ‰æ‘œˆ—î•ñ
-extern PINFO_SYSTEM_DATA gp_app_system;        // ƒVƒXƒeƒ€î•ñ
+// ***ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³æƒ…å ±ã‚¢ã‚¯ã‚»ã‚¹ãƒã‚¤ãƒ³ã‚¿  
+extern PINFO_IMGBUF_DATA gp_app_imgbuf[(uint32_t)(ENUM_IMAGE::E_MAX)];
+extern PINFO_CLIENT_DATA gp_app_client;        // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆæƒ…å ±
+extern PINFO_ADJUST_DATA gp_app_adjust;        // èª¿æ•´æƒ…å ±
+extern PINFO_IMGPRC_DATA gp_app_imgprc;        // ç”»åƒå‡¦ç†æƒ…å ±
+extern PINFO_SYSTEM_DATA gp_app_system;        // ã‚·ã‚¹ãƒ†ãƒ æƒ…å ±
 
 extern IMAGE_DATA g_img_src_work;
 
-static CAuxEnv * pAuxEnvObj;				// CAuxEnvƒCƒ“ƒXƒ^ƒ“ƒX‚Ìƒ|ƒCƒ“ƒ^
+static CAuxEnv * pAuxEnvObj;				// CAuxEnvã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ãƒã‚¤ãƒ³ã‚¿
 
 
 int32_t CAuxPol::maintenance_mode = CODE_POL_MAINTE_OFF;
@@ -48,7 +48,7 @@ ST_POL_MON1 CAuxPol::st_mon1;
 ST_POL_MON2 CAuxPol::st_mon2;
 ST_MOVE_AVE_DATA CAuxPol::m_move_avrg_data;	
 
-//‹¤—Lƒƒ‚ƒŠQÆ—p’è‹`
+//å…±æœ‰ãƒ¡ãƒ¢ãƒªå‚ç…§ç”¨å®šç¾©
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
 extern CSharedMem* pCsInfObj;
@@ -63,7 +63,7 @@ static LPST_AUX_POL_INF		pPolInf;
 
 
 /****************************************************************************/
-/*   ƒfƒtƒHƒ‹ƒgŠÖ”											                    */
+/*   ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆé–¢æ•°											                    */
 /****************************************************************************/
 CAuxPol::CAuxPol() {
 }
@@ -73,14 +73,14 @@ CAuxPol::~CAuxPol() {
 HRESULT CAuxPol::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
-	//### o—Í—p‹¤—Lƒƒ‚ƒŠæ“¾
+	//### å‡ºåŠ›ç”¨å…±æœ‰ãƒ¡ãƒ¢ãƒªå–å¾—
 	out_size = sizeof(ST_AUX_ENV_INF);
 	if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) {
 		return(FALSE);
 	}
 	set_outbuf(pEnvInfObj->get_pMap());
 
-	//### “ü—Í—p‹¤—Lƒƒ‚ƒŠæ“¾
+	//### å…¥åŠ›ç”¨å…±æœ‰ãƒ¡ãƒ¢ãƒªå–å¾—
 	if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) {
 		return(FALSE);
 	}
@@ -106,31 +106,31 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 		return hr;
 	};
 
-	//EnvInf‚Ì‰Šú‰»Š®—¹‘Ò‚¿
+	//EnvInfã®åˆæœŸåŒ–å®Œäº†å¾…ã¡
 	while(pEnvInf->initialized != L_ON) {
 		Sleep(100);
 	}
 
-	//U‚êƒZƒ“ƒT‹@”\ƒZƒbƒgƒAƒbƒv
+	//æŒ¯ã‚Œã‚»ãƒ³ã‚µæ©Ÿèƒ½ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—
 	if (g_sway_sensor_enable) {
 		init_sway_sensor();
-		//ƒ_ƒ~[‰æ‘œ‘‚«‚İ
+		//ãƒ€ãƒŸãƒ¼ç”»åƒæ›¸ãè¾¼ã¿
 		g_img_src_work.data_mat = cv::imread("C:\/Work\/NonImg.bmp");
 	}
 
-	//###  ƒIƒyƒŒ[ƒVƒ‡ƒ“ƒpƒlƒ‹İ’è
+	//###  ã‚ªãƒšãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‘ãƒãƒ«è¨­å®š
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1), BM_SETCHECK, BST_CHECKED, 0L);
 	for (int i = 1; i < 6; i++)
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1 + i), BM_SETCHECK, BST_UNCHECKED, 0L);
-	//ƒ‚[ƒhİ’è0
+	//ãƒ¢ãƒ¼ãƒ‰è¨­å®š0
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
-	//ƒ‚ƒjƒ^ƒEƒBƒ“ƒhƒEƒeƒLƒXƒg	
+	//ãƒ¢ãƒ‹ã‚¿ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ†ã‚­ã‚¹ãƒˆ	
 	set_item_chk_txt();
 	set_panel_tip_txt();
-	//ƒ‚ƒjƒ^2 CBó‘ÔƒZƒbƒg	
+	//ãƒ¢ãƒ‹ã‚¿2 CBçŠ¶æ…‹ã‚»ãƒƒãƒˆ	
 	if (st_mon2.hwnd_mon != NULL)
 		SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_CHECKED, 0L);
 	else
@@ -143,90 +143,92 @@ static double   coef_tg_size_w[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)][(uint32_t)(EN
 static double   coef_tg_size_h[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)][(uint32_t)(ENUM_AXIS::E_MAX)];
 
 static IMAGE_DATA img_src;
-static cv::Mat    img_roi; // Ø”²‚«‰æ‘œ
-static cv::Mat    img_hsv;
-static cv::Mat    img_hsv_bin;
-static cv::Mat    img_mask[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
+static cv::Mat    img_roi; // åˆ‡æŠœãç”»åƒ
+static cv::Mat    img_hsv_roi;
+static cv::Mat    img_hsv_bin_roi;
+static cv::Mat    img_mask_roi[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
 static cv::Mat    lut;
 
 HRESULT CAuxPol::init_sway_sensor(){
-	// ‰æ‘œˆ——p‰æ‘œƒf[ƒ^‰Šú‰»(‹N“®’¼Œã‚ÌƒGƒ‰[‰ñ”ğ—p)
+	// ç”»åƒå‡¦ç†ç”¨ç”»åƒãƒ‡ãƒ¼ã‚¿åˆæœŸåŒ–(èµ·å‹•ç›´å¾Œã®ã‚¨ãƒ©ãƒ¼å›é¿ç”¨)
 	cv::Mat init_img(2048, 1536, CV_8UC3, cv::Scalar(255, 0, 0));
 	for (int idx = 0; idx < (int)(ENUM_IMAGE::E_MAX); idx++) {
 		pSwaySharedObj->set_app_info_data(idx, init_img);
 	}
 
-	// ‹¤—Lƒf[ƒ^‰Šú‰»
+	// å…±æœ‰ãƒ‡ãƒ¼ã‚¿åˆæœŸåŒ–
 	for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-		gp_app_imgprc->target_data[idx].valid = FALSE;							// ŒŸoó‘Ô
-		gp_app_imgprc->target_data[idx].max_val = 0.0;							// Å‘å‹P“x
-		gp_app_imgprc->target_data[idx].size			= 0;					// ŒŸoƒTƒCƒY
+		gp_app_imgprc->target_data[idx].valid = FALSE;							// æ¤œå‡ºçŠ¶æ…‹
+		gp_app_imgprc->target_data[idx].max_val = 0.0;							// æœ€å¤§è¼åº¦
+		gp_app_imgprc->target_data[idx].size			= 0;					// æ¤œå‡ºã‚µã‚¤ã‚º
 		gp_app_imgprc->target_data[idx].roi.x			= 0;					// ROI:x coordinate of the top-left corner
 		gp_app_imgprc->target_data[idx].roi.y			= 0;					// ROI:y coordinate of the top-left corner
 		gp_app_imgprc->target_data[idx].roi.width		= 0;					// ROI:width of the rectangle
 		gp_app_imgprc->target_data[idx].roi.height		= 0;					// ROI:height of the rectangle
 
 		for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-			gp_app_imgprc->target_data[idx].pos[axis] = 0.0;					// ŒŸoˆÊ’u[pixel]
+			gp_app_imgprc->target_data[idx].pos[axis] = 0.0;					// æ¤œå‡ºä½ç½®[pixel]
 		}
 	}
 
 	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-		gp_app_imgprc->sway_data[axis].target_pos = 0.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-		gp_app_imgprc->sway_data[axis].target_tilt = 0.0;  // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-		gp_app_imgprc->sway_data[axis].sway_angle = 0.0;   // U‚êŠp[pixel]
-		gp_app_imgprc->sway_data[axis].sway_speed = 0.0;   // U‚ê‘¬“x[pixel/s]
-		gp_app_imgprc->sway_data[axis].sway_zero = 0.0;    // U‚ê’†S[pixel]
+		gp_app_imgprc->sway_data[axis].target_pos = 0.0;   // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[axis].target_tilt = 0.0;  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆå‚¾ã[pixel]
+		gp_app_imgprc->sway_data[axis].sway_angle = 0.0;   // æŒ¯ã‚Œè§’[pixel]
+		gp_app_imgprc->sway_data[axis].sway_speed = 0.0;   // æŒ¯ã‚Œé€Ÿåº¦[pixel/s]
+		gp_app_imgprc->sway_data[axis].sway_zero = 0.0;    // æŒ¯ã‚Œä¸­å¿ƒ[pixel]
 	}
 
-	gp_app_imgprc->target_size = 0.0;                                   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-	gp_app_imgprc->status = (uint32_t)(ENUM_PROCCESS_STATUS::DEFAULT);  // ŒŸoó‘Ô
-	gp_app_imgprc->img_fps = 0.0;                                       // ƒtƒŒ[ƒ€ƒŒ[ƒg
-	gp_app_imgprc->img_val = 0.0;                                       // –¾“x
-	gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;                   // ©“®˜IŒõƒRƒ}ƒ“ƒh(0:’â~ 1:Up -1:Down)
-	gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;            // ˜IŒõŠÔ[us]
+	gp_app_imgprc->target_size = 0.0;                                   // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚º(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®å¹³å‡)
+	gp_app_imgprc->status = (uint32_t)(ENUM_PROCCESS_STATUS::DEFAULT);  // æ¤œå‡ºçŠ¶æ…‹
+	gp_app_imgprc->img_fps = 0.0;                                       // ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆ
+	gp_app_imgprc->img_val = 0.0;                                       // æ˜åº¦
+	gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;                   // è‡ªå‹•éœ²å…‰ã‚³ãƒãƒ³ãƒ‰(0:åœæ­¢ 1:Up -1:Down)
+	gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;            // éœ²å…‰æ™‚é–“[us]
 	
 	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
 		gp_app_imgprc->sway_data[axis].sway_zero 
-			= (gp_cnfg_camera->basis.roi[axis].offset+ gp_cnfg_camera->basis.roi[axis].size) * 0.5;  //U‚êŒŸoROI‚Ì’†S[pixel]
+			= (gp_cnfg_camera->basis.roi[axis].offset+ gp_cnfg_camera->basis.roi[axis].size) * 0.5;  //æŒ¯ã‚Œæ¤œå‡ºROIã®ä¸­å¿ƒ[pixel]
 	}
 
 	//----------------------------------------------------------------------------
-	// ƒƒ“ƒo[•Ï”‚Ì‰Šú‰»
-	// ‹P“xˆÚ“®•½‹Ïƒf[ƒ^‰Šú‰»
+	// ãƒ¡ãƒ³ãƒãƒ¼å¤‰æ•°ã®åˆæœŸåŒ–
+	// è¼åº¦ç§»å‹•å¹³å‡ãƒ‡ãƒ¼ã‚¿åˆæœŸåŒ–
 	PST_MOVE_AVE_DATA pmove_avrg_data = &m_move_avrg_data;
-	ZeroMemory(pmove_avrg_data->data, sizeof(pmove_avrg_data->data)); // ƒf[ƒ^
-	pmove_avrg_data->wptr		= 0;		// ‘‚İƒ|ƒCƒ“ƒ^
-	pmove_avrg_data->data_count = 0;		// ƒf[ƒ^”
-	pmove_avrg_data->total_val	= 0;		// ‹P“xÏZ
-	pmove_avrg_data->max_val	= 0.0;		// Å‘å‹P“x(ˆÚ“®•½‹ÏŒã)
+	ZeroMemory(pmove_avrg_data->data, sizeof(pmove_avrg_data->data)); // ãƒ‡ãƒ¼ã‚¿
+	pmove_avrg_data->wptr		= 0;		// æ›¸è¾¼ã¿ãƒã‚¤ãƒ³ã‚¿
+	pmove_avrg_data->data_count = 0;		// ãƒ‡ãƒ¼ã‚¿æ•°
+	pmove_avrg_data->total_val	= 0;		// è¼åº¦ç©ç®—
+	pmove_avrg_data->max_val	= 0.0;		// æœ€å¤§è¼åº¦(ç§»å‹•å¹³å‡å¾Œ)
 
-	//ƒTƒ“ƒvƒŠƒ“ƒOüŠú
-	gp_app_system->sample_cycle = (double)inf.cycle_ms * 0.001; //ƒTƒ“ƒvƒŠƒ“ƒOüŠú[s]
+	//ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°å‘¨æœŸ
+	gp_app_system->sample_cycle = (double)inf.cycle_ms * 0.001; //ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°å‘¨æœŸ[s]
 		
 	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-		// U‚ê’†SŒv‘ªƒf[ƒ^
-		m_sway_zero_data.sway_min[axis]		= (double)((gp_cnfg_camera->basis.roi[axis].offset+ gp_cnfg_camera->basis.roi[axis].size));            // U‚êŠpÅ¬’l
-		m_sway_zero_data.sway_max[axis]		= 0.0;											// U‚êŠpÅ‘å’l
-		m_sway_zero_data.sway_zero[axis]	= gp_app_imgprc->sway_data[axis].sway_zero;    // U‚êƒ[ƒ“_
+		// æŒ¯ã‚Œä¸­å¿ƒè¨ˆæ¸¬ãƒ‡ãƒ¼ã‚¿
+		m_sway_zero_data.sway_min[axis]		= (double)((gp_cnfg_camera->basis.roi[axis].offset+ gp_cnfg_camera->basis.roi[axis].size));            // æŒ¯ã‚Œè§’æœ€å°å€¤
+		m_sway_zero_data.sway_max[axis]		= 0.0;											// æŒ¯ã‚Œè§’æœ€å¤§å€¤
+		m_sway_zero_data.sway_zero[axis]	= gp_app_imgprc->sway_data[axis].sway_zero;    // æŒ¯ã‚Œã‚¼ãƒ­ç‚¹
 
-		//@ROI@Margin	İ’è—pŒW” (U‚êŠp30‹‚Ì‚Æ‚«‚ÌPIXELU•)
-		//  Špü”g”‚ğŠ|‚¯‚Ä30‹U•U‚ê‚ÌU‚ê‘¬“xiPIX)U•‚ğ•]‰¿‚·‚é
+		//ã€€ROIã€€Margin	è¨­å®šç”¨ä¿‚æ•° (æŒ¯ã‚Œè§’30Â°ã®ã¨ãã®PIXELæŒ¯å¹…)
+		//  è§’å‘¨æ³¢æ•°ã‚’æ›ã‘ã¦30Â°æŒ¯å¹…æŒ¯ã‚Œã®æŒ¯ã‚Œé€Ÿåº¦ï¼ˆPIX)æŒ¯å¹…ã‚’è©•ä¾¡ã™ã‚‹
 		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X];
 		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y];
+		gp_app_adjust->g[(int)ENUM_AXIS::X] = GA;
+		gp_app_adjust->g[(int)ENUM_AXIS::Y] = GA;
 
 		for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-			// PIX’PˆÊƒ^[ƒQƒbƒgƒTƒCƒYŒvZ—pŒW”@‚±‚Ì’l‚ğ‹——£‚ÅŠ„‚é‚Æƒ^[ƒQƒbƒg‚ÌPIXELƒTƒCƒYŠú‘Ò’l‚ªZo‚³‚ê‚é
+			// PIXå˜ä½ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚ºè¨ˆç®—ç”¨ä¿‚æ•°ã€€ã“ã®å€¤ã‚’è·é›¢ã§å‰²ã‚‹ã¨ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®PIXELã‚µã‚¤ã‚ºæœŸå¾…å€¤ãŒç®—å‡ºã•ã‚Œã‚‹
 			coef_tg_size_w[idx][axis] = (double)gp_app_imgprc->target_data[idx].size_real.width * gp_cnfg_common->PIXperRAD[axis];
-			coef_tg_size_w[idx][axis] /= 1000.0;	//mm¨m•ÏŠ·
+			coef_tg_size_w[idx][axis] /= 1000.0;	//mmâ†’må¤‰æ›
 			coef_tg_size_h[idx][axis] = (double)gp_app_imgprc->target_data[idx].size_real.height * gp_cnfg_common->PIXperRAD[axis];
-			coef_tg_size_h[idx][axis] /= 1000.0;	//mm¨m•ÏŠ·
+			coef_tg_size_h[idx][axis] /= 1000.0;	//mmâ†’må¤‰æ›
 		}
 	}
 
 
-	// LUT Table ‰Šú‰»
-	lut = cv::Mat(256, 1, CV_8UC3); // LUT:Look Up Table@c‚É256‰æ‘fA‰¡‚É1‰æ‘f‚ÌAc‚É×’·‚¢3ƒ`ƒƒƒ“ƒlƒ‹iƒJƒ‰[j‰æ‘œ
+	// LUT Table åˆæœŸåŒ–
+	lut = cv::Mat(256, 1, CV_8UC3); // LUT:Look Up Tableã€€ç¸¦ã«256ç”»ç´ ã€æ¨ªã«1ç”»ç´ ã®ã€ç¸¦ã«ç´°é•·ã„3ãƒãƒ£ãƒ³ãƒãƒ«ï¼ˆã‚«ãƒ©ãƒ¼ï¼‰ç”»åƒ
 	return S_OK;
 }
 
@@ -244,16 +246,22 @@ HRESULT CAuxPol::routine_work(void* pObj) {
 
 int CAuxPol::input() {
 	if (g_sway_sensor_enable) {
-		//ƒJƒƒ‰]ƒ^[ƒQƒbƒgŠÔ‹——£iƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ìî•ñj
+		//ã‚«ãƒ¡ãƒ©â€ã‚¿ãƒ¼ã‚²ãƒƒãƒˆé–“è·é›¢ï¼ˆã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®æƒ…å ±ï¼‰
 		if (gp_app_adjust->target_distance_fixed)	gp_app_adjust->target_distance = 30.0;
 		else 										gp_app_adjust->target_distance = pCsInf->msg_client.body.d[0];
 
 		if (gp_app_adjust->target_distance != 0.0) {
-			double w = sqrt(GA/gp_app_adjust->target_distance);
-			gp_app_adjust->w[(int)ENUM_AXIS::X] = gp_app_adjust->w[(int)ENUM_AXIS::Y] = w;			//U‚êŠpü”g”
-			gp_app_adjust->T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = PI360/w;    //U‚êüŠú
+
+			//ãƒ­ãƒ¼ãƒ—ãƒ†ãƒ³ã‚·ãƒ§ãƒ³ã‚’è€ƒæ…®ã—ã¦gã‚’è»¸å˜ä½ã§åˆ†ã‘ã‚‰ã‚Œã‚‹ã‚ˆã†ã«ã—ã¦ãŠã
+			double wx = sqrt(gp_app_adjust->g[(int)ENUM_AXIS::X] /gp_app_adjust->target_distance);
+			double wy = sqrt(gp_app_adjust->g[(int)ENUM_AXIS::Y] /gp_app_adjust->target_distance);
+
+			gp_app_adjust->w[(int)ENUM_AXIS::X]  = wx;			//æŒ¯ã‚Œè§’å‘¨æ³¢æ•°
+			gp_app_adjust->T[(int)ENUM_AXIS::X]  = PI360/wx;    //æŒ¯ã‚Œå‘¨æœŸ
+			gp_app_adjust->w[(int)ENUM_AXIS::Y]  = wy;			//æŒ¯ã‚Œè§’å‘¨æ³¢æ•°
+			gp_app_adjust->T[(int)ENUM_AXIS::Y]  = PI360 / wy;   //æŒ¯ã‚Œå‘¨æœŸ
 		
-			//ƒ^[ƒQƒbƒgŒŸo—\’èŠp“x•iÀ¡–@/ƒ^[ƒQƒbƒg‚Æ‚Ì‹——£j
+			//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºäºˆå®šè§’åº¦å¹…ï¼ˆå®Ÿå¯¸æ³•/ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¨ã®è·é›¢ï¼‰
 			for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 				gp_app_imgprc->target_data[idx].size_expected.width  = (int)(coef_tg_size_w[idx][(int)ENUM_AXIS::X] / gp_app_adjust->target_distance);
 				gp_app_imgprc->target_data[idx].size_expected.height = (int)(coef_tg_size_h[idx][(int)ENUM_AXIS::Y] / gp_app_adjust->target_distance);
@@ -261,18 +269,18 @@ int CAuxPol::input() {
 		}
 		else {
 			gp_app_adjust->target_distance != GA;
-			gp_app_adjust->w[(int)ENUM_AXIS::X] = gp_app_adjust->w[(int)ENUM_AXIS::Y] = 1.0;		//U‚êŠpü”g”
-			gp_app_adjust->T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = 1.0;		//U‚êüŠú
+			gp_app_adjust->w[(int)ENUM_AXIS::X] = gp_app_adjust->w[(int)ENUM_AXIS::Y] = 1.0;		//æŒ¯ã‚Œè§’å‘¨æ³¢æ•°
+			gp_app_adjust->T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = 1.0;		//æŒ¯ã‚Œå‘¨æœŸ
 		}
 		
-		// ‰æ‘œæ‚İ@g_img_src_work.data_mat g_img_src_work.data_bgr
+		// ç”»åƒå–è¾¼ã¿ã€€g_img_src_work.data_mat g_img_src_work.data_bgr
 		uint32_t img_valid = get_opencv_image();
 
 		(img_valid & (uint32_t)(ENUM_IMAGE_STATUS::ENABLED)) ?	
-			(gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :				// ‰æ‘œˆ—ó‘Ô:‰æ‘œƒf[ƒ^—LŒø
-			(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)));			// ‰æ‘œˆ—ó‘Ô:‰æ‘œƒf[ƒ^–³Œø
+			(gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) :				// ç”»åƒå‡¦ç†çŠ¶æ…‹:ç”»åƒãƒ‡ãƒ¼ã‚¿æœ‰åŠ¹
+			(gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)));			// ç”»åƒå‡¦ç†çŠ¶æ…‹:ç”»åƒãƒ‡ãƒ¼ã‚¿ç„¡åŠ¹
 		
-		gp_app_imgprc->img_fps = g_img_src_work.fps;   // ƒtƒŒ[ƒ€ƒŒ[ƒg[fps]
+		gp_app_imgprc->img_fps = g_img_src_work.fps;   // ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆ[fps]
 	}
 
 	return S_OK;
@@ -281,7 +289,7 @@ int CAuxPol::input() {
 static bool chk_flg = FALSE;
 
 int CAuxPol::parse() {
-	cv::Scalar mean_val;    //“Ç‰æ‘fƒf[ƒ^‚Ì•½‹Ï’l
+	cv::Scalar mean_val;    //èª­è¾¼ç”»ç´ ãƒ‡ãƒ¼ã‚¿ã®å¹³å‡å€¤
 	uint32_t   width = 0;
 	uint32_t   height = 0;
 	uint32_t   mask_low[(uint32_t)(ENUM_HSV_MODEL::E_MAX)];
@@ -290,366 +298,480 @@ int CAuxPol::parse() {
 	std::vector<cv::Mat> planes;
 
 	if (g_sway_sensor_enable) {
-	// ŒŸoˆ—
-#pragma region PROCESS_TAGET
+//# æ¤œå‡ºå‡¦ç†
 		if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) {
-
-			if (!gp_cnfg_imgprc->roi.valid) {//ROIˆ—–³Œø‘I‘ğ
-				cv::cvtColor(g_img_src_work.data_mat, img_hsv, cv::COLOR_BGR2HSV);//Œ³mat‰æ‘œ‚ğ’¼Úhsv‰æ‘œ‚É•ÏŠ·
+			//ROIå‡¦ç†ç„¡åŠ¹é¸æŠæ™‚
+			if (!gp_cnfg_imgprc->roi.valid) {
+				cv::cvtColor(g_img_src_work.data_mat, img_hsv_roi, cv::COLOR_BGR2HSV);//å…ƒmatç”»åƒã‚’ç›´æ¥hsvç”»åƒã«å¤‰æ›
 			}
+#pragma region ãƒã‚¹ã‚¯ç”»åƒã®ç”Ÿæˆ å„ãƒãƒ£ãƒ³ãƒãƒ«ã”ã¨ã«2å€¤åŒ–ã—3ãƒãƒ£ãƒ³ãƒãƒ«å…¨ã¦ã®ANDã‚’å–ã‚Šãƒã‚¹ã‚¯ç”»åƒã‚’ä½œæˆã™ã‚‹
+			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) { //Maskç”»åƒ1(èµ¤è‰²ã‚¿ãƒ¼ã‚²ãƒƒãƒˆï¼‰,2(ç·‘è‰²ã‚¿ãƒ¼ã‚²ãƒƒãƒˆï¼‰ã‚’ç”Ÿæˆ	
 
-//#####  ƒ}ƒXƒN‰æ‘œ‚Ì¶¬ Šeƒ`ƒƒƒ“ƒlƒ‹‚²‚Æ‚É2’l‰»(LUT•ÏŠ·)‚µ3ƒ`ƒƒƒ“ƒlƒ‹‘S‚Ä‚ÌAND‚ğæ‚èAƒ}ƒXƒN‰æ‘œ‚ğì¬‚·‚é
-			{
-				for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) { //Mask‰æ‘œ1(ÔFƒ^[ƒQƒbƒgj,2(—ÎFƒ^[ƒQƒbƒgj‚ğ¶¬	
+				PTARGET_DATA ptarget_data = &gp_app_imgprc->target_data[idx];// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿
 
-					PTARGET_DATA ptarget_data = &gp_app_imgprc->target_data[idx];// ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^
-					
-					if (!gp_cnfg_imgprc->mask[idx].valid) {		//ƒ}ƒXƒN‚Ì valid‚ÍA‰Šúİ’è‚ÅƒZƒbƒg@Šî–{ true—LŒø
-						ptarget_data->max_val = 0.0; continue;  // ƒ}ƒXƒNˆ—–³Œø‚È‚Ì‚ÅÅ‘å‹P“x@0‚ÅƒXƒ‹[
-					}
-
-				// ## ROI‚Ì”ÍˆÍ(’·•ûŒ`)‚ğİ’è‚·‚é (x, y, width, height)‚Åw’è
-					if (gp_cnfg_imgprc->roi.valid) {			//roi‚Ì valid‚ÍA‰Šúİ’è‚ÅƒZƒbƒg@Šî–{ true—LŒøˆ——LŒø
-						if (ptarget_data->valid) {				//target_data‚Ì valid‚ÍAdS‰‰Z‚Ì³íŠ®—¹‚Åƒ^[ƒQƒbƒgˆÊ’u‚ª‹‚Ü‚Á‚Ä‚¢‚½‚çƒZƒbƒg
-							// ROI‚ÌU‚êŠp‘¬“xˆÚ“®•â’lŒvZ
-							if (gp_app_adjust->target_distance != 0.0) {//ƒJƒƒ‰[ƒ^[ƒQƒbƒgŠÔ‹——£‚Ìî•ñƒAƒŠ¨30‹U‚êŠp‘¬“xU•(Špü”g”~U‚êŠpPIXEL’PˆÊU•j~2@
-								ptarget_data->size_roi_spd_margin.width	= (int)(gp_app_adjust->w[(int)ENUM_AXIS::X] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X]) *2;
-								ptarget_data->size_roi_spd_margin.height= (int)(gp_app_adjust->w[(int)ENUM_AXIS::Y] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y]) *2;
-							}
-							else {//ƒJƒƒ‰[ƒ^[ƒQƒbƒgŠÔ‹——£‚Ìî•ñ–³‚µ¨‰ºŒÀİ’è’lŒÅ’è
-								ptarget_data->size_roi_spd_margin.width = ptarget_data->size_roi_spd_margin.height = SWAY_SENSOR_ROI_MIN_W;
-							}
-							// …•½•ûŒü@ROI‚Ì”ÍˆÍ‚ğ‰æ–Ê‚©‚ç‚Í‚İo‚³‚È‚¢‚æ‚¤‚ÉŠJnˆÊ’uŒˆ’è
-							{	//roi‚Ì•‚ÍAƒ^[ƒQƒbƒg‚ÌŠú‘ÒƒTƒCƒY{U‚êŠp‘¬“x•â’l‚ÅŒˆ’è‚·‚é
-								int32_t roi_size = (int32_t)(ptarget_data->size_expected.width)	+ ptarget_data->size_roi_spd_margin.width;
-								if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src_work.width))) {
-									roi_size = g_img_src_work.width;//ƒTƒCƒYŒvZ’l‚ª”ÍˆÍŠO‚Ìê‡‚ÍA‰æ–Ê•‚Éİ’è
-								};
-								if (roi_size < SWAY_SENSOR_ROI_MIN_W) {
-									roi_size = SWAY_SENSOR_ROI_MIN_W;//ƒTƒCƒY‰ºŒÀƒŠƒ~ƒbƒg
-								};
-								int32_t tmp_val = roi_size / 2; //roi size‚Ì”¼•ª
-								if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val) <= 0) {
-									ptarget_data->roi.x = 0;//ROI‚ÌŠJnˆÊ’u‚ª‰æ–Ê¶’[‚æ‚è¶‚És‚©‚È‚¢‚æ‚¤‚É‚·‚é
-								}
-								else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) + tmp_val) > (int32_t)(g_img_src_work.width)) {
-									ptarget_data->roi.x = g_img_src_work.width - roi_size;//ROI‚ÌŠJnˆÊ’u‚ª‰æ–Ê‰E’[‚æ‚è‰E‚És‚©‚È‚¢‚æ‚¤‚É‚·‚é
-								}
-								else {
-									ptarget_data->roi.x = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val;
-								}
-								ptarget_data->roi.width = roi_size;
-							}
-							// ‚’¼•ûŒü@ROI‚Ì”ÍˆÍ‚ğ‰æ–Ê‚©‚ç‚Í‚İo‚³‚È‚¢‚æ‚¤‚ÉŠJnˆÊ’uŒˆ’è
-							{//roi‚Ì‚‚³‚ÍAƒ^[ƒQƒbƒg‚ÌŠú‘ÒƒTƒCƒY{U‚êŠp‘¬“x•â’l‚ÅŒˆ’è‚·‚é
-								int32_t roi_size = (int32_t)(ptarget_data->size_expected.height)+ ptarget_data->size_roi_spd_margin.height;
-								if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src_work.height))) {
-									roi_size = g_img_src_work.height;//ƒTƒCƒYŒvZ’l‚ª”ÍˆÍŠO‚Ìê‡‚ÍA‰æ–Ê‚‚³‚Éİ’è
-								};
-								if (roi_size < SWAY_SENSOR_ROI_MIN_H) {
-									roi_size = SWAY_SENSOR_ROI_MIN_H;//ƒTƒCƒY‰ºŒÀƒŠƒ~ƒbƒg
-								};
-								int32_t tmp_val = roi_size / 2;
-								if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val) <= 0) {
-									ptarget_data->roi.y = 0;//ROI‚ÌŠJnˆÊ’u‚ª‰æ–Êã’[‚æ‚èã‚És‚©‚È‚¢‚æ‚¤‚É‚·‚é
-								}
-								else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) + tmp_val) > (int32_t)(g_img_src_work.height)) {
-									ptarget_data->roi.y = g_img_src_work.height - roi_size;//ROI‚ÌŠJnˆÊ’u‚ª‰æ–Ê‰º’[‚æ‚è‰º‚És‚©‚È‚¢‚æ‚¤‚É‚·‚é
-								}
-								else {
-									ptarget_data->roi.y = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val;
-								}
-								ptarget_data->roi.height = roi_size;
-							}
-							ptarget_data->range_over_count = SWAY_SENSOR_RANGE_OVER_COUNT;
-						}   // if (target_data->valid)
-						else {//dS‰‰Z‚Ì–¢Š®—¹‚Åƒ^[ƒQƒbƒgˆÊ’u‚ª‹‚Ü‚Á‚Ä‚¢‚È‚¢ê‡‚ÍAROI‚ğ‰æ–Ê‘S‘Ì‚Éİ’è‚·‚é
-							ptarget_data->roi.x = 0;ptarget_data->roi.y = 0;
-							ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
-						}   // if (target_data->valid) else
-					} // ROIˆ——LŒøƒ‚[ƒh@if (gp_cnfg_imgprc->roi.valid)
-					else {//ROIˆ—–³Œøƒ‚[ƒh‚ÅROI‚ğ‰æ–Ê‘S‘Ì‚Éİ’è‚·‚é
-						ptarget_data->roi.x = 0;ptarget_data->roi.y = 0;
-						ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
-					}   // if (gp_cnfg_imgprc->roi.valid) else
-
-				// ## HSV•ÏŠ·‚µ‚½•”•ª‰æ‘œ‚ğ¶¬
-					//@!! •”•ª‰æ‘œ‚Æ‚»‚ÌŒ³‰æ‘œ‚Í‹¤’Ê‚Ì‰æ‘œƒf[ƒ^‚ğQÆ‚·‚é‚½‚ß •”•ª‰æ‘œ‚É•ÏX‚ğ‰Á‚¦‚é‚ÆŒ³‰æ‘œ‚à•ÏX‚³‚ê‚éB
-					img_roi = g_img_src_work.data_mat(ptarget_data->roi);
-					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV); // ‰æ‘œF‚ğBGR¨HSV‚É•ÏŠ·‰æ‘œ‚ğƒZƒbƒg
-
-				// ## 3ƒ`ƒƒƒ“ƒlƒ‹‚ÌLUT:Look Up Table ì¬
-					//gp_app_imgprc->mean_hsv = cv::mean(img_hsv);        //Šeƒ`ƒƒƒ“ƒlƒ‹‚Ì•½‹Ï’l@Œ»İ–¢g—p
-					//ƒ}ƒXƒLƒ“ƒOƒtƒBƒ‹ƒ^’lƒZƒbƒg
-					for (uint32_t i = 0; i < (uint32_t)(ENUM_HSV_MODEL::E_MAX); i++) {//è‡’l‚ÍSCAD‰æ–Ê‚ÌƒXƒ‰ƒCƒ_‚Åİ’è‚Å‚«‚é—l‚É‚·‚é‚Ì‚Å‚±‚±‚ÅƒZƒbƒg
-						if (i == (uint32_t)(ENUM_HSV_MODEL::V)) {// Vƒ`ƒƒƒ“ƒlƒ‹‚ÍA’²®‚·‚é‚©‚àEEE‚µ‚ê‚È‚¢
-							mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVƒ}ƒXƒN”»’è’l(‰ºŒÀ)
-							mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVƒ}ƒXƒN”»’è’l(ãŒÀ)
-						}else {
-							mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVƒ}ƒXƒN”»’è’l(‰ºŒÀ)
-							mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVƒ}ƒXƒN”»’è’l(ãŒÀ)
-						}
-					}
-					// LTUƒe[ƒuƒ‹ì¬@256‚Ì”z—ñ‚É‚»‚ÌƒCƒ“ƒfƒbƒNƒX‚Ì‹P“x‚ª0‚©255‚ğ“ü‚ê‚é
-					for (uint32_t i = 0; i < 256; i++) {
-						//ãŒÀ’l@‰ºŒÀ’l‚ªŒÂ•Êİ’è‚É‚È‚Á‚Ä‚¢‚é‚Ì‚ÅãŒÀİ’è<‰ºŒÀİ’è‚Æ‚È‚Á‚Ä‚¢‚é‚ª‚ ‚é
-						for (uint32_t k = 0; k < (uint32_t)(ENUM_HSV_MODEL::E_MAX); k++) {
-							if (mask_low[k] <= mask_upp[k]) { //‰ºŒÀ’l<=ãŒÀ’l@
-								((mask_low[k] <= i) && (i <= mask_upp[k])) ? lut.data[i * lut.step + k] = 255 : //Ë@‰ºŒÀ’l <= i and i<=ãŒÀ’l‚Å255(ON) : i‚ªã‰ºŒÀ’l‚ÌŠÔ‚É‚ ‚é
-																			 lut.data[i * lut.step + k] = 0;    //Ë@i‚ªã‰ºŒÀ’l‚ÌŠÔ‚É–³‚¢
-							}
-							else {//‰ºŒÀ’l >ãŒÀ’l @‰ºŒÀ’l >=ãŒÀ’l(H‚Ì0•t‹ß—pj) 
-								((i <= mask_upp[k]) || (mask_low[k] <= i)) ? lut.data[i * lut.step + k] = 255 : //Ë@‰ºŒÀ’l <= i or i <= ãŒÀ’l‚Å255
-																			 lut.data[i * lut.step + k] = 0;
-							}
-						}
-					}
-
-				// ## ƒ`ƒƒƒ“ƒlƒ‹‚²‚Æ‚ÌLUT•ÏŠ·(Šeƒ`ƒƒƒ“ƒlƒ‹‚²‚Æ‚É2’l‰»ˆ—) img_hsv‚ÍroiƒTƒCƒY‚É‚È‚Á‚Ä‚¢‚é
-					//LUT:Look Up Table “ü—Í‰æ‘f’l‚ªlut‚ÌƒCƒ“ƒfƒbƒNƒX‚Æ‚È‚èAlut‚Ì’l‚ªo—Í‰æ‘f’l‚Æ‚È‚éB
-					// 256‚Ì”z—ñ‚É‚»‚ÌƒCƒ“ƒfƒbƒNƒX‚Ì‹P“x‚ª0‚©255‚ğ“ü‚ê‚é‚Ì‚ÅAŠeƒ`ƒƒƒ“ƒlƒ‹‚²‚Æ‚É2’l‰»‚³‚ê‚é
-					cv::LUT(img_hsv, lut, img_hsv_bin);
-
-				// ## ƒ}ƒXƒN‰æ‘œ‚Ìì¬
-					cv::split(img_hsv_bin, planes); // ƒ`ƒƒƒ“ƒlƒ‹‚²‚Æ‚É2’l‰»‚³‚ê‚½‰æ‘œ‚ğ‚»‚ê‚¼‚ê‚Ìƒ`ƒƒƒ“ƒlƒ‹‚É•ª‰ğ‚·‚é
-
-
-					cv::bitwise_and(planes[(uint32_t)(ENUM_HSV_MODEL::H)], planes[(uint32_t)(ENUM_HSV_MODEL::V)], img_mask[idx]);
-					cv::bitwise_and(img_mask[idx], planes[(uint32_t)(ENUM_HSV_MODEL::S)], img_mask[idx]);
-
-					// Å‘å‹P“x’Šo
-					//img_hsv‚ÍroiƒTƒCƒY‚É‚È‚Á‚Ä‚¢‚é
-					cv::split(img_hsv, planes);
-					// Vƒ`ƒƒƒ“ƒlƒ‹‚ÌÅ‘å’l‚ğæ‚è‚Ş
-					cv::minMaxLoc(planes[(uint32_t)(ENUM_HSV_MODEL::V)], NULL, &ptarget_data->max_val);
-
-				}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
-
- }//CREATE_MASK_IMAGE
-		 //----------------------------------------------------------------------------
-		// ƒmƒCƒYœ‹
-		// ƒKƒEƒXƒtƒBƒ‹ƒ^ –¢g—p
-#if 0
-			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-				if (gp_cnfg_imgprc->mask[idx].valid) {
-					cv::GaussianBlur(img_mask[idx], img_mask[idx], cv::Size(5, 5), 0, 0);
+				if (!gp_cnfg_imgprc->mask[idx].valid) {		//ãƒã‚¹ã‚¯ã® validã¯ã€åˆæœŸè¨­å®šã§ã‚»ãƒƒãƒˆã€€åŸºæœ¬ trueæœ‰åŠ¹
+					ptarget_data->max_val = 0.0; continue;  // ãƒã‚¹ã‚¯å‡¦ç†ç„¡åŠ¹ãªã®ã§æœ€å¤§è¼åº¦ã€€0ã§ã‚¹ãƒ«ãƒ¼
 				}
-			}
-#endif       
-			// ƒSƒ}‰–iOpening or ’†‰›’lj
-#pragma region NOISE_CUT_1
-#if 0
-			switch (gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].type) {
-				case (uint32_t)(ENUM_NOISE_FILTER1::MEDIAN) :     // ’†‰›’lƒtƒBƒ‹ƒ^[
-					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-						if (gp_cnfg_imgprc->mask[idx].valid) {
-							cv::medianBlur(img_mask[idx],
-								img_mask[idx],
-								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val);
-						}
-					}
-				break;
-				case (uint32_t)(ENUM_NOISE_FILTER1::OPENNING) :   // ƒI[ƒvƒjƒ“ƒOˆ—(k¬¨Šg‘å)
-					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-						if (gp_cnfg_imgprc->mask[idx].valid) {
-							//                  cv::morphologyEx(img_mask[idx],
-							//                                   img_mask[idx],
-							//                                   MORPH_OPEN,
-							//                                   cv::Mat(),
-							//                                   cv::Point(-1,-1),
-							//                                   m_imgprcparam.filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val);
-							cv::erode(img_mask[idx],
-								img_mask[idx],
-								cv::Mat(),
-								cv::Point(-1, -1),
-								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val);    // ûk
-							cv::dilate(img_mask[idx],
-								img_mask[idx],
-								cv::Mat(),
-								cv::Point(-1, -1),
-								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val);   // –c’£
-						}
 
+				// ## ROIã®ç¯„å›²(é•·æ–¹å½¢)ã‚’è¨­å®šã™ã‚‹ (x, y, width, height)ã§æŒ‡å®š
+				if (gp_cnfg_imgprc->roi.valid) {			//roiã® validã¯ã€åˆæœŸè¨­å®šã§ã‚»ãƒƒãƒˆã€€åŸºæœ¬ trueæœ‰åŠ¹å‡¦ç†æœ‰åŠ¹
+					if (ptarget_data->valid) {				//target_dataã® validã¯ã€é‡å¿ƒæ¼”ç®—ã®æ­£å¸¸å®Œäº†ã§ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®ãŒæ±‚ã¾ã£ã¦ã„ãŸã‚‰ã‚»ãƒƒãƒˆ
+						// ROIã®æŒ¯ã‚Œè§’é€Ÿåº¦ç§»å‹•è£œå„Ÿå€¤è¨ˆç®—
+						if (gp_app_adjust->target_distance != 0.0) {//ã‚«ãƒ¡ãƒ©ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆé–“è·é›¢ã®æƒ…å ±ã‚¢ãƒªâ†’30Â°æŒ¯ã‚Œè§’é€Ÿåº¦æŒ¯å¹…(è§’å‘¨æ³¢æ•°Ã—æŒ¯ã‚Œè§’PIXELå˜ä½æŒ¯å¹…ï¼‰Ã—2ã€€
+							ptarget_data->size_roi_spd_margin.width = (int)(gp_app_adjust->w[(int)ENUM_AXIS::X] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X]) * 2;
+							ptarget_data->size_roi_spd_margin.height = (int)(gp_app_adjust->w[(int)ENUM_AXIS::Y] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y]) * 2;
+						}
+						else {//ã‚«ãƒ¡ãƒ©ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆé–“è·é›¢ã®æƒ…å ±ç„¡ã—â†’ä¸‹é™è¨­å®šå€¤å›ºå®š
+							ptarget_data->size_roi_spd_margin.width = ptarget_data->size_roi_spd_margin.height = SWAY_SENSOR_ROI_MIN_W;
+						}
+						// æ°´å¹³æ–¹å‘ã€€ROIã®ç¯„å›²ã‚’ç”»é¢ã‹ã‚‰ã¯ã¿å‡ºã•ãªã„ã‚ˆã†ã«é–‹å§‹ä½ç½®æ±ºå®š
+						{	//roiã®å¹…ã¯ã€ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®æœŸå¾…ã‚µã‚¤ã‚ºï¼‹æŒ¯ã‚Œè§’é€Ÿåº¦è£œå„Ÿå€¤ã§æ±ºå®šã™ã‚‹
+							int32_t roi_size = (int32_t)(ptarget_data->size_expected.width) + ptarget_data->size_roi_spd_margin.width;
+							if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src_work.width))) {
+								roi_size = g_img_src_work.width;//ã‚µã‚¤ã‚ºè¨ˆç®—å€¤ãŒç¯„å›²å¤–ã®å ´åˆã¯ã€ç”»é¢å¹…ã«è¨­å®š
+							};
+							if (roi_size < SWAY_SENSOR_ROI_MIN_W) {
+								roi_size = SWAY_SENSOR_ROI_MIN_W;//ã‚µã‚¤ã‚ºä¸‹é™ãƒªãƒŸãƒƒãƒˆ
+							};
+							int32_t tmp_val = roi_size / 2; //roi sizeã®åŠåˆ†
+							if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val) <= 0) {
+								ptarget_data->roi.x = 0;//ROIã®é–‹å§‹ä½ç½®ãŒç”»é¢å·¦ç«¯ã‚ˆã‚Šå·¦ã«è¡Œã‹ãªã„ã‚ˆã†ã«ã™ã‚‹
+							}
+							else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) + tmp_val) > (int32_t)(g_img_src_work.width)) {
+								ptarget_data->roi.x = g_img_src_work.width - roi_size;//ROIã®é–‹å§‹ä½ç½®ãŒç”»é¢å³ç«¯ã‚ˆã‚Šå³ã«è¡Œã‹ãªã„ã‚ˆã†ã«ã™ã‚‹
+							}
+							else {
+								ptarget_data->roi.x = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]) - tmp_val;
+							}
+							ptarget_data->roi.width = roi_size;
+						}
+						// å‚ç›´æ–¹å‘ã€€ROIã®ç¯„å›²ã‚’ç”»é¢ã‹ã‚‰ã¯ã¿å‡ºã•ãªã„ã‚ˆã†ã«é–‹å§‹ä½ç½®æ±ºå®š
+						{//roiã®é«˜ã•ã¯ã€ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®æœŸå¾…ã‚µã‚¤ã‚ºï¼‹æŒ¯ã‚Œè§’é€Ÿåº¦è£œå„Ÿå€¤ã§æ±ºå®šã™ã‚‹
+							int32_t roi_size = (int32_t)(ptarget_data->size_expected.height) + ptarget_data->size_roi_spd_margin.height;
+							if ((roi_size <= 0) || (roi_size > (int32_t)(g_img_src_work.height))) {
+								roi_size = g_img_src_work.height;//ã‚µã‚¤ã‚ºè¨ˆç®—å€¤ãŒç¯„å›²å¤–ã®å ´åˆã¯ã€ç”»é¢é«˜ã•ã«è¨­å®š
+							};
+							if (roi_size < SWAY_SENSOR_ROI_MIN_H) {
+								roi_size = SWAY_SENSOR_ROI_MIN_H;//ã‚µã‚¤ã‚ºä¸‹é™ãƒªãƒŸãƒƒãƒˆ
+							};
+							int32_t tmp_val = roi_size / 2;
+							if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val) <= 0) {
+								ptarget_data->roi.y = 0;//ROIã®é–‹å§‹ä½ç½®ãŒç”»é¢ä¸Šç«¯ã‚ˆã‚Šä¸Šã«è¡Œã‹ãªã„ã‚ˆã†ã«ã™ã‚‹
+							}
+							else if (((int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) + tmp_val) > (int32_t)(g_img_src_work.height)) {
+								ptarget_data->roi.y = g_img_src_work.height - roi_size;//ROIã®é–‹å§‹ä½ç½®ãŒç”»é¢ä¸‹ç«¯ã‚ˆã‚Šä¸‹ã«è¡Œã‹ãªã„ã‚ˆã†ã«ã™ã‚‹
+							}
+							else {
+								ptarget_data->roi.y = (int32_t)(ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]) - tmp_val;
+							}
+							ptarget_data->roi.height = roi_size;
+						}
+						ptarget_data->range_over_count = SWAY_SENSOR_RANGE_OVER_COUNT;
+					}   // if (target_data->valid)
+					else {//é‡å¿ƒæ¼”ç®—ã®æœªå®Œäº†ã§ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®ãŒæ±‚ã¾ã£ã¦ã„ãªã„å ´åˆã¯ã€ROIã‚’ç”»é¢å…¨ä½“ã«è¨­å®šã™ã‚‹
+						ptarget_data->roi.x = 0; ptarget_data->roi.y = 0;
+						ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
+					}   // if (target_data->valid) else
+				} // ROIå‡¦ç†æœ‰åŠ¹ãƒ¢ãƒ¼ãƒ‰ã€€if (gp_cnfg_imgprc->roi.valid)
+				else {//ROIå‡¦ç†ç„¡åŠ¹ãƒ¢ãƒ¼ãƒ‰ã§ROIã‚’ç”»é¢å…¨ä½“ã«è¨­å®šã™ã‚‹
+					ptarget_data->roi.x = 0; ptarget_data->roi.y = 0;
+					ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
+				}   // if (gp_cnfg_imgprc->roi.valid) else
+
+			// ## HSVå¤‰æ›ã—ãŸéƒ¨åˆ†ç”»åƒã‚’ç”Ÿæˆ
+				//ã€€!! éƒ¨åˆ†ç”»åƒã¨ãã®å…ƒç”»åƒã¯å…±é€šã®ç”»åƒãƒ‡ãƒ¼ã‚¿ã‚’å‚ç…§ã™ã‚‹ãŸã‚ éƒ¨åˆ†ç”»åƒã«å¤‰æ›´ã‚’åŠ ãˆã‚‹ã¨å…ƒç”»åƒã‚‚å¤‰æ›´ã•ã‚Œã‚‹ã€‚
+				img_roi = g_img_src_work.data_mat(ptarget_data->roi);
+				cv::cvtColor(img_roi, img_hsv_roi, cv::COLOR_BGR2HSV); // ç”»åƒè‰²ã‚’BGRâ†’HSVã«å¤‰æ›ç”»åƒã‚’ã‚»ãƒƒãƒˆ
+
+				// ## 3ãƒãƒ£ãƒ³ãƒãƒ«ã®LUT:Look Up Table ä½œæˆ
+					//gp_app_imgprc->mean_hsv = cv::mean(img_hsv_roi);        //å„ãƒãƒ£ãƒ³ãƒãƒ«ã®å¹³å‡å€¤ã€€ç¾åœ¨æœªä½¿ç”¨
+					//ãƒã‚¹ã‚­ãƒ³ã‚°ãƒ•ã‚£ãƒ«ã‚¿å€¤ã‚»ãƒƒãƒˆ
+				for (uint32_t i = 0; i < (uint32_t)(ENUM_HSV_MODEL::E_MAX); i++) {//é–¾å€¤ã¯SCADç”»é¢ã®ã‚¹ãƒ©ã‚¤ãƒ€ã§è¨­å®šã§ãã‚‹æ§˜ã«ã™ã‚‹ã®ã§ã“ã“ã§ã‚»ãƒƒãƒˆ
+					if (i == (uint32_t)(ENUM_HSV_MODEL::V)) {// Vãƒãƒ£ãƒ³ãƒãƒ«ã¯ã€èª¿æ•´ã™ã‚‹ã‹ã‚‚ãƒ»ãƒ»ãƒ»ã—ã‚Œãªã„
+						mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVãƒã‚¹ã‚¯åˆ¤å®šå€¤(ä¸‹é™)
+						mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVãƒã‚¹ã‚¯åˆ¤å®šå€¤(ä¸Šé™)
+					}
+					else {
+						mask_low[i] = gp_cnfg_imgprc->mask[idx].hsv_l[i]; // HSVãƒã‚¹ã‚¯åˆ¤å®šå€¤(ä¸‹é™)
+						mask_upp[i] = gp_cnfg_imgprc->mask[idx].hsv_u[i]; // HSVãƒã‚¹ã‚¯åˆ¤å®šå€¤(ä¸Šé™)
+					}
+				}
+				// LTUãƒ†ãƒ¼ãƒ–ãƒ«ä½œæˆã€€256ã®é…åˆ—ã«ãã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®è¼åº¦ãŒ0ã‹255ã‚’å…¥ã‚Œï¼’å€¤åŒ–ã™ã‚‹
+				for (uint32_t i = 0; i < 256; i++) {
+					//ä¸Šé™å€¤ã€€ä¸‹é™å€¤ãŒå€‹åˆ¥è¨­å®šã«ãªã£ã¦ã„ã‚‹ã®ã§ä¸Šé™è¨­å®š<ä¸‹é™è¨­å®šã¨ãªã£ã¦ã„ã‚‹æ™‚ãŒã‚ã‚‹
+					for (uint32_t k = 0; k < (uint32_t)(ENUM_HSV_MODEL::E_MAX); k++) {
+						if (mask_low[k] <= mask_upp[k]) { //ä¸‹é™å€¤<=ä¸Šé™å€¤ã€€
+							((mask_low[k] <= i) && (i <= mask_upp[k])) ? lut.data[i * lut.step + k] = 255 : //â‡’ã€€ä¸‹é™å€¤ <= i and i<=ä¸Šé™å€¤ã§255(ON) : iãŒä¸Šä¸‹é™å€¤ã®é–“ã«ã‚ã‚‹æ™‚
+								lut.data[i * lut.step + k] = 0;    //â‡’ã€€iãŒä¸Šä¸‹é™å€¤ã®é–“ã«ç„¡ã„æ™‚
+						}
+						else {//ä¸‹é™å€¤ >ä¸Šé™å€¤ @ä¸‹é™å€¤ >=ä¸Šé™å€¤(Hã®0ä»˜è¿‘ç”¨ï¼‰) 
+							((i <= mask_upp[k]) || (mask_low[k] <= i)) ? lut.data[i * lut.step + k] = 255 : //â‡’ã€€ä¸‹é™å€¤ <= i or i <= ä¸Šé™å€¤ã§255
+								lut.data[i * lut.step + k] = 0;
+						}
+					}
+				}
+
+				// ## ãƒãƒ£ãƒ³ãƒãƒ«ã”ã¨ã®LUTå¤‰æ›(å„ãƒãƒ£ãƒ³ãƒãƒ«ã”ã¨ã«2å€¤åŒ–å‡¦ç†) img_hsv_roiã¯roiã‚µã‚¤ã‚ºã«ãªã£ã¦ã„ã‚‹
+					//LUT:Look Up Table å…¥åŠ›ç”»ç´ å€¤ãŒlutã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã¨ãªã‚Šã€lutã®å€¤ãŒå‡ºåŠ›ç”»ç´ å€¤ã¨ãªã‚‹ã€‚
+					// 256ã®é…åˆ—ã«ãã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®è¼åº¦ãŒ0ã‹255ã‚’å…¥ã‚Œã‚‹ã®ã§ã€å„ãƒãƒ£ãƒ³ãƒãƒ«ã”ã¨ã«2å€¤åŒ–ã•ã‚Œã‚‹
+				cv::LUT(img_hsv_roi, lut, img_hsv_bin_roi);
+
+				// ## ãƒã‚¹ã‚¯ç”»åƒã®ä½œæˆ
+				cv::split(img_hsv_bin_roi, planes); // ãƒãƒ£ãƒ³ãƒãƒ«ã”ã¨ã«2å€¤åŒ–ã•ã‚ŒãŸç”»åƒã‚’ãã‚Œãã‚Œã®ãƒãƒ£ãƒ³ãƒãƒ«ã«åˆ†è§£ã™ã‚‹
+				//Hãƒãƒ£ãƒ³ãƒãƒ«ã¨Vãƒãƒ£ãƒ³ãƒãƒ«ã®ANDã‚’å–ã‚Šã€ã•ã‚‰ã«Sãƒãƒ£ãƒ³ãƒãƒ«ã®ANDã‚’å–ã‚‹ã“ã¨ã§ã€H,S,Vå…¨ã¦ã®æ¡ä»¶ã‚’æº€ãŸã™ç”»ç´ ã®ã¿ãŒ255ã¨ãªã‚‹ãƒã‚¹ã‚¯ç”»åƒã‚’ä½œæˆã™ã‚‹
+				cv::bitwise_and(planes[(uint32_t)(ENUM_HSV_MODEL::H)], planes[(uint32_t)(ENUM_HSV_MODEL::V)], img_mask_roi[idx]);
+				cv::bitwise_and(img_mask_roi[idx], planes[(uint32_t)(ENUM_HSV_MODEL::S)], img_mask_roi[idx]);
+
+				// ## ROIå†…æœ€å¤§è¼åº¦æŠ½å‡º
+				cv::split(img_hsv_roi, planes);// ãƒãƒ£ãƒ³ãƒãƒ«ã”ã¨ã«2å€¤åŒ–å‰ã®HSVç”»åƒã‚’ãã‚Œãã‚Œã®ãƒãƒ£ãƒ³ãƒãƒ«ã«åˆ†è§£ã™ã‚‹
+				//void cv::minMaxLoc(
+				//	cv::InputArray src,       // å…¥åŠ›è¡Œåˆ—ï¼ˆå˜ä¸€ãƒãƒ£ãƒ³ãƒãƒ«ã®ã¿ï¼‰
+				//	double* minVal,           // æœ€å°å€¤ã‚’æ ¼ç´ã™ã‚‹å¤‰æ•°ã¸ã®ãƒã‚¤ãƒ³ã‚¿ï¼ˆä¸è¦ãªã‚‰ NULL ã¾ãŸã¯ nullptrï¼‰
+				//	double* maxVal = 0,       // æœ€å¤§å€¤ã‚’æ ¼ç´ã™ã‚‹å¤‰æ•°ã¸ã®ãƒã‚¤ãƒ³ã‚¿ï¼ˆä¸è¦ãªã‚‰ nullptrï¼‰
+				//	cv::Point* minLoc = 0,    // æœ€å°å€¤ã®åº§æ¨™ã‚’æ ¼ç´ã™ã‚‹æ§‹é€ ä½“ã¸ã®ãƒã‚¤ãƒ³ã‚¿ï¼ˆä¸è¦ãªã‚‰ nullptrï¼‰
+				//	cv::Point* maxLoc = 0,    // æœ€å¤§å€¤ã®åº§æ¨™ã‚’æ ¼ç´ã™ã‚‹æ§‹é€ ä½“ã¸ã®ãƒã‚¤ãƒ³ã‚¿ï¼ˆä¸è¦ãªã‚‰ nullptrï¼‰
+				//	cv::InputArray mask = cv::noArray() // æ¢ç´¢ç¯„å›²ã‚’é™å®šã™ã‚‹ãƒã‚¹ã‚¯ç”»åƒï¼ˆã‚ªãƒ—ã‚·ãƒ§ãƒ³ï¼‰
+				//);
+				cv::minMaxLoc(planes[(uint32_t)(ENUM_HSV_MODEL::V)], NULL, &ptarget_data->max_val);// Vãƒãƒ£ãƒ³ãƒãƒ«ã®æœ€å¤§å€¤ã‚’å–ã‚Šè¾¼ã‚€
+			}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
+
+#pragma endregion MASK CREATE
+
+#pragma region ãƒã‚¤ã‚ºé™¤å»
+
+#pragma region ã‚´ãƒå¡©é™¤å»ï¼ˆClosing or ä¸­å¤®å€¤ or GAUSS or MORPHOLOGYï¼‰
+			switch (gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].type) {
+				case (uint32_t)(ENUM_NOISE_FILTER1::MEDIAN) :
+					//ä¸­å¤®å€¤ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼::ã‚¬ã‚¦ã‚¹ã¼ã‹ã—ï¼ˆcv::GaussianBlurï¼‰ãŒç”»åƒå…¨ä½“ã‚’ãªã‚ã‚‰ã‹ã«ã¼ã‹ã™ã®ã«å¯¾ã—ã€
+					// ãƒ¡ãƒ‡ã‚£ã‚¢ãƒ³ãƒ•ã‚£ãƒ«ã‚¿ã¯ã€Œã‚¨ãƒƒã‚¸ï¼ˆè¼ªéƒ­ï¼‰ã‚’ãã£ãã‚Šæ®‹ã—ãŸã¾ã¾ã€ãƒã‚¤ã‚ºã ã‘ã‚’å¼·åŠ›ã«é™¤å»ã™ã‚‹ã€ã¨ã„ã†å¼·ã„å€‹æ€§ã‚’æŒã£ã¦ã„ã¾ã™ã€‚
+					// ç‰¹ã«ã€ç”»åƒã«ãƒãƒ„ãƒãƒ„ã¨ç¾ã‚Œã‚‹ã€Œã”ã¾å¡©ãƒã‚¤ã‚ºï¼ˆSalt - and -pepper noiseï¼‰ã€ã®é™¤å»ã«çµ¶å¤§ãªåŠ¹æœã‚’ç™ºæ®ã—ã¾ã™ã€‚
+					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+						if (gp_cnfg_imgprc->mask[idx].valid) {//ãƒã‚¹ã‚¯ã® validã¯ã€åˆæœŸè¨­å®šã§ã‚»ãƒƒãƒˆã€€åŸºæœ¬ trueæœ‰åŠ¹
+
+							//void cv::medianBlur(
+							//	cv::InputArray src, // å…¥åŠ›ç”»åƒï¼ˆ1, 3, 4ãƒãƒ£ãƒ³ãƒãƒ«å¯¾å¿œã€‚å‹ã¯ CV_8U, CV_16U, CV_32F ç­‰ã€‚â€»ãƒãƒ£ãƒ³ãƒãƒ«æ•°ã«ã‚ˆã‚Šåˆ¶é™ã‚ã‚Šï¼‰
+							//	cv::OutputArray dst, // å‡ºåŠ›ç”»åƒï¼ˆå…¥åŠ›ç”»åƒã¨åŒã˜ã‚µã‚¤ã‚ºãƒ»åŒã˜å‹ï¼‰
+							//	int ksize            // ã‚«ãƒ¼ãƒãƒ«ã‚µã‚¤ã‚ºï¼ˆæ­£ã®å¥‡æ•°ã€‚1ã‚ˆã‚Šå¤§ãã„å¥‡æ•°: 3, 5, 7, 9...ï¼‰
+							//);
+							cv::medianBlur(img_mask_roi[idx], img_mask_roi[idx], gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val);
+						}
 					}
 				break;
+				case (uint32_t)(ENUM_NOISE_FILTER1::OPENNING) :   // ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°å‡¦ç†(ç¸®å°â†’æ‹¡å¤§)
+					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+						if (gp_cnfg_imgprc->mask[idx].valid) {//ãƒã‚¹ã‚¯ã® validã¯ã€åˆæœŸè¨­å®šã§ã‚»ãƒƒãƒˆã€€åŸºæœ¬ trueæœ‰åŠ¹
+	
+							//# åç¸®ã¨è†¨å¼µã®çµ„ã¿åˆã‚ã›ã§ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°å‡¦ç†ã‚’è¡Œã†
+							
+							//void cv::erode(
+							//	cv::InputArray src,       // å…¥åŠ›ç”»åƒï¼ˆé€šå¸¸ã¯äºŒå€¤åŒ–ç”»åƒï¼‰
+							//	cv::OutputArray dst,      // å‡ºåŠ›ç”»åƒï¼ˆã‚µã‚¤ã‚ºã¨å‹ã¯åŒã˜ï¼‰
+							//	cv::InputArray kernel,    // æ§‹é€ è¦ç´ ï¼ˆã‚«ãƒ¼ãƒãƒ«ï¼‰
+							//	cv::Point anchor = cv::Point(-1, -1), // ã‚¢ãƒ³ã‚«ãƒ¼ä½ç½®ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ä¸­å¿ƒï¼‰
+							//	int iterations = 1,       // å®Ÿè¡Œå›æ•°ï¼ˆç¹°ã‚Šè¿”ã™ã»ã©ç™½ãŒå‰Šã‚Œã¦ç´°ããªã‚‹ï¼‰
+							//	int borderType = cv::BORDER_CONSTANT,
+							//	const cv::Scalar& borderValue = cv::morphologyDefaultBorderValue()
+							//);
+							cv::erode(img_mask_roi[idx],// åç¸®:ç™½ã„é ˜åŸŸã‚’ã€Œå‰Šã‚‹ï¼ˆå‘¨å›²ã‚’é»’ã«ã™ã‚‹ï¼‰ã€å‡¦ç†ã§ã™ã€‚
+								img_mask_roi[idx],
+								cv::Mat(),			// ã‚«ãƒ¼ãƒãƒ«ï¼ˆæ§‹é€ è¦ç´ ï¼‰ã‚’æŒ‡å®šã—ãªã„å ´åˆã¯ã€3x3ã®æ­£æ–¹å½¢ã®ã‚«ãƒ¼ãƒãƒ«ãŒä½¿ç”¨ã•ã‚Œã¾ã™ã€‚
+								cv::Point(-1, -1),	// ã‚¢ãƒ³ã‚«ãƒ¼ä½ç½® ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ=ä¸­å¿ƒ
+								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val//å®Ÿè¡Œå›æ•°ï¼ˆç¹°ã‚Šè¿”ã™ã»ã©ç™½ãŒå‰Šã‚Œã¦ç´°ããªã‚‹ï¼‰
+							);    // åç¸®
+							
+							//void cv::dilate(
+							//	cv::InputArray src,       // å…¥åŠ›ç”»åƒï¼ˆé€šå¸¸ã¯äºŒå€¤åŒ–ç”»åƒï¼‰
+							//	cv::OutputArray dst,      // å‡ºåŠ›ç”»åƒï¼ˆã‚µã‚¤ã‚ºã¨å‹ã¯åŒã˜ï¼‰
+							//	cv::InputArray kernel,    // æ§‹é€ è¦ç´ ï¼ˆã‚«ãƒ¼ãƒãƒ«ï¼‰
+							//	cv::Point anchor = cv::Point(-1, -1), // ã‚¢ãƒ³ã‚«ãƒ¼ä½ç½®ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ä¸­å¿ƒï¼‰
+							//	int iterations = 1,       // å®Ÿè¡Œå›æ•°ï¼ˆç¹°ã‚Šè¿”ã™ã»ã©ç™½ãŒå¤ªããªã‚‹ï¼‰
+							//	int borderType = cv::BORDER_CONSTANT,
+							//	const cv::Scalar& borderValue = cv::morphologyDefaultBorderValue()
+							//);
+							cv::dilate(img_mask_roi[idx],//è†¨å¼µï¼šç™½ã„é ˜åŸŸã‚’ã€Œå¤ªã‚‰ã›ã‚‹ï¼ˆå‘¨å›²ã‚’ç™½ã«ã™ã‚‹ï¼‰ã€å‡¦ç†ã§ã™ã€‚åç¸®ã§å‰Šã‚‰ã‚ŒãŸç™½ã„é ˜åŸŸã‚’å…ƒã®å¤§ãã•ã«æˆ»ã™ãŸã‚ã«ä½¿ç”¨ã•ã‚Œã¾ã™ã€‚
+								img_mask_roi[idx],
+								cv::Mat(),// ã‚«ãƒ¼ãƒãƒ«ï¼ˆæ§‹é€ è¦ç´ ï¼‰ã‚’æŒ‡å®šã—ãªã„å ´åˆã¯ã€3x3ã®æ­£æ–¹å½¢ã®ã‚«ãƒ¼ãƒãƒ«ãŒä½¿ç”¨ã•ã‚Œã¾ã™ã€‚
+								cv::Point(-1, -1),// ã‚¢ãƒ³ã‚«ãƒ¼ä½ç½® ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ=ä¸­å¿ƒ
+								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val//å®Ÿè¡Œå›æ•°ï¼ˆç¹°ã‚Šè¿”ã™ã»ã©ç™½ãŒå¤ªããªã‚‹ï¼‰
+							);   // è†¨å¼µ
+						}
+					}
+				break;
+				case (uint32_t)(ENUM_NOISE_FILTER2::GAUSS) :// ã‚¬ã‚¦ã‚¹ãƒ•ã‚£ãƒ«ã‚¿
+				{
+					//ç”»åƒã«ã‚¬ã‚¦ã‚¹ã¼ã‹ã—ï¼ˆGaussian Blurï¼‰ã‚’é©ç”¨ã™ã‚‹é–¢æ•°ã§ã™ã€‚
+					//ç”»åƒã®ãƒã‚¤ã‚ºé™¤å»ã‚„ã€è¼ªéƒ­æŠ½å‡ºï¼ˆã‚¨ãƒƒã‚¸æ¤œå‡ºï¼‰ã®äº‹å‰å‡¦ç†ã¨ã—ã¦ã€ç”»åƒå‡¦ç†ã®ä¸­ã§æœ€ã‚‚é »ç¹ã«ä½¿ã‚ã‚Œã‚‹å¹³æ»‘åŒ–ï¼ˆã¼ã‹ã—ï¼‰æ‰‹æ³•ã®ä¸€ã¤ã§ã™ã€‚
+					//void cv::GaussianBlur(
+					//	cv::InputArray src,     // å…¥åŠ›ç”»åƒï¼ˆãƒãƒ£ãƒ³ãƒãƒ«æ•°ã¯ä»»æ„ã€å‹ã¯ CV_8U, CV_16U, CV_16S, CV_32F, CV_64Fï¼‰
+					//	cv::OutputArray dst,    // å‡ºåŠ›ç”»åƒï¼ˆå…¥åŠ›ç”»åƒã¨åŒã˜ã‚µã‚¤ã‚ºãƒ»åŒã˜å‹ï¼‰
+					//	cv::Size ksize,         // ã‚«ãƒ¼ãƒãƒ«ã‚µã‚¤ã‚ºï¼ˆã¼ã‹ã™ç¯„å›²ã€‚å¹…ã¨é«˜ã•ã€‚å¿…ãšæ­£ã®å¥‡æ•°ï¼‰
+					//	double sigmaX,          // Xæ–¹å‘ã®æ¨™æº–åå·®ï¼ˆã¼ã‹ã—ã®å¼·ã•ï¼‰
+					//	double sigmaY = 0,      // Yæ–¹å‘ã®æ¨™æº–åå·®ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ0ãªã‚‰sigmaXã¨åŒã˜ã«ãªã‚‹ï¼‰
+					//	int borderType = cv::BORDER_DEFAULT // ç”»åƒã®ç«¯ã®å‡¦ç†æ–¹æ³•
+					//);	
+					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+						cv::GaussianBlur(img_mask_roi[idx], img_mask_roi[idx], cv::Size(5, 5), 0, 0);
+					}
+				}
+				break;
+				case (uint32_t)(ENUM_NOISE_FILTER2::MORPHOLOGY) :// ãƒ¢ãƒãƒ•ã‚©ãƒ­ã‚¸ãƒ¼
+
+					// ä¸»ã«äºŒå€¤åŒ–ï¼ˆç™½é»’ï¼‰ç”»åƒã«å¯¾ã—ã¦ä½¿ç”¨ã•ã‚Œã€ã€Œãƒã‚¤ã‚ºï¼ˆå°ã•ãªç‚¹ï¼‰ã®é™¤å»ã€ã€Œç ´ç·šã®çµåˆã€ã€Œç©´åŸ‹ã‚ã€ã€Œè¼ªéƒ­ã®æŠ½å‡ºã€ãªã©ã€
+					// å½¢çŠ¶ã®ç‰¹å¾´ã‚’è£œæ­£ãƒ»å¼·èª¿ã™ã‚‹éš›ã«éå¸¸ã«å¼·åŠ›ãªå¨åŠ›ã‚’ç™ºæ®ã—ã¾ã™ã€‚
+					//void cv::morphologyEx(
+					//	cv::InputArray src,       // å…¥åŠ›ç”»åƒï¼ˆãƒãƒ£ãƒ³ãƒãƒ«æ•°ã¯ä»»æ„ã€é€šå¸¸ã¯äºŒå€¤åŒ–ç”»åƒï¼‰
+					//	cv::OutputArray dst,      // å‡ºåŠ›ç”»åƒï¼ˆå…¥åŠ›ç”»åƒã¨åŒã˜ã‚µã‚¤ã‚ºãƒ»åŒã˜å‹ï¼‰
+					//	int op,                   // ãƒ¢ãƒ«ãƒ•ã‚©ãƒ­ã‚¸ãƒ¼æ¼”ç®—ã®ç¨®é¡ï¼ˆå¾Œè¿°ï¼‰
+					//	cv::InputArray kernel,    // æ§‹é€ è¦ç´ ï¼ˆã‚«ãƒ¼ãƒãƒ«ï¼‰ã€‚cv::getStructuringElementã§ä½œæˆ
+					//	cv::Point anchor = cv::Point(-1, -1), // ã‚¢ãƒ³ã‚«ãƒ¼ä½ç½®ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ä¸­å¿ƒï¼‰
+					//	int iterations = 1,       // å®Ÿè¡Œå›æ•°ï¼ˆç¹°ã‚Šè¿”ã™ã»ã©åŠ¹æœãŒå¼·ã¾ã‚‹ï¼‰
+					//	int borderType = cv::BORDER_CONSTANT, // ç”»åƒã®ç«¯ã®å‡¦ç†æ–¹æ³•
+					//	const cv::Scalar& borderValue = cv::morphologyDefaultBorderValue()
+					//);
+					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+						cv::morphologyEx(img_mask_roi[idx], img_mask_roi[idx], cv::MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val);
+					}
+				break;
+
 				default:
 					break;
 			}
 #pragma endregion NOISE_CUT_1
-			// ŒŠ–„‚ßiOpening or ’†‰›’lj
-#pragma region NOISE_CUT_2
+			//
+#pragma region ç©´åŸ‹ã‚ï¼ˆOpening or ä¸­å¤®å€¤ or GAUSS or MORPHOLOGYï¼‰
 			switch (gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].type) {
-				case (uint32_t)(ENUM_NOISE_FILTER2::CLOSING) :    // ƒNƒ[ƒWƒ“ƒOˆ—(Šg‘å¨k¬)
+				case (uint32_t)(ENUM_NOISE_FILTER2::CLOSING) :    // ã‚¯ãƒ­ãƒ¼ã‚¸ãƒ³ã‚°å‡¦ç†(æ‹¡å¤§â†’ç¸®å°)
 					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-						if (gp_cnfg_imgprc->mask[idx].valid) {
-							//                  cv::morphologyEx(img_mask[idx],
-							//                                   img_mask[idx],
-							//                                   MORPH_CLOSE,
-							//                                   cv::Mat(),
-							//                                   cv::Point(-1,-1),
-							//                                   gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val);
-							cv::dilate(img_mask[idx],
-								img_mask[idx],
+						if (gp_cnfg_imgprc->mask[idx].valid) {//ãƒã‚¹ã‚¯ã® validã¯ã€åˆæœŸè¨­å®šã§ã‚»ãƒƒãƒˆã€€åŸºæœ¬ trueæœ‰åŠ¹
+							//# ãƒ¢ãƒ«ãƒ•ã‚©ãƒ­ã‚¸ãƒ¼å¤‰æ› æœªä½¿ç”¨
+
+							// ä¸»ã«äºŒå€¤åŒ–ï¼ˆç™½é»’ï¼‰ç”»åƒã«å¯¾ã—ã¦ä½¿ç”¨ã•ã‚Œã€ã€Œãƒã‚¤ã‚ºï¼ˆå°ã•ãªç‚¹ï¼‰ã®é™¤å»ã€ã€Œç ´ç·šã®çµåˆã€ã€Œç©´åŸ‹ã‚ã€ã€Œè¼ªéƒ­ã®æŠ½å‡ºã€ãªã©ã€
+							// å½¢çŠ¶ã®ç‰¹å¾´ã‚’è£œæ­£ãƒ»å¼·èª¿ã™ã‚‹éš›ã«éå¸¸ã«å¼·åŠ›ãªå¨åŠ›ã‚’ç™ºæ®ã—ã¾ã™ã€‚
+							//void cv::morphologyEx(
+							//	cv::InputArray src,       // å…¥åŠ›ç”»åƒï¼ˆãƒãƒ£ãƒ³ãƒãƒ«æ•°ã¯ä»»æ„ã€é€šå¸¸ã¯äºŒå€¤åŒ–ç”»åƒï¼‰
+							//	cv::OutputArray dst,      // å‡ºåŠ›ç”»åƒï¼ˆå…¥åŠ›ç”»åƒã¨åŒã˜ã‚µã‚¤ã‚ºãƒ»åŒã˜å‹ï¼‰
+							//	int op,                   // ãƒ¢ãƒ«ãƒ•ã‚©ãƒ­ã‚¸ãƒ¼æ¼”ç®—ã®ç¨®é¡ï¼ˆå¾Œè¿°ï¼‰
+							//	cv::InputArray kernel,    // æ§‹é€ è¦ç´ ï¼ˆã‚«ãƒ¼ãƒãƒ«ï¼‰ã€‚cv::getStructuringElementã§ä½œæˆ
+							//	cv::Point anchor = cv::Point(-1, -1), // ã‚¢ãƒ³ã‚«ãƒ¼ä½ç½®ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ä¸­å¿ƒï¼‰
+							//	int iterations = 1,       // å®Ÿè¡Œå›æ•°ï¼ˆç¹°ã‚Šè¿”ã™ã»ã©åŠ¹æœãŒå¼·ã¾ã‚‹ï¼‰
+							//	int borderType = cv::BORDER_CONSTANT, // ç”»åƒã®ç«¯ã®å‡¦ç†æ–¹æ³•
+							//	const cv::Scalar& borderValue = cv::morphologyDefaultBorderValue()
+							//);
+							// cv::morphologyEx(img_mask_roi[idx],img_mask_roi[idx],MORPH_OPEN,cv::Mat(), cv::Point(-1,-1), m_imgprcparam.filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_1)].val);
+
+
+							cv::dilate(img_mask_roi[idx],
+								img_mask_roi[idx],
 								cv::Mat(),
 								cv::Point(-1, -1),
-								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val);   // –c’£
-							cv::erode(img_mask[idx],
-								img_mask[idx],
+								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val);   // è†¨å¼µ
+							cv::erode(img_mask_roi[idx],
+								img_mask_roi[idx],
 								cv::Mat(),
 								cv::Point(-1, -1),
-								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val);    // ûk
+								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val);    // åç¸®
 						}
 					}
 				break;
 
-				case (uint32_t)(ENUM_NOISE_FILTER2::MEDIAN) :     // ’†‰›’lƒtƒBƒ‹ƒ^[
+				case (uint32_t)(ENUM_NOISE_FILTER2::MEDIAN) :     // ä¸­å¤®å€¤ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼
 					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 						if (gp_cnfg_imgprc->mask[idx].valid) {
-							cv::medianBlur(img_mask[idx],
-								img_mask[idx],
+							cv::medianBlur(img_mask_roi[idx],
+								img_mask_roi[idx],
 								gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val);
 						}
+					}
+
+				break;
+
+				case (uint32_t)(ENUM_NOISE_FILTER2::GAUSS):    // ã‚¬ã‚¦ã‚¹ãƒ•ã‚£ãƒ«ã‚¿
+
+					//ç”»åƒã«ã‚¬ã‚¦ã‚¹ã¼ã‹ã—ï¼ˆGaussian Blurï¼‰ã‚’é©ç”¨ã™ã‚‹é–¢æ•°ã§ã™ã€‚
+					//ç”»åƒã®ãƒã‚¤ã‚ºé™¤å»ã‚„ã€è¼ªéƒ­æŠ½å‡ºï¼ˆã‚¨ãƒƒã‚¸æ¤œå‡ºï¼‰ã®äº‹å‰å‡¦ç†ã¨ã—ã¦ã€ç”»åƒå‡¦ç†ã®ä¸­ã§æœ€ã‚‚é »ç¹ã«ä½¿ã‚ã‚Œã‚‹å¹³æ»‘åŒ–ï¼ˆã¼ã‹ã—ï¼‰æ‰‹æ³•ã®ä¸€ã¤ã§ã™ã€‚
+					//void cv::GaussianBlur(
+					//	cv::InputArray src,     // å…¥åŠ›ç”»åƒï¼ˆãƒãƒ£ãƒ³ãƒãƒ«æ•°ã¯ä»»æ„ã€å‹ã¯ CV_8U, CV_16U, CV_16S, CV_32F, CV_64Fï¼‰
+					//	cv::OutputArray dst,    // å‡ºåŠ›ç”»åƒï¼ˆå…¥åŠ›ç”»åƒã¨åŒã˜ã‚µã‚¤ã‚ºãƒ»åŒã˜å‹ï¼‰
+					//	cv::Size ksize,         // ã‚«ãƒ¼ãƒãƒ«ã‚µã‚¤ã‚ºï¼ˆã¼ã‹ã™ç¯„å›²ã€‚å¹…ã¨é«˜ã•ã€‚å¿…ãšæ­£ã®å¥‡æ•°ï¼‰
+					//	double sigmaX,          // Xæ–¹å‘ã®æ¨™æº–åå·®ï¼ˆã¼ã‹ã—ã®å¼·ã•ï¼‰
+					//	double sigmaY = 0,      // Yæ–¹å‘ã®æ¨™æº–åå·®ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ0ãªã‚‰sigmaXã¨åŒã˜ã«ãªã‚‹ï¼‰
+					//	int borderType = cv::BORDER_DEFAULT // ç”»åƒã®ç«¯ã®å‡¦ç†æ–¹æ³•
+					//);	
+					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+							cv::GaussianBlur(img_mask_roi[idx], img_mask_roi[idx], cv::Size(5, 5), 0, 0);
+					}
+
+				break;
+				case (uint32_t)(ENUM_NOISE_FILTER2::MORPHOLOGY) :    // ãƒ¢ãƒãƒ•ã‚©ãƒ­ã‚¸ãƒ¼
+
+					// ä¸»ã«äºŒå€¤åŒ–ï¼ˆç™½é»’ï¼‰ç”»åƒã«å¯¾ã—ã¦ä½¿ç”¨ã•ã‚Œã€ã€Œãƒã‚¤ã‚ºï¼ˆå°ã•ãªç‚¹ï¼‰ã®é™¤å»ã€ã€Œç ´ç·šã®çµåˆã€ã€Œç©´åŸ‹ã‚ã€ã€Œè¼ªéƒ­ã®æŠ½å‡ºã€ãªã©ã€
+					// å½¢çŠ¶ã®ç‰¹å¾´ã‚’è£œæ­£ãƒ»å¼·èª¿ã™ã‚‹éš›ã«éå¸¸ã«å¼·åŠ›ãªå¨åŠ›ã‚’ç™ºæ®ã—ã¾ã™ã€‚
+					//void cv::morphologyEx(
+					//	cv::InputArray src,       // å…¥åŠ›ç”»åƒï¼ˆãƒãƒ£ãƒ³ãƒãƒ«æ•°ã¯ä»»æ„ã€é€šå¸¸ã¯äºŒå€¤åŒ–ç”»åƒï¼‰
+					//	cv::OutputArray dst,      // å‡ºåŠ›ç”»åƒï¼ˆå…¥åŠ›ç”»åƒã¨åŒã˜ã‚µã‚¤ã‚ºãƒ»åŒã˜å‹ï¼‰
+					//	int op,                   // ãƒ¢ãƒ«ãƒ•ã‚©ãƒ­ã‚¸ãƒ¼æ¼”ç®—ã®ç¨®é¡ï¼ˆå¾Œè¿°ï¼‰
+					//	cv::InputArray kernel,    // æ§‹é€ è¦ç´ ï¼ˆã‚«ãƒ¼ãƒãƒ«ï¼‰ã€‚cv::getStructuringElementã§ä½œæˆ
+					//	cv::Point anchor = cv::Point(-1, -1), // ã‚¢ãƒ³ã‚«ãƒ¼ä½ç½®ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ä¸­å¿ƒï¼‰
+					//	int iterations = 1,       // å®Ÿè¡Œå›æ•°ï¼ˆç¹°ã‚Šè¿”ã™ã»ã©åŠ¹æœãŒå¼·ã¾ã‚‹ï¼‰
+					//	int borderType = cv::BORDER_CONSTANT, // ç”»åƒã®ç«¯ã®å‡¦ç†æ–¹æ³•
+					//	const cv::Scalar& borderValue = cv::morphologyDefaultBorderValue()
+					//);
+					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+						cv::morphologyEx(img_mask_roi[idx], img_mask_roi[idx], cv::MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val);
 					}
 				break;
 
 				default:
 					break;
 			}
-#endif
 #pragma endregion NOISE_CUT_2
 
-// ‰æ‘œˆ—
-#if 0			
-#pragma region IMAGE_PROC
+#pragma endregion NOISE_CUT
+
+#pragma region ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡º
 			double  pos_x, pos_y;
 			gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
+
 			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-				PTARGET_DATA target_data = &gp_app_imgprc->target_data[idx];    // ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^
-				if (gp_cnfg_imgprc->mask[idx].valid) {//ƒ}ƒXƒN‰æ‘œ—LŒø(iniƒtƒ@ƒCƒ‹İ’è’lj
-					// —ÖŠs’Šo(ˆê”ÔŠO‘¤‚Ì”’‚Ì—ÖŠs‚Ì‚İ‚ğæ“¾)
-					cv::findContours(img_mask[idx], gp_app_imgprc->contours[idx], cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+				PTARGET_DATA ptarget_data = &gp_app_imgprc->target_data[idx];    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿
+				if (gp_cnfg_imgprc->mask[idx].valid) {//ãƒã‚¹ã‚¯ç”»åƒæœ‰åŠ¹(iniãƒ•ã‚¡ã‚¤ãƒ«è¨­å®šå€¤ï¼‰
 
-					// dSŒŸo@!!‚±‚±‚Åtarget_data->valid ‚ğƒZƒbƒg
-					if (gp_cnfg_imgprc->imgprc == (uint32_t)ENUM_COG::BOUND_RECT) {//proc_center_gravity2‚Åˆ—
-						pos_x = 0.0;
-						pos_y = 0.0;
-						target_data->valid = proc_center_gravity2(gp_app_imgprc->contours[idx],
-							&pos_x,
-							&pos_y,
-							&target_data->size,
-							&target_data->size_expected,
-							&target_data->size_detected); // ŒŸoó‘Ô
+					//## è¼ªéƒ­æŠ½å‡º(ä¸€ç•ªå¤–å´ã®ç™½ã®è¼ªéƒ­ã®ã¿(å…¥ã‚Œå­æ§‹é€ ã¯è¦‹ãªã„ï¼‰ã‚’å–å¾—)
+
+					//void cv::findContours(
+					//	cv::InputArray image,               // å…¥åŠ›ç”»åƒï¼ˆ8ãƒ“ãƒƒãƒˆãƒ»1ãƒãƒ£ãƒ³ãƒãƒ«ã®äºŒå€¤åŒ–ç”»åƒï¼‰
+					//	cv::OutputArrayOfArrays contours,   // æ¤œå‡ºã•ã‚ŒãŸè¼ªéƒ­ã®ä¿å­˜å…ˆï¼ˆstd::vector<std::vector<cv::Point>>ï¼‰
+					//	cv::OutputArray hierarchy,          // è¼ªéƒ­ã®éšå±¤æ§‹é€ ï¼ˆè¦ªå­é–¢ä¿‚ï¼‰ã®ä¿å­˜å…ˆï¼ˆstd::vector<cv::Vec4i>ï¼‰
+					//	int mode,                           // è¼ªéƒ­æŠ½å‡ºãƒ¢ãƒ¼ãƒ‰ï¼ˆå¾Œè¿°ï¼‰
+					//	int method,                         // è¼ªéƒ­ã®è¿‘ä¼¼æ‰‹æ³•ï¼ˆå¾Œè¿°ï¼‰
+					//	cv::Point offset = cv::Point()      // ã™ã¹ã¦ã®è¼ªéƒ­ç‚¹ã‚’ã‚·ãƒ•ãƒˆã•ã›ã‚‹ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆé€šå¸¸ã¯çœç•¥ï¼‰
+					//);
+					cv::findContours(
+						img_mask_roi[idx], 
+						gp_app_imgprc->contours[idx], 
+						cv::RETR_EXTERNAL,	///æœ€ã‚‚å¤–å´ã®è¼ªéƒ­ã ã‘ã‚’æŠ½å‡ºã—ã¾ã™
+						cv::CHAIN_APPROX_NONE//è¼ªéƒ­ã®ã™ã¹ã¦ã®ç‚¹ã‚’æ„šç›´ã«ä¿å­˜ã—ã¾ã™  CHAIN_APPROX_SIMPLE: æ°´å¹³ãƒ»å‚ç›´ãƒ»æ–œã‚ã®ç›´ç·šã‚’åœ§ç¸®ã—ã€ç«¯ç‚¹ï¼ˆé ‚ç‚¹ï¼‰ã ã‘ã‚’æ®‹ã—ã¾ã™
+					);
+
+			//## é‡å¿ƒæ¤œå‡ºã€€!!ã“ã“ã§target_data->valid ã‚’ã‚»ãƒƒãƒˆ
+					if (gp_cnfg_imgprc->imgprc == (uint32_t)ENUM_COG::BOUND_RECT) {//proc_center_gravity2ã§å‡¦ç† ã‚µã‚¤ã‚ºãƒã‚§ãƒƒã‚¯æœ‰
+						pos_x = 0.0;pos_y = 0.0;
+						ptarget_data->valid = proc_center_gravity2(
+							gp_app_imgprc->contours[idx],	// è§£æç”¨å…¥åŠ›ãƒ‡ãƒ¼ã‚¿
+							&pos_x,							// æ¤œå‡ºä½ç½®å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡
+							&pos_y,							// æ¤œå‡ºä½ç½®å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡
+							&ptarget_data->size,			// æ¤œå‡ºã‚µã‚¤ã‚ºå‡ºåŠ›ãƒãƒƒãƒ•ã‚¡(é¢ç©)
+							&ptarget_data->size_expected,	// æœŸå¾…ã‚µã‚¤ã‚ºå…¥åŠ›ãƒãƒƒãƒ•ã‚¡
+							&ptarget_data->size_detected	// æœŸå¾…ã‚µã‚¤ã‚ºå…¥åŠ›ãƒãƒƒãƒ•ã‚¡
+						); // æ¤œå‡ºçŠ¶æ…‹
 					}
 					else {
-						pos_x = 0.0;
-						pos_y = 0.0;
-						target_data->valid = proc_center_gravity(gp_app_imgprc->contours[idx],
-							&pos_x,
-							&pos_y,
-							&target_data->size,
-							gp_cnfg_imgprc->imgprc); // ŒŸoó‘Ô
-					}
-#if 0//LPF–³
-					target_data->pos[(uint32_t)(ENUM_AXIS::X)] = pos_x + target_data->roi.x; // ŒŸoˆÊ’uX[pixel]
-					target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = pos_y + target_data->roi.y; // ŒŸoˆÊ’uY[pixel]
-#else//LPF—L
-					double temp_x = pos_x + (double)target_data->roi.x - target_data->pos[(uint32_t)(ENUM_AXIS::X)];
-					double temp_y = pos_y + (double)target_data->roi.y - target_data->pos[(uint32_t)(ENUM_AXIS::Y)];
-					double chk_limit_x = target_data->size_roi_spd_margin.width, chk_limit_y = target_data->size_roi_spd_margin.height;
+						ptarget_data->valid = false;
 
-					bool is_pos_jump = false;
-					if ((temp_x > chk_limit_x) || (-temp_x > chk_limit_x) || (temp_y > chk_limit_y) || (-temp_y > chk_limit_y))is_pos_jump = true;
-
-					//      if (is_pos_jump){
-					if (is_pos_jump) {
-						target_data->pos[(uint32_t)(ENUM_AXIS::X)] = (pos_x + (double)target_data->roi.x); // ŒŸoˆÊ’uX[pixel]
-						target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = (pos_y + (double)target_data->roi.y); // ŒŸoˆÊ’uX[pixel]
-					}
-					else {
-						target_data->pos[(uint32_t)(ENUM_AXIS::X)] =
-							SWAY_SENSOR_LPF_K1 * target_data->pos[(uint32_t)(ENUM_AXIS::X)]
-							+ SWAY_SENSOR_LPF_K2 * (pos_x + target_data->roi.x); // ŒŸoˆÊ’uX[pixel]
-
-						target_data->pos[(uint32_t)(ENUM_AXIS::Y)] =
-							SWAY_SENSOR_LPF_K1 * target_data->pos[(uint32_t)(ENUM_AXIS::Y)]
-							+ SWAY_SENSOR_LPF_K2 * (pos_y + target_data->roi.y); // ŒŸoˆÊ’uY[pixel]
+						//proc_center_gravity()ã¯ä½¿ã‚ãªã„
+						 
+						//pos_x = 0.0;
+						//pos_y = 0.0;
+						//ptarget_data->valid = proc_center_gravity(
+						//	gp_app_imgprc->contours[idx],
+						//	&pos_x,
+						//	&pos_y,
+						//	&ptarget_data->size,// æ¤œå‡ºã‚µã‚¤ã‚ºå‡ºåŠ›ãƒãƒƒãƒ•ã‚¡(é•·è¾º)
+						//	gp_cnfg_imgprc->imgprc
+						//); // æ¤œå‡ºçŠ¶æ…‹
 					}
 
-					//‚¢‚¸‚ê‚©‚Ìƒ^[ƒQƒbƒgŒŸo‚ÅROI@MODE‚ÅƒVƒƒƒbƒ^[ƒRƒ“ƒgƒ[ƒ‹
-					if (target_data->valid) {
-						gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_ROI_MODE;
-						target_data->range_over_count = SWAY_SENSOR__RANGE_OVER_COUNT_LIMIT;
+					double pos_x_now = pos_x + (double)ptarget_data->roi.x;
+					double pos_y_now = pos_y + (double)ptarget_data->roi.y;
+					double dx = pos_x_now - ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)];
+					double dy = pos_y_now - ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)];
+					
+					//size_roi_spd_marginã¯è§’é€Ÿåº¦å˜ä½ãªã®ã§ã‚¹ã‚­ãƒ£ãƒ³ã‚¿ã‚¤ãƒ ã‚’æ›ã‘ã‚‹
+					double chk_limit_x = ptarget_data->size_roi_spd_margin.width	* inf.cycle_ms / 1000 ;
+					double chk_limit_y = ptarget_data->size_roi_spd_margin.height	* inf.cycle_ms / 1000;
+
+					bool is_pos_jump = false;//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®ã‚¸ãƒ£ãƒ³ãƒ—æ¤œå‡ºãƒ•ãƒ©ã‚°
+					if ((dx > chk_limit_x) || (-dx > chk_limit_x) || (dy > chk_limit_y) || (-dy > chk_limit_y))
+						is_pos_jump = true;
+
+					if (is_pos_jump) {//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®ã‚¸ãƒ£ãƒ³ãƒ—æ¤œå‡ºæ™‚ã¯ã€ãƒ•ã‚£ãƒ«ã‚¿ã‚’ã‹ã‘ãšã«ç¾åœ¨ã®ä½ç½®ã‚’ãã®ã¾ã¾ã‚»ãƒƒãƒˆã™ã‚‹
+						ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)] = pos_x_now; 
+						ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)] = pos_y_now; 
+					}
+					else {//ã‚¸ãƒ£ãƒ³ãƒ—ç„¡ã—ã§ã¯ãƒ•ã‚£ãƒ«ã‚¿ã‚’ã‹ã‘ã‚‹ï¼ˆå¾Œæ®µã®é€Ÿåº¦è¨ˆç®—ã®ç‚ºï¼‰
+						ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)] =
+								SWAY_SENSOR_LPF_K1 * ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]//å‰å›å€¤
+							+	SWAY_SENSOR_LPF_K2 * pos_x_now;									
+						ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)] =
+								SWAY_SENSOR_LPF_K1 * ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]//å‰å›å€¤
+							+	SWAY_SENSOR_LPF_K2 * pos_y_now; 
 					}
 
-#endif
+					//ã„ãšã‚Œã‹ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºã§ROIã€€MODEã§ã‚·ãƒ£ãƒƒã‚¿ãƒ¼ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«æœ‰åŠ¹ã€
+					if (ptarget_data->valid) {
+						gp_app_imgprc->exps_ctrl_mode	= EXPOSURE_CONTROL_ROI_MODE;
+						ptarget_data->range_over_count	= SWAY_SENSOR_RANGE_OVER_COUNT_LIMIT;
+					}
 				}
-				else {
-					target_data->valid = FALSE;  // ŒŸoó‘Ô
-					target_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;    // ŒŸoˆÊ’uX[pixel]
-					target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;    // ŒŸoˆÊ’uY[pixel]
-					target_data->size = 0;
-					target_data->range_over_count = 0;
+				else {//if (gp_cnfg_imgprc->mask[idx].valid) {//ãƒã‚¹ã‚¯ç”»åƒæœ‰åŠ¹(iniãƒ•ã‚¡ã‚¤ãƒ«è¨­å®šå€¤ï¼‰
+					ptarget_data->valid = FALSE;  // æ¤œå‡ºçŠ¶æ…‹
+					ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;    // æ¤œå‡ºä½ç½®X[pixel]
+					ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;    // æ¤œå‡ºä½ç½®Y[pixel]
+					ptarget_data->size = 0;
+					ptarget_data->range_over_count = 0;
 				}
 			}   // for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
-
-#pragma endregion IMAGE_PROC
-
-#endif
-		}   // if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))
+#pragma endregion DETECT TARGET
+		}// if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))
 		else {
-			// ƒ}ƒXƒN‰æ‘œ@‰æ‘œˆ—ƒf[ƒ^‚ğƒNƒŠƒA‚·‚é
+		// ãƒã‚¹ã‚¯ç”»åƒã€€ç”»åƒå‡¦ç†ãƒ‡ãƒ¼ã‚¿ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹			
 			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-				PTARGET_DATA target_data = &gp_app_imgprc->target_data[idx];    // ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^
-				// óM‰æ‘œ‘S‘Ì‚ğROI‚Æ‚µ‚Äİ’è‚·‚é
+				PTARGET_DATA target_data = &gp_app_imgprc->target_data[idx];    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿
+				// å—ä¿¡ç”»åƒå…¨ä½“ã‚’ROIã¨ã—ã¦è¨­å®šã™ã‚‹
 				target_data->roi.x = 0;	target_data->roi.y = 0;	
 				target_data->roi.width = g_img_src_work.width;	target_data->roi.height = g_img_src_work.height;
-				target_data->valid = FALSE;							// ŒŸoó‘Ô
-				target_data->max_val = 0.0;							// Å‘å‹P“x
-				target_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;   // ŒŸoˆÊ’uX[pixel]
-				target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;   // ŒŸoˆÊ’uY[pixel]
-				target_data->size = 0;      // ŒŸoƒTƒCƒY				
-				if ((gp_cnfg_imgprc->roi.valid)&&(g_img_src_work.data_mat.data != nullptr)) {//ROI—LŒøƒ‚[ƒh
+				target_data->valid = FALSE;							// æ¤œå‡ºçŠ¶æ…‹
+				target_data->max_val = 0.0;							// æœ€å¤§è¼åº¦
+				target_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;   // æ¤œå‡ºä½ç½®X[pixel]
+				target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;   // æ¤œå‡ºä½ç½®Y[pixel]
+				target_data->size = 0;      // æ¤œå‡ºã‚µã‚¤ã‚º				
+				if ((gp_cnfg_imgprc->roi.valid)&&(g_img_src_work.data_mat.data != nullptr)) {//ROIæœ‰åŠ¹ãƒ¢ãƒ¼ãƒ‰
 					g_img_src_work.data_mat.copyTo(img_roi);
-					cv::cvtColor(img_roi, img_hsv, cv::COLOR_BGR2HSV);// ‰æ‘œF‚ğBGR¨HSV‚É•ÏŠ·
+					cv::cvtColor(img_roi, img_hsv_roi, cv::COLOR_BGR2HSV);// ç”»åƒè‰²ã‚’BGRâ†’HSVã«å¤‰æ›
 				}
 				gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
-				img_hsv.copyTo(img_mask[idx]);
+				img_hsv_roi.copyTo(img_mask_roi[idx]);
 
 			}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
 		}   // if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) else
-#pragma endregion PROCESS_TAGET
-
-	// ‰æ‘œ•Û‘¶
-#pragma region PUT_IMAGE
-		// ƒ}ƒXƒN‰æ‘œ1
+#pragma region ç”»åƒä¿å­˜ å…±æœ‰ãƒ‡ãƒ¼ã‚¿ã«ç”Ÿæˆç”»åƒã‚’æ ¼ç´ã™ã‚‹
+		// ãƒã‚¹ã‚¯ç”»åƒ1
 		if (gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid) {
-			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_1),img_mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)]);
+			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_1),img_mask_roi[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)]);
 		}
-		// ƒ}ƒXƒN‰æ‘œ2
+		// ãƒã‚¹ã‚¯ç”»åƒ2
 		if (gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid) {
-			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_2),img_mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)]);
+			CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::MASK_2),img_mask_roi[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)]);
 		}
-		// ˆ—‰æ‘œ
+		// å‡¦ç†ç”»åƒ
 		CSwayShared::set_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), g_img_src_work.data_mat);
 #pragma endregion PUT_IMAGE
-
-#if 0
-	// U‚êŒŸoˆ—
-#pragma region SWAY_PROC
-		proc_sway();
+	
+#pragma region æŒ¯ã‚Œæ¤œå‡ºå‡¦ç†
+		proc_sway(); 
 #pragma endregion SWAY_PROC
-	// ƒVƒƒƒbƒ^ƒRƒ“ƒgƒ[ƒ‹
-#pragma region EXPOSURE_CONTROL
+
+#pragma region ã‚·ãƒ£ãƒƒã‚¿ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«
 		set_expstime();
 #pragma endregion EXPOSURE_CONTROL
-	// §ŒäPC‚Æ‚ÌIF CHECK@MODE
+
+		// åˆ¶å¾¡PCã¨ã®IF CHECKã€€MODE ãƒ‡ãƒãƒƒã‚°ç”¨ã€€æ¤œå‡ºå‡¦ç†ãªã—ã§å¼·åˆ¶çš„ã«æŒ¯ã‚Œãƒ‡ãƒ¼ã‚¿ã‚’ã‚»ãƒƒãƒˆ
 		if (maintenance_mode == CODE_POL_MAINTE_COMCHECK)   proc_comchk_mode();   
-#endif
 
 	}//if (g_sway_sensor_enable)
 	return S_OK;
 }
-int CAuxPol::output() {          //o—Íˆ—
+int CAuxPol::output() {          //å‡ºåŠ›å‡¦ç†
 
 
 
@@ -661,104 +783,105 @@ int CAuxPol::close() {
 }
 
 /// <summary>
-/// ì‹Æ—p‚Ì‰æ‘œƒoƒbƒtƒ@‚É‰æ‘œ‚ğ“Ç‚İ‚Ş(g_img_src_work)
-/// İ’è‚É‚æ‚è•Û‘¶Ï bmpƒtƒ@ƒCƒ‹‚©ƒJƒƒ‰‰f‘œ‚ğ‘I‘ğæ‚è‚İ
+/// ä½œæ¥­ç”¨ã®ç”»åƒãƒãƒƒãƒ•ã‚¡ã«ç”»åƒã‚’èª­ã¿è¾¼ã‚€(g_img_src_work)
+/// è¨­å®šã«ã‚ˆã‚Šä¿å­˜æ¸ˆ bmpãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚«ãƒ¡ãƒ©æ˜ åƒã‚’é¸æŠå–ã‚Šè¾¼ã¿
 /// </summary>
 /// <scenario>
-/// ‰æ‘œƒtƒ@ƒCƒ‹‘I‘ğF
-/// @@w’è‚µ‚½ƒtƒ@ƒCƒ‹‚ğ’¼Úmat‚É“Ç‚İ‚Ş@g_img_src_work.data_mat
-/// ƒJƒƒ‰‰æ‘œ:
-/// @@ƒJƒƒ‰‚©‚ç‰æ‘œ‚ğæ“¾‚µAg_img_src_work.data_bgr‚ÉŠi”[‚µAOpenCV‚ÌMat‚É•ÏŠ·‚µ‚Äg_img_src_work.data_mat‚ÉŠi”[‚·‚é
+/// ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«é¸æŠæ™‚ï¼š
+/// ã€€ã€€æŒ‡å®šã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç›´æ¥matã«èª­ã¿è¾¼ã‚€ã€€g_img_src_work.data_mat
+/// ã‚«ãƒ¡ãƒ©ç”»åƒæ™‚:
+/// ã€€ã€€ã‚«ãƒ¡ãƒ©ã‹ã‚‰ç”»åƒã‚’å–å¾—ã—ã€g_img_src_work.data_bgrã«æ ¼ç´ã—ã€OpenCVã®Matã«å¤‰æ›ã—ã¦g_img_src_work.data_matã«æ ¼ç´ã™ã‚‹
 /// </scenario>
 /// <param name=""></param>
 /// <returns></returns>
 uint32_t CAuxPol::get_opencv_image(void)
 {
 	//----------------------------------------------------------------------------
-	// ‰æ‘œƒf[ƒ^æ“¾(‰æ‘œƒtƒ@ƒCƒ‹)
-	if (gp_cnfg_common->img_source_camera != (uint32_t)ENUM_GRAB_IMAGE::GRAB_CAMERA) {	//‰æ‘œƒtƒ@ƒCƒ‹“Ç
+	// ç”»åƒãƒ‡ãƒ¼ã‚¿å–å¾—(ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«)
+	if (gp_cnfg_common->img_source_camera != (uint32_t)ENUM_GRAB_IMAGE::GRAB_CAMERA) {	//ç”»åƒãƒ•ã‚¡ã‚¤ãƒ«èª­è¾¼
 		g_img_src_work.data_mat = cv::imread(CStrHelper::conv_string(gp_cnfg_common->img_source_fname));
 		if (g_img_src_work.data_mat.data != NULL) {
-			g_img_src_work.status |= (uint32_t)ENUM_IMAGE_STATUS::ENABLED;					// ‰æ‘œƒXƒe[ƒ^ƒX:‰æ‘œ—LŒø
-			g_img_src_work.width = g_img_src_work.data_mat.cols;									// ‰æ‘œƒTƒCƒY(…•½‰æ‘f) [pixel]
-			g_img_src_work.height = g_img_src_work.data_mat.rows;									// ‰æ‘œƒTƒCƒY(‚’¼‰æ‘f) [pixel]
-			g_img_src_work.fps = gp_cnfg_camera->basis.framerate;							// ‰æ‘œƒtƒŒ[ƒ€ƒŒ[ƒg[fps]
+			g_img_src_work.status |= (uint32_t)ENUM_IMAGE_STATUS::ENABLED;					// ç”»åƒã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹:ç”»åƒæœ‰åŠ¹
+			g_img_src_work.width = g_img_src_work.data_mat.cols;							// ç”»åƒã‚µã‚¤ã‚º(æ°´å¹³ç”»ç´ ) [pixel]
+			g_img_src_work.height = g_img_src_work.data_mat.rows;							// ç”»åƒã‚µã‚¤ã‚º(å‚ç›´ç”»ç´ ) [pixel]
+			g_img_src_work.fps = gp_cnfg_camera->basis.framerate;							// ç”»åƒãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆ[fps]
 		}
 		else {
-			g_img_src_work.status &= (~(uint32_t)ENUM_IMAGE_STATUS::ENABLED);					// ‰æ‘œƒXƒe[ƒ^ƒX:‰æ‘œ—LŒø
-			g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::X].size;   // ‰æ‘œƒTƒCƒY(…•½‰æ‘f) [pixel]
-			g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;	// ‰æ‘œƒTƒCƒY(‚’¼‰æ‘f) [pixel]
-			g_img_src_work.fps = 0.0;                                                      // ‰æ‘œƒtƒŒ[ƒ€ƒŒ[ƒg[fps]
+			g_img_src_work.status &= (~(uint32_t)ENUM_IMAGE_STATUS::ENABLED);				// ç”»åƒã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹:ç”»åƒæœ‰åŠ¹
+			g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::X].size;  // ç”»åƒã‚µã‚¤ã‚º(æ°´å¹³ç”»ç´ ) [pixel]
+			g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)ENUM_AXIS::Y].size;	// ç”»åƒã‚µã‚¤ã‚º(å‚ç›´ç”»ç´ ) [pixel]
+			g_img_src_work.fps = 0.0;                                                       // ç”»åƒãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆ[fps]
 		}
 	}
 	else {
-		// ‰æ‘œƒf[ƒ^æ“¾(ƒJƒƒ‰)
-		if (g_img_src_work.data_bgr != NULL) {//ì‹Æ—p‰æ‘œƒoƒbƒtƒ@‚Ìƒ|ƒCƒ“ƒ^—LŒø
-			if ((pCamera != NULL) &&(!(gp_app_system->status & (uint32_t)(ENUM_SYSTEM_STATUS::CAMERA_RESET_RUN)))) { // ƒJƒƒ‰ÄÚ‘±’†
-				// ‰æ‘œî•ñ‚ğæ“¾
-				if ((pCamera->get_image(g_img_src_work.data_bgr) >= 0) &&									// ‰æ‘œƒf[ƒ^æ“¾ 0:¬Œ÷A-:¸”s
-					(pCamera->get_image_size(&g_img_src_work.width, &g_img_src_work.height) >= 0) &&		// ‰æ‘œƒTƒCƒYæ“¾ 0:¬Œ÷A-:¸”s
+		// ç”»åƒãƒ‡ãƒ¼ã‚¿å–å¾—(ã‚«ãƒ¡ãƒ©)
+		if (g_img_src_work.data_bgr != NULL) {//ä½œæ¥­ç”¨ç”»åƒãƒãƒƒãƒ•ã‚¡ã®ãƒã‚¤ãƒ³ã‚¿æœ‰åŠ¹
+			if ((pCamera != NULL) &&(!(gp_app_system->status & (uint32_t)(ENUM_SYSTEM_STATUS::CAMERA_RESET_RUN)))) { // ã‚«ãƒ¡ãƒ©å†æ¥ç¶šä¸­
+				// ç”»åƒæƒ…å ±ã‚’å–å¾—
+				if ((pCamera->get_image(g_img_src_work.data_bgr) >= 0) &&									// ç”»åƒãƒ‡ãƒ¼ã‚¿å–å¾— 0:æˆåŠŸã€-:å¤±æ•—
+					(pCamera->get_image_size(&g_img_src_work.width, &g_img_src_work.height) >= 0) &&		// ç”»åƒã‚µã‚¤ã‚ºå–å¾— 0:æˆåŠŸã€-:å¤±æ•—
 					(pCamera->get_image_fps(&g_img_src_work.fps) >= 0)) {
-					g_img_src_work.status |= ((uint32_t)(ENUM_IMAGE_STATUS::ENABLED));            // ‰æ‘œƒXƒe[ƒ^ƒX:‰æ‘œ—LŒø
+					g_img_src_work.status |= ((uint32_t)(ENUM_IMAGE_STATUS::ENABLED));            // ç”»åƒã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹:ç”»åƒæœ‰åŠ¹
 				}
 				else {
-					g_img_src_work.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));						// ‰æ‘œƒXƒe[ƒ^ƒX:‰æ‘œ—LŒø
-					g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// ‰æ‘œƒTƒCƒY(…•½‰æ‘f) [pixel]
-					g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;		// ‰æ‘œƒTƒCƒY(‚’¼‰æ‘f) [pixel]
-					g_img_src_work.fps = 0.0;                                                                // ‰æ‘œƒtƒŒ[ƒ€ƒŒ[ƒg [fps]
-					ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE)); // ‰æ‘œƒf[ƒ^ƒoƒbƒtƒ@‚Ìƒ|ƒCƒ“ƒ^(BGR 24bit)
+					g_img_src_work.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));						// ç”»åƒã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹:ç”»åƒæœ‰åŠ¹
+					g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// ç”»åƒã‚µã‚¤ã‚º(æ°´å¹³ç”»ç´ ) [pixel]
+					g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;		// ç”»åƒã‚µã‚¤ã‚º(å‚ç›´ç”»ç´ ) [pixel]
+					g_img_src_work.fps = 0.0;                                                                // ç”»åƒãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆ [fps]
+					ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE)); // ç”»åƒãƒ‡ãƒ¼ã‚¿ãƒãƒƒãƒ•ã‚¡ã®ãƒã‚¤ãƒ³ã‚¿(BGR 24bit)
 				}
 			}
 			else {
-				g_img_src_work.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));							// ‰æ‘œƒXƒe[ƒ^ƒX:‰æ‘œ—LŒø
-				g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// ‰æ‘œƒTƒCƒY(…•½‰æ‘f) [pixel]
-				g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// ‰æ‘œƒTƒCƒY(‚’¼‰æ‘f) [pixel]
-				g_img_src_work.fps = 0.0;                                                                   // ‰æ‘œƒtƒŒ[ƒ€ƒŒ[ƒg [fps]
-				ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));    // ‰æ‘œƒf[ƒ^ƒoƒbƒtƒ@‚Ìƒ|ƒCƒ“ƒ^(BGR 24bit)
+				g_img_src_work.status &= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));							// ç”»åƒã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹:ç”»åƒæœ‰åŠ¹
+				g_img_src_work.width = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;			// ç”»åƒã‚µã‚¤ã‚º(æ°´å¹³ç”»ç´ ) [pixel]
+				g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// ç”»åƒã‚µã‚¤ã‚º(å‚ç›´ç”»ç´ ) [pixel]
+				g_img_src_work.fps = 0.0;                                                                   // ç”»åƒãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆ [fps]
+				ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));    // ç”»åƒãƒ‡ãƒ¼ã‚¿ãƒãƒƒãƒ•ã‚¡ã®ãƒã‚¤ãƒ³ã‚¿(BGR 24bit)
 			}
 
 			if (g_img_src_work.status & (uint32_t)ENUM_IMAGE_STATUS::ENABLED) {
-				// OpenCV‰æ‘œ‚Ö‚Ì•ÏŠ·
+				// OpenCVç”»åƒã¸ã®å¤‰æ›
 				g_img_src_work.data_mat = cv::Mat(
 					g_img_src_work.height,
 					g_img_src_work.width,
 					CV_8UC3,
 					g_img_src_work.data_bgr
-				);    // ‰æ‘œƒf[ƒ^(OpenCV•ÏŠ·‰æ‘œ)    
+				);    // ç”»åƒãƒ‡ãƒ¼ã‚¿(OpenCVå¤‰æ›ç”»åƒ)    
 			}
 		}   // if (g_img_src_work.data_bgr != NULL)
 		else {
-			g_img_src_work.status	&= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));				// ‰æ‘œƒXƒe[ƒ^ƒX:‰æ‘œ—LŒø
-			g_img_src_work.width		= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;	// ‰æ‘œƒTƒCƒY(…•½‰æ‘f) [pixel]
-			g_img_src_work.height	= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;	// ‰æ‘œƒTƒCƒY(‚’¼‰æ‘f) [pixel]
-			g_img_src_work.fps		= 0.0;														// ‰æ‘œƒtƒŒ[ƒ€ƒŒ[ƒg[fps]
+			g_img_src_work.status	&= (~(uint32_t)(ENUM_IMAGE_STATUS::ENABLED));				// ç”»åƒã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹:ç”»åƒæœ‰åŠ¹
+			g_img_src_work.width		= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::X)].size;	// ç”»åƒã‚µã‚¤ã‚º(æ°´å¹³ç”»ç´ ) [pixel]
+			g_img_src_work.height	= gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;	// ç”»åƒã‚µã‚¤ã‚º(å‚ç›´ç”»ç´ ) [pixel]
+			g_img_src_work.fps		= 0.0;														// ç”»åƒãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆ[fps]
 		} 
 	}
 	return g_img_src_work.status;
 }
 
-/// @brief dSŒŸo
-/// @param
-/// @return
-/// @note
+/// <summary>
+/// é‡å¿ƒä½ç½®ç®—å‡ºã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ (æœ€å¤§è¼ªéƒ­é¢ç©)
+/// </summary>
+/// <param name="contours"></param>
+/// <param name="outPosX">é‡å¿ƒä½ç½®Xåº§æ¨™æ¤œå‡ºçµæœå‡ºåŠ›ãƒãƒƒãƒ•ã‚¡</param>
+/// <param name="outPosY">é‡å¿ƒä½ç½®Yåº§æ¨™æ¤œå‡ºçµæœå‡ºåŠ›ãƒãƒƒãƒ•ã‚¡</param>
+/// <param name="outTgtSize">æ¤œå‡ºã‚¿ãƒ¼ã‚²ãƒƒãƒˆé¢ç©å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡</param>
+/// <param name="sel">æ¤œå‡ºã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ é¸æŠ</param>
+/// <returns></returns>
 BOOL CAuxPol::proc_center_gravity(std::vector<std::vector<cv::Point>> contours, double* outPosX, double* outPosY, int* outTgtSize, UINT sel)
 {
 	BOOL    ret = FALSE;
-	double  pos_x = 0.0;
-	double  pos_y = 0.0;
+	double  pos_x = 0.0,pos_y = 0.0;
 	int32_t target_size = 0;
 
 	switch (sel) {
-	case static_cast<uint32_t>(ENUM_COG::MAX_CONTOUR_AREA):
-#pragma region COG_ALGORITHM1
-		//----------------------------------------------------------------------------
-		// dSˆÊ’uZoƒAƒ‹ƒSƒŠƒYƒ€(Å‘å—ÖŠs–ÊÏ)
-	{
+		case (uint32_t)(ENUM_COG::MAX_CONTOUR_AREA) : {//æœ€å¤§è¼ªéƒ­é¢ç©ã‚’ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¨ã™ã‚‹
 		BOOL     find = FALSE;
-		size_t   count = 0;
+		size_t   count = 0,max_area_contour = 0;
 		double   max_area = 0;
-		size_t   max_area_contour = 0;
 		cv::Rect roi;
+
+		// æœ€å¤§é¢ç©ã®è¼ªéƒ­ã‚’æ±‚ã‚ã‚‹
 		for (size_t i = 0; i < contours.size(); i++) {
 			double area = contourArea(contours.at(i));
 			if (max_area < area) {
@@ -769,28 +892,27 @@ BOOL CAuxPol::proc_center_gravity(std::vector<std::vector<cv::Point>> contours, 
 		}
 
 		if (find) {
-			count = contours.at(max_area_contour).size();
+			count = contours.at(max_area_contour).size();//è¼ªéƒ­ã®è¦ç´ æ•°ï¼ˆç‚¹ã®æ•°ï¼‰ã‚’å–å¾—
+			//è¼ªéƒ­è¦ç´ ã®åº§æ¨™ã‚’åˆè¨ˆã—ã¦å¹³å‡ã‚’æ±‚ã‚ã‚‹ã“ã¨ã§é‡å¿ƒä½ç½®ã‚’ç®—å‡ºã™ã‚‹
 			for (size_t i = 0; i < count; i++) {
 				pos_x += contours.at(max_area_contour).at(i).x;
 				pos_y += contours.at(max_area_contour).at(i).y;
 			}
 			if (count > 0) {
-				pos_x /= count;
-				pos_y /= count;
+				pos_x /= count;	pos_y /= count;
 				roi = cv::boundingRect(contours[max_area_contour]);
+				// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚ºã¯è¼ªéƒ­ã®å¤–æ¥çŸ©å½¢ã®é•·è¾ºã‚’ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚ºã¨ã™ã‚‹
 				target_size = (roi.width > roi.height) ? (roi.width + 1) : (roi.height + 1);
 
 				ret = TRUE;
 			}
 		}
 	}
-#pragma endregion COG_ALGORITHM1
 	break;
 
-	case static_cast<uint32_t>(ENUM_COG::MAX_CONTOUR_LENGTH):
-#pragma region COG_ALGORITHM2
+	case (uint32_t)(ENUM_COG::MAX_CONTOUR_LENGTH):
 		//----------------------------------------------------------------------------
-		// dSˆÊ’uZoƒAƒ‹ƒSƒŠƒYƒ€(Å‘å—ÖŠs’·)
+		// é‡å¿ƒä½ç½®ç®—å‡ºã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ (æœ€å¤§è¼ªéƒ­é•·)
 	{
 		BOOL     find = FALSE;
 		size_t   max_size = 0;
@@ -798,7 +920,8 @@ BOOL CAuxPol::proc_center_gravity(std::vector<std::vector<cv::Point>> contours, 
 		cv::Rect roi;
 		if (contours.size() > 0) {
 			for (size_t i = 0; i < contours.size(); i++) {
-				if (contours[i].size() > max_size) {
+				{//è¼ªéƒ­ã®è¦ç´ æ•°ï¼ˆç‚¹ã®æ•°ï¼‰æœ€å¤§ã®è¼ªéƒ­ã‚’å–å¾—
+				if (contours[i].size() > max_size) 
 					max_size = contours[i].size();
 					max_id = i;
 					find = TRUE;
@@ -806,7 +929,9 @@ BOOL CAuxPol::proc_center_gravity(std::vector<std::vector<cv::Point>> contours, 
 			}
 			if (find) {
 				cv::Moments mu = moments(contours[max_id]);
-				if (mu.m00 > 0.0) {
+				//â€¢m00 ã¯é ˜åŸŸã®é¢ç©ï¼ˆè¼åº¦åˆè¨ˆï¼‰ã€é‡å¿ƒã¯ cx = m10/m00, cy = m01/m00 ã§è¨ˆç®—ã§ãã‚‹ãŸã‚
+				// é‡å¿ƒæ¤œå‡ºã«ã‚ˆãä½¿ã‚ã‚Œã¾ã™ï¼ˆã‚³ãƒ¼ãƒ‰ä¸­ã® mu.m10 / mu.m00 ã¨åŒã˜ï¼‰ã€‚
+				if (mu.m00 > 0.0) {//é‡å¿ƒä½ç½®ç®—å‡º
 					pos_x = mu.m10 / mu.m00;
 					pos_y = mu.m01 / mu.m00;
 					roi = cv::boundingRect(contours[max_id]);
@@ -817,7 +942,6 @@ BOOL CAuxPol::proc_center_gravity(std::vector<std::vector<cv::Point>> contours, 
 			}
 		}
 	}
-#pragma endregion COG_ALGORITHM2
 	break;
 
 	default:
@@ -833,72 +957,70 @@ BOOL CAuxPol::proc_center_gravity(std::vector<std::vector<cv::Point>> contours, 
 	}
 	*outPosX = pos_x;
 	*outPosY = pos_y;
-	*outTgtSize = target_size;
+	*outTgtSize = target_size;//æ¤œå‡ºã‚¨ãƒªã‚¢ã®é•·è¾ºã‚’ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚ºã¨ã™ã‚‹
 
 	return ret;
 }
 
-/// @brief dSŒŸo Type2
-/// @param
-/// @return
-/// @note
+/// <summary>
+/// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡º(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®ä¸­å¿ƒ)ã€€è¼ªéƒ­ã®æœ€å¤§é¢ç©ã‚’æ¤œå‡ºï¼ˆæœ‰åŠ¹ã‚µã‚¤ã‚ºãƒã‚§ãƒƒã‚¯æœ‰ï¼‰ã—ã€é‡å¿ƒä½ç½®ã‚’ç®—å‡ºã™ã‚‹
+/// </summary>
+/// <param name="contours">		è§£æç”¨å…¥åŠ›ãƒ‡ãƒ¼ã‚¿		</param>
+/// <param name="outPosX">		æ¤œå‡ºä½ç½®å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡	</param>
+/// <param name="outPosY">		æ¤œå‡ºä½ç½®å‡ºåŠ›ãƒãƒƒãƒ•ã‚¡	</param>
+/// <param name="outTgtSize">	æ¤œå‡ºã‚µã‚¤ã‚ºå‡ºåŠ›ãƒãƒƒãƒ•ã‚¡	</param>
+/// <param name="size_expected">æœŸå¾…ã‚µã‚¤ã‚ºå…¥åŠ›ãƒãƒƒãƒ•ã‚¡	</param>
+/// <param name="size_detected">æœŸå¾…ã‚µã‚¤ã‚ºå…¥åŠ›ãƒãƒƒãƒ•ã‚¡	</param>
+/// <scenario>
+/// é‡å¿ƒä½ç½®ç®—å‡ºã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ (æœ€å¤§è¼ªéƒ­é¢ç©)
+/// </scenario>
+/// <returns></returns>
 BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours, double* outPosX, double* outPosY, int* outTgtSize, cv::Size2i* size_expected, cv::Size2i* size_detected)
 {
-
-	BOOL    ret = FALSE;
-	double  pos_x = 0.0;
-	double  pos_y = 0.0;
+	BOOL    ret = FALSE,find = FALSE;
+	double  pos_x = 0.0, pos_y = 0.0,max_area = 0, size_chk_high, size_chk_low;
 	int32_t target_size = 0;
-
-	//----------------------------------------------------------------------------
-	// dSˆÊ’uZoƒAƒ‹ƒSƒŠƒYƒ€(Å‘å—ÖŠs–ÊÏ)
-	BOOL     find = FALSE;
-	size_t   count = 0;
-	double   max_area = 0, size_chk_high, size_chk_low;
-	size_t   max_area_contour = 0;
-
-	size_t   area_detected_max = 0;
+	size_t   count = 0,max_area_contour,area_detected_max = 0;
 	cv::Rect roi;
 
-	//ƒ[ƒv’·‚©‚çŠú‘Ò‚³‚ê‚éƒ^[ƒQƒbƒg‚ÌŒŸoƒTƒCƒY
-	//ŒŸoƒTƒCƒYãŒÀ@¡–@‚ª2”{ˆÈ‰º
-	size_chk_high = (double)(size_expected->width) * 4.0;
-	//ŒŸoƒTƒCƒY‰ºŒÀ@¡–@‚ª1/8”{ˆÈã
-   // size_chk_low = (double)(size_expected->width)/2.0;
-	size_chk_low = (double)(size_expected->width) / 4.0;
-	//ƒTƒCƒY”ÍˆÍ‹–—e’l
+	//#ã€€ã‚¿ãƒ¼ã‚²ãƒƒãƒˆåˆ¤å®šé–¾å€¤
+	size_chk_high	= (double)(size_expected->width) * 4.0;//ãƒ­ãƒ¼ãƒ—é•·ã‹ã‚‰æœŸå¾…ã•ã‚Œã‚‹æ¤œå‡ºã‚µã‚¤ã‚ºä¸Šé™ã€€æƒ³å®šå¯¸æ³•4å€ä»¥ä¸‹
+   	size_chk_low	= (double)(size_expected->width) / 4.0;//ãƒ­ãƒ¼ãƒ—é•·ã‹ã‚‰æœŸå¾…ã•ã‚Œã‚‹æ¤œå‡ºã‚µã‚¤ã‚ºä¸‹é™ã€€æƒ³å®šå¯¸æ³•1/4å€ä»¥ä¸Š
 
 	for (size_t i = 0; i < contours.size(); i++) {
-		double area = contourArea(contours.at(i));
-
-		//—ÖŠs‚Ì’·•ûŒ`˜g‚ğ‹‚ßc‰¡”ä
-		roi = cv::boundingRect(contours[i]);
-
-		//ƒTƒCƒY‹y‚Ñc‰¡”ä‚ª‹–—e’l“à‚ÅŒŸo@–ÊÏÅ‘å‚Ì‚à‚Ì‚ğŒŸoarea‚Æ”»’è
-		if ((max_area < area) && (roi.height < size_chk_high) && (roi.width < size_chk_high) && (roi.height > size_chk_low) && (roi.width > size_chk_low)) {
+		//#ã€€æŒ‡å®šã—ãŸè¼ªéƒ­ï¼ˆç‚¹åˆ—ï¼‰ã‹ã‚‰ é¢ç©ï¼ˆPIXELã‚¹ã‚«ãƒ©ãƒ¼å€¤ï¼‰ã‚’è¿”ã™
+		double area = contourArea(contours.at(i));	
+		//# è¼ªéƒ­ã®é•·æ–¹å½¢æ ã‚’æ±‚ã‚ã‚‹
+		roi = cv::boundingRect(contours[i]);		
+		//# ã‚µã‚¤ã‚ºåŠã³ç¸¦æ¨ªæ¯”ãŒè¨±å®¹å€¤å†…ã§æ¤œå‡ºã€€é¢ç©æœ€å¤§ã®ã‚‚ã®ã‚’æ¤œå‡ºareaã¨åˆ¤å®š
+		if (
+			(max_area < area) &&			// é¢ç©æœ€å¤§
+			(roi.height < size_chk_high) &&	// ç¸¦ã‚µã‚¤ã‚ºä¸Šé™ä»¥ä¸‹ 
+			(roi.width < size_chk_high) &&  // æ¨ªã‚µã‚¤ã‚ºä¸Šé™ä»¥ä¸‹
+			(roi.height > size_chk_low) &&  // ç¸¦ã‚µã‚¤ã‚ºä¸‹é™ä»¥ä¸Š 
+			(roi.width > size_chk_low)      // æ¨ªã‚µã‚¤ã‚ºä¸‹é™ä»¥ä¸Š
+			) {//é¢ç©æœ€å¤§ã®ã‚‚ã®ã‚’æ¤œå‡º
 			max_area = area;
 			max_area_contour = i;
-
 			find = TRUE;
 		}
 	}
-
+	//# æ¤œå‡ºçµæœå‡ºåŠ›
 	if (find) {
 		roi = cv::boundingRect(contours[max_area_contour]);
-		//       target_size = (roi.width > roi.height) ? (roi.width + 1) : (roi.height + 1);
-			   //ƒ^[ƒQƒbƒgƒTƒCƒY‚Í–ÊÏ‚Å•]‰¿20241105
+	   //ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚ºã¯é¢ç©ã§è©•ä¾¡
 		target_size = roi.width * roi.height;
 		pos_x = double(roi.x + roi.width / 2);
 		pos_y = double(roi.y + roi.height / 2);
 		ret = TRUE;
 	}
 
-	if (isnan(pos_x) || isnan(pos_y)) {
-		pos_x = 0.0;
-		pos_y = 0.0;
-
+	if (isnan(pos_x) || isnan(pos_y)) {//isnan(éæ•°)ã¯æ¤œå‡ºã•ã‚Œãªã„ã‚ˆã†ã«ã™ã‚‹
+		pos_x = 0.0;pos_y = 0.0;
 		ret = FALSE;
 	}
+
+	//æ¤œå‡ºå†…å®¹å‡ºåŠ›
 	*outPosX = pos_x;
 	*outPosY = pos_y;
 	*outTgtSize = target_size;
@@ -906,308 +1028,263 @@ BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
 	return ret;
 }
 
-/// @brief U‚êŒŸoˆ—
-/// @param
-/// @return
-/// @note
+/// <summary>
+/// ãƒã‚¹ã‚¯å‡¦ç†ã§æ¤œå‡ºã—ãŸã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®ä½ç½®ã‹ã‚‰ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®ã¨å‚¾ãã‚’ç®—å‡ºã™ã‚‹
+/// </summary>
+/// <scenario>
+/// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡º(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®ä¸­å¿ƒ)
+/// </scenario>
+/// <param name=""></param>
 void CAuxPol::proc_sway(void)
 {
-	//----------------------------------------------------------------------------
-	// ƒ^[ƒQƒbƒgŒŸo(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì’†S)
-	//ƒ^[ƒQƒbƒg1,2‹¤‚Éƒ}ƒXƒNİ’è—LŒø
-	if ((gp_cnfg_imgprc->mask[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].valid) &&
-		(gp_cnfg_imgprc->mask[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].valid)) {
-		if ((gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].valid) &&
-			(gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].valid)) {
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[axis].target_pos = (gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].pos[axis]
-					+ gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].pos[axis]) * 0.5;  // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[axis].target_tilt = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].pos[axis]
-					- gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].pos[axis];          // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = (gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].size
-				+ gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].size) * 0.5;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE);    // ó‘Ô
-		}
-		else if (gp_cnfg_imgprc->mask[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].valid) {
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[axis].target_pos = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].pos[axis];  // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[axis].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].size;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE);    // ó‘Ô
-		}
-		else if (gp_cnfg_imgprc->mask[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].valid) {
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[axis].target_pos = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].pos[axis];  // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[axis].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].size;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE);    // ó‘Ô
-		}
-		else {
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = 0.0;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status &= (~static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE)); // TARGET_ENABLEƒNƒŠƒA
-		}
-	}
+	bool is_mask1_valid		= gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid;
+	bool is_mask2_valid		= gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid;
+	bool is_mask12_valid	= is_mask1_valid * is_mask2_valid;
+	bool is_target1_valid	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid;
+	bool is_target2_valid	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid;
+	bool is_target12_valid  = is_target1_valid * is_target2_valid;
 
-	//ƒ^[ƒQƒbƒg1‚Ì‚İƒ}ƒXƒNİ’è—LŒø
-	else if (gp_cnfg_imgprc->mask[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].valid) {
-		if (gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].valid) { //ƒ^[ƒQƒbƒg1—LŒø
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[axis].target_pos = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].pos[axis];  // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[axis].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].size;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE);    // ó‘Ô
-		}
-		else {                                                                                  //ƒ^[ƒQƒbƒg1–³Œø
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = 0.0;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status &= (~static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE)); // TARGET_ENABLEƒNƒŠƒA
-		}
-	}
+	double pos_tg_x1 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].pos[(uint32_t)(ENUM_AXIS::X)];
+	double pos_tg_y1 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].pos[(uint32_t)(ENUM_AXIS::Y)];
+	double pos_tg_x2 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[(uint32_t)(ENUM_AXIS::X)];
+	double pos_tg_y2 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[(uint32_t)(ENUM_AXIS::Y)];
 
-	//ƒ^[ƒQƒbƒg2‚Ì‚İƒ}ƒXƒNİ’è—LŒø
-	else if (gp_cnfg_imgprc->mask[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].valid) {
-		if (gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].valid) {   //ƒ^[ƒQƒbƒg2—LŒø
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[axis].target_pos = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].pos[axis];  // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[axis].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].size;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE);    // ó‘Ô
-		}
-		else {                                                                                  //ƒ^[ƒQƒbƒg2–³Œø
-			for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-				gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			}
-			gp_app_imgprc->target_size = 0.0;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-			gp_app_imgprc->status &= (~static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE)); // TARGET_ENABLEƒNƒŠƒA
-		}
-	}
+	//# ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®ä¸­å¿ƒ)
+	
+	if ((is_mask12_valid) && (is_target12_valid)) {//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ1,2å…±ã«æœ‰åŠ¹
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos	= (pos_tg_x1 + pos_tg_x2) * 0.5;  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt	= pos_tg_x1 - pos_tg_x2; 
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos	= (pos_tg_y1 + pos_tg_y2) * 0.5;  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt	= pos_tg_y1 - pos_tg_y2;
 
-	//‹¤‚Éƒ}ƒXƒNİ’è–³Œø
-	else {
-		for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-			gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-			gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V) / 2.0;   // ƒ^[ƒQƒbƒgˆÊ’u[pixel]
-			gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-			gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)].target_tilt = 0.0;   // ƒ^[ƒQƒbƒgŒX‚«[pixel]
-		}
-		gp_app_imgprc->target_size = 0.0;   // ƒ^[ƒQƒbƒgƒTƒCƒY(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì•½‹Ï)
-		gp_app_imgprc->status &= (~static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE)); // TARGET_ENABLEƒNƒŠƒA
+		gp_app_imgprc->target_size = ((double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].size
+									+ (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].size) * 0.5;											 // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚º(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®å¹³å‡)
+		gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEã‚¯ãƒªã‚¢
 	}
+	else if ((is_mask1_valid) && (is_target1_valid)) {//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ1ã®ã¿æœ‰åŠ¹
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos	= pos_tg_x1;  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt	= 0.0;
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos	= pos_tg_y1;  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt	= 0.0;
 
-	//----------------------------------------------------------------------------
-	// U‚êŒŸo
-	double dt = gp_app_system->sample_cycle;   // ƒ^ƒXƒNÀsüŠú[s]
-	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-		PSWAY_DATA sway_data = &gp_app_imgprc->sway_data[axis];   // U‚êŒŸoƒf[ƒ^(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì’†S)
+		gp_app_imgprc->target_size = (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].size;											 // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚º(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®å¹³å‡)
+		gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEã‚¯ãƒªã‚¢
+	}
+	else if ((is_mask2_valid) && (is_target2_valid)) {//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ2ã®ã¿æœ‰åŠ¹
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos	= pos_tg_x2;  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt	= 0.0;
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos	= pos_tg_y2;  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt	= 0.0;
+
+		gp_app_imgprc->target_size = (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].size;											 // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚º(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®å¹³å‡)
+		gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEã‚¯ãƒªã‚¢
+	}
+	else {//ãƒã‚¹ã‚¯è¨­å®šç„¡åŠ¹
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H) / 2.0;   // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V) / 2.0;   // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt = 0.0;   // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆå‚¾ã[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt = 0.0;   // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆå‚¾ã[pixel]
 		
-		double     last_sway_angle = sway_data->sway_angle;       // U‚êŠp(‘O‰ñ’l)[pixel]
-		if (gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
-			sway_data->sway_angle = sway_data->sway_zero - sway_data->target_pos;   // U‚êŠp[pixel]
-
-			double sway_speed = (sway_data->sway_angle - last_sway_angle) / dt; // U‚ê‘¬“x[pixel/s]
-			double temp_spd = sway_data->sway_speed - sway_speed;
-			double chk_limit = gp_app_adjust->coef_roi_margin[axis] * gp_app_adjust->w[axis];
-
-			if ((temp_spd > chk_limit) || (-temp_spd > chk_limit)) {
-				;//‘O‰ñ’l•Û
-			}
-			else {
-				sway_data->sway_speed = SWAY_SENSOR_LPF_K1 * sway_data->sway_speed + SWAY_SENSOR_LPF_K2 * sway_speed; // ƒtƒBƒ‹ƒ^
-			}
-		}
-		else {
-			sway_data->sway_angle = 0.0;    // U‚êŠp[pixel]
-			sway_data->sway_speed = 0.0;    // U‚ê‘¬“x[pixel/s]
-		}
+		gp_app_imgprc->target_size = 0.0;											 // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚µã‚¤ã‚º(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®å¹³å‡)
+		gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)); // TARGET_ENABLEã‚¯ãƒªã‚¢
 	}
 
 	//----------------------------------------------------------------------------
-	// U‚êƒ[ƒ“_İ’èˆ—
-#if 0
-	for (uint32_t axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-		PSWAY_DATA sway_data = &gp_app_imgprc->sway_data[axis];   // U‚êŒŸoƒf[ƒ^(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì’†S)
-		sway_data->sway_zero = get_sway_zero(axis); // U‚ê’†S[pixel]
+	// æŒ¯ã‚Œæ¤œå‡º
+	double dt = gp_app_system->sample_cycle;										// ã‚¿ã‚¹ã‚¯å®Ÿè¡Œå‘¨æœŸ[s]
+
+	PSWAY_DATA psway_data_x = &gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)];
+	PSWAY_DATA psway_data_y = &gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)];
+	double     last_sway_angle_x = psway_data_x->sway_angle;							// æŒ¯ã‚Œè§’(å‰å›å€¤)[pixel]
+	double     last_sway_angle_y = psway_data_y->sway_angle;							// æŒ¯ã‚Œè§’(å‰å›å€¤)[pixel]
+
+	if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
+		psway_data_x->sway_angle = psway_data_x->sway_zero - psway_data_x->target_pos;   // æŒ¯ã‚Œè§’[pixel]
+		psway_data_y->sway_angle = psway_data_y->sway_zero - psway_data_y->target_pos;   // æŒ¯ã‚Œè§’[pixel]
+
+		double sway_speed_x = (psway_data_x->sway_angle - last_sway_angle_x) / dt;		// æŒ¯ã‚Œé€Ÿåº¦[pixel/s]
+		double sway_speed_y = (psway_data_y->sway_angle - last_sway_angle_y) / dt;		// æŒ¯ã‚Œé€Ÿåº¦[pixel/s]
+
+		double acc_x = psway_data_x->sway_speed - sway_speed_x;
+		double acc_y = psway_data_y->sway_speed - sway_speed_y;
+
+		//åŠ é€Ÿåº¦ãƒªãƒŸãƒƒãƒˆï¼ˆé€Ÿåº¦ãƒªãƒŸãƒƒãƒˆÃ—Ï‰)
+		double chk_limit_x = gp_app_adjust->coef_roi_margin[(uint32_t)(ENUM_AXIS::X)] * gp_app_adjust->w[(uint32_t)(ENUM_AXIS::X)];
+		double chk_limit_y = gp_app_adjust->coef_roi_margin[(uint32_t)(ENUM_AXIS::Y)] * gp_app_adjust->w[(uint32_t)(ENUM_AXIS::Y)];
+
+		//åŠ é€Ÿåº¦è©•ä¾¡å€¤ãŒé–¾å€¤å†…ã§ãƒ•ã‚£ãƒ«ã‚¿å‡¦ç†ã€€ç¯„å›²å¤–ã¯å‰å›å€¤ä¿æŒ
+		if ((acc_x < chk_limit_x) && (-acc_x < chk_limit_x)) {//é–¾å€¤ç¯„å›²å†…
+			psway_data_x->sway_speed = SWAY_SENSOR_LPF_K1 * psway_data_x->sway_speed + SWAY_SENSOR_LPF_K2 * sway_speed_x; // ãƒ•ã‚£ãƒ«ã‚¿æœ‰
+		}
+		if ((acc_x < chk_limit_y) && (-acc_x < chk_limit_y)) {//é–¾å€¤ç¯„å›²å†…
+			psway_data_y->sway_speed = SWAY_SENSOR_LPF_K1 * psway_data_y->sway_speed + SWAY_SENSOR_LPF_K2 * sway_speed_y; // ãƒ•ã‚£ãƒ«ã‚¿æœ‰
+		}
 	}
-#else
-	get_sway_zero(); // U‚ê’†S[pixel]
-#endif
+	else {
+		psway_data_x->sway_angle = psway_data_y->sway_angle = 0.0;    // æŒ¯ã‚Œè§’[pixel]
+		psway_data_x->sway_speed = psway_data_y->sway_speed = 0.0;    // æŒ¯ã‚Œé€Ÿåº¦[pixel/s]
+	}
+
+	//----------------------------------------------------------------------------
+	// æŒ¯ã‚Œã‚¼ãƒ­ç‚¹è¨­å®šå‡¦ç†
+	get_sway_zero(); // æŒ¯ã‚Œä¸­å¿ƒ[pixel]
+
 	return;
 }
 
-/// @brief U‚êƒ[ƒ“_İ’èˆ—
-/// @param
-/// @return
-/// @note
+
+/// <summary>
+/// æŒ¯ã‚Œã‚¼ãƒ­ç‚¹è¨­å®šå‡¦ç†(èª¿æ•´æ™‚ã«è¨ˆæ¸¬å¾Œå›ºå®šã‚¿ã‚¤ãƒ—ï¼ˆä¸æ¡ç”¨ï¼‰
+/// </summary>
+/// <scenario>
+/// 
+/// </scenario>
+/// <param name="idx"></param>
+/// <returns></returns>
 double CAuxPol::get_sway_zero(uint32_t idx)
 {
-	PSWAY_DATA    sway_data = &gp_app_imgprc->sway_data[idx];   // U‚êŒŸoƒf[ƒ^(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì’†S)
-	LARGE_INTEGER frequency;                                    // ƒVƒXƒeƒ€‚Ìü”g”
-	LARGE_INTEGER cur_count;                                    // Œ»İ‚ÌƒJƒEƒ“ƒg”
-	LONGLONG      span_usec;                                    // ŠÔ‚ÌŠÔŠu[usec]
-	uint32_t      span_msec;                                    // ŠÔ‚ÌŠÔŠu[msec]
+	PSWAY_DATA    sway_data = &gp_app_imgprc->sway_data[idx];   // æŒ¯ã‚Œæ¤œå‡ºãƒ‡ãƒ¼ã‚¿(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãƒ‡ãƒ¼ã‚¿ã®ä¸­å¿ƒ)
+	LARGE_INTEGER frequency;                                    // ã‚·ã‚¹ãƒ†ãƒ ã®å‘¨æ³¢æ•°
+	LARGE_INTEGER cur_count;                                    // ç¾åœ¨ã®ã‚«ã‚¦ãƒ³ãƒˆæ•°
+	LONGLONG      span_usec;                                    // æ™‚é–“ã®é–“éš”[usec]
+	uint32_t      span_msec;                                    // æ™‚é–“ã®é–“éš”[msec]
 	std::wostringstream  wosmsg;
 
-	QueryPerformanceFrequency(&frequency);  // ƒVƒXƒeƒ€‚Ìü”g”
-	QueryPerformanceCounter(&cur_count);    // Œ»İ‚ÌƒJƒEƒ“ƒg”
-	span_usec = ((cur_count.QuadPart - m_sway_zero_data.time_counter.QuadPart) * 1000000L) / frequency.QuadPart;    // ŠÔ‚ÌŠÔŠu[usec]
-	span_msec = static_cast<uint32_t>(span_usec / 1000);    // ŠÔ‚ÌŠÔŠu[msec]
+	QueryPerformanceFrequency(&frequency);  // ã‚·ã‚¹ãƒ†ãƒ ã®å‘¨æ³¢æ•°
+	QueryPerformanceCounter(&cur_count);    // ç¾åœ¨ã®ã‚«ã‚¦ãƒ³ãƒˆæ•°
+	span_usec = ((cur_count.QuadPart - m_sway_zero_data.time_counter.QuadPart) * 1000000L) / frequency.QuadPart;    // æ™‚é–“ã®é–“éš”[usec]
+	span_msec = (uint32_t)(span_usec / 1000);    // æ™‚é–“ã®é–“éš”[msec]
 
-	//ƒ[ƒƒZƒbƒgÀs’†ƒtƒ‰ƒOƒZƒbƒg
-	if (gp_app_client->command & static_cast<uint32_t>(SW_CLIENT_COM_CAMERA1_0SET)) { // ƒNƒ‰ƒCƒAƒ“ƒg0ƒZƒbƒgƒRƒ}ƒ“ƒhƒtƒ‰ƒOON
+	//ã‚¼ãƒ­ã‚»ãƒƒãƒˆå®Ÿè¡Œä¸­ãƒ•ãƒ©ã‚°ã‚»ãƒƒãƒˆ
+	if (gp_app_client->command & (uint32_t)(SW_CLIENT_COM_CAMERA1_0SET)) { // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ0ã‚»ãƒƒãƒˆã‚³ãƒãƒ³ãƒ‰ãƒ•ãƒ©ã‚°ON
 
-		if (!(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN))) {//MCC 0ƒZƒbƒgis’†@OFF
+		if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN))) {//MCC 0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã€€OFF
 
-			gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN);     //MCC 0ƒZƒbƒgis’†ƒtƒ‰ƒOƒZƒbƒg
+			gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN);     //MCC 0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ãƒ•ãƒ©ã‚°ã‚»ãƒƒãƒˆ
 			wosmsg.str(L""); wosmsg << L"<Information>Running sway zero setting";
 			msg2listview(wosmsg.str()); 
 		}
 	}
 
-	if (((gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_RUN)) ||        //0ƒZƒbƒgis’†@ON
-		(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN))) &&    //MCC 0ƒZƒbƒgis’†@ON
-		!(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED))) {  //0ƒZƒbƒgŠ®—¹ƒtƒ‰ƒO@ON
+	if (((gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_RUN)) ||        //0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã€€ON
+		(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN))) &&    //MCC 0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã€€ON
+		!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED))) {  //0ã‚»ãƒƒãƒˆå®Œäº†ãƒ•ãƒ©ã‚°ã€€ON
 
-		if (gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {       //ƒ^[ƒQƒbƒgŒŸo’†@ON
-			if (span_msec >= 0) {                               //Œv‘ªŒp‘±ŠÔ > 0
-				if (span_msec < gp_cnfg_imgprc->swayzeroset_time) {   //Œv‘ªİ’èŠÔŒo‰ß‚µ‚Ä‚¢‚È‚¢
-					if (sway_data->target_pos < m_sway_zero_data.sway_min[idx]) { //Å¬’lXV
+		if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {       //ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºä¸­ã€€ON
+			if (span_msec >= 0) {                               //è¨ˆæ¸¬ç¶™ç¶šæ™‚é–“ > 0
+				if (span_msec < gp_cnfg_imgprc->swayzeroset_time) {   //è¨ˆæ¸¬è¨­å®šæ™‚é–“çµŒéã—ã¦ã„ãªã„
+					if (sway_data->target_pos < m_sway_zero_data.sway_min[idx]) { //æœ€å°å€¤æ›´æ–°
 						m_sway_zero_data.sway_min[idx] = sway_data->target_pos;
 					}
-					if (m_sway_zero_data.sway_max[idx] < sway_data->target_pos) { //Å‘å’lXV
+					if (m_sway_zero_data.sway_max[idx] < sway_data->target_pos) { //æœ€å¤§å€¤æ›´æ–°
 						m_sway_zero_data.sway_max[idx] = sway_data->target_pos;
 					}
 				}
 				else {
 					m_sway_zero_data.sway_zero[idx] = (m_sway_zero_data.sway_min[idx] + m_sway_zero_data.sway_max[idx]) * 0.5;
-					gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED);  // 
-					QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // Œv‘ªŠÔ—pƒpƒtƒH[ƒ}ƒ“ƒXƒJƒEƒ“ƒ^[
+					gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED);  // 
+					QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // è¨ˆæ¸¬æ™‚é–“ç”¨ãƒ‘ãƒ•ã‚©ãƒ¼ãƒãƒ³ã‚¹ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
 					wosmsg.str(L""); wosmsg << L"<Information>Completed  sway zero setting";
 					msg2listview(wosmsg.str());
 				}
 			}
 			else {
-				QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // Œv‘ªŠÔ—pƒpƒtƒH[ƒ}ƒ“ƒXƒJƒEƒ“ƒ^[
+				QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // è¨ˆæ¸¬æ™‚é–“ç”¨ãƒ‘ãƒ•ã‚©ãƒ¼ãƒãƒ³ã‚¹ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
 			}
 		}
-		else {//ƒ^[ƒQƒbƒgŒŸo’†‚Å‚È‚¢@Œv‘ª—pƒJƒEƒ“ƒ^[ƒz[ƒ‹ƒh’lƒZƒbƒg@0ƒZƒbƒgŠ®—¹ƒtƒ‰ƒO@ON
-			gp_app_imgprc->status |= static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED);   // 
-			QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // Œv‘ªŠÔ—pƒpƒtƒH[ƒ}ƒ“ƒXƒJƒEƒ“ƒ^[
+		else {//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºä¸­ã§ãªã„ã€€è¨ˆæ¸¬ç”¨ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼ãƒ›ãƒ¼ãƒ«ãƒ‰å€¤ã‚»ãƒƒãƒˆã€€0ã‚»ãƒƒãƒˆå®Œäº†ãƒ•ãƒ©ã‚°ã€€ON
+			gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED);   // 
+			QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // è¨ˆæ¸¬æ™‚é–“ç”¨ãƒ‘ãƒ•ã‚©ãƒ¼ãƒãƒ³ã‚¹ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
 			wosmsg.str(L""); wosmsg << L"<Error>Failed to sway zero setting";
 			msg2listview(wosmsg.str());
 		}
 	}
-	else {  //0ƒZƒbƒgis’†‚Å‚È‚¢@Œv‘ª—pƒJƒEƒ“ƒ^[ƒz[ƒ‹ƒh’lƒZƒbƒg
-		QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // Œv‘ªŠÔ—pƒpƒtƒH[ƒ}ƒ“ƒXƒJƒEƒ“ƒ^[
+	else {  //0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã§ãªã„ã€€è¨ˆæ¸¬ç”¨ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼ãƒ›ãƒ¼ãƒ«ãƒ‰å€¤ã‚»ãƒƒãƒˆ
+		QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // è¨ˆæ¸¬æ™‚é–“ç”¨ãƒ‘ãƒ•ã‚©ãƒ¼ãƒãƒ³ã‚¹ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼
 	}
 
-	if (gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED)) {      //0ƒZƒbƒgŠ®—¹ó‘Ô
+	if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED)) {      //0ã‚»ãƒƒãƒˆå®Œäº†çŠ¶æ…‹
 
-		gp_app_imgprc->status &= ~static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_RUN);            //0ƒZƒbƒgis’†ƒNƒŠƒA
+		gp_app_imgprc->status &= ~(uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_RUN);            //0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã‚¯ãƒªã‚¢
 
-		if (!(gp_app_client->command & static_cast<uint32_t>(SW_CLIENT_COM_CAMERA1_0SET))) {            //ƒJƒƒ‰1‚Ì0ƒZƒbƒgƒRƒ}ƒ“ƒhƒNƒŠƒAÏ
+		if (!(gp_app_client->command & (uint32_t)(SW_CLIENT_COM_CAMERA1_0SET))) {            //ã‚«ãƒ¡ãƒ©1ã®0ã‚»ãƒƒãƒˆã‚³ãƒãƒ³ãƒ‰ã‚¯ãƒªã‚¢æ¸ˆ
 
-			gp_app_imgprc->status &= ~static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN);    //MCC 0ƒZƒbƒgis’†ƒNƒŠƒA
+			gp_app_imgprc->status &= ~(uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN);    //MCC 0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã‚¯ãƒªã‚¢
 		}
 
-		if (!(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_RUN)) &&     //0ƒZƒbƒgis’†‚Å‚È‚¢
-			!(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN))) { //0ƒZƒbƒgis’†‚Å‚È‚¢
+		if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_RUN)) &&     //0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã§ãªã„
+			!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN))) { //0ã‚»ãƒƒãƒˆé€²è¡Œä¸­ã§ãªã„
 
-			gp_app_imgprc->status &= (~static_cast<uint32_t>(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED));//0ƒZƒbƒgŠ®—¹ó‘ÔƒNƒŠƒA
+			gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED));//0ã‚»ãƒƒãƒˆå®Œäº†çŠ¶æ…‹ã‚¯ãƒªã‚¢
 		}
 	}
 
 	return m_sway_zero_data.sway_zero[idx];
 }
 
-//NEW LOGIC 0“]@íXV
-static int sway0_counter = 0;
+static int sway0_counter[(uint32_t)(ENUM_AXIS::E_MAX)] = { 0,0 };
+
+/// <summary>
+/// æŒ¯ã‚Œã‚¼ãƒ­ç‚¹è¨­å®šå‡¦ç†(NEW LOGIC 0ç‚¹ã€€å¸¸æ™‚æ›´æ–°
+/// </summary>
+/// <scenario>
+/// æŒ¯ã‚Œå‘¨æœŸé–“ã®Peak to Peakã‚’å¸¸æ™‚è¨ˆæ¸¬ã—ã¦æ›´æ–°
+/// </scenario>
+/// <param name="idx"></param>
+/// <returns></returns>
 double CAuxPol::get_sway_zero()
 {
-	PSWAY_DATA    sway_data_x = &gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::X)];   // U‚êŒŸoƒf[ƒ^(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì’†S)
-	PSWAY_DATA    sway_data_y = &gp_app_imgprc->sway_data[static_cast<uint32_t>(ENUM_AXIS::Y)];   // U‚êŒŸoƒf[ƒ^(ƒ^[ƒQƒbƒgŒŸoƒf[ƒ^‚Ì’†S)
+	for (int axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
 
-	std::wstring  msg;
+		if (--sway0_counter[axis] < 0) {//0ç‚¹æ›´æ–°å‡¦ç†
 
-	sway0_counter--;
-	if (sway0_counter < 0) {
+			sway0_counter[axis] = (int)(gp_app_adjust->T[(uint32_t)(ENUM_AXIS::X)] / gp_app_system->sample_cycle);
 
-		sway0_counter = (int)(gp_app_adjust->T[0] / gp_app_system->sample_cycle);
-
-		if (!(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::TARGET_ENABLE))) {
-			sway_data_x->sway_zero = (double)(CAM1_SPEC_PIXEL_H / 2);
-			sway_data_y->sway_zero = (double)(CAM1_SPEC_PIXEL_V / 2);
+			if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE))) {//ã‚¿ãƒ¼ã‚²ãƒƒãƒˆæ¤œå‡ºãŒç„¡åŠ¹ã®æ™‚
+				//ç”»é¢ä¸­å¿ƒ
+				gp_app_imgprc->sway_data[axis].sway_zero = (double)(gp_cnfg_common->full_pix[axis] / 2);
+			}
+			else {
+				//æœ€å¤§æœ€å°å€¤ã®ä¸­ç‚¹		
+				gp_app_imgprc->sway_data[axis].sway_zero = (m_sway_zero_data.sway_min[axis] + m_sway_zero_data.sway_max[axis]) * 0.5;
+			}
+			//æ¤œå‡ºæœ€å¤§å€¤,æœ€å°å€¤ãƒªã‚»ãƒƒãƒˆ
+			m_sway_zero_data.sway_min[axis] = gp_cnfg_common->full_pix[axis];
+			m_sway_zero_data.sway_max[axis] = 0;
 		}
-		else {
-			sway_data_x->sway_zero = (m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::X)] + m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::X)]) * 0.5;
-			sway_data_y->sway_zero = (m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::Y)] + m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::Y)]) * 0.5;
+		else {//æ¤œå‡ºæœ€å¤§å€¤,æœ€å°å€¤æ›´æ–°
+			if (gp_app_imgprc->sway_data[axis].target_pos < m_sway_zero_data.sway_min[axis]) { //æœ€å°å€¤æ›´æ–°
+				m_sway_zero_data.sway_min[axis] = gp_app_imgprc->sway_data[axis].target_pos;
+			}
+			if (gp_app_imgprc->sway_data[axis].target_pos > m_sway_zero_data.sway_max[axis]) { //æœ€å¤§å€¤æ›´æ–°
+				m_sway_zero_data.sway_max[axis] = gp_app_imgprc->sway_data[axis].target_pos;
+			}
 		}
-		//ŒŸoÅ‘å’l,Å¬’lƒŠƒZƒbƒg
-		m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::X)] = CAM1_SPEC_PIXEL_H;
-		m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::Y)] = CAM1_SPEC_PIXEL_V;
-		m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::X)] = m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::Y)] = 0;
+
 	}
-	else {
-		//ŒŸoÅ‘å’l,Å¬’lXV
-		if (sway_data_x->target_pos < m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::X)]) { //Å¬’lXV
-			m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::X)] = sway_data_x->target_pos;
-		}
-		if (m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::X)] < sway_data_x->target_pos) { //Å‘å’lXV
-			m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::X)] = sway_data_x->target_pos;
-		}
-
-		if (sway_data_y->target_pos < m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::Y)]) { //Å¬’lXV
-			m_sway_zero_data.sway_min[static_cast<uint32_t>(ENUM_AXIS::Y)] = sway_data_y->target_pos;
-		}
-		if (m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::Y)] < sway_data_y->target_pos) { //Å‘å’lXV
-			m_sway_zero_data.sway_max[static_cast<uint32_t>(ENUM_AXIS::Y)] = sway_data_y->target_pos;
-		}
-	}
-
 	return 0.0;
 }
 
-/// @brief ƒVƒƒƒbƒ^ƒRƒ“ƒgƒ[ƒ‹
-/// @param
-/// @return
-/// @note
-
-static bool was_over_expose = false;		//‹P“x‚ªãŒÀİ’è’l‚ğ’´‚¦‚½‚±‚Æ‚ª‚ ‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
-static bool was_under_expose	= false;	//‹P“x‚ª‰ºŒÀİ’è’l‚ğ’´‚¦‚½‚±‚Æ‚ª‚ ‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+static bool was_over_expose = false;		//è¼åº¦ãŒä¸Šé™è¨­å®šå€¤ã‚’è¶…ãˆãŸã“ã¨ãŒã‚ã‚‹ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°
+static bool was_under_expose	= false;	//è¼åº¦ãŒä¸‹é™è¨­å®šå€¤ã‚’è¶…ãˆãŸã“ã¨ãŒã‚ã‚‹ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°
 static double exps_time_upper_limit;
 static double exps_time_lower_limit;
 
 /// <summary>
-/// ƒVƒƒƒbƒ^ƒRƒ“ƒgƒ[ƒ‹
+/// ã‚·ãƒ£ãƒƒã‚¿ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«
 /// </summary>
 /// <scenario>
 /// 
 /// </scenario>
 void CAuxPol::set_expstime()
 {
-	if (!gp_cnfg_common->img_source_camera) {//ƒJƒƒ‰:1 ‰æ‘œƒf[ƒ^:0
+
+	if (!gp_cnfg_common->img_source_camera) {
+		//# ç”»åƒå…¥åŠ›ãŒã‚«ãƒ¡ãƒ©ã§ãªã‘ã‚Œã°ã€€returnã€€ã‚«ãƒ¡ãƒ©:1 ç”»åƒãƒ‡ãƒ¼ã‚¿:0
 		return;
 	}
 
-	//%‚Q‚Â‚Ìƒ}ƒXƒNˆ—Œã‰æ‘œ‚ÌÅ‘å‹P“x‚Ì‚¤‚¿‘å‚«‚¢•û‚ğ•]‰¿‘ÎÛ‹P“x‚ÉƒZƒbƒg
+	//# ï¼’ã¤ã®ãƒã‚¹ã‚¯å‡¦ç†å¾Œç”»åƒã®æœ€å¤§è¼åº¦ã®ã†ã¡å¤§ãã„æ–¹ã‚’è©•ä¾¡å¯¾è±¡è¼åº¦ã«ã‚»ãƒƒãƒˆ
 	if (gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val > gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val) {
 		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val;
 	}
@@ -1215,49 +1292,42 @@ void CAuxPol::set_expstime()
 		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val;
 	}
 
-	//% ƒVƒƒƒbƒ^[ƒRƒ“ƒgƒ[ƒ‹‹Ö~”»’è i‰æ‘œ“ü—ÍˆÙí‚Ü‚½‚ÍƒVƒƒƒbƒ^[ƒRƒ“ƒgƒ[ƒ‹ŒÅ’è‚Å‹Ö~)
+	//% ã‚·ãƒ£ãƒƒã‚¿ãƒ¼ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ç¦æ­¢åˆ¤å®š ï¼ˆç”»åƒå…¥åŠ›ç•°å¸¸ã¾ãŸã¯ã‚·ãƒ£ãƒƒã‚¿ãƒ¼ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«å›ºå®šã§ç¦æ­¢)
 	if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) || !(gp_cnfg_camera->expstime.auto_control)) {
-	
-		//˜IŒõŠÔ‚Í‰Šú’l‚ÉŒÅ’è
+		//éœ²å…‰æ™‚é–“ã¯åˆæœŸå€¤ã«å›ºå®š
 		gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;
 		gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;
-
+		//ç§»å‹•å¹³å‡ãƒ‡ãƒ¼ã‚¿ãƒªã‚»ãƒƒãƒˆ
 		ZeroMemory(m_move_avrg_data.data, sizeof(m_move_avrg_data.data));
 		m_move_avrg_data.wptr = 0;m_move_avrg_data.data_count = 0;m_move_avrg_data.total_val = 0;m_move_avrg_data.max_val = 0.0f;
-
 		was_over_expose = false;
 		was_under_expose = false;
-
-		//  gp_app_imgprc->exps_chk_brightness = 0;
-	}   // if (!(gp_app_imgprc->status & static_cast<uint32_t>(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) || !(gp_cnfg_camera->expstime.auto_control))
+	}   // if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) || !(gp_cnfg_camera->expstime.auto_control))
 	else {
-
-#if 1  //NEW LOGIC
-
 		if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_ROI_MODE) {
-
-			//ˆê’Uƒ^[ƒQƒbƒg‚ğŒŸo‚µ‚½‚çAÅ‘å‹P“x‚ª‰º‚ª‚ç‚È‚¢ŒÀ‚è˜IŒõŠÔƒL[ƒv
-			if (gp_app_imgprc->exps_chk_brightness <= 180.0) {
+			//ä¸€æ—¦ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’æ¤œå‡ºã—ãŸã‚‰ã€æœ€å¤§è¼åº¦ãŒä¸‹ãŒã‚‰ãªã„é™ã‚Šéœ²å…‰æ™‚é–“ã‚­ãƒ¼ãƒ—
+			if (gp_app_imgprc->exps_chk_brightness <= gp_cnfg_camera->expstime.auto_start_l) { // æœ€å¤§è¼åº¦ãŒé–¾å€¤ä»¥ä¸‹ã®å ´åˆã€éœ²å…‰æ™‚é–“ã‚’å¢—ã‚„ã™
+				// è¼åº¦ã«æ¯”ä¾‹ã—ã¦éœ²å…‰æ™‚é–“ã‚’å¢—ã‚„ã™ 
 				gp_app_imgprc->exps_time += 1.0 * (255.0 - gp_app_imgprc->exps_chk_brightness);
 				was_under_expose = true;
 			}
-			else if ((gp_app_imgprc->exps_chk_brightness >= 254.0) && (was_under_expose == false)) {
+			else if ((gp_app_imgprc->exps_chk_brightness >= gp_cnfg_camera->expstime.auto_start_h) && (was_under_expose == false)) {// æœ€å¤§è¼åº¦ãŒé–¾å€¤ä»¥ä¸Šã®å ´åˆã€éœ²å…‰æ™‚é–“ã‚’æ¸›ã‚‰ã™
+				// è¼åº¦ã«æ¯”ä¾‹ã—ã¦éœ²å…‰æ™‚é–“ã‚’æ¸›ã‚‰ã™ 
 				gp_app_imgprc->exps_time -= gp_app_imgprc->exps_chk_brightness * 0.01;
 				was_over_expose = true;
 				was_under_expose = false;
 			}
-			else {
+			else {//æœ€å¤§è¼åº¦ãŒä¸‹é™é–¾å€¤ä»¥ä¸Šã‹ã¤ä¸Šé™é–¾å€¤ä»¥ä¸‹ã®å ´åˆã€éœ²å…‰æ™‚é–“ã‚’ã‚­ãƒ¼ãƒ—
 				was_over_expose = false;
-				was_under_expose = true;
+				was_under_expose = true;//éœ²å…‰æ™‚é–“ã‚’æ¸›ã‚‰ã™æ–¹å‘ã¯ä¸‹é™é–¾å€¤ã¾ã§è½ã¡è¾¼ã¾ãªã„é™ã‚Šã‚­ãƒ¼ãƒ—;
 			}
 		}
 		else if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_ROI_KEEP) {
-			//ƒŒƒ“ƒWƒI[ƒo[—p@˜IŒõŠÔƒL[ƒv
+			//ãƒ¬ãƒ³ã‚¸ã‚ªãƒ¼ãƒãƒ¼ç”¨ã€€éœ²å…‰æ™‚é–“ã‚­ãƒ¼ãƒ—
 			gp_app_imgprc->exps_time = gp_app_imgprc->exps_time;
 		}
-		else {//‰Šú‰»ƒXƒeƒbƒv
+		else {//åˆæœŸåŒ–ã‚¹ãƒ†ãƒƒãƒ—
 			if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_RESET_STEP) {
-				//              gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_min;
 				gp_app_imgprc->exps_time = 1000;
 				exps_time_lower_limit = gp_cnfg_camera->expstime.val_min;
 				exps_time_upper_limit = gp_cnfg_camera->expstime.val_max;
@@ -1265,15 +1335,22 @@ void CAuxPol::set_expstime()
 				gp_app_imgprc->exps_step_count = EXPOSURE_CONTROL_STEP_COUNT;
 			}
 
-			int is_wait_step = gp_app_imgprc->exps_ctrl_mode & 0x00000001;//Šï”ƒXƒeƒbƒv‚Í‘Ò‹@
-			if (is_wait_step) {//‘Ò‹@ƒXƒeƒbƒv
+			
+			// exps_ctrl_modeã¯åˆæœŸåŒ–æ™‚ã¯ã‚¹ãƒ†ãƒƒãƒ—ã‚«ã‚¦ãƒ³ã‚¿ ã€€RESET_STEP 0100 â†’ã€€RESET_STEP_FINã€€011Fã¾ã§
+			// å¶æ•°ã‚¹ãƒ†ãƒƒãƒ—ã¯éœ²å…‰æ™‚é–“ã‚’å¤‰æ›´ã™ã‚‹å®Ÿå‡¦ç†ã‚¹ãƒ†ãƒƒãƒ—ã€
+			// å¥‡æ•°ã‚¹ãƒ†ãƒƒãƒ—ã¯å¾…æ©Ÿã‚¹ãƒ†ãƒƒãƒ—ã§ exps_step_countã¯å¾…æ©Ÿã‚¹ãƒ†ãƒƒãƒ—ã®ã‚«ã‚¦ãƒ³ãƒˆãƒ€ã‚¦ãƒ³ç”¨
+			// ã‚·ãƒ£ãƒƒã‚¿ãƒ¼é€Ÿåº¦ã‚’å¤‰æ›´ã—ãŸå¾Œã€æ¬¡ã®ã‚¹ãƒ†ãƒƒãƒ—ã«é€²ã‚€å‰ã«å¾…æ©Ÿã™ã‚‹ã“ã¨ã§ã€ã‚«ãƒ¡ãƒ©ã®éœ²å…‰æ™‚é–“ãŒå®‰å®šã™ã‚‹ã¾ã§ã®æ™‚é–“ã‚’ç¢ºä¿ã™ã‚‹
+			//ã€€ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒãƒ³ã‹ã‚‰ROIãƒ¢ãƒ¼ãƒ‰ã«ã‚»ãƒƒãƒˆã•ã‚Œã‚‹ã¾ã§ç¶™ç¶š
+	
+			int is_wait_step = gp_app_imgprc->exps_ctrl_mode & 0x00000001;//å¥‡æ•°ã‚¹ãƒ†ãƒƒãƒ—ã¯å¾…æ©Ÿ
+			if (is_wait_step) {//å¾…æ©Ÿã‚¹ãƒ†ãƒƒãƒ—
 				gp_app_imgprc->exps_step_count--;
-				if (gp_app_imgprc->exps_step_count < 0)
-					gp_app_imgprc->exps_ctrl_mode++;        //ŸƒXƒeƒbƒv‚Ö
+				if (gp_app_imgprc->exps_step_count < 0) //å¾…æ©Ÿã‚¹ãƒ†ãƒƒãƒ—å®Œäº†ã€€æ¬¡ã‚¹ãƒ†ãƒƒãƒ—ã¸
+					gp_app_imgprc->exps_ctrl_mode++;       
 			}
 			else {
-				if (gp_app_imgprc->exps_chk_brightness >= 254.0) {//ƒnƒŒ[ƒVƒ‡ƒ“
-
+				if (gp_app_imgprc->exps_chk_brightness >= 254.0) {//ãƒãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³
+					//ç¾åœ¨ã®éœ²å…‰æ™‚é–“ã‚’ä¸Šé™å€¤ã¨ã™ã‚‹
 					exps_time_upper_limit = gp_app_imgprc->exps_time;
 
 					if (was_under_expose) {
@@ -1310,69 +1387,11 @@ void CAuxPol::set_expstime()
 				gp_app_imgprc->exps_step_count = EXPOSURE_CONTROL_STEP_COUNT;
 			}
 		}
+		
+		if (gp_app_imgprc->exps_ctrl_mode > EXPOSURE_CONTROL_RESET_STEP_FIN) 
+			gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;//ãƒªã‚»ãƒƒãƒˆã—ã¦ç¹°ã‚Šè¿”ã—
 
-#else
-		//----------------------------------------------------------------------------
-		// ‹P“xˆÚ“®•½‹Ï
-#pragma region BrightnessMoveAverage
-		double max_val;
-		if (gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].max_val >
-			gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].max_val) {
-			max_val = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_2)].max_val;
-		}
-		else {
-			max_val = gp_app_imgprc->target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::MASK_1)].max_val;
-		}
-		gp_app_imgprc->img_val = CHelper::moving_average(max_val, &m_move_avrg_data, MOVE_AVERAGE_COUNT);
-#pragma endregion BrightnessMoveAverage
-
-		//----------------------------------------------------------------------------
-		switch (gp_app_imgprc->exps_mode) {
-		case EXPOSURE_CONTROL_LIGHT:    // –¾‚é‚­
-			if (gp_app_imgprc->img_val > gp_cnfg_camera->expstime.auto_stop_l) {
-				gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;
-			}
-			break;
-
-		case EXPOSURE_CONTROL_DARKEN:   // ˆÃ‚­
-			if (gp_app_imgprc->img_val < gp_cnfg_camera->expstime.auto_stop_h) {
-				gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;
-			}
-			break;
-
-		default:                        // Hold
-			if (gp_app_imgprc->img_val > gp_cnfg_camera->expstime.auto_start_h) {
-				gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_DARKEN;
-			}
-			else if (gp_app_imgprc->img_val < gp_cnfg_camera->expstime.auto_start_l) {
-				gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_LIGHT;
-			}
-			else {
-				;
-			}
-			break;
-		}   // switch (gp_app_imgprc->exps_mode)
-
-		//----------------------------------------------------------------------------
-		switch (gp_app_imgprc->exps_mode) {
-		case EXPOSURE_CONTROL_LIGHT:    // –¾‚é‚­
-			if ((gp_app_imgprc->exps_time += gp_cnfg_camera->expstime.auto_rate) > gp_cnfg_camera->expstime.val_max) {
-				gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_max;
-			}
-			break;
-
-		case EXPOSURE_CONTROL_DARKEN:   // ˆÃ‚­
-			if ((gp_app_imgprc->exps_time -= gp_cnfg_camera->expstime.auto_rate) < gp_cnfg_camera->expstime.val_min) {
-				gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_min;
-			}
-			break;
-
-		default:
-			break;
-		}	// switch(gp_app_imgprc->exps_mode)
-
-#endif
-		if (gp_app_imgprc->exps_ctrl_mode > EXPOSURE_CONTROL_RESET_STEP_FIN) gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;
+		//ä¸Šä¸‹é™ãƒªãƒŸãƒƒãƒˆå‡¦ç†
 		if (gp_app_imgprc->exps_time > gp_cnfg_camera->expstime.val_max) gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_max;
 		if (gp_app_imgprc->exps_time < gp_cnfg_camera->expstime.val_min) gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_min;
 
@@ -1381,7 +1400,10 @@ void CAuxPol::set_expstime()
 	return;
 }
 
-static uint32_t pol_counter = 0;
+/// <summary>
+/// ãƒ‡ãƒãƒƒã‚°ç”¨ã€€æ¤œå‡ºå‡¦ç†ãªã—ã§å¼·åˆ¶çš„ã«æŒ¯ã‚Œãƒ‡ãƒ¼ã‚¿ã‚’ã‚»ãƒƒãƒˆ
+/// </summary>
+uint32_t pol_counter = 0;
 void CAuxPol::proc_comchk_mode() {
 
 	double cycleTs = 10.0;
@@ -1396,28 +1418,28 @@ void CAuxPol::proc_comchk_mode() {
 }
 
 /****************************************************************************/
-/*   ƒ‚ƒjƒ^ƒEƒBƒ“ƒhƒE									                    */
+/*   ãƒ¢ãƒ‹ã‚¿ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦									                    */
 /****************************************************************************/
 LRESULT CALLBACK CAuxPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
-		InitCommonControls();//ƒRƒ‚ƒ“ƒRƒ“ƒgƒ[ƒ‹‰Šú‰»
+		InitCommonControls();//ã‚³ãƒ¢ãƒ³ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«åˆæœŸåŒ–
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-		//ƒEƒBƒ“ƒhƒE‚ÉƒRƒ“ƒgƒ[ƒ‹’Ç‰Á
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«è¿½åŠ 
 		st_mon1.hctrl[POL_ID_MON1_STATIC_1] = CreateWindowW(TEXT("STATIC"), st_mon1.text[POL_ID_MON1_STATIC_1], WS_CHILD | WS_VISIBLE | SS_LEFT,
 			st_mon1.pt[POL_ID_MON1_STATIC_1].x, st_mon1.pt[POL_ID_MON1_STATIC_1].y,
 			st_mon1.sz[POL_ID_MON1_STATIC_1].cx, st_mon1.sz[POL_ID_MON1_STATIC_1].cy,
 			hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + POL_ID_MON1_STATIC_1), hInst, NULL);
 
-		//•\¦XV—pƒ^ƒCƒ}[
+		//è¡¨ç¤ºæ›´æ–°ç”¨ã‚¿ã‚¤ãƒãƒ¼
 		SetTimer(hWnd, POL_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
 
 		break;
 	}
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
-		// ‘I‘ğ‚³‚ê‚½ƒƒjƒ…[‚Ì‰ğÍ:
+		// é¸æŠã•ã‚ŒãŸãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®è§£æ:
 		switch (wmId)
 		{
 		case 1:break;
@@ -1449,9 +1471,9 @@ LRESULT CALLBACK CAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
-		InitCommonControls();//ƒRƒ‚ƒ“ƒRƒ“ƒgƒ[ƒ‹‰Šú‰»
+		InitCommonControls();//ã‚³ãƒ¢ãƒ³ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«åˆæœŸåŒ–
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
-		//ƒEƒBƒ“ƒhƒE‚ÉƒRƒ“ƒgƒ[ƒ‹’Ç‰Á
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«è¿½åŠ 
 		//STATIC,LABEL
 		for (int i = POL_ID_MON2_STATIC_MSG; i <= POL_ID_MON2_STATIC_MSG; i++) {
 			st_mon2.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon2.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
@@ -1466,7 +1488,7 @@ LRESULT CALLBACK CAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		int wmId = LOWORD(wp);
 
 		int _Id = wmId - POL_ID_MON2_CTRL_BASE;
-		// ‘I‘ğ‚³‚ê‚½ƒƒjƒ…[‚Ì‰ğÍ:
+		// é¸æŠã•ã‚ŒãŸãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®è§£æ:
 		switch (_Id)
 		{
 
@@ -1494,7 +1516,7 @@ LRESULT CALLBACK CAuxPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 }
 HWND CAuxPol::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
-	InitCommonControls();//ƒRƒ‚ƒ“ƒRƒ“ƒgƒ[ƒ‹‰Šú‰»
+	InitCommonControls();//ã‚³ãƒ¢ãƒ³ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«åˆæœŸåŒ–
 	HINSTANCE hInst = GetModuleHandle(0);
 
 	WNDCLASSEXW wcex;
@@ -1528,7 +1550,7 @@ HWND CAuxPol::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 		return st_mon1.hwnd_mon;
 	}
-	else if (id == BC_ID_MON2) {//’ÊM—pƒEƒBƒ“ƒhƒE
+	else if (id == BC_ID_MON2) {//é€šä¿¡ç”¨ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
 		wcex.lpfnWndProc = Mon2Proc;
@@ -1605,7 +1627,7 @@ void CAuxPol::hide_monitor_wnd(int id) {
 }
 
 /****************************************************************************/
-/*   ƒ^ƒXƒNİ’èƒ^ƒuƒpƒlƒ‹ƒEƒBƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ”                       */
+/*   ã‚¿ã‚¹ã‚¯è¨­å®šã‚¿ãƒ–ãƒ‘ãƒãƒ«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°                       */
 /****************************************************************************/
 LRESULT CALLBACK CAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
@@ -1714,7 +1736,7 @@ LRESULT CALLBACK CAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 	return 0;
 };
 
-///###	ƒ^ƒuƒpƒlƒ‹‚ÌListView‚ÉƒƒbƒZ[ƒW‚ğo—Í
+///###	ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®ListViewã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å‡ºåŠ›
 void CAuxPol::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
@@ -1723,17 +1745,17 @@ void CAuxPol::msg2listview(wstring wstr) {
 	LVITEM item;
 
 	item.mask = LVIF_TEXT;
-	item.pszText = (wchar_t*)pwc;								// ƒeƒLƒXƒg
-	item.iItem = inf.panel_msglist_count % BC_LISTVIEW_ROW_MAX;	// ”Ô†
-	item.iSubItem = 1;											// ƒTƒuƒAƒCƒeƒ€‚Ì”Ô†
+	item.pszText = (wchar_t*)pwc;								// ãƒ†ã‚­ã‚¹ãƒˆ
+	item.iItem = inf.panel_msglist_count % BC_LISTVIEW_ROW_MAX;	// ç•ªå·
+	item.iSubItem = 1;											// ã‚µãƒ–ã‚¢ã‚¤ãƒ†ãƒ ã®ç•ªå·
 	ListView_SetItem(inf.hwnd_msglist, &item);
 
 	SYSTEMTIME st; TCHAR tbuf[32];
 	::GetLocalTime(&st);
 	wsprintf(tbuf, L"%02d:%02d:%02d.%01d", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds / 100);
 
-	item.pszText = tbuf;   // ƒeƒLƒXƒg
-	item.iSubItem = 0;											// ƒTƒuƒAƒCƒeƒ€‚Ì”Ô†
+	item.pszText = tbuf;   // ãƒ†ã‚­ã‚¹ãƒˆ
+	item.iSubItem = 0;											// ã‚µãƒ–ã‚¢ã‚¤ãƒ†ãƒ ã®ç•ªå·
 	ListView_SetItem(inf.hwnd_msglist, &item);
 
 	//InvalidateRect(inf.hWnd_msgList, NULL, TRUE);
@@ -1749,7 +1771,7 @@ void CAuxPol::set_PNLparam_value(float p1, float p2, float p3, float p4, float p
 	wstr += std::to_wstring(p5); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT5), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
-//ƒ^ƒuƒpƒlƒ‹‚ÌStaticƒeƒLƒXƒg‚ğİ’è
+//ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®Staticãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void CAuxPol::set_panel_tip_txt() {
 	wstring wstr;
 	switch (inf.panel_func_id) {
@@ -1777,7 +1799,7 @@ void CAuxPol::set_panel_tip_txt() {
 	}
 	return;
 }
-//ƒ^ƒuƒpƒlƒ‹‚ÌFunctionƒ{ƒ^ƒ“‚ÌStaticƒeƒLƒXƒg‚ğİ’è
+//ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®Functionãƒœã‚¿ãƒ³ã®Staticãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void CAuxPol::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"Sway");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
@@ -1787,12 +1809,12 @@ void CAuxPol::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO6, L"-");
 	return;
 }
-//ƒ^ƒuƒpƒlƒ‹‚ÌItem chkƒeƒLƒXƒg‚ğİ’è
+//ã‚¿ãƒ–ãƒ‘ãƒãƒ«ã®Item chkãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void CAuxPol::set_item_chk_txt() {
 	wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO1: {
-		wstr = L"¶Ò×0“_İ’è";
+		wstr = L"ï½¶ï¾’ï¾—0ç‚¹è¨­å®š";
 		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), wstr.c_str());
 		wstr = L"COMCHK";
 		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2), wstr.c_str());

@@ -143,8 +143,11 @@ enum class ENUM_IMAGE_MASK_SEL : uint32_t {
 };
 // ノイズフィルター
 enum class ENUM_NOISE_FILTER : uint32_t {
-    FILTER_1 = 0,   // フィルター1
-    FILTER_2,       // フィルター2
+    FILTER_1 = 0,   // フィルター1　ゴマ塩
+    FILTER_2,       // フィルター2　穴埋め
+    FILTER_3,       // フィルター3 ガウス
+    FILTER_4,       // フィルター3 ガウス
+    FILTER_5,       // フィルター3 ガウス
     E_MAX
 };
 // ノイズフィルター1
@@ -152,6 +155,8 @@ enum class ENUM_NOISE_FILTER1 : uint32_t {
     NONE = 0,   // なし
     MEDIAN,     // 中央値フィルター
     OPENNING,   // オープニング処理
+	MORPHOLOGY, // モルフォロジー
+    GAUSS,      // ガウシアン
     E_MAX
 };
 // ノイズフィルター2
@@ -159,6 +164,8 @@ enum class ENUM_NOISE_FILTER2 : uint32_t {
     NONE = 0,   // なし
     CLOSING,    // クロージング処理
     MEDIAN,
+    MORPHOLOGY, // モルフォロジー
+    GAUSS,      // ガウシアン
     E_MAX
 };
 // 重心位置算出アルゴリズム
@@ -405,6 +412,7 @@ typedef struct TAG_INFO_ADJUST_DATA {
     double coef_roi_margin[(int)ENUM_AXIS::E_MAX];  // ROI設定マージン計算用係数
     double T[(int)ENUM_AXIS::E_MAX];                // 振れ周期sec
     double w[(int)ENUM_AXIS::E_MAX];                // 振れ角周波数 /s
+    double g[(int)ENUM_AXIS::E_MAX];                // 重力加速度
  
     TAG_INFO_ADJUST_DATA()
         : target_distance_fixed(FALSE)
@@ -447,7 +455,7 @@ typedef struct TAG_IMAGE_DATA {
 } IMAGE_DATA, * PIMAGE_DATA;
 // 画像処理情報
 // ターゲット検出データ
-#define  SWAY_SENSOR__RANGE_OVER_COUNT_LIMIT    40
+#define  SWAY_SENSOR_RANGE_OVER_COUNT_LIMIT    40
 typedef struct TAG_TARGET_DATA {
     BOOL     valid;                                         // 検出状態
     int      range_over_count;                              //レンジオーバーカウント

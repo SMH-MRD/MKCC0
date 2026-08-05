@@ -793,7 +793,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         {
             // 種類
             uint32_t     page_size = 1;
-            LPCTSTR      str_item[] = { TEXT("なし"), TEXT("中央値フィルタ"), TEXT("オープニング処理") };
+            LPCTSTR      str_item[] = { TEXT("なし"), TEXT("中央値フィルタ"), TEXT("オープニング処理"), TEXT("モルフォロジ"), TEXT("ガウシアン") };
             HWND         wnd_hndl;
             wosstr.str(L"");
 
@@ -829,7 +829,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         {
             // 種類
             uint32_t     page_size = 1;
-            LPCTSTR      str_item[] = { TEXT("なし"), TEXT("クロージング処理"), TEXT("中央値フィルタ") };
+            LPCTSTR      str_item[] = { TEXT("なし"), TEXT("クロージング処理"), TEXT("中央値フィルタ") , TEXT("モルフォロジ"), TEXT("ガウシアン") };
             HWND         wnd_hndl;
             wosstr.str(L"");
 

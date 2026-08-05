@@ -221,10 +221,10 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->expstime.val			= 5000.0;			//ゲイン設定[dB](初期値, 最小値, 最大値)
 	gp_cnfg_camera->expstime.val_min		= 20.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
 	gp_cnfg_camera->expstime.val_max		= 33000.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
-	gp_cnfg_camera->expstime.auto_control	= 1;		//自動ゲイン設定(固定[0], 自動ゲイン変化量[dB](未使用))
+	gp_cnfg_camera->expstime.auto_control	= true;		//自動シャッター速度設定
 	gp_cnfg_camera->expstime.auto_rate		= 5.0;		//自動ゲイン設定(固定[0], 自動ゲイン変化量[dB](未使用))
-	gp_cnfg_camera->expstime.auto_start_h	= 250.0;	//自動露光判定輝度  (開始上限(この値より輝度が高い場合、暗くする)　　[0 - 255]
-	gp_cnfg_camera->expstime.auto_start_l	= 230.0;	//自動露光判定輝度  (開始下限(この値より輝度が低い場合、明るくする)　[0 - 255]
+	gp_cnfg_camera->expstime.auto_start_h	= 248.0;	//自動露光判定輝度  (開始上限(この値より輝度が高い場合、暗くする)　　[0 - 255]
+	gp_cnfg_camera->expstime.auto_start_l	= 180.0;	//自動露光判定輝度  (開始下限(この値より輝度が低い場合、明るくする)　[0 - 255]
 	gp_cnfg_camera->expstime.auto_stop_h	= 245.0;	//自動露光判定輝度  (停止上限(この値より輝度が低い場合、停止する)　　[0 - 255]
 	gp_cnfg_camera->expstime.auto_stop_l	= 235.0;	//自動露光判定輝度  (停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
 	
@@ -257,7 +257,7 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_imgprc->filter[0].type	= 2;
 	gp_cnfg_imgprc->filter[1].val	= 0;//穴埋めノイズフィルター(フィルター設定(なし[0] / クロージング処理[1]), フィルター値[1, 2, ...])
 	gp_cnfg_imgprc->filter[1].type	= 9;
-	gp_cnfg_imgprc->imgprc			= 2;				//ターゲット検出アルゴリズム(最大輪郭面積[0], 最大輪郭長[1])
+	gp_cnfg_imgprc->imgprc			= (uint32_t)ENUM_COG::BOUND_RECT;				//ターゲット検出アルゴリズム(最大輪郭面積[0], 最大輪郭長[1],最大輪郭面積(矩形チェック)[2]
 	gp_cnfg_imgprc->swayspdfilter	= 0.1;		//振れ速度フィルター時定数
 	gp_cnfg_imgprc->swayzeroset_time = 20000;	//振れゼロ点設定(計測時間[ms])
 
