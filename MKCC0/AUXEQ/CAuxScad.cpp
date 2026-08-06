@@ -26,7 +26,7 @@ SCROLLINFO CAuxScada::m_scrlinf_img_src_v;
 BOOL       CAuxScada::m_sway_pos;
 BOOL       CAuxScada::m_target_roi[(int)(ENUM_IMAGE_MASK::E_MAX)];
 BOOL       CAuxScada::m_target_pos[(int)(ENUM_IMAGE_MASK::E_MAX)];
-BOOL       CAuxScada::m_target_contours[(int)(ENUM_IMAGE_MASK::E_MAX)];
+BOOL       CAuxScada::m_target_contours[(int)(ENUM_IMAGE_MASK::E_MAX)] = { false,false };
 BOOL       CAuxScada::req_dialog_display = false;
 
 #define SCAD_ID_DIALOG_TIMER        1900
@@ -141,10 +141,10 @@ HRESULT CAuxScada::initialize(LPVOID lpParam) {
 		m_scrlinf_img_src_v.nTrackPos = 0;
 
 		m_sway_pos = TRUE;
-		for (int32_t i = 0; i < (int)(ENUM_IMAGE_MASK::E_MAX); i++) {
+		for (int32_t i = 0; i < (int)(ENUM_IMAGE_MASK::E_MAX); i++) {//検出状況画像表示項目チェック初期設定
 			m_target_roi[i] = TRUE;
 			m_target_pos[i] = TRUE;
-			m_target_contours[i] = TRUE;
+			m_target_contours[i] = FALSE;
 		}
 	}
 
@@ -285,14 +285,8 @@ int CAuxScada::parse() {
         //----------------------------------------------------------------------------
         // ターゲット距離
         {
-            if (gp_app_adjust->target_distance_fixed) {
-                wostr.str(L""); wostr << (UINT)(gp_app_adjust->target_distance);
-                SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_VAL_TARGET_LEN), wostr.str().c_str());
-            }
-            else {
-                wostr.str(L""); wostr << (UINT)(gp_app_client->tgt_len[(uint32_t)(ENUM_SWAY_SENSOR::SENSOR_1)]);
-                SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_VAL_TARGET_LEN), wostr.str().c_str());
-            }
+            wostr.str(L""); wostr << (UINT)(gp_app_adjust->target_distance);
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_VAL_TARGET_LEN), wostr.str().c_str());
         }
         //----------------------------------------------------------------------------
         // 処理画像読込み
@@ -350,11 +344,12 @@ int CAuxScada::parse() {
                             gp_app_imgprc->contours[i],
                             -1,
                             color,
-                            1,
-                            cv::LINE_4,
-                            hierarchy,
-                            INT_MAX,
-                            cv::Point(x0, y0));
+                            1
+                            //cv::LINE_4,
+                            //hierarchy,
+                            //INT_MAX,
+                            //cv::Point(x0, y0)
+                            );
                     }
                     // ターゲット位置表示
                     if (m_target_pos[i]) {
@@ -793,7 +788,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         {
             // 種類
             uint32_t     page_size = 1;
-            LPCTSTR      str_item[] = { TEXT("なし"), TEXT("中央値フィルタ"), TEXT("オープニング処理"), TEXT("モルフォロジ"), TEXT("ガウシアン") };
+            LPCTSTR      str_item[] = { TEXT("なし"),  TEXT("オープニング処理"), TEXT("クロージング処理"), TEXT("中央値フィルタ"),TEXT("モルフォロジ"), TEXT("ガウシアン") , TEXT("-"), TEXT("-") };
             HWND         wnd_hndl;
             wosstr.str(L"");
 
@@ -829,7 +824,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         {
             // 種類
             uint32_t     page_size = 1;
-            LPCTSTR      str_item[] = { TEXT("なし"), TEXT("クロージング処理"), TEXT("中央値フィルタ") , TEXT("モルフォロジ"), TEXT("ガウシアン") };
+            LPCTSTR      str_item[] = { TEXT("なし"),  TEXT("オープニング処理"), TEXT("クロージング処理"), TEXT("中央値フィルタ"),TEXT("モルフォロジ"), TEXT("ガウシアン") , TEXT("-"), TEXT("-") };
             HWND         wnd_hndl;
             wosstr.str(L"");
 
@@ -924,14 +919,14 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             SendMessage(wnd_hndl, TBM_SETTICFREQ, 1000, 0);                                             // 目盛りの増分
             SendMessage(wnd_hndl, TBM_SETPOS, TRUE, (UINT)(gp_app_adjust->target_distance)); // 位置の設定
             SendMessage(wnd_hndl, TBM_SETPAGESIZE, 0, 1);                                               // クリック時の移動量
-            if (gp_app_adjust->target_distance_fixed) {
+            ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_SHOW);
+            if (gp_app_adjust->tg_distance_mode == TARGET_DIST_SET_BY_MANUAL) {
                 SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_LEN), BM_SETCHECK, BST_CHECKED, 0);
-                ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_SHOW);
             }
             else
             {
                 SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_LEN), BM_SETCHECK, BST_UNCHECKED, 0);
-                ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_HIDE);
+       //         ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_HIDE);
             }
             wosstr.str(L"");
             wosstr <<(UINT)(gp_app_adjust->target_distance);
@@ -987,30 +982,31 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
 
             if (wnd_hndl == reinterpret_cast<HWND>(lp)) {
                 switch (LOWORD(wp)) {
-                case SB_PAGELEFT:
+                case SB_PAGELEFT: {
                     if ((m_scrlinf_img_src_h.nPos -= pt) < m_scrlinf_img_src_h.nMin) {
                         m_scrlinf_img_src_h.nPos = m_scrlinf_img_src_h.nMin;
                     }
-                    break;
-                case SB_PAGERIGHT:
+                }break;
+                case SB_PAGERIGHT: {
                     if ((m_scrlinf_img_src_h.nPos += pt) > m_scrlinf_img_src_h.nMax) {
                         m_scrlinf_img_src_h.nPos = m_scrlinf_img_src_h.nMax;
                     }
-                    break;
-                case SB_LINELEFT:
+                }break;
+                case SB_LINELEFT: {
                     if ((m_scrlinf_img_src_h.nPos -= 1) < m_scrlinf_img_src_h.nMin) {
                         m_scrlinf_img_src_h.nPos = m_scrlinf_img_src_h.nMin;
                     }
-                    break;
-                case SB_LINERIGHT:
+                }break;
+                case SB_LINERIGHT: {
                     if ((m_scrlinf_img_src_h.nPos += 1) > m_scrlinf_img_src_h.nMax) {
                         m_scrlinf_img_src_h.nPos = m_scrlinf_img_src_h.nMax;
                     }
-                    break;
+                } break;
                 case SB_THUMBPOSITION:
                 case SB_THUMBTRACK:
+                {
                     m_scrlinf_img_src_h.nPos = HIWORD(wp);
-                    break;
+                }break;
                 default:
                     break;
                 }
@@ -1024,55 +1020,52 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         {
             int32_t      pos;
             // 色相H
-            if (GetDlgItem(hwnd, IDC_SLIDER_H1_LOW) == reinterpret_cast<HWND>(lp)) {
+            if (GetDlgItem(hwnd, IDC_SLIDER_H1_LOW) == reinterpret_cast<HWND>(lp)) 
+            {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_H1_LOW), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_H1_LOW), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_1)].hsv_l[(int)(ENUM_HSV_MODEL::H)] = pos;
-            }
-            else if (GetDlgItem(hwnd, IDC_SLIDER_H1_UPP) == (HWND)lp)
+            };
+            if (GetDlgItem(hwnd, IDC_SLIDER_H1_UPP) == (HWND)lp)
             {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_H1_UPP), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_H1_UPP), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_1)].hsv_u[(int)(ENUM_HSV_MODEL::H)] = pos;
-            }
-            else {
-                ;
-            }
+            };
+  
             // 彩度S
-            if (GetDlgItem(hwnd, IDC_SLIDER_S1_LOW) == reinterpret_cast<HWND>(lp)) {
+            if (GetDlgItem(hwnd, IDC_SLIDER_S1_LOW) == reinterpret_cast<HWND>(lp))
+            {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_S1_LOW), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_S1_LOW), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_1)].hsv_l[(int)(ENUM_HSV_MODEL::S)] = pos;
-            }
-            else if (GetDlgItem(hwnd, IDC_SLIDER_S1_UPP) == reinterpret_cast<HWND>(lp)) {
+            };
+            if (GetDlgItem(hwnd, IDC_SLIDER_S1_UPP) == reinterpret_cast<HWND>(lp))
+            {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_S1_UPP), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_S1_UPP), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_1)].hsv_u[(int)(ENUM_HSV_MODEL::S)] = pos;
-            }
-            else {
-                ;
-            }
+            };
+
             // 明度V
-            if (GetDlgItem(hwnd, IDC_SLIDER_V1_LOW) == reinterpret_cast<HWND>(lp)) {
+            if (GetDlgItem(hwnd, IDC_SLIDER_V1_LOW) == reinterpret_cast<HWND>(lp))
+            {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_V1_LOW), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_V1_LOW), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_1)].hsv_l[(int)(ENUM_HSV_MODEL::V)] = pos;
-            }
-            else if (GetDlgItem(hwnd, IDC_SLIDER_V1_UPP) == reinterpret_cast<HWND>(lp)) {
+            };
+            if (GetDlgItem(hwnd, IDC_SLIDER_V1_UPP) == reinterpret_cast<HWND>(lp)) {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_V1_UPP), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_V1_UPP), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_1)].hsv_u[(int)(ENUM_HSV_MODEL::V)] = pos;
-            }
-            else {
-                ;
-            }
-        }
+            };
+         }
         // マスク画像2
         {
             int32_t      pos;
@@ -1083,49 +1076,42 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_H2_LOW), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_2)].hsv_l[(int)(ENUM_HSV_MODEL::H)] = pos;
-            }
-            else if (GetDlgItem(hwnd, IDC_SLIDER_H2_UPP) == reinterpret_cast<HWND>(lp)) {
+            };
+            if (GetDlgItem(hwnd, IDC_SLIDER_H2_UPP) == reinterpret_cast<HWND>(lp)) {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_H2_UPP), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_H2_UPP), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_2)].hsv_u[(int)(ENUM_HSV_MODEL::H)] = pos;
-            }
-            else {
-                ;
-            }
+            };
+ 
             // 彩度S
             if (GetDlgItem(hwnd, IDC_SLIDER_S2_LOW) == reinterpret_cast<HWND>(lp)) {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_S2_LOW), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_S2_LOW), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_2)].hsv_l[(int)(ENUM_HSV_MODEL::S)] = pos;
-            }
-            else if (GetDlgItem(hwnd, IDC_SLIDER_S2_UPP) == reinterpret_cast<HWND>(lp)) {
+            };
+            if (GetDlgItem(hwnd, IDC_SLIDER_S2_UPP) == reinterpret_cast<HWND>(lp)) {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_S2_UPP), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_S2_UPP), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_2)].hsv_u[(int)(ENUM_HSV_MODEL::S)] = pos;
-            }
-            else {
-                ;
-            }
+            };
+
             // 明度V
             if (GetDlgItem(hwnd, IDC_SLIDER_V2_LOW) == reinterpret_cast<HWND>(lp)) {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_V2_LOW), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_V2_LOW), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_2)].hsv_l[(int)(ENUM_HSV_MODEL::V)] = pos;
-            }
-            else if (GetDlgItem(hwnd, IDC_SLIDER_V2_UPP) == reinterpret_cast<HWND>(lp)) {
+            };
+            if (GetDlgItem(hwnd, IDC_SLIDER_V2_UPP) == reinterpret_cast<HWND>(lp)) {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_V2_UPP), TBM_GETPOS, 0, 0));
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_V2_UPP), wosstr.str().c_str());
                 gp_cnfg_imgprc->mask[(int)(ENUM_IMAGE_MASK::MASK_2)].hsv_u[(int)(ENUM_HSV_MODEL::V)] = pos;
-            }
-            else {
-                ;
-            }
-        }
+            };
+         }
 
         //----------------------------------------------------------------------------
         // ノイズフィルタ
@@ -1152,6 +1138,12 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
 
             if (GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2) == reinterpret_cast<HWND>(lp)) {
                 pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), TBM_GETPOS, 0, 0));
+                if (gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_2)].type == (int)(ENUM_NOISE_FILTER2::MEDIAN)) {
+                    if ((pos % 2) == 0) {
+                        pos = pos + 1;
+                    }
+                    SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), TBM_SETPOS, TRUE, pos);  // 位置の設定
+                }
                 wosstr.str(L""); wosstr << pos;
                 SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_NOISEFILTER2), wosstr.str().c_str());
                 gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_2)].val = pos;
@@ -1164,8 +1156,11 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             int32_t pos;
 
             if (GetDlgItem(hwnd, IDC_SLIDER_CAMERA_EXPOSURE) == reinterpret_cast<HWND>(lp)) {
-                pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_CAMERA_EXPOSURE), TBM_GETPOS, 0, 0));
-                gp_cnfg_camera->expstime.val = static_cast<double>(pos);
+                if (gp_app_imgprc->exps_mode == EXPOSURE_CONTROL_MANUAL) {
+                    pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_CAMERA_EXPOSURE), TBM_GETPOS, 0, 0));
+                    gp_cnfg_camera->expstime.val = static_cast<double>(pos);
+                    gp_app_imgprc->exps_time = static_cast<double>(pos);
+                }
             }
         }
 
@@ -1226,8 +1221,8 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
     case WM_COMMAND: {
         // 選択されたメニューの解析:
         switch (wmId) {
-        case IDC_BUTTON_IMAGE_SAVE:
- 
+        case IDC_BUTTON_IMAGE_SAVE: {
+
             if (!m_img_src.empty()) {
                 cv::imwrite(CStrHelper::conv_string(gp_cnfg_common->img_output_fname), m_img_src);
             }
@@ -1237,15 +1232,14 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 ::MessageBoxW(owner, L"保存する画像がありません。", L"エラー", MB_OK | MB_ICONERROR);
             }
 
-            break;
-        case IDC_CHECK_CURSOR:
-            (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_CURSOR), BM_GETCHECK, 0, 0)) ? m_cursor = TRUE :
-                m_cursor = FALSE;
+        }break;
+        case IDC_CHECK_CURSOR: {
+            (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_CURSOR), BM_GETCHECK, 0, 0)) ? m_cursor = TRUE : m_cursor = FALSE;
             EnableWindow(GetDlgItem(hwnd, IDC_BUTTON_CURSOR_L), m_cursor);
             EnableWindow(GetDlgItem(hwnd, IDC_BUTTON_CURSOR_R), m_cursor);
             EnableWindow(GetDlgItem(hwnd, IDC_BUTTON_CURSOR_U), m_cursor);
             EnableWindow(GetDlgItem(hwnd, IDC_BUTTON_CURSOR_D), m_cursor);
-            break;
+        }break;
         case IDC_BUTTON_CURSOR_L:
         {
             LONG pos = m_cursor_pt.x;
@@ -1262,8 +1256,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 pos = m_img_src.cols - 1;
             }
             m_cursor_pt.x = pos;
-        }
-        break;
+        }break;
         case IDC_BUTTON_CURSOR_R:
         {
             LONG pos = m_cursor_pt.x;
@@ -1280,8 +1273,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 pos = 0;
             }
             m_cursor_pt.x = pos;
-        }
-        break;
+        }break;
         case IDC_BUTTON_CURSOR_U:
         {
             LONG pos = m_cursor_pt.y;
@@ -1298,8 +1290,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 pos = m_img_src.rows - 1;
             }
             m_cursor_pt.y = pos;
-        }
-        break;
+        }break;
         case IDC_BUTTON_CURSOR_D:
         {
             LONG pos = m_cursor_pt.y;
@@ -1316,9 +1307,8 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 pos = 0;
             }
             m_cursor_pt.y = pos;
-        }
-        break;
-        case IDC_CHECK_IMAGE_SCALE:
+        }break;
+        case IDC_CHECK_IMAGE_SCALE: {
             if (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_IMAGE_SCALE), BM_GETCHECK, 0, 0)) {
                 m_scale_img_src = TRUE;
                 ShowWindow(GetDlgItem(hwnd, IDC_SCROLLBAR_IMAGE_H), SW_HIDE);
@@ -1329,41 +1319,41 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 ShowWindow(GetDlgItem(hwnd, IDC_SCROLLBAR_IMAGE_H), SW_SHOW);
                 ShowWindow(GetDlgItem(hwnd, IDC_SCROLLBAR_IMAGE_V), SW_SHOW);
             }
-            break;
-        case IDC_COMBO_IMAGE:
+        }break;//縮小表示CB
+        case IDC_COMBO_IMAGE: {
             if (HIWORD(wp) == CBN_SELCHANGE) {
                 m_sel_img = (UINT)(SendMessage(GetDlgItem(hwnd, IDC_COMBO_IMAGE), CB_GETCURSEL, 0, 0));
             }
-            break;
-        case IDC_CHECK_SWAY_POS:
+        }break;//画像選択
+        case IDC_CHECK_SWAY_POS: {
             (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_SWAY_POS), BM_GETCHECK, 0, 0)) ? m_sway_pos = TRUE :
                 m_sway_pos = FALSE;
-            break;
-        case IDC_CHECK_TARGET_ROI_1:
+        }break;//振れ位置
+        case IDC_CHECK_TARGET_ROI_1: {
             (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_ROI_1), BM_GETCHECK, 0, 0)) ? m_target_roi[(int)(ENUM_IMAGE_MASK::MASK_1)] = TRUE :
                 m_target_roi[(int)(ENUM_IMAGE_MASK::MASK_1)] = FALSE;
-            break;
-        case IDC_CHECK_TARGET_ROI_2:
-            (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_ROI_2), BM_GETCHECK, 0, 0)) ? m_target_roi[(int)(ENUM_IMAGE_MASK::MASK_2)] = TRUE :
-                m_target_roi[(int)(ENUM_IMAGE_MASK::MASK_2)] = FALSE;
-            break;
-        case IDC_CHECK_TARGET_POS_1:
+        }break;
+        case IDC_CHECK_TARGET_ROI_2: {
+                                   (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_ROI_2), BM_GETCHECK, 0, 0)) ? m_target_roi[(int)(ENUM_IMAGE_MASK::MASK_2)] = TRUE :
+                                       m_target_roi[(int)(ENUM_IMAGE_MASK::MASK_2)] = FALSE;
+        } break;
+        case IDC_CHECK_TARGET_POS_1:{
             (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_POS_1), BM_GETCHECK, 0, 0)) ? m_target_pos[(int)(ENUM_IMAGE_MASK::MASK_1)] = TRUE :
-                m_target_pos[(int)(ENUM_IMAGE_MASK::MASK_1)] = FALSE;
-            break;
-        case IDC_CHECK_TARGET_POS_2:
+            m_target_pos[(int)(ENUM_IMAGE_MASK::MASK_1)] = FALSE;
+        }break;
+        case IDC_CHECK_TARGET_POS_2: {
             (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_POS_2), BM_GETCHECK, 0, 0)) ? m_target_pos[(int)(ENUM_IMAGE_MASK::MASK_2)] = TRUE :
                 m_target_pos[(int)(ENUM_IMAGE_MASK::MASK_2)] = FALSE;
-            break;
-        case IDC_CHECK_TARGET_CONTOURS_1:
+        }break;
+        case IDC_CHECK_TARGET_CONTOURS_1: {
             (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_CONTOURS_1), BM_GETCHECK, 0, 0)) ? m_target_contours[(int)(ENUM_IMAGE_MASK::MASK_1)] = TRUE :
                 m_target_contours[(int)(ENUM_IMAGE_MASK::MASK_1)] = FALSE;
-            break;
-        case IDC_CHECK_TARGET_CONTOURS_2:
+        }break;
+        case IDC_CHECK_TARGET_CONTOURS_2: {
             (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_CONTOURS_2), BM_GETCHECK, 0, 0)) ? m_target_contours[(int)(ENUM_IMAGE_MASK::MASK_2)] = TRUE :
                 m_target_contours[(int)(ENUM_IMAGE_MASK::MASK_2)] = FALSE;
-            break;
-        case IDC_COMBO_NOISEFILTER1:
+        }break;
+        case IDC_COMBO_NOISEFILTER1: {
             if (HIWORD(wp) == CBN_SELCHANGE) {
                 uint32_t     sel;
                 wosstr.str(L"");
@@ -1371,14 +1361,15 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
 
                 sel = (int)(SendMessage(GetDlgItem(hwnd, IDC_COMBO_NOISEFILTER1), CB_GETCURSEL, 0, 0));
                 if ((sel == (int)(ENUM_NOISE_FILTER1::MEDIAN)) || (sel == (int)(ENUM_NOISE_FILTER1::OPENNING))) {
+                    //スライダーとパラメータ数値表示用スタティックを表示
                     ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER1), SW_SHOW);
                     ShowWindow(GetDlgItem(hwnd, IDC_STATIC_VAL_NOISEFILTER1), SW_SHOW);
+  
                     if (sel == (int)(ENUM_NOISE_FILTER1::MEDIAN)) {
                         SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER1), TBM_SETPAGESIZE, 0, 2);  // クリック時の移動量
                         pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER1), TBM_GETPOS, 0, 0));
-                        if ((pos % 2) == 0) {
-                            pos = pos + 1;
-                        }
+                        if ((pos % 2) == 0)pos = pos++; //カーネルサイズ偶数だとcv::medianBlur()クラッシュする
+ 
                         SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER1), TBM_SETPOS, TRUE, pos);  // 位置の設定
                         wosstr << pos;
                         SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_NOISEFILTER1), wosstr.str().c_str());
@@ -1394,17 +1385,29 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 }
                 gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_1)].type = sel;
             }
-            break;
-        case IDC_COMBO_NOISEFILTER2:
+        } break;
+        case IDC_COMBO_NOISEFILTER2: {
             if (HIWORD(wp) == CBN_SELCHANGE)
             {
                 uint32_t sel;
+                int32_t      pos;
 
                 sel = (int)(SendMessage(GetDlgItem(hwnd, IDC_COMBO_NOISEFILTER2), CB_GETCURSEL, 0, 0));
                 if ((sel == (int)(ENUM_NOISE_FILTER2::CLOSING)) || (sel == (int)(ENUM_NOISE_FILTER2::MEDIAN))) {
                     ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), SW_SHOW);
                     ShowWindow(GetDlgItem(hwnd, IDC_STATIC_VAL_NOISEFILTER2), SW_SHOW);
-                    SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), TBM_SETPAGESIZE, 0, 1);  // クリック時の移動量
+                    SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), TBM_SETPAGESIZE, 0, 1);  // クリック時の移動量スライダ表示
+     
+                    if (sel == (int)(ENUM_NOISE_FILTER2::MEDIAN)) {
+                        SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), TBM_SETPAGESIZE, 0, 2);  // クリック時の移動量
+                        pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), TBM_GETPOS, 0, 0));
+                        if ((pos % 2) == 0)pos = pos++; //カーネルサイズ偶数だとcv::medianBlur()クラッシュする
+
+                        SendMessage(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), TBM_SETPOS, TRUE, pos);  // 位置の設定
+                        wosstr << pos;
+                        SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_NOISEFILTER2), wosstr.str().c_str());
+                        gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_2)].val = pos;
+                    }
                 }
                 else {
                     ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_NOISEFILTER2), SW_HIDE);
@@ -1412,14 +1415,16 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 }
                 gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_2)].type = sel;
             }
-            break;
+        }break;
         case IDC_CHECK_CAMERA_EXPOSURE:
             if (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_CAMERA_EXPOSURE), BM_GETCHECK, 0, 0)) {
                 gp_cnfg_camera->expstime.auto_control = FALSE;
+                gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_MANUAL;
                 ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_CAMERA_EXPOSURE), SW_SHOW);
             }
             else {
                 gp_cnfg_camera->expstime.auto_control = TRUE;
+                gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;
                 ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_CAMERA_EXPOSURE), SW_HIDE);
             }
             break;
@@ -1428,13 +1433,14 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
                 gp_cnfg_imgprc->roi.valid = 0;
             break;
         case IDC_CHECK_TARGET_LEN:
+            ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_SHOW);
             if (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_LEN), BM_GETCHECK, 0, 0)) {
-                gp_app_adjust->target_distance_fixed = TRUE;
-                ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_SHOW);
+                gp_app_adjust->tg_distance_mode = TARGET_DIST_SET_BY_MANUAL;
+  
             }
             else {
-                gp_app_adjust->target_distance_fixed = FALSE;
-                ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_HIDE);
+                gp_app_adjust->tg_distance_mode = TARGET_DIST_SET_BY_HOST;
+       //         ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_HIDE);
             }
             break;
         case IDCANCEL:

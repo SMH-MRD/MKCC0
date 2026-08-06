@@ -289,12 +289,18 @@ int CAuxAgent::output() {          //出力処理
 	}
 	
 	//### GE Camera
-	//シャッターコントロル
 	if (g_sway_sensor_enable) {
-		if ((gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_RESET_STEP) ||
-			(gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_ROI_MODE)) {
-			if ((pCamera->stat.apistat = Teli::SetCamExposureTime(pCamera->stat.camhndl, pCamera->stat.expstime)) != Teli::CAM_API_STS_SUCCESS) {
-				wos.str(L""); wos << L" Fail: SetExpsureTime  Code:" << pCamera->stat.apistat;
+		//シャッターコントロル
+		if (inf.total_act % 10) {//時間遅れがあるので間隔をあけて設定変更する
+			float64_t set_exps_time_us;
+
+			if ((gp_app_imgprc->exps_mode == EXPOSURE_CONTROL_AUTO) || 
+				(gp_app_imgprc->exps_mode == EXPOSURE_CONTROL_INIT) ||
+				(gp_app_imgprc->exps_mode == EXPOSURE_CONTROL_MANUAL)
+				) {
+				if ((pCamera->stat.apistat = Teli::SetCamExposureTime(pCamera->stat.camhndl, gp_app_imgprc->exps_time)) != Teli::CAM_API_STS_SUCCESS) {
+					wos.str(L""); wos << L" Fail: SetExpsureTime  Code:" << pCamera->stat.apistat;
+				}
 			}
 		}
 	}

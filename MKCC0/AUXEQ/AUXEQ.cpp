@@ -246,6 +246,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = AUX_ENV_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms; //タスクスキャンタイムは、SYSTEM_TICKの倍数となる
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_ENV");//ビットマップ割り当て
@@ -279,6 +280,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = AUX_CS_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms; //タスクスキャンタイムは、SYSTEM_TICKの倍数となる
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_CS");//ビットマップ割り当て
@@ -311,6 +313,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = AUX_SCADA_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms; //タスクスキャンタイムは、SYSTEM_TICKの倍数となる
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_SCAD");//ビットマップ割り当て
@@ -344,6 +347,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = AUX_POLICY_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms; //タスクスキャンタイムは、SYSTEM_TICKの倍数となる
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_POL");//ビットマップ割り当て
@@ -375,6 +379,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = AUX_AGENT_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms; //タスクスキャンタイムは、SYSTEM_TICKの倍数となる
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_AGENT");//ビットマップ割り当て

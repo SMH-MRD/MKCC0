@@ -82,7 +82,7 @@ CSwayShared::CSwayShared(BOOL init)
 
         // 調整情報データ
         PINFO_ADJUST_DATA info_adjust_data = gp_app_adjust;   // 調整情報データ
-        info_adjust_data->target_distance_fixed = FALSE;                // 吊点～ターゲット間距離固定
+        info_adjust_data->tg_distance_mode = TARGET_DIST_SET_BY_DEFAULT; // 吊点～ターゲット間距離固定
         info_adjust_data->target_distance = EXTN_TARGETDIST_MIN;        // 吊点～ターゲット間距離
 
         // 画像処理情報データ
@@ -111,6 +111,7 @@ CSwayShared::CSwayShared(BOOL init)
         info_imgprc_data->img_fps = 0.0;                                                   // フレームレート[fps]
         info_imgprc_data->img_val = 0.0;                                                   // 明度
         info_imgprc_data->exps_mode = EXPOSURE_CONTROL_HOLD;                               // 自動露光コマンド(0:停止 1:Up -1:Down)
+        info_imgprc_data->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;                               // 自動露光コマンド(0:停止 1:Up -1:Down)
         info_imgprc_data->exps_time = 0.0;                                                 // 露光時間[us]
 
         // システム情報データ
@@ -1524,7 +1525,7 @@ BOOL CSwayShared::set_app_info_data(INFO_ADJUST_DATA data)
 
     EnterCriticalSection(&g_app_info.adjust.cs);
 
-    info_data->target_distance_fixed = data.target_distance_fixed;  // 吊点～ターゲット間距離固定
+    info_data->tg_distance_mode = data.tg_distance_mode;  // 吊点～ターゲット間距離固定
     info_data->target_distance = data.target_distance;        // 吊点～ターゲット間距離
 
     LeaveCriticalSection(&g_app_info.adjust.cs);
@@ -1546,7 +1547,7 @@ BOOL CSwayShared::get_app_info_data(PINFO_ADJUST_DATA data)
 
     EnterCriticalSection(&g_app_info.adjust.cs);
 
-    data->target_distance_fixed = info_data->target_distance_fixed; // 吊点～ターゲット間距離固定
+    data->tg_distance_mode = info_data->tg_distance_mode; // 吊点～ターゲット間距離固定
     data->target_distance = info_data->target_distance;       // 吊点～ターゲット間距離
 
     LeaveCriticalSection(&g_app_info.adjust.cs);

@@ -251,6 +251,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        VectHevent.push_back(pobj->inf.hevents[BC_EVENT_TYPE_TIME] = CreateEvent(NULL, FALSE, FALSE, NULL));//自動リセット,初期値非シグナル
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = ENV_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms;
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_ENV");//ビットマップ割り当て
@@ -280,6 +281,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = CS_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms;
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_CS");//ビットマップ割り当て
@@ -311,6 +313,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = SCADA_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms;
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_SCAD");//ビットマップ割り当て
@@ -341,6 +344,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = POLICY_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms;
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_POL");//ビットマップ割り当て
@@ -370,6 +374,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = AGENT_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms;
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_AGENT");//ビットマップ割り当て
@@ -399,6 +404,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
        /// -スレッド起動周期セット
        pobj->inf.cycle_ms = SIM_SCAN_MS;       //タスクスキャンタイムmsec
+       pobj->inf.cycle_ms = (pobj->inf.cycle_ms / SYSTEM_TICK_ms) * SYSTEM_TICK_ms;
 
        /// -ツイートメッセージ用iconセット
        hBmp = (HBITMAP)LoadBitmap(hInst, L"IDB_SIM");//ビットマップ割り当て

@@ -31,7 +31,7 @@ namespace AUXEQ
 #define AUXEQ_WND_MIN_H            100
 
 #define AUX_ENV_SCAN_MS			    100
-#define AUX_CS_SCAN_MS				100
+#define AUX_CS_SCAN_MS				40
 #define AUX_AGENT_SCAN_MS			100
 #define AUX_POLICY_SCAN_MS			50
 #define AUX_SCADA_SCAN_MS			100

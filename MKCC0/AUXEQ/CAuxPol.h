@@ -85,6 +85,8 @@ typedef struct _ST_POL_MON1 {
 #define POL_MON2_N_CTRL    32
 #define POL_MON2_N_WCHAR   64
 
+#define POL_PRM_TG_DIST_DEFAULT 30.0
+
 typedef struct _ST_POL_MON2 {
     HWND hwnd_mon;
     bool is_monitor_active = false;

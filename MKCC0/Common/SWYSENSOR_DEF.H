@@ -24,6 +24,10 @@
 #define	EXPOSURE_CONTROL_HOLD               0           // シャッタコントロール:Hold
 #define	EXPOSURE_CONTROL_LIGHT              1           // シャッタコントロール:明るく
 #define	EXPOSURE_CONTROL_DARKEN             -1          // シャッタコントロール:暗く
+#define	EXPOSURE_CONTROL_AUTO               2           // シャッタコントロール:自動
+#define	EXPOSURE_CONTROL_MANUAL             3           // シャッタコントロール:手動
+#define	EXPOSURE_CONTROL_INIT               4             // シャッタコントロール:初期化
+
 
 #define	EXPOSURE_CONTROL_ROI_MODE           0           // シャッタコントロール:ROI範囲
 #define	EXPOSURE_CONTROL_ROI_KEEP           0x800       // シャッタコントロール:ROI保持
@@ -33,6 +37,11 @@
 #define	EXPOSURE_CONTROL_RESET_WAIT_STEP    0x01        // シャッタコントロール:初期化STEP 完了待機
 
 #define	EXPOSURE_CONTROL_STEP_COUNT        10          // シャッタコントロール:初期化STEP待機カウント
+
+// ターゲット距離設定モード
+#define	TARGET_DIST_SET_BY_DEFAULT          0           // デフォルト値をセット
+#define	TARGET_DIST_SET_BY_MANUAL           1           // 手動セット（SCADAウィンドウから固定値セット
+#define	TARGET_DIST_SET_BY_HOST             2           // 制御PCからのデータセット
 
 //----------------------------------------------------------------------------
 #define PI              3.14159     // π
@@ -153,15 +162,17 @@ enum class ENUM_NOISE_FILTER : uint32_t {
 // ノイズフィルター1
 enum class ENUM_NOISE_FILTER1 : uint32_t {
     NONE = 0,   // なし
+    OPENNING,   // オープニング処理  
+    CLOSING,    // クロージング処理
     MEDIAN,     // 中央値フィルター
-    OPENNING,   // オープニング処理
-	MORPHOLOGY, // モルフォロジー
+ 	MORPHOLOGY, // モルフォロジー
     GAUSS,      // ガウシアン
     E_MAX
 };
 // ノイズフィルター2
 enum class ENUM_NOISE_FILTER2 : uint32_t {
     NONE = 0,   // なし
+    OPENNING,   // オープニング処理  
     CLOSING,    // クロージング処理
     MEDIAN,
     MORPHOLOGY, // モルフォロジー
@@ -407,7 +418,7 @@ typedef struct TAG_CONFIG_IMGPROC {
 // 調整情報
 // 調整情報データ
 typedef struct TAG_INFO_ADJUST_DATA {
-    BOOL   target_distance_fixed;                   // 吊点～ターゲット間距離固定
+    int32_t tg_distance_mode;                   // ターゲット間距離セットモード
     double target_distance;                         // 吊点～ターゲット間距離[mm]
     double coef_roi_margin[(int)ENUM_AXIS::E_MAX];  // ROI設定マージン計算用係数
     double T[(int)ENUM_AXIS::E_MAX];                // 振れ周期sec
@@ -415,7 +426,7 @@ typedef struct TAG_INFO_ADJUST_DATA {
     double g[(int)ENUM_AXIS::E_MAX];                // 重力加速度
  
     TAG_INFO_ADJUST_DATA()
-        : target_distance_fixed(FALSE)
+        : tg_distance_mode(TARGET_DIST_SET_BY_DEFAULT)
         , target_distance(EXTN_TARGETDIST_MIN)
      {}
 } INFO_ADJUST_DATA, * PINFO_ADJUST_DATA;
@@ -424,7 +435,6 @@ typedef struct _stExtnInfo {
     CRITICAL_SECTION cs;
     INFO_ADJUST_DATA data;  // 調整情報データ
 } INFO_ADJUST, * PINFO_ADJUST;
-
 
 // 元画像データ
 typedef struct TAG_INFO_IMGBUF_DATA {
@@ -514,6 +524,7 @@ typedef struct TAG_INFO_IMGPRC_DATA {
     double      exps_time;                                                                          // 露光時間[us]
     int32_t     exps_step_count;
     double      exps_chk_brightness;                                                                //露光時間調整用輝度
+
     cv::Scalar mean_hsv;    //HSVフォーマットでの平均値
 
     TAG_INFO_IMGPRC_DATA()
@@ -534,9 +545,10 @@ typedef struct TAG_INFO_IMGPRC {
 // システム情報
 // システム情報データ
 typedef struct TAG_INFO_SYSTEM_DATA {
-    uint32_t status;    // ステータス
+    uint32_t status;            // ステータス
+    uint32_t host_com_status;   // 制御PCとの通信状態ステータス
     double sample_cycle;
-
+   
     TAG_INFO_SYSTEM_DATA()
         : status(static_cast<uint32_t>(ENUM_SYSTEM_STATUS::DEFAULT))
     {}

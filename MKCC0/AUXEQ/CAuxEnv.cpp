@@ -228,7 +228,8 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->expstime.auto_stop_h	= 245.0;	//自動露光判定輝度  (停止上限(この値より輝度が低い場合、停止する)　　[0 - 255]
 	gp_cnfg_camera->expstime.auto_stop_l	= 235.0;	//自動露光判定輝度  (停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
 	
-
+	//ターゲット間距離セットモード
+	gp_app_adjust->tg_distance_mode			= TARGET_DIST_SET_BY_DEFAULT;//MCC通信値をセット
 	//カメラの異常判定設定
 	gp_cnfg_camera->error.framedrop			= 15.0;			//カメラの異常判定設定(フレームレート低下の判定値[fps], 異常判定時間[msec])
 	gp_cnfg_camera->error.errtime			= 100;			//カメラの異常判定設定(フレームレート低下の判定値[fps], 異常判定時間[msec])
@@ -254,9 +255,9 @@ void CAuxEnv::init_camera_parameters(int type) {
 
 	//filter設定
 	gp_cnfg_imgprc->filter[0].val	= 2;//ゴマ塩ノイズフィルター(フィルター設定(なし[0] / 中央値フィルター[1] / オープニング処理[2]), フィルター値(中央値フィルター[1, 3, 5, ...] / オープニング処理[1, 2, ...]))
-	gp_cnfg_imgprc->filter[0].type	= 2;
-	gp_cnfg_imgprc->filter[1].val	= 0;//穴埋めノイズフィルター(フィルター設定(なし[0] / クロージング処理[1]), フィルター値[1, 2, ...])
-	gp_cnfg_imgprc->filter[1].type	= 9;
+	gp_cnfg_imgprc->filter[0].type	= (uint32_t)(ENUM_NOISE_FILTER1::OPENNING);
+	gp_cnfg_imgprc->filter[1].val	= 3;//穴埋めノイズフィルター(フィルター設定(なし[0] / クロージング処理[1]), フィルター値[1, 2, ...])
+	gp_cnfg_imgprc->filter[1].type	= (uint32_t)(ENUM_NOISE_FILTER2::MEDIAN);
 	gp_cnfg_imgprc->imgprc			= (uint32_t)ENUM_COG::BOUND_RECT;				//ターゲット検出アルゴリズム(最大輪郭面積[0], 最大輪郭長[1],最大輪郭面積(矩形チェック)[2]
 	gp_cnfg_imgprc->swayspdfilter	= 0.1;		//振れ速度フィルター時定数
 	gp_cnfg_imgprc->swayzeroset_time = 20000;	//振れゼロ点設定(計測時間[ms])

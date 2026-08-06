@@ -247,8 +247,11 @@ HRESULT CAuxPol::routine_work(void* pObj) {
 int CAuxPol::input() {
 	if (g_sway_sensor_enable) {
 		//カメラ‐ターゲット間距離（クライアントからの情報）
-		if (gp_app_adjust->target_distance_fixed)	gp_app_adjust->target_distance = 30.0;
-		else 										gp_app_adjust->target_distance = pCsInf->msg_client.body.d[0];
+		if (gp_app_adjust->tg_distance_mode == TARGET_DIST_SET_BY_HOST)
+			gp_app_adjust->target_distance = pCsInf->msg_client.body.d[0];
+		else if (gp_app_adjust->tg_distance_mode == TARGET_DIST_SET_BY_DEFAULT)
+			gp_app_adjust->target_distance = POL_PRM_TG_DIST_DEFAULT;
+		else;//	TARGET_DIST_SET_BY_MANUAL;
 
 		if (gp_app_adjust->target_distance != 0.0) {
 
@@ -575,6 +578,11 @@ int CAuxPol::parse() {
 				break;
 
 				case (uint32_t)(ENUM_NOISE_FILTER2::MEDIAN) :     // 中央値フィルター
+
+					//中央値フィルタのval(kernel size)が偶数だとmedianBlur()でクラッシュする
+					if (gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val%2==0)
+						gp_cnfg_imgprc->filter[(uint32_t)(ENUM_NOISE_FILTER::FILTER_2)].val++;
+
 					for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 						if (gp_cnfg_imgprc->mask[idx].valid) {
 							cv::medianBlur(img_mask_roi[idx],
@@ -630,7 +638,7 @@ int CAuxPol::parse() {
 
 #pragma region ターゲット検出
 			double  pos_x, pos_y;
-			gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
+//			gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
 
 			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 				PTARGET_DATA ptarget_data = &gp_app_imgprc->target_data[idx];    // ターゲット検出データ
@@ -1279,24 +1287,18 @@ static double exps_time_lower_limit;
 void CAuxPol::set_expstime()
 {
 
-	if (!gp_cnfg_common->img_source_camera) {
+	if ((!gp_cnfg_common->img_source_camera)|| (gp_app_imgprc->exps_mode == EXPOSURE_CONTROL_MANUAL)){
 		//# 画像入力がカメラでなければ　return　カメラ:1 画像データ:0
+		//# 手動設定モードでreturn (SCADAのウィンドウで設定）
+		gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;
 		return;
 	}
 
-	//# ２つのマスク処理後画像の最大輝度のうち大きい方を評価対象輝度にセット
-	if (gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val > gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val) {
-		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val;
-	}
-	else {
-		gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val;
-	}
-
-	//% シャッターコントロール禁止判定 （画像入力異常またはシャッターコントロール固定で禁止)
-	if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) || !(gp_cnfg_camera->expstime.auto_control)) {
+	
+	if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))) {//% シャッターコントロール禁止判定 （画像入力異常でHOLD)
 		//露光時間は初期値に固定
 		gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;
-		gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;
+		//gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;
 		//移動平均データリセット
 		ZeroMemory(m_move_avrg_data.data, sizeof(m_move_avrg_data.data));
 		m_move_avrg_data.wptr = 0;m_move_avrg_data.data_count = 0;m_move_avrg_data.total_val = 0;m_move_avrg_data.max_val = 0.0f;
@@ -1304,6 +1306,21 @@ void CAuxPol::set_expstime()
 		was_under_expose = false;
 	}   // if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) || !(gp_cnfg_camera->expstime.auto_control))
 	else {
+		//# ２つのマスク処理後画像の最大輝度のうち大きい方を評価対象輝度にセット
+		if (gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val > gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val) {
+			gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].max_val;
+		}
+		else {
+			gp_app_imgprc->exps_chk_brightness = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].max_val;
+		}
+
+		//輝度が閾値範囲外の時シャッタコントロール実施
+		if ((gp_app_imgprc->exps_chk_brightness < gp_cnfg_camera->expstime.auto_start_l) ||
+			(gp_app_imgprc->exps_chk_brightness > gp_cnfg_camera->expstime.auto_start_h)) {
+			gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_AUTO;
+		}
+		else return;
+		
 		if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_ROI_MODE) {
 			//一旦ターゲットを検出したら、最大輝度が下がらない限り露光時間キープ
 			if (gp_app_imgprc->exps_chk_brightness <= gp_cnfg_camera->expstime.auto_start_l) { // 最大輝度が閾値以下の場合、露光時間を増やす
@@ -1319,7 +1336,8 @@ void CAuxPol::set_expstime()
 			}
 			else {//最大輝度が下限閾値以上かつ上限閾値以下の場合、露光時間をキープ
 				was_over_expose = false;
-				was_under_expose = true;//露光時間を減らす方向は下限閾値まで落ち込まない限りキープ;
+				//was_under_expose = true;//露光時間を減らす方向は下限閾値まで落ち込まない限りキープ;
+				was_under_expose = false;//露光時間を減らす方向は下限閾値まで落ち込まない限りキープ;
 			}
 		}
 		else if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_ROI_KEEP) {
@@ -1334,8 +1352,6 @@ void CAuxPol::set_expstime()
 				was_over_expose = false;
 				gp_app_imgprc->exps_step_count = EXPOSURE_CONTROL_STEP_COUNT;
 			}
-
-			
 			// exps_ctrl_modeは初期化時はステップカウンタ 　RESET_STEP 0100 →　RESET_STEP_FIN　011Fまで
 			// 偶数ステップは露光時間を変更する実処理ステップ、
 			// 奇数ステップは待機ステップで exps_step_countは待機ステップのカウントダウン用
@@ -1389,7 +1405,8 @@ void CAuxPol::set_expstime()
 		}
 		
 		if (gp_app_imgprc->exps_ctrl_mode > EXPOSURE_CONTROL_RESET_STEP_FIN) 
-			gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;//リセットして繰り返し
+			//gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;//リセットして繰り返し
+			gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_ROI_MODE;//
 
 		//上下限リミット処理
 		if (gp_app_imgprc->exps_time > gp_cnfg_camera->expstime.val_max) gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_max;
