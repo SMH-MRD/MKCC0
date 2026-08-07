@@ -1118,6 +1118,8 @@ int32_t CTeliCamLib::get_image(uint32_t bufsize, uint8_t* image)
         stat.fpstimer = timeGetTime();
 		stat.framechk_valid = TRUE;         // フレームレート損失チェックタイミングフラグをセット
     }
+
+    if (ret < 0)stat.frame_loss_count++;
     return ret;
 }
 
@@ -1193,6 +1195,8 @@ int32_t CTeliCamLib::get_image(void* image)
         stat.fpstimer = timeGetTime();
         stat.framechk_valid = TRUE; // フレームレート損失チェック 
     }
+
+    if (ret < 0)stat.frame_loss_count++;
     return ret;
 }
 

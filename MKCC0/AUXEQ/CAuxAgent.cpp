@@ -748,7 +748,7 @@ LRESULT CALLBACK CAuxAgent::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		}
 	}break;
 	case WM_TIMER: {
-		monwos.str(L""); monwos << L"GE Frame Index:" << pCamera->stat.frameidx;
+		monwos.str(L""); monwos << L"GE Frame Index:" << pCamera->stat.frameidx << L"   GE FRAME LOST:" << pCamera->stat.frame_loss_count;
 		SetWindowText(st_mon1.hwnd_mon, monwos.str().c_str());
 
 		monwos.str(L"");

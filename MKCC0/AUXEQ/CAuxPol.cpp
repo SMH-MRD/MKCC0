@@ -74,11 +74,12 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 
 	HRESULT hr = S_OK;
 	//### 出力用共有メモリ取得
-	out_size = sizeof(ST_AUX_ENV_INF);
-	if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) {
+	out_size = sizeof(ST_AUX_POL_INF);
+	if (OK_SHMEM != pPolInfObj->create_smem(SMEM_AUX_POL_INF_NAME, sizeof(ST_AUX_POL_INF), MUTEX_AUX_POL_INF_NAME)) {
 		return(FALSE);
 	}
-	set_outbuf(pEnvInfObj->get_pMap());
+	pPolInf = (LPST_AUX_POL_INF)pPolInfObj->get_pMap();
+	set_outbuf(pPolInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
 	if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) {
@@ -90,7 +91,7 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 	if (OK_SHMEM != pScadInfObj->create_smem(SMEM_AUX_SCAD_INF_NAME, sizeof(ST_AUX_SCAD_INF), MUTEX_AUX_SCAD_INF_NAME)) {
 		return(FALSE);
 	}
-	if (OK_SHMEM != pPolInfObj->create_smem(SMEM_AUX_POL_INF_NAME, sizeof(ST_AUX_POL_INF), MUTEX_AUX_POL_INF_NAME)) {
+	if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) {
 		return(FALSE);
 	}
 
@@ -211,9 +212,9 @@ HRESULT CAuxPol::init_sway_sensor(){
 		m_sway_zero_data.sway_zero[axis]	= gp_app_imgprc->sway_data[axis].sway_zero;    // 振れゼロ点
 
 		//　ROI　Margin	設定用係数 (振れ角30°のときのPIXEL振幅)
-		//  角周波数を掛けて30°振幅振れの振れ速度（PIX)振幅を評価する
-		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X];
-		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y];
+		//  角周波数を掛けて30°振幅（PIX)のスキャン変化最大値を評価する
+		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X] * gp_app_system->sample_cycle;
+		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y] * gp_app_system->sample_cycle;
 		gp_app_adjust->g[(int)ENUM_AXIS::X] = GA;
 		gp_app_adjust->g[(int)ENUM_AXIS::Y] = GA;
 
@@ -260,9 +261,9 @@ int CAuxPol::input() {
 			double wy = sqrt(gp_app_adjust->g[(int)ENUM_AXIS::Y] /gp_app_adjust->target_distance);
 
 			gp_app_adjust->w[(int)ENUM_AXIS::X]  = wx;			//振れ角周波数
-			gp_app_adjust->T[(int)ENUM_AXIS::X]  = PI360/wx;    //振れ周期
+			gp_app_adjust->T[(int)ENUM_AXIS::X] = pPolInf->sw_inf.Tx = PI360/wx;    //振れ周期
 			gp_app_adjust->w[(int)ENUM_AXIS::Y]  = wy;			//振れ角周波数
-			gp_app_adjust->T[(int)ENUM_AXIS::Y]  = PI360 / wy;   //振れ周期
+			gp_app_adjust->T[(int)ENUM_AXIS::Y]  = pPolInf->sw_inf.Ty = PI360 / wy;   //振れ周期
 		
 			//ターゲット検出予定角度幅（実寸法/ターゲットとの距離）
 			for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
@@ -689,6 +690,18 @@ int CAuxPol::parse() {
 						//); // 検出状態
 					}
 
+					if (idx == (uint32_t)(ENUM_IMAGE_MASK::MASK_1)) {
+						pPolInf->sw_inf.tg_size_act1 = (double)ptarget_data->size;
+						pPolInf->sw_inf.tg_size_exp1= ptarget_data->size_expected.area();
+					}
+					if (idx == (uint32_t)(ENUM_IMAGE_MASK::MASK_2)){
+						pPolInf->sw_inf.tg_size_act2 = (double)ptarget_data->size;
+						pPolInf->sw_inf.tg_size_exp2 = ptarget_data->size_expected.area();
+					}
+
+
+
+
 					double pos_x_now = pos_x + (double)ptarget_data->roi.x;
 					double pos_y_now = pos_y + (double)ptarget_data->roi.y;
 					double dx = pos_x_now - ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)];
@@ -845,6 +858,8 @@ uint32_t CAuxPol::get_opencv_image(void)
 				g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// 画像サイズ(垂直画素) [pixel]
 				g_img_src_work.fps = 0.0;                                                                   // 画像フレームレート [fps]
 				ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));    // 画像データバッファのポインタ(BGR 24bit)
+
+				pPolInf->sw_inf.image_loss_count++;
 			}
 
 			if (g_img_src_work.status & (uint32_t)ENUM_IMAGE_STATUS::ENABLED) {
@@ -1032,6 +1047,8 @@ BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
 	*outPosX = pos_x;
 	*outPosY = pos_y;
 	*outTgtSize = target_size;
+	size_detected->width = roi.width;
+	size_detected->height = roi.height;
 
 	return ret;
 }

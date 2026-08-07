@@ -38,6 +38,7 @@ typedef struct _TELI_CAM_CONFIG {
 typedef struct _TELI_CAM_STATUS {
     int32_t               control_status;
     int32_t               retry_count;
+    int32_t               frame_loss_count =0;
 
     bool                  is_img_valid;     //
     bool                  is_fps_valid;     //
@@ -165,7 +166,7 @@ public:
     int32_t set_expstime_control(Teli::CAM_EXPOSURE_TIME_CONTROL_TYPE ctrltype);                        // カメラの露光時間の制御モードの設定
     int32_t set_expstime(float64_t expstime);                                                           // カメラの露光時間の設定(APIへの設定はスレッドで実行される)
 
-    int32_t get_image(uint32_t bufsize, uint8_t* image);        // 画像情報を取得
+    int32_t get_image(uint32_t bufsize, uint8_t* image);        // 画像情報を取得 未使用
     int32_t get_image(void* image);                             // 画像情報を取得
     int32_t get_image_size(uint32_t* width, uint32_t* height);  // 画像サイズの取得
     int32_t get_image_fps(float64_t* fps);                      // フレームレートの取得

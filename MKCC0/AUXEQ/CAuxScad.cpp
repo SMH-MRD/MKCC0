@@ -64,11 +64,13 @@ extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
 extern CSharedMem* pCsInfObj;
 extern CSharedMem* pScadInfObj;
+extern CSharedMem* pPolInfObj;
 
 static LPST_AUX_ENV_INF		pEnvInf;
 static LPST_AUX_CS_INF		pCsInf;
 static LPST_AUX_AGENT_INF	pAgentInf;
 static LPST_AUX_SCAD_INF	pScadInf;
+static LPST_AUX_POL_INF	pPolInf;
 
 /****************************************************************************/
 /*   デフォルト関数											                    */
@@ -84,10 +86,10 @@ HRESULT CAuxScada::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_AUX_SCAD_INF);
-	if (OK_SHMEM != pScadInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) {
+	if (OK_SHMEM != pScadInfObj->create_smem(SMEM_AUX_SCAD_INF_NAME, sizeof(ST_AUX_SCAD_INF), MUTEX_AUX_SCAD_INF_NAME)) {
 		return(FALSE);
 	}
-	set_outbuf(pScadInfObj->get_pMap());
+ 	set_outbuf(pScadInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
 	if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) {
@@ -96,16 +98,19 @@ HRESULT CAuxScada::initialize(LPVOID lpParam) {
 	if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AUX_AGENT_INF_NAME, sizeof(ST_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) {
 		return(FALSE);
 	}
-	if (OK_SHMEM != pScadInfObj->create_smem(SMEM_AUX_SCAD_INF_NAME, sizeof(ST_AUX_SCAD_INF), MUTEX_AUX_SCAD_INF_NAME)) {
+	if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) {
 		return(FALSE);
 	}
+    if (OK_SHMEM != pPolInfObj->create_smem(SMEM_AUX_POL_INF_NAME, sizeof(ST_AUX_POL_INF), MUTEX_AUX_POL_INF_NAME)) {
+        return(FALSE);
+    }
 
 	pEnvInf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
 	pAgentInf = (LPST_AUX_AGENT_INF)(pAgentInfObj->get_pMap());
 	pCsInf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
-	pScadInf = (LPST_AUX_SCAD_INF)pScadInfObj->get_pMap();
+	pPolInf = (LPST_AUX_POL_INF)pPolInfObj->get_pMap();
 
-	if ((pEnvInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pScadInf == NULL))
+	if ((pEnvInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pPolInf == NULL))
 		hr = S_FALSE;
 	if (hr == S_FALSE) {
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
@@ -251,6 +256,29 @@ int CAuxScada::parse() {
         }
         // 振れ
         {
+            wostr.str(L""); wostr << pPolInf->sw_inf.Tx;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_T_X), wostr.str().c_str());
+            wostr.str(L""); wostr << pPolInf->sw_inf.Ty;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_T_Y), wostr.str().c_str());
+
+            wostr.str(L""); wostr << pPolInf->sw_inf.amp_x;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_X), wostr.str().c_str());
+            wostr.str(L""); wostr << pPolInf->sw_inf.amp_y;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_Y), wostr.str().c_str());
+            wostr.str(L""); wostr << pPolInf->sw_inf.ph_x;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_X), wostr.str().c_str());
+            wostr.str(L""); wostr << pPolInf->sw_inf.ph_y;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_Y), wostr.str().c_str());
+
+            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_act1;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT1), wostr.str().c_str());
+            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_act2;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT2), wostr.str().c_str());
+            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_exp1;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_EXP1), wostr.str().c_str());
+            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_exp2;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_EXP2), wostr.str().c_str());
+    
             if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
                 wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].sway_angle;
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_X), wostr.str().c_str());
@@ -290,11 +318,17 @@ int CAuxScada::parse() {
         }
         //----------------------------------------------------------------------------
         // 処理画像読込み
-        if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), &m_img_src)) {
-            return S_FALSE;
-        }
-        if (m_img_src.rows == 0) {
-            return S_FALSE;
+        {
+            wostr.str(L""); wostr << pPolInf->sw_inf.image_loss_count;
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_IMG_LOST), wostr.str().c_str());
+
+
+            if (!pSwaySharedObj->get_app_info_data((uint32_t)(ENUM_IMAGE::PROCESS), &m_img_src)) {
+                return S_FALSE;
+            }
+            if (m_img_src.rows == 0) {
+                return S_FALSE;
+            }
         }
 
 
@@ -944,15 +978,17 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         {
             wosstr.str(L"");
          
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_STAT), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_DEG_X), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_DEG_Y), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_RAD_X), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_RAD_Y), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_SPD_DEG_X), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_SPD_DEG_Y), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_SPD_RAD_X), L"-");
-            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TILT_SPD_RAD_Y), L"-");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_IMG_LOST), L"-");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_SWAY_AMP_X), L"ampx");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_SWAY_AMP_Y), L"ampy");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_SWAY_PH_X), L"phx");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_SWAY_PH_Y), L"phy");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_T_X), L"Tx");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_T_Y), L"Ty");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TG_SIZE_EXP1), L"ep1");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TG_SIZE_ACT1), L"ac1");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TG_SIZE_EXP2), L"ep2");
+            SetWindowText(GetDlgItem(hwnd, IDC_STATIC_TG_SIZE_ACT2), L"ac2");
         }
 
         //----------------------------------------------------------------------------
