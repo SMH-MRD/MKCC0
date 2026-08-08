@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <opencv2/opencv.hpp>
+#include "COMMON_DEF.h"
 //=========================================================================== =
 // define定義
 #pragma region CONSTANT_DEFINITION
@@ -206,8 +207,10 @@ enum class ENUM_AXIS : uint32_t {
 #define	SID_ph02				8		//カメラのハウジングへの取り付け角度
 #define	SID_phc2				9		//カメラの取り付け角度
 
-#define CAM1_SPEC_PIXEL_H       2048
-#define CAM1_SPEC_PIXEL_V       1536        // PIX
+#define CAM1_SPEC_PIXEL_H           2048
+#define CAM1_SPEC_PIXEL_V           1536        // PIX
+#define CAM1_SPEC_PIXEL_H_OFFSET    1024
+#define CAM1_SPEC_PIXEL_V_OFFSET    768        // PIX
 #define CAM1_SPEC_ANGLE_RAD_H   0.7485      //東芝テリーBG302LMCG+9mmレンズ　42.89°
 #define CAM1_SPEC_ANGLE_RAD_V   0.5726      //東芝テリーBG302LMCG+9mmレンズ　32.81°
 //#define CAM1_SPEC_ANGLE_RAD_H   1.5813    //東芝テリーBG302LMCG+9mmレンズ　90.6°
@@ -279,7 +282,6 @@ typedef struct TAG_CONFIG_COMMON {
         , img_output_fname(L"")
     {}
 } CONFIG_COMMON, * PCONFIG_COMMON;
-
 // ROI設定
 typedef struct TAG_CONFIG_CAMERA_ROI {
     uint32_t offset = 0;        // ROI(領域)の開始位置(X, Y)
@@ -417,8 +419,14 @@ typedef struct TAG_CONFIG_IMGPROC {
 //----------------------------------------------------------------------------
 // 調整情報
 // 調整情報データ
+#define  SWAY_SENSOR_MASK_MODE_IDLE            0x0000
+#define  SWAY_SENSOR_MASK_MODE_1               0x0001
+#define  SWAY_SENSOR_MASK_MODE_2               0x0002
+#define  SWAY_SENSOR_MASK_MODE_12              0x0003
+
 typedef struct TAG_INFO_ADJUST_DATA {
-    int32_t tg_distance_mode;                   // ターゲット間距離セットモード
+    int mask_mode;                                  //マスクモード
+    int32_t tg_distance_mode;                       // ターゲット間距離セットモード
     double target_distance;                         // 吊点～ターゲット間距離[mm]
     double coef_roi_margin[(int)ENUM_AXIS::E_MAX];  // ROI設定マージン計算用係数
     double T[(int)ENUM_AXIS::E_MAX];                // 振れ周期sec
@@ -466,6 +474,7 @@ typedef struct TAG_IMAGE_DATA {
 // 画像処理情報
 // ターゲット検出データ
 #define  SWAY_SENSOR_RANGE_OVER_COUNT_LIMIT    40
+
 typedef struct TAG_TARGET_DATA {
     BOOL     valid;                                         // 検出状態
     int      range_over_count;                              //レンジオーバーカウント
@@ -501,6 +510,8 @@ typedef struct TAG_SWAY_DATA {
     double sway_angle;  // 振れ角[pixel]
     double sway_speed;  // 振れ速度[pixel/s]
     double sway_zero;   // 振れ中心[pixel]
+    double sway_amp_p2p;// 振れ中心[pixel]
+    double sway_amp_cal;// 振れ中心[pixel]
 
     TAG_SWAY_DATA()
         : target_pos(0.0)
@@ -600,147 +611,217 @@ typedef struct TAG_APP_CONFIG {
     CONFIG_IMGPROC   imageprocess;  // 画像処理条件設定
 } APP_CONFIG, * PAPP_CONFIG;
 
-// ***通信データ
-//送信データコード
-#define SW_CLIENT_COM_ONCE_DATA        0x00000000
-#define SW_CLIENT_COM_CONST_DATA       0x00000001
-#define SW_CLIENT_COM_STOP_DATA        0x00000008
+// #######################################################
+// ###### ***通信データ
+// ######################################################
+
 #define SW_CLIENT_COM_CAMERA1_0SET     0x00000010
-#define SW_CLIENT_COM_CAMERA2_0SET     0x00000020
-#define SW_CLIENT_COM_TILT1_0SET       0x00000040
-#define SW_CLIENT_COM_TILT2_0SET       0x00000080
-#define SW_CLIENT_COM_CAMERAR1_RESET   0x00000100
-#define SW_CLIENT_COM_CAMERAR2_RESET   0x00000200
-#define SW_CLIENT_COM_TILT1_RESET      0x00000400
-#define SW_CLIENT_COM_TILT2_RESET      0x00000800
-#define SW_CLIENT_COM_SAVE_IMG         0x00001000
-#define SW_CLIENT_COM_PC_RESET         0x10000000
-
-#define SW_SENSOR_DEFAULT_SCAN         100                 //100msec
-
-#define SW_SENSOR_MODE_NORMAL          0x000000001          //通常運用モード
-#define SW_SENSOR_MODE_CHECK1          0x000000002          //試験チェックモード 
 
 
-//受信データコード
-//エラー状態
-#define SW_SENSOR_ERR_CODE_CAMERA      0x00000001   // 機器異常(カメラ)
-#define SW_SENSOR_ERR_CODE_TILT        0x00000002   // 機器異常(傾斜計)
-#define SW_SENSOR_ERR_CODE_DETECT_TG1  0x00000010   // 検出異常(ターゲット1)
-#define SW_SENSOR_ERR_CODE_DETECT_TG2  0x00000020   // 検出異常(ターゲット2)
-
-//検出状態
-#define SW_SENSOR_STAT_TG1_DETECTED    0x00000001   // 振れ検出中(ターゲット1)
-#define SW_SENSOR_STAT_TG2_DETECTED    0x00000002   // 振れ検出中(ターゲット2)
-#define SW_SENSOR_STAT_INIT_SENSOR     0x00000010   // 準備中(カメラ)
-#define SW_SENSOR_STAT_INIT_TILT       0x00000020   // 準備中(傾斜計)
-#define SW_SENSOR_STAT_0SET_SENSOR     0x00000010   // 0点設定中(カメラ)
-#define SW_SENSOR_STAT_0SET_TILT       0x00000020   // 0点設定中(傾斜計)
-
-//メッセージテキスト
-//エラー状態
-#define SW_TXT_ERR_CODE_CAMERA      L"カメラ異常"
-#define SW_TXT_ERR_CODE_TILT        L"傾斜計異常"
-#define SW_TXT_ERR_CODE_DETECT_TG1  L"ターゲット１検出異常"
-#define SW_TXT_ERR_CODE_DETECT_TG2  L"ターゲット２検出異常"
-
-//検出状態
-#define SW_TXT_STAT_TG1_DETECTED    L"ターゲット１検出中"
-#define SW_TXT_STAT_TG2_DETECTED    L"ターゲット２検出中"
-#define SW_TXT_STAT_INIT_SENSOR     L"センサ準備中"
-#define SW_TXT_STAT_INIT_TILT       L"傾斜計準備中"
-#define SW_TXT_STAT_0SET_SENSOR     L"センサ0セット中"
-#define SW_TXT_STAT_0SET_TILT       L"傾斜計0セット中"
-
-#define SWAY_SENSOR_N_CAM       2
-#define SWAY_SENSOR_CAM1        0
-#define SWAY_SENSOR_CAM2        1
-
-#define SWAY_SENSOR_N_TARGET    2
-#define SWAY_SENSOR_TG1         0
-#define SWAY_SENSOR_TG2         1
-
-#define SWAY_SENSOR__MSG_SEND_COM         10600
-
-#define SWAY_SENSOR_N_CHAR_ID   4
-#define SWAY_SENSOR_N_CHAR_INFO 32
-
-typedef struct SwayCamSpec {
-    INT32	pix_x;			//カメラ画素数x軸
-    INT32	pix_y;			//カメラ画素数y軸
-    INT32	pixlrad_x;	    //カメラ分解能　PIX/rad
-    INT32	pixlrad_y;	    //カメラ分解能　PIX/rad
-    INT32	l0_x;			//カメラ取付パラメータ㎜
-    INT32	l0_y;			//カメラ取付パラメータ㎜
-    INT32	ph0_x;			//カメラ取付パラメータx1000000rad
-    INT32	ph0_y;			//カメラ取付パラメータx1000000rad
-    INT32	phc_x;			//カメラ取付パラメータx1000000rad
-    INT32	phc_y;			//カメラ取付パラメータx1000000rad
-}ST_SWAY_CAM_SPEC, * LPST_SWAY_CAM_SPEC;
-
-#define CODE_SWAY_SENSOR_IMAGE_OK           0x00000001
-#define CODE_SWAY_SENSOR_SWAY_DETECTED      0x00000002
-#define CODE_SWAY_SENSOR_TG1_DETECTED       0x00000004
-#define CODE_SWAY_SENSOR_TG2_DETECTED       0x00000008
-#define CODE_SWAY_SENSOR_SWAY_RANGEOVER     0x00000010
-#define CODE_SWAY_SENSOR_SWAY_CAM_ERROR     0x00000080
-
-#define CODE_SWAY_SENSOR_TILT_DETECTED      0x00010000
-#define CODE_SWAY_SENSOR_TILT_ERROR         0x00100000
-
-typedef struct SwaySensStatus {
-    //機器状態情報
-    INT32	mode;		    //モード
-    INT32	error;		    //エラーステータス
-    INT32	status;		    //検出ステータス
-    //傾斜計情報  
-    double	tilt_x;         //傾斜X
-    double	tilt_y;         //傾斜Y
-    double	tilt_dx;        //傾斜角速度X
-    double	tilt_dy;        //傾斜角速度Y
-} ST_SWAY_SENS_STAT, * LPST_SWAY_SENS_STAT;
-
-typedef struct TargetStatus {
-    //振れ検出情報  
-    double	th_x;		    //振角xPIX
-    double	th_y;		    //振角yPIX
-    double	dth_x;		    //振角速度x　PIX/s
-    double	dth_y;			//振角速度y　PIX/s
-    double	th_x0;			//振角0点xPIX
-    double	th_y0;			//振角0点yPIX
-    double	dpx_tgs;		//ターゲット間距離X方向
-    double	dpy_tgs;		//ターゲット間距離Y方向
-    double	tg_size;		//ターゲットサイズ
-} ST_TARGET_STAT, * LPST_TARGET_STAT;
-
-typedef struct SwayComServerHead { //振れセンサ受信メッセージヘッダ部
-    char	id[SWAY_SENSOR_N_CHAR_ID];			    //PC ID
-    SYSTEMTIME time;		                        //タイムスタンプ
-}ST_SWAY_SERVER_HEAD, * LPST_SWAY_SERVER_HEAD;
-typedef struct SwayComServerBody {                  //振れセンサ送信メッセージボディ部
-    ST_SWAY_CAM_SPEC cam_spec;
-    ST_SWAY_SENS_STAT cam_stat;
-    ST_TARGET_STAT tg_stat[SWAY_SENSOR_N_TARGET];   //カメラ２ｘターゲット２
-    char info[SWAY_SENSOR_N_CHAR_INFO];
-}ST_SWAY_SERVER_BODY, * LPST_SWAY_SERVER_BODY;
-typedef struct SwayComServerMsg {                   //振れセンサ送信メッセージ
-    ST_SWAY_SERVER_HEAD head;
-    ST_SWAY_SERVER_BODY body[SWAY_SENSOR_N_CAM];
-}ST_SWAY_SERVER_MSG, * LPST_SWAY_SERVER_MSG;
-
-typedef struct SwayComClientHead {                  //制御PC送信メッセージヘッダ部
-    char	id[SWAY_SENSOR_N_CHAR_ID];			    //機器個体情報
- //   sockaddr_in sockaddr;                         //送信元IPアドレス
+/// <summary>
+/// 振れセンサIF
+/// </summary>
+typedef struct _SwayClientHead {
+    ST_DEVICE_CODE	myid;		    //装置ID
+//    SOCKADDR_IN		addr;	    //送信元受信アドレス
+    INT16			mask_mode;	        //0:IDLE 1:MASK1のみ　2：MASK2のみ　3：MASK12共使用
+    INT16           filter_type1;       //画像フィルタ処理　ENUM_NOISE_FILTER1の定義で指定
+    INT16           filter_type1_val;   //画像フィルタ処理　設定値
+    INT16           filter_type2;       //画像フィルタ処理　ENUM_NOISE_FILTER2の定義で指定
+    INT16           filter_type2_val;   //画像フィルタ処理　設定値
+    INT16			command;	//コマンドコード(初期化要求等）
+    INT32			status;		//状態
+    INT32 			seqno;		//シーケンス番号(ヘルシーチェック用）	
 }ST_SWAY_CLIENT_HEAD, * LPST_SWAY_CLIENT_HEAD;
-typedef struct SwayComClientBody {                  //制御PC送信メッセージボディ部
-    INT32 command;
-    INT32 mode;
-    INT32 freq;                                     //最小受信周期 msec      
-    INT32 d[SWAY_SENSOR_N_CAM];                     //カメラ-ターゲット間距離
+
+typedef struct SwayClientBody {
+    double          tg_distance;
+    double          Tx;         //振れ周期X方向
+    double          Ty;         //振れ周期Y方向
 }ST_SWAY_CLIENT_BODY, * LPST_SWAY_CLIENT_BODY;
-typedef struct SwayComClientMsg {                   //制御PC送信メッセージ
+
+typedef struct SwayClientMsg {
     ST_SWAY_CLIENT_HEAD head;
     ST_SWAY_CLIENT_BODY body;
 }ST_SWAY_CLIENT_MSG, * LPST_SWAY_CLIENT_MSG;
+
+typedef struct _SwayServerHead {
+    ST_DEVICE_CODE	myid;		//装置ID
+    //    SOCKADDR_IN		addr;		//送信元受信アドレス
+    INT16			mask_mode;	                        //0:IDLE 1:MASK1のみ　2：MASK2のみ　3：MASK12共使用 FB
+    INT16           filter_type1;                       //画像フィルタ処理FB　ENUM_NOISE_FILTER1の定義
+    INT16           filter_type1_val;                   //画像フィルタ処理FB　設定値
+    INT16           filter_type2;                       //画像フィルタ処理FB　ENUM_NOISE_FILTER2の定義
+    INT16           filter_type2_val;                   //画像フィルタ処理FB　設定値
+    INT16			command;	                        //コマンド応答コード(受付コマンドコード）
+    INT32			status;		                        //状態
+    double          pix1rad[(int)ENUM_AXIS::E_MAX];     //1radianあたりのPIXEL数
+    INT32 			seqno;		                        //シーケンス番号(ヘルシーチェック用）	
+}ST_SWAY_SERVER_HEAD, * LPST_SWAY_SERVER_HEAD;
+
+typedef struct _ST_SWAY_TG_DETECT {
+    INT32  valid1;                                      //ターゲット有効
+    INT32  valid2;                                      //ターゲット有効
+    double pixel1[(int)(ENUM_AXIS::E_MAX)];             //MASK1のPIXCEL位置
+    double pixel2[(int)(ENUM_AXIS::E_MAX)];             //MASK2のPIXCEL位置
+ }ST_SWAY_TG_DETECT, * LPST_SWAY_TG_DETECT;
+
+typedef struct SwayServerBody {
+    ST_SWAY_TG_DETECT tg_detected;
+    double  brightness;//ターゲット輝度
+    double  sway_pos0[(int)(ENUM_AXIS::E_MAX)];   //振れ0点PIXEL値
+    double  sway[(int)(ENUM_AXIS::E_MAX)];              //振れ0点からの振角　PIX
+    double  sway_spd[(int)(ENUM_AXIS::E_MAX)];          //振角速度　PIX/s
+    double  sway_amp_p2p[(int)(ENUM_AXIS::E_MAX)];      //Peak to Peakで計測した振れ振幅(角速度の符号切り替わりで判定)
+    double  sway_amp_cal[(int)(ENUM_AXIS::E_MAX)];      //振れ角速度から評価した振れ振幅(半周期間の振れ角速度最大値で判定）
+    double  sway_ph[(int)(ENUM_AXIS::E_MAX)];           //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+}ST_SWAY_SERVER_BODY, * LPST_SWAY_SERVER_BODY;
+
+typedef struct SwayServerMsg {
+    ST_SWAY_SERVER_HEAD head;
+    ST_SWAY_SERVER_BODY body;
+}ST_SWAY_SERVER_MSG, * LPST_SWAY_SERVER_MSG;
+
+////送信データコード
+//#define SW_CLIENT_COM_ONCE_DATA        0x00000000
+//#define SW_CLIENT_COM_CONST_DATA       0x00000001
+//#define SW_CLIENT_COM_STOP_DATA        0x00000008
+
+//#define SW_CLIENT_COM_CAMERA2_0SET     0x00000020
+//#define SW_CLIENT_COM_TILT1_0SET       0x00000040
+//#define SW_CLIENT_COM_TILT2_0SET       0x00000080
+//#define SW_CLIENT_COM_CAMERAR1_RESET   0x00000100
+//#define SW_CLIENT_COM_CAMERAR2_RESET   0x00000200
+//#define SW_CLIENT_COM_TILT1_RESET      0x00000400
+//#define SW_CLIENT_COM_TILT2_RESET      0x00000800
+//#define SW_CLIENT_COM_SAVE_IMG         0x00001000
+//#define SW_CLIENT_COM_PC_RESET         0x10000000
+//
+//#define SW_SENSOR_DEFAULT_SCAN         100                 //100msec
+//
+//#define SW_SENSOR_MODE_NORMAL          0x000000001          //通常運用モード
+//#define SW_SENSOR_MODE_CHECK1          0x000000002          //試験チェックモード 
+//
+//
+////受信データコード
+////エラー状態
+//#define SW_SENSOR_ERR_CODE_CAMERA      0x00000001   // 機器異常(カメラ)
+//#define SW_SENSOR_ERR_CODE_TILT        0x00000002   // 機器異常(傾斜計)
+//#define SW_SENSOR_ERR_CODE_DETECT_TG1  0x00000010   // 検出異常(ターゲット1)
+//#define SW_SENSOR_ERR_CODE_DETECT_TG2  0x00000020   // 検出異常(ターゲット2)
+//
+////検出状態
+//#define SW_SENSOR_STAT_TG1_DETECTED    0x00000001   // 振れ検出中(ターゲット1)
+//#define SW_SENSOR_STAT_TG2_DETECTED    0x00000002   // 振れ検出中(ターゲット2)
+//#define SW_SENSOR_STAT_INIT_SENSOR     0x00000010   // 準備中(カメラ)
+//#define SW_SENSOR_STAT_INIT_TILT       0x00000020   // 準備中(傾斜計)
+//#define SW_SENSOR_STAT_0SET_SENSOR     0x00000010   // 0点設定中(カメラ)
+//#define SW_SENSOR_STAT_0SET_TILT       0x00000020   // 0点設定中(傾斜計)
+//
+////メッセージテキスト
+////エラー状態
+//#define SW_TXT_ERR_CODE_CAMERA      L"カメラ異常"
+//#define SW_TXT_ERR_CODE_TILT        L"傾斜計異常"
+//#define SW_TXT_ERR_CODE_DETECT_TG1  L"ターゲット１検出異常"
+//#define SW_TXT_ERR_CODE_DETECT_TG2  L"ターゲット２検出異常"
+//
+////検出状態
+//#define SW_TXT_STAT_TG1_DETECTED    L"ターゲット１検出中"
+//#define SW_TXT_STAT_TG2_DETECTED    L"ターゲット２検出中"
+//#define SW_TXT_STAT_INIT_SENSOR     L"センサ準備中"
+//#define SW_TXT_STAT_INIT_TILT       L"傾斜計準備中"
+//#define SW_TXT_STAT_0SET_SENSOR     L"センサ0セット中"
+//#define SW_TXT_STAT_0SET_TILT       L"傾斜計0セット中"
+//
+//#define SWAY_SENSOR_N_CAM       2
+//#define SWAY_SENSOR_CAM1        0
+//#define SWAY_SENSOR_CAM2        1
+//
+//#define SWAY_SENSOR_N_TARGET    2
+//#define SWAY_SENSOR_TG1         0
+//#define SWAY_SENSOR_TG2         1
+//
+//#define SWAY_SENSOR__MSG_SEND_COM         10600
+//
+//#define SWAY_SENSOR_N_CHAR_ID   4
+//#define SWAY_SENSOR_N_CHAR_INFO 32
+//
+//typedef struct SwayCamSpec {
+//    INT32	pix_x;			//カメラ画素数x軸
+//    INT32	pix_y;			//カメラ画素数y軸
+//    INT32	pixlrad_x;	    //カメラ分解能　PIX/rad
+//    INT32	pixlrad_y;	    //カメラ分解能　PIX/rad
+//    INT32	l0_x;			//カメラ取付パラメータ㎜
+//    INT32	l0_y;			//カメラ取付パラメータ㎜
+//    INT32	ph0_x;			//カメラ取付パラメータx1000000rad
+//    INT32	ph0_y;			//カメラ取付パラメータx1000000rad
+//    INT32	phc_x;			//カメラ取付パラメータx1000000rad
+//    INT32	phc_y;			//カメラ取付パラメータx1000000rad
+//}ST_SWAY_CAM_SPEC, * LPST_SWAY_CAM_SPEC;
+//
+//#define CODE_SWAY_SENSOR_IMAGE_OK           0x00000001
+//#define CODE_SWAY_SENSOR_SWAY_DETECTED      0x00000002
+//#define CODE_SWAY_SENSOR_TG1_DETECTED       0x00000004
+//#define CODE_SWAY_SENSOR_TG2_DETECTED       0x00000008
+//#define CODE_SWAY_SENSOR_SWAY_RANGEOVER     0x00000010
+//#define CODE_SWAY_SENSOR_SWAY_CAM_ERROR     0x00000080
+//
+//#define CODE_SWAY_SENSOR_TILT_DETECTED      0x00010000
+//#define CODE_SWAY_SENSOR_TILT_ERROR         0x00100000
+//
+//typedef struct SwaySensStatus {
+//    //機器状態情報
+//    INT32	mode;		    //モード
+//    INT32	error;		    //エラーステータス
+//    INT32	status;		    //検出ステータス
+//    //傾斜計情報  
+//    double	tilt_x;         //傾斜X
+//    double	tilt_y;         //傾斜Y
+//    double	tilt_dx;        //傾斜角速度X
+//    double	tilt_dy;        //傾斜角速度Y
+//} ST_SWAY_SENS_STAT, * LPST_SWAY_SENS_STAT;
+//
+//typedef struct TargetStatus {
+//    //振れ検出情報  
+//    double	th_x;		    //振角xPIX
+//    double	th_y;		    //振角yPIX
+//    double	dth_x;		    //振角速度x　PIX/s
+//    double	dth_y;			//振角速度y　PIX/s
+//    double	th_x0;			//振角0点xPIX
+//    double	th_y0;			//振角0点yPIX
+//    double	dpx_tgs;		//ターゲット間距離X方向
+//    double	dpy_tgs;		//ターゲット間距離Y方向
+//    double	tg_size;		//ターゲットサイズ
+//} ST_TARGET_STAT, * LPST_TARGET_STAT;
+//
+//typedef struct SwayComServerHead { //振れセンサ受信メッセージヘッダ部
+//    char	id[SWAY_SENSOR_N_CHAR_ID];			    //PC ID
+//    SYSTEMTIME time;		                        //タイムスタンプ
+//}ST_SWAY_SERVER_HEAD, * LPST_SWAY_SERVER_HEAD;
+//typedef struct SwayComServerBody {                  //振れセンサ送信メッセージボディ部
+//    ST_SWAY_CAM_SPEC cam_spec;
+//    ST_SWAY_SENS_STAT cam_stat;
+//    ST_TARGET_STAT tg_stat[SWAY_SENSOR_N_TARGET];   //カメラ２ｘターゲット２
+//    char info[SWAY_SENSOR_N_CHAR_INFO];
+//}ST_SWAY_SERVER_BODY, * LPST_SWAY_SERVER_BODY;
+//typedef struct SwayComServerMsg {                   //振れセンサ送信メッセージ
+//    ST_SWAY_SERVER_HEAD head;
+//    ST_SWAY_SERVER_BODY body[SWAY_SENSOR_N_CAM];
+//}ST_SWAY_SERVER_MSG, * LPST_SWAY_SERVER_MSG;
+//
+//typedef struct SwayComClientHead {                  //制御PC送信メッセージヘッダ部
+//    char	id[SWAY_SENSOR_N_CHAR_ID];			    //機器個体情報
+// //   sockaddr_in sockaddr;                         //送信元IPアドレス
+//}ST_SWAY_CLIENT_HEAD, * LPST_SWAY_CLIENT_HEAD;
+//typedef struct SwayComClientBody {                  //制御PC送信メッセージボディ部
+//    INT32 command;
+//    INT32 mode;
+//    INT32 freq;                                     //最小受信周期 msec      
+//    INT32 d[SWAY_SENSOR_N_CAM];                     //カメラ-ターゲット間距離
+//}ST_SWAY_CLIENT_BODY, * LPST_SWAY_CLIENT_BODY;
+//typedef struct SwayComClientMsg {                   //制御PC送信メッセージ
+//    ST_SWAY_CLIENT_HEAD head;
+//    ST_SWAY_CLIENT_BODY body;
+//}ST_SWAY_CLIENT_MSG, * LPST_SWAY_CLIENT_MSG;
 
 #pragma pack(pop)

@@ -8,6 +8,7 @@
 #include "LELanio.h"
 #include "CCamera.h"
 #include "SWYSENSOR_DEF.H"
+#include "CSwayShared.h"
 
 #pragma comment(lib, "LELanio.lib")
 
@@ -30,6 +31,26 @@ int CAuxCS::slbrk_enable;
 int CAuxCS::sway_sensor_enable;
 int CAuxCS::gt_sensor_enable;
 bool CAuxCS::is_lanio_connected = false;
+
+// Swayセンサ関連
+extern CTeliCamLib* pCamera;//GEカメラオブジェクトへのグローバルポインタ
+extern CSwayShared* pSwaySharedObj;
+
+// ***アプリケーション設定アクセスポインタ
+extern PCONFIG_COMMON    gp_cnfg_common;        // 共通設定
+extern PCONFIG_CAMERA    gp_cnfg_camera;        // カメラ設定
+extern PCONFIG_MOUNTING  gp_cnfg_mounting;      // 取付寸法設定
+extern PCONFIG_IMGPROC   gp_cnfg_imgprc;		// 画像処理条件設定
+
+// ***アプリケーション情報アクセスポインタ  
+extern PINFO_IMGBUF_DATA gp_app_imgbuf[(uint32_t)(ENUM_IMAGE::E_MAX)];
+extern PINFO_CLIENT_DATA gp_app_client;        // クライアント情報
+extern PINFO_ADJUST_DATA gp_app_adjust;        // 調整情報
+extern PINFO_IMGPRC_DATA gp_app_imgprc;        // 画像処理情報
+extern PINFO_SYSTEM_DATA gp_app_system;        // システム情報
+
+extern IMAGE_DATA g_img_src_work;
+
 
 //共有メモリ参照用定義
 extern CSharedMem* pEnvInfObj;
@@ -179,8 +200,10 @@ HRESULT CAuxCS::routine_work(void* pObj) {
 
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		wos << L"Client Stat:" << pCsInf->sway_sensor_status << L" Client Count:" << pCsInf->msg_client.head.seqno;
 		msg2host(wos.str());
 	}
+
 
 	input();
 	parse();
@@ -192,7 +215,22 @@ int CAuxCS::input() {
 	return S_OK;
 }
 
+static int sway_host_count_last;
 int CAuxCS::parse() {
+
+	
+	if (sway_sensor_enable) {
+		if (inf.total_act % 20 == 0) {
+			if (sway_host_count_last == pCsInf->msg_client.head.seqno) {
+				pCsInf->sway_sensor_status &= ~AUX_CS_CODE_SWAY_CLIENT_ACTIVE;
+			}
+			else {
+				pCsInf->sway_sensor_status |= AUX_CS_CODE_SWAY_CLIENT_ACTIVE;
+			}
+			sway_host_count_last = pCsInf->msg_client.head.seqno;
+		}
+	}
+
 	return S_OK;
 }
 
@@ -213,8 +251,38 @@ int CAuxCS::output() {          //出力処理
 		}
 		pCsInf->fb_lanio_di = st_work.fb_lanio_di;
 
-	}
+		if (sway_sensor_enable) {
+			//制御PCへの電文セット
+			//ヘッダ部
+			pCsInf->msg_server.head.command;	
+			pCsInf->msg_server.head.mask_mode					= gp_app_adjust->mask_mode;
+			pCsInf->msg_server.head.filter_type1				= gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_1)].type;;
+			pCsInf->msg_server.head.filter_type1_val			= gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_1)].val;
+			pCsInf->msg_server.head.filter_type2				= gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_2)].type;
+			pCsInf->msg_server.head.filter_type2_val			= gp_cnfg_imgprc->filter[(int)(ENUM_NOISE_FILTER::FILTER_2)].val;
+			pCsInf->msg_server.head.seqno++;
+			pCsInf->msg_server.head.status						= pCsInf->sway_sensor_status;
+			pCsInf->msg_server.head.pix1rad[(int)ENUM_AXIS::X]	= gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X];
+			pCsInf->msg_server.head.pix1rad[(int)ENUM_AXIS::X]	= gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X];
 
+
+			//ボディ部
+			pCsInf->msg_server.body.brightness;
+			for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
+				pCsInf->msg_server.body.sway_amp_cal[i];
+				pCsInf->msg_server.body.sway_amp_p2p[i];
+				pCsInf->msg_server.body.sway_ph[i];
+				pCsInf->msg_server.body.sway_pos0[i]			= gp_app_imgprc->sway_data[i].sway_zero;
+				pCsInf->msg_server.body.sway[i]					= gp_app_imgprc->sway_data[i].sway_angle;
+				pCsInf->msg_server.body.sway_spd[i]				= gp_app_imgprc->sway_data[i].sway_speed;
+
+				pCsInf->msg_server.body.tg_detected.valid1		= gp_app_imgprc->target_data[(int)ENUM_IMAGE_MASK::MASK_1].valid;
+				pCsInf->msg_server.body.tg_detected.pixel1[i]	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].pos[i];
+				pCsInf->msg_server.body.tg_detected.valid2		= gp_app_imgprc->target_data[(int)ENUM_IMAGE_MASK::MASK_2].valid;
+				pCsInf->msg_server.body.tg_detected.pixel2[i]	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[i];
+			}
+		}
+	}
 	return S_OK;
 }
 

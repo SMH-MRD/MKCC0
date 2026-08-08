@@ -249,7 +249,7 @@ int CAuxPol::input() {
 	if (g_sway_sensor_enable) {
 		//カメラ‐ターゲット間距離（クライアントからの情報）
 		if (gp_app_adjust->tg_distance_mode == TARGET_DIST_SET_BY_HOST)
-			gp_app_adjust->target_distance = pCsInf->msg_client.body.d[0];
+			gp_app_adjust->target_distance = pCsInf->msg_client.body.tg_distance;
 		else if (gp_app_adjust->tg_distance_mode == TARGET_DIST_SET_BY_DEFAULT)
 			gp_app_adjust->target_distance = POL_PRM_TG_DIST_DEFAULT;
 		else;//	TARGET_DIST_SET_BY_MANUAL;
@@ -1062,9 +1062,7 @@ BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
 /// <param name=""></param>
 void CAuxPol::proc_sway(void)
 {
-	bool is_mask1_valid		= gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid;
-	bool is_mask2_valid		= gp_cnfg_imgprc->mask[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid;
-	bool is_mask12_valid	= is_mask1_valid * is_mask2_valid;
+
 	bool is_target1_valid	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].valid;
 	bool is_target2_valid	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].valid;
 	bool is_target12_valid  = is_target1_valid * is_target2_valid;
@@ -1076,7 +1074,7 @@ void CAuxPol::proc_sway(void)
 
 	//# ターゲット位置(ターゲット検出データの中心)
 	
-	if ((is_mask12_valid) && (is_target12_valid)) {//ターゲット1,2共に有効
+	if ((gp_app_adjust->mask_mode == SWAY_SENSOR_MASK_MODE_12)&&(is_target12_valid)) {//ターゲット1,2共に有効
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos	= (pos_tg_x1 + pos_tg_x2) * 0.5;  // ターゲット位置[pixel]
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt	= pos_tg_x1 - pos_tg_x2; 
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos	= (pos_tg_y1 + pos_tg_y2) * 0.5;  // ターゲット位置[pixel]
@@ -1086,7 +1084,7 @@ void CAuxPol::proc_sway(void)
 									+ (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].size) * 0.5;											 // ターゲットサイズ(ターゲット検出データの平均)
 		gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEクリア
 	}
-	else if ((is_mask1_valid) && (is_target1_valid)) {//ターゲット1のみ有効
+	else if ((gp_app_adjust->mask_mode & SWAY_SENSOR_MASK_MODE_1)&&(is_target1_valid)){//ターゲット1のみ有効
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos	= pos_tg_x1;  // ターゲット位置[pixel]
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt	= 0.0;
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos	= pos_tg_y1;  // ターゲット位置[pixel]
@@ -1095,7 +1093,7 @@ void CAuxPol::proc_sway(void)
 		gp_app_imgprc->target_size = (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].size;											 // ターゲットサイズ(ターゲット検出データの平均)
 		gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEクリア
 	}
-	else if ((is_mask2_valid) && (is_target2_valid)) {//ターゲット2のみ有効
+	else if ((gp_app_adjust->mask_mode & SWAY_SENSOR_MASK_MODE_2)&&(is_target2_valid) ){//ターゲット2のみ有効
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos	= pos_tg_x2;  // ターゲット位置[pixel]
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt	= 0.0;
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos	= pos_tg_y2;  // ターゲット位置[pixel]
@@ -1104,9 +1102,9 @@ void CAuxPol::proc_sway(void)
 		gp_app_imgprc->target_size = (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].size;											 // ターゲットサイズ(ターゲット検出データの平均)
 		gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEクリア
 	}
-	else {//マスク設定無効
-		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H) / 2.0;   // ターゲット位置[pixel]
-		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V) / 2.0;   // ターゲット位置[pixel]
+	else {//マスク設定無効 IDLE
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H_OFFSET) ;   // ターゲット位置[pixel]
+		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V_OFFSET) ;   // ターゲット位置[pixel]
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt = 0.0;   // ターゲット傾き[pixel]
 		gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt = 0.0;   // ターゲット傾き[pixel]
 		

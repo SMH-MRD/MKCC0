@@ -7,6 +7,8 @@
 #include "CFaults.h"
 #include "phisics.h"
 #include "CComm.h"
+#include "SmemAux.H"
+#include "SWYSENSOR_DEF.H"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -16,6 +18,12 @@ extern CSharedMem* pAgInfObj;
 extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
+extern CSharedMem* pAuxCsInfObj;
+
+extern INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
+extern INT32 aux_lanio_status;						    //LANIO			組み込み状況
+extern INT32 aux_sway_status;						    //振れセンサ	組み込み状況
+extern INT32 aux_gt_pos_sys_status;						//走行位置検出	組み込み状況
 
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
@@ -39,6 +47,8 @@ static LPST_CC_AGENT_INF	pAgentInf;
 static LPST_CC_CS_INF		pCsInf;
 static LPST_CC_SIM_INF		pSimInf;
 static LPST_CC_OTE_INF		pOteInf;
+
+static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 
 static LONG rcv_count_u = 0, snd_count_u = 0;
 
@@ -65,7 +75,9 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	pSimInf		= (LPST_CC_SIM_INF)(pSimuStatObj->get_pMap());
 	pOteInf		= (LPST_CC_OTE_INF)(pOteInfObj->get_pMap());
 
-	if ((pEnvInf == NULL) || (pPlcIo == NULL) || (pJobIo == NULL) || (pPolInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pSimInf == NULL) || (pOteInf == NULL)) {
+	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+
+	if ((pEnvInf == NULL) || (pPlcIo == NULL) || (pJobIo == NULL) || (pPolInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pSimInf == NULL) || (pOteInf == NULL) || (pAUX_CS_Inf == NULL)) {
 		hr = S_FALSE;
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return hr;
@@ -179,6 +191,8 @@ HRESULT CCcEnv::routine_work(void* pObj) {
 		if (inf.mode_id == MODE_ENV_APP_SIMURATION)		wos  << L" MODE>>SIMULATOR";
 		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)	wos  << L" MODE>>EMULATOR";
 		else											wos  << L" MODE>>PRODUCT";
+		wos << L"  AUX_SWAY:" << aux_sway_status;
+
 		msg2host(wos.str());
 	}
 	
@@ -329,17 +343,16 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	switch (id) {
 	case CRANE_ID_H6R602:
 	{
-		hcount_sl = pPlcRbuf->st_h6r602.hcount_fb[ID_PLC_HCOUNT_SL];
+		hcount_sl = pPlcRbuf->st_h6r602.hcount_fb[ID_PLC_HCOUNT_SL];//旋回角度計算用高速カウンタ値取り込み
 	}break;
 	case CRANE_ID_HHGQ18:
 	{
-		hcount_sl = pPlcRbuf->st_hhgq18.hcount_fb[ID_PLC_HCOUNT_SL];
+		hcount_sl = pPlcRbuf->st_hhgq18.hcount_fb[ID_PLC_HCOUNT_SL];//旋回角度計算用高速カウンタ値取り込み
 	}break;
 	case CRANE_ID_HHGH29:
 	default:
 	{
-		hcount_sl = pPlcRbuf->st_hhgh29.hcount_fb[ID_PLC_HCOUNT_SL];
-
+		hcount_sl = pPlcRbuf->st_hhgh29.hcount_fb[ID_PLC_HCOUNT_SL];//旋回角度計算用高速カウンタ値取り込み
 	}break;
 	};
 
@@ -460,8 +473,6 @@ HRESULT CCcEnv::set_stat_OHC(int id) {
 	};
 	return S_OK;
 };
-
-
 
 /****************************************************************************/
 /*   故障情報											                    */
@@ -591,7 +602,6 @@ void CCcEnv::refresh_faults_info() {
 	}
 	return;
 }
-
 
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
@@ -884,15 +894,29 @@ LRESULT CALLBACK CCcEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
-			case IDC_TASK_FUNC_RADIO4:
+			case IDC_TASK_FUNC_RADIO1:
 				set_item_chk_txt();
 				break;
 			default:break;
 			}
-
 		}break;
+		case IDC_TASK_ITEM_CHECK3: {
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1:
+				if (aux_sway_status == L_ON) {
+					aux_sway_status = L_OFF;
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				else {
+					aux_sway_status = L_ON;
+					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_CHECKED, 0L);
+				}
+				break;
+			default:break;
+			}
+		}break;
+
 		case IDC_TASK_ITEM_CHECK2:
-		case IDC_TASK_ITEM_CHECK3:
 		case IDC_TASK_ITEM_CHECK4:
 		case IDC_TASK_ITEM_CHECK5:
 		case IDC_TASK_ITEM_CHECK6:
@@ -1042,7 +1066,7 @@ void CCcEnv::set_panel_tip_txt() {
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
 void CCcEnv::set_func_pb_txt() {
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"Aux");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
@@ -1054,17 +1078,17 @@ void CCcEnv::set_func_pb_txt() {
 void CCcEnv::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
-	case IDC_TASK_FUNC_RADIO4: {
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"-");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
-		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
+	case IDC_TASK_FUNC_RADIO1: {
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"SLBRK");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"LANIO");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"SWAY");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"GTPOS");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
 	}break;
-	case IDC_TASK_FUNC_RADIO1:
 	case IDC_TASK_FUNC_RADIO2:
-	case IDC_TASK_FUNC_RADIO3:
+	case IDC_TASK_FUNC_RADIO3:	
+	case IDC_TASK_FUNC_RADIO4:
 	case IDC_TASK_FUNC_RADIO5:
 	case IDC_TASK_FUNC_RADIO6:
 	default:

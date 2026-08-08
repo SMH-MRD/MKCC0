@@ -19,6 +19,10 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
+extern INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
+extern INT32 aux_lanio_status;						    //LANIO			組み込み状況
+extern INT32 aux_sway_status;						    //振れセンサ	組み込み状況
+extern INT32 aux_gt_pos_sys_status;						//走行位置検出	組み込み状況
 
 extern CCrane* pCrane;
 
@@ -65,7 +69,6 @@ static INT32 slblk_chk_cnt;
 static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0, slblk_level_fb = 0;
 
 
-
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
 	
@@ -102,7 +105,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
 	
 
-	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL)){
+	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL) || (pAUX_CS_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return S_FALSE;
 	}
@@ -205,9 +208,12 @@ HRESULT CAgent::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 
-		wos << L"  SRBK CHK ENABLE:" << st_work.slew_brake_chk_enable;
-		wos << L"  SRBK MODE:" << st_work.slew_brake_ctrl_mode;
-		wos << L"  SRBK CNT:" << slblk_chk_cnt;
+		//wos << L"  SRBK CHK ENABLE:" << st_work.slew_brake_chk_enable;
+		//wos << L"  SRBK MODE:" << st_work.slew_brake_ctrl_mode;
+		//wos << L"  SRBK CNT:" << slblk_chk_cnt;
+
+		wos << L"  SwayStatus:"<< pAgent_Inf->sway_sensor_status << L"  count:" << pAUX_CS_Inf->msg_server.head.seqno;
+
 		msg2host(wos.str());
 	}
 	input();
@@ -341,12 +347,15 @@ int CAgent::input() {
 #else
 fp_trans_plc_io_read(crane_id);
 #endif
+
+
 	return S_OK;
 }
 
 static INT16 pc_healthy=0;
 static INT16 plc_healthy_chk_count = 0;
 static INT16 plc_healthy = 0;
+
 /// <summary>
 /// メイン処理
 /// </summary>
@@ -505,12 +514,31 @@ int CAgent::parse() {
 /// </summary>
 /// <returns></returns>
 static INT16 healthy_count = 0;
+static INT32 sway_sensor_count_last;
+
 int CAgent::output() {
 
 	//ヘルシー出力
 	pPLC_IO->plc_enable = plc_healthy_chk_count;
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
+
+	//振れセンサIF
+	if (aux_sway_status) {
+		pAUX_CS_Inf->msg_client.head.seqno++;
+
+
+		//振れセンサチェック
+		if (inf.total_act % 20 == 0) {
+			if (pAUX_CS_Inf->msg_server.head.seqno != sway_sensor_count_last) {
+				st_work.sway_sensor_status |= AG_CODE_SWAY_SENSOR_ACTIVE;
+			}
+			else {
+				st_work.sway_sensor_status &= ~AG_CODE_SWAY_SENSOR_ACTIVE;
+			}
+		}
+	}
+
 
 	//PLC IO送信データ出力
 	//送信は 共有メモリに設定後、送信バッファにコピー（受信は直接共有メモリに読み込む）

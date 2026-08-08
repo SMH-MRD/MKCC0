@@ -2,6 +2,8 @@
 #include "resource.h"
 #include "CCrane.H"
 #include "CFaults.h"
+#include "SmemAux.H"
+#include "SWYSENSOR_DEF.H"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -13,7 +15,15 @@ extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 extern CSharedMem* pAuxInfObj;
 
+extern CSharedMem* pAuxCsInfObj;
+
 extern CCrane* pCrane;
+
+extern INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
+extern INT32 aux_lanio_status;						    //LANIO			組み込み状況
+extern INT32 aux_sway_status;						    //振れセンサ	組み込み状況
+extern INT32 aux_gt_pos_sys_status;						//走行位置検出	組み込み状況
+
 
 //共有メモリ
 static LPST_CC_ENV_INF		pEnvInf		= NULL;
@@ -55,6 +65,8 @@ HRESULT CPolicy::initialize(LPVOID lpParam) {
 	pSimInf = (LPST_CC_SIM_INF)(pSimuStatObj->get_pMap());
 	pOteInf = (LPST_CC_OTE_INF)(pOteInfObj->get_pMap());
 
+	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+
 	crane_id = pCrane->st_crane_inf.crane_id;
 	switch (pCrane->st_crane_inf.crane_type) {
 	case CRANE_TYPE_ID_JC:
@@ -87,9 +99,11 @@ HRESULT CPolicy::initialize(LPVOID lpParam) {
 	return S_OK;
 }
 
+static double check_d;
 HRESULT CPolicy::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
+		wos << L"SWAY X:" << check_d;
 		msg2host(wos.str());
 	}
 	input();
@@ -100,9 +114,12 @@ HRESULT CPolicy::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 
+
 int CPolicy::input() {
 
-
+	if (aux_sway_status) {
+		check_d = pAUX_CS_Inf->msg_server.body.sway[(int)ENUM_AXIS::X];
+	}
 	return S_OK;
 }
 

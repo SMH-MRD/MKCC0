@@ -1,11 +1,10 @@
 #pragma once
 
 #include "AUXEQ_DEF.h"
-#include "Windows.h"
 #include <opencv2/opencv.hpp>
 #include "CBasicControl.h"
 #include "SWYSENSOR_DEF.H"
-
+#include "Windows.h"
 //using namespace std;
 /****************************************************************************/
 /*   補機信号定義構造体                                  　         　		*/
@@ -117,6 +116,8 @@ typedef struct _ST_AUX_AGENT_INF {			//MCprotocolの送受信バッファ
 #define AUX_CS_CODE_LANIO_FAIL			-1
 #define AUX_CS_CODE_LANIO_ACTIVE		0x0001
 #define AUX_CS_CODE_LANIO_INPIO_ERR		0x0010
+#define AUX_CS_CODE_SWAY_CLIENT_ACTIVE	0x0001
+
 typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	//MAINプロセスからAUXEQへ
 	DWORD main_helthy_cnt;

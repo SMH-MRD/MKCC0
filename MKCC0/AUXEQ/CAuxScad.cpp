@@ -548,8 +548,7 @@ int CAuxScada::parse() {
                 }
 
                 // ‰æ‘œ•\Ž¦
-                int8_t* color_buf = static_cast<int8_t*>(calloc(static_cast<size_t>(img_disp.cols)                   * static_cast<size_t>(img_disp.rows)
-                    * 4, sizeof(RGBQUAD)));
+                int8_t* color_buf = static_cast<int8_t*>(calloc(static_cast<size_t>(img_disp.cols) * static_cast<size_t>(img_disp.rows)* 4, sizeof(RGBQUAD)));
                 for (int y = 0; y < img_disp.rows; y++) {
                     for (int x = 0; x < img_disp.cols; x++) {
                         color_buf[y * img_disp.cols * 4 + x * 4 + 0] = img_disp.data[y * img_disp.step + x];    // Blue

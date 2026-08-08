@@ -164,7 +164,26 @@ int CAuxEnv::parse() {
 
 int CAuxEnv::output() {          //出力処理
 	pEnvInf->initialized = L_ON;
-	return S_OK;
+
+	if (pEnvInf->sway_sensor_enable) {
+		//検出マスク選択設定（制御PCIF Activeで電文内容に更新
+		if ((pCsInf->sway_sensor_status & AUX_CS_CODE_SWAY_CLIENT_ACTIVE) &&
+			inf.total_act % 20 == 0)
+		{
+			gp_app_adjust->mask_mode = pCsInf->msg_client.head.mask_mode;
+			if (gp_app_adjust->mask_mode & SWAY_SENSOR_MASK_MODE_1) 
+				gp_cnfg_imgprc->mask[(int)ENUM_IMAGE_MASK::MASK_1].valid = true;
+			else
+				gp_cnfg_imgprc->mask[(int)ENUM_IMAGE_MASK::MASK_1].valid = false;
+	
+			if (gp_app_adjust->mask_mode & SWAY_SENSOR_MASK_MODE_2)
+				gp_cnfg_imgprc->mask[(int)ENUM_IMAGE_MASK::MASK_2].valid = true;
+			else
+				gp_cnfg_imgprc->mask[(int)ENUM_IMAGE_MASK::MASK_2].valid = false;
+		}
+	}
+
+		return S_OK;
 }
 
 int CAuxEnv::close() {
@@ -173,13 +192,13 @@ int CAuxEnv::close() {
 
 void CAuxEnv::init_camera_parameters(int type) {
 	//##### CONFIG_COMMON g_config_common ########
-	gp_cnfg_common->img_source_camera = 1;							// カメラ画像取込み(カメラ[1] / 画像ファイル[0])
-	gp_cnfg_common->img_source_fname = L"C:\/Work\/Image.bmp";		//取込み画像ファイル名(CMN_IMAGE_SOURCE_CAMERA = 0のときの画像)
-	gp_cnfg_common->img_output_fname = L"C:\/Work\/ImageSave.bmp";	// 画像保存ファイル名
-	gp_cnfg_common->img_screen_layout.x0 = 25;						//画像表示レイアウト(原点座標X, 原点座標Y, 横幅サイズ, 高さサイズ)
-	gp_cnfg_common->img_screen_layout.y0 = 120;
-	gp_cnfg_common->img_screen_layout.width = 680;
-	gp_cnfg_common->img_screen_layout.height = 480;
+	gp_cnfg_common->img_source_camera			= 1;							// カメラ画像取込み(カメラ[1] / 画像ファイル[0])
+	gp_cnfg_common->img_source_fname			= L"C:\/Work\/Image.bmp";		//取込み画像ファイル名(CMN_IMAGE_SOURCE_CAMERA = 0のときの画像)
+	gp_cnfg_common->img_output_fname			= L"C:\/Work\/ImageSave.bmp";	// 画像保存ファイル名
+	gp_cnfg_common->img_screen_layout.x0		= 25;						//画像表示レイアウト(原点座標X, 原点座標Y, 横幅サイズ, 高さサイズ)
+	gp_cnfg_common->img_screen_layout.y0		= 120;
+	gp_cnfg_common->img_screen_layout.width		= 680;
+	gp_cnfg_common->img_screen_layout.height	= 480;
 	
 	gp_cnfg_common->full_pix[(int)ENUM_AXIS::X] = CAM1_SPEC_PIXEL_H;
 	gp_cnfg_common->full_pix[(int)ENUM_AXIS::Y] = CAM1_SPEC_PIXEL_V;
@@ -246,6 +265,10 @@ void CAuxEnv::init_camera_parameters(int type) {
 	//マスク画像有効
 	gp_cnfg_imgprc->mask[0].valid = true;
 	gp_cnfg_imgprc->mask[1].valid = true;
+
+	gp_app_adjust->mask_mode = SWAY_SENSOR_MASK_MODE_IDLE;
+	if (gp_cnfg_imgprc->mask[0].valid) gp_app_adjust->mask_mode += SWAY_SENSOR_MASK_MODE_1;
+	if (gp_cnfg_imgprc->mask[1].valid) gp_app_adjust->mask_mode += SWAY_SENSOR_MASK_MODE_2;
 
 	//画像マスクH[0-179] (下限,上限)  画像マスクS[0-255](下限,上限) 画像1マスクV[0-255](下限,上限)
 	gp_cnfg_imgprc->mask[0].hsv_l[0] = 0;	gp_cnfg_imgprc->mask[0].hsv_l[1] = 50;	gp_cnfg_imgprc->mask[0].hsv_l[2] = 150;

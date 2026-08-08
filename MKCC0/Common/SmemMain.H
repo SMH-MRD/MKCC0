@@ -34,6 +34,7 @@
 #define MUTEX_SIM_INF_CC_NAME			L"MU_SIM_INF_CC"
 #define MUTEX_OTE_INF_NAME				L"MU_OTE_INF"
 
+#pragma pack(push, 1)
 //#	Environment
 //## クレーン状態定義構造体
 #pragma region CRANE STATUS
@@ -120,7 +121,7 @@ typedef struct _ST_CC_ENV_INF {
 	INT32 OTE_req_status;						//操作端末要求状態
 
 	INT32 notch0;								//0ノッチ判定総合
-
+			 
 }ST_CC_ENV_INF, * LPST_CC_ENV_INF;
 #pragma endregion  クレーン状態定義構造体
 
@@ -438,6 +439,8 @@ typedef struct _ST_CC_POL_INF {
 #define AG_MODE_SLBK_OPE_CTRL_OFF		0x000000020
 #define AG_MODE_SLBK_DBG				0x000000080
 
+#define AG_CODE_SWAY_SENSOR_ACTIVE		0x000000001
+
 typedef struct _ST_CC_AXIS_CTRL {
 	double dist_for_target;
 	int auto_active;
@@ -470,7 +473,7 @@ typedef struct _ST_CC_AGENT_INF {
 	int slew_brake_chk_enable;
 
 	//SWAY SENSOR
-	ST_SWAY_CLIENT_MSG sway_sensor_req;
+	INT32 sway_sensor_status;
 
 }ST_CC_AGENT_INF, * LPST_CC_AGENT_INF;
 
@@ -632,3 +635,4 @@ typedef struct _ST_CC_OTE_INF {
 
 }ST_CC_OTE_INF, * LPST_CC_OTE_INF;
 
+#pragma pack(pop)

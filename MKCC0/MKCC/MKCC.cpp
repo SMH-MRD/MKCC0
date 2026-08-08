@@ -48,6 +48,12 @@ static ST_MAIN_WND          st_work_wnd;        //センサーウィンドウ管
 
 BC_TASK_ID st_task_id;
 vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
+
+INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
+INT32 aux_lanio_status;						    //LANIO			組み込み状況
+INT32 aux_sway_status;						    //振れセンサ	組み込み状況
+INT32 aux_gt_pos_sys_status;				    //走行位置検出	組み込み状況
+
 static vector<HANDLE>	    VectHevent;		    //マルチスレッド用イベントのハンドル
 static vector<HWND>	        VectTweetHandle;	//メインウィンドウのスレッドツイートメッセージ表示Staticハンドル
 static HIMAGELIST	        hImgListTaskIcon;	//タスクアイコン用イメージリスト
