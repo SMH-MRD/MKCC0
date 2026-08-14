@@ -118,7 +118,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>PCIFLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PCIFLib.lib;MKLOGLib.lib;comctl32.lib;winmm.lib;ws2_32.lib;msimg32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\Lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -169,6 +169,7 @@
     <ClCompile Include="CCcCS.cpp" />
     <ClCompile Include="CCcEnv.cpp" />
     <ClCompile Include="CCcPol.cpp" />
+    <ClCompile Include="CCcScad _log.cpp" />
     <ClCompile Include="CCcScad.cpp" />
     <ClCompile Include="CCcSim.cpp" />
     <ClCompile Include="CSharedMem.cpp" />

@@ -93,7 +93,6 @@ typedef struct _ST_SWAY_SENSOR_POL_INF {
 
 }ST_ST_SWAY_SENSOR_POL_INF, * LPST_ST_SWAY_SENSOR_POL_INF;
 
-
 typedef struct _ST_AUX_POL_INF {
 	DWORD helthy_cnt;
 	ST_ST_SWAY_SENSOR_POL_INF sw_inf;
@@ -118,6 +117,20 @@ typedef struct _ST_AUX_AGENT_INF {			//MCprotocolの送受信バッファ
 #define AUX_CS_CODE_LANIO_INPIO_ERR		0x0010
 #define AUX_CS_CODE_SWAY_CLIENT_ACTIVE	0x0001
 
+#define AUX_CS_N_SWAY					2
+#define AUX_CS_ID_SWAY1					0
+#define AUX_CS_ID_SWAY2					1
+
+typedef struct _ST_SWAY_STAT {
+	double T[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+	double w[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+	double dthw[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+	double th[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+	double dth[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+	double amp[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+	double ph[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+}ST_SWAY_STAT, * LPST_SWAY_STAT;
+
 typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	//MAINプロセスからAUXEQへ
 	DWORD main_helthy_cnt;
@@ -140,6 +153,8 @@ typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 
 	ST_SWAY_CLIENT_MSG msg_client;
 	ST_SWAY_SERVER_MSG msg_server;
+
+	ST_SWAY_STAT sway_stat;
 
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 

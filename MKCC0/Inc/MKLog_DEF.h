@@ -9,17 +9,19 @@
 
 using namespace Gdiplus;
 
+//チャートクリア用メッセージID
 #define MKLOG_MSGID_REFRESH_TMCHART_ITEM		500
 #define MKLOG_MSGID_REFRESH_SCCHART_ITEM		501
 
 //LOG TYPE ID
-constexpr auto MKLOG_N_ID_TYPE		= 4;	//LOGのタイプ数
-constexpr auto MKLOG_ID_TYPE_ALL	= 4;	//LOGのタイプ数
+constexpr auto MKLOG_N_ID_TYPE		= 4;	//LOGのタイプ数（EVENT,TIME CHART,SCATTER,TRAP)
+constexpr auto MKLOG_ID_TYPE_ALL	= 4;	//LOGのタイプ数（EVENT,TIME CHART,SCATTER,TRAP)
 constexpr auto MKLOG_ID_TYPE_TIME	= 0;	//連続時間ログ,グラフ用
 constexpr auto MKLOG_ID_TYPE_TRAP	= 1;	//トラップログ
 constexpr auto MKLOG_ID_TYPE_EVENT	= 2;	//イベントログ【Main Window】
 constexpr auto MKLOG_ID_TYPE_SCAT	= 3;	//SCATTARグラフ
 
+//各LOG WINDOW用コント―ロール用ベースID
 constexpr auto MKLOG_ID_WND_CTRL_EVENT	= 11000;
 constexpr auto MKLOG_ID_WND_CTRL_TIME	= 12000;
 constexpr auto MKLOG_ID_WND_CTRL_SCAT	= 13000;
@@ -40,7 +42,6 @@ constexpr auto MKLOG_CODE_LOG_REC_PAUSED		= 0x0002;//LOG記録保留中
 constexpr auto MKLOG_CODE_LOG_CHART_ACTIVE		= 0x0010;//LOG CHART表示実行中
 constexpr auto MKLOG_CODE_LOG_REC_AND_CHART		= 0x0011;//LOG記録中＋CHART表示実行中
 constexpr auto MKLOG_CODE_LOG_FILE_OUT_ACTIVE	= 0x0020;//LOG記録書き出し中
-
 
 //LOG表示操作コマンドコード
 constexpr auto MKLOG_CODE_DISP_NA			= 0x00;
@@ -74,10 +75,10 @@ constexpr auto NAME_OF_MKLOG_INI_TIME			= L"\\ini\\log_time";		//iniファイル名
 constexpr auto NAME_OF_MKLOG_INI_TRAP			= L"\\ini\\log_trap";		//iniファイル名
 constexpr auto NAME_OF_MKLOG_INI_SCAT			= L"\\ini\\log_scat";		//iniファイル名
 
-constexpr auto FILECAPS_OF_MKLOG_EVENT			= L"log_ev";		//iniファイル名
-constexpr auto FILECAPS_OF_MKLOG_TIME			= L"log_tm";		//iniファイル名
-constexpr auto FILECAPS_OF_MKLOG_TRAP			= L"log_tr";		//iniファイル名
-constexpr auto FILECAPS_OF_MKLOG_SCAT			= L"log_sc";		//iniファイル名
+constexpr auto FILECAPS_OF_MKLOG_EVENT			= L"log_ev";				//iniファイル名
+constexpr auto FILECAPS_OF_MKLOG_TIME			= L"log_tm";				//iniファイル名
+constexpr auto FILECAPS_OF_MKLOG_TRAP			= L"log_tr";				//iniファイル名
+constexpr auto FILECAPS_OF_MKLOG_SCAT			= L"log_sc";				//iniファイル名
 
 constexpr auto LOGFOLDER_OF_MKLOG				= L"C://LOG/";		//Logフォルダ
 constexpr auto LOGFOLDER_OF_MKLOG_TM			= L"C://LOG/TM/";		//Logフォルダ
@@ -113,7 +114,7 @@ typedef struct StLogHeader {
 
 typedef struct StLogRecord {
 	time_t time;
-	INT32 id;						//イベントID or カウンタ
+	INT32 id;							//イベントID or カウンタ
 	INT16 data[MKLOG_N_LOG_ITEM_MAX];	//%DIO or 正規化データ（100%→10000）
 }ST_LOG_RECORD, * LPST_LOG_RECORD;
 
@@ -163,7 +164,7 @@ struct ST_MKLOG_SOURCE {
 		},
 		//100%
 		{
-			0.0,100.0,					//予備,スキャンタイム
+			0.0,100.0,			//予備, スキャンタイムmsec
 			0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,
@@ -192,7 +193,7 @@ struct ST_MKLOG_SOURCE {
 		},
 		//100%
 		{
-			0.0,100.0,
+			1.0,100.0,//予備, スキャンタイムmsec
 			0.0,0.0,0.00,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
@@ -218,7 +219,7 @@ struct ST_MKLOG_SOURCE {
 		},
 		//100%
 		{
-			0.0,100.0,
+			0.0,100.0,//予備, スキャンタイムmsec
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
@@ -245,7 +246,7 @@ struct ST_MKLOG_SOURCE {
 		},
 		//100%
 		{
-			3.0,100.0,
+			3.0,100.0,			//予備, スキャンタイムmsec
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
 			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,

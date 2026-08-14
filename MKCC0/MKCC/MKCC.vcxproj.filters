@@ -125,6 +125,9 @@
     <ClCompile Include="..\Common\src\CComm.cpp">
       <Filter>Infrastructure</Filter>
     </ClCompile>
+    <ClCompile Include="CCcScad _log.cpp">
+      <Filter>Domain\Tasks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MKCC.rc">

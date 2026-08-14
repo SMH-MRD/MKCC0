@@ -61,16 +61,18 @@ typedef struct _ST_FAULTS_LIST {
 }ST_FAULTS_LIST, * LPST_FAULTS_LIST;
 
 typedef struct _ST_CRANE_STAT {
-
-
 	ST_MOVE_SET	mh;								//主巻揚程
+	ST_MOVE_SET	ah;								//主巻揚程
 	ST_MOVE_SET	sl_deg;							//旋回角度
 	ST_MOVE_SET th;								//起伏角度
 	ST_MOVE_SET r;								//旋回半径
 	ST_MOVE_SET gt;								//走行
 	ST_MOVE_SET	m;								//吊荷質量
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
-	
+
+	double l_mh;
+	double l_ah;
+		
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
 	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
 	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作(n,hz,dhz)
@@ -121,6 +123,7 @@ typedef struct _ST_CC_ENV_INF {
 	INT32 OTE_req_status;						//操作端末要求状態
 
 	INT32 notch0;								//0ノッチ判定総合
+	INT32 auto_active_sw;						//自動実行スイッチ
 			 
 }ST_CC_ENV_INF, * LPST_CC_ENV_INF;
 #pragma endregion  クレーン状態定義構造体
@@ -159,12 +162,23 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 plc_pnl_io_fb[N_OTE_PNL_CTRL];				//PLC IO コントロールパネルFB信号
 	INT16 remote_mode_sw;								//リモートモードスイッチ
 
+	INT16 e_stop_pb_active;
+	INT16 control_source;
+	
+	PINT16 pflt_buf;
+	PINT16 pcab_bi;
+
 }ST_CC_PLC_IO, * LPST_CC_PLC_IO;
 
 #pragma endregion PLC IO定義構造体
 
 //## Scada状態定義構造体
 //#	Scada
+#pragma region SCAD
+typedef struct _ST_CC_SCAD_INF {
+	INT32 dummmy;//PC検出故障マップ
+}ST_CC_SCAD_INF, * LPST_CC_SCAD_INF;
+#pragma endregion Policy情報定義構造体
 
 //## Job定義構造体
 //### 動作要素　加速、定速、減速等の一連の動作は、この要素の組み合わせで構成します。
