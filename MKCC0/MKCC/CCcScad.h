@@ -117,6 +117,8 @@ public:
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
+    virtual int req_command(WORD com_code, WORD param, void* pparam);
+
 private:
 
     //オーバーライド
@@ -135,9 +137,8 @@ private:
 
     int input();//入力処理
 
-    int parse() {           //メイン処理
-        return STAT_NG;
-    }
+    int parse(); 
+
     int output() {          //出力処理
         return STAT_NG;
     }

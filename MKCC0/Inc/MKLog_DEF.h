@@ -156,8 +156,8 @@ struct ST_MKLOG_SOURCE {
 		//code
 		{
 			1,16,
-			MKLOG_ITEM_SWY1_AMP_X,MKLOG_ITEM_SWY1_PH_X,MKLOG_ITEM_SWY1_TH_X,MKLOG_ITEM_SWY1_DTH_X,MKLOG_ITEM_SL_SPD_FB,MKLOG_ITEM_SL_SPD_REF,MKLOG_ITEM_GRIP_SWITCH,MKLOG_ITEM_MHL,
-			MKLOG_ITEM_SWY1_AMP_Y,MKLOG_ITEM_SWY1_PH_Y,MKLOG_ITEM_SWY1_TH_Y,MKLOG_ITEM_SWY1_DTH_Y,MKLOG_ITEM_BH_SPD_FB,MKLOG_ITEM_BH_SPD_REF,MKLOG_ITEM_GRIP_SWITCH,0,
+			MKLOG_ITEM_MH_SPD_FB,MKLOG_ITEM_MH_SPD_REF,MKLOG_ITEM_BH_SPD_FB,MKLOG_ITEM_BH_SPD_REF,MKLOG_ITEM_SL_SPD_FB,MKLOG_ITEM_SL_SPD_REF,MKLOG_ITEM_EMPTY,MKLOG_ITEM_EMPTY,
+			MKLOG_ITEM_MH_POS_FB,MKLOG_ITEM_BH_POS_FB,MKLOG_ITEM_SL_POS_FB,MKLOG_ITEM_EMPTY,MKLOG_ITEM_EMPTY,MKLOG_ITEM_EMPTY,MKLOG_ITEM_EMPTY,MKLOG_ITEM_EMPTY,
 			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 			0,0,0,0,0,0,248,249,0,0,0,0,0,0,250,251
@@ -291,7 +291,7 @@ constexpr auto ID_MKLOG_NCOLOR		= 16;
 #define ID_MKLOG_FONT20						4	
 
 
-#pragma region DEF LOG WINDOW TIME ITEM CODE//ログウィンドのアイテムインデックスコード
+#pragma region DEF LOG WINDOW TIME ITEM CODE//ログウィンドのコントロールアイテムインデックスコード
 
 #define ID_MKLOG_ITEM_TMCHART_FRAME			0//メインフレーム
 #define ID_MKLOG_ITEM_TMCHART_GRAPH1		1//グラフ1
@@ -381,7 +381,7 @@ constexpr auto ID_MKLOG_NCOLOR		= 16;
 
 #pragma endregion
 
-#pragma region DEF LOG WINDOW SCAT ITEM CODE//ログウィンドのアイテムインデックスコード
+#pragma region DEF LOG WINDOW SCAT ITEM CODE//ログウィンドのコントロールアイテムインデックスコード
 
 #define ID_MKLOG_ITEM_SCCHART_FRAME			0//メインフレーム
 #define ID_MKLOG_ITEM_SCCHART_GRAPH1		1//グラフ1
@@ -615,7 +615,7 @@ typedef struct StLogTmChartCtrl {
 			
 	LONGLONG eraps_ms				= 0;			//チャート起動からの経過時間ms
 	UINT scan_time_ms				= 100;
-	INT ms_per_pix					= 100;				//Pixel当りのms数
+	INT ms_per_pix					= 100;			//Pixel当りのms数
 	
 	INT disp_offset_y[MKLOG_N_GRAPH]= { 0,0,-100,-100 };//Y軸の表示0点オフセット
 	//メモリグラフの0点オフセット

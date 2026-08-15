@@ -620,6 +620,7 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	//インバータ指令（無し）
 
 	//## インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
+	//## インバータ速度FB(FB信号は符号付き CC-LINK ±4000レンジ
 	pPLC_IO->stat_mh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_mh).i16;
 	pPLC_IO->stat_bh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_bh).i16;
 	pPLC_IO->stat_sl.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_sl).i16;

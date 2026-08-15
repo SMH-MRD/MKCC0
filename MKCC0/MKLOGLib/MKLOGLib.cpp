@@ -25,8 +25,10 @@ ULONG_PTR gdiplusToken;
 std::wostringstream CMKLog::wos, CMKLog::filename;
 ST_MKLOG_WORK_WND CMKLog::st_work_wnd;
 
+UN_MKLOG_WND_ACTIVE CMKLog::is_log_wnd_active;
+
 ST_LOG_FILE_BUF CMKLog::logbuf[MKLOG_N_ID_TYPE];
-INT16 CMKLog::loghot[MKLOG_N_ID_TYPE][MKLOG_N_LOG_ITEM_MAX];
+INT16 CMKLog::loghot[MKLOG_N_ID_TYPE][MKLOG_N_LOG_ITEM_MAX];//ログ項目表示値現在値
 INT32 CMKLog::logidhot[MKLOG_N_ID_TYPE];
 
 ST_TIMELOG_WINDOW CMKLog::st_timelog_wnd;
@@ -59,6 +61,7 @@ LRESULT CALLBACK CMKLog::EventLogWndProc(HWND hWnd, UINT message, WPARAM wParam,
 	{
 
 	case WM_CREATE: {
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_EVENT] = L_ON;
 		InitCommonControls();//コモンコントロール初期化
 		//ウィンドウにコントロール追加
 		}break;
@@ -80,6 +83,7 @@ LRESULT CALLBACK CMKLog::EventLogWndProc(HWND hWnd, UINT message, WPARAM wParam,
 		EndPaint(hWnd, &ps);
 	}break;
 	case WM_DESTROY: {
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_EVENT] = L_OFF;
 		//PostQuitMessage(0);
 	}break;
 
@@ -110,8 +114,9 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 	UINT32 type = MKLOG_ID_TYPE_TIME;
 	switch (message)
 	{
-
 	case WM_CREATE: {
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_TIME] = L_ON;
+
 		setup_timelog_wnd(hWnd);
 		st_tm_chart_ctrl.icon_draw = L_OFF;
 		create_wnd_objects(type);
@@ -119,15 +124,17 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 		st_tm_chart_ctrl.req_bg_update = L_ON;
 
 		st_tm_chart_ctrl.scan_time_ms = (INT)logbuf[type].header.d100[MKLOG_INDEX_SCAN_MS];
-		st_tm_chart_ctrl.plot_count_limit = st_tm_chart_ctrl.ms_per_pix / st_tm_chart_ctrl.scan_time_ms;
-		st_tm_chart_ctrl.plot_xshift_pix = st_tm_chart_ctrl.scan_time_ms / st_tm_chart_ctrl.ms_per_pix;
+		
+		st_tm_chart_ctrl.plot_count_limit = st_tm_chart_ctrl.ms_per_pix / st_tm_chart_ctrl.scan_time_ms;//グラフィックにプロットする時にX軸プロットが前回値ポイントからこの値以下であればプロットしない（設定スキャンタイム以下）
+		st_tm_chart_ctrl.plot_xshift_pix = st_tm_chart_ctrl.scan_time_ms / st_tm_chart_ctrl.ms_per_pix;//スキャンタイムでシフトするX軸のPIXEL数
 		if (st_tm_chart_ctrl.plot_xshift_pix == 0)st_tm_chart_ctrl.plot_xshift_pix = 1;
-
+		
+		//SCADAインスタンスのlogsourceの内容でCHART表示の項目をセット
 		init_log_setting(type, L_OFF);
-
-		double sec60pix = (double)(st_tm_chart_ctrl.ms_per_pix) * 600.0 / 1000.0;
+		//X軸のINF表示テキストセット
+		//600 PIXEL位置の秒数テキスト表示内容セット
+		double sec60pix = (double)(st_tm_chart_ctrl.ms_per_pix) * 600.0 / 1000.0; // s/pix * 600 600PIXEL位置の秒数
 		wos.str(L""); wos << std::setprecision(3) << sec60pix << L"s";
-
 		for (int i = 0; i < MKLOG_N_LOG_TITLE_WCH; i++) {
 			if (i < wos.str().length()) {
 				st_timelog_wnd.tx_obj[ID_MKLOG_ITEM_TMCHART_ST_F1X_MAX][i] = *(wos.str().c_str() + i);
@@ -138,9 +145,8 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 				st_timelog_wnd.tx_obj[ID_MKLOG_ITEM_TMCHART_ST_F2X_MAX][i] = L'\0';
 			}
 		};
-
-		//X軸のINF表示テキストセット
-		wos.str(L""); wos << std::setprecision(3) << sec60pix / 2.0 << L"s";
+		//300 PIXEL位置の秒数テキスト表示内容セット
+		wos.str(L""); wos << std::setprecision(3) << sec60pix / 2.0 << L"s"; // 300PIXEL位置の秒数
 		for (int i = 0; i < MKLOG_N_LOG_TITLE_WCH; i++) {
 			if (i < wos.str().length()) {
 				st_timelog_wnd.tx_obj[ID_MKLOG_ITEM_TMCHART_ST_F1X_MIDDLE][i] = *(wos.str().c_str() + i);
@@ -151,10 +157,8 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 				st_timelog_wnd.tx_obj[ID_MKLOG_ITEM_TMCHART_ST_F2X_MIDDLE][i] = L'\0';
 			}
 		};
-
-
+		//時間軸目盛り間隔の秒数表示テキストセット
 		wos.str(L""); wos << std::setprecision(3) << st_tm_chart_ctrl.ms_per_pix * st_tm_chart_ctrl.division_time_axis / 1000.0 << L"s/div";
-
 		for (int i = 0; i < MKLOG_N_LOG_TITLE_WCH; i++) {
 			if (i < wos.str().length()) {
 				st_timelog_wnd.tx_obj[ID_MKLOG_ITEM_TMCHART_ST_F1X_MIN][i] = *(wos.str().c_str() + i);
@@ -167,13 +171,12 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 		};
 
 	}break;
-
 	case WM_TIMER: {
 		wos.str(L""); 
 		wos << L"ログ収集 INDEX :" << logbuf[type].iw;
 		SetWindowText(st_timelog_wnd.hwnd_obj[ID_MKLOG_ITEM_TMCHART_ST_INF], wos.str().c_str());
 
-		set_record(type, logidhot[type]);
+		set_record(type, logidhot[type]);//ログバッファのレコードに各項目の現在値を書き込み
 
 		logidhot[type]++;
 
@@ -678,11 +681,11 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 		EndPaint(hWnd, &ps);
 	}break;
 	case WM_DESTROY: {
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_TIME] = L_OFF;
 		set_logstatus(type, (get_logstatus(type) & ~MKLOG_CODE_LOG_REC_AND_CHART));
 		delete_wnd_objects(type);
 		//PostQuitMessage(0);
 	}break;
-
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -698,6 +701,8 @@ LRESULT CALLBACK CMKLog::ScatLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 	{
 	case WM_CREATE: {
 		InitCommonControls();//コモンコントロール初期化
+
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_SCAT] = L_ON;
 		//ウィンドウにコントロール追加
 		setup_scatlog_wnd(hWnd);
 		st_sc_chart_ctrl.icon_draw = L_OFF;
@@ -713,7 +718,7 @@ LRESULT CALLBACK CMKLog::ScatLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 		wos << L"ログ収集 INDEX :" << logbuf[type].iw;
 		SetWindowText(st_scatlog_wnd.hwnd_obj[ID_MKLOG_ITEM_SCCHART_ST_INF], wos.str().c_str());
 
-		set_record(type, logidhot[type]);
+		set_record(type, logidhot[type]);//ログバッファのレコードに各項目の現在値を書き込み
 
 		//テスト描画
 #if 0
@@ -1218,6 +1223,7 @@ LRESULT CALLBACK CMKLog::ScatLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 
 	}break;
 	case WM_DESTROY: {
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_SCAT] = L_OFF;
 		set_logstatus(type, (get_logstatus(type) & ~MKLOG_CODE_LOG_REC_AND_CHART));
 		delete_wnd_objects(type);
 		//PostQuitMessage(0);
@@ -1236,6 +1242,7 @@ LRESULT CALLBACK CMKLog::TrapLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 	{
 
 	case WM_CREATE: {
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_TRAP] = L_ON;
 		InitCommonControls();//コモンコントロール初期化
 		//ウィンドウにコントロール追加
 
@@ -1258,6 +1265,7 @@ LRESULT CALLBACK CMKLog::TrapLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 		EndPaint(hWnd, &ps);
 	}break;
 	case WM_DESTROY: {
+		is_log_wnd_active.i16[MKLOG_ID_TYPE_TRAP] = L_OFF;
 		//PostQuitMessage(0);
 	}break;
 
@@ -2426,7 +2434,8 @@ void CMKLog::init_log_setting(int log_type, int update_log_source) {
 				INT32 item_type = pdb->item[phead[log_type]->code[k + 2]].code;//CHART項目のコード
 				//チャートプロットのベースオフセット設定　アナロググラフ　ビットグラフ
 				if (i < ID_MKLOG_ITEM_TMCHART_ED_F2CODE1) {//チャートフレーム１
-					if ((item_type & MKLOG_ITEM_TYPE_BIT) == MKLOG_ITEM_TYPE_BIT) {//ビットグラフ
+					//if ((item_type & MKLOG_ITEM_TYPE_BIT) == MKLOG_ITEM_TYPE_BIT) {//ビットグラフ
+					if (((item_type & MKLOG_ITEM_TYPE_BIT) >= MKLOG_ITEM_TYPE_BIT)&&((item_type & MKLOG_ITEM_TYPE_BIT) <= MKLOG_ITEM_TYPE_MENTE)){//ビットグラフ
 						n_onoff1++;//ON/OFFアイテムの数
 						//デジタル0点位置セット
 						st_tm_chart_ctrl.chart_item_disp_y0[i - ID_MKLOG_ITEM_TMCHART_ED_F1CODE1] = st_tm_chart_ctrl.mem_offset_y[ID_MKLOG_PLOT_GRAPH1_D];
@@ -2440,7 +2449,8 @@ void CMKLog::init_log_setting(int log_type, int update_log_source) {
 				}
 				else {//チャートフレーム2
 
-					if ((item_type & MKLOG_ITEM_TYPE_BIT) == MKLOG_ITEM_TYPE_BIT) {//ビットグラフ
+			//		if ((item_type & MKLOG_ITEM_TYPE_BIT) == MKLOG_ITEM_TYPE_BIT) {//ビットグラフ
+					if (((item_type & MKLOG_ITEM_TYPE_BIT) >= MKLOG_ITEM_TYPE_BIT) && ((item_type & MKLOG_ITEM_TYPE_BIT) <= MKLOG_ITEM_TYPE_MENTE)) {//ビットグラフ
 						n_onoff2++;
 						st_tm_chart_ctrl.chart_item_disp_y0[i - ID_MKLOG_ITEM_TMCHART_ED_F1CODE1] = st_tm_chart_ctrl.mem_offset_y[ID_MKLOG_PLOT_GRAPH2_D];
 						st_tm_chart_ctrl.chart_item_disp_y0[i - ID_MKLOG_ITEM_TMCHART_ED_F1CODE1] -= n_onoff2 * st_tm_chart_ctrl.division_y_axis;
@@ -2574,27 +2584,28 @@ void CMKLog::init_log_setting(int log_type, int update_log_source) {
 void CMKLog::draw_icon(HDC hdc,int log_type) {
 
 	Gdiplus::Graphics graphics(hdc);
+	int offset_x = 50;
 
 	switch (log_type) {
 	case MKLOG_ID_TYPE_TIME: {
 		st_sc_chart_ctrl.icon_draw = L_ON;
 		int id = ID_MKLOG_ITEM_TMCHART_ED_F1CODE1;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_ORANGE], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_CYAN], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_PURPLE], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BROWN], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_ORANGE], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_CYAN], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_PURPLE], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BROWN], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_timelog_wnd.pt_obj[id].x + 50, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_timelog_wnd.pt_obj[id].x		+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_ORANGE], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_CYAN], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_PURPLE], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BROWN], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_timelog_wnd.pt_obj[id].x + offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_timelog_wnd.pt_obj[id].x		+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_ORANGE], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_CYAN], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_PURPLE], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BROWN], (INT)st_timelog_wnd.pt_obj[id].x	+ offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_timelog_wnd.pt_obj[id].x + offset_x, (INT)st_timelog_wnd.pt_obj[id].y, 20, 25); id++;
 	//	graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED],0,0,200,200);
 
 	}break;
@@ -2608,22 +2619,22 @@ void CMKLog::draw_icon(HDC hdc,int log_type) {
 		st_sc_chart_ctrl.icon_draw = L_ON;
 		int id = ID_MKLOG_ITEM_SCCHART_ED_F1CODE1;
 
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
-		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + 50, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x		+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x		+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x		+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_RED], (INT)st_scatlog_wnd.pt_obj[id].x		+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_GREEN], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_BLUE], (INT)st_scatlog_wnd.pt_obj[id].x	+ offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
+		graphics.FillRectangle(st_work_wnd.pbrush[ID_MKLOG_COLOR_MAZENDA], (INT)st_scatlog_wnd.pt_obj[id].x + offset_x, (INT)st_scatlog_wnd.pt_obj[id].y, 20, 25); id++;
 
 	}break;
 	case MKLOG_ID_TYPE_ALL:

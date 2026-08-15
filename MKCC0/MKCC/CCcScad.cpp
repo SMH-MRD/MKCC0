@@ -15,6 +15,10 @@ extern CSharedMem* pAuxCsInfObj;
 extern CCrane* pCrane;
 extern ST_DEVICE_CODE g_my_code;
 
+extern BC_TASK_ID st_task_id;
+extern vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
+
+
 CMKLog* pmklog;
 
 ST_SCAD_MON1 CScada::st_mon1;
@@ -63,6 +67,17 @@ HRESULT CScada::initialize(LPVOID lpParam) {
 	//LOG設定セット
 	update_logsource_all(false);
 
+	//LOG初期設定
+	CMKLog::set_host((CBasicControl*)VectCtrlObj[st_task_id.SCAD]);
+	CMKLog::set_db(&st_log_db);
+	CMKLog::set_log_head(MKLOG_ID_TYPE_TIME, &logsource.header_time);
+	CMKLog::set_log_head(MKLOG_ID_TYPE_EVENT, &logsource.header_event);
+	CMKLog::set_log_head(MKLOG_ID_TYPE_SCAT, &logsource.header_scat);
+	CMKLog::set_log_head(MKLOG_ID_TYPE_TRAP, &logsource.header_trap);
+
+	CMKLog::init_log_setting(MKLOG_ID_TYPE_TIME, L_OFF);
+
+
 	//タスクパネル設定
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -95,7 +110,44 @@ HRESULT CScada::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 int CScada::input() {
+	return S_OK;
+}
 
+int CScada::parse() {           //メイン処理
+
+
+	//ログデータセット処理
+	if ((pmklog != NULL) && (pmklog->is_log_wnd_active.i64)) {
+		for (int i = MKLOG_ID_TYPE_TIME; i <= MKLOG_ID_TYPE_SCAT; i++) {
+			LPST_LOG_HEADER pheader;
+
+			if (!pmklog->is_log_wnd_active.i16[i]) continue;
+
+			switch (i) {
+			case MKLOG_ID_TYPE_TIME:pheader		= &logsource.header_time; break;
+			case MKLOG_ID_TYPE_TRAP:pheader		= &logsource.header_trap; break;
+			case MKLOG_ID_TYPE_EVENT:pheader	= &logsource.header_event; break;
+			case MKLOG_ID_TYPE_SCAT:pheader		= &logsource.header_scat; break;
+			default: pheader = &logsource.header_event; break;
+			}
+
+			if ((pmklog->get_logstatus(i) & MKLOG_CODE_LOG_REC_AND_CHART)) {
+				for (int k = MKLOG_INDEX_LOG_DATA0; k < logsource.n_item[i] + MKLOG_INDEX_LOG_DATA0; k++) {
+					if (st_log_db.item[pheader->code[k]].func != NULL)
+						pmklog->loghot[i][k] = st_log_db.item[pheader->code[k]].func(st_log_db.item[pheader->code[k]].d100);
+					if (k == 6)
+						INT16 dat = pmklog->loghot[i][k];
+				}
+				log_elapse_count[i]++;
+			}
+			else {
+				if (i == MKLOG_ID_TYPE_EVENT)
+					log_elapse_count[i]++;
+				else
+					log_elapse_count[i] = 0;
+			}
+		}
+	}
 
 	return S_OK;
 }
@@ -302,24 +354,75 @@ LRESULT CALLBACK CScada::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 		case IDC_TASK_ITEM_CHECK1: {
 			switch (inf.panel_func_id) {
-			case IDC_TASK_FUNC_RADIO4:
-				set_item_chk_txt();
+			case IDC_TASK_FUNC_RADIO2: {
+				//LOG
+				if (inf.panel_func_id == IDC_TASK_FUNC_RADIO2) {
+					if (CMKLog::st_work_wnd.hwnd[MKLOG_ID_TYPE_EVENT] == NULL) {
+						CMKLog::open_log_event(hDlg);
+					}
+					else {
+						CMKLog::close_log(MKLOG_ID_TYPE_EVENT);
+					}
+					if (IsDlgButtonChecked(hDlg, IDC_TASK_ITEM_CHECK1) == BST_CHECKED) {
+						SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
+					}
+				}
+				set_panel_tip_txt();  SetFocus(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1));
 				break;
+			}
 			default:break;
 			}
-
 		}break;
-		case IDC_TASK_ITEM_CHECK2:
-		case IDC_TASK_ITEM_CHECK3:
-		case IDC_TASK_ITEM_CHECK4:
+		case IDC_TASK_ITEM_CHECK2: {
+			//LOG
+			if (inf.panel_func_id == IDC_TASK_FUNC_RADIO2) {
+				if (CMKLog::st_work_wnd.hwnd[MKLOG_ID_TYPE_TIME] == NULL) {
+					CMKLog::open_log_time(hDlg);
+				}
+				else {
+					CMKLog::close_log(MKLOG_ID_TYPE_TIME);
+				}
+
+				if (IsDlgButtonChecked(hDlg, IDC_TASK_ITEM_CHECK2) == BST_CHECKED) {
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK2), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+			}
+			set_panel_tip_txt();  SetFocus(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1));
+		}break;
+		case IDC_TASK_ITEM_CHECK3: {
+			//LOG
+			if (inf.panel_func_id == IDC_TASK_FUNC_RADIO2) {
+				if (CMKLog::st_work_wnd.hwnd[MKLOG_ID_TYPE_SCAT] == NULL) {
+					CMKLog::open_log_scat(hDlg);
+				}
+				else {
+					CMKLog::close_log(MKLOG_ID_TYPE_SCAT);
+				}
+				if (IsDlgButtonChecked(hDlg, IDC_TASK_ITEM_CHECK3) == BST_CHECKED) {
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+			}
+			set_panel_tip_txt();  SetFocus(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1));
+		}break;
+		case IDC_TASK_ITEM_CHECK4: {
+			//LOG
+			if (inf.panel_func_id == IDC_TASK_FUNC_RADIO2) {
+				if (CMKLog::st_work_wnd.hwnd[MKLOG_ID_TYPE_TRAP] == NULL) {
+					CMKLog::open_log_trap(hDlg);
+				}
+				else {
+					CMKLog::close_log(MKLOG_ID_TYPE_TRAP);
+				}
+
+				if (IsDlgButtonChecked(hDlg, IDC_TASK_ITEM_CHECK4) == BST_CHECKED) {
+					SendMessage(GetDlgItem(hDlg, IDC_TASK_ITEM_CHECK4), BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+			}
+			set_panel_tip_txt();  SetFocus(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1));
+		}break;
 		case IDC_TASK_ITEM_CHECK5:
 		case IDC_TASK_ITEM_CHECK6:
-		{
-			if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED)
-				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = true;
-			else
-				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = false;
-		}break;
+		break;
 
 		case IDSET:
 		{
@@ -518,6 +621,34 @@ INT16(*CScada::get_func_of_logitem(INT32 code))(double d) {
 
 	default:return empty;
 	}
+}
+
+/// <summary>
+/// ライブラリからのインターフェイス（処理要求）関数
+/// </summary>
+/// <param name="com_code"></param>
+/// <param name="param"></param>
+/// <param name="pparam"></param>
+/// <returns></returns>
+int CScada::req_command(WORD com_code, WORD param, void* pparam) {
+	switch (com_code) {
+	case MKLOG_MSGID_REFRESH_TMCHART_ITEM: {
+		for (int i = 0; i < MKLOG_N_CHART_MAX; i++) {
+			logsource.header_time.code[i + 2] = *((int*)pparam + i);
+			logsource.header_time.d100[i + 2] = st_log_db.item[logsource.header_time.code[i + 2]].d100;
+			for (int j = 0; j < MKLOG_N_LOG_TITLE_WCH; j++)logsource.header_time.title[i + 2][j] = st_log_db.item[logsource.header_time.code[i + 2]].title[j];
+		}
+	}break;
+	case MKLOG_MSGID_REFRESH_SCCHART_ITEM: {
+		for (int i = 0; i < MKLOG_N_CHART_MAX; i++) {
+			logsource.header_scat.code[i + 2] = *((int*)pparam + i);
+			logsource.header_scat.d100[i + 2] = st_log_db.item[logsource.header_scat.code[i + 2]].d100;
+			for (int j = 0; j < MKLOG_N_LOG_TITLE_WCH; j++)logsource.header_scat.title[i + 2][j] = st_log_db.item[logsource.header_scat.code[i + 2]].title[j];
+		}
+	}break;
+	default:break;
+	}
+	return 0;
 }
 
 

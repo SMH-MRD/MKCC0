@@ -94,6 +94,11 @@ typedef struct _stMKLogWorkWnd {
 
 }ST_MKLOG_WORK_WND, * LPST_MKLOG_WORK_WND;
 
+typedef union UN_MKLOG_WND_ACTIVE {
+	INT16 i16[MKLOG_N_ID_TYPE];
+	INT64 i64;
+};
+
 /// <summary>
 /// CHART管理構造体
 /// </summary>
@@ -104,6 +109,7 @@ public:
 	CMKLog();		//staticクラスにするのでprivateにする
 	~CMKLog();	//staticクラスにするのでprivateにする
 public:
+	static UN_MKLOG_WND_ACTIVE is_log_wnd_active;
 
 	static std::wostringstream wos,filename;
 	
@@ -152,7 +158,6 @@ public:
 //#### LOG HEADER設定
 	//LOG ファイルのPCコードセット
 	static void set_PCcode(INT32 code) { for (int i = 0; i < MKLOG_N_ID_TYPE; i++) logbuf[i].header.code[MKLOG_INDEX_PC_CODE] = code;   return; }
-	
 	//LOG ファイルのITEM数セット
 	static int set_nItem(int log_type, INT32 n) { 
 		if ((log_type < MKLOG_ID_TYPE_TIME) || (log_type > MKLOG_ID_TYPE_SCAT))return 1;
@@ -160,32 +165,34 @@ public:
 		
 		return 0;
 	}
-
 	//LOG ファイルのSCAN TIMEセット
 	static int set_ScanTime(int log_type, double scan) {
 		if ((log_type < MKLOG_ID_TYPE_TIME) || (log_type > MKLOG_ID_TYPE_SCAT))return 1;//範囲外
 		logbuf[log_type].header.d100[MKLOG_INDEX_SCAN_MS] = scan;   return 0;
 	}
-
 	//LOG　ITEMの100％値セット
 	static int set_Item100P(int log_type, int id, double val) { 
+		//ログタイプ範囲外チェック
 		if ((log_type < MKLOG_ID_TYPE_TIME) || (log_type > MKLOG_ID_TYPE_SCAT))return 1;
+		//ログ項目数範囲外チェック
 		if ((id < 0) || (id > MKLOG_N_LOG_ITEM_MAX + MKLOG_INDEX_LOG_DATA0))return 2;
 
 		logbuf[log_type].header.d100[id] = val;   return 0; 
 	}
-
 	//LOG　ITEMのTypeセット
 	static int set_ItemType(int log_type, int id, INT32 val) { 
+		//ログタイプ範囲外チェック
 		if ((log_type < MKLOG_ID_TYPE_TIME) || (log_type > MKLOG_ID_TYPE_SCAT))return 1;
+		//ログ項目数範囲外チェック
 		if ((id < 0) || (id > MKLOG_N_LOG_ITEM_MAX + MKLOG_INDEX_LOG_DATA0))return 2;
 
 		logbuf[log_type].header.code[id] = val;   return 0; 
 	}
-
 	//LOG　ITEMのTITLEセット
 	static int set_ItemTitle(int log_type, int id, PWCHAR pwch) { 
+		//ログタイプ範囲外チェック
 		if ((log_type < MKLOG_ID_TYPE_TIME) || (log_type > MKLOG_ID_TYPE_SCAT))return 1;
+		//ログ項目数範囲外チェック
 		if ((id < 0) || (id > MKLOG_N_LOG_ITEM_MAX + MKLOG_INDEX_LOG_DATA0))return 2;
 		for (int i = 0; i < MKLOG_N_LOG_TITLE_WCH; i++) {
 			WCHAR wch = *(pwch + i);
@@ -200,13 +207,18 @@ public:
 	static int set_hot_iw(int logtype, int i) { logbuf[logtype].iw = i;  return 0; };
 	static INT32 get_hot_ir(int logtype) { return logbuf[logtype].ir; }
 	static int set_hot_ir(int logtype, int i) { logbuf[logtype].ir = i;  return 0; };
-
+	/// <summary>
+	/// loghotの各項目をRecordバッファに書き込み
+	/// </summary>
+	/// <param name="logtype"></param>
+	/// <param name="id"></param>
+	/// <returns></returns>
 	static int set_record(int logtype, UINT32 id) {
 
 		int iw = logbuf[logtype].iw;
 
 		auto now = std::chrono::system_clock::now();
-		logbuf[logtype].records[iw].time = std::chrono::system_clock::to_time_t(now);
+		logbuf[logtype].records[iw].time = std::chrono::system_clock::to_time_t(now);//秒単位で切り捨て
 
 		logbuf[logtype].records[iw].id = id;
 
