@@ -119,7 +119,11 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 			fp_set_stat = set_stat_JC;
 		break;
 		}
-		
+	
+		//振れ周期補正用パラメータ
+		pEnvInf->g_ratio_x = 1.0;
+		pEnvInf->g_ratio_y = 1.0;
+
 		//### 対象クレーン用関数ポインタセット
 	//	fp_set_drum_stat = set_drum_stat;
 		//計算用パラメータ設定
@@ -384,7 +388,6 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 		pEnvInf->crane_stat.nd[ID_AHOIST].v = (double)pPlcIo->stat_ah.v_fb / 60.0;//補助巻 RPS
 	}
 
-
 	//###  巻取量セット
 	pEnvInf->crane_stat.i_layer[ID_HOIST]	= (INT32)(pEnvInf->crane_stat.nd[ID_HOIST].p / pspec->base_mh.Ndmizo0)	+ 1;
 	pEnvInf->crane_stat.i_layer[ID_BOOM_H]	= (INT32)(pEnvInf->crane_stat.nd[ID_BOOM_H].p / pspec->base_bh.Ndmizo0) + 1;
@@ -413,7 +416,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	lout = lout - pspec->st_struct.lbh_d0;
 	//現在のd値
 	double d = pEnvInf->crane_stat.d.p = pspec->st_struct.d0 + lout / pspec->base_bh.Nwire0;
-	double Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha;
+	double Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha, Hp = pspec->st_struct.Hp;
 	//起伏角,旋回半径(ドラム回転量から計算)
 	double dtemp = (Lb * Lb + Ha * Ha - d * d) / (2.0 * Lb * Ha);
 	if((dtemp >= -1.0) &&(dtemp <= 1.0)){
@@ -428,7 +431,6 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//荷重
 	pEnvInf->crane_stat.m.p = pPlcIo->weight;
 
-
 	//揚程
 	pEnvInf->crane_stat.mh.p = pPlcIo->h_mh;
 
@@ -440,6 +442,22 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
 	pEnvInf->crane_stat.gt.p = pCrane->pSpec->base_gt.PosPreset + dL;
 
+	//吊点高さ
+	pEnvInf->crane_stat.hph.p = pspec->st_struct.Hp + sqrt(Lb * Lb + pPlcIo->r * pPlcIo->r) ;
+	
+	//ロープ長
+	pEnvInf->l_mh = pEnvInf->crane_stat.hph.p - pPlcIo->h_mh;
+	if (pEnvInf->l_mh <= 0.0) pEnvInf->l_mh = 9.8;
+
+	//振れ周期,各周波数
+	if(pEnvInf->g_ratio_x <= 0.0) pEnvInf->g_ratio_x = 1.0;
+	if(pEnvInf->g_ratio_y <= 0.0) pEnvInf->g_ratio_y = 1.0;
+	pEnvInf->wx		= sqrt(GA * pEnvInf->g_ratio_x / pEnvInf->l_mh);
+	pEnvInf->wy		= sqrt(GA * pEnvInf->g_ratio_y / pEnvInf->l_mh);
+	pEnvInf->w2x	= pEnvInf->wx * pEnvInf->wx;
+	pEnvInf->w2y	= pEnvInf->wy * pEnvInf->wy;
+	pEnvInf->Tx		= PI360 / pEnvInf->wx;
+	pEnvInf->Ty		= PI360 / pEnvInf->wy;
 
 	return S_OK;
 };

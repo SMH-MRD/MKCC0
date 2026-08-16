@@ -66,8 +66,8 @@ INT16 CScada::swy1SWYPH_X(double d100) { if (d100 == 0.0)   return 0;   return  
 INT16 CScada::swy1SWYPH_Y(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->sway_stat.ph[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::Y] / d100 * MKLOG_PARAM_DATA_100PER_D); }
 
 
-INT16 CScada::l_rope_mh(double d100) { if (d100 == 0.0)return 0; return INT16(pEnv_Inf->crane_stat.l_mh / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::l_rope_ah(double d100) { if (d100 == 0.0)return 0; return INT16(pEnv_Inf->crane_stat.l_ah / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::l_rope_mh(double d100) { if (d100 == 0.0)return 0; return INT16(pEnv_Inf->l_mh / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::l_rope_ah(double d100) { if (d100 == 0.0)return 0; return INT16(pEnv_Inf->l_ah / d100 * MKLOG_PARAM_DATA_100PER_D); }
 
 INT16 CScada::plc_fault(double dindex)  { return 0; return INT16(pPLC_IO->pflt_buf[(int)dindex]); }
 INT16 CScada::plc_cab_bi(double dindex) { return 0; return INT16(pPLC_IO->pcab_bi[(int)dindex]); }

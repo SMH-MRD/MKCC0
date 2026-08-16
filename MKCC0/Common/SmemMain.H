@@ -62,17 +62,16 @@ typedef struct _ST_FAULTS_LIST {
 
 typedef struct _ST_CRANE_STAT {
 	ST_MOVE_SET	mh;								//主巻揚程
-	ST_MOVE_SET	ah;								//主巻揚程
+	ST_MOVE_SET	ah;								//補巻揚程
 	ST_MOVE_SET	sl_deg;							//旋回角度
 	ST_MOVE_SET th;								//起伏角度
 	ST_MOVE_SET r;								//旋回半径
 	ST_MOVE_SET gt;								//走行
 	ST_MOVE_SET	m;								//吊荷質量
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
-
-	double l_mh;
-	double l_ah;
-		
+	ST_MOVE_SET hph;							//吊点高さ(Hoisting Point Height)
+	
+	//ドラム状態
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
 	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
 	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作(n,hz,dhz)
@@ -111,11 +110,13 @@ typedef struct _ST_CC_ENV_INF {
 	Vector3 sway_ph_expected[MOTION_ID_MAX];	//振れ位相評価値
 	Vector3 sway_amp_expected[MOTION_ID_MAX];	//振れ振幅評価値
 
-	double T;									//振周期		s
-	double w;									//振角周波数	/s
-	double w2;									//振角周波数の2乗
-	double g_ratio_x = 2.0;						//振れ周期補正係数　√gの比率で調整
-	double g_ratio_y = 2.0;						//振れ周期補正係数　√gの比率で調整
+	double Tx,Ty;									//振周期		s
+	double wx,wy;									//振角周波数	/s
+	double w2x,w2y;									//振角周波数の2乗
+	double g_ratio_x = 1.0;						//振れ周期補正係数　√gの比率で調整
+	double g_ratio_y = 1.0;						//振れ周期補正係数　√gの比率で調整
+	double l_mh;//主巻ロープ長
+	double l_ah;//補巻ロープ長
 
 	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
 	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定

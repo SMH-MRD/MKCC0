@@ -82,7 +82,7 @@ CSwayShared::CSwayShared(BOOL init)
 
         // 調整情報データ
         PINFO_ADJUST_DATA info_adjust_data = gp_app_adjust;   // 調整情報データ
-        info_adjust_data->tg_distance_mode = TARGET_DIST_SET_BY_DEFAULT; // 吊点～ターゲット間距離固定
+        info_adjust_data->host_source_mode = SWAY_CAL_BASE_SET_BY_DEFAULT; // 吊点～ターゲット間距離固定
         info_adjust_data->target_distance = EXTN_TARGETDIST_MIN;        // 吊点～ターゲット間距離
 
         // 画像処理情報データ
@@ -1525,7 +1525,7 @@ BOOL CSwayShared::set_app_info_data(INFO_ADJUST_DATA data)
 
     EnterCriticalSection(&g_app_info.adjust.cs);
 
-    info_data->tg_distance_mode = data.tg_distance_mode;  // 吊点～ターゲット間距離固定
+    info_data->host_source_mode = data.host_source_mode;  // 吊点～ターゲット間距離固定
     info_data->target_distance = data.target_distance;        // 吊点～ターゲット間距離
 
     LeaveCriticalSection(&g_app_info.adjust.cs);
@@ -1547,7 +1547,7 @@ BOOL CSwayShared::get_app_info_data(PINFO_ADJUST_DATA data)
 
     EnterCriticalSection(&g_app_info.adjust.cs);
 
-    data->tg_distance_mode = info_data->tg_distance_mode; // 吊点～ターゲット間距離固定
+    data->host_source_mode = info_data->host_source_mode; // 吊点～ターゲット間距離固定
     data->target_distance = info_data->target_distance;       // 吊点～ターゲット間距離
 
     LeaveCriticalSection(&g_app_info.adjust.cs);

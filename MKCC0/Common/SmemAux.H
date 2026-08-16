@@ -87,15 +87,17 @@ typedef struct _ST_AUX_SCAD_INF {
 
 typedef struct _ST_SWAY_SENSOR_POL_INF {
 	DWORD image_loss_count = 0;
-	double Tx=0.0, Ty = 0.0;
+	double dist_tg;
+	double T[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
+	double w[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
+	double amp[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
+	double ph[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
 	double tg_size_exp1 = 0.0, tg_size_act1 = 0.0, tg_size_exp2 = 0.0, tg_size_act2 = 0.0;
-	double amp_x = 0.0, amp_y = 0.0, ph_x = 0.0, ph_y = 0.0;
-
-}ST_ST_SWAY_SENSOR_POL_INF, * LPST_ST_SWAY_SENSOR_POL_INF;
+}ST_SWAY_SENSOR_POL_INF, * LPST_ST_SWAY_SENSOR_POL_INF;
 
 typedef struct _ST_AUX_POL_INF {
 	DWORD helthy_cnt;
-	ST_ST_SWAY_SENSOR_POL_INF sw_inf;
+	ST_SWAY_SENSOR_POL_INF sw_inf;
 }ST_AUX_POL_INF, * LPST_AUX_POL_INF;
 
 typedef struct _GE_CAM
@@ -122,23 +124,26 @@ typedef struct _ST_AUX_AGENT_INF {			//MCprotocolの送受信バッファ
 #define AUX_CS_ID_SWAY2					1
 
 typedef struct _ST_SWAY_STAT {
-	double T[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
-	double w[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
-	double dthw[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
-	double th[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
-	double dth[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
-	double amp[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
-	double ph[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];
+	double T[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];		//振れ周期(s)
+	double w[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];		//振れ角周波数 (1/s)
+	double dthw[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//振れ角速度(rad/s)/角周波数(1/s)
+	double th[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//振れ角(rad)
+	double dth[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//振れ角速度(rad/s)
+	double amp[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//振れ角振幅(rad)
+	double amp2[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//振れ角振幅の2乗
+	double ph[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//振れ位相(rad)
 }ST_SWAY_STAT, * LPST_SWAY_STAT;
 
 typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
-	//MAINプロセスからAUXEQへ
+	//### MAINプロセスからAUXEQへ
 	DWORD main_helthy_cnt;
 	ST_SLBRK_COM com_slbrk;
 	int com_lanio;
 	int com_sway_sensor;
 
-	//AUXEQからMAINプロセスへ
+	ST_SWAY_CLIENT_MSG msg_client;	//振れセンサ用電文　SCC->AUXEQ
+
+	//### AUXEQからMAINプロセスへ
 	DWORD aux_helthy_cnt;
 
 	int slbrk_enable;	
@@ -151,8 +156,7 @@ typedef struct _ST_AUX_CS_INF {		//MAINプロセスとのIF用共有メモリバッファ
 	int sway_sensor_enable;
 	int sway_sensor_status;
 
-	ST_SWAY_CLIENT_MSG msg_client;
-	ST_SWAY_SERVER_MSG msg_server;
+	ST_SWAY_SERVER_MSG msg_server;//振れセンサ用電文　SCC->AUXEQ
 
 	ST_SWAY_STAT sway_stat;
 

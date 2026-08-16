@@ -40,9 +40,9 @@
 #define	EXPOSURE_CONTROL_STEP_COUNT        10          // シャッタコントロール:初期化STEP待機カウント
 
 // ターゲット距離設定モード
-#define	TARGET_DIST_SET_BY_DEFAULT          0           // デフォルト値をセット
-#define	TARGET_DIST_SET_BY_MANUAL           1           // 手動セット（SCADAウィンドウから固定値セット
-#define	TARGET_DIST_SET_BY_HOST             2           // 制御PCからのデータセット
+#define	SWAY_CAL_BASE_SET_BY_DEFAULT         0           // デフォルト値をセット
+#define	SWAY_CAL_BASE_SET_BY_MANUAL          1           // 手動セット（SCADAウィンドウから固定値セット
+#define	SWAY_CAL_BASE_SET_BY_HOST            2           // 制御PCからのデータセット
 
 //----------------------------------------------------------------------------
 #define PI              3.14159     // π
@@ -426,7 +426,7 @@ typedef struct TAG_CONFIG_IMGPROC {
 
 typedef struct TAG_INFO_ADJUST_DATA {
     int mask_mode;                                  //マスクモード
-    int32_t tg_distance_mode;                       // ターゲット間距離セットモード
+    int32_t host_source_mode;                       // ターゲット間距離セットモード
     double target_distance;                         // 吊点～ターゲット間距離[mm]
     double coef_roi_margin[(int)ENUM_AXIS::E_MAX];  // ROI設定マージン計算用係数
     double T[(int)ENUM_AXIS::E_MAX];                // 振れ周期sec
@@ -434,7 +434,7 @@ typedef struct TAG_INFO_ADJUST_DATA {
     double g[(int)ENUM_AXIS::E_MAX];                // 重力加速度
  
     TAG_INFO_ADJUST_DATA()
-        : tg_distance_mode(TARGET_DIST_SET_BY_DEFAULT)
+        : host_source_mode(SWAY_CAL_BASE_SET_BY_DEFAULT)
         , target_distance(EXTN_TARGETDIST_MIN)
      {}
 } INFO_ADJUST_DATA, * PINFO_ADJUST_DATA;
@@ -617,7 +617,6 @@ typedef struct TAG_APP_CONFIG {
 
 #define SW_CLIENT_COM_CAMERA1_0SET     0x00000010
 
-
 /// <summary>
 /// 振れセンサIF
 /// </summary>
@@ -636,8 +635,8 @@ typedef struct _SwayClientHead {
 
 typedef struct SwayClientBody {
     double          tg_distance;
-    double          Tx;         //振れ周期X方向
-    double          Ty;         //振れ周期Y方向
+    double          T[(int)ENUM_AXIS::E_MAX]; //振れ周期
+    double          w[(int)ENUM_AXIS::E_MAX]; //振れ角周波数
 }ST_SWAY_CLIENT_BODY, * LPST_SWAY_CLIENT_BODY;
 
 typedef struct SwayClientMsg {
@@ -669,7 +668,7 @@ typedef struct _ST_SWAY_TG_DETECT {
 typedef struct SwayServerBody {
     ST_SWAY_TG_DETECT tg_detected;
     double  brightness;//ターゲット輝度
-    double  sway_pos0[(int)(ENUM_AXIS::E_MAX)];   //振れ0点PIXEL値
+    double  sway_pos0[(int)(ENUM_AXIS::E_MAX)];         //振れ0点PIXEL値
     double  sway[(int)(ENUM_AXIS::E_MAX)];              //振れ0点からの振角　PIX
     double  sway_spd[(int)(ENUM_AXIS::E_MAX)];          //振角速度　PIX/s
     double  sway_amp_p2p[(int)(ENUM_AXIS::E_MAX)];      //Peak to Peakで計測した振れ振幅(角速度の符号切り替わりで判定)

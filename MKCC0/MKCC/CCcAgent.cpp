@@ -9,6 +9,7 @@
 #include "SmemOte.h"
 #include <mutex> 
 
+std::mutex mtx;//共有メモリ排他制御用ミューテックス
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -347,8 +348,6 @@ int CAgent::input() {
 #else
 fp_trans_plc_io_read(crane_id);
 #endif
-
-
 	return S_OK;
 }
 
@@ -361,6 +360,9 @@ static INT16 plc_healthy = 0;
 /// </summary>
 /// <returns></returns>
 /// 
+
+static INT32 sway_sensor_count_last;
+
 int CAgent::parse() {
 	//### 異常処理
 	{
@@ -506,6 +508,21 @@ int CAgent::parse() {
 	fp_aux_equipment(crane_id);
 #endif
 
+	//### 振れセンサ関連
+	if (aux_sway_status) {
+		//振れセンサチェック
+		if (inf.total_act % 20 == 0) {
+			if (pAUX_CS_Inf->msg_server.head.seqno != sway_sensor_count_last) {
+				st_work.sway_sensor_status |= AG_CODE_SWAY_SENSOR_ACTIVE;
+			}
+			else {
+				st_work.sway_sensor_status &= ~AG_CODE_SWAY_SENSOR_ACTIVE;
+			}
+
+			sway_sensor_count_last = pAUX_CS_Inf->msg_server.head.seqno;
+		}
+	}
+
 	return S_OK;
 }
 
@@ -514,8 +531,6 @@ int CAgent::parse() {
 /// </summary>
 /// <returns></returns>
 static INT16 healthy_count = 0;
-static INT32 sway_sensor_count_last;
-
 int CAgent::output() {
 
 	//ヘルシー出力
@@ -525,18 +540,16 @@ int CAgent::output() {
 
 	//振れセンサIF
 	if (aux_sway_status) {
+		
+		std::lock_guard<std::mutex> lock(mtx);//スコープの開始で自動ロック,終了で自動アンロック
+
+		//### 振れセンサへのメッセージ出力
 		pAUX_CS_Inf->msg_client.head.seqno++;
-
-
-		//振れセンサチェック
-		if (inf.total_act % 20 == 0) {
-			if (pAUX_CS_Inf->msg_server.head.seqno != sway_sensor_count_last) {
-				st_work.sway_sensor_status |= AG_CODE_SWAY_SENSOR_ACTIVE;
-			}
-			else {
-				st_work.sway_sensor_status &= ~AG_CODE_SWAY_SENSOR_ACTIVE;
-			}
-		}
+		pAUX_CS_Inf->msg_client.body.tg_distance = pEnv_Inf->l_mh;
+		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::X] = pEnv_Inf->Tx;
+		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::Y] = pEnv_Inf->Ty;
+		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::X] = pEnv_Inf->wx;
+		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::Y] = pEnv_Inf->wy;
 	}
 
 
@@ -559,19 +572,19 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 
 	pPLC_IO->remote_mode_sw = pCrane->pPlc->rval(pPlcRIf->JC.remote_mode_sw).i16;			//遠隔操作モードスイッチ
 	//###荷重, 揚程,旋回半径
-	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->JC.m).i16;							//MH荷重
-	pPLC_IO->weight_ah = pCrane->pPlc->rval(pPlcRIf->JC.m_ah).i16;						//AH荷重
-	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->JC.h_mh_mm).i32) / 1000.0;		//揚程
-	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->JC.r_bh_m).f);					//半径
+	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->JC.m).i16;								//MH荷重
+	pPLC_IO->weight_ah = pCrane->pPlc->rval(pPlcRIf->JC.m_ah).i16;							//AH荷重
+	pPLC_IO->h_mh = (double)(pCrane->pPlc->rval(pPlcRIf->JC.h_mh_mm).i32) / 1000.0;			//揚程
+	pPLC_IO->r = (double)(pCrane->pPlc->rval(pPlcRIf->JC.r_bh_m).f);						//半径
 
 	//###風速
 	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->JC.wind_spd_01m).i16) / 10.0;	//風速m/s単位
 
 	//## 位置（Environmentの計算値）
 	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
-	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;							//旋回半径
-	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_deg.p;			//旋回角度
-	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.gt.p;				//走行位置 
+	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;											//旋回半径
+	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_deg.p;							//旋回角度
+	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.gt.p;								//走行位置 
 
 	//## ノッチ指令状態
 	INT16 notch = pCrane->pPlc->rval(pPlcRIf->JC.mh_notch).i16;

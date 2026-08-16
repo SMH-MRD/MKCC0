@@ -256,18 +256,18 @@ int CAuxScada::parse() {
         }
         // 振れ
         {
-            wostr.str(L""); wostr << pPolInf->sw_inf.Tx;
+            wostr.str(L""); wostr << pPolInf->sw_inf.T[(int)ENUM_AXIS::X];
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_T_X), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.Ty;
+            wostr.str(L""); wostr << pPolInf->sw_inf.T[(int)ENUM_AXIS::Y];
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_T_Y), wostr.str().c_str());
 
-            wostr.str(L""); wostr << pPolInf->sw_inf.amp_x;
+            wostr.str(L""); wostr << pPolInf->sw_inf.amp[(int)ENUM_AXIS::X];
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_X), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.amp_y;
+            wostr.str(L""); wostr << pPolInf->sw_inf.amp[(int)ENUM_AXIS::Y];
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_Y), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.ph_x;
+            wostr.str(L""); wostr << pPolInf->sw_inf.ph[(int)ENUM_AXIS::X];
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_X), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.ph_y;
+            wostr.str(L""); wostr << pPolInf->sw_inf.ph[(int)ENUM_AXIS::Y];
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_Y), wostr.str().c_str());
 
             wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_act1;
@@ -953,7 +953,7 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             SendMessage(wnd_hndl, TBM_SETPOS, TRUE, (UINT)(gp_app_adjust->target_distance)); // 位置の設定
             SendMessage(wnd_hndl, TBM_SETPAGESIZE, 0, 1);                                               // クリック時の移動量
             ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_SHOW);
-            if (gp_app_adjust->tg_distance_mode == TARGET_DIST_SET_BY_MANUAL) {
+            if (gp_app_adjust->host_source_mode == SWAY_CAL_BASE_SET_BY_MANUAL) {
                 SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_LEN), BM_SETCHECK, BST_CHECKED, 0);
             }
             else
@@ -1205,10 +1205,12 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
             int32_t      pos;
 
             if (GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN) == reinterpret_cast<HWND>(lp)) {
-                pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), TBM_GETPOS, 0, 0));
-                wosstr.str(L""); wosstr << pos;
-                SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_TARGET_LEN), wosstr.str().c_str());
-                gp_app_adjust->target_distance = static_cast<double>(pos);
+                if (gp_app_adjust->host_source_mode == SWAY_CAL_BASE_SET_BY_MANUAL) {
+                    pos = static_cast<int32_t>(SendMessage(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), TBM_GETPOS, 0, 0));
+                    wosstr.str(L""); wosstr << pos;
+                    SetWindowText(GetDlgItem(hwnd, IDC_STATIC_VAL_TARGET_LEN), wosstr.str().c_str());
+                    gp_app_adjust->target_distance = static_cast<double>(pos);
+                }
             }
         }
     }break;
@@ -1470,11 +1472,11 @@ LRESULT CALLBACK CAuxScada::cb_dlg_wnd(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp
         case IDC_CHECK_TARGET_LEN:
             ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_SHOW);
             if (BST_CHECKED == SendMessage(GetDlgItem(hwnd, IDC_CHECK_TARGET_LEN), BM_GETCHECK, 0, 0)) {
-                gp_app_adjust->tg_distance_mode = TARGET_DIST_SET_BY_MANUAL;
+                gp_app_adjust->host_source_mode = SWAY_CAL_BASE_SET_BY_MANUAL;
   
             }
             else {
-                gp_app_adjust->tg_distance_mode = TARGET_DIST_SET_BY_HOST;
+                gp_app_adjust->host_source_mode = SWAY_CAL_BASE_SET_BY_HOST;
        //         ShowWindow(GetDlgItem(hwnd, IDC_SLIDER_TARGET_LEN), SW_HIDE);
             }
             break;

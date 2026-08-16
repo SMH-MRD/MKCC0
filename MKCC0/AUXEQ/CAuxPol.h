@@ -3,6 +3,7 @@
 #include "framework.h"
 #include "CSHAREDMEM.H"
 #include "SWYSENSOR_DEF.H"
+#include "SmemAux.h"
 
 //============================================================================
 // define定義
@@ -86,6 +87,8 @@ typedef struct _ST_POL_MON1 {
 #define POL_MON2_N_WCHAR   64
 
 #define POL_PRM_TG_DIST_DEFAULT 30.0
+#define POL_PRM_T_DEFAULT       PI360
+#define POL_PRM_W_DEFAULT       1.0
 
 typedef struct _ST_POL_MON2 {
     HWND hwnd_mon;
@@ -137,14 +140,19 @@ class CAuxPol : public CBasicControl
 public:
     CAuxPol();
     ~CAuxPol();
-
- // メンバー関数
+   
+    static ST_SWAY_SENSOR_POL_INF st_work_sway;
+    static PSWAY_DATA psway_data;
+   
+    // メンバー関数
 protected:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
     static ST_POL_MON1 st_mon1;
     static ST_POL_MON2 st_mon2;
+
+ 
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -192,11 +200,11 @@ private:
     
 	uint32_t get_opencv_image();// 画像ソース有無効判定
 
-    BOOL proc_center_gravity(std::vector<std::vector<cv::Point>> contours,
-        double* outPosX,
-        double* outPosY,
-        int* outTgtSize,
-        uint32_t sel); // 重心検出
+    //BOOL proc_center_gravity(std::vector<std::vector<cv::Point>> contours,
+    //    double* outPosX,
+    //    double* outPosY,
+    //    int* outTgtSize,
+    //    uint32_t sel); // 重心検出
     BOOL proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
         double* outPosX,
         double* outPosY,
@@ -204,10 +212,10 @@ private:
         cv::Size2i* size_expected,
         cv::Size2i* size_detected); // 重心検出
 
-    void proc_sway(void);                   // 振れ検出処理
+    void proc_sway(int idx);                   // 振れ検出処理
 
-    double get_sway_zero(uint32_t idx);                       // 振れゼロ点設定処理
-    double get_sway_zero();                                    // 振れゼロ点設定処理
+//    double get_sway_zero(uint32_t idx);                       // 振れゼロ点設定処理
+    double get_sway_zero(int idx);                              // 振れゼロ点設定処理
 
     void set_expstime();                // シャッタコントロール
 

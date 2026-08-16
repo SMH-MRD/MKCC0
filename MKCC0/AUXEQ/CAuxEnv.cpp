@@ -103,6 +103,9 @@ HRESULT CAuxEnv::initialize(LPVOID lpParam) {
 
 		//カメラオブジェクト
 		pCamera = new CTeliCamLib(caminfo);
+
+		//計算用データソースモードセット
+		gp_app_adjust->host_source_mode = SWAY_CAL_BASE_SET_BY_HOST;
 	}
 
 #if 0
@@ -248,7 +251,7 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->expstime.auto_stop_l	= 235.0;	//自動露光判定輝度  (停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
 	
 	//ターゲット間距離セットモード
-	gp_app_adjust->tg_distance_mode			= TARGET_DIST_SET_BY_DEFAULT;//MCC通信値をセット
+	gp_app_adjust->host_source_mode			= SWAY_CAL_BASE_SET_BY_DEFAULT;//MCC通信値をセット
 	//カメラの異常判定設定
 	gp_cnfg_camera->error.framedrop			= 15.0;			//カメラの異常判定設定(フレームレート低下の判定値[fps], 異常判定時間[msec])
 	gp_cnfg_camera->error.errtime			= 100;			//カメラの異常判定設定(フレームレート低下の判定値[fps], 異常判定時間[msec])
@@ -686,7 +689,7 @@ void CAuxEnv::set_panel_tip_txt() {
 //タブパネルのFunctionボタンのStaticテキストを設定
 void CAuxEnv::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"OTE IF");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"SWAY");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO4, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO5, L"-");
@@ -706,7 +709,15 @@ void CAuxEnv::set_item_chk_txt() {
 		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
 	}break;
 
-	case IDC_TASK_FUNC_RADIO2:
+	case IDC_TASK_FUNC_RADIO2: {
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1, L"HOST");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK4, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK5, L"-");
+		SetDlgItemText(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK6, L"-");
+	}break;
+
 	case IDC_TASK_FUNC_RADIO3:
 	case IDC_TASK_FUNC_RADIO4:
 	case IDC_TASK_FUNC_RADIO5:
