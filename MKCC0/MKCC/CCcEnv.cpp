@@ -454,8 +454,8 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	if(pEnvInf->g_ratio_y <= 0.0) pEnvInf->g_ratio_y = 1.0;
 	pEnvInf->wx		= sqrt(GA * pEnvInf->g_ratio_x / pEnvInf->l_mh);
 	pEnvInf->wy		= sqrt(GA * pEnvInf->g_ratio_y / pEnvInf->l_mh);
-	pEnvInf->w2x	= pEnvInf->wx * pEnvInf->wx;
-	pEnvInf->w2y	= pEnvInf->wy * pEnvInf->wy;
+	//pEnvInf->w2x	= pEnvInf->wx * pEnvInf->wx;
+	//pEnvInf->w2y	= pEnvInf->wy * pEnvInf->wy;
 	pEnvInf->Tx		= PI360 / pEnvInf->wx;
 	pEnvInf->Ty		= PI360 / pEnvInf->wy;
 

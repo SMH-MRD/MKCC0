@@ -217,7 +217,6 @@ int CAuxCS::input() {
 
 static int sway_host_count_last;
 int CAuxCS::parse() {
-
 	
 	if (sway_sensor_enable) {
 		if (inf.total_act % 20 == 0) {
@@ -230,14 +229,13 @@ int CAuxCS::parse() {
 			sway_host_count_last = pCsInf->msg_client.head.seqno;
 		}
 	}
-
 	return S_OK;
 }
 
 int CAuxCS::output() {          //出力処理
 	
 	{
-		std::lock_guard<std::mutex> lock(m_CSinfMutex);
+
 		if (lanio_enable) {
 			if (is_lanio_connected == false) {
 				pCsInf->lanio_status = AUX_CS_CODE_LANIO_FAIL;
@@ -252,6 +250,8 @@ int CAuxCS::output() {          //出力処理
 		pCsInf->fb_lanio_di = st_work.fb_lanio_di;
 
 		if (sway_sensor_enable) {
+			std::lock_guard<std::mutex> lock(m_CSinfMutex);
+
 			//制御PCへの電文セット
 			//ヘッダ部
 			pCsInf->msg_server.head.command;	
@@ -263,23 +263,24 @@ int CAuxCS::output() {          //出力処理
 			pCsInf->msg_server.head.seqno++;
 			pCsInf->msg_server.head.status						= pCsInf->sway_sensor_status;
 			pCsInf->msg_server.head.pix1rad[(int)ENUM_AXIS::X]	= gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X];
-			pCsInf->msg_server.head.pix1rad[(int)ENUM_AXIS::X]	= gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X];
-
+			pCsInf->msg_server.head.pix1rad[(int)ENUM_AXIS::Y]	= gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y];
 
 			//ボディ部
-			pCsInf->msg_server.body.brightness;
+			for (int i = 0; i < (int)ENUM_IMAGE::E_MAX; i++) {
+				pCsInf->msg_server.body.tg_data[i].valid	= gp_app_imgprc->target_data[i].valid;
+				pCsInf->msg_server.body.tg_data[i].value = gp_app_imgprc->target_data[i].max_val;
+				for (int k = 0; k < (int)ENUM_AXIS::E_MAX; k++) {
+					pCsInf->msg_server.body.tg_data[i].pix[k]	= gp_app_imgprc->target_data[i].pos[k];
+				}
+			}
 			for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
-				pCsInf->msg_server.body.sway_amp_cal[i];
-				pCsInf->msg_server.body.sway_amp_p2p[i];
-				pCsInf->msg_server.body.sway_ph[i];
-				pCsInf->msg_server.body.sway_pos0[i]			= gp_app_imgprc->sway_data[i].sway_zero;
-				pCsInf->msg_server.body.sway[i]					= gp_app_imgprc->sway_data[i].sway_angle;
-				pCsInf->msg_server.body.sway_spd[i]				= gp_app_imgprc->sway_data[i].sway_speed;
-
-				pCsInf->msg_server.body.tg_detected.valid1		= gp_app_imgprc->target_data[(int)ENUM_IMAGE_MASK::MASK_1].valid;
-				pCsInf->msg_server.body.tg_detected.pixel1[i]	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].pos[i];
-				pCsInf->msg_server.body.tg_detected.valid2		= gp_app_imgprc->target_data[(int)ENUM_IMAGE_MASK::MASK_2].valid;
-				pCsInf->msg_server.body.tg_detected.pixel2[i]	= gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[i];
+				pCsInf->msg_server.body.sway_data[i].p			= gp_app_imgprc->sway_data[i].p;
+				pCsInf->msg_server.body.sway_data[i].p0			= gp_app_imgprc->sway_data[i].p0;
+				pCsInf->msg_server.body.sway_data[i].v			= gp_app_imgprc->sway_data[i].v;
+				pCsInf->msg_server.body.sway_data[i].amp_cal	= gp_app_imgprc->sway_data[i].amp_cal;
+				pCsInf->msg_server.body.sway_data[i].amp_p2p	= gp_app_imgprc->sway_data[i].amp_p2p;
+				pCsInf->msg_server.body.sway_data[i].ph_cal		= gp_app_imgprc->sway_data[i].ph_cal;
+				pCsInf->msg_server.body.sway_data[i].ph_time	= gp_app_imgprc->sway_data[i].ph_time;
 			}
 		}
 	}

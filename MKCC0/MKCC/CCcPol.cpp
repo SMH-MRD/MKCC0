@@ -118,7 +118,7 @@ static UINT32	gpad_mode_last = L_OFF;
 int CPolicy::input() {
 
 	if (aux_sway_status) {
-		check_d = pAUX_CS_Inf->msg_server.body.sway_amp_p2p[(int)ENUM_AXIS::X];
+		check_d = pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_p2p;
 	}
 	return S_OK;
 }

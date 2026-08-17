@@ -85,19 +85,9 @@ typedef struct _ST_AUX_SCAD_INF {
 	DWORD helthy_cnt;
 }ST_AUX_SCAD_INF, * LPST_AUX_SCAD_INF;
 
-typedef struct _ST_SWAY_SENSOR_POL_INF {
-	DWORD image_loss_count = 0;
-	double dist_tg;
-	double T[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
-	double w[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
-	double amp[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
-	double ph[(int)ENUM_AXIS::E_MAX] = { 1.0,1.0 };
-	double tg_size_exp1 = 0.0, tg_size_act1 = 0.0, tg_size_exp2 = 0.0, tg_size_act2 = 0.0;
-}ST_SWAY_SENSOR_POL_INF, * LPST_ST_SWAY_SENSOR_POL_INF;
 
 typedef struct _ST_AUX_POL_INF {
 	DWORD helthy_cnt;
-	ST_SWAY_SENSOR_POL_INF sw_inf;
 }ST_AUX_POL_INF, * LPST_AUX_POL_INF;
 
 typedef struct _GE_CAM

@@ -100,16 +100,14 @@ CSwayShared::CSwayShared(BOOL init)
             info_imgprc_data->target_data[idx].roi.height = 0;          // ROI:height of the rectangle
         }
         for (UINT axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-            info_imgprc_data->sway_data[axis].target_pos = 0.0;         // ターゲット位置[pixel]
-            info_imgprc_data->sway_data[axis].target_tilt = 0.0;        // ターゲット傾き[pixel]
-            info_imgprc_data->sway_data[axis].sway_angle = 0.0;         // 振れ角[pixel]
-            info_imgprc_data->sway_data[axis].sway_speed = 0.0;         // 振れ速度[pixel/s]
-            info_imgprc_data->sway_data[axis].sway_zero = 0.0;          // 振れ中心[pixel]
+            info_imgprc_data->sway_data[axis].p = 0.0;                 // 振れ角[pixel]
+            info_imgprc_data->sway_data[axis].til = 0.0;        // ターゲット傾き[pixel]
+            info_imgprc_data->sway_data[axis].v = 0.0;                  // 振れ速度[pixel/s]
+            info_imgprc_data->sway_data[axis].p0 = 0.0;               // 振れ中心[pixel]
         }
         info_imgprc_data->target_size = 0.0;                                               // ターゲットサイズ(ターゲット検出データの平均)
         info_imgprc_data->status = static_cast<uint32_t>(ENUM_PROCCESS_STATUS::DEFAULT);   // 状態
         info_imgprc_data->img_fps = 0.0;                                                   // フレームレート[fps]
-        info_imgprc_data->img_val = 0.0;                                                   // 明度
         info_imgprc_data->exps_mode = EXPOSURE_CONTROL_HOLD;                               // 自動露光コマンド(0:停止 1:Up -1:Down)
         info_imgprc_data->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;                               // 自動露光コマンド(0:停止 1:Up -1:Down)
         info_imgprc_data->exps_time = 0.0;                                                 // 露光時間[us]
@@ -1575,29 +1573,28 @@ BOOL CSwayShared::set_app_info_data(INFO_IMGPRC_DATA data)
         for (int axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
             info_data->target_data[idx].pos[axis]                       = data.target_data[idx].pos[axis];          // 検出位置[pixel]
         }
-        info_data->target_data[idx].size                                = data.target_data[idx].size;               // 検出サイズ
-        info_data->target_data[idx].roi.x                               = data.target_data[idx].roi.x;              // ROI:x coordinate of the top-left corner
-        info_data->target_data[idx].roi.y                               = data.target_data[idx].roi.y;              // ROI:y coordinate of the top-left corner
-        info_data->target_data[idx].roi.width                           = data.target_data[idx].roi.width;          // ROI:width of the rectangle
-        info_data->target_data[idx].roi.height                          = data.target_data[idx].roi.height;         // ROI:height of the rectangle
+        info_data->target_data[idx].size                  = data.target_data[idx].size;               // 検出サイズ
+        info_data->target_data[idx].roi.x                 = data.target_data[idx].roi.x;              // ROI:x coordinate of the top-left corner
+        info_data->target_data[idx].roi.y                 = data.target_data[idx].roi.y;              // ROI:y coordinate of the top-left corner
+        info_data->target_data[idx].roi.width             = data.target_data[idx].roi.width;          // ROI:width of the rectangle
+        info_data->target_data[idx].roi.height            = data.target_data[idx].roi.height;         // ROI:height of the rectangle
 
-        info_data->target_data[idx].size_detected                       = data.target_data[idx].size_detected;      //
-        info_data->target_data[idx].size_expected                       = data.target_data[idx].size_expected;      //
-        info_data->target_data[idx].size_roi_spd_margin                 = data.target_data[idx].size_roi_spd_margin;//
+        info_data->target_data[idx].size_detected         = data.target_data[idx].size_detected;      //
+        info_data->target_data[idx].size_expected         = data.target_data[idx].size_expected;      //
+        info_data->target_data[idx].size_roi_spd_margin   = data.target_data[idx].size_roi_spd_margin;//
     }
 
     for (int axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-        info_data->sway_data[axis].target_pos                           = data.sway_data[axis].target_pos;          // ターゲット位置[pixel]
-        info_data->sway_data[axis].target_tilt                          = data.sway_data[axis].target_tilt;         // ターゲット傾き[pixel]
-        info_data->sway_data[axis].sway_angle                           = data.sway_data[axis].sway_angle;          // 振れ角[pixel]
-        info_data->sway_data[axis].sway_speed                           = data.sway_data[axis].sway_speed;          // 振れ速度[pixel/s]
-        info_data->sway_data[axis].sway_zero                            = data.sway_data[axis].sway_zero;           // 振れ中心[pixel]
+        info_data->sway_data[axis].p     = data.sway_data[axis].p;          // ターゲット位置[pixel]
+        info_data->sway_data[axis].til   = data.sway_data[axis].til;         // ターゲット傾き[pixel]
+        info_data->sway_data[axis].p     = data.sway_data[axis].p;          // 振れ角[pixel]
+        info_data->sway_data[axis].v     = data.sway_data[axis].v;          // 振れ速度[pixel/s]
+        info_data->sway_data[axis].p0    = data.sway_data[axis].p0;           // 振れ中心[pixel]
     }
 
     info_data->target_size                                              = data.target_size;                         // ターゲットサイズ(ターゲット検出データの平均)
     info_data->status                                                   = data.status;                              // 状態
     info_data->img_fps                                                  = data.img_fps;                             // フレームレート[fps]
-    info_data->img_val                                                  = data.img_val;                             // 明度
     info_data->exps_mode                                                = data.exps_mode;                           // シャッタコントロールモード(0:停止 1:Up -1:Down)
     info_data->exps_time                                                = data.exps_time;                           // 露光時間[us]
 
@@ -1644,17 +1641,15 @@ BOOL CSwayShared::get_app_info_data(PINFO_IMGPRC_DATA data)
     }
 
     for (int axis = 0; axis < static_cast<uint32_t>(ENUM_AXIS::E_MAX); axis++) {
-        data->sway_data[axis].target_pos = info_data->sway_data[axis].target_pos;  // ターゲット位置[pixel]
-        data->sway_data[axis].target_tilt = info_data->sway_data[axis].target_tilt; // ターゲット傾き[pixel]
-        data->sway_data[axis].sway_angle = info_data->sway_data[axis].sway_angle;  // 振れ角[pixel]
-        data->sway_data[axis].sway_speed = info_data->sway_data[axis].sway_speed;  // 振れ速度[pixel/s]
-        data->sway_data[axis].sway_zero = info_data->sway_data[axis].sway_zero;   // 振れ中心[pixel]
+        data->sway_data[axis].p = info_data->sway_data[axis].p;         // 振れ角[pixel]
+        data->sway_data[axis].til = info_data->sway_data[axis].til;     // ターゲット傾き[pixel]
+        data->sway_data[axis].v = info_data->sway_data[axis].v;  // 振れ速度[pixel/s]
+        data->sway_data[axis].p0 = info_data->sway_data[axis].p0;   // 振れ中心[pixel]
     }
 
     data->target_size   = info_data->target_size; // ターゲットサイズ(ターゲット検出データの平均)
     data->status        = info_data->status;      // 状態
     data->img_fps       = info_data->img_fps;     // フレームレート[fps]
-    data->img_val       = info_data->img_val;     // 明度
     data->exps_mode     = info_data->exps_mode;   // シャッタコントロールモード(0:停止 1:Up -1:Down)
     data->exps_time     = info_data->exps_time;   // 露光時間[us]
 

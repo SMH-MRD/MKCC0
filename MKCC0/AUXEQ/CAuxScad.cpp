@@ -256,37 +256,37 @@ int CAuxScada::parse() {
         }
         // êUÇÍ
         {
-            wostr.str(L""); wostr << pPolInf->sw_inf.T[(int)ENUM_AXIS::X];
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::X].T;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_T_X), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.T[(int)ENUM_AXIS::Y];
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].T;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_T_Y), wostr.str().c_str());
 
-            wostr.str(L""); wostr << pPolInf->sw_inf.amp[(int)ENUM_AXIS::X];
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::X].amp_disp;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_X), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.amp[(int)ENUM_AXIS::Y];
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].amp_disp;;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_Y), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.ph[(int)ENUM_AXIS::X];
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::X].ph_disp;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_X), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.ph[(int)ENUM_AXIS::Y];
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].ph_disp;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_Y), wostr.str().c_str());
 
-            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_act1;
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_1].size_detected.area();
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT1), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_act2;
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_2].size_detected.area();
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT2), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_exp1;
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_1].size_expected.area();
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_EXP1), wostr.str().c_str());
-            wostr.str(L""); wostr << pPolInf->sw_inf.tg_size_exp2;
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_2].size_expected.area();
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_EXP2), wostr.str().c_str());
     
             if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
-                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].sway_angle;
+                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p;
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_X), wostr.str().c_str());
-                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].sway_angle;
+                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p;
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_Y), wostr.str().c_str());
-                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].sway_speed;
+                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].v;
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_X), wostr.str().c_str());
-                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].sway_speed;
+                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].v;
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_Y), wostr.str().c_str());
             }
             else {
@@ -299,9 +299,9 @@ int CAuxScada::parse() {
                 wostr.str(L""); wostr << L"-";
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_Y), wostr.str().c_str());
             }
-            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].sway_zero;
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p0;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_ZERO_X), wostr.str().c_str());
-            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].sway_zero;
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p0;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_ZERO_Y), wostr.str().c_str());
         }
         //----------------------------------------------------------------------------
@@ -319,7 +319,7 @@ int CAuxScada::parse() {
         //----------------------------------------------------------------------------
         // èàóùâÊëúì«çûÇ›
         {
-            wostr.str(L""); wostr << pPolInf->sw_inf.image_loss_count;
+            wostr.str(L""); wostr << gp_app_imgprc->image_loss_count;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_IMG_LOST), wostr.str().c_str());
 
 
@@ -406,15 +406,15 @@ int CAuxScada::parse() {
                 if (m_sway_pos) {
                     color = SCALAR_RED;
                     if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
-                        x0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos - csx);
-                        y0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos);
-                        x1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos + csx);
-                        y1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos);
+                        x0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p - csx);
+                        y0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p);
+                        x1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p + csx);
+                        y1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p);
                         cv::line(img_proc, cv::Point(x0, y0), cv::Point(x1, y1), color, wx, cv::LINE_4);    // â°ê¸
-                        x0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos);
-                        y0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos - csy);
-                        x1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos);
-                        y1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos + csy);
+                        x0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p);
+                        y0 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p - csy);
+                        x1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p);
+                        y1 = (int)(gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p + csy);
                         cv::line(img_proc, cv::Point(x0, y0), cv::Point(x1, y1), color, wy, cv::LINE_4);    // ècê¸
                     }
                 }

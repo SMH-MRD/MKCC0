@@ -57,15 +57,7 @@
 #define SWAY_SENSOR_RANGE_OVER_COUNT  10 //ROI最小高さ
 
 //振れ用
-#define SWAY_SENSOR_SAMPLE_TIME     0.05 //50msec
-#define SWAY_SENSOR_LPF_T           0.1  //振れセンサLPFカットオフ周期   
-#define SWAY_SENSOR_LPF_K1          0.6666  //T/(T+scan)
-#define SWAY_SENSOR_LPF_K2          0.3333  //scan/(T+scan)
-
-//傾斜計用
-#define SWAY_SENSOR_LPF_T2           0.5  //振れセンサLPFカットオフ周期   
-#define SWAY_SENSOR_LPF_K3          0.1818  //T/(T+scan)
-#define SWAY_SENSOR_LPF_K4          0.0909  //scan/(T+scan)
+#define SWAY_SENSOR_CUTOFF_HZ       2.0 //1次遅れフィルタカットオフ周波数
 
 #pragma endregion CONSTANT_DEFINITION
 
@@ -272,7 +264,7 @@ typedef struct TAG_CONFIG_COMMON {
     std::wstring img_output_fname;                  // 画像保存ファイル名
     double full_pix[(int)ENUM_AXIS::E_MAX];         // カメラのピクセルサイズ
     double view_angle_rad[(int)ENUM_AXIS::E_MAX];   // カメラの画角rad
-    double PIXperRAD[(int)ENUM_AXIS::E_MAX];          // 1radのPixel数
+    double PIXperRAD[(int)ENUM_AXIS::E_MAX];        // 1radのPixel数
 
     CONFIG_COMMON_IMAGE_SCREEN_LAYOUT img_screen_layout;    // 画像表示レイアウト設定
 
@@ -375,7 +367,7 @@ typedef struct TAG_CONFIG_IMGPROC_ROI {
         , scale(0.0)
     {}
 } CONFIG_IMGPROC_ROI, * PCONFIG_IMGPROC_ROI;
-// ノイズフィルター
+// 画像処理ノイズフィルター
 typedef struct TAG_CONFIG_IMGPROC_FILTER {
     uint32_t type;  // フィルター種類
     uint32_t val;   // フィルター値
@@ -385,7 +377,7 @@ typedef struct TAG_CONFIG_IMGPROC_FILTER {
         , val(0)
     {}
 } CONFIG_IMGPROC_FILTER, * PCONFIG_IMGPROC_FILTER;
-// マスク設定
+// 画像処理マスク設定
 typedef struct TAG_CONFIG_IMGPROC_MASK {
     BOOL     valid;                                                 // マスク選択(無効[FALSE]/有効[TRUE])
     uint32_t hsv_l[static_cast<uint32_t>(ENUM_HSV_MODEL::E_MAX)];   // HSVマスク判定値(下限)
@@ -425,13 +417,13 @@ typedef struct TAG_CONFIG_IMGPROC {
 #define  SWAY_SENSOR_MASK_MODE_12              0x0003
 
 typedef struct TAG_INFO_ADJUST_DATA {
-    int mask_mode;                                  //マスクモード
+    int mask_mode;                                  //マスクモード(適用するマスク画像の選択　MASK1,MASK2,MASK12）
     int32_t host_source_mode;                       // ターゲット間距離セットモード
     double target_distance;                         // 吊点～ターゲット間距離[mm]
     double coef_roi_margin[(int)ENUM_AXIS::E_MAX];  // ROI設定マージン計算用係数
-    double T[(int)ENUM_AXIS::E_MAX];                // 振れ周期sec
-    double w[(int)ENUM_AXIS::E_MAX];                // 振れ角周波数 /s
-    double g[(int)ENUM_AXIS::E_MAX];                // 重力加速度
+  //  double T[(int)ENUM_AXIS::E_MAX];                // 振れ周期sec
+  //  double w[(int)ENUM_AXIS::E_MAX];                // 振れ角周波数 /s
+  //  double g[(int)ENUM_AXIS::E_MAX];                // 重力加速度
  
     TAG_INFO_ADJUST_DATA()
         : host_source_mode(SWAY_CAL_BASE_SET_BY_DEFAULT)
@@ -477,15 +469,15 @@ typedef struct TAG_IMAGE_DATA {
 
 typedef struct TAG_TARGET_DATA {
     BOOL     valid;                                         // 検出状態
-    int      range_over_count;                              //レンジオーバーカウント
+    int      range_over_count;                              // レンジオーバーカウント
     double   max_val;                                       // 最大輝度
     double   pos[static_cast<uint32_t>(ENUM_AXIS::E_MAX)];  // 検出位置[pixel]
     int32_t  size;                                          // 検出サイズ
     cv::Rect roi;                                           // ROI
     cv::Size2i size_real;                                   // ターゲット実サイズmm
-    cv::Size2i size_expected;                              // カメラとの距離による想定ターゲットサイズ
-    cv::Size2i size_detected;                              // 検出ターゲットサイズ
-    cv::Size2i size_roi_spd_margin;                        // scan後roiの移動
+    cv::Size2i size_expected;                               // カメラとの距離による想定ターゲットサイズ
+    cv::Size2i size_detected;                               // 検出ターゲットサイズ
+    cv::Size2i size_roi_spd_margin;                         // scan後roiの移動
         
     BOOL    chk_flg;                                        //デバッグ用
 
@@ -505,20 +497,32 @@ typedef struct TAG_TARGET_DATA {
 } TARGET_DATA, * PTARGET_DATA;
 // 振れ検出データ(ターゲット検出データの中心)
 typedef struct TAG_SWAY_DATA {
-    double target_pos;  // ターゲット位置[pixel]
-    double target_tilt; // ターゲット傾き[pixel]
-    double sway_angle;  // 振れ角[pixel]
-    double sway_speed;  // 振れ速度[pixel/s]
-    double sway_zero;   // 振れ中心[pixel]
-    double sway_amp_p2p;// 振れ中心[pixel]
-    double sway_amp_cal;// 振れ中心[pixel]
+    double alpha;       // 1次遅れフィルタ係数
+    double tau;         // 時定数
+    double T;           // 振れ周期
+    double w;           // 角周波数
+    double w2;          // 角周波数の2乗
+    double g;           // 重力加速度
+    double p0;          // 振れ中心[pixel]
+    double p;           // ターゲット位置[pixel]
+    double til;         // ターゲット傾き[pixel]
+    double v;           // 振れ速度[pixel/s]
+    double a;           // 振れ速度[pixel/s]
+    double amp_p2p;     // 振れ振幅評価値　Peak2Peak計測
+    double amp_cal;     // 振れ振幅評価値　計算　sqrt((speed^2 + acc^2)/(w^2+w^4))=sqrt((speed/w)^2 +(acc/w^2)^2)
+    double amp_disp;    // 振れ振幅評価値　表示用　CAL orP2P
+    double ph_cal;      // 振れ位相　計算　atan(-(acc/w)/speed)
+    double ph_time;     // 振れ位相　振れ速度+-の変化でプリセット後、wtで評価
+    double ph_disp;     // 振れ位相　表示用　CAL or　time
+    double vw;          // v/w
+    double aw2;         // a/w/w
 
     TAG_SWAY_DATA()
-        : target_pos(0.0)
-        , target_tilt(0.0)
-        , sway_angle(0.0)
-        , sway_speed(0.0)
-        , sway_zero(0.0)
+        : p(0.0)
+        , til(0.0)
+        , v(0.0)
+        , a(0.0)
+        , p0(0.0)
     {}
 } SWAY_DATA, * PSWAY_DATA;
 // 画像処理情報データ
@@ -527,14 +531,17 @@ typedef struct TAG_INFO_IMGPRC_DATA {
     TARGET_DATA target_data[static_cast<uint32_t>(ENUM_IMAGE_MASK::E_MAX)];                         // ターゲット検出データ
     SWAY_DATA   sway_data[static_cast<uint32_t>(ENUM_AXIS::E_MAX)];                                 // 振れ検出データ(ターゲット検出データの中心)
     double      target_size;                                                                        // ターゲットサイズ(ターゲット検出データの平均)
-    uint32_t    status;                                                                             // 状態
+    uint32_t    status;  
+    uint32_t    image_loss_count;                                                                   
     double      img_fps;                                                                            // フレームレート[fps]
-    double      img_val;                                                                            // 明度
+   // double      img_val;                                                                            // 明度
     int32_t     exps_mode;                                                                          // 自動露光コマンド(0:停止 1:Up -1:Down)
     int32_t     exps_ctrl_mode;                                                                     // 露光設定モード(0:RESET 1:ROI)
     double      exps_time;                                                                          // 露光時間[us]
     int32_t     exps_step_count;
     double      exps_chk_brightness;                                                                //露光時間調整用輝度
+    double      fc;                                                                                 //1次遅れフィルタカットオフ周波数
+
 
     cv::Scalar mean_hsv;    //HSVフォーマットでの平均値
 
@@ -542,7 +549,6 @@ typedef struct TAG_INFO_IMGPRC_DATA {
         : target_size(0.0)
         , status(static_cast<uint32_t>(ENUM_PROCCESS_STATUS::DEFAULT))
         , img_fps(0.0)
-        , img_val(0.0)
         , exps_mode(0)
         , exps_ctrl_mode(0)
         , exps_time(0.0)
@@ -658,22 +664,26 @@ typedef struct _SwayServerHead {
     INT32 			seqno;		                        //シーケンス番号(ヘルシーチェック用）	
 }ST_SWAY_SERVER_HEAD, * LPST_SWAY_SERVER_HEAD;
 
-typedef struct _ST_SWAY_TG_DETECT {
-    INT32  valid1;                                      //ターゲット有効
-    INT32  valid2;                                      //ターゲット有効
-    double pixel1[(int)(ENUM_AXIS::E_MAX)];             //MASK1のPIXCEL位置
-    double pixel2[(int)(ENUM_AXIS::E_MAX)];             //MASK2のPIXCEL位置
- }ST_SWAY_TG_DETECT, * LPST_SWAY_TG_DETECT;
+typedef struct _ST_TARGET_DETECT {
+    INT32 valid;                          //ターゲット有効
+    INT32 value;                          //輝度
+    double pix[(int)(ENUM_AXIS::E_MAX)];   //PIXCEL位置
+}ST_TARGET_DETECT, * LPST_TARGET_DETECT;
+
+typedef struct _ST_SWAY_DETECT {
+    double  p0;            //振れ0点PIXEL値
+    double  p;             //振れ0点からの振角　PIX
+    double  v;             //振角速度　PIX/s
+    double  amp_p2p;       //Peak to Peakで計測した振れ振幅(角速度の符号切り替わりで判定)
+    double  amp_cal;       //振れ角速度から評価した振れ振幅(半周期間の振れ角速度最大値で判定）
+    double  ph_cal;        //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+    double  ph_time;      //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+}ST_SWAY_DETECT, * LPST_SWAY_DETECT;
 
 typedef struct SwayServerBody {
-    ST_SWAY_TG_DETECT tg_detected;
-    double  brightness;//ターゲット輝度
-    double  sway_pos0[(int)(ENUM_AXIS::E_MAX)];         //振れ0点PIXEL値
-    double  sway[(int)(ENUM_AXIS::E_MAX)];              //振れ0点からの振角　PIX
-    double  sway_spd[(int)(ENUM_AXIS::E_MAX)];          //振角速度　PIX/s
-    double  sway_amp_p2p[(int)(ENUM_AXIS::E_MAX)];      //Peak to Peakで計測した振れ振幅(角速度の符号切り替わりで判定)
-    double  sway_amp_cal[(int)(ENUM_AXIS::E_MAX)];      //振れ角速度から評価した振れ振幅(半周期間の振れ角速度最大値で判定）
-    double  sway_ph[(int)(ENUM_AXIS::E_MAX)];           //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+    ST_TARGET_DETECT   tg_data[(int)ENUM_IMAGE::E_MAX];
+    ST_SWAY_DETECT     sway_data[(int)ENUM_AXIS::E_MAX];
+
 }ST_SWAY_SERVER_BODY, * LPST_SWAY_SERVER_BODY;
 
 typedef struct SwayServerMsg {

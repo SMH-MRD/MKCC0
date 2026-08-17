@@ -6,7 +6,9 @@
 #include "phisics.h"
 #include "CHelper.h"
 #include "CSwayShared.h"
+#include <mutex>
 
+std::mutex auxpol_mtx;//ロックガード用無ミューテックス
 extern std::vector<void*> VectpCTaskObj;    // TaskObjのポインタ
 extern BC_TASK_ID         g_task_index;     // TaskObjのインデックス
 
@@ -40,11 +42,12 @@ extern ST_DEVICE_CODE g_my_code;
 static CAuxEnv * pAuxEnvObj;					// CAuxEnvインスタンスのポインタ
 
 int32_t CAuxPol::maintenance_mode = CODE_POL_MAINTE_OFF;
-ST_SWAY_SENSOR_POL_INF CAuxPol::st_work_sway;
+int32_t CAuxPol::disp_mode = CODE_POL_MAINTE_OFF;
+
 ST_POL_MON1 CAuxPol::st_mon1;
 ST_POL_MON2 CAuxPol::st_mon2;
 ST_MOVE_AVE_DATA CAuxPol::m_move_avrg_data;	
-PSWAY_DATA CAuxPol::psway_data;
+ST_SWAY_WORK CAuxPol::st_sway_work;
 
 //共有メモリ参照用定義
 extern CSharedMem* pEnvInfObj;
@@ -115,9 +118,14 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 		init_sway_sensor();
 		//ダミー画像書き込み
 		g_img_src_work.data_mat = cv::imread("C:\/Work\/NonImg.bmp");
+
+		for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
+			st_sway_work.peak_chk_flg[i] = POL_CODE_P2P_WAIT_F_PEAK;
+			st_sway_work.sway_last[i] = 0.0;
+			st_sway_work.sway_peak_f[i] = 0.0;
+			st_sway_work.sway_peak_r[i] = 0.0;
+		}
 	}
-
-
 
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
@@ -158,6 +166,10 @@ HRESULT CAuxPol::init_sway_sensor(){
 	}
 
 	// 共有データ初期化
+
+	//サンプリング周期
+	gp_app_system->sample_cycle = (double)inf.cycle_ms * 0.001; //サンプリング周期[s]
+
 	for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 		gp_app_imgprc->target_data[idx].valid = FALSE;							// 検出状態
 		gp_app_imgprc->target_data[idx].max_val = 0.0;							// 最大輝度
@@ -173,23 +185,28 @@ HRESULT CAuxPol::init_sway_sensor(){
 	}
 
 	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-		gp_app_imgprc->sway_data[axis].target_pos = 0.0;   // ターゲット位置[pixel]
-		gp_app_imgprc->sway_data[axis].target_tilt = 0.0;  // ターゲット傾き[pixel]
-		gp_app_imgprc->sway_data[axis].sway_angle = 0.0;   // 振れ角[pixel]
-		gp_app_imgprc->sway_data[axis].sway_speed = 0.0;   // 振れ速度[pixel/s]
-		gp_app_imgprc->sway_data[axis].sway_zero = 0.0;    // 振れ中心[pixel]
+		gp_app_imgprc->sway_data[axis].p	= 0.0;	// 振れ角[pixel]
+		gp_app_imgprc->sway_data[axis].til	= 0.0;	// ターゲット傾き[pixel]
+		gp_app_imgprc->sway_data[axis].v	= 0.0;	// 振れ速度[pixel/s]
+		gp_app_imgprc->sway_data[axis].a	= 0.0;	// 振れ加速度[pixel/s]
+		gp_app_imgprc->sway_data[axis].p0	= 0.0;	// 振れ中心[pixel]
 	}
 
 	gp_app_imgprc->target_size = 0.0;                                   // ターゲットサイズ(ターゲット検出データの平均)
 	gp_app_imgprc->status = (uint32_t)(ENUM_PROCCESS_STATUS::DEFAULT);  // 検出状態
 	gp_app_imgprc->img_fps = 0.0;                                       // フレームレート
-	gp_app_imgprc->img_val = 0.0;                                       // 明度
 	gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;                   // 自動露光コマンド(0:停止 1:Up -1:Down)
 	gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;            // 露光時間[us]
-	
+	gp_app_imgprc->fc = SWAY_SENSOR_CUTOFF_HZ;							// 振れ検出カットオフ周波数
+
 	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
-		gp_app_imgprc->sway_data[axis].sway_zero 
+		gp_app_imgprc->sway_data[axis].p0 
 			= (gp_cnfg_camera->basis.roi[axis].offset+ gp_cnfg_camera->basis.roi[axis].size) * 0.5;  //振れ検出ROIの中心[pixel]
+
+		//一次遅れフィルタ係数
+		gp_app_imgprc->sway_data[axis].tau = 1.0 / (PI360 * gp_app_imgprc->fc);//時定数
+		gp_app_imgprc->sway_data[axis].alpha = gp_app_system->sample_cycle / (gp_app_imgprc->sway_data[axis].tau + gp_app_system->sample_cycle);
+		gp_app_imgprc->sway_data[axis].g = GA;
 	}
 
 	//----------------------------------------------------------------------------
@@ -201,25 +218,22 @@ HRESULT CAuxPol::init_sway_sensor(){
 	pmove_avrg_data->data_count = 0;		// データ数
 	pmove_avrg_data->total_val	= 0;		// 輝度積算
 	pmove_avrg_data->max_val	= 0.0;		// 最大輝度(移動平均後)
-
-	//サンプリング周期
-	gp_app_system->sample_cycle = (double)inf.cycle_ms * 0.001; //サンプリング周期[s]
-		
+			
 	for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
 		// 振れ中心計測データ
 		m_sway_zero_data.sway_min[axis]		= (double)((gp_cnfg_camera->basis.roi[axis].offset+ gp_cnfg_camera->basis.roi[axis].size));            // 振れ角最小値
-		m_sway_zero_data.sway_max[axis]		= 0.0;											// 振れ角最大値
-		m_sway_zero_data.sway_zero[axis]	= gp_app_imgprc->sway_data[axis].sway_zero;    // 振れゼロ点
+		m_sway_zero_data.sway_max[axis]		= 0.0;									// 振れ角最大値
+		m_sway_zero_data.sway_zero[axis]	= gp_app_imgprc->sway_data[axis].p0;    // 振れゼロ点
 
 		//　ROI　Margin	設定用係数 (振れ角30°のときのPIXEL振幅)
 		//  角周波数を掛けて30°振幅（PIX)のスキャン変化最大値を評価する
 		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X] * gp_app_system->sample_cycle;
 		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y] = PI30 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y] * gp_app_system->sample_cycle;
-		gp_app_adjust->g[(int)ENUM_AXIS::X] = GA;
-		gp_app_adjust->g[(int)ENUM_AXIS::Y] = GA;
+
 
 		for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 			// PIX単位ターゲットサイズ計算用係数　この値を距離で割るとターゲットのPIXELサイズ期待値が算出される
+			// (size_real(mm)単位/1000 / 距離)rad   * pix/rad
 			coef_tg_size_w[idx][axis] = (double)gp_app_imgprc->target_data[idx].size_real.width * gp_cnfg_common->PIXperRAD[axis];
 			coef_tg_size_w[idx][axis] /= 1000.0;	//mm→m変換
 			coef_tg_size_h[idx][axis] = (double)gp_app_imgprc->target_data[idx].size_real.height * gp_cnfg_common->PIXperRAD[axis];
@@ -245,41 +259,42 @@ HRESULT CAuxPol::routine_work(void* pObj) {
 
 int CAuxPol::input() {
 	if (g_sway_sensor_enable) {
+
+		std::lock_guard<std::mutex> lock(auxpol_mtx);//ロックガード
+
 		//カメラ‐ターゲット間距離（クライアントからの情報）
 		if (gp_app_adjust->host_source_mode == SWAY_CAL_BASE_SET_BY_HOST) {
-			if(pCsInf->msg_client.body.tg_distance > 0.0)
-				st_work_sway.dist_tg = gp_app_adjust->target_distance = pCsInf->msg_client.body.tg_distance;
-			else
-				st_work_sway.dist_tg = gp_app_adjust->target_distance = POL_PRM_TG_DIST_DEFAULT;
-
-			st_work_sway.T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::X] = pCsInf->msg_client.body.T[(int)ENUM_AXIS::X];
-			st_work_sway.T[(int)ENUM_AXIS::Y] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = pCsInf->msg_client.body.T[(int)ENUM_AXIS::Y];
-			st_work_sway.w[(int)ENUM_AXIS::X] = gp_app_adjust->w[(int)ENUM_AXIS::X] = pCsInf->msg_client.body.w[(int)ENUM_AXIS::X];
-			st_work_sway.w[(int)ENUM_AXIS::Y] = gp_app_adjust->w[(int)ENUM_AXIS::Y] = pCsInf->msg_client.body.w[(int)ENUM_AXIS::Y];
+				gp_app_adjust->target_distance = pCsInf->msg_client.body.tg_distance;
 		}
 		else if (gp_app_adjust->host_source_mode == SWAY_CAL_BASE_SET_BY_DEFAULT) {
-			st_work_sway.dist_tg = gp_app_adjust->target_distance = POL_PRM_TG_DIST_DEFAULT;
-			st_work_sway.T[(int)ENUM_AXIS::X] =	st_work_sway.T[(int)ENUM_AXIS::Y] = gp_app_adjust->T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = POL_PRM_T_DEFAULT;
-			st_work_sway.w[(int)ENUM_AXIS::X] =	st_work_sway.w[(int)ENUM_AXIS::Y] = gp_app_adjust->w[(int)ENUM_AXIS::X] = gp_app_adjust->w[(int)ENUM_AXIS::Y] = POL_PRM_W_DEFAULT;
+			gp_app_adjust->target_distance = POL_PRM_TG_DIST_DEFAULT;
 		}
 		else {//SWAY_CAL_BASE_SET_BY_MANUAL;
-			st_work_sway.dist_tg = gp_app_adjust->target_distance;//SCADAのモニタウィンドウのスライダーコントロールでセット
-			if (st_work_sway.dist_tg > 0.0) {
-				st_work_sway.w[(int)ENUM_AXIS::X] = sqrt(gp_app_adjust->g[(int)ENUM_AXIS::X] / st_work_sway.dist_tg);
-				st_work_sway.w[(int)ENUM_AXIS::Y] = sqrt(gp_app_adjust->g[(int)ENUM_AXIS::Y] / st_work_sway.dist_tg);
+			gp_app_adjust->target_distance;			//SCADAのモニタウィンドウのスライダーコントロールでセット
+		}
+		if (gp_app_adjust->target_distance < POL_PRM_TG_DIST_DEFAULT) gp_app_adjust->target_distance = POL_PRM_TG_DIST_DEFAULT;
+
+		//振れ周期等
+		for (uint32_t axis = 0; axis < (uint32_t)(ENUM_AXIS::E_MAX); axis++) {
+			if (gp_app_adjust->host_source_mode == SWAY_CAL_BASE_SET_BY_HOST) {
+				gp_app_imgprc->sway_data[axis].T = pCsInf->msg_client.body.T[axis];
+				gp_app_imgprc->sway_data[axis].w = pCsInf->msg_client.body.w[axis];
 			}
-			else {
-				st_work_sway.dist_tg = gp_app_adjust->target_distance = POL_PRM_TG_DIST_DEFAULT;
-				st_work_sway.w[(int)ENUM_AXIS::X] = st_work_sway.w[(int)ENUM_AXIS::Y] = POL_PRM_W_DEFAULT;
+			else if (gp_app_adjust->host_source_mode == SWAY_CAL_BASE_SET_BY_DEFAULT) {
+				gp_app_imgprc->sway_data[axis].T = POL_PRM_T_DEFAULT;
+				gp_app_imgprc->sway_data[axis].w = POL_PRM_W_DEFAULT;
 			}
-			st_work_sway.T[(int)ENUM_AXIS::X] = gp_app_adjust->T[(int)ENUM_AXIS::X] = PI360 / st_work_sway.w[(int)ENUM_AXIS::X];
-			st_work_sway.T[(int)ENUM_AXIS::Y] = gp_app_adjust->T[(int)ENUM_AXIS::Y] = PI360 / st_work_sway.w[(int)ENUM_AXIS::Y];
+			else {//SWAY_CAL_BASE_SET_BY_MANUAL;
+				gp_app_imgprc->sway_data[axis].w = sqrt(gp_app_imgprc->sway_data[axis].g/ gp_app_adjust->target_distance);
+				gp_app_imgprc->sway_data[axis].T = PI360 / gp_app_imgprc->sway_data[axis].w;
+			}
+			gp_app_imgprc->sway_data[axis].w2 = gp_app_imgprc->sway_data[axis].w * gp_app_imgprc->sway_data[axis].w;
 		}
 
-		//ターゲット検出予定角度幅（実寸法/ターゲットとの距離）
+		//ターゲット検出予定角度幅PIX（実寸法/ターゲットとの距離）
 		for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-			gp_app_imgprc->target_data[idx].size_expected.width  = (int)(coef_tg_size_w[idx][(int)ENUM_AXIS::X] / st_work_sway.dist_tg);
-			gp_app_imgprc->target_data[idx].size_expected.height = (int)(coef_tg_size_h[idx][(int)ENUM_AXIS::Y] / st_work_sway.dist_tg);
+			gp_app_imgprc->target_data[idx].size_expected.width		= (int)(coef_tg_size_w[idx][(int)ENUM_AXIS::X] / gp_app_adjust->target_distance);
+			gp_app_imgprc->target_data[idx].size_expected.height	= (int)(coef_tg_size_h[idx][(int)ENUM_AXIS::Y] / gp_app_adjust->target_distance);
 		}
 		
 		// 画像取込み　g_img_src_work.data_mat g_img_src_work.data_bgr
@@ -327,12 +342,10 @@ int CAuxPol::parse() {
 					if (ptarget_data->valid) {				//target_dataの validは、重心演算の正常完了でターゲット位置が求まっていたらセット
 						// ROIの振れ角速度移動補償値計算
 						if (gp_app_adjust->target_distance != 0.0) {//カメラーターゲット間距離の情報アリ→30°振れ角速度振幅(角周波数×振れ角PIXEL単位振幅）×2　
-							ptarget_data->size_roi_spd_margin.width = (int)(gp_app_adjust->w[(int)ENUM_AXIS::X] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X]) * 2;
-							ptarget_data->size_roi_spd_margin.height = (int)(gp_app_adjust->w[(int)ENUM_AXIS::Y] * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y]) * 2;
+							ptarget_data->size_roi_spd_margin.width		= (int)(gp_app_imgprc->sway_data[(int)ENUM_AXIS::X].w * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X]) * 2;
+							ptarget_data->size_roi_spd_margin.height	= (int)(gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].w * gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y]) * 2;
 						}
-						else {//カメラーターゲット間距離の情報無し→下限設定値固定
-							ptarget_data->size_roi_spd_margin.width = ptarget_data->size_roi_spd_margin.height = SWAY_SENSOR_ROI_MIN_W;
-						}
+					
 						// 水平方向　ROIの範囲を画面からはみ出さないように開始位置決定
 						{	//roiの幅は、ターゲットの期待サイズ＋振れ角速度補償値で決定する
 							int32_t roi_size = (int32_t)(ptarget_data->size_expected.width) + ptarget_data->size_roi_spd_margin.width;
@@ -681,9 +694,7 @@ int CAuxPol::parse() {
 					}
 					else {
 						ptarget_data->valid = false;
-
 						//proc_center_gravity()は使わない
-						 
 						//pos_x = 0.0;
 						//pos_y = 0.0;
 						//ptarget_data->valid = proc_center_gravity(
@@ -695,43 +706,36 @@ int CAuxPol::parse() {
 						//); // 検出状態
 					}
 
-					if (idx == (uint32_t)(ENUM_IMAGE_MASK::MASK_1)) {
-						pPolInf->sw_inf.tg_size_act1 = (double)ptarget_data->size;
-						pPolInf->sw_inf.tg_size_exp1= ptarget_data->size_expected.area();
-					}
-					if (idx == (uint32_t)(ENUM_IMAGE_MASK::MASK_2)){
-						pPolInf->sw_inf.tg_size_act2 = (double)ptarget_data->size;
-						pPolInf->sw_inf.tg_size_exp2 = ptarget_data->size_expected.area();
-					}
-
-
-
-
 					double pos_x_now = pos_x + (double)ptarget_data->roi.x;
 					double pos_y_now = pos_y + (double)ptarget_data->roi.y;
-					double dx = pos_x_now - ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)];
-					double dy = pos_y_now - ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)];
+
+					ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)] = pos_x_now;
+					ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)] = pos_y_now;
+
+					// 速度検出部でフィルタを掛けるので以下削除20260817
 					
-					//size_roi_spd_marginは角速度単位なのでスキャンタイムを掛ける
-					double chk_limit_x = ptarget_data->size_roi_spd_margin.width	* inf.cycle_ms / 1000 ;
-					double chk_limit_y = ptarget_data->size_roi_spd_margin.height	* inf.cycle_ms / 1000;
-
-					bool is_pos_jump = false;//ターゲット位置ジャンプ検出フラグ
-					if ((dx > chk_limit_x) || (-dx > chk_limit_x) || (dy > chk_limit_y) || (-dy > chk_limit_y))
-						is_pos_jump = true;
-
-					if (is_pos_jump) {//ターゲット位置ジャンプ検出時は、フィルタをかけずに現在の位置をそのままセットする
-						ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)] = pos_x_now; 
-						ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)] = pos_y_now; 
-					}
-					else {//ジャンプ無しではフィルタをかける（後段の速度計算の為）
-						ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)] =
-								SWAY_SENSOR_LPF_K1 * ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]//前回値
-							+	SWAY_SENSOR_LPF_K2 * pos_x_now;									
-						ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)] =
-								SWAY_SENSOR_LPF_K1 * ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]//前回値
-							+	SWAY_SENSOR_LPF_K2 * pos_y_now; 
-					}
+					//double dx = pos_x_now - ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)];
+					//double dy = pos_y_now - ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)];
+					//
+					////size_roi_spd_marginは角速度単位なのでスキャンタイムを掛ける
+					//double chk_limit_x = ptarget_data->size_roi_spd_margin.width	* inf.cycle_ms / 1000 ;
+					//double chk_limit_y = ptarget_data->size_roi_spd_margin.height	* inf.cycle_ms / 1000;
+					//
+					//bool is_pos_jump = false;//ターゲット位置ジャンプ検出フラグ
+					//if ((dx > chk_limit_x) || (-dx > chk_limit_x) || (dy > chk_limit_y) || (-dy > chk_limit_y))
+					//	is_pos_jump = true;
+					//
+					//if (is_pos_jump) {//ターゲット位置ジャンプ検出時は、フィルタをかけずに現在の位置をそのままセットする
+					//
+					//}
+					//else {//ジャンプ無しではフィルタをかける（後段の速度計算の為）
+					//	ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)] =
+					//			SWAY_SENSOR_LPF_K1 * ptarget_data->pos[(uint32_t)(ENUM_AXIS::X)]//前回値
+					//		+	SWAY_SENSOR_LPF_K2 * pos_x_now;									
+					//	ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)] =
+					//			SWAY_SENSOR_LPF_K1 * ptarget_data->pos[(uint32_t)(ENUM_AXIS::Y)]//前回値
+					//		+	SWAY_SENSOR_LPF_K2 * pos_y_now; 
+					//}
 
 					//いずれかのターゲット検出でROI　MODEでシャッターコントロール有効、
 					if (ptarget_data->valid) {
@@ -795,44 +799,49 @@ int CAuxPol::parse() {
 		double pos_tg_y2 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[(uint32_t)(ENUM_AXIS::Y)];
 
 		if ((gp_app_adjust->mask_mode == SWAY_SENSOR_MASK_MODE_12) && (is_target12_valid)) {//ターゲット1,2共に有効
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos = (pos_tg_x1 + pos_tg_x2) * 0.5;  // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt = pos_tg_x1 - pos_tg_x2;
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos = (pos_tg_y1 + pos_tg_y2) * 0.5;  // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt = pos_tg_y1 - pos_tg_y2;
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p	= (pos_tg_x1 + pos_tg_x2) * 0.5;  // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].til	= pos_tg_x1 - pos_tg_x2;
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p	= (pos_tg_y1 + pos_tg_y2) * 0.5;  // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].til	= pos_tg_y1 - pos_tg_y2;
 
-			gp_app_imgprc->target_size = ((double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].size
-				+ (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].size) * 0.5;											 // ターゲットサイズ(ターゲット検出データの平均)
+			gp_app_imgprc->target_size = (
+				(double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].size
+			  + (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].size
+				) * 0.5;											 // ターゲットサイズ(ターゲット検出データの平均)
 			gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEクリア
 		}
 		else if ((gp_app_adjust->mask_mode & SWAY_SENSOR_MASK_MODE_1) && (is_target1_valid)) {//ターゲット1のみ有効
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos = pos_tg_x1;  // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt = 0.0;
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos = pos_tg_y1;  // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt = 0.0;
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p	= pos_tg_x1;  // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].til	= 0.0;
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p	= pos_tg_y1;  // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].til	= 0.0;
 
 			gp_app_imgprc->target_size = (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].size;											 // ターゲットサイズ(ターゲット検出データの平均)
 			gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEクリア
 		}
 		else if ((gp_app_adjust->mask_mode & SWAY_SENSOR_MASK_MODE_2) && (is_target2_valid)) {//ターゲット2のみ有効
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos = pos_tg_x2;  // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt = 0.0;
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos = pos_tg_y2;  // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt = 0.0;
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p	= pos_tg_x2;  // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].til	= 0.0;
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p	= pos_tg_y2;  // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].til	= 0.0;
 
 			gp_app_imgprc->target_size = (double)gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].size;											 // ターゲットサイズ(ターゲット検出データの平均)
 			gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE); // TARGET_ENABLEクリア
 		}
 		else {//マスク設定無効 IDLE
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_pos = (double)(CAM1_SPEC_PIXEL_H_OFFSET);   // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_pos = (double)(CAM1_SPEC_PIXEL_V_OFFSET);   // ターゲット位置[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].target_tilt = 0.0;   // ターゲット傾き[pixel]
-			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].target_tilt = 0.0;   // ターゲット傾き[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p = (double)(CAM1_SPEC_PIXEL_H_OFFSET);   // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].p = (double)(CAM1_SPEC_PIXEL_V_OFFSET);   // ターゲット位置[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].til = 0.0;   // ターゲット傾き[pixel]
+			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].til = 0.0;   // ターゲット傾き[pixel]
 
 			gp_app_imgprc->target_size = 0.0;											 // ターゲットサイズ(ターゲット検出データの平均)
 			gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)); // TARGET_ENABLEクリア
 		}
 
 #pragma endregion SET TARGET POS
+
+		// 制御PCとのIF CHECK　MODE デバッグ用　検出処理なしで強制的に振れデータをセット
+		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE)   proc_dbg_override();
 
 #pragma region 振れ検出処理
 		for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
@@ -844,9 +853,6 @@ int CAuxPol::parse() {
 #pragma region シャッタコントロール
 		set_expstime();
 #pragma endregion EXPOSURE_CONTROL
-
-		// 制御PCとのIF CHECK　MODE デバッグ用　検出処理なしで強制的に振れデータをセット
-		if (maintenance_mode == CODE_POL_MAINTE_COMCHECK)   proc_comchk_mode();   
 
 	}//if (g_sway_sensor_enable)
 	return S_OK;
@@ -913,8 +919,6 @@ uint32_t CAuxPol::get_opencv_image(void)
 				g_img_src_work.height = gp_cnfg_camera->basis.roi[(uint32_t)(ENUM_AXIS::Y)].size;			// 画像サイズ(垂直画素) [pixel]
 				g_img_src_work.fps = 0.0;                                                                   // 画像フレームレート [fps]
 				ZeroMemory(g_img_src_work.data_bgr, (sizeof(uint8_t) * IMAGE_SIZE * IMAGE_FORMAT_SIZE));    // 画像データバッファのポインタ(BGR 24bit)
-
-				pPolInf->sw_inf.image_loss_count++;
 			}
 
 			if (g_img_src_work.status & (uint32_t)ENUM_IMAGE_STATUS::ENABLED) {
@@ -1117,38 +1121,89 @@ BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
 /// </scenario>
 /// <param name=""></param>
 
+
 void CAuxPol::proc_sway(int idx)
 {
-
 	//----------------------------------------------------------------------------
 	// 振れ検出
-	double dt = gp_app_system->sample_cycle;											// タスク実行周期[s]
-
-	psway_data = &gp_app_imgprc->sway_data[idx];
-
-	double     last_sway_angle = psway_data->sway_angle;							// 振れ角(前回値)[pixel]
+	double dt = gp_app_system->sample_cycle;										// タスク実行周期[s]
+	PSWAY_DATA psway_data = &gp_app_imgprc->sway_data[idx];									// 検出結果出力用構造体設定
+	double  last_p = st_sway_work.sway_last[idx];
 
 	if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
-		psway_data->sway_angle = psway_data->sway_zero - psway_data->target_pos;   // 振れ角[pixel]
-		double sway_speed = (psway_data->sway_angle - last_sway_angle) / dt;		// 振れ速度[pixel/s]
-		double acc = psway_data->sway_speed - sway_speed;
+		double speed_now	= (psway_data->p - last_p) / dt;		// 振れ角速度[pixel/s] 振れ角今回値は前段でセット済
+		double acc_now		= psway_data->v - speed_now;
 
 		//加速度リミット（速度リミット×ω)
-		double chk_limit = gp_app_adjust->coef_roi_margin[idx] * gp_app_adjust->w[idx];
+		double chk_limit = gp_app_adjust->coef_roi_margin[idx] * gp_app_imgprc->sway_data[idx].w;
 
 		//加速度評価値が閾値内でフィルタ処理　範囲外は前回値保持
-		if ((acc < chk_limit) && (-acc < chk_limit)) {//閾値範囲内
-			psway_data->sway_speed = SWAY_SENSOR_LPF_K1 * psway_data->sway_speed + SWAY_SENSOR_LPF_K2 * sway_speed; // フィルタ有
+		if ((acc_now < chk_limit) && (-acc_now < chk_limit)) {//閾値範囲内
+		//一時遅れフィルタの基本式　output = α×input + (1-α）× previous_output
+		//サンプリング周期T=40msec　カットオフ周波数fc=2Hz →　時定数τ=1/2πfc≒0.08 α=T/(τ+T) = 0.33
+			psway_data->v = psway_data->alpha * speed_now + (1- psway_data->alpha) * psway_data->v; // フィルタ有
+			psway_data->a = psway_data->alpha * acc_now + (1 - psway_data->alpha) * psway_data->a; // フィルタ有
+
+			psway_data->vw = psway_data->v / psway_data->w;						// v/w
+			psway_data->aw2 = psway_data->v /(psway_data->w * psway_data->w);	// a/w/w
+
+			psway_data->amp_cal = sqrt(psway_data->vw * psway_data->vw + psway_data->aw2 * psway_data->aw2);
+			psway_data->ph_cal = atan2(-psway_data->aw2 , psway_data->vw);
+			//位相の検出遅れ分を補正(実物は遅れ分位相が進んでいる）
+			psway_data->ph_cal += (psway_data->tau + gp_app_system->sample_cycle) * psway_data->w;
+			if (psway_data->ph_cal > PI180) psway_data->ph_cal -= PI360;//位相は±πで表現する
+
+			// p2pロジックで振れゼロ点,振幅,位相を求める
+			//get_sway_p2p(idx); // 振れ中心[pixel]　← 角速度の変化でピークを評価する方式に変更するので使わない
+			psway_data->amp_p2p = (st_sway_work.sway_peak_f[idx] - st_sway_work.sway_peak_r[idx]) / 2.0;	//p2pの値から振幅を求める
+			psway_data->ph_time += gp_app_system->sample_cycle * psway_data->w;					//位相をサンプルサイクル分進める
+			psway_data->p0 = psway_data->amp_p2p + st_sway_work.sway_peak_r[idx];				//0点
+
+			if ((st_sway_work.sway_spd_last[idx] * psway_data->v) < 0.0) {//振れ角速度符号変化
+				if (psway_data->a < 0.0) {
+					st_sway_work.sway_peak_f[idx] = psway_data->p;				//振れ加速度－で振れ＋peak
+					st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_R_PEAK;	//－ピーク待ちに切替
+				}
+				else if (psway_data->a > 0.0) {
+					st_sway_work.sway_peak_r[idx]	= psway_data->p;				//振れ加速度+で振れ-peak
+					st_sway_work.peak_chk_flg[idx]	= POL_CODE_P2P_WAIT_F_PEAK;	//＋ピーク待ちに切替
+				}
+				else;//更新無し
+			}
+			else {
+				if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_R_PEAK) { //-ピーク待ち
+					if (st_sway_work.sway_peak_f[idx] < psway_data->p) {//-ピーク待ちで+ピークより大きな振れ角の時は更新する
+						st_sway_work.sway_peak_f[idx] = psway_data->p;
+					}
+				}
+				if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_F_PEAK) { //-ピーク待ち
+					if (st_sway_work.sway_peak_r[idx] > psway_data->p) {//+ピーク待ち-ピークより大きな振れ角の時は更新する
+						st_sway_work.sway_peak_f[idx] = psway_data->p;
+					}
+				}
+			}
 		}
 	}
 	else {
-		psway_data->sway_angle = 0.0;    // 振れ角[pixel]
-		psway_data->sway_speed = 0.0;    // 振れ速度[pixel/s]
+		psway_data->p = 0.0;    // 振れ角[pixel]
+		psway_data->v = 0.0;    // 振れ速度[pixel/s]
+		psway_data->amp_cal = 0.0;
+		psway_data->ph_cal = 0.0;
+	}
+
+	if (disp_mode == CODE_POL_MAINTE_DISP_P2P) {
+		psway_data->amp_disp = psway_data->amp_p2p;
+		psway_data->ph_disp = psway_data->ph_time;
+	}
+	else {
+		psway_data->amp_disp = psway_data->amp_cal;
+		psway_data->ph_disp = psway_data->ph_cal;
 	}
 
 	//----------------------------------------------------------------------------
-	// 振れゼロ点設定処理
-	get_sway_zero(idx); // 振れ中心[pixel]
+
+	st_sway_work.sway_last[idx] = psway_data->p;
+	st_sway_work.sway_spd_last[idx] = psway_data->v;
 
 	return;
 }
@@ -1182,7 +1237,7 @@ double CAuxPol::get_sway_zero(uint32_t idx)
 		if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN))) {//MCC 0セット進行中　OFF
 
 			gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_MCC_RUN);     //MCC 0セット進行中フラグセット
-			wosmsg.str(L""); wosmsg << L"<Information>Running sway zero setting";
+			wosmsg.str(L""); wosmsg << L"<Information>Running sway p0 setting";
 			msg2listview(wosmsg.str()); 
 		}
 	}
@@ -1194,18 +1249,18 @@ double CAuxPol::get_sway_zero(uint32_t idx)
 		if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {       //ターゲット検出中　ON
 			if (span_msec >= 0) {                               //計測継続時間 > 0
 				if (span_msec < gp_cnfg_imgprc->swayzeroset_time) {   //計測設定時間経過していない
-					if (sway_data->target_pos < m_sway_zero_data.sway_min[idx]) { //最小値更新
-						m_sway_zero_data.sway_min[idx] = sway_data->target_pos;
+					if (sway_data->tg_pos < m_sway_zero_data.sway_min[idx]) { //最小値更新
+						m_sway_zero_data.sway_min[idx] = sway_data->tg_pos;
 					}
-					if (m_sway_zero_data.sway_max[idx] < sway_data->target_pos) { //最大値更新
-						m_sway_zero_data.sway_max[idx] = sway_data->target_pos;
+					if (m_sway_zero_data.sway_max[idx] < sway_data->tg_pos) { //最大値更新
+						m_sway_zero_data.sway_max[idx] = sway_data->tg_pos;
 					}
 				}
 				else {
 					m_sway_zero_data.sway_zero[idx] = (m_sway_zero_data.sway_min[idx] + m_sway_zero_data.sway_max[idx]) * 0.5;
 					gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED);  // 
 					QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // 計測時間用パフォーマンスカウンター
-					wosmsg.str(L""); wosmsg << L"<Information>Completed  sway zero setting";
+					wosmsg.str(L""); wosmsg << L"<Information>Completed  sway p0 setting";
 					msg2listview(wosmsg.str());
 				}
 			}
@@ -1216,7 +1271,7 @@ double CAuxPol::get_sway_zero(uint32_t idx)
 		else {//ターゲット検出中でない　計測用カウンターホールド値セット　0セット完了フラグ　ON
 			gp_app_imgprc->status |= (uint32_t)(ENUM_PROCCESS_STATUS::ZERO_SET_COMPLETED);   // 
 			QueryPerformanceCounter(&m_sway_zero_data.time_counter);    // 計測時間用パフォーマンスカウンター
-			wosmsg.str(L""); wosmsg << L"<Error>Failed to sway zero setting";
+			wosmsg.str(L""); wosmsg << L"<Error>Failed to sway p0 setting";
 			msg2listview(wosmsg.str());
 		}
 	}
@@ -1248,42 +1303,43 @@ static int sway0_counter[(uint32_t)(ENUM_AXIS::E_MAX)] = { 0,0 };
 
 /// <summary>
 /// 振れゼロ点設定処理(NEW LOGIC 0点　常時更新
+/// (未使用：振れ速度符号変化を見る方式に変更
 /// </summary>
 /// <scenario>
 /// 振れ周期間のPeak to Peakを常時計測して更新
 /// </scenario>
 /// <param name="idx"></param>
 /// <returns></returns>
-double CAuxPol::get_sway_zero(int idx)
+double CAuxPol::get_sway_p2p(int idx)
 {
 	if (--sway0_counter[idx] < 0) {//0点更新処理
 
-		sway0_counter[idx] = (int)(gp_app_adjust->T[idx] / gp_app_system->sample_cycle);
+		sway0_counter[idx] = (int)(gp_app_imgprc->sway_data[idx].T / gp_app_system->sample_cycle);
 
 		if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE))) {//ターゲット検出が無効の時
 			//画面中心
-			gp_app_imgprc->sway_data[idx].sway_zero = (double)(gp_cnfg_common->full_pix[idx] / 2);
+			gp_app_imgprc->sway_data[idx].p0 = (double)(gp_cnfg_common->full_pix[idx] / 2);
 		}
 		else {
 			//最大最小値の中点		
-			gp_app_imgprc->sway_data[idx].sway_zero = (m_sway_zero_data.sway_min[idx] + m_sway_zero_data.sway_max[idx]) * 0.5;
+			gp_app_imgprc->sway_data[idx].p0 = (m_sway_zero_data.sway_min[idx] + m_sway_zero_data.sway_max[idx]) * 0.5;
 		}
 		//検出最大値,最小値リセット
 		m_sway_zero_data.sway_min[idx] = gp_cnfg_common->full_pix[idx];
 		m_sway_zero_data.sway_max[idx] = 0;
 	}
 	else {//検出最大値,最小値更新
-		if (gp_app_imgprc->sway_data[idx].target_pos < m_sway_zero_data.sway_min[idx]) { //最小値更新
-			m_sway_zero_data.sway_min[idx] = gp_app_imgprc->sway_data[idx].target_pos;
+		if (gp_app_imgprc->sway_data[idx].p < m_sway_zero_data.sway_min[idx]) { //最小値更新
+			m_sway_zero_data.sway_min[idx] = gp_app_imgprc->sway_data[idx].p;
 		}
-		if (gp_app_imgprc->sway_data[idx].target_pos > m_sway_zero_data.sway_max[idx]) { //最大値更新
-			m_sway_zero_data.sway_max[idx] = gp_app_imgprc->sway_data[idx].target_pos;
+		if (gp_app_imgprc->sway_data[idx].p > m_sway_zero_data.sway_max[idx]) { //最大値更新
+			m_sway_zero_data.sway_max[idx] = gp_app_imgprc->sway_data[idx].p;
 		}
 	}
 	return 0.0;
 }
 
-static bool was_over_expose = false;		//輝度が上限設定値を超えたことがあるかどうかのフラグ
+static bool was_over_expose		= false;		//輝度が上限設定値を超えたことがあるかどうかのフラグ
 static bool was_under_expose	= false;	//輝度が下限設定値を超えたことがあるかどうかのフラグ
 static double exps_time_upper_limit;
 static double exps_time_lower_limit;
@@ -1428,19 +1484,22 @@ void CAuxPol::set_expstime()
 }
 
 /// <summary>
-/// デバッグ用　検出処理なしで強制的に振れデータをセット
+/// デバッグ用　検出処理なしで強制的にターゲット検出位置をセット
 /// </summary>
 uint32_t pol_counter = 0;
-void CAuxPol::proc_comchk_mode() {
 
-	double cycleTs = 10.0;
-	uint32_t cycle_count = (uint32_t)(cycleTs * 1000.0) / inf.cycle_ms;
+static double ph_dbug[2] = { 0.0, PI90 };
+static double p0_dbug[2] = { 1000.0, 500.0 };
+static double amp_dbug[2] = { 100.0, 50.0 };
 
-	double wt = PI360 / cycleTs * (double)((pol_counter % cycle_count) * inf.cycle_ms) / 1000.0;
+void CAuxPol::proc_dbg_override() {
 
-	gp_app_imgprc->sway_data[(int)ENUM_AXIS::X].sway_angle = 1000.0 * sin(wt);
-
-	pol_counter++;
+	PSWAY_DATA psway_data;
+	for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
+		psway_data = &gp_app_imgprc->sway_data[i];
+		ph_dbug[i] += gp_app_system->sample_cycle * psway_data->w;
+		gp_app_imgprc->sway_data[i].p = amp_dbug[i] * sin(ph_dbug[i]) + p0_dbug[i];
+	} 
 	return;
 }
 
@@ -1682,8 +1741,32 @@ LRESULT CALLBACK CAuxPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 			set_PNLparam_value(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 		}break;
 
-		case IDC_TASK_ITEM_CHECK1:
-		case IDC_TASK_ITEM_CHECK2:
+		case IDC_TASK_ITEM_CHECK1: {
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1: {
+				if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED) {
+					maintenance_mode = CODE_POL_MAINTE_DBG_OVERRIDE;
+				}
+				else {
+					maintenance_mode = CODE_POL_MAINTE_OFF;
+				}
+			}break;
+			default:break;
+			}
+		}break;
+		case IDC_TASK_ITEM_CHECK2: {
+			switch (inf.panel_func_id) {
+			case IDC_TASK_FUNC_RADIO1: {
+				if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED) {
+					disp_mode = CODE_POL_MAINTE_DISP_P2P;
+				}
+				else {
+					disp_mode = CODE_POL_MAINTE_OFF;
+				}
+			}break;
+			default:break;
+			}
+		}break;
 		case IDC_TASK_ITEM_CHECK3:
 		case IDC_TASK_ITEM_CHECK4:
 		case IDC_TASK_ITEM_CHECK5:
@@ -1841,9 +1924,9 @@ void CAuxPol::set_item_chk_txt() {
 	wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO1: {
-		wstr = L"ｶﾒﾗ0点設定";
+		wstr = L"DbgMode";
 		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), wstr.c_str());
-		wstr = L"COMCHK";
+		wstr = L"DispP2P";
 		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2), wstr.c_str());
 		wstr = L"-";
 		SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3), wstr.c_str());

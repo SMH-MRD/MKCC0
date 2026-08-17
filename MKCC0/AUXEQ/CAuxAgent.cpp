@@ -136,6 +136,7 @@ HRESULT CAuxAgent::initialize(LPVOID lpParam){
 
 	//### GE Camera
 	if (g_sway_sensor_enable) {
+		gp_app_imgprc->image_loss_count=0;
 		//IFウィンドウ
 		if (st_mon1.hwnd_mon == NULL) {
 			WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス

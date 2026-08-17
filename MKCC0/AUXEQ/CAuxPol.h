@@ -9,8 +9,10 @@
 // define定義
 #pragma region CONSTANT_DEFINITION
 
-#define CODE_POL_MAINTE_OFF         0
-#define CODE_POL_MAINTE_COMCHECK    21
+#define CODE_POL_MAINTE_OFF             0
+#define CODE_POL_MAINTE_DBG_OVERRIDE    11
+#define CODE_POL_MAINTE_COMCHECK        21
+#define CODE_POL_MAINTE_DISP_P2P        31
 
 #define MOVE_AVERAGE_COUNT      1   // 移動平均数
 
@@ -86,7 +88,7 @@ typedef struct _ST_POL_MON1 {
 #define POL_MON2_N_CTRL    32
 #define POL_MON2_N_WCHAR   64
 
-#define POL_PRM_TG_DIST_DEFAULT 30.0
+#define POL_PRM_TG_DIST_DEFAULT 9.8
 #define POL_PRM_T_DEFAULT       PI360
 #define POL_PRM_W_DEFAULT       1.0
 
@@ -132,6 +134,19 @@ typedef struct _ST_MOVE_AVE_DATA {
     double  max_val;                        // 最大輝度(移動平均後)
 } ST_MOVE_AVE_DATA, * PST_MOVE_AVE_DATA;
 
+#define POL_CODE_P2P_WAIT_F_PEAK        1
+#define POL_CODE_P2P_WAIT_R_PEAK        -1
+#define POL_CODE_P2P_WAIT_STOP          0
+
+typedef struct _ST_SWAY_WORK {
+    double  ph_delay_time;                        // 振れ速度検出のフィルタ他による位相遅れ補正時間
+    double  sway_last[(int)ENUM_AXIS::E_MAX];     // 振角前回値
+    double  sway_spd_last[(int)ENUM_AXIS::E_MAX];  // 振角速度前回値
+    double  sway_peak_f[(int)ENUM_AXIS::E_MAX];   // 振れ角速度の符号が＋から－に変わったときの振れ角
+    double  sway_peak_r[(int)ENUM_AXIS::E_MAX];   // 振れ角速度の符号が-から+に変わったときの振れ角
+    int     peak_chk_flg[(int)ENUM_AXIS::E_MAX];  // 振れ角速度の符号切り替わり待ち状態フラグ
+} ST_SWAY_WORK, * PST_SWAY_WORK;
+
 //////////////////////////////////////////////////////////////////////////////
 // CAuxPol
 
@@ -140,10 +155,9 @@ class CAuxPol : public CBasicControl
 public:
     CAuxPol();
     ~CAuxPol();
-   
-    static ST_SWAY_SENSOR_POL_INF st_work_sway;
-    static PSWAY_DATA psway_data;
-   
+
+    static ST_SWAY_WORK st_sway_work;
+     
     // メンバー関数
 protected:
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
@@ -151,9 +165,7 @@ protected:
 
     static ST_POL_MON1 st_mon1;
     static ST_POL_MON2 st_mon2;
-
- 
-
+    
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
     //タブパネルのFunctionボタンのStaticテキストを設定
@@ -169,9 +181,10 @@ protected:
 private:
     HRESULT init_sway_sensor();
     static int32_t maintenance_mode;
+    static int32_t disp_mode;
 
     static ST_MOVE_AVE_DATA m_move_avrg_data; // 輝度移動平均データ
-    SWAY_ZERO_DATA    m_sway_zero_data; // 振れ中心計測データ
+    SWAY_ZERO_DATA  m_sway_zero_data; // 振れ中心計測データ
 
     LARGE_INTEGER m_cycle_time_counter; // パフォーマンスカウンター現在値
     
@@ -196,7 +209,7 @@ private:
     int output();
     int close();
 
-    void proc_comchk_mode();    // 制御PCとのIF CHECK　MODE
+    void proc_dbg_override();    //ターゲット検出位置をデバッグ用にオーバーライド
     
 	uint32_t get_opencv_image();// 画像ソース有無効判定
 
@@ -214,8 +227,7 @@ private:
 
     void proc_sway(int idx);                   // 振れ検出処理
 
-//    double get_sway_zero(uint32_t idx);                       // 振れゼロ点設定処理
-    double get_sway_zero(int idx);                              // 振れゼロ点設定処理
+    double get_sway_p2p(int idx);              // p2pロジックで振れゼロ点,振幅,位相を求める
 
     void set_expstime();                // シャッタコントロール
 
