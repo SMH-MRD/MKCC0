@@ -269,15 +269,17 @@ int CAuxScada::parse() {
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_X), wostr.str().c_str());
             wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].ph_disp;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_Y), wostr.str().c_str());
-
-            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_1].size_detected.area();
-            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT1), wostr.str().c_str());
-            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_2].size_detected.area();
-            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT2), wostr.str().c_str());
-            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_1].size_expected.area();
+                       
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_1].size_expected.width;//.area();
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_EXP1), wostr.str().c_str());
-            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_2].size_expected.area();
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_2].size_expected.width;//.area();
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_EXP2), wostr.str().c_str());
+
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_1].size_detected.width;// .area();
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT1), wostr.str().c_str());
+            wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_2].size_detected.width;//.area();
+            SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_TG_SIZE_ACT2), wostr.str().c_str());
+
     
             if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)) {
                 wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p;
@@ -288,6 +290,10 @@ int CAuxScada::parse() {
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_X), wostr.str().c_str());
                 wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].v;
                 SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_SPD_Y), wostr.str().c_str());
+                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].a;
+                SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_ACC_X), wostr.str().c_str());
+                wostr.str(L""); wostr << gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::Y)].a;
+                SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_ACC_Y), wostr.str().c_str());
             }
             else {
                 wostr.str(L""); wostr << L"-";

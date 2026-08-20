@@ -139,13 +139,15 @@ typedef struct _ST_MOVE_AVE_DATA {
 #define POL_CODE_P2P_WAIT_STOP          0
 
 typedef struct _ST_SWAY_WORK {
-    double  ph_delay_time;                        // U‚ê‘¬“xŒŸo‚ÌƒtƒBƒ‹ƒ^‘¼‚É‚æ‚éˆÊ‘Š’x‚ê•â³ŠÔ
-    double  sway_last[(int)ENUM_AXIS::E_MAX];     // UŠp‘O‰ñ’l
-    double  sway_spd_last[(int)ENUM_AXIS::E_MAX];  // UŠp‘¬“x‘O‰ñ’l
-    double  sway_peak_f[(int)ENUM_AXIS::E_MAX];   // U‚êŠp‘¬“x‚Ì•„†‚ª{‚©‚ç|‚É•Ï‚í‚Á‚½‚Æ‚«‚ÌU‚êŠp
-    double  sway_peak_r[(int)ENUM_AXIS::E_MAX];   // U‚êŠp‘¬“x‚Ì•„†‚ª-‚©‚ç+‚É•Ï‚í‚Á‚½‚Æ‚«‚ÌU‚êŠp
-    int     peak_chk_flg[(int)ENUM_AXIS::E_MAX];  // U‚êŠp‘¬“x‚Ì•„†Ø‚è‘Ö‚í‚è‘Ò‚¿ó‘Ôƒtƒ‰ƒO
+    double  ph_delay_time;                              // U‚ê‘¬“xŒŸo‚ÌƒtƒBƒ‹ƒ^‘¼‚É‚æ‚éˆÊ‘Š’x‚ê•â³ŠÔ
+    double  sway_spd_last[(int)ENUM_AXIS::E_MAX];       // UŠp‘¬“x‘O‰ñ’l
+    double  sway_peak_f[(int)ENUM_AXIS::E_MAX];         // U‚êŠp‘¬“x‚Ì•„†‚ª{‚©‚ç|‚É•Ï‚í‚Á‚½‚Æ‚«‚ÌU‚êŠp
+    double  sway_peak_r[(int)ENUM_AXIS::E_MAX];         // U‚êŠp‘¬“x‚Ì•„†‚ª-‚©‚ç+‚É•Ï‚í‚Á‚½‚Æ‚«‚ÌU‚êŠp
+    int     peak_chk_flg[(int)ENUM_AXIS::E_MAX];        // U‚êŠp‘¬“x‚Ì•„†Ø‚è‘Ö‚í‚è‘Ò‚¿ó‘Ôƒtƒ‰ƒO
+    double  sway_acc_chk_limit[(int)ENUM_AXIS::E_MAX];
 } ST_SWAY_WORK, * PST_SWAY_WORK;
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 // CAuxPol

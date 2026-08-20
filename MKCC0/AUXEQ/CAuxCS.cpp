@@ -281,6 +281,8 @@ int CAuxCS::output() {          //o—Íˆ—
 				pCsInf->msg_server.body.sway_data[i].amp_p2p	= gp_app_imgprc->sway_data[i].amp_p2p;
 				pCsInf->msg_server.body.sway_data[i].ph_cal		= gp_app_imgprc->sway_data[i].ph_cal;
 				pCsInf->msg_server.body.sway_data[i].ph_time	= gp_app_imgprc->sway_data[i].ph_time;
+				pCsInf->msg_server.body.sway_data[i].vw			=gp_app_imgprc->sway_data[i].vw;
+				pCsInf->msg_server.body.sway_data[i].T			= gp_app_imgprc->sway_data[i].T;
 			}
 		}
 	}

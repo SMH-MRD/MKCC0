@@ -511,11 +511,13 @@ typedef struct TAG_SWAY_DATA {
     double amp_p2p;     // 振れ振幅評価値　Peak2Peak計測
     double amp_cal;     // 振れ振幅評価値　計算　sqrt((speed^2 + acc^2)/(w^2+w^4))=sqrt((speed/w)^2 +(acc/w^2)^2)
     double amp_disp;    // 振れ振幅評価値　表示用　CAL orP2P
-    double ph_cal;      // 振れ位相　計算　atan(-(acc/w)/speed)
-    double ph_time;     // 振れ位相　振れ速度+-の変化でプリセット後、wtで評価
+    double ph_cal = 0.0;      // 振れ位相　計算　atan(-(acc/w)/speed)
+    double ph_time = 0.0;     // 振れ位相　振れ速度+-の変化でプリセット後、wtで評価
     double ph_disp;     // 振れ位相　表示用　CAL or　time
     double vw;          // v/w
     double aw2;         // a/w/w
+
+    std::vector<double> p_history;
 
     TAG_SWAY_DATA()
         : p(0.0)
@@ -671,13 +673,15 @@ typedef struct _ST_TARGET_DETECT {
 }ST_TARGET_DETECT, * LPST_TARGET_DETECT;
 
 typedef struct _ST_SWAY_DETECT {
-    double  p0;            //振れ0点PIXEL値
-    double  p;             //振れ0点からの振角　PIX
-    double  v;             //振角速度　PIX/s
-    double  amp_p2p;       //Peak to Peakで計測した振れ振幅(角速度の符号切り替わりで判定)
-    double  amp_cal;       //振れ角速度から評価した振れ振幅(半周期間の振れ角速度最大値で判定）
-    double  ph_cal;        //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
-    double  ph_time;      //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+    double  p0;             //振れ0点PIXEL値
+    double  p;              //振れ0点からの振角　PIX
+    double  v;              //振角速度　PIX/s
+    double  amp_p2p;        //Peak to Peakで計測した振れ振幅(角速度の符号切り替わりで判定)
+    double  amp_cal;        //振れ角速度から評価した振れ振幅(半周期間の振れ角速度最大値で判定）
+    double  ph_cal;         //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+    double  ph_time;        //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+    double  T;              //計測振れ周期s
+    double  vw;             // v/w SCATチャート用
 }ST_SWAY_DETECT, * LPST_SWAY_DETECT;
 
 typedef struct SwayServerBody {

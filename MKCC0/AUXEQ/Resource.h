@@ -156,9 +156,11 @@
 #define IDC_BUTTON_TASK_ITEM3           2102
 #define IDC_STATIC_TG_SIZE_ACT1         2102
 #define IDC_BUTTON_TASK_ITEM4           2103
-#define IDC_STATIC_TG_SIZE_EXP2        2104
+#define IDC_STATIC_TG_SIZE_EXP2			2104
 #define IDC_STATIC_TG_SIZE_ACT2         2105
 #define IDC_CHECK4                      2109
+#define IDC_STATIC_SWAY_ACC_X           2110
+#define IDC_STATIC_SWAY_ACC_Y           2111
 #define IDC_BUTTON_CURSOR_L             2228
 #define IDC_BUTTON_CURSOR_R             2232
 #define IDC_BUTTON_CURSOR_U             2233

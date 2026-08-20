@@ -592,13 +592,15 @@ INT16(*CScada::get_func_of_logitem(INT32 code))(double d) {
 	case MKLOG_ITEM_SWY1_DTH_Y:return swy1DTH_Y;
 	case MKLOG_ITEM_SWY1_TX:return swy1_Tx;
 	case MKLOG_ITEM_SWY1_TY:return swy1_Ty;
-	case MKLOG_ITEM_SWY1_DTHWX:return swy1DTHWX;
-	case MKLOG_ITEM_SWY1_DTHWY:return swy1DTHWY;
 
-	case MKLOG_ITEM_SWY1_AMP_X:return swy1SWYAMP_X;
-	case MKLOG_ITEM_SWY1_AMP_Y:return swy1SWYAMP_Y;
-	case MKLOG_ITEM_SWY1_PH_X:return swy1SWYPH_X;
-	case MKLOG_ITEM_SWY1_PH_Y:return swy1SWYPH_Y;
+	case MKLOG_ITEM_SWY1_AMP_CAL_X:return swy1SWYAMP_CAL_X;
+	case MKLOG_ITEM_SWY1_AMP_CAL_Y:return swy1SWYAMP_CAL_Y;
+	case MKLOG_ITEM_SWY1_PH_CAL_X:return swy1SWYPH_CAL_X;
+	case MKLOG_ITEM_SWY1_PH_CAL_Y:return swy1SWYPH_CAL_Y;
+	case MKLOG_ITEM_SWY1_AMP_P2P_X:return swy1SWYAMP_P2P_X;
+	case MKLOG_ITEM_SWY1_AMP_P2P_Y:return swy1SWYAMP_P2P_Y;
+	case MKLOG_ITEM_SWY1_PH_TIME_X:return swy1SWYPH_TIME_X;
+	case MKLOG_ITEM_SWY1_PH_TIME_Y:return swy1SWYPH_TIME_Y;
 	case MKLOG_ITEM_MHL:return l_rope_mh;
 
 	case MKLOG_ITEM_CONTROL_SOURCE:return control_source;

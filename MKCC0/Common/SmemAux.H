@@ -113,16 +113,16 @@ typedef struct _ST_AUX_AGENT_INF {			//MCprotocol‚Ì‘—ŽóMƒoƒbƒtƒ@
 #define AUX_CS_ID_SWAY1					0
 #define AUX_CS_ID_SWAY2					1
 
-typedef struct _ST_SWAY_STAT {
-	double T[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];		//U‚êŽüŠú(s)
-	double w[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];		//U‚êŠpŽü”g” (1/s)
-	double dthw[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠp‘¬“x(rad/s)/ŠpŽü”g”(1/s)
-	double th[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠp(rad)
-	double dth[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠp‘¬“x(rad/s)
-	double amp[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠpU•(rad)
-	double amp2[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠpU•‚Ì2æ
-	double ph[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êˆÊ‘Š(rad)
-}ST_SWAY_STAT, * LPST_SWAY_STAT;
+//typedef struct _ST_SWAY_STAT {
+//	double T[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];		//U‚êŽüŠú(s)
+//	double w[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];		//U‚êŠpŽü”g” (1/s)
+//	double dthw[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠp‘¬“x(rad/s)/ŠpŽü”g”(1/s)
+//	double th[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠp(rad)
+//	double dth[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠp‘¬“x(rad/s)
+//	double amp[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠpU•(rad)
+//	double amp2[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êŠpU•‚Ì2æ
+//	double ph[AUX_CS_N_SWAY][(int)ENUM_AXIS::E_MAX];	//U‚êˆÊ‘Š(rad)
+//}ST_SWAY_STAT, * LPST_SWAY_STAT;
 
 typedef struct _ST_AUX_CS_INF {		//MAINƒvƒƒZƒX‚Æ‚ÌIF—p‹¤—Lƒƒ‚ƒŠƒoƒbƒtƒ@
 	//### MAINƒvƒƒZƒX‚©‚çAUXEQ‚Ö
@@ -148,7 +148,7 @@ typedef struct _ST_AUX_CS_INF {		//MAINƒvƒƒZƒX‚Æ‚ÌIF—p‹¤—Lƒƒ‚ƒŠƒoƒbƒtƒ@
 
 	ST_SWAY_SERVER_MSG msg_server;//U‚êƒZƒ“ƒT—p“d•¶@SCC->AUXEQ
 
-	ST_SWAY_STAT sway_stat;
+//	ST_SWAY_STAT sway_stat;
 
 }ST_AUX_CS_INF, * LPST_AUX_CS_INF;
 

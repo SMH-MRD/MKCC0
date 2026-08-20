@@ -51,20 +51,25 @@ INT16 CScada::v_ref_BH(double d100) { if (d100 == 0.0)return 0; return INT16(pPL
 INT16 CScada::v_ref_SL(double d100) { if (d100 == 0.0)return 0; return INT16(pPLC_IO->stat_sl.v_ref / d100 * MKLOG_PARAM_DATA_100PER_D); }
 INT16 CScada::v_ref_AH(double d100) { if (d100 == 0.0)return 0; return INT16(pPLC_IO->stat_ah.v_ref / d100 * MKLOG_PARAM_DATA_100PER_D); }
 
-INT16 CScada::swy1_TH_X(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->sway_stat.th[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::X] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1_TH_Y(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->sway_stat.th[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::Y] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1DTH_X(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->sway_stat.dth[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::X] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1DTH_Y(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->sway_stat.dth[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::Y]/ d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1_TH_X(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].p / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1_TH_Y(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].p / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1DTH_X(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].v / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1DTH_Y(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].v / d100 * MKLOG_PARAM_DATA_100PER_D); }
 
-INT16 CScada::swy1_Tx(double d100) { if (d100 == 0.0)       return 0;   return  INT16(pAUX_CS_Inf->sway_stat.T[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::X] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1_Ty(double d100) { if (d100 == 0.0)       return 0;   return  INT16(pAUX_CS_Inf->sway_stat.T[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::Y] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1DTHWX(double d100) { if (d100 == 0.0)     return 0;   return  INT16(pAUX_CS_Inf->sway_stat.dthw[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::X] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1DTHWY(double d100) { if (d100 == 0.0)     return 0;   return  INT16(pAUX_CS_Inf->sway_stat.dthw[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::Y] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1SWYAMP_X(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->sway_stat.amp[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::X] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1SWYAMP_Y(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->sway_stat.amp[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::Y] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1SWYPH_X(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->sway_stat.ph[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::X] / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1SWYPH_Y(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->sway_stat.ph[AUX_CS_ID_SWAY1][(int)ENUM_AXIS::Y] / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1DTHW_X(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].vw / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1DTHW_Y(double d100) { if (d100 == 0.0)return 0; return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].vw / d100 * MKLOG_PARAM_DATA_100PER_D); }
 
+INT16 CScada::swy1_Tx(double d100) { if (d100 == 0.0)       return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].T / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1_Ty(double d100) { if (d100 == 0.0)       return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].T / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1SWYAMP_CAL_X(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_cal / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1SWYAMP_CAL_Y(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].amp_cal / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1SWYPH_CAL_X(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].ph_cal / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1SWYPH_CAL_Y(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].ph_cal / d100 * MKLOG_PARAM_DATA_100PER_D); }
+
+INT16 CScada::swy1SWYAMP_P2P_X(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_p2p / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1SWYAMP_P2P_Y(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].amp_p2p / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1SWYPH_TIME_X(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].ph_time / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1SWYPH_TIME_Y(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].ph_time / d100 * MKLOG_PARAM_DATA_100PER_D); }
 
 INT16 CScada::l_rope_mh(double d100) { if (d100 == 0.0)return 0; return INT16(pEnv_Inf->l_mh / d100 * MKLOG_PARAM_DATA_100PER_D); }
 INT16 CScada::l_rope_ah(double d100) { if (d100 == 0.0)return 0; return INT16(pEnv_Inf->l_ah / d100 * MKLOG_PARAM_DATA_100PER_D); }
