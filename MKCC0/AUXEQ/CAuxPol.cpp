@@ -234,9 +234,15 @@ HRESULT CAuxPol::init_sway_sensor(){
 		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::X] = PI45 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X] * gp_app_system->sample_cycle;
 		gp_app_adjust->coef_roi_margin[(int)ENUM_AXIS::Y] = PI45 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y] * gp_app_system->sample_cycle;
 
-		//振れ加速度の異常値排除用リミット値(振れ振幅30°ロープ長GAの時(ω=1.0)の角加速度振幅値
+		//振れ加速度の異常値排除用リミット値(振れ振幅45°ロープ長GAの時(ω=1.0)の角加速度振幅値
 		st_sway_work.sway_acc_chk_limit[(int)ENUM_AXIS::X] = PI45 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X] * 1.0 * 1.0;
 		st_sway_work.sway_acc_chk_limit[(int)ENUM_AXIS::Y] = PI45 * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y] * 1.0 * 1.0;
+
+		//振れ加速度の振れピーク判定リミット値(振れ振幅1°ロープ長GAの時(ω=1.0)の角加速度振幅値
+		st_sway_work.sway_acc_peak_chk_limit[(int)ENUM_AXIS::X] = RAD1DEG * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::X] * 1.0 * 1.0;
+		st_sway_work.sway_acc_peak_chk_limit[(int)ENUM_AXIS::Y] = RAD1DEG * gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y] * 1.0 * 1.0;
+		//st_sway_work.sway_acc_peak_chk_limit[(int)ENUM_AXIS::X] = 0.0;
+		//st_sway_work.sway_acc_peak_chk_limit[(int)ENUM_AXIS::Y] = 0.0;
 
 		for (int idx = 0; idx < (int)(ENUM_IMAGE_MASK::E_MAX); idx++) {
 			// PIX単位ターゲットサイズ計算用係数　この値を距離で割るとターゲットのPIXELサイズ期待値が算出される
@@ -298,6 +304,9 @@ int CAuxPol::input() {
 				gp_app_imgprc->sway_data[axis].T = PI360 / gp_app_imgprc->sway_data[axis].w;
 			}
 			gp_app_imgprc->sway_data[axis].w2 = gp_app_imgprc->sway_data[axis].w * gp_app_imgprc->sway_data[axis].w;
+
+			//このタスクが振れ周期を見る時のカウント数
+			st_sway_work.sway_T_task_count[axis] = (int)(gp_app_imgprc->sway_data[axis].T / ((double)inf.cycle_ms / 1000.0));
 		}
 
 		//ターゲット検出予定角度幅PIX（実寸法/ターゲットとの距離）
@@ -320,6 +329,7 @@ int CAuxPol::input() {
 }
 
 static bool chk_flg = FALSE;
+static int count_invalid_img = 0;
 
 int CAuxPol::parse() {
 	cv::Scalar mean_val;    //読込画素データの平均値
@@ -333,8 +343,12 @@ int CAuxPol::parse() {
 	if (g_sway_sensor_enable) {
 		std::lock_guard<std::mutex> lock(auxpol_mtx);//ロックガード
 
-//# 検出処理
+
 		if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) {
+
+			count_invalid_img = 0;//画像異常カウントクリア
+
+		//# 検出処理
 			//ROI処理無効選択時
 			if (!gp_cnfg_imgprc->roi.valid) {
 				cv::cvtColor(g_img_src_work.data_mat, img_hsv_roi, cv::COLOR_BGR2HSV);//元mat画像を直接hsv画像に変換
@@ -411,7 +425,7 @@ int CAuxPol::parse() {
 					ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
 				}   // if (gp_cnfg_imgprc->roi.valid) else
 
-			// ## HSV変換した部分画像を生成
+				// ## HSV変換した部分画像を生成
 				//　!! 部分画像とその元画像は共通の画像データを参照するため 部分画像に変更を加えると元画像も変更される。
 				img_roi = g_img_src_work.data_mat(ptarget_data->roi);
 				cv::cvtColor(img_roi, img_hsv_roi, cv::COLOR_BGR2HSV); // 画像色をBGR→HSVに変換画像をセット
@@ -467,8 +481,8 @@ int CAuxPol::parse() {
 				//);
 				cv::minMaxLoc(planes[(uint32_t)(ENUM_HSV_MODEL::V)], NULL, &ptarget_data->max_val);// Vチャンネルの最大値を取り込む
 			}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
-
 #pragma endregion MASK CREATE
+
 
 #pragma region ノイズ除去
 
@@ -763,27 +777,38 @@ int CAuxPol::parse() {
 				}
 			}   // for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
 #pragma endregion DETECT TARGET
+
+
+
 		}// if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))
 		else {
-		// マスク画像　画像処理データをクリアする			
-			for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
-				PTARGET_DATA target_data = &gp_app_imgprc->target_data[idx];    // ターゲット検出データ
-				// 受信画像全体をROIとして設定する
-				target_data->roi.x = 0;	target_data->roi.y = 0;	
-				target_data->roi.width = g_img_src_work.width;	target_data->roi.height = g_img_src_work.height;
-				target_data->valid = FALSE;							// 検出状態
-				target_data->max_val = 0.0;							// 最大輝度
-				target_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;   // 検出位置X[pixel]
-				target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;   // 検出位置Y[pixel]
-				target_data->size = 0;      // 検出サイズ				
-				if ((gp_cnfg_imgprc->roi.valid)&&(g_img_src_work.data_mat.data != nullptr)) {//ROI有効モード
-					g_img_src_work.data_mat.copyTo(img_roi);
-					cv::cvtColor(img_roi, img_hsv_roi, cv::COLOR_BGR2HSV);// 画像色をBGR→HSVに変換
-				}
-				gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
-				img_hsv_roi.copyTo(img_mask_roi[idx]);
 
-			}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
+			count_invalid_img++;//画像異常カウント
+			//レンジオーバーフラグセット
+			st_sway_work.sway_target_range_over[(int)ENUM_AXIS::X] = st_sway_work.sway_target_range_over[(int)ENUM_AXIS::Y] = L_ON;
+
+			// 振れ1/4周期までは前回値保持,　それ以上でマスク画像　画像処理データをクリアする	
+			if ((count_invalid_img > st_sway_work.sway_T_task_count[(int)ENUM_AXIS::X] / 4) || (count_invalid_img > st_sway_work.sway_T_task_count[(int)ENUM_AXIS::Y] / 4)) {
+
+				for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++) {
+					PTARGET_DATA target_data = &gp_app_imgprc->target_data[idx];    // ターゲット検出データ
+					// 受信画像全体をROIとして設定する
+					target_data->roi.x = 0;	target_data->roi.y = 0;
+					target_data->roi.width = g_img_src_work.width;	target_data->roi.height = g_img_src_work.height;
+					target_data->valid = FALSE;							// 検出状態
+					target_data->max_val = 0.0;							// 最大輝度
+					target_data->pos[(uint32_t)(ENUM_AXIS::X)] = 0.0;   // 検出位置X[pixel]
+					target_data->pos[(uint32_t)(ENUM_AXIS::Y)] = 0.0;   // 検出位置Y[pixel]
+					target_data->size = 0;      // 検出サイズ				
+					if ((gp_cnfg_imgprc->roi.valid) && (g_img_src_work.data_mat.data != nullptr)) {//ROI有効モード
+						g_img_src_work.data_mat.copyTo(img_roi);
+						cv::cvtColor(img_roi, img_hsv_roi, cv::COLOR_BGR2HSV);// 画像色をBGR→HSVに変換
+					}
+					gp_app_imgprc->exps_ctrl_mode |= EXPOSURE_CONTROL_RESET_STEP;
+					img_hsv_roi.copyTo(img_mask_roi[idx]);
+
+				}   // for (UINT idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
+			}
 		}   // if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE)) else
 #pragma region 画像保存 共有データに生成画像を格納する
 		// マスク画像1
@@ -808,6 +833,9 @@ int CAuxPol::parse() {
 		double pos_tg_y1 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_1)].pos[(uint32_t)(ENUM_AXIS::Y)];
 		double pos_tg_x2 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[(uint32_t)(ENUM_AXIS::X)];
 		double pos_tg_y2 = gp_app_imgprc->target_data[(uint32_t)(ENUM_IMAGE_MASK::MASK_2)].pos[(uint32_t)(ENUM_AXIS::Y)];
+
+		//レンジオーバーフラグクリア
+		st_sway_work.sway_target_range_over[(int)ENUM_AXIS::X] = st_sway_work.sway_target_range_over[(int)ENUM_AXIS::Y] = L_OFF;
 
 		if ((gp_app_adjust->mask_mode == SWAY_SENSOR_MASK_MODE_12) && (is_target12_valid)) {//ターゲット1,2共に有効
 			gp_app_imgprc->sway_data[(uint32_t)(ENUM_AXIS::X)].p	= (pos_tg_x1 + pos_tg_x2) * 0.5;  // ターゲット位置[pixel]
@@ -847,6 +875,8 @@ int CAuxPol::parse() {
 
 			gp_app_imgprc->target_size = 0.0;											 // ターゲットサイズ(ターゲット検出データの平均)
 			gp_app_imgprc->status &= (~(uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE)); // TARGET_ENABLEクリア
+
+			st_sway_work.sway_target_range_over[(int)ENUM_AXIS::X] = st_sway_work.sway_target_range_over[(int)ENUM_AXIS::Y] = L_ON;
 		}
 
 #pragma endregion SET TARGET POS
@@ -1132,6 +1162,7 @@ BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
 /// </scenario>
 /// <param name=""></param>
 
+
 void CAuxPol::proc_sway(int idx)
 {
 	//----------------------------------------------------------------------------
@@ -1141,7 +1172,7 @@ void CAuxPol::proc_sway(int idx)
 	PSWAY_DATA psway_data = &gp_app_imgprc->sway_data[idx];							// 検出結果出力用構造体設定
 
 	// double  expected_delay_ph = (psway_data->tau + gp_app_system->sample_cycle) * psway_data->w;
-	
+
 	//一次遅れフィルタの遅れ理論値 -atan(f：振れ周波数/fc：カットオフ周波数)　
 	double  expected_delay_ph = atan(psway_data->tau * psway_data->w);
 
@@ -1152,9 +1183,12 @@ void CAuxPol::proc_sway(int idx)
 	};
 
 	size_t n = psway_data->p_history.size();
-	if ((gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::TARGET_ENABLE) && psway_data->w > 0.0) ){
+
+
+	//	if ((gp_app_imgprc->status & (uint32_t)ENUM_PROCCESS_STATUS::TARGET_ENABLE) && (psway_data->w > 0.0)){
+	if (psway_data->w > 0.0){//振れ周期値有
 		//振れ速度現在値(フィルタ適用前）
-		double speed_now = (psway_data->p_history[n-1] - psway_data->p_history[n - 2]) / dt;
+		double speed_now = (psway_data->p_history[n - 1] - psway_data->p_history[n - 2]) / dt;
 
 		//振れ加速度現在値(フィルタ適用前）
 		double speed_last = (psway_data->p_history[n - 2] - psway_data->p_history[n - 3]) / dt;
@@ -1166,22 +1200,21 @@ void CAuxPol::proc_sway(int idx)
 		if ((acc_now < chk_limit) && (-acc_now < chk_limit)) {
 			//一時遅れフィルタの基本式　output = α×input + (1-α）× previous_output
 			//サンプリング周期T=40msec　カットオフ周波数fc=2Hz →　時定数τ=1/2πfc≒0.08 α=T/(τ+T) = 0.33
-			psway_data->v = psway_data->alpha * speed_now + (1- psway_data->alpha) * psway_data->v; // フィルタ有
+			psway_data->v = psway_data->alpha * speed_now + (1 - psway_data->alpha) * psway_data->v; // フィルタ有
 			psway_data->a = psway_data->alpha * acc_now + (1 - psway_data->alpha) * psway_data->a;	// フィルタ有
-			
-			//振幅一時遅れフィルタの基本式　output = α×input + (1-α）× previous_output
 			psway_data->vw = psway_data->v / psway_data->w;						// v/w
-			psway_data->aw2 = psway_data->a /(psway_data->w * psway_data->w);	// a/w/w
-			psway_data->amp_cal = sqrt(psway_data->vw * psway_data->vw + psway_data->aw2 * psway_data->aw2);
-			psway_data->ph_cal = atan2(psway_data->v * psway_data->w, psway_data->a );
+			psway_data->aw2 = psway_data->a / (psway_data->w * psway_data->w);	// a/w/w
 
-
-			//位相の検出遅れ分を補正(実物は遅れ分位相が進んでいる）
-			psway_data->ph_cal += expected_delay_ph;
-			if (psway_data->ph_cal > PI180) psway_data->ph_cal -= PI360;//位相は±πで表現する
+			//レンジオーバーで無い時
+			if (st_sway_work.sway_target_range_over[idx] == L_OFF) {
+				psway_data->amp_cal = sqrt(psway_data->vw * psway_data->vw + psway_data->aw2 * psway_data->aw2);
+				psway_data->ph_cal = atan2(psway_data->v * psway_data->w, psway_data->a);
+				//位相の検出遅れ分を補正(実物は遅れ分位相が進んでいる）
+				psway_data->ph_cal += expected_delay_ph;
+				if (psway_data->ph_cal > PI180) psway_data->ph_cal -= PI360;//位相は±πで表現する
+			}
 
 			// p2pロジックで振れゼロ点,振幅,位相を求める
-			//get_sway_p2p(idx); // 振れ中心[pixel]　← 角速度の変化でピークを評価する方式に変更するので使わない
 			psway_data->amp_p2p = (st_sway_work.sway_peak_f[idx] - st_sway_work.sway_peak_r[idx]) / 2.0;	//p2pの値から振幅を求める
 			psway_data->p0 = psway_data->amp_p2p + st_sway_work.sway_peak_r[idx];				//0点
 
@@ -1190,39 +1223,20 @@ void CAuxPol::proc_sway(int idx)
 
 
 			if ((st_sway_work.sway_spd_last[idx] * psway_data->v) < 0.0) {//振れ角速度符号変化
-				if (psway_data->a < 0.0) {
+				if (psway_data->a < -st_sway_work.sway_acc_peak_chk_limit[idx]) {
 					st_sway_work.sway_peak_f[idx] = psway_data->p;				//振れ加速度－で振れ＋peak
 					st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_R_PEAK;	//－ピーク待ちに切替
-					psway_data->ph_time =-PI180 + expected_delay_ph;
+					psway_data->ph_time = -PI180 + expected_delay_ph;
 				}
-				else if (psway_data->a > 0.0) {
-					st_sway_work.sway_peak_r[idx]	= psway_data->p;				//振れ加速度+で振れ-peak
-					st_sway_work.peak_chk_flg[idx]	= POL_CODE_P2P_WAIT_F_PEAK;	//＋ピーク待ちに切替
+				else if (psway_data->a > st_sway_work.sway_acc_peak_chk_limit[idx]) {
+					st_sway_work.sway_peak_r[idx] = psway_data->p;				//振れ加速度+で振れ-peak
+					st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_F_PEAK;	//＋ピーク待ちに切替
 					psway_data->ph_time = 0.0 + expected_delay_ph;
 				}
-				else;//更新無し
-			}
-			else {
-				//if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_R_PEAK) { //-ピーク待ち
-				//	if (st_sway_work.sway_peak_f[idx] < psway_data->p) {//-ピーク待ちで+ピークより大きな振れ角の時は更新する
-				//		st_sway_work.sway_peak_f[idx] = psway_data->p;
-				//	}
-				//}
-				//if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_F_PEAK) { //-ピーク待ち
-				//	if (st_sway_work.sway_peak_r[idx] > psway_data->p) {//+ピーク待ち-ピークより大きな振れ角の時は更新する
-				//		st_sway_work.sway_peak_f[idx] = psway_data->p;
-				//	}
-				//}
+				else; 
 			}
 		}
 	}
-	else {
-		psway_data->p = 0.0;    // 振れ角[pixel]
-		psway_data->v = 0.0;    // 振れ速度[pixel/s]
-		psway_data->amp_cal = 0.0;
-		psway_data->ph_cal = 0.0;
-	}
-
 	if (disp_mode == CODE_POL_MAINTE_DISP_P2P) {
 		psway_data->amp_disp = psway_data->amp_p2p;
 		psway_data->ph_disp = psway_data->ph_time;
@@ -1232,10 +1246,8 @@ void CAuxPol::proc_sway(int idx)
 		psway_data->ph_disp = psway_data->ph_cal;
 	}
 
-	//----------------------------------------------------------------------------
-		
 	st_sway_work.sway_spd_last[idx] = psway_data->v;
-
+	//----------------------------------------------------------------------------
 	return;
 }
 
@@ -1341,6 +1353,7 @@ static int sway0_counter[(uint32_t)(ENUM_AXIS::E_MAX)] = { 0,0 };
 /// </scenario>
 /// <param name="idx"></param>
 /// <returns></returns>
+#if 0
 double CAuxPol::get_sway_p2p(int idx)
 {
 	if (--sway0_counter[idx] < 0) {//0点更新処理
@@ -1369,7 +1382,7 @@ double CAuxPol::get_sway_p2p(int idx)
 	}
 	return 0.0;
 }
-
+#endif
 static bool was_over_expose		= false;		//輝度が上限設定値を超えたことがあるかどうかのフラグ
 static bool was_under_expose	= false;	//輝度が下限設定値を超えたことがあるかどうかのフラグ
 static double exps_time_upper_limit;

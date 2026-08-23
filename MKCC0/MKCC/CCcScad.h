@@ -194,12 +194,19 @@ public:
     static INT16 control_source(double d100);
     static INT16 e_stop(double d100);
     static INT16 auto_active_sw(double d100);
+    static INT16 slbrk_pswitch(double d100);
 
     static INT16 notch_com_mh(double d100);
     static INT16 notch_com_gt(double d100);
     static INT16 notch_com_bh(double d100);
     static INT16 notch_com_sl(double d100);
     static INT16 notch_com_ah(double d100);
+
+    static INT16 notch_fb_mh(double d100);
+    static INT16 notch_fb_gt(double d100);
+    static INT16 notch_fb_bh(double d100);
+    static INT16 notch_fb_sl(double d100);
+    static INT16 notch_fb_ah(double d100);
 
     static INT16 onoff2hz(double d100);
     static INT16 onoff10hz(double d100);

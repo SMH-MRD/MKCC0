@@ -211,31 +211,6 @@ enum class ENUM_AXIS : uint32_t {
 #define CAM1_SPEC_RESOLUTION_H  2800.0        // PIX/rad
 #define CAM1_SPEC_RESOLUTION_V  2746.0        // PIX/rad
 
-typedef struct StSwySensParam{
-    double arr[(int)ENUM_SWAY_SENSOR::E_MAX][(int)ENUM_SWAY_CAMERA::E_MAX][(int)ENUM_AXIS::E_MAX][SWAY_CAMERA_N_PARAM] =
-    {	//振れセンサ　パラメータ
-        {//No.1 センサ
-        {{2.683,1.107149,0.07,0.0,0.0,1.697,0.7854,0.07,0.0,0.0},{2.4,0.104,0.071,-0.143,0.0,3.9,1.8675,0.071,-0.143,0.0}},	//カメラ1 x,y方向 D0,row,l0,ph0,phc,D02,row2,l02,ph02,phc2
-        {{2.683,1.107149,0.07,0.0,0.0,1.697,0.7854,0.07,0.0,0.0},{2.4,0.104,0.071,-0.143,0.0,3.9,1.8675,0.071,-0.143,0.0}},	//カメラ2 x,y方向 D0,row,l0,ph0,phc,D02,row2,l02,ph02,phc
-        },
-        {//No.2 センサ
-        {{2.683,1.107149,0.07,0.0,0.1,1.697,0.7854,0.07,0.0,0.1},{2.4,0.104,0.071,-0.143,0.1,3.9,1.8675,0.071,-0.143,0.1}},	//カメラ1 x,y方向 D0,row,l0,ph0,phc,D02,row2,l02,ph02,phc
-        {{2.683,1.107149,0.07,0.0,0.1,1.697,0.7854,0.07,0.0,0.1},{2.4,0.104,0.071,-0.143,0.1,3.9,1.8675,0.071,-0.143,0.1}},	//カメラ2 x,y方向 D0,row,l0,ph0,phc,D02,row2,l02,ph02,phc
-        },
-        {//No.3 センサ
-        {{2.683,1.107149,0.07,0.0,0.1,1.697,0.7854,0.07,0.0,0.1},{2.4,0.104,0.071,-0.143,0.1,3.9,1.8675,0.071,-0.143,0.1}},	//カメラ1 x,y方向 D0,row,l0,ph0,phc,D02,row2,l02,ph02,phc
-        {{2.683,1.107149,0.07,0.0,0.1,1.697,0.7854,0.07,0.0,0.1},{2.4,0.104,0.071,-0.143,0.1,3.9,1.8675,0.071,-0.143,0.1}},	//カメラ2 x,y方向 D0,row,l0,ph0,phc,D02,row2,l02,ph02,phc
-        }
-    };
-
-    double rad2pix[(int)ENUM_SWAY_SENSOR::E_MAX][(int)ENUM_SWAY_CAMERA::E_MAX][(int)ENUM_AXIS::E_MAX] =
-    {
-        {{CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}, {CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}},
-        {{CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}, {CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}},
-        {{CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}, {CAM1_SPEC_RESOLUTION_H,CAM1_SPEC_RESOLUTION_V}}
-     };
-}ST_SWY_SENS_PRM, *LPST_SWY_SENS_PRM;
-
 #pragma pack(push, 1)
 //============================================================================
 // 構造体/共用体定義

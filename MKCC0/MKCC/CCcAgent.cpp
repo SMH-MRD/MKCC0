@@ -586,7 +586,7 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_deg.p;							//旋回角度
 	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.gt.p;								//走行位置 
 
-	//## ノッチ指令状態
+	//## ノッチ状態FB
 	INT16 notch = pCrane->pPlc->rval(pPlcRIf->JC.mh_notch).i16;
 	pPLC_IO->stat_mh.notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//MHノッチFB
 	notch = pCrane->pPlc->rval(pPlcRIf->JC.bh_notch).i16;

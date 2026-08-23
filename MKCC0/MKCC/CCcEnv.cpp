@@ -443,7 +443,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pEnvInf->crane_stat.gt.p = pCrane->pSpec->base_gt.PosPreset + dL;
 
 	//’İ“_‚‚³
-	pEnvInf->crane_stat.hph.p = pspec->st_struct.Hp + sqrt(Lb * Lb + pPlcIo->r * pPlcIo->r) ;
+	pEnvInf->crane_stat.hph.p = pspec->st_struct.Hp + sqrt(Lb * Lb - pPlcIo->r * pPlcIo->r) ;
 	
 	//ƒ[ƒv’·
 	pEnvInf->l_mh = pEnvInf->crane_stat.hph.p - pPlcIo->h_mh;

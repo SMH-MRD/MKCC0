@@ -14,7 +14,7 @@
 #define CODE_POL_MAINTE_COMCHECK        21
 #define CODE_POL_MAINTE_DISP_P2P        31
 
-#define MOVE_AVERAGE_COUNT      1   // ˆÚ“®•½‹Ï”
+#define MOVE_AVERAGE_COUNT      1           // ˆÚ“®•½‹Ï”
 
 #pragma endregion CONSTANT_DEFINITION
 //============================================================================
@@ -145,6 +145,11 @@ typedef struct _ST_SWAY_WORK {
     double  sway_peak_r[(int)ENUM_AXIS::E_MAX];         // U‚êŠp‘¬“x‚Ì•„†‚ª-‚©‚ç+‚É•Ï‚í‚Á‚½‚Æ‚«‚ÌU‚êŠp
     int     peak_chk_flg[(int)ENUM_AXIS::E_MAX];        // U‚êŠp‘¬“x‚Ì•„†Ø‚è‘Ö‚í‚è‘Ò‚¿ó‘Ôƒtƒ‰ƒO
     double  sway_acc_chk_limit[(int)ENUM_AXIS::E_MAX];
+    double  sway_acc_peak_chk_limit[(int)ENUM_AXIS::E_MAX];
+    int     sway_T_task_count[(int)ENUM_AXIS::E_MAX];
+    int     sway_target_range_over[(int)ENUM_AXIS::E_MAX];
+    int     sway_peak_chk_count[(int)ENUM_AXIS::E_MAX];
+
 } ST_SWAY_WORK, * PST_SWAY_WORK;
 
 

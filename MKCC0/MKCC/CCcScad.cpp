@@ -606,12 +606,19 @@ INT16(*CScada::get_func_of_logitem(INT32 code))(double d) {
 	case MKLOG_ITEM_CONTROL_SOURCE:return control_source;
 	case MKLOG_ITEM_CONTROL_ESTOP:return e_stop;
 	case MKLOG_ITEM_GRIP_SWITCH:return auto_active_sw;
+	case MKLOG_ITEM_SL_BRK_PSW:return slbrk_pswitch;
 
 	case MKLOG_ITEM_NOTCH_COM_MH:return notch_com_mh;
 	case MKLOG_ITEM_NOTCH_COM_GT:return notch_com_gt;
 	case MKLOG_ITEM_NOTCH_COM_BH:return notch_com_bh;
 	case MKLOG_ITEM_NOTCH_COM_SL:return notch_com_sl;
 	case MKLOG_ITEM_NOTCH_COM_AH:return notch_com_ah;
+
+	case MKLOG_ITEM_NOTCH_FB_MH:return notch_fb_mh;
+	case MKLOG_ITEM_NOTCH_FB_GT:return notch_fb_gt;
+	case MKLOG_ITEM_NOTCH_FB_BH:return notch_fb_bh;
+	case MKLOG_ITEM_NOTCH_FB_SL:return notch_fb_sl;
+	case MKLOG_ITEM_NOTCH_FB_AH:return notch_fb_ah;
 
 	case MKLOG_ITEM_SIN_1HZ:return sin1hz;
 	case MKLOG_ITEM_COS_1HZ:return cos1hz;
