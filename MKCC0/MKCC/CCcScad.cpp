@@ -588,6 +588,8 @@ INT16(*CScada::get_func_of_logitem(INT32 code))(double d) {
 
 	case MKLOG_ITEM_SWY1_TH_X:return swy1_TH_X;
 	case MKLOG_ITEM_SWY1_TH_Y:return swy1_TH_Y;
+	case MKLOG_ITEM_SWY1_DTHWX:return swy1DTHW_X;
+	case MKLOG_ITEM_SWY1_DTHWY:return swy1DTHW_Y;
 	case MKLOG_ITEM_SWY1_DTH_X:return swy1DTH_X;
 	case MKLOG_ITEM_SWY1_DTH_Y:return swy1DTH_Y;
 	case MKLOG_ITEM_SWY1_TX:return swy1_Tx;

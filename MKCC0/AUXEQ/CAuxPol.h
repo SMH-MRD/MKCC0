@@ -14,7 +14,9 @@
 #define CODE_POL_MAINTE_COMCHECK        21
 #define CODE_POL_MAINTE_DISP_P2P        31
 
-#define MOVE_AVERAGE_COUNT      1           // 移動平均数
+#define MOVE_AVERAGE_COUNT       1          // 移動平均数
+#define PRM_SWAY_P_HIST_SIZE     10          // 振れ履歴バッファサイズ
+#define PRM_SWAY_V_HIST_SIZE     10          // 振れ速度履歴バッファサイズ
 
 #pragma endregion CONSTANT_DEFINITION
 //============================================================================
@@ -140,15 +142,14 @@ typedef struct _ST_MOVE_AVE_DATA {
 
 typedef struct _ST_SWAY_WORK {
     double  ph_delay_time;                              // 振れ速度検出のフィルタ他による位相遅れ補正時間
-    double  sway_spd_last[(int)ENUM_AXIS::E_MAX];       // 振角速度前回値
     double  sway_peak_f[(int)ENUM_AXIS::E_MAX];         // 振れ角速度の符号が＋から－に変わったときの振れ角
     double  sway_peak_r[(int)ENUM_AXIS::E_MAX];         // 振れ角速度の符号が-から+に変わったときの振れ角
-    int     peak_chk_flg[(int)ENUM_AXIS::E_MAX];        // 振れ角速度の符号切り替わり待ち状態フラグ
     double  sway_acc_chk_limit[(int)ENUM_AXIS::E_MAX];
     double  sway_acc_peak_chk_limit[(int)ENUM_AXIS::E_MAX];
     int     sway_T_task_count[(int)ENUM_AXIS::E_MAX];
     int     sway_target_range_over[(int)ENUM_AXIS::E_MAX];
     int     sway_peak_chk_count[(int)ENUM_AXIS::E_MAX];
+    int     peak_chk_flg[(int)ENUM_AXIS::E_MAX];        // 振れ角速度の符号切り替わり待ち状態フラグ
 
 } ST_SWAY_WORK, * PST_SWAY_WORK;
 

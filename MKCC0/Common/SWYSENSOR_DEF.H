@@ -493,6 +493,7 @@ typedef struct TAG_SWAY_DATA {
     double aw2;         // a/w/w
 
     std::vector<double> p_history;
+    std::vector<double> v_history;
 
     TAG_SWAY_DATA()
         : p(0.0)

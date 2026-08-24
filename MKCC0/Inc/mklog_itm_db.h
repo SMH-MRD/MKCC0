@@ -48,7 +48,7 @@ typedef struct tagMklogItemUnit {
 #define MKLOG_ITEM_SWY1_DTIL_Y		23
 #define MKLOG_ITEM_SWY1_TX			24
 #define MKLOG_ITEM_SWY1_TY			25
-#define MKLOG_ITEM_SWY1_DTHWX		26
+#define MKLOG_ITEM_SWY1_DTHWX		26// dÉ∆/dt/É÷
 #define MKLOG_ITEM_SWY1_DTHWY		27
 #define MKLOG_ITEM_SWY1_AMP_CAL_X	28
 #define MKLOG_ITEM_SWY1_AMP_CAL_Y	29
@@ -128,8 +128,8 @@ typedef struct ST_MKLOG_DB {
 		{ 0x000D,	1000.0,		L"SL_SPD_REF ",	NULL },//013 MKLOG_ITEM_SL_SPD_REF  
 		{ 0x000E,	4000.0,		L"AH_SPD_REF ",	NULL },//014 MKLOG_ITEM_AH_SPD_REF  
 		{ 0x000F,	4000.0,		L"GT_SPD_REF ",	NULL },//015 MKLOG_ITEM_GT_SPD_REF 
-		{ 0x0010,	2048.0,		L"SW1_PX    " , NULL },//016 MKLOG_ITEM_SWY1_TH_XÅ@	êUÇÍäpPIX
-		{ 0x0011,	1536.0,		L"SW1_PY    " , NULL },//017 MKLOG_ITEM_SWY1_TH_YÅ@	êUÇÍäpPIX	
+		{ 0x0010,	1024.0,		L"SW1_PX    " , NULL },//016 MKLOG_ITEM_SWY1_TH_XÅ@	êUÇÍäpPIX
+		{ 0x0011,	768.0,		L"SW1_PY    " , NULL },//017 MKLOG_ITEM_SWY1_TH_YÅ@	êUÇÍäpPIX	
 		{ 0x0012,	1024.0,		L"SW1_VX   "  , NULL },//018 MKLOG_ITEM_SWY1_DTH_X	êUÇÍäpë¨ìx PIX/sÅ@1ïbÇ≈îºï™ÇÃâÊäp
 		{ 0x0013,	768.0,		L"SW1_VY   "  , NULL },//019 MKLOG_ITEM_SWY1_DTH_Y	êUÇÍäpë¨ìx PIX/s  1ïbÇ≈îºï™ÇÃâÊäp
 		{ 0x0014,	0.0,		L"-",			NULL },//020 MKLOG_ITEM_SWY1_TIL_X	5deg/100%
