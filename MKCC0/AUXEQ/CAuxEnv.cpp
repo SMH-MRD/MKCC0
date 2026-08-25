@@ -242,7 +242,7 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->gain.auto_stop_l		= 0.0;		//自動ゲイン判定輝度(停止上限(この値より輝度が低い場合、停止する),停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
 	
 	// 輝度コントロール設定(露光時間)
-	gp_cnfg_camera->expstime.val			= 1000.0;	//ゲイン設定[dB](初期値, 最小値, 最大値)
+	gp_cnfg_camera->expstime.val			= 100.0;	//ゲイン設定[dB](初期値, 最小値, 最大値)
 	gp_cnfg_camera->expstime.val_min		= 20.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
 	gp_cnfg_camera->expstime.val_max		= 10000.0;	//ゲイン設定[dB](初期値, 最小値, 最大値)
 	gp_cnfg_camera->expstime.auto_control	= true;		//自動シャッター速度設定
