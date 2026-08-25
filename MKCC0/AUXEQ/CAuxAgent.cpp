@@ -63,10 +63,10 @@ extern ST_DEVICE_CODE g_my_code;
 static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
 
 //共有メモリ
-static LPST_AUX_ENV_INF		pEnv_Inf = NULL;
-static LPST_AUX_CS_INF		pCS_Inf = NULL;
-static LPST_AUX_AGENT_INF	pAgent_Inf = NULL;
-static LPST_AUX_POL_INF		pAuxPolInf = NULL;
+static LPST_AUX_ENV_INF		pEnv_Inf	= NULL;
+static LPST_AUX_CS_INF		pCS_Inf		= NULL;
+static LPST_AUX_AGENT_INF	pAgent_Inf	= NULL;
+static LPST_AUX_POL_INF		pAuxPolInf	= NULL;
 static LPST_AUX_SCAD_INF    pAuxScadInf = NULL;
 
 static CAuxAgent* pAgentObj;
@@ -84,7 +84,7 @@ Graphics* CAuxAgent::pgraphic_img;					//描画用グラフィックス
 
 static wostringstream wos_cam;
 
-static PINT16				pOteCtrl = NULL;	//OTE操作入力信号ポインタ
+static PINT16	pOteCtrl = NULL;					//OTE操作入力信号ポインタ
 static LONG rcv_count_plc_r = 0, snd_count_plc_r = 0, rcv_errcount_plc_r = 0;
 static LONG rcv_count_plc_w = 0, snd_count_plc_w = 0, rcv_errcount_plc_w = 0;
 static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //システムカウント
@@ -695,6 +695,19 @@ int CAuxAgent::update_camera_parameter_base() {
 			if (!ret) wosGE << L"  gain auto off";
 		}
 	}
+	// PacketDelayの設定
+	{
+		if (pCamera->set_packet_delay(static_cast<float64_t>(gp_cnfg_camera->basis.packet_delay)) != 0) {
+			pAgentObj->msg2listview(wosGE.str()); wosGE.str(L"");
+			wosGE << L" Fail: Packet delay set";
+			ret = 11;
+		}
+		else {
+			if (!ret) wosGE << L"  packet delay set" << gp_cnfg_camera->basis.packet_delay;
+		}
+		if (ret) wosGE << L"!! Fail Parameter Update Code:" << ret;
+	}
+
 	// カメラのゲインの設定(APIへの設定はスレッドで実行される)
 	{
 		if (pCamera->set_gain(static_cast<float64_t>(gp_cnfg_camera->gain.val)) != 0) {

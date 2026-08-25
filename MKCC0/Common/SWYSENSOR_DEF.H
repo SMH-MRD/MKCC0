@@ -270,14 +270,15 @@ typedef struct TAG_CONFIG_CAMERA_BALANCE_WHITE {
 } CONFIG_CAMERA_BALANCE_WHITE, * PCONFIG_CAMERA_BALANCE_WHITE;
 // カメラの基本設定
 typedef struct TAG_CONFIG_CAMERA_BASIS {
-    std::wstring                ipaddress = L"172.31.0.30";  // IPアドレス
-    CONFIG_CAMERA_ROI           roi[(int)ENUM_AXIS::E_MAX];  // ROI(領域)
-    uint32_t                    packetsize = 9000; // ドライバが受け取るパケットの最大サイズ[byte]
-    double                      framerate = 25.0;  // フレームレート[fps]
-    double                      blacklevel = 0.0; // 黒レベル設定
-    double                      gamma = 1.0;      // ガンマ補正
-    CONFIG_CAMERA_BALANCE_WHITE wb;         // ホワイトバランスゲイン設定
-    double                      viewangle[(int)ENUM_AXIS::E_MAX]; // 視野角[deg]
+    std::wstring                ipaddress = L"172.31.0.30";         // IPアドレス
+    CONFIG_CAMERA_ROI           roi[(int)ENUM_AXIS::E_MAX];         // ROI(領域)
+    uint32_t                    packetsize = 9000;                  // ドライバが受け取るパケットの最大サイズ[byte]
+    double                      framerate = 25.0;                   // フレームレート[fps]
+    double                      blacklevel = 0.0;                   // 黒レベル設定
+    double                      gamma = 1.0;                        // ガンマ補正
+    CONFIG_CAMERA_BALANCE_WHITE wb;                                 // ホワイトバランスゲイン設定
+    double                      viewangle[(int)ENUM_AXIS::E_MAX];   // 視野角[deg]
+    long                        packet_delay = 5000;
 } CONFIG_CAMERA_BASIS, * PCONFIG_CAMERA_BASIS;
 // 輝度コントロール設定
 typedef struct TAG_CONFIG_CAMERA_BRIGHTNESS_CONTROL {
@@ -288,9 +289,9 @@ typedef struct TAG_CONFIG_CAMERA_BRIGHTNESS_CONTROL {
     BOOL   auto_control;    // 自動コントロール(自動[TRUE]/固定[FALSE])
     double auto_rate;       // 自動コントロール変化量
     double auto_start_h;    // 自動コントロール判定輝度(開始上限:この値より輝度が高い場合、暗くする)   [0 - 255]
-    double auto_start_l;    // 自動コントロール判定輝度(開始下限:この値より輝度が高い場合、明るくする) [0 - 255]
-    double auto_stop_h;     // 自動コントロール判定輝度(停止上限:この値より輝度が低い場合、停止する)   [0 - 255]
-    double auto_stop_l;     // 自動コントロール判定輝度(停止下限:この値より輝度が高い場合、停止する)   [0 - 255]
+    double auto_start_l;    // 自動コントロール判定輝度(開始下限:この値より輝度が低い場合、明るくする) [0 - 255]
+    double auto_stop_h;     // 自動コントロール判定輝度(停止上限:この値より輝度が高い場合、停止する)   [0 - 255]
+    double auto_stop_l;     // 自動コントロール判定輝度(停止下限:この値より輝度が低い場合、停止する)   [0 - 255]
 
 } CONFIG_CAMERA_BRIGHTNESS_CONTROL, * PCONFIG_CAMERA_BRIGHTNESS_CONTROL;
 // カメラの異常判定設定

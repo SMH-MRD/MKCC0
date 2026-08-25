@@ -218,6 +218,8 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::X].size = gp_cnfg_common->full_pix[(int)ENUM_AXIS::X];
 	gp_cnfg_camera->basis.roi[(int)ENUM_AXIS::Y].size = gp_cnfg_common->full_pix[(int)ENUM_AXIS::Y];
 	gp_cnfg_camera->basis.packetsize= 0; 
+	gp_cnfg_camera->basis.packet_delay = 5000;
+
 	//gp_cnfg_camera->basis.packetsize = pCamera->cnfg.packetsize = 0;
 	gp_cnfg_camera->basis.framerate			= 25.0;			//カメラのフレームレートの設定 フル画像では3fps　512x368で最大50fps位が上限
 	gp_cnfg_camera->basis.blacklevel		= 0.0;			// カメラの黒レベルの設定
@@ -229,26 +231,26 @@ void CAuxEnv::init_camera_parameters(int type) {
 	gp_cnfg_camera->basis.viewangle[1]		= 32.0383;	//視野角[deg](X, Y)
 
 	// 輝度コントロール設定(ゲイン)
-	gp_cnfg_camera->gain.val				= 0.0;					//ゲイン設定[dB](初期値, 最小値, 最大値)
-	gp_cnfg_camera->gain.val_min			= 0.0;				//ゲイン設定[dB](初期値, 最小値, 最大値)
-	gp_cnfg_camera->gain.val_max			= 36.0;			//ゲイン設定[dB](初期値, 最小値, 最大値)
-	gp_cnfg_camera->gain.auto_control		= 0;			//自動ゲイン設定(固定[0], 自動ゲイン変化量[dB](未使用))
-	gp_cnfg_camera->gain.auto_rate			= 0;				//自動ゲイン設定(固定[0], 自動ゲイン変化量[dB](未使用))
+	gp_cnfg_camera->gain.val				= 0.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
+	gp_cnfg_camera->gain.val_min			= 0.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
+	gp_cnfg_camera->gain.val_max			= 36.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
+	gp_cnfg_camera->gain.auto_control		= 0;		//自動ゲイン設定(固定[0], 自動ゲイン変化量[dB](未使用))
+	gp_cnfg_camera->gain.auto_rate			= 0;		//自動ゲイン設定(固定[0], 自動ゲイン変化量[dB](未使用))
 	gp_cnfg_camera->gain.auto_start_h		= 0.0;		//自動ゲイン判定輝度(開始上限(この値より輝度が高い場合、暗くする),開始下限(この値より輝度が低い場合、明るくする))[0 - 255]
-	gp_cnfg_camera->gain.auto_start_l		= 0.0;		//自動ゲイン判定輝度(開始上限(この値より輝度が高い場合、暗くする),開始下限(この値より輝度が高い場合、明るくする))[0 - 255]
-	gp_cnfg_camera->gain.auto_stop_h		= 0.0;			//自動ゲイン判定輝度(停止上限(この値より輝度が低い場合、停止する),停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
-	gp_cnfg_camera->gain.auto_stop_l		= 0.0;			//自動ゲイン判定輝度(停止上限(この値より輝度が低い場合、停止する),停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
+	gp_cnfg_camera->gain.auto_start_l		= 254.0;	//自動ゲイン判定輝度(開始上限(この値より輝度が高い場合、暗くする),開始下限(この値より輝度が高い場合、明るくする))[0 - 255]
+	gp_cnfg_camera->gain.auto_stop_h		= 0.0;		//自動ゲイン判定輝度(停止上限(この値より輝度が低い場合、停止する),停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
+	gp_cnfg_camera->gain.auto_stop_l		= 0.0;		//自動ゲイン判定輝度(停止上限(この値より輝度が低い場合、停止する),停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
 	
 	// 輝度コントロール設定(露光時間)
-	gp_cnfg_camera->expstime.val			= 5000.0;			//ゲイン設定[dB](初期値, 最小値, 最大値)
+	gp_cnfg_camera->expstime.val			= 1000.0;	//ゲイン設定[dB](初期値, 最小値, 最大値)
 	gp_cnfg_camera->expstime.val_min		= 20.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
-	gp_cnfg_camera->expstime.val_max		= 33000.0;		//ゲイン設定[dB](初期値, 最小値, 最大値)
+	gp_cnfg_camera->expstime.val_max		= 10000.0;	//ゲイン設定[dB](初期値, 最小値, 最大値)
 	gp_cnfg_camera->expstime.auto_control	= true;		//自動シャッター速度設定
 	gp_cnfg_camera->expstime.auto_rate		= 5.0;		//自動ゲイン設定(固定[0], 自動ゲイン変化量[dB](未使用))
-	gp_cnfg_camera->expstime.auto_start_h	= 248.0;	//自動露光判定輝度  (開始上限(この値より輝度が高い場合、暗くする)　　[0 - 255]
-	gp_cnfg_camera->expstime.auto_start_l	= 180.0;	//自動露光判定輝度  (開始下限(この値より輝度が低い場合、明るくする)　[0 - 255]
-	gp_cnfg_camera->expstime.auto_stop_h	= 245.0;	//自動露光判定輝度  (停止上限(この値より輝度が低い場合、停止する)　　[0 - 255]
-	gp_cnfg_camera->expstime.auto_stop_l	= 235.0;	//自動露光判定輝度  (停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
+	gp_cnfg_camera->expstime.auto_start_h	= 250.0;	//自動露光判定輝度  (開始上限(この値より輝度が高い場合、暗くする)　　[0 - 255]
+	gp_cnfg_camera->expstime.auto_start_l	= 150.0;	//自動露光判定輝度  (開始下限(この値より輝度が低い場合、明るくする)　[0 - 255]
+	gp_cnfg_camera->expstime.auto_stop_h	= 230.0;	//自動露光判定輝度  (停止上限(この値より輝度が低い場合、停止する)　　[0 - 255]
+	gp_cnfg_camera->expstime.auto_stop_l	= 170.0;	//自動露光判定輝度  (停止下限(この値より輝度が高い場合、停止する))  [0 - 255]
 	
 	//ターゲット間距離セットモード
 	gp_app_adjust->host_source_mode			= SWAY_CAL_BASE_SET_BY_DEFAULT;//MCC通信値をセット
@@ -274,9 +276,9 @@ void CAuxEnv::init_camera_parameters(int type) {
 	if (gp_cnfg_imgprc->mask[1].valid) gp_app_adjust->mask_mode += SWAY_SENSOR_MASK_MODE_2;
 
 	//画像マスクH[0-179] (下限,上限)  画像マスクS[0-255](下限,上限) 画像1マスクV[0-255](下限,上限)
-	gp_cnfg_imgprc->mask[0].hsv_l[0] = 0;	gp_cnfg_imgprc->mask[0].hsv_l[1] = 50;	gp_cnfg_imgprc->mask[0].hsv_l[2] = 150;
+	gp_cnfg_imgprc->mask[0].hsv_l[0] = 170;	gp_cnfg_imgprc->mask[0].hsv_l[1] = 50;	gp_cnfg_imgprc->mask[0].hsv_l[2] = 100;
 	gp_cnfg_imgprc->mask[0].hsv_u[0] = 30;	gp_cnfg_imgprc->mask[0].hsv_u[1] = 255; gp_cnfg_imgprc->mask[0].hsv_u[2] = 255;
-	gp_cnfg_imgprc->mask[1].hsv_l[0] = 50;	gp_cnfg_imgprc->mask[1].hsv_l[1] = 50;	gp_cnfg_imgprc->mask[1].hsv_l[2] = 150;
+	gp_cnfg_imgprc->mask[1].hsv_l[0] = 50;	gp_cnfg_imgprc->mask[1].hsv_l[1] = 50;	gp_cnfg_imgprc->mask[1].hsv_l[2] = 100;
 	gp_cnfg_imgprc->mask[1].hsv_u[0] = 90;	gp_cnfg_imgprc->mask[1].hsv_u[1] = 255; gp_cnfg_imgprc->mask[1].hsv_u[2] = 255;
 
 	//filter設定

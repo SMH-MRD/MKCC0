@@ -163,6 +163,7 @@ public:
     int32_t set_wbalance_ratio(float64_t wbratio, Teli::CAM_BALANCE_RATIO_SELECTOR_TYPE selectortype);  // カメラのホワイトバランスゲイン(倍率)の設定
     int32_t set_gain_auto(Teli::CAM_GAIN_AUTO_TYPE autotype);                                           // カメラのAGC(Automatic gain control)動作モードの設定
     int32_t set_gain(float64_t gain);                                                                   // カメラのゲインの設定(APIへの設定はスレッドで実行される)
+    int32_t set_packet_delay(long val);                                                                 // カメラのパケットディレイ設定(APIへの設定はスレッドで実行される)
     int32_t set_expstime_control(Teli::CAM_EXPOSURE_TIME_CONTROL_TYPE ctrltype);                        // カメラの露光時間の制御モードの設定
     int32_t set_expstime(float64_t expstime);                                                           // カメラの露光時間の設定(APIへの設定はスレッドで実行される)
 

@@ -941,6 +941,38 @@ int32_t CTeliCamLib::set_gain(float64_t gain)
     return ret;
 }
 
+
+#include "TeliCamApi.h"
+#include "TeliCamUtl.h"
+
+
+/// @brief カメラのPacketDelayの設定(APIへの設定はスレッドで実行される)
+/// @param [in] val - 許容遅れ設定値
+/// @return 結果(0:成功 0以外:失敗)
+/// @note
+int32_t CTeliCamLib::set_packet_delay(long val)
+{
+    int32_t ret = 0;
+
+    PTELI_CAM_STATUS camstat = &stat;   // カメラのステータス
+
+    if (camstat->camhndl == NULL) {
+        ret = -1;
+        m_errmsg = L"[CTeliCamLib::set_packet_delay]<Error>camstat->camhndl";
+    }
+    else {
+        //----------------------------------------------------------------------------
+        // カメラの露光時間の制御モードを設定
+        if ((camstat->apistat = Teli::GenApi_SetIntValue(camstat->camhndl, "GevSCPD", val)) != Teli::CAM_API_STS_SUCCESS) {
+            ret = -2;
+
+            wos_msg.str(L""); wos_msg << L"[CTeliCamLib::set_packet_delay]<Error>Teli::SetPacketDelay(" << camstat->apistat << ")";
+            m_errmsg = wos_msg.str();
+        }
+    }
+    return ret;
+}
+
 /// @brief カメラの露光時間の制御モードの設定
 /// @param [in] ctrltype - 露光時間の制御モード(CAM_EXPOSURE_TIME_CONTROL_TYPE)
 /// @return 結果(0:成功 0以外:失敗)

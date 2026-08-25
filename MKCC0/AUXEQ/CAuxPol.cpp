@@ -1200,12 +1200,7 @@ void CAuxPol::proc_sway(int idx)
 
 		//一時遅れフィルタの基本式　output = α×input + (1-α）× previous_output
 		//サンプリング周期T=40msec　カットオフ周波数fc=2Hz →　時定数τ=1/2πfc≒0.08 α=T/(τ+T) = 0.33
-//		if ((acc_now < chk_limit) && (-acc_now < chk_limit)) {
-			psway_data->v = psway_data->alpha * speed_now + (1 - psway_data->alpha) * psway_data->v; // フィルタ有
-//		}
-//		else {
-//			psway_data->v =  psway_data->v; //前回値保持
-//		}
+		psway_data->v = psway_data->alpha * speed_now + (1 - psway_data->alpha) * psway_data->v; // フィルタ有
 		psway_data->a = psway_data->alpha * acc_now + (1 - psway_data->alpha) * psway_data->a;	// フィルタ有
 		psway_data->vw = psway_data->v / psway_data->w;						// v/w
 		psway_data->aw2 = psway_data->a / (psway_data->w * psway_data->w);	// a/w/w
@@ -1423,23 +1418,26 @@ static double exps_time_lower_limit;
 /// <scenario>
 /// 
 /// </scenario>
+static int exps_hold_count = 0;
 void CAuxPol::set_expstime()
 {
-
 	if ((!gp_cnfg_common->img_source_camera)|| (gp_app_imgprc->exps_mode == EXPOSURE_CONTROL_MANUAL)){
-		//# 画像入力がカメラでなければ　return　カメラ:1 画像データ:0
-		//# 手動設定モードでreturn (SCADAのウィンドウで設定）
-		gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;
+		//# 画像入力がカメラでない（カメラ:1 画像データ:0）か　手動設定モード(SCADAのウィンドウで設定）でreturn　
+			gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;
 		return;
 	}
-
 	
 	if (!(gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))) {//% シャッターコントロール禁止判定 （画像入力異常でHOLD)
-		//露光時間は初期値に固定
 		gp_app_imgprc->exps_mode = EXPOSURE_CONTROL_HOLD;
-		//gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;
-		//移動平均データリセット
-		ZeroMemory(m_move_avrg_data.data, sizeof(m_move_avrg_data.data));
+		exps_hold_count++;
+		if ((exps_hold_count > st_sway_work.sway_T_task_count[(int)ENUM_AXIS::X]*2 ) || (exps_hold_count > st_sway_work.sway_T_task_count[(int)ENUM_AXIS::Y]*2)) {
+			//振れ2周期以上ホールド継続でリセットステップへ移行
+			exps_hold_count = 0;
+			gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;		
+			gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;
+		}
+
+		ZeroMemory(m_move_avrg_data.data, sizeof(m_move_avrg_data.data));//移動平均データリセット
 		m_move_avrg_data.wptr = 0;m_move_avrg_data.data_count = 0;m_move_avrg_data.total_val = 0;m_move_avrg_data.max_val = 0.0f;
 		was_over_expose = false;
 		was_under_expose = false;
@@ -1469,7 +1467,7 @@ void CAuxPol::set_expstime()
 			}
 			else if ((gp_app_imgprc->exps_chk_brightness >= gp_cnfg_camera->expstime.auto_start_h) && (was_under_expose == false)) {// 最大輝度が閾値以上の場合、露光時間を減らす
 				// 輝度に比例して露光時間を減らす 
-				gp_app_imgprc->exps_time -= gp_app_imgprc->exps_chk_brightness * 0.01;
+				gp_app_imgprc->exps_time -= gp_app_imgprc->exps_chk_brightness * 0.1;
 				was_over_expose = true;
 				was_under_expose = false;
 			}
@@ -1479,19 +1477,20 @@ void CAuxPol::set_expstime()
 				was_under_expose = false;//露光時間を減らす方向は下限閾値まで落ち込まない限りキープ;
 			}
 		}
-		else if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_ROI_KEEP) {
+		else if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_HOLD) {
 			//レンジオーバー用　露光時間キープ
-			gp_app_imgprc->exps_time = gp_app_imgprc->exps_time;
+			//gp_app_imgprc->exps_time = gp_app_imgprc->exps_time;
 		}
 		else {//初期化ステップ
-			if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_RESET_STEP) {
-				gp_app_imgprc->exps_time = 1000;
+			if (gp_app_imgprc->exps_ctrl_mode == EXPOSURE_CONTROL_RESET_STEP) {//リセット0ステップ
+				gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val;
+				//初期化ステップでの上下限値セット
 				exps_time_lower_limit = gp_cnfg_camera->expstime.val_min;
 				exps_time_upper_limit = gp_cnfg_camera->expstime.val_max;
 				was_over_expose = false;
-				gp_app_imgprc->exps_step_count = EXPOSURE_CONTROL_STEP_COUNT;
+				gp_app_imgprc->exps_step_count = EXPOSURE_CONTROL_STEP_COUNT;//待機待ち用カウントセット
 			}
-			// exps_ctrl_modeは初期化時はステップカウンタ 　RESET_STEP 0100 →　RESET_STEP_FIN　011Fまで
+			// exps_ctrl_modeは、コードRESET_STEP 0100 →　RESET_STEP_FIN　011Fまで32ステップまで実施
 			// 偶数ステップは露光時間を変更する実処理ステップ、
 			// 奇数ステップは待機ステップで exps_step_countは待機ステップのカウントダウン用
 			// シャッター速度を変更した後、次のステップに進む前に待機することで、カメラの露光時間が安定するまでの時間を確保する
@@ -1512,21 +1511,20 @@ void CAuxPol::set_expstime()
 						gp_app_imgprc->exps_time -= (exps_time_upper_limit - exps_time_lower_limit) / 2;
 					}
 					else {
-						if ((gp_app_imgprc->exps_time / 2) < exps_time_lower_limit)
-							gp_app_imgprc->exps_time -= (exps_time_upper_limit - exps_time_lower_limit) / 2;
-						else
-							gp_app_imgprc->exps_time /= 2;
+						gp_app_imgprc->exps_time -= (exps_time_upper_limit - exps_time_lower_limit) / 2;//レンジ範囲の半分のスパンで補正
+
+						if (gp_app_imgprc->exps_time < exps_time_lower_limit)gp_app_imgprc->exps_time < exps_time_lower_limit;
 					}
-					was_over_expose = true;
-					was_under_expose = false;
+					was_over_expose = true;		//過剰露光フラグON
+					was_under_expose = false;	//過少露光フラグOFF
 				}
 				else {
-					exps_time_lower_limit = gp_app_imgprc->exps_time;
+					exps_time_lower_limit = gp_app_imgprc->exps_time;//最大輝度以下なので現在値を下限値に設定
 					if (gp_app_imgprc->exps_chk_brightness < 220.0) {
-						if (was_over_expose) {
-							gp_app_imgprc->exps_time = gp_app_imgprc->exps_time + (exps_time_upper_limit - exps_time_lower_limit) / 2;
+						if (was_over_expose) {//前の設定ステップは過剰露光からの補正だった
+							gp_app_imgprc->exps_time = gp_app_imgprc->exps_time + (exps_time_upper_limit - exps_time_lower_limit) / 2;//レンジ範囲の半分のスパンで補正
 						}
-						else {
+						else {//前の設定ステップは過剰露光でなかった
 							if ((gp_app_imgprc->exps_time * 2) > exps_time_upper_limit) {
 								gp_app_imgprc->exps_time = gp_app_imgprc->exps_time + (exps_time_upper_limit - exps_time_lower_limit) / 2;
 							}
@@ -1543,9 +1541,9 @@ void CAuxPol::set_expstime()
 			}
 		}
 		
-		if (gp_app_imgprc->exps_ctrl_mode > EXPOSURE_CONTROL_RESET_STEP_FIN) 
-			//gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_RESET_STEP;//リセットして繰り返し
-			gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_ROI_MODE;//
+		if (gp_app_imgprc->exps_ctrl_mode > EXPOSURE_CONTROL_RESET_STEP_FIN) {//リセットステップ完了で通常モード
+			gp_app_imgprc->exps_ctrl_mode = EXPOSURE_CONTROL_ROI_MODE;
+		}
 
 		//上下限リミット処理
 		if (gp_app_imgprc->exps_time > gp_cnfg_camera->expstime.val_max) gp_app_imgprc->exps_time = gp_cnfg_camera->expstime.val_max;
