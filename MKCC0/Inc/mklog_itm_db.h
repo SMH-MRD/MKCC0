@@ -128,18 +128,18 @@ typedef struct ST_MKLOG_DB {
 		{ 0x000D,	1000.0,		L"SL_SPD_REF ",	NULL },//013 MKLOG_ITEM_SL_SPD_REF  100%->1000 
 		{ 0x000E,	2000.0,		L"AH_SPD_REF ",	NULL },//014 MKLOG_ITEM_AH_SPD_REF  100%->1000 
 		{ 0x000F,	1000.0,		L"GT_SPD_REF ",	NULL },//015 MKLOG_ITEM_GT_SPD_REF  100%->1000
-		{ 0x0010,	1024.0,		L"SW1_PX    " , NULL },//016 MKLOG_ITEM_SWY1_TH_X@	U‚êŠpPIX
-		{ 0x0011,	768.0,		L"SW1_PY    " , NULL },//017 MKLOG_ITEM_SWY1_TH_Y@	U‚êŠpPIX	
-		{ 0x0012,	1024.0,		L"SW1_VX   "  , NULL },//018 MKLOG_ITEM_SWY1_DTH_X	U‚êŠp‘¬“x PIX/s@1•b‚Å”¼•ª‚Ì‰æŠp
-		{ 0x0013,	768.0,		L"SW1_VY   "  , NULL },//019 MKLOG_ITEM_SWY1_DTH_Y	U‚êŠp‘¬“x PIX/s  1•b‚Å”¼•ª‚Ì‰æŠp
+		{ 0x0010,	512.0,		L"SW1_PX    " , NULL },//016 MKLOG_ITEM_SWY1_TH_X@	U‚êŠpPIX
+		{ 0x0011,	384.0,		L"SW1_PY    " , NULL },//017 MKLOG_ITEM_SWY1_TH_Y@	U‚êŠpPIX	
+		{ 0x0012,	512.0,		L"SW1_VX   "  , NULL },//018 MKLOG_ITEM_SWY1_DTH_X	U‚êŠp‘¬“x PIX/s@1•b‚Å”¼•ª‚Ì‰æŠp
+		{ 0x0013,	384.0,		L"SW1_VY   "  , NULL },//019 MKLOG_ITEM_SWY1_DTH_Y	U‚êŠp‘¬“x PIX/s  1•b‚Å”¼•ª‚Ì‰æŠp
 		{ 0x0014,	0.0,		L"-",			NULL },//020 MKLOG_ITEM_SWY1_TIL_X	ŒXŽÎŒvŠp“x
 		{ 0x0015,	0.0,		L"-",			NULL },//021 MKLOG_ITEM_SWY1_TIL_Y	ŒXŽÎŒvŠp“x
 		{ 0x0016,	0.0,		L"-",			NULL },//022 MKLOG_ITEM_SWY1_DTIL_X	ŒXŽÎŒvŠp‘¬“x
 		{ 0x0017,	0.0,		L"-",			NULL },//023 MKLOG_ITEM_SWY1_DTIL_Y	ŒXŽÎŒvŠp‘¬“x
 		{ 0x0018,	30.0,		L"SW1Tx      ",	NULL },//024  MKLOG_ITEM_SWY1_TX	U‚êŽüŠú	
 		{ 0x0019,	30.0,		L"SW1Ty      ",	NULL },//025  MKLOG_ITEM_SWY1_TY	U‚êŽüŠú	
-		{ 0x001a,	1024,		L"SW1V/WX    ",	NULL },//026  MKLOG_ITEM_SWY1_DTHWX	dƒÆ/dt/ƒÖ	
-		{ 0x001b,	768,		L"SW1V/WY    ",	NULL },//027  MKLOG_ITEM_SWY1_DTHWY	dƒÆ/dt/ƒÖ	
+		{ 0x001a,	512,		L"SW1V/WX    ",	NULL },//026  MKLOG_ITEM_SWY1_DTHWX	dƒÆ/dt/ƒÖ	
+		{ 0x001b,	384,		L"SW1V/WY    ",	NULL },//027  MKLOG_ITEM_SWY1_DTHWY	dƒÆ/dt/ƒÖ	
 		{ 0x001c,	1024,		L"SW1AMP_CALX", NULL },//028  MKLOG_ITEM_SWY1_AMP_CAL_X		U‚êU•’€ŽŸŒvŽZŽ®
 		{ 0x001d,	768,		L"SW1AMP_CALY",	NULL },//029  MKLOG_ITEM_SWY1_AMP_CAL_Y		U‚êU•’€ŽŸŒvŽZŽ®
 		{ 0x001e,	PI180,		L"SW1PH_CALX" ,	NULL },//030  MKLOG_ITEM_SWY1_PH_CAL_X		U‚êˆÊ‘Š’€ŽŸŒvŽZŽ®
