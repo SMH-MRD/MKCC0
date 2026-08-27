@@ -1108,7 +1108,7 @@ BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
 	cv::Rect roi;
 
 	//#　ターゲット判定閾値
-	size_chk_high	= (double)(size_expected->width) * 4.0;//ロープ長から期待される検出サイズ上限　想定寸法4倍以下
+	size_chk_high	= (double)(size_expected->width) * 10.0;//ロープ長から期待される検出サイズ上限　想定寸法10倍以下
    	size_chk_low	= (double)(size_expected->width) / 4.0;//ロープ長から期待される検出サイズ下限　想定寸法1/4倍以上
 
 	for (size_t i = 0; i < contours.size(); i++) {
