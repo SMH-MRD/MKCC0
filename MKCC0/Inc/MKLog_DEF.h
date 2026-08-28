@@ -125,6 +125,7 @@ typedef struct StLogFileBuf {
 	INT32 ir;				//Read Pointer
 	INT32 n_item;			//ログ項目数
 	INT32 sample_count;		//サンプリング周期カウント値
+	INT32 n_record;			//レコード数
 	ST_LOG_HEADER header;
 	ST_LOG_RECORD records[MKLOG_N_LOG_RECORD];
 }ST_LOG_FILE_BUF, * LPST_LOG_FILE_BUF;

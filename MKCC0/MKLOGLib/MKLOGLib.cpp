@@ -37,6 +37,8 @@ ST_SCATLOG_WINDOW CMKLog::st_scatlog_wnd;
 ST_LOG_TIME_CHART_CTRL CMKLog::st_tm_chart_ctrl;
 ST_LOG_SCAT_CHART_CTRL CMKLog::st_sc_chart_ctrl;
 
+LONGLONG	CMKLog::log_start_counter_ms[MKLOG_N_ID_TYPE];
+LONGLONG*	CMKLog::p_counter_ms;
 
 LPST_LOG_HEADER CMKLog::phead[MKLOG_N_ID_TYPE];
 LPST_MKLOG_DB CMKLog::pdb;
@@ -51,6 +53,13 @@ CMKLog::~CMKLog() {
 	delete_wnd_objects(MKLOG_ID_TYPE_ALL);
 };	//staticクラスにするのでprivateにする
 
+
+
+
+ 
+static int win_pad = 5;//Windowのパディング
+static bool check_flg = true;
+static bool be_refresh = false;
 
 LRESULT CALLBACK CMKLog::EventLogWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
@@ -93,20 +102,6 @@ LRESULT CALLBACK CMKLog::EventLogWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
 	return S_OK;
 }
-
-/// <summary>
-/// 
-/// </summary>
-/// <param name="hWnd"></param>
-/// <param name="message"></param>
-/// <param name="wParam"></param>
-/// <param name="lParam"></param>
-/// <returns></returns>
- 
-static int win_pad = 5;//Windowのパディング
-static bool check_flg = true;
-static bool be_refresh = false;
-
 LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -247,6 +242,9 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 			if (BST_CHECKED == SendMessage(st_timelog_wnd.hwnd_obj[ID_MKLOG_ITEM_TMCHART_CB_ACT], BM_GETCHECK, 0, 0)) {
 
 				st_tm_chart_ctrl.scan_time_ms = (UINT)(logbuf[type].header.d100[MKLOG_INDEX_SCAN_MS]);
+				
+				log_start_counter_ms[type] = *p_counter_ms;//ホスト（SCAD）時間
+
 				SetTimer(hWnd, ID_LOG_TIMER_TIME, st_tm_chart_ctrl.scan_time_ms, NULL);
 
 				st_work_wnd.is_timer_active[type] = L_ON;
@@ -270,11 +268,13 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 		}break;
 		case MKLOG_ID_WND_CTRL_TIME + ID_MKLOG_ITEM_TMCHART_PB_CHART: {		//ログチャート表示開始/停止
 
+			//チャートの色識別表示を描画
 			if (st_tm_chart_ctrl.icon_draw != L_ON) {
 				draw_icon(GetDC(hWnd), MKLOG_ID_TYPE_TIME);
 			}
 
-			if (get_logstatus(type) & MKLOG_CODE_LOG_CHART_ACTIVE) {
+			
+			if (get_logstatus(type) & MKLOG_CODE_LOG_CHART_ACTIVE) {//チャート動作中であればチャート停止
 				set_logstatus(type, (get_logstatus(type) & ~MKLOG_CODE_LOG_CHART_ACTIVE));
 				
 				st_timelog_wnd.stat_obj[ID_MKLOG_ITEM_TMCHART_PB_CHART] = BST_UNCHECKED;
@@ -287,7 +287,7 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 				st_tm_chart_ctrl.is_disp_over_range = L_OFF;
 
 			}
-			else {
+			else {//チャート起動
 				init_log_setting(type, L_OFF);
 				st_timelog_wnd.stat_obj[ID_MKLOG_ITEM_TMCHART_PB_CHART] = BST_CHECKED;
 				set_logstatus(type, (get_logstatus(type) | MKLOG_CODE_LOG_CHART_ACTIVE));
@@ -367,7 +367,7 @@ LRESULT CALLBACK CMKLog::TimeLogWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 				}
 			}
 		}break;
-		case MKLOG_ID_WND_CTRL_TIME + ID_MKLOG_ITEM_TMCHART_PB_BMP: {			//RESTART
+		case MKLOG_ID_WND_CTRL_TIME + ID_MKLOG_ITEM_TMCHART_PB_BMP: {
 
 		}break;
 		case MKLOG_ID_WND_CTRL_TIME + ID_MKLOG_ITEM_TMCHART_PB_FILE: {			//ログファイル書き出し
@@ -1541,17 +1541,21 @@ static time_t rectime;
 
 	 switch (type) {
 	 case MKLOG_ID_TYPE_TIME: {
-		 //一周していないケース
+		 //一周していないケース（書き込みidが0 または、書き込みポインタがバッファ末尾配列以上
 		 if ((logbuf[type].records[logbuf[type].iw].id == 0)||(logbuf[type].iw >= MKLOG_N_LOG_RECORD - 1)) {
 			 for (int i = 0; i < logbuf[type].iw-1; i++) {
 				 rectime = (prec + i)->time;
 				 localtime_s(&rectm, &rectime);
 
-//				 wcsftime(formatted_time, sizeof(formatted_time), L"%m%d%H:%M:%S", &rectm);
+				 //時間書き込み
 				 wcsftime(formatted_time, sizeof(formatted_time), L"%H:%M:%S", &rectm);
 				 outputfile << formatted_time << L"," ;
 
-				 outputfile << (prec + i)->id << L",";
+				//インデックスカウント書き込み
+				// outputfile << (prec + i)->id << L",";
+				 outputfile << (prec + i)->data[MKLOG_INDEX_SCAN_MS] << L",";
+
+				//データ項目書き込み
 				 for (int k = MKLOG_INDEX_LOG_DATA0; k < Nitem + MKLOG_INDEX_LOG_DATA0; k++) {
 					 outputfile << (prec + i)->data[k] << L",";
 				 }
@@ -1559,19 +1563,30 @@ static time_t rectime;
 			 }
 		 }
 		 //一周しているケース
-		 else {
-			 for (int i = logbuf[type].iw; i < MKLOG_N_LOG_RECORD; i++) {
+		 else {//一周しているのでバッファ全体を出力
 
+			 for (int i = logbuf[type].iw; i < MKLOG_N_LOG_RECORD; i++) {	//現在インデックス～末尾まで
+
+				 //時間書き込み
 				 outputfile << (prec + i)->time << L"," << (prec + i)->id << L",";
+
+				 //インデックスカウント書き込み
+ 				 outputfile << (prec + i)->data[MKLOG_INDEX_SCAN_MS] << L",";
+
 				 for (int k = MKLOG_INDEX_LOG_DATA0; k < Nitem + MKLOG_INDEX_LOG_DATA0; k++) {
 					 outputfile << (prec + i)->data[k] << L",";
 				 }
 				 outputfile << std::endl;
 			 }
 
-			 for (int i = 0; i < logbuf[type].iw; i++) {
+			 for (int i = 0; i < logbuf[type].iw; i++) {	//最初のレコード～現在インデックス
 
+				 //時間書き込み
 				 outputfile << (prec + i)->time << L"," << (prec + i)->id << L",";
+
+				 //インデックスカウント書き込み
+				 outputfile << (prec + i)->data[MKLOG_INDEX_SCAN_MS] << L",";
+
 				 for (int k = MKLOG_INDEX_LOG_DATA0; k < Nitem + MKLOG_INDEX_LOG_DATA0; k++) {
 					 outputfile << (prec + i)->data[k] << L",";
 				 }
@@ -1592,11 +1607,14 @@ static time_t rectime;
 				 rectime = (prec + i)->time;
 				 localtime_s(&rectm, &rectime);
 
-				 //				 wcsftime(formatted_time, sizeof(formatted_time), L"%m%d%H:%M:%S", &rectm);
+				 //時間書き込み
 				 wcsftime(formatted_time, sizeof(formatted_time), L"%H:%M:%S", &rectm);
 				 outputfile << formatted_time << L",";
 
-				 outputfile << (prec + i)->id << L",";
+			//	 outputfile << (prec + i)->id << L",";
+				 //インデックスカウント書き込み
+				 outputfile << (prec + i)->data[MKLOG_INDEX_SCAN_MS] << L",";
+
 				 for (int k = MKLOG_INDEX_LOG_DATA0; k < Nitem + MKLOG_INDEX_LOG_DATA0; k++) {
 					 outputfile << (prec + i)->data[k] << L",";
 				 }
@@ -1607,7 +1625,15 @@ static time_t rectime;
 		 else {
 			 for (int i = logbuf[type].iw; i < MKLOG_N_LOG_RECORD; i++) {
 
+				 //時間書き込み
+				 rectime = (prec + i)->time;
+				 localtime_s(&rectm, &rectime);
+				 wcsftime(formatted_time, sizeof(formatted_time), L"%H:%M:%S", &rectm);
 				 outputfile << (prec + i)->time << L"," << (prec + i)->id << L",";
+
+				 //インデックスカウント書き込み
+				 outputfile << (prec + i)->data[MKLOG_INDEX_SCAN_MS] << L",";
+
 				 for (int k = MKLOG_INDEX_LOG_DATA0; k < Nitem + MKLOG_INDEX_LOG_DATA0; k++) {
 					 outputfile << (prec + i)->data[k] << L",";
 				 }
@@ -1615,7 +1641,11 @@ static time_t rectime;
 			 }
 
 			 for (int i = 0; i < logbuf[type].iw; i++) {
-
+	
+				 //時間書き込み
+				 rectime = (prec + i)->time;
+				 localtime_s(&rectm, &rectime);
+				 wcsftime(formatted_time, sizeof(formatted_time), L"%H:%M:%S", &rectm);
 				 outputfile << (prec + i)->time << L"," << (prec + i)->id << L",";
 				 for (int k = MKLOG_INDEX_LOG_DATA0; k < Nitem + MKLOG_INDEX_LOG_DATA0; k++) {
 					 outputfile << (prec + i)->data[k] << L",";
@@ -1629,8 +1659,6 @@ static time_t rectime;
 
 	 //#########   ファイルを閉じる　#########
 	 outputfile.close();
-
-
 
 	return 0;
 }
@@ -2406,6 +2434,8 @@ void CMKLog::init_graphic(int log_type) {
 
 void CMKLog::init_log_setting(int log_type, int update_log_source) {
 
+	log_start_counter_ms[log_type] = *p_counter_ms;//ホスト（SCAD）時間
+
 	switch (log_type) {
 	case MKLOG_ID_TYPE_TIME: {
 		INT32 n_onoff1 = 0, n_onoff2 = 0;
@@ -2581,6 +2611,11 @@ void CMKLog::init_log_setting(int log_type, int update_log_source) {
 	return;
 }
 
+/// <summary>
+/// グラフ項目の色識別表示アイコンを描画
+/// </summary>
+/// <param name="hdc"></param>
+/// <param name="log_type"></param>
 void CMKLog::draw_icon(HDC hdc,int log_type) {
 
 	Gdiplus::Graphics graphics(hdc);

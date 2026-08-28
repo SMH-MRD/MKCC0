@@ -115,9 +115,8 @@ int CScada::input() {
 
 int CScada::parse() {           //ƒƒCƒ“ˆ—
 
-
 	//ƒƒOƒf[ƒ^ƒZƒbƒgˆ—
-	if ((pmklog != NULL) && (pmklog->is_log_wnd_active.i64)) {
+	if ((pmklog != NULL) && (pmklog->is_log_wnd_active.i64)) {//ƒƒO—LŒøiƒƒOƒEƒBƒ“ƒhƒEOPENj
 		for (int i = MKLOG_ID_TYPE_TIME; i <= MKLOG_ID_TYPE_SCAT; i++) {
 			LPST_LOG_HEADER pheader;
 
@@ -132,13 +131,18 @@ int CScada::parse() {           //ƒƒCƒ“ˆ—
 			}
 
 			if ((pmklog->get_logstatus(i) & MKLOG_CODE_LOG_REC_AND_CHART)) {
+	
+				LONGLONG count_ms = (inf.sys_count.QuadPart - pmklog->log_start_counter_ms[i])/inf.cnt_unit_ms;
+				pmklog->loghot[i][MKLOG_INDEX_SCAN_MS] = (INT16)count_ms;
+
 				for (int k = MKLOG_INDEX_LOG_DATA0; k < logsource.n_item[i] + MKLOG_INDEX_LOG_DATA0; k++) {
 					if (st_log_db.item[pheader->code[k]].func != NULL)
 						pmklog->loghot[i][k] = st_log_db.item[pheader->code[k]].func(st_log_db.item[pheader->code[k]].d100);
 					if (k == 6)
 						INT16 dat = pmklog->loghot[i][k];
 				}
-				log_elapse_count[i]++;
+				
+				log_elapse_count[i]++;//ƒfƒoƒbƒO—p
 			}
 			else {
 				if (i == MKLOG_ID_TYPE_EVENT)
@@ -490,6 +494,8 @@ int CScada::update_logsource_all(bool is_from_inifile) {//Logİ’èƒf[ƒ^‚Ì“Ç‚İ‚
 	//ƒƒOƒoƒbƒtƒ@ƒwƒbƒ_•” PCƒR[ƒhƒZƒbƒg
 	pmklog->set_PCcode((INT16)(g_my_code.machine_id));
 
+	pmklog->p_counter_ms = &inf.sys_count.QuadPart;
+
 	for (int i = 0; i < MKLOG_N_ID_TYPE; i++) {
 
 		if (is_from_inifile) {
@@ -541,6 +547,8 @@ int CScada::update_logsource(int logtype, bool is_from_inifile) {
 		//  Ini file‚©‚çlogsource‚Ö‚Ì“Ç‚İ‚İ
 		//	pmklog->cmap[i].set_item(k, logsource.psource[i][k], logsource.item_code[i][k], logsource.title[i][k], logsource.val100[i][k]);
 	}
+
+	pmklog->p_counter_ms = &inf.sys_count.QuadPart;
 
 	LPST_LOG_HEADER pheader;
 	switch (logtype) {
@@ -661,7 +669,6 @@ int CScada::req_command(WORD com_code, WORD param, void* pparam) {
 	}
 	return 0;
 }
-
 
 ///###	ƒ^ƒuƒpƒlƒ‹‚ÌListView‚ÉƒƒbƒZ[ƒW‚ğo—Í
 void CScada::msg2listview(wstring wstr) {

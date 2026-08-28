@@ -117,6 +117,9 @@ public:
 
 	static LPST_MKLOG_DB pdb;
 
+	static LONGLONG log_start_counter_ms[MKLOG_N_ID_TYPE];
+	static LONGLONG* p_counter_ms;
+
 	static void set_db(LPST_MKLOG_DB pdb_) { pdb = pdb_;  return; }
 
 	static INT16 loghot[MKLOG_N_ID_TYPE][MKLOG_N_LOG_ITEM_MAX];
