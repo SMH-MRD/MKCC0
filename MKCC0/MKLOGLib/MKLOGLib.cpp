@@ -28,8 +28,8 @@ ST_MKLOG_WORK_WND CMKLog::st_work_wnd;
 UN_MKLOG_WND_ACTIVE CMKLog::is_log_wnd_active;
 
 ST_LOG_FILE_BUF CMKLog::logbuf[MKLOG_N_ID_TYPE];
-INT16 CMKLog::loghot[MKLOG_N_ID_TYPE][MKLOG_N_LOG_ITEM_MAX];//ログ項目表示値現在値
-INT32 CMKLog::logidhot[MKLOG_N_ID_TYPE];
+INT16 CMKLog::loghot[MKLOG_N_ID_TYPE][MKLOG_N_LOG_ITEM_MAX];	//ログ項目表示値現在値
+INT32 CMKLog::logidhot[MKLOG_N_ID_TYPE];						//ログ項目表示値格納INDEX
 
 ST_TIMELOG_WINDOW CMKLog::st_timelog_wnd;
 ST_SCATLOG_WINDOW CMKLog::st_scatlog_wnd;

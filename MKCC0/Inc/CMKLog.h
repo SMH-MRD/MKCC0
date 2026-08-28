@@ -211,7 +211,7 @@ public:
 	/// loghotの各項目をRecordバッファに書き込み
 	/// </summary>
 	/// <param name="logtype"></param>
-	/// <param name="id"></param>
+	/// <param name="id">ログレコード書き込み先index</param>
 	/// <returns></returns>
 	static int set_record(int logtype, UINT32 id) {
 
