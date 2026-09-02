@@ -69,6 +69,9 @@
     <ClInclude Include="MKCC.h">
       <Filter>Kernel</Filter>
     </ClInclude>
+    <ClInclude Include="CMob.h">
+      <Filter>Domain\Entity</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CValue.cpp">
@@ -127,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="CCcScad _log.cpp">
       <Filter>Domain\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="CMob.cpp">
+      <Filter>Domain\Entity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

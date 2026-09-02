@@ -38,22 +38,25 @@ CSim::CSim() {
 
 }
 CSim::~CSim() {
-
+	if(pSimJC  != nullptr) delete pSimJC;
+	if(pSimGC  != nullptr) delete pSimGC;
+	if(pSimOHC != nullptr) delete pSimOHC;
 }
 
 HRESULT CSim::initialize(LPVOID lpParam) {
 
 	//### 入出力用共有メモリ取得
-	pAgent_Inf = (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
-	pEnv_Inf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
-	pPLC_IO = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
-	pCS_Inf = (LPST_CC_CS_INF)pCsInfObj->get_pMap();
-	pOTE_Inf = (LPST_CC_OTE_INF)pOteInfObj->get_pMap();
-	pSim_Inf = (LPST_CC_SIM_INF)pSimuStatObj->get_pMap();
+	pAgent_Inf	= (LPST_CC_AGENT_INF)	pAgInfObj->get_pMap();
+	pEnv_Inf	= (LPST_CC_ENV_INF)		pEnvInfObj->get_pMap();
+	pPLC_IO		= (LPST_CC_PLC_IO)		pPlcIoObj->get_pMap();
+	pCS_Inf		= (LPST_CC_CS_INF)		pCsInfObj->get_pMap();
+	pOTE_Inf	= (LPST_CC_OTE_INF)		pOteInfObj->get_pMap();
+	pSim_Inf	= (LPST_CC_SIM_INF)		pSimuStatObj->get_pMap();
 
-	pPlcWIfJC = &st_work.st_plc_w;						//PLC出力IF
+	pPlcWIfJC	= &st_work.st_plc_w;						//PLC出力IF
 
 	if (pCrane == NULL)return S_FALSE;
+
 	crane_id = pCrane->st_crane_inf.crane_id;
 	crane_type = pCrane->st_crane_inf.crane_type;
 	pspec = pCrane->pSpec;
@@ -104,7 +107,22 @@ HRESULT CSim::routine_work(void* pObj) {
 
 static UINT32	gpad_mode_last = L_OFF;
 int CSim::input() {
-	
+	switch (crane_type) {
+	case CRANE_TYPE_ID_OHC:
+	{
+
+	}break;
+	case CRANE_TYPE_ID_GC:
+	{
+
+	}break;
+	case CRANE_TYPE_ID_JC:
+	default:
+	{
+		pSimJC->update_break_status();//ブレーキ状態更新
+
+	}break;
+	}
 	return S_OK;
 }
 int CSim::parse() {					//メイン処理
@@ -114,7 +132,6 @@ int CSim::parse() {					//メイン処理
 		set_sensor_fb_JC(crane_id); // センサフィードバック設定
 		break;
 	}
-					
 	return S_OK;
 }
 int CSim::output() {						//出力処理
@@ -124,22 +141,27 @@ int CSim::output() {						//出力処理
 }
 
 void CSim::setup_JC(int id) {
+
+	pSimJC = new CSimJC(id);	//シミュレーションオブジェクトインスタンス
+	pSimJC->pCraneStat = &(pEnv_Inf->crane_stat);
+	pSimJC->pPLC_IO = pPLC_IO;
+
 	//計算パラメータセット
-//１RPM速度時のPG1秒間カウント値設定　100%rpm/60/1000 * モータ1回転のカウント数
+	//モータ1回転のPGカウント数=モータ1RPSでのカウント速度 
 	st_work.axis[ID_HOIST].RpsPGCntSec	= pCrane->pSpec->base_mh.CntPgR;	//主巻
 	st_work.axis[ID_BOOM_H].RpsPGCntSec = pCrane->pSpec->base_bh.CntPgR;	//引込
 	st_work.axis[ID_SLEW].RpsPGCntSec	= pCrane->pSpec->base_sl.CntPgR;	//旋回
 	st_work.axis[ID_GANTRY].RpsPGCntSec = pCrane->pSpec->base_gt.CntPgR;	//走行
 
-	//１RPM速度時のアブソコーダ1秒間カウント値設定 100%rpm/60/1000 * モータ1回転のカウント数
+	//モータ1回転のカウント数＝ドラム1回転のアブソコーダカウント数÷減速比（モータ回転数/ドラム回転数）=モータ1RPSでのカウント速度
 	st_work.axis[ID_HOIST].RpsABSOCntSec = pCrane->pSpec->base_mh.CntAbsR / pCrane->pSpec->base_mh.Gear_ratio;	//主巻
 	st_work.axis[ID_GANTRY].RpsABSOCntSec = pCrane->pSpec->base_gt.CntAbsR / pCrane->pSpec->base_gt.Gear_ratio;	//走行
 
-	//ドラム動作初期値
+	//ドラム動作初期値　PG,アブソコーダカウント初期値セット
 	init_drm_motion_JC(crane_id);
 
-	//旋回360°回転PGカウント= ピニオン1回転カウント×TTB径/ピニオン径*減速比
-	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0 * pspec->base_sl.Gear_ratio);
+	//旋回360°回転PGカウント= モータ1回転カウント×減速比×TTB径/ピニオン径
+	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Gear_ratio* pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0);
 
 	switch (id) {
 	case CRANE_ID_H6R602:
@@ -166,9 +188,11 @@ void CSim::setup_JC(int id) {
 }
 
 void CSim::setup_GC(int id) {
+	pSimGC = new CSimGC(id);	//シミュレーションオブジェクトインスタンス
 	return;
 }
 void CSim::setup_OHC(int id) {
+	pSimOHC = new CSimOHC(id);	//シミュレーションオブジェクトインスタンス
 	return;
 }
 
@@ -178,7 +202,7 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 	case CRANE_ID_H6R602:
 	{
 		st_sim_inf.hcount_mh = 97791220;		//主巻PG　(R21,H30）
-		st_sim_inf.hcount_bh = 72354000;		//引込PG　(R21,H30）
+		st_sim_inf.hcount_bh = 77395062;		//引込PG　(R56.4,H30）
 		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
 		st_sim_inf.absocoder_mh = 60348;		//主巻アブソコーダ初期値開始位置(R21,H30）
 		st_sim_inf.absocoder_gt = 160000;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024

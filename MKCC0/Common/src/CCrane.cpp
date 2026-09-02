@@ -36,7 +36,6 @@ CCrane::~CCrane() {
 	pFlt = nullptr;
 };
 
-
 void CCrane::set_crane_type() {
 	st_crane_inf.crane_id = crane_id;
 	switch (crane_id) {

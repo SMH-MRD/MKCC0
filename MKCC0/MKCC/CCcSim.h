@@ -6,6 +6,7 @@
 #include "CSHAREDMEM.H"
 #include "SmemMain.H"
 #include "SmemOte.H"
+#include "CMob.H"
 
 #define SIM_MON1_WND_X     640
 #define SIM_MON1_WND_Y     0
@@ -139,6 +140,10 @@ public:
 	int crane_id;
 	int crane_type;
     virtual HRESULT initialize(LPVOID lpParam) override;
+
+	CSimJC*     pSimJC  = nullptr;
+    CSimGC*     pSimGC  = nullptr;
+    CSimOHC*    pSimOHC = nullptr;
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 

@@ -8,7 +8,7 @@
 /******************************************************************************************/
 
 #define CC_MC_ADDR_W_READ				10300
-#define CC_MC_SIZE_W_READ				128
+#define CC_MC_SIZE_W_READ				150
 #define CC_MC_ADDR_W_WRITE				10200
 #define CC_MC_SIZE_W_WRITE				100
 

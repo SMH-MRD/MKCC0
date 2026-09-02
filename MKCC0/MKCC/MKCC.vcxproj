@@ -150,6 +150,7 @@
     <ClInclude Include="CCcPol.h" />
     <ClInclude Include="CCcScad.h" />
     <ClInclude Include="CCcSim.h" />
+    <ClInclude Include="CMob.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MKCC.h" />
     <ClInclude Include="Resource.h" />
@@ -172,6 +173,7 @@
     <ClCompile Include="CCcScad _log.cpp" />
     <ClCompile Include="CCcScad.cpp" />
     <ClCompile Include="CCcSim.cpp" />
+    <ClCompile Include="CMob.cpp" />
     <ClCompile Include="CSharedMem.cpp" />
     <ClCompile Include="CValue.cpp" />
     <ClCompile Include="MKCC.cpp" />

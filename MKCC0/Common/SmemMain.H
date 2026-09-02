@@ -9,6 +9,7 @@
 #include "CCrane.h"
 #include "CFaults.h"
 #include "SWYSENSOR_DEF.H"
+#include "SmemAux.H"
 
 //using namespace std;
 
@@ -61,16 +62,22 @@ typedef struct _ST_FAULTS_LIST {
 }ST_FAULTS_LIST, * LPST_FAULTS_LIST;
 
 typedef struct _ST_CRANE_STAT {
-	ST_MOVE_SET	mh;								//主巻揚程
-	ST_MOVE_SET	ah;								//補巻揚程
-	ST_MOVE_SET	sl_deg;							//旋回角度
-	ST_MOVE_SET th;								//起伏角度
+
+	ST_MOVE_SET	sl_ph;							//旋回角度
+	ST_MOVE_SET bh_th;							//起伏角度
 	ST_MOVE_SET r;								//旋回半径
 	ST_MOVE_SET gt;								//走行
 	ST_MOVE_SET	m;								//吊荷質量
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
-	ST_MOVE_SET hph;							//吊点高さ(Hoisting Point Height)
-	
+
+	ST_MOVE_SET hpx;							//吊点位置x
+	ST_MOVE_SET hpy;							//吊点位置y
+	ST_MOVE_SET hpz;							//吊点位置z
+
+	ST_MOVE_SET ldx;							//吊荷位置x
+	ST_MOVE_SET ldy;							//吊荷位置y
+	ST_MOVE_SET ldz;							//吊荷位置z
+
 	//ドラム状態
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
 	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
@@ -568,12 +575,61 @@ typedef struct stClientIO {
 //## シミュレーション信号定義構造体 
 #pragma region SIMULATOR
 
+/****************************************************************************/
+/*   シミュレーション信号定義構造体                                  　   　*/
+/* 　SIM PROCがセットする共有メモリ上の情報　　　　　　　          　    　 */
+#pragma region SIMULATOR
+
+#define SIM_ACTIVE_MODE			0x00000100					//シミュレーション実行モード
+#define SIM_SWAY_PACKET_MODE	0x00000010					//振れセンサパケット送信モード
+#define SIM_N_SENSOR			128							//センサ数
+typedef struct StSimulationStatus {
+	DWORD mode;
+	DWORD helthy_cnt;
+	LPUN_PLC_WBUF p_plc_w;
+	LPST_SWAY_STAT p_sway_io;
+	Vector3 L, vL;											//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）
+	Vector3 L2, vL2;										//ﾛｰﾌﾟﾍﾞｸﾄﾙ(補巻振れ）
+	double a_fb[MOTION_ID_MAX];								//軸座標加速度fb
+	double v_fb[MOTION_ID_MAX];								//軸座標速度fb
+	double pos[MOTION_ID_MAX];								//軸座標位置fb
+	double mtrq[MOTION_ID_MAX];								//モータトルクfb
+	double rad_cam_x, rad_cam_y, w_cam_x, w_cam_y;			//カメラ座標振れ角,振れ角速度
+	double kbh;												//引込半径に依存する速度、加速度補正係数
+	ST_SWAY_SERVER_MSG rcv_msg;
+	ST_SWAY_CLIENT_MSG snd_msg;
+	INT32 sonsor[SIM_N_SENSOR];								//センサ状態
+
+	ST_MOVE_SET	nd[MOTION_ID_MAX];							//ドラム回転動作
+	ST_MOVE_SET	d;									//ポスト‐起伏シーブ間状態（距離・速度・加速度）
+	ST_MOVE_SET	db;									//ジブポスト‐起伏シーブ間状態（距離・速度・加速度）
+	ST_MOVE_SET	ph;									//φ
+	ST_MOVE_SET	phb;								//φ
+	ST_MOVE_SET	th;									//θ
+
+	UINT32 i_layer[MOTION_ID_MAX];					//ドラム現在層数
+	double n_layer[MOTION_ID_MAX];					//ドラム現在層巻取数
+	double l_drum[MOTION_ID_MAX];					//ドラム巻取り量
+
+	ST_MOVE_SET	lrm;								//主巻ロープ長
+	ST_MOVE_SET	lra;								//補巻ロープ長
+
+	double T;										//主巻振れ周期
+	double Tah;										//補巻振れ周期
+	double w;										//主巻振れ角周波数
+	double wah;										//補巻振れ角周波数
+
+	double tht_swx_mh, tht_swy_mh, tht_swx_ah, tht_swy_ah;
+
+}ST_SIMULATION_STATUS, * LPST_SIMULATION_STATUS;
+#pragma endregion シミュレーション信号定義構造体
+
 typedef struct _ST_CC_SIM_INF {
 	DWORD mode;
 	DWORD helthy_cnt;
 
-	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLC IFバッファSIMULATION結果(Simulation Mode)
-	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLC IFバッファSIMULATION結果(Emulator, Simulation Mode)
+//	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLC IFバッファSIMULATION結果(Simulation Mode)
+//	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLC IFバッファSIMULATION結果(Emulator, Simulation Mode)
 
 //	ST_AUX_ENV_INF aux_io;							//センサ,補機SIMULATION結果(Emulator, Simulation Mode)
 //	ST_SWAY_SERVER_MSG rcv_msg;						//振れセンサセンサ受信バッファ計算値

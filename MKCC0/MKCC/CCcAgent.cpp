@@ -580,10 +580,10 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	//###風速
 	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->JC.wind_spd_01m).i16) / 10.0;	//風速m/s単位
 
-	//## 位置（Environmentの計算値）
+	//## 位置
 	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
 	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;											//旋回半径
-	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_deg.p;							//旋回角度
+	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_ph.p;							//旋回角度
 	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.gt.p;								//走行位置 
 
 	//## ノッチ状態FB
@@ -604,7 +604,7 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	pPLC_IO->stat_sl.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_sl).i16;
 	pPLC_IO->stat_gt.v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_gt).i16;
 
-	//## インバータ速度指令(Simulator用）inv_ref(ベース100%で0.1%単位表現)
+	//## インバータ速度指令(OTE用）inv_ref(ベース100%が1000の表現)
 	//主巻
 	pPLC_IO->stat_mh.v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_mh).i16;					//インバータ速度指令（絶対値）
 	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_mh).i16);										//インバータ指令（正転）
@@ -633,7 +633,7 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	//インバータ指令（無し）
 
 	//## インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
-	//## インバータ速度FB(FB信号は符号付き CC-LINK ±4000レンジ
+	//## インバータ速度FB(FB信号は符号付き CC-LINK ±4000レンジ 4000がMAX速度の125％表現
 	pPLC_IO->stat_mh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_mh).i16;
 	pPLC_IO->stat_bh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_bh).i16;
 	pPLC_IO->stat_sl.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_sl).i16;
@@ -655,7 +655,7 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	pPLC_IO->stat_gt.brake = pCrane->pPlc->rval(pPlcRIf->JC.gt_brk_fb).i16;			//GTブレーキ状態
 	pPLC_IO->stat_sl.brake = pCrane->pPlc->rval(pPlcRIf->JC.sl_hydr_press_sw).i16;	//SLブレーキ状態
 
-	//## limit	
+	//## limit（極限リミット	
 	pPLC_IO->stat_mh.limit;
 	pPLC_IO->stat_bh.limit;
 	pPLC_IO->stat_gt.limit;
@@ -884,7 +884,7 @@ HRESULT CAgent::aux_equipment_JC(int crane_id) {
 	//機側非常停止SW
 	{
 		std::lock_guard<std::mutex> lock(m_AgInfMutex);
-		if (pOTE_Inf->st_msg_ote_u_rcv.body.st.ope_mode & OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE) {
+		if (pOTE_Inf->st_msg_ote_u_rcv.body.st.ope_mode & OTE_CS_CODE_OPTION_SITE_ESTP_ACTIVE) {//機側非常停止SW有効モードの時
 
 			if (pAUX_CS_Inf->lanio_status == AUX_CS_CODE_LANIO_FAIL) {
 				pPolInf->pc_fault_map[FLTS_ID_ERR_LANIO_FAIL] |= FLTS_MASK_ERR_LANIO_FAIL;

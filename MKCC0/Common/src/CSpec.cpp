@@ -88,6 +88,7 @@ ST_AXIS_ITEMS	base_mh0 = {
 	26.748792,		// Ia;			慣性モーメント
 	387.55,			// Lfull;		フルスパン（m）
 	1.0,			// PsoPreset    位置プリセット値
+	1.0,			// 最大速度比率
 };
 //起伏
 ST_AXIS_ITEMS	base_bh0 = {
@@ -136,7 +137,7 @@ ST_AXIS_ITEMS	base_bh0 = {
 	4.885128,			// Ia;			慣性モーメント
 	312.015,			// Lfull;		フルスパン（m）
 	1.0,				// PsoPreset    位置プリセット値
-
+	1.0,				// 最大速度比率
 };
 //旋回
 ST_AXIS_ITEMS	base_sl0 = {
@@ -184,6 +185,7 @@ ST_AXIS_ITEMS	base_sl0 = {
 	30.39636,			// Ia;			慣性モーメント
 	11.473,				// Lfull;		フルスパン（m）
 	1.0,				// PsoPreset    位置プリセット値
+	1.0,				// 最大速度比率
 };
 //走行
 ST_AXIS_ITEMS	base_gt0 = {
@@ -232,7 +234,7 @@ ST_AXIS_ITEMS	base_gt0 = {
 	6.24755,		// Ia;			慣性モーメント
 	1000.0,			// Lfull;		フルスパン（m）
 	50.0,			// PsoPreset    位置プリセット値
-
+	1.0,			// 最大速度比率
 };
 //補巻
 ST_AXIS_ITEMS	base_ah0 = {

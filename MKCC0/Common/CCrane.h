@@ -2,6 +2,7 @@
 #include "CSpec.h"
 #include "CPlc.h"
 #include "CFaults.h"
+#include "CVector3.h"
 
 typedef struct _ST_CRANE_INFO {
 	int crane_id;
@@ -30,8 +31,11 @@ public:
 	CFaults* pFlt;
 	ST_CRANE_INFO st_crane_inf;
 
-	int get_id() { return crane_id; };
-	void set_crane_type();
+	int		get_id() { return crane_id; };
+	void	set_crane_type();
+	void	update_vect_lp_load();								//吊荷の吊点からの相対ベクトル
+	double	S();												//Rope tension(張力計算）
+	void	init_crane(double t, Vector3& r, Vector3& v);
 
 	//PLC通信バッファ
 	LPST_JC_PLC_IO_R get_plc_rif()	{ if (pPlc != NULL) return &(pPlc->un_plc_io_rif.JC);	return NULL;}

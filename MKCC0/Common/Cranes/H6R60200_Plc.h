@@ -86,25 +86,25 @@ ST_JC_PLC_IO_R plc_io_rdef_h6r602 = {
 	{NULL,BIT1,					CODE_PLCIO_BIT,		0,0,113},//inv_rev_ah
 
 	//インバータ速度指令
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,70},//inv_vref_mh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,71},//inv_vref_bh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,72},//inv_vref_sl
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,73},//inv_vref_gt
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,74},//inv_vref_ah
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,70},//inv_vref_mh　速度指令は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,71},//inv_vref_bh　速度指令は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,72},//inv_vref_sl　速度指令は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,73},//inv_vref_gt　速度指令は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,74},//inv_vref_ah　速度指令は、100％速度が1000
 
 	//インバータ速度FB
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,75},//inv_vfb_mh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,76},//inv_vfb_bh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,77},//inv_vfb_sl
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,78},//inv_vfb_gt
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,79},//inv_vfb_ah
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,75},//inv_vfb_mh　速度FBは4000がMAX速度の125％→3200が100％
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,76},//inv_vfb_bh　速度FBは4000がMAX速度の125％→3200が100％
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,77},//inv_vfb_sl　速度FBは4000がMAX速度の125％→3200が100％
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,78},//inv_vfb_gt　速度FBは4000がMAX速度の125％→3200が100％
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,79},//inv_vfb_ah　速度FBは4000がMAX速度の125％→3200が100％
 
 	//目標速度％
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,33},//target_v_mh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,34},//target_v_bh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,35},//target_v_sl
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,36},//target_v_gt
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,36},//target_v_ah
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,33},//target_v_mh　目標速度は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,34},//target_v_bh　目標速度は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,35},//target_v_sl　目標速度は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,36},//target_v_gt　目標速度は、100％速度が1000
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,36},//target_v_ah　目標速度は、100％速度が1000
 
 	//インバータトルク指令
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,78},//inv_trqref_mh

@@ -58,9 +58,9 @@ typedef struct _ST_AXIS_ITEMS {
 	double Ddrm1;						// ドラム径1
 	double Nwire0;						// ロープ掛数
 	double Nwire1;						// ロープ掛数
-	double Ta0;							// 加速時間0
+	double Ta0;							// 加速時間0(100%)
 	double Ta1;							// 加速時間1
-	double Td0;							// 減速時間0
+	double Td0;							// 減速時間0(100%)
 	double Td1;							// 減速時間1
 	double Ndmizo0;						// ドラム溝数0	主ドラム溝数
 	double Ndmizo1;						// ドラム溝数1　補ドラム溝数
@@ -80,6 +80,8 @@ typedef struct _ST_AXIS_ITEMS {
 	double Ia;							// 慣性モーメント
 	double Lfull;						// フルスパン（m）
 	double PosPreset;					// プリセット時の設定位置（m）
+
+	double times_spd;					// 最大速度比率
 
 
 } ST_AXIS_ITEMS, * LPST_AXIS_ITEMS;

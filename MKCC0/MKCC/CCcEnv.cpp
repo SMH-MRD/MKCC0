@@ -52,6 +52,8 @@ static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 
 static LONG rcv_count_u = 0, snd_count_u = 0;
 
+static LPST_CRANE_STAT pCrStat = NULL;
+static double dt = 0.02;	//スキャン周期20ms
 /****************************************************************************/
 /*   デフォルト関数											                */
 /****************************************************************************/
@@ -66,6 +68,8 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 
 	wos.str(L"初期化中…"); msg2host(wos.str());
 
+	dt = (double)inf.cycle_ms / 1000.0;
+
 	pEnvInf		= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPlcIo		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
 	pJobIo		= (LPST_JOB_IO)(pJobIoObj->get_pMap());
@@ -76,6 +80,8 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	pOteInf		= (LPST_CC_OTE_INF)(pOteInfObj->get_pMap());
 
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
+
+	pCrStat = &(pEnvInf->crane_stat);
 
 	if ((pEnvInf == NULL) || (pPlcIo == NULL) || (pJobIo == NULL) || (pPolInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pSimInf == NULL) || (pOteInf == NULL) || (pAUX_CS_Inf == NULL)) {
 		hr = S_FALSE;
@@ -127,7 +133,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 		//### 対象クレーン用関数ポインタセット
 	//	fp_set_drum_stat = set_drum_stat;
 		//計算用パラメータ設定
-		pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY] = (INT32)(pCrane->pSpec->base_gt.PosPreset / pCrane->pSpec->base_gt.Ddrm0 / PI180 * pCrane->pSpec->base_gt.CntAbsR);
+		pCrStat->abs_preset_cnt[ID_GANTRY] = (INT32)(pCrane->pSpec->base_gt.PosPreset / pCrane->pSpec->base_gt.Ddrm0 / PI180 * pCrane->pSpec->base_gt.CntAbsR);
 	}
 	
 	//### IFウィンドウOPEN
@@ -249,7 +255,7 @@ int CCcEnv::close() {
 /// <param name="id"></param>
 void CCcEnv::set_param_JC(int id) {
 
-	//### ドラムの周長(層ドラムパラメータ初期化
+	//### ドラムの周長(層ドラムパラメータ初期化(インデックス＝層数）
 	for (int i = 0; i < N_DRUM_LAYER; i++) {
 		if (i == 0) {
 			pEnvInf->Cdrm[ID_HOIST][i]	= 0.0;
@@ -260,8 +266,8 @@ void CCcEnv::set_param_JC(int id) {
 
 			pEnvInf->Cdrm[ID_BH_HST][i] = 0.0;
 		}
-		else {
-			pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)(i-1) * pspec->base_mh.dDdrm) * PI180;
+		else {//ドラム層の円周長計算(層負荷直径×π)
+			pEnvInf->Cdrm[ID_HOIST][i]	= (pspec->base_mh.Ddrm0 + (double)(i - 1) * pspec->base_mh.dDdrm) * PI180;
 			pEnvInf->Cdrm[ID_BOOM_H][i]	= (pspec->base_bh.Ddrm0 + (double)(i - 1) * pspec->base_bh.dDdrm) * PI180;
 			pEnvInf->Cdrm[ID_SLEW][i]	= (pspec->base_sl.Ddrm0 + (double)(i - 1) * pspec->base_sl.dDdrm) * PI180;
 			pEnvInf->Cdrm[ID_GANTRY][i] = (pspec->base_gt.Ddrm0 + (double)(i - 1) * pspec->base_gt.dDdrm) * PI180;
@@ -270,8 +276,6 @@ void CCcEnv::set_param_JC(int id) {
 			//引込主巻ドラム 層負荷直径はBHを使用
 			pEnvInf->Cdrm[ID_BH_HST][i] = (pspec->base_bh.Ddrm1 + (double)(i-1) * pspec->base_mh.dDdrm) * PI180;//ドラム追加半径は主巻ドラムの数値を使う
 		}
-
-
 		
 		//層巻取り量(ドラム周長×ドラム溝数)の積算値を計算)
 		if (i == 0) {
@@ -287,11 +291,12 @@ void CCcEnv::set_param_JC(int id) {
 			pEnvInf->Ldrm[ID_BOOM_H][i] = pEnvInf->Ldrm[ID_BOOM_H][i - 1]	+ pEnvInf->Cdrm[ID_BOOM_H][i]	* pspec->base_bh.Ndmizo0;
 			pEnvInf->Ldrm[ID_SLEW][i]	= pEnvInf->Ldrm[ID_SLEW][i - 1]		+ pEnvInf->Cdrm[ID_SLEW][i]		* pspec->base_sl.Ndmizo0;
 			pEnvInf->Ldrm[ID_GANTRY][i] = pEnvInf->Ldrm[ID_GANTRY][i - 1]	+ pEnvInf->Cdrm[ID_GANTRY][i]	* pspec->base_gt.Ndmizo0;
-			pEnvInf->Ldrm[ID_AHOIST][i] = pEnvInf->Ldrm[ID_AHOIST][i - 1] + pEnvInf->Cdrm[ID_AHOIST][i] * pspec->base_ah.Ndmizo0;
+			pEnvInf->Ldrm[ID_AHOIST][i] = pEnvInf->Ldrm[ID_AHOIST][i - 1]	+ pEnvInf->Cdrm[ID_AHOIST][i]	* pspec->base_ah.Ndmizo0;
 			pEnvInf->Ldrm[ID_BH_HST][i] = pEnvInf->Ldrm[ID_BH_HST][i - 1]	+ pEnvInf->Cdrm[ID_BH_HST][i]	* pspec->base_bh.Ndmizo1;
-
 		}
 	}
+	
+	//### ドラム全巻取り量(ドラム層巻取り量の最終層値)
 	pEnvInf->Lspan[ID_HOIST]	= pspec->base_mh.Lfull;
 	pEnvInf->Lspan[ID_BOOM_H]	= pspec->base_bh.Lfull;
 	pEnvInf->Lspan[ID_SLEW]		= pspec->base_sl.Lfull;
@@ -341,6 +346,8 @@ void CCcEnv::set_param_OHC(int id) {
 /// </summary>
 /// <param name="id"></param>
 /// <returns></returns>
+
+
 HRESULT CCcEnv::set_stat_JC(int id) {
 	LPUN_PLC_RBUF pPlcRbuf = (LPUN_PLC_RBUF)pPlcIo->buf_io_read;
 	double hcount_sl = 0.0;
@@ -362,91 +369,106 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	//###　ドラム回転数セット
 	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
+	pCrStat->nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
 
 	//起伏(起伏）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_BOOM_H].p = (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
+	pCrStat->nd[ID_BOOM_H].p = (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
 
 	//起伏(主巻）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_BH_HST].p = pspec->st_struct.Nttl_bh - pEnvInf->crane_stat.nd[ID_BOOM_H].p;
+	pCrStat->nd[ID_BH_HST].p = pspec->st_struct.Nttl_bh - pCrStat->nd[ID_BOOM_H].p;
 
 	//旋回ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_SLEW].p = (pPlcIo->stat_sl.pg_count - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
+	pCrStat->nd[ID_SLEW].p = (pPlcIo->stat_sl.pg_count - pspec->base_sl.CntPgSet0) / pspec->base_sl.CntPgDrumR + pspec->base_sl.NdrmPgSet0;
 
 	//走行ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
-	pEnvInf->crane_stat.nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
+	pCrStat->nd[ID_GANTRY].p = (pPlcIo->stat_gt.absocoder - pspec->base_gt.CntAbsSet0) / pspec->base_gt.CntAbsR + pspec->base_gt.NdrmAbsSet0;
 
+	//###  ドラム回転加速度，速度セット
 	//###  回転速度セット ±rpm単位 →rps単位に変換
-	pEnvInf->crane_stat.nd[ID_HOIST].v	= (double)pPlcIo->stat_mh.v_fb / 60.0;//主巻 RPS
-	pEnvInf->crane_stat.nd[ID_BOOM_H].v = (double)pPlcIo->stat_bh.v_fb / 60.0;//起伏(起伏） RPS
-	pEnvInf->crane_stat.nd[ID_BH_HST].v = pEnvInf->crane_stat.nd[ID_BOOM_H].v;//起伏（主巻） RPS
-	pEnvInf->crane_stat.nd[ID_SLEW].v	= (double)pPlcIo->stat_sl.v_fb / 60.0;//旋回 RPS
-	pEnvInf->crane_stat.nd[ID_GANTRY].v = (double)pPlcIo->stat_gt.v_fb / 60.0;//走行 RPS
+	double v_fb = (double)pPlcIo->stat_mh.v_fb / 60.0/pspec->base_mh.Gear_ratio;		//主巻 RPS	
+	pCrStat->nd[ID_HOIST].a = (v_fb - pCrStat->nd[ID_HOIST].v) / dt;
+	pCrStat->nd[ID_HOIST].v	= v_fb;
 
-	if(g_my_code.machine_id == CRANE_ID_H6R602) {
-		pEnvInf->crane_stat.nd[ID_AHOIST].p = (pPlcIo->stat_ah.absocoder - pspec->base_ah.CntAbsSet0) / pspec->base_ah.CntAbsR + pspec->base_ah.NdrmAbsSet0;
-		pEnvInf->crane_stat.nd[ID_AHOIST].v = (double)pPlcIo->stat_ah.v_fb / 60.0;//補助巻 RPS
-	}
+	v_fb =(double)pPlcIo->stat_bh.v_fb / 60.0 / pspec->base_bh.Gear_ratio;				//起伏(起伏） RPS
+	pCrStat->nd[ID_BOOM_H].a = (v_fb - pCrStat->nd[ID_BOOM_H].v) / dt;
+	pCrStat->nd[ID_BOOM_H].v = v_fb;
+
+	v_fb = -pCrStat->nd[ID_BOOM_H].v;						//起伏（主巻） RPS
+	pCrStat->nd[ID_BH_HST].a = (v_fb - pCrStat->nd[ID_BH_HST].v) / dt;
+	pCrStat->nd[ID_BH_HST].v = v_fb;
+
+	v_fb = (double)pPlcIo->stat_sl.v_fb / 60.0 / pspec->base_sl.Gear_ratio;				//旋回 RPS
+	pCrStat->nd[ID_SLEW].a = (v_fb - pCrStat->nd[ID_SLEW].v) / dt;
+	pCrStat->nd[ID_SLEW].v	= v_fb;
+
+	v_fb = (double)pPlcIo->stat_gt.v_fb / 60.0 / pspec->base_gt.Gear_ratio;				//走行 RPS
+	pCrStat->nd[ID_GANTRY].a = (v_fb - pCrStat->nd[ID_GANTRY].v) / dt;
+	pCrStat->nd[ID_GANTRY].v = v_fb;
+
 
 	//###  巻取量セット
-	pEnvInf->crane_stat.i_layer[ID_HOIST]	= (INT32)(pEnvInf->crane_stat.nd[ID_HOIST].p / pspec->base_mh.Ndmizo0)	+ 1;
-	pEnvInf->crane_stat.i_layer[ID_BOOM_H]	= (INT32)(pEnvInf->crane_stat.nd[ID_BOOM_H].p / pspec->base_bh.Ndmizo0) + 1;
-	pEnvInf->crane_stat.i_layer[ID_BH_HST] = (INT32)(pEnvInf->crane_stat.nd[ID_BH_HST].p / pspec->base_bh.Ndmizo1)	+ 1;
-	pEnvInf->crane_stat.i_layer[ID_SLEW]	= 1;
-	pEnvInf->crane_stat.i_layer[ID_GANTRY]	= 1;
-
-	//巻取速度（モータ回転速度Hz×減速比×ドラム層周長
-	if (!(pEnvInf->crane_stat.i_layer[ID_HOIST] > 0 && pEnvInf->crane_stat.i_layer[ID_HOIST] < N_DRUM_LAYER)) pEnvInf->crane_stat.i_layer[ID_HOIST] = 0;
-	if (!(pEnvInf->crane_stat.i_layer[ID_BOOM_H] > 0 && pEnvInf->crane_stat.i_layer[ID_BOOM_H] < N_DRUM_LAYER))pEnvInf->crane_stat.i_layer[ID_BOOM_H] = 0;
-	if (!(pEnvInf->crane_stat.i_layer[ID_BH_HST] > 0 && pEnvInf->crane_stat.i_layer[ID_BH_HST] < N_DRUM_LAYER))pEnvInf->crane_stat.i_layer[ID_BH_HST] = 0;
-
-	pEnvInf->crane_stat.ld[ID_HOIST].v	= pEnvInf->crane_stat.nd[ID_HOIST].v	* pEnvInf->Cdrm[ID_HOIST][pEnvInf->crane_stat.i_layer[ID_HOIST]];
-	pEnvInf->crane_stat.ld[ID_BOOM_H].v = pEnvInf->crane_stat.nd[ID_BOOM_H].v	* pEnvInf->Cdrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H]];
-	pEnvInf->crane_stat.ld[ID_BH_HST].v = pEnvInf->crane_stat.nd[ID_BH_HST].v	* pEnvInf->Cdrm[ID_BH_HST][pEnvInf->crane_stat.i_layer[ID_BH_HST]];
-	pEnvInf->crane_stat.ld[ID_SLEW].v	= pEnvInf->crane_stat.nd[ID_SLEW].v		* pEnvInf->Cdrm[ID_SLEW][pEnvInf->crane_stat.i_layer[ID_SLEW]];
-	pEnvInf->crane_stat.ld[ID_GANTRY].v	= pEnvInf->crane_stat.nd[ID_GANTRY].v	* pEnvInf->Cdrm[ID_GANTRY][pEnvInf->crane_stat.i_layer[ID_GANTRY]];
+	//ドラム層数計算（ドラム回転数/ドラム1層巻取り回転数）+1
+	pCrStat->i_layer[ID_HOIST]	= (INT32)(pCrStat->nd[ID_HOIST].p / pspec->base_mh.Ndmizo0)		+ 1;
+	pCrStat->i_layer[ID_BOOM_H]	= (INT32)(pCrStat->nd[ID_BOOM_H].p / pspec->base_bh.Ndmizo0)	+ 1;
+	pCrStat->i_layer[ID_BH_HST] = (INT32)(pCrStat->nd[ID_BH_HST].p / pspec->base_bh.Ndmizo1)	+ 1;
+	pCrStat->i_layer[ID_SLEW]	= 1;
+	pCrStat->i_layer[ID_GANTRY]	= 1;
+	//範囲外チェック
+	if (!(pCrStat->i_layer[ID_HOIST]	> 0 && pCrStat->i_layer[ID_HOIST]	< N_DRUM_LAYER))	pCrStat->i_layer[ID_HOIST]	= 0;
+	if (!(pCrStat->i_layer[ID_BOOM_H]	> 0 && pCrStat->i_layer[ID_BOOM_H]	< N_DRUM_LAYER))	pCrStat->i_layer[ID_BOOM_H]	= 0;
+	if (!(pCrStat->i_layer[ID_BH_HST]	> 0 && pCrStat->i_layer[ID_BH_HST]	< N_DRUM_LAYER))	pCrStat->i_layer[ID_BH_HST]	= 0;
+	
+	//巻取速度（ドラム回転速度×ドラム周長：1秒間の回転量×1回転の長さ）
+	pCrStat->ld[ID_HOIST].v		= pCrStat->nd[ID_HOIST].v	* pEnvInf->Cdrm[ID_HOIST][pCrStat->i_layer[ID_HOIST]];
+	pCrStat->ld[ID_BOOM_H].v	= pCrStat->nd[ID_BOOM_H].v	* pEnvInf->Cdrm[ID_BOOM_H][pCrStat->i_layer[ID_BOOM_H]];
+	pCrStat->ld[ID_BH_HST].v	= pCrStat->nd[ID_BH_HST].v	* pEnvInf->Cdrm[ID_BH_HST][pCrStat->i_layer[ID_BH_HST]];
+	pCrStat->ld[ID_SLEW].v		= pCrStat->nd[ID_SLEW].v	* pEnvInf->Cdrm[ID_SLEW][pCrStat->i_layer[ID_SLEW]];
+	pCrStat->ld[ID_GANTRY].v	= pCrStat->nd[ID_GANTRY].v	* pEnvInf->Cdrm[ID_GANTRY][pCrStat->i_layer[ID_GANTRY]];
 
 	//###d 
 	double lout = 0.0;//引込入限からのワイヤ繰り出し量
-	//現在の層－1の巻取り量
-	lout = pEnvInf->Ldrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H] - 1];
-	//現在の層の巻取り量を付加(現在の層の回転数×現在の層の周長
-	lout += (pEnvInf->crane_stat.nd[ID_BOOM_H].p - (pEnvInf->crane_stat.i_layer[ID_BOOM_H] - 1) * pspec->base_bh.Ndmizo0) * pEnvInf->Cdrm[ID_BOOM_H][pEnvInf->crane_stat.i_layer[ID_BOOM_H]];
-	//現在の総巻取り量 - 入限の巻取り量　＝　繰り出し量
-	lout = lout - pspec->st_struct.lbh_d0;
-	//現在のd値
-	double d = pEnvInf->crane_stat.d.p = pspec->st_struct.d0 + lout / pspec->base_bh.Nwire0;
+	lout = pEnvInf->Ldrm[ID_BOOM_H][pCrStat->i_layer[ID_BOOM_H] - 1];		//現在の層－1の巻取り量
+	lout += (pCrStat->nd[ID_BOOM_H].p - (pCrStat->i_layer[ID_BOOM_H] - 1)	//現在の層の巻取り量を付加     現在の層の回転数
+			* pEnvInf->Cdrm[ID_BOOM_H][pCrStat->i_layer[ID_BOOM_H]]);		//							 ×現在の層の周長
+	lout = lout - pspec->st_struct.lbh_d0;									//現在の総巻取り量 - 入限の巻取り量　＝　繰り出し量
+	pCrStat->d.p = pspec->st_struct.d0 + lout / pspec->base_bh.Nwire0;		//現在のd値
+	
+	v_fb = pCrStat->ld[ID_BOOM_H].v / pspec->base_bh.Nwire0;					//現在のd値速度
+	pCrStat->d.a = v_fb - pCrStat->d.v;
+	pCrStat->d.v = v_fb;
+
+
 	double Lb = pspec->st_struct.Lb, Ha = pspec->st_struct.Ha, Hp = pspec->st_struct.Hp;
 	//起伏角,旋回半径(ドラム回転量から計算)
-	double dtemp = (Lb * Lb + Ha * Ha - d * d) / (2.0 * Lb * Ha);
+	double dtemp = (Lb * Lb + Ha * Ha - pCrStat->d.p * pCrStat->d.p) / (2.0 * Lb * Ha);
 	if((dtemp >= -1.0) &&(dtemp <= 1.0)){
-		pEnvInf->crane_stat.th.p = asin(dtemp);
+		pCrStat->bh_th.p = asin(dtemp);
 	}
 	else {
-		pEnvInf->crane_stat.th.p = 0.0;
+		pCrStat->bh_th.p = 0.0;
 	}
-	pEnvInf->crane_stat.r.p = Lb * cos(pEnvInf->crane_stat.th.p);					//旋回半径
+	pCrStat->r.p = Lb * cos(pCrStat->bh_th.p);					//旋回半径
 
 	//### 荷重・位置状態セット ###
 	//荷重
-	pEnvInf->crane_stat.m.p = pPlcIo->weight;
+	pCrStat->m.p = pPlcIo->weight;
 
 	//揚程
-	pEnvInf->crane_stat.mh.p = pPlcIo->h_mh;
+	pCrStat->hpz.p = pPlcIo->h_mh;
 
 	//旋回角度
-	pEnvInf->crane_stat.sl_deg.p = (hcount_sl - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
+	pCrStat->sl_ph.p = (hcount_sl - pspec->base_sl.CntPgSet0) / pspec->base_sl.Kp;
 
 	//走行位置
-	double dL = (double)(pPlcIo->stat_gt.absocoder - pEnvInf->crane_stat.abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
+	double dL = (double)(pPlcIo->stat_gt.absocoder - pCrStat->abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->base_gt.CntAbsR;
 	dL *= PI180 * pCrane->pSpec->base_gt.Ddrm0;
-	pEnvInf->crane_stat.gt.p = pCrane->pSpec->base_gt.PosPreset + dL;
+	pCrStat->gt.p = pCrane->pSpec->base_gt.PosPreset + dL;
 
 	//吊点高さ
-	pEnvInf->crane_stat.hph.p = pspec->st_struct.Hp + sqrt(Lb * Lb - pPlcIo->r * pPlcIo->r) ;
+	pCrStat->hpz.p = pspec->st_struct.Hp + sqrt(Lb * Lb - pPlcIo->r * pPlcIo->r) ;
 	
 	//ロープ長
-	pEnvInf->l_mh = pEnvInf->crane_stat.hph.p - pPlcIo->h_mh;
+	pEnvInf->l_mh = pCrStat->hpz.p - pPlcIo->h_mh;
 	if (pEnvInf->l_mh <= 0.0) pEnvInf->l_mh = 9.8;
 
 	//振れ周期,各周波数
@@ -503,7 +525,7 @@ void CCcEnv::set_faults_info() {
 	//##	PLC故障検出情報現在値を取り込み
 	for (int i = FAULT_TYPE::BASE; i <= FAULT_TYPE::IL; i++) {
 		for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-			pEnvInf->crane_stat.fault_list.faults_detected_map[i][j] = pflt_rbuf[j]& pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::BASE][j];
+			pCrStat->fault_list.faults_detected_map[i][j] = pflt_rbuf[j]& pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::BASE][j];
 		}
 	}
 
@@ -513,23 +535,23 @@ void CCcEnv::set_faults_info() {
 		//トリガ検出ロジック　	(前回値　XOR　現在値）AND　現在値でトリガON検出
 		//						(前回値　XOR　現在値）AND　前回値でトリガOFF検出
 		for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-			plc_falt_detected_trig_on[j] = (plc_falt_detected_hold[j]^ pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j])& pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
-			plc_falt_detected_trig_off[j] = plc_falt_detected_hold[j] ^ pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j]& plc_falt_detected_hold[j];
+			plc_falt_detected_trig_on[j] = (plc_falt_detected_hold[j]^ pCrStat->fault_list.faults_detected_map[FAULT_TYPE::BASE][j])& pCrStat->fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
+			plc_falt_detected_trig_off[j] = plc_falt_detected_hold[j] ^ pCrStat->fault_list.faults_detected_map[FAULT_TYPE::BASE][j]& plc_falt_detected_hold[j];
 	
 			INT16 chk_bit;
 			if (plc_falt_detected_trig_on[j]) {
 				for (int k = 0; k < 16; k++) {
 					chk_bit = 1 << k;	//チェックビット
 					if (plc_falt_detected_trig_on[j] & chk_bit) {
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;	//時間
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j*16+k;		//故障コード
-						++pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code;				//++故障コードは１から開始
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_ON;//種別
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].systime = systime;	//時間
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code = j*16+k;		//故障コード
+						++pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code;				//++故障コードは１から開始
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].status = CODE_TRIG_ON;//種別
 					
-						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新
-						pEnvInf->crane_stat.fault_list.history_count++;	//レコード数更新
-						if (pEnvInf->crane_stat.fault_list.iw_history >= N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.iw_history = 0;
-						if (pEnvInf->crane_stat.fault_list.history_count > N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.history_count = N_FAULTS_HISTORY_BUF;
+						pCrStat->fault_list.iw_history++;	//書き込みポインタ更新
+						pCrStat->fault_list.history_count++;	//レコード数更新
+						if (pCrStat->fault_list.iw_history >= N_FAULTS_HISTORY_BUF)pCrStat->fault_list.iw_history = 0;
+						if (pCrStat->fault_list.history_count > N_FAULTS_HISTORY_BUF)pCrStat->fault_list.history_count = N_FAULTS_HISTORY_BUF;
 					}
 				}
 			}
@@ -537,15 +559,15 @@ void CCcEnv::set_faults_info() {
 				for (int k = 0; k < 16; k++) {
 					chk_bit = 1 << k;	//チェックビット
 					if (plc_falt_detected_trig_off[j] & chk_bit) {
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;	//時間
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;	//故障コード
-						++pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code;				//++故障コードは１から開始
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_OFF;//種別
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].systime = systime;	//時間
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code = j * 16 + k;	//故障コード
+						++pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code;				//++故障コードは１から開始
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].status = CODE_TRIG_OFF;//種別
 
-						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新
-						pEnvInf->crane_stat.fault_list.history_count++;	//レコード数更新
-						if (pEnvInf->crane_stat.fault_list.iw_history >= N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.iw_history = 0;
-						if (pEnvInf->crane_stat.fault_list.history_count > N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.history_count = N_FAULTS_HISTORY_BUF;
+						pCrStat->fault_list.iw_history++;	//書き込みポインタ更新
+						pCrStat->fault_list.history_count++;	//レコード数更新
+						if (pCrStat->fault_list.iw_history >= N_FAULTS_HISTORY_BUF)pCrStat->fault_list.iw_history = 0;
+						if (pCrStat->fault_list.history_count > N_FAULTS_HISTORY_BUF)pCrStat->fault_list.history_count = N_FAULTS_HISTORY_BUF;
 
 					}
 				}
@@ -562,15 +584,15 @@ void CCcEnv::set_faults_info() {
 				for (int k = 0; k < 16; k++) {
 					chk_bit = 1 << k;	//チェックビット
 					if (pc_falt_detected_trig_on[j] & chk_bit) {
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;			//時間
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;			//故障コード
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code += N_PC_FLT_CODE_OFFSET;	//故障コードは550から開始
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_ON;//種別
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].systime = systime;			//時間
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code = j * 16 + k;			//故障コード
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code += N_PC_FLT_CODE_OFFSET;	//故障コードは550から開始
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].status = CODE_TRIG_ON;//種別
 
-						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新
-						pEnvInf->crane_stat.fault_list.history_count++;	//レコード数更新
-						if (pEnvInf->crane_stat.fault_list.iw_history >= N_FAULTS_HISTORY_BUF)	pEnvInf->crane_stat.fault_list.iw_history = 0;
-						if (pEnvInf->crane_stat.fault_list.history_count > N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.history_count = N_FAULTS_HISTORY_BUF;
+						pCrStat->fault_list.iw_history++;	//書き込みポインタ更新
+						pCrStat->fault_list.history_count++;	//レコード数更新
+						if (pCrStat->fault_list.iw_history >= N_FAULTS_HISTORY_BUF)	pCrStat->fault_list.iw_history = 0;
+						if (pCrStat->fault_list.history_count > N_FAULTS_HISTORY_BUF)pCrStat->fault_list.history_count = N_FAULTS_HISTORY_BUF;
 					}
 				}
 			}
@@ -578,22 +600,22 @@ void CCcEnv::set_faults_info() {
 				for (int k = 0; k < 16; k++) {
 					chk_bit = 1 << k;	//チェックビット
 					if (pc_falt_detected_trig_off[j] & chk_bit) {
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].systime = systime;			//時間
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code = j * 16 + k;			//故障コード
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].code + N_PC_FLT_CODE_OFFSET;	//故障コードは550から開始
-						pEnvInf->crane_stat.fault_list.history[pEnvInf->crane_stat.fault_list.iw_history].status = CODE_TRIG_OFF;		//種別
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].systime = systime;			//時間
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code = j * 16 + k;			//故障コード
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].code + N_PC_FLT_CODE_OFFSET;	//故障コードは550から開始
+						pCrStat->fault_list.history[pCrStat->fault_list.iw_history].status = CODE_TRIG_OFF;		//種別
 
-						pEnvInf->crane_stat.fault_list.iw_history++;	//書き込みポインタ更新
-						pEnvInf->crane_stat.fault_list.history_count++;	//レコード数更新
-						if (pEnvInf->crane_stat.fault_list.iw_history >= N_FAULTS_HISTORY_BUF)	pEnvInf->crane_stat.fault_list.iw_history = 0;
-						if (pEnvInf->crane_stat.fault_list.history_count > N_FAULTS_HISTORY_BUF)pEnvInf->crane_stat.fault_list.history_count = N_FAULTS_HISTORY_BUF;
+						pCrStat->fault_list.iw_history++;	//書き込みポインタ更新
+						pCrStat->fault_list.history_count++;	//レコード数更新
+						if (pCrStat->fault_list.iw_history >= N_FAULTS_HISTORY_BUF)	pCrStat->fault_list.iw_history = 0;
+						if (pCrStat->fault_list.history_count > N_FAULTS_HISTORY_BUF)pCrStat->fault_list.history_count = N_FAULTS_HISTORY_BUF;
 					}
 				}
 			}
 		}
 
 		//トリガ検出前回値保持
-		for (int j = 0; j < N_PLC_FAULT_BUF; j++) plc_falt_detected_hold[j] = pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
+		for (int j = 0; j < N_PLC_FAULT_BUF; j++) plc_falt_detected_hold[j] = pCrStat->fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
 		for (int j = 0; j < N_PC_FAULT_BUF; j++) pc_falt_detected_hold[j]	= pPolInf->pc_fault_map[j];
 	}
 
@@ -604,12 +626,12 @@ void CCcEnv::refresh_faults_info() {
 
 	for (int i = FAULT_TYPE::BASE; i <= FAULT_TYPE::IL; i++) {
 		for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-			pEnvInf->crane_stat.fault_list.faults_detected_map[i][j] = pflt_rbuf[j] & pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::BASE][j];
+			pCrStat->fault_list.faults_detected_map[i][j] = pflt_rbuf[j] & pCrane->pFlt->flt_list.plc_fault_mask[FAULT_TYPE::BASE][j];
 		}
 	}
 	//前回値=今回値,トリガ検出無し
 	for (int j = 0; j < N_PLC_FAULT_BUF; j++) {
-		plc_falt_detected_hold[j] = pEnvInf->crane_stat.fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
+		plc_falt_detected_hold[j] = pCrStat->fault_list.faults_detected_map[FAULT_TYPE::BASE][j];
 		plc_falt_detected_trig_on[j] = 0;	//トリガON無し
 		plc_falt_detected_trig_off[j] = 0;	//トリガOFF無し
 	}
