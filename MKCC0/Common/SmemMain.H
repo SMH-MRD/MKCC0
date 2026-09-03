@@ -69,6 +69,8 @@ typedef struct _ST_CRANE_STAT {
 	ST_MOVE_SET gt;								//走行
 	ST_MOVE_SET	m;								//吊荷質量
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
+	ST_MOVE_SET	mhl;							//主巻ロープ長
+	ST_MOVE_SET	dh;								//d部の高さ（吊点高さ-上部ポスト高さ）
 
 	ST_MOVE_SET hpx;							//吊点位置x
 	ST_MOVE_SET hpy;							//吊点位置y
@@ -82,7 +84,7 @@ typedef struct _ST_CRANE_STAT {
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数
 	double		n_layer[MOTION_ID_MAX];			//ドラム現在層の回転数
 	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作(n,hz,dhz)
-	ST_MOVE_SET	ld[MOTION_ID_MAX];				//軸移動量　（ドラム巻取量）　
+	ST_MOVE_SET	ld[MOTION_ID_MAX];				//ドラム巻取量　
 
 	ST_FAULTS_LIST	fault_list;					//故障検出リスト
 	INT32			abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値	
