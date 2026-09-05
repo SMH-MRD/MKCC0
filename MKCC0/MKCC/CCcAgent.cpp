@@ -8,6 +8,7 @@
 #include "CComm.h"
 #include "SmemOte.h"
 #include <mutex> 
+#include "phisics.h"
 
 std::mutex mtx;//共有メモリ排他制御用ミューテックス
 
@@ -583,8 +584,12 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	//## 位置
 	pPLC_IO->stat_mh.pos_fb = (float)pPLC_IO->h_mh;
 	pPLC_IO->stat_bh.pos_fb = (float)pPLC_IO->r;											//旋回半径
-	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_ph.p;							//旋回角度
+	pPLC_IO->stat_sl.pos_fb = (float)pEnv_Inf->crane_stat.sl_ph.p / RAD1DEG;				//旋回角度 DEG
 	pPLC_IO->stat_gt.pos_fb = (float)pEnv_Inf->crane_stat.gt.p;								//走行位置 
+
+	//if (pEnv_Inf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
+	//	pPLC_IO->stat_mh.pos_fb = (float)(pEnv_Inf->crane_stat.ldz.p);
+	//}
 
 	//## ノッチ状態FB
 	INT16 notch = pCrane->pPlc->rval(pPlcRIf->JC.mh_notch).i16;
@@ -632,8 +637,7 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 
 	//インバータ指令（無し）
 
-	//## インバータ速度FB(FB信号は符号付き ADカード±4000レンジ
-	//## インバータ速度FB(FB信号は符号付き CC-LINK ±4000レンジ 4000がMAX速度の125％表現
+	//## 速度FB(rpm)
 	pPLC_IO->stat_mh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_mh).i16;
 	pPLC_IO->stat_bh.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_bh).i16;
 	pPLC_IO->stat_sl.v_fb = pCrane->pPlc->rval(pPlcRIf->JC.inv_vfb_sl).i16;
@@ -817,7 +821,7 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 	pCrane->pPlc->wval(pPlcWIf->JC.absocoder_mh, pSim_Inf->absocoder_mh);
 	pCrane->pPlc->wval(pPlcWIf->JC.absocoder_gt, pSim_Inf->absocoder_gt);
 
-	//速度FB(INVの出力）
+	//速度FB(rpm)
 	pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb_mh);
 	pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb_bh);
 	pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb_sl);

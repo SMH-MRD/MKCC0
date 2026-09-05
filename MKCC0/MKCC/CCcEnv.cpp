@@ -369,10 +369,10 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	//###　ドラム回転数セット
 	//主巻ドラム回転　(abs fb - プリセットカウント）/ドラム1回転abs cnt + プリセットドラム回転数
-	pCrStat->nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR + pspec->base_mh.NdrmAbsSet0;
+	pCrStat->nd[ID_HOIST].p = (pPlcIo->stat_mh.absocoder - pspec->base_mh.CntAbsSet0) / pspec->base_mh.CntAbsR		+ pspec->base_mh.NdrmAbsSet0;
 
 	//起伏(起伏）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
-	pCrStat->nd[ID_BOOM_H].p = (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR + pspec->base_bh.NdrmPgSet0;
+	pCrStat->nd[ID_BOOM_H].p = - (pPlcIo->stat_bh.pg_count - pspec->base_bh.CntPgSet0) / pspec->base_bh.CntPgDrumR	+ pspec->base_bh.NdrmPgSet0;
 
 	//起伏(主巻）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
 	pCrStat->nd[ID_BH_HST].p = pspec->st_struct.Nttl_bh - pCrStat->nd[ID_BOOM_H].p;
@@ -442,7 +442,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//###d 
 	//引込入限 = 繰り出し量0　→　ドラム巻取り量=繰り出し量
 	//現在のd値　繰出量/ロープ本数 + 引込入限d値（d0)
-	pCrStat->d.p	= pspec->st_struct.d0 + pCrStat->ld[ID_BOOM_H].p / pspec->base_bh.Nwire0;		
+	pCrStat->d.p	= pspec->st_struct.d0 + (pspec->base_bh.Lfull- pCrStat->ld[ID_BOOM_H].p) / pspec->base_bh.Nwire0;		
 	v_fb			= pCrStat->ld[ID_BOOM_H].v / pspec->base_bh.Nwire0;	//現在のd値速度 ロープ巻き取り速度/ロープ本数
 	pCrStat->d.a = (v_fb - pCrStat->d.v)/dt;
 	pCrStat->d.v = v_fb;
@@ -474,7 +474,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	if (pCrStat->dh.p < 0.0) pCrStat->bh_th.p *= -1.0;
 	pCrStat->bh_th.v = -pCrStat->r.v / (Lb * sin(pCrStat->bh_th.p));
 
-	//旋回角度
+	//旋回角度(rad)
 	LONG count_sl = (LONG)(hcount_sl - pspec->base_sl.CntPgSet0) % (LONG)(pspec->base_sl.Kp * 360);//180度カウント数/180
 	pCrStat->sl_ph.p = count_sl / pspec->base_sl.Kp * RAD1DEG;
 	if (pCrStat->sl_ph.p > PI180) pCrStat->sl_ph.p -= PI360;
@@ -766,66 +766,8 @@ LRESULT CALLBACK CCcEnv::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	}
 
 	case WM_TIMER: {
-		//UniCast送信
-#if 0
-		if ((pEnvInf->aux_mode != FUNC_DEACTIVE) && (pEnvInf->aux_mode != FUNC_PAUSE)) {
-			snd_uni2aux(set_msg_u(false, 0, 0), &pUSockCcEnv->addr_in_dst);
-		}
-
-		//通信カウントをタイトルバーに表示
-		st_mon2.wo_work.str(L""); st_mon2.wo_work << L"AUX_IF% PC_U (R:" << rcv_count_u << L" S:" << snd_count_u << L")" ;
-		SetWindowText(st_mon2.hwnd_mon, st_mon2.wo_work.str().c_str());
-
-		//モニター表示
-		if (st_mon2.is_monitor_active) {
-			SOCKADDR_IN	addr;
-			if (pUSockCcEnv != NULL) {
-				addr = pUSockCcEnv->addr_in_rcv; st_mon2.wo_work.str(L"");
-				st_mon2.wo_work << L"UNI>>IP R:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
-					<< htons(addr.sin_port) << L" ";
-				addr = pUSockCcEnv->addr_in_dst;
-				st_mon2.wo_work << L" S:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
-					<< htons(addr.sin_port) << L" ";
-				addr = pUSockCcEnv->addr_in_from; ;
-				st_mon2.wo_work << L" F:" << addr.sin_addr.S_un.S_un_b.s_b1 << L"." << addr.sin_addr.S_un.S_un_b.s_b2 << L"." << addr.sin_addr.S_un.S_un_b.s_b3 << L"." << addr.sin_addr.S_un.S_un_b.s_b4 << L":"
-					<< htons(addr.sin_port) << L" ";
-				SetWindowText(st_mon2.hctrl[ENV_ID_MON2_STATIC_SOCK], st_mon2.wo_work.str().c_str());
-			}
-
-			st_mon2.wo_uni.str(L"");
-			if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_RCV) {
-				LPST_AUX_COM_MSG_HEAD	ph0 = &pEnvInf->st_msg_u_rcv.head;
-				LPST_AUX_COM_SERV_BODY  pb0 = &pEnvInf->st_msg_u_rcv.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
-				st_mon2.wo_uni << L"[BODY]" ;
-			}
-			else if (st_mon2.sock_inf_id == ENV_ID_MON2_RADIO_SND) {
-
-				LPST_AUX_COM_MSG_HEAD	ph0 = &pEnvInf->st_msg_u_snd.head;
-				LPST_AUX_COM_CLI_BODY  pb0 = &pEnvInf->st_msg_u_snd.body;
-				st_mon2.wo_uni << L"[HEAD]" << L"CODE:" << ph0->code << L"\n";
-				st_mon2.wo_uni << L"[BODY]";
-			}
-			else {
-				st_mon2.wo_uni << L"No Message";
-			}
-			SetWindowText(st_mon2.hctrl[ENV_ID_MON2_LABEL_SOCK], st_mon2.wo_uni.str().c_str());
-		}
-#endif
+	
 	}break;
-#if 0
-	case ID_SOCK_EVENT_CC_ENV_UNI: {
-		int nEvent = WSAGETSELECTEVENT(lp);
-		switch (nEvent) {
-		case FD_READ: {
-			//補機プロセスからのユニキャストメッセージ受信
-			rcv_uni_aux(&pEnvInf->st_msg_u_rcv);
-		}break;
-		case FD_WRITE: break;
-		case FD_CLOSE: break;
-		}
-	}break;
-#endif
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
 		// 選択されたメニューの解析:

@@ -168,7 +168,6 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 	pPanelBase->pgwinobjs->lmg_crane_potal->set(0);
 	pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, -angle, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
 
-
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;
 	wo.str(L""); wo << L"荷重： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m / 10.0 << L"t";
@@ -179,7 +178,6 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 	pPanelBase->pgwinobjs->str_pos_sl->update(wo.str().c_str());	// 旋回角書き込み
 	wo.str(L""); wo << L"走行： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].pos_fb << L"m";
 	pPanelBase->pgwinobjs->str_pos_gt->update(wo.str().c_str());	// 走行位置書き込み
-
 
 	if((pCrane->st_crane_inf.crane_id == CRANE_ID_HHGH29)||(pCrane->st_crane_inf.crane_id == CRANE_ID_HHGQ18)) {
 		wo.str(L""); wo << L"風向： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.wind_spd << L"°";
