@@ -69,6 +69,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	v_delay_auto_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ計測起動
 	v_delay_save_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ保存起動
 	v_delay_load_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ読み込み起動
+	auto_act,			//自動実行
 	MAX
 };
 
@@ -216,7 +217,10 @@ typedef struct _ST_GPAD_IN {
 	INT16 pad_sl;
 	INT16 pad_gt;
 	INT16 pad_ah;
-	INT16 spare[3];
+	
+	INT16 auto_act;
+	INT16 auto_mode;
+	INT16 spare;
 
 }ST_GPAD_IN, * LPST_GPAD_IN;
 

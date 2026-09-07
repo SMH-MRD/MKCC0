@@ -18,207 +18,339 @@ ST_STRUCTURE	st_struct_hhfm08 = {
 	10000.0		//フック重量KG	
 };
 
-//主巻
-ST_AXIS_ITEMS	base_mh_hhfm08 = {
-	ID_HOIST,//INT32 Axis_id
-	
-	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{0.0,0.023,0.070,0.140,0.233,0.233},
-		{0.0,0.060,0.182,0.364,0.605,0.605},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
-	},
-	
-	{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{0.0,-0.023,-0.070,-0.140,-0.233,-0.233},
-		{0.0,-0.06,-0.18,-0.36,-0.60,-0.60},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
-	},
-	{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
-	{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
-	
-	0.233,			//double V_rated;定格速度（m/s, rad/s：100％)
-	750.0,			// Rpm_rated;	定格回転数（rpm：100％)
-	220.0,			// Kw_rated;	定格出力（kW：100％)
-	31.129,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
-	0.624,			// Ddrm0;		ドラム径0
-	0.720,			// Ddrm1;		ドラム径1
-	4.0,			// Nwire0;		ロープ掛数
-	2.0,			// Nwire1;		ロープ掛数
-	1.5,			// Ta0;			加速時間0
-	2.5,			// Ta1;			加速時間1
-	1.5,			// Td0;			減速時間0
-	2.5,			// Td1;			減速時間1
-	34,				// Ndmizo0;		ドラム溝数0
-	21,				// Ndmizo1;		ドラム溝数1
-	2048,			// CntPgR;		PG1回転カウント数×逓倍
-	63752,			// CntPgDrumR　ドラム1回転PGカウント数
-	100000000,		// CntPgSet0;	PGプリセット0カウント値
-	230.51,			// NdrmPgSet0;	PGプリセット1カウント値
-	512.0,			// CntAbsR;		アブソコーダ1回転カウント数/入力軸ギア比=ドラム1回転カウント数
-	50000.0,		// CntAbsSet0;	アブソコーダプリセット0カウント値
-	68.0,			// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
-	0.3125,				// Kp
 
-	0.04157,		// dDdrm;		ドラム1層追加径
-	2801.127,		// Trq_rated;	定格トルク（モータ軸）
-	135.1407,		// Pwr_base;	定格必要出力
-	175.39915,		// Trq_base;	定格必要トルク
-	26.748792,		// Ia;			慣性モーメント
-	387.55,			// Lfull;		フルスパン（m）
-	1.0,			// PsoPreset    位置プリセット値
+ST_AXIS_SPEC	axis_spec_hhfm08[MOTION_ID_MAX] = {
+	{//主巻
+		ID_HOIST,//INT32 Axis_id
+
+		{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{0.0,0.023,0.070,0.140,0.233,0.233},
+			{0.0,0.060,0.182,0.364,0.605,0.605},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+
+		{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{0.0,-0.023,-0.070,-0.140,-0.233,-0.233},
+			{0.0,-0.06,-0.18,-0.36,-0.60,-0.60},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+		 {//double accdec[N_ACC_MODE][N_ACCDEC];			//加減速度
+			{0.0,0.0},
+			{0.0,0.0},
+			{0.0,0.0}
+		},
+		{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
+		{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
+
+		0.233,			//double V_rated;定格速度（m/s, rad/s：100％)
+		750.0,			// Rpm_rated;	定格回転数（rpm：100％)
+		220.0,			// Kw_rated;	定格出力（kW：100％)
+		31.129,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
+		0.624,			// Ddrm0;		ドラム径0
+		0.720,			// Ddrm1;		ドラム径1
+		4.0,			// Nwire0;		ロープ掛数
+		2.0,			// Nwire1;		ロープ掛数
+		1.5,			// Ta0;			加速時間0
+		2.5,			// Ta1;			加速時間1
+		1.5,			// Td0;			減速時間0
+		2.5,			// Td1;			減速時間1
+		34,				// Ndmizo0;		ドラム溝数0
+		21,				// Ndmizo1;		ドラム溝数1
+		2048,			// CntPgR;		PG1回転カウント数×逓倍
+		63752,			// CntPgDrumR　ドラム1回転PGカウント数
+		100000000,		// CntPgSet0;	PGプリセット0カウント値
+		230.51,			// NdrmPgSet0;	PGプリセット1カウント値
+		512.0,			// CntAbsR;		アブソコーダ1回転カウント数/入力軸ギア比=ドラム1回転カウント数
+		50000.0,		// CntAbsSet0;	アブソコーダプリセット0カウント値
+		68.0,			// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
+		0.3125,				// Kp
+
+		0.04157,		// dDdrm;		ドラム1層追加径
+		2801.127,		// Trq_rated;	定格トルク（モータ軸）
+		135.1407,		// Pwr_base;	定格必要出力
+		175.39915,		// Trq_base;	定格必要トルク
+		26.748792,		// Ia;			慣性モーメント
+		387.55,			// Lfull;		フルスパン（m）
+		1.0,			// PsoPreset    位置プリセット値
+	},
+	{//起伏
+		ID_BOOM_H,//INT32 Axis_id;
+		{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{0.0,0.33,0.1,0.2,0.33,0.33},
+			{0.0,0.0,0.0,0.0,0.0,0.0},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+
+		{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{-0.0,-0.33,-0.1,-0.2,-0.33,-0.33},
+			{0.0,0.0,0.0,0.0,0.0,0.0},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+		 {//double accdec[N_ACC_MODE][N_ACCDEC];			//加減速度
+			{0.0,0.0},
+			{0.0,0.0},
+			{0.0,0.0}
+		},
+		{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
+		{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
+		0.33,				//double V_rated;定格速度（m/s, rad/s：100％)
+		1750.0,				// Rpm_rated;	定格回転数（rpm：100％)
+		90.0,				// Kw_rated;	定格出力（kW：100％)
+		78.12,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
+		0.720,				// Ddrm0;		ドラム径0
+		0.0,				// Ddrm1;		ドラム径1
+		6.0,				// Nwire0;		ロープ掛数
+		1.0,				// Nwire1;		ロープ掛数
+		1.5,				// Ta0;			加速時間0
+		0.0,				// Ta1;			加速時間1
+		1.5,				// Td0;			減速時間0
+		0.0,				// Td1;			減速時間1
+		21.0,				// Ndmizo0;		ドラム溝数0
+		0.0,				// Ndmizo1;		ドラム溝数1
+		2048,				// CntPgR;		PG1回転カウント数×逓倍
+		159990,				// CntPgDrumR　ドラム1回転PGカウント数
+		86673,				// CntPgSet0;	PGプリセット0カウント値
+		83.3,				// NdrmPgSet0;	PGプリセット0ドラム回転数
+		0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
+		0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
+		0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
+		0.3125,				// Kp
+
+		0.04157,			// dDdrm;		ドラム1層追加直径
+		491.1067,			// Trq_rated;	定格トルク（モータ軸）
+		0.0,				// Pwr_base;	定格必要出力
+		0.0,				// Trq_base;	定格必要トルク
+		4.885128,			// Ia;			慣性モーメント
+		312.015,			// Lfull;		フルスパン（m）
+		1.0,				// PsoPreset    位置プリセット値
+	},
+	{//旋回
+		ID_SLEW,//INT32 Axis_id;
+		{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{0.0,0.00175,0.0175,0.035,0.035,0.035},
+			{0.0,0.0013,0.013,0.026,0.026,0.026},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+		{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{0.0,-0.00175,-0.0175,-0.035,-0.035,-0.035},
+			{0.0,-0.0013,-0.013,-0.026,-0.026,-0.026},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+		 {//double accdec[N_ACC_MODE][N_ACCDEC];			//加減速度
+			{0.0,0.0},
+			{0.0,0.0},
+			{0.0,0.0}
+		},
+		{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
+		{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
+
+		0.0349,				//1/3rpm double V_rated;定格速度（m/s, rad/s：100％)
+		1800.0,				// Rpm_rated;	定格回転数（rpm：100％)
+		33.0,				// Kw_rated;	定格出力（kW：100％)
+		479.4,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
+		0.33,				// Ddrm0;		ドラム径0
+		3.652,				// Ddrm1;		ドラム径1
+		1.0,				// Nwire0;		ロープ掛数
+		1.0,				// Nwire1;		ロープ掛数
+		12.0,				// Ta0;			加速時間0
+		20.0,				// Ta1;			加速時間1
+		12.0,				// Td0;			減速時間0
+		20.0,				// Td1;			減速時間1
+		1.0,				// Ndmizo0;		ドラム溝数0
+		1.0,				// Ndmizo1;		ドラム溝数1
+		2048,				// CntPgR;		PG1回転カウント数×逓倍
+		981811,				// CntPgDrumR　ドラム1回転PGカウント数
+		15000000,			// CntPgSet0;	PGプリセット0カウント値
+		0.0,				// NdrmPgSet0;	PGプリセット0ドラム回転数
+		0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
+		0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
+		0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
+		30181.6,			// Kp;			位置変換係数
+
+		0.0,				// dDdrm;		ドラム1層追加径
+		175.0704,			// Trq_rated;	定格トルク（モータ軸）
+		0.0,				// Pwr_base;	定格必要出力
+		0.0,				// Trq_base;	定格必要トルク
+		30.39636,			// Ia;			慣性モーメント
+		11.473,				// Lfull;		フルスパン（m）
+		1.0,				// PsoPreset    位置プリセット値
+	},
+	{//走行
+		ID_GANTRY,//INT32 Axis_id;
+		{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{0.0,0.058,0.175,0.350,0.580,0.580},
+			{0.0,0.0,0.0,0.0,0.0,0.0},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+		{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+			{0.0,-0.058,-0.175,-0.350,-0.580,-0.580},
+			{0.0,0.0,0.0,0.0,0.0,0.0},
+			{0.0,0.0,0.0,0.0,0.0,0.0}
+		},
+		{//double accdec[N_ACC_MODE][N_ACCDEC];			//加減速度
+			{0.0,0.0},
+			{0.0,0.0},
+			{0.0,0.0}
+		},
+		{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
+		{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
+
+		0.58,			//double V_rated;定格速度（m/s, rad/s：100％)
+		1700.0,			// Rpm_rated;	定格回転数（rpm：100％)
+		44.0,			// Kw_rated;	定格出力（kW：100％)
+		88.0,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
+		0.5,			// Ddrm0;		ドラム径0
+		0.0,			// Ddrm1;		ドラム径1
+		1.0,			// Nwire0;		ロープ掛数
+		1.0,			// Nwire1;		ロープ掛数
+		9.0,			// Ta0;			加速時間0
+		9.0,			// Ta1;			加速時間1
+		9.0,			// Td0;			減速時間0
+		5.0,			// Td1;			減速時間1
+		1.0,			// Ndmizo0;		ドラム溝数0
+		0.0,			// Ndmizo1;		ドラム溝数1
+		2048,			// CntPgR;		PG1回転カウント数×逓倍
+		180224,			// CntPgDrumR　ドラム1回転PGカウント数
+		1000000000.0,	// CntPgSet0;	PGプリセット0カウント値
+		0.0,			// NdrmPgSet0;	PGプリセット0ドラム回転数
+		1024.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
+		31.831,			// CntAbsSet0;	アブソコーダプリセット0カウント値
+		0.0,			// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
+		0.3125,				// Kp
+
+		0.0,			// dDdrm;		ドラム1層追加径
+		0.0,			// Trq_rated;	定格トルク（モータ軸）
+		0.0,			// Pwr_base;	定格必要出力
+		0.0,			// Trq_base;	定格必要トルク
+		6.24755,		// Ia;			慣性モーメント
+		1000.0,			// Lfull;		フルスパン（m）
+		50.0,			// PsoPreset    位置プリセット値
+	},
+	{//補巻
+		ID_AHOIST,//INT32 Axis_id;
+	},
+	{}, {}, {}
 };
 
-//起伏
-ST_AXIS_ITEMS	base_bh_hhfm08 = {
-
-	ID_BOOM_H,//INT32 Axis_id;
-	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{0.0,0.33,0.1,0.2,0.33,0.33},
-		{0.0,0.0,0.0,0.0,0.0,0.0},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
+ST_AUTO_SPEC     auto_spec_hhfm08[MOTION_ID_MAX] =
+{
+	{//主巻
+		{ //double as_rad_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_rad2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad^2) 
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m^2)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_pos_level[N_POS_LEVEL];					//位置決め制御判定　位置ずれレベル(m,rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double pos_check_limit[N_POS_LEVEL];				//位置到達判定範囲(m,rad) 
+			0.0, 0.0, 0.0
+		},
+		{ //double sway_ph_chk_margin;							//振れ位相到達判定範囲
+			0.0
+		},
+		{ //double delay_time[N_DELAY_PTN];						//遅れ時間,無駄時間定義
+			0.0,0.0,0.0,0.0,0.0
+		},
+		{ //double default_target[N_MEM_TARGET];				//デフォルトの登録目標位置
+			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+		},
 	},
-	
-	{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{-0.0,-0.33,-0.1,-0.2,-0.33,-0.33},
-		{0.0,0.0,0.0,0.0,0.0,0.0},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
+	{//引込
+		{ //double as_rad_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_rad2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad^2) 
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m^2)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_pos_level[N_POS_LEVEL];					//位置決め制御判定　位置ずれレベル(m,rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double pos_check_limit[N_POS_LEVEL];				//位置到達判定範囲(m,rad) 
+			0.0, 0.0, 0.0
+		},
+		{ //double sway_ph_chk_margin;							//振れ位相到達判定範囲
+			0.0
+		},
+		{ //double delay_time[N_DELAY_PTN];						//遅れ時間,無駄時間定義
+			0.0,0.0,0.0,0.0,0.0
+		},
+		{ //double default_target[N_MEM_TARGET];				//デフォルトの登録目標位置
+			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+		},
 	},
-	{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
-	{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
-	0.33,				//double V_rated;定格速度（m/s, rad/s：100％)
-	1750.0,				// Rpm_rated;	定格回転数（rpm：100％)
-	90.0,				// Kw_rated;	定格出力（kW：100％)
-	78.12,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
-	0.720,				// Ddrm0;		ドラム径0
-	0.0,				// Ddrm1;		ドラム径1
-	6.0,				// Nwire0;		ロープ掛数
-	1.0,				// Nwire1;		ロープ掛数
-	1.5,				// Ta0;			加速時間0
-	0.0,				// Ta1;			加速時間1
-	1.5,				// Td0;			減速時間0
-	0.0,				// Td1;			減速時間1
-	21.0,				// Ndmizo0;		ドラム溝数0
-	0.0,				// Ndmizo1;		ドラム溝数1
-	2048,				// CntPgR;		PG1回転カウント数×逓倍
-	159990,				// CntPgDrumR　ドラム1回転PGカウント数
-	86673,				// CntPgSet0;	PGプリセット0カウント値
-	83.3,				// NdrmPgSet0;	PGプリセット0ドラム回転数
-	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
-	0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
-	0.3125,				// Kp
-
-	0.04157,			// dDdrm;		ドラム1層追加直径
-	491.1067,			// Trq_rated;	定格トルク（モータ軸）
-	0.0,				// Pwr_base;	定格必要出力
-	0.0,				// Trq_base;	定格必要トルク
-	4.885128,			// Ia;			慣性モーメント
-	312.015,			// Lfull;		フルスパン（m）
-	1.0,				// PsoPreset    位置プリセット値
-
-};
-
-//旋回
-ST_AXIS_ITEMS	base_sl_hhfm08 = {
-	ID_SLEW,//INT32 Axis_id;
-	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{0.0,0.00175,0.0175,0.035,0.035,0.035},
-		{0.0,0.0013,0.013,0.026,0.026,0.026},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
+	{//旋回
+		{ //double as_rad_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_rad2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad^2) 
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m^2)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_pos_level[N_POS_LEVEL];					//位置決め制御判定　位置ずれレベル(m,rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double pos_check_limit[N_POS_LEVEL];				//位置到達判定範囲(m,rad) 
+			0.0, 0.0, 0.0
+		},
+		{ //double sway_ph_chk_margin;							//振れ位相到達判定範囲
+			0.0
+		},
+		{ //double delay_time[N_DELAY_PTN];						//遅れ時間,無駄時間定義
+			0.0,0.0,0.0,0.0,0.0
+		},
+		{ //double default_target[N_MEM_TARGET];				//デフォルトの登録目標位置
+			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+		},
 	},
-	{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{0.0,-0.00175,-0.0175,-0.035,-0.035,-0.035},
-		{0.0,-0.0013,-0.013,-0.026,-0.026,-0.026},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
+	{//走行
+		{ //double as_rad_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_rad2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ角レベル(rad^2) 
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_m2_level[N_SWAY_LEVEL];					//振れ止め判定　振れ幅レベル(m^2)
+			0.0, 0.0, 0.0
+		},
+		{ //double as_pos_level[N_POS_LEVEL];					//位置決め制御判定　位置ずれレベル(m,rad)
+			0.0, 0.0, 0.0
+		},
+		{ //double pos_check_limit[N_POS_LEVEL];				//位置到達判定範囲(m,rad) 
+			0.0, 0.0, 0.0
+		},
+		{ //double sway_ph_chk_margin;							//振れ位相到達判定範囲
+			0.0
+		},
+		{ //double delay_time[N_DELAY_PTN];						//遅れ時間,無駄時間定義
+			0.0,0.0,0.0,0.0,0.0
+		},
+		{ //double default_target[N_MEM_TARGET];				//デフォルトの登録目標位置
+			0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+		},
 	},
-	{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];						//GamePadのノッチ配分
-	{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];						//GamePadのノッチ配分
-
-	0.0349,				//1/3rpm double V_rated;定格速度（m/s, rad/s：100％)
-	1800.0,				// Rpm_rated;	定格回転数（rpm：100％)
-	33.0,				// Kw_rated;	定格出力（kW：100％)
-	479.4,				// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
-	0.33,				// Ddrm0;		ドラム径0
-	3.652,				// Ddrm1;		ドラム径1
-	1.0,				// Nwire0;		ロープ掛数
-	1.0,				// Nwire1;		ロープ掛数
-	12.0,				// Ta0;			加速時間0
-	20.0,				// Ta1;			加速時間1
-	12.0,				// Td0;			減速時間0
-	20.0,				// Td1;			減速時間1
-	1.0,				// Ndmizo0;		ドラム溝数0
-	1.0,				// Ndmizo1;		ドラム溝数1
-	2048,				// CntPgR;		PG1回転カウント数×逓倍
-	981811,				// CntPgDrumR　ドラム1回転PGカウント数
-	15000000,			// CntPgSet0;	PGプリセット0カウント値
-	0.0,				// NdrmPgSet0;	PGプリセット0ドラム回転数
-	0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	0.0,				// CntAbsSet0;	アブソコーダプリセット0カウント値
-	0.0,				// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
-	30181.6,			// Kp;			位置変換係数
-
-	0.0,				// dDdrm;		ドラム1層追加径
-	175.0704,			// Trq_rated;	定格トルク（モータ軸）
-	0.0,				// Pwr_base;	定格必要出力
-	0.0,				// Trq_base;	定格必要トルク
-	30.39636,			// Ia;			慣性モーメント
-	11.473,				// Lfull;		フルスパン（m）
-	1.0,				// PsoPreset    位置プリセット値
-};
-
-//走行
-ST_AXIS_ITEMS	base_gt_hhfm08 = {
-	ID_GANTRY,//INT32 Axis_id;
-	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{0.0,0.058,0.175,0.350,0.580,0.580},
-		{0.0,0.0,0.0,0.0,0.0,0.0},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
-	},
-	{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
-		{0.0,-0.058,-0.175,-0.350,-0.580,-0.580},
-		{0.0,0.0,0.0,0.0,0.0,0.0},
-		{0.0,0.0,0.0,0.0,0.0,0.0}
-	},
-	
-	{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
-	{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
-	
-	0.58,			//double V_rated;定格速度（m/s, rad/s：100％)
-	1700.0,			// Rpm_rated;	定格回転数（rpm：100％)
-	44.0,			// Kw_rated;	定格出力（kW：100％)
-	88.0,			// Gear_ratio;	減速比(モータ回転 /ドラム回転 ）
-	0.5,			// Ddrm0;		ドラム径0
-	0.0,			// Ddrm1;		ドラム径1
-	1.0,			// Nwire0;		ロープ掛数
-	1.0,			// Nwire1;		ロープ掛数
-	9.0,			// Ta0;			加速時間0
-	9.0,			// Ta1;			加速時間1
-	9.0,			// Td0;			減速時間0
-	5.0,			// Td1;			減速時間1
-	1.0,			// Ndmizo0;		ドラム溝数0
-	0.0,			// Ndmizo1;		ドラム溝数1
-	2048,			// CntPgR;		PG1回転カウント数×逓倍
-	180224,			// CntPgDrumR　ドラム1回転PGカウント数
-	1000000000.0,	// CntPgSet0;	PGプリセット0カウント値
-	0.0,			// NdrmPgSet0;	PGプリセット0ドラム回転数
-	1024.0,			// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比
-	31.831,			// CntAbsSet0;	アブソコーダプリセット0カウント値
-	0.0,			// NdrmAbsSet0;	アブソコーダプリセット0ドラム回転数
-	0.3125,				// Kp
-
-	0.0,			// dDdrm;		ドラム1層追加径
-	0.0,			// Trq_rated;	定格トルク（モータ軸）
-	0.0,			// Pwr_base;	定格必要出力
-	0.0,			// Trq_base;	定格必要トルク
-	6.24755,		// Ia;			慣性モーメント
-	1000.0,			// Lfull;		フルスパン（m）
-	50.0,			// PsoPreset    位置プリセット値
-
-};
-
-//補巻
-ST_AXIS_ITEMS	base_ah_hhfm08 = {
-	ID_AHOIST,//INT32 Axis_id;
+	{},	{}, {}, {}
 };
 
 

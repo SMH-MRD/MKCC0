@@ -154,6 +154,9 @@ typedef struct _ST_OTE_CS_OBJ {
     CValue<INT16> zoom_f;
     CValue<INT16> zoom_n;
 
+    CValue<INT16> auto_mode;
+    CValue<INT16> auto_act;
+
     CValue<INT16> trig_l;
     CValue<INT16> trig_r;
 

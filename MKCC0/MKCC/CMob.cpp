@@ -75,19 +75,18 @@ void CMob::timeEvolution() {
 CSimJC::CSimJC(int _id) { 
 	//仕様パラメータ構造体セット
 	pStruct = pCrane->get_st_struct();
-	pAxis_mh = pCrane->get_base_mh();
-	pAxis_bh = pCrane->get_base_bh();
-	pAxis_sl = pCrane->get_base_sl();
-	pAxis_gt = pCrane->get_base_gt();
-	pAxis_ah = pCrane->get_base_ah();
-
+	pAxis_mh = pCrane->get_axis_mh();
+	pAxis_bh = pCrane->get_axis_bh();
+	pAxis_sl = pCrane->get_axis_sl();
+	pAxis_gt = pCrane->get_axis_gt();
+	pAxis_ah = pCrane->get_axis_ah();
 
 	//0速とみなす速度上限（ドラム回転速度）
-	accdec_cut_spd_range[ID_HOIST]	= 0.005 * pAxis_mh->Rpm_rated / 60.0 / (pCrane->get_base_mh()->Gear_ratio);	//0.5%
-	accdec_cut_spd_range[ID_BOOM_H] = 0.005 * pAxis_bh->Rpm_rated / 60.0 / (pCrane->get_base_mh()->Gear_ratio);	//0.5%
-	accdec_cut_spd_range[ID_SLEW]	= 0.005 * pAxis_sl->Rpm_rated / 60.0 / (pCrane->get_base_mh()->Gear_ratio);	//0.5%
-	accdec_cut_spd_range[ID_GANTRY] = 0.005 * pAxis_gt->Rpm_rated / 60.0 / (pCrane->get_base_mh()->Gear_ratio);	//0.5%	
-	accdec_cut_spd_range[ID_AHOIST] = 0.005 * pAxis_ah->Rpm_rated / 60.0 / (pCrane->get_base_mh()->Gear_ratio);	//0.5%
+	accdec_cut_spd_range[ID_HOIST]	= 0.005 * pAxis_mh->Rpm_rated / 60.0 / (pCrane->get_axis_mh()->Gear_ratio);	//0.5%
+	accdec_cut_spd_range[ID_BOOM_H] = 0.005 * pAxis_bh->Rpm_rated / 60.0 / (pCrane->get_axis_bh()->Gear_ratio);	//0.5%
+	accdec_cut_spd_range[ID_SLEW]	= 0.005 * pAxis_sl->Rpm_rated / 60.0 / (pCrane->get_axis_sl()->Gear_ratio);	//0.5%
+	accdec_cut_spd_range[ID_GANTRY] = 0.005 * pAxis_gt->Rpm_rated / 60.0 / (pCrane->get_axis_gt()->Gear_ratio);	//0.5%	
+	accdec_cut_spd_range[ID_AHOIST] = 0.005 * pAxis_ah->Rpm_rated / 60.0 / (pCrane->get_axis_ah()->Gear_ratio);	//0.5%
 	mh_load = pStruct->Whook;	//初期主巻荷重 フック重量
 	ah_load = pStruct->Whook;	//初期補巻荷重 フック重量
 
@@ -507,11 +506,11 @@ void CSimJC::init_crane(double _dt) {
 }
 // 各モーションのブレーキ状態をセット
 void CSimJC::update_break_status() {
-	motion_brake[ID_HOIST]	= pPLC_IO->stat_mh.brake;
-	motion_brake[ID_AHOIST]	= pPLC_IO->stat_ah.brake;
-	motion_brake[ID_GANTRY]	= pPLC_IO->stat_gt.brake;
-	motion_brake[ID_BOOM_H]	= pPLC_IO->stat_bh.brake;
-	motion_brake[ID_SLEW]	= pPLC_IO->stat_sl.brake;
+	motion_brake[ID_HOIST]	= pPLC_IO->stat_axis[ID_HOIST].brake;
+	motion_brake[ID_AHOIST]	= pPLC_IO->stat_axis[ID_AHOIST].brake;
+	motion_brake[ID_GANTRY]	= pPLC_IO->stat_axis[ID_GANTRY].brake;
+	motion_brake[ID_BOOM_H]	= pPLC_IO->stat_axis[ID_BOOM_H].brake;
+	motion_brake[ID_SLEW]	= pPLC_IO->stat_axis[ID_SLEW].brake;
 	return;
 }
 

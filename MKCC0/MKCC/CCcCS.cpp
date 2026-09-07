@@ -435,8 +435,8 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 			plamp_com[OTE_PNL_CTRLS::bypass].st.com = CODE_PNL_COM_ON;
 
 			//#PLC側CSスイッチの状態
-			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com = (UINT8)pPLC_IO->stat_mh.mode;
-			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com = (UINT8)pPLC_IO->stat_bh.mode;
+			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com = (UINT8)pPLC_IO->stat_axis[ID_HOIST].mode;
+			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com = (UINT8)pPLC_IO->stat_axis[ID_BOOM_H].mode;
 
 			//#自動給脂　動力確立ランプ
 			plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.douryoku_ok).i16;
@@ -455,10 +455,10 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_OFF;
 
 			//#ノッチ信号FB
-			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = (UINT8)pPLC_IO->stat_mh.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = (UINT8)pPLC_IO->stat_bh.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = (UINT8)pPLC_IO->stat_sl.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = (UINT8)pPLC_IO->stat_gt.notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = (UINT8)pPLC_IO->stat_axis[ID_HOIST].notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = (UINT8)pPLC_IO->stat_axis[ID_BOOM_H].notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = (UINT8)pPLC_IO->stat_axis[ID_SLEW].notch_ref;
+			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = (UINT8)pPLC_IO->stat_axis[ID_GANTRY].notch_ref;
 
 			//#ブザー,故障、警報ランプ
 			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->JC.fault_bz).i16 & 0x000F;
@@ -477,10 +477,10 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 		st_ote_work.st_body.wind_spd = (float)pPLC_IO->wind_spd;									//風速
 
 		//## 各軸状態
-		st_ote_work.st_body.st_axis_set[ID_HOIST] = pPLC_IO->stat_mh;	//主巻
-		st_ote_work.st_body.st_axis_set[ID_BOOM_H] = pPLC_IO->stat_bh;	//引込
-		st_ote_work.st_body.st_axis_set[ID_SLEW] = pPLC_IO->stat_sl;	//旋回
-		st_ote_work.st_body.st_axis_set[ID_GANTRY] = pPLC_IO->stat_gt;	//走行
+		st_ote_work.st_body.st_axis_set[ID_HOIST] = pPLC_IO->stat_axis[ID_HOIST];
+		st_ote_work.st_body.st_axis_set[ID_BOOM_H] = pPLC_IO->stat_axis[ID_BOOM_H];
+		st_ote_work.st_body.st_axis_set[ID_SLEW] = pPLC_IO->stat_axis[ID_SLEW];
+		st_ote_work.st_body.st_axis_set[ID_GANTRY] = pPLC_IO->stat_axis[ID_GANTRY];
 
 		//## 旋回ブレーキFB
 		st_ote_work.st_body.sl_brk_fb[0] = pAUX_CS_Inf->fb_slbrk.d16;

@@ -89,11 +89,11 @@ public:
     //各軸の仕様パラメータ
     LPST_STRUCTURE pStruct;
     //各軸の仕様パラメータ
-    LPST_AXIS_ITEMS pAxis_mh;
-    LPST_AXIS_ITEMS pAxis_bh;
-    LPST_AXIS_ITEMS pAxis_sl;
-    LPST_AXIS_ITEMS pAxis_gt;
-    LPST_AXIS_ITEMS pAxis_ah;
+    LPST_AXIS_SPEC pAxis_mh;
+    LPST_AXIS_SPEC pAxis_bh;
+    LPST_AXIS_SPEC pAxis_sl;
+    LPST_AXIS_SPEC pAxis_gt;
+    LPST_AXIS_SPEC pAxis_ah;
 
     LPST_CRANE_STAT pCraneStat;
     LPST_CC_PLC_IO  pPLC_IO;
@@ -184,11 +184,11 @@ public:
     //各軸の仕様パラメータ
     LPST_STRUCTURE pStruct;
     //各軸の仕様パラメータ
-    LPST_AXIS_ITEMS pAxis_mh;
-    LPST_AXIS_ITEMS pAxis_bh;
-    LPST_AXIS_ITEMS pAxis_sl;
-    LPST_AXIS_ITEMS pAxis_gt;
-    LPST_AXIS_ITEMS pAxis_ah;
+    LPST_AXIS_SPEC pAxis_mh;
+    LPST_AXIS_SPEC pAxis_bh;
+    LPST_AXIS_SPEC pAxis_sl;
+    LPST_AXIS_SPEC pAxis_gt;
+    LPST_AXIS_SPEC pAxis_ah;
 
     LPST_CRANE_STAT pCraneStat;
     LPST_CC_PLC_IO  pPLC_IO;
@@ -217,11 +217,11 @@ public:
     //各軸の仕様パラメータ
     LPST_STRUCTURE pStruct;
     //各軸の仕様パラメータ
-    LPST_AXIS_ITEMS pAxis_mh;
-    LPST_AXIS_ITEMS pAxis_bh;
-    LPST_AXIS_ITEMS pAxis_sl;
-    LPST_AXIS_ITEMS pAxis_gt;
-    LPST_AXIS_ITEMS pAxis_ah;
+    LPST_AXIS_SPEC pAxis_mh;
+    LPST_AXIS_SPEC pAxis_bh;
+    LPST_AXIS_SPEC pAxis_sl;
+    LPST_AXIS_SPEC pAxis_gt;
+    LPST_AXIS_SPEC pAxis_ah;
 
     LPST_CRANE_STAT pCraneStat;
     LPST_CC_PLC_IO  pPLC_IO;

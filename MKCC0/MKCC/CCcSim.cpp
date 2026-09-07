@@ -148,20 +148,20 @@ void CSim::setup_JC(int id) {
 
 	//計算パラメータセット
 	//モータ1回転のPGカウント数=モータ1RPSでのカウント速度 
-	st_work.axis[ID_HOIST].RpsPGCnt	= pCrane->pSpec->base_mh.CntPgR;	//主巻
-	st_work.axis[ID_BOOM_H].RpsPGCnt = pCrane->pSpec->base_bh.CntPgR;	//引込
-	st_work.axis[ID_SLEW].RpsPGCnt	= pCrane->pSpec->base_sl.CntPgR;	//旋回
-	st_work.axis[ID_GANTRY].RpsPGCnt = pCrane->pSpec->base_gt.CntPgR;	//走行
+	st_work.axis[ID_HOIST].RpsPGCnt	= pCrane->pSpec->axis_spec[ID_HOIST].CntPgR;	//主巻
+	st_work.axis[ID_BOOM_H].RpsPGCnt = pCrane->pSpec->axis_spec[ID_BOOM_H].CntPgR;	//引込
+	st_work.axis[ID_SLEW].RpsPGCnt	= pCrane->pSpec->axis_spec[ID_SLEW].CntPgR;	//旋回
+	st_work.axis[ID_GANTRY].RpsPGCnt = pCrane->pSpec->axis_spec[ID_GANTRY].CntPgR;	//走行
 
 	//ドラム1回転のアブソコーダカウント数=ドラム1RPSでのカウント速度
-	st_work.axis[ID_HOIST].RpsABSOCnt = pCrane->pSpec->base_mh.CntAbsR;	//主巻
-	st_work.axis[ID_GANTRY].RpsABSOCnt = pCrane->pSpec->base_gt.CntAbsR;	//走行
+	st_work.axis[ID_HOIST].RpsABSOCnt = pCrane->pSpec->axis_spec[ID_HOIST].CntAbsR;	//主巻
+	st_work.axis[ID_GANTRY].RpsABSOCnt = pCrane->pSpec->axis_spec[ID_GANTRY].CntAbsR;	//走行
 
 	//ドラム動作初期値　PG,アブソコーダカウント初期値セット
 	init_drm_motion_JC(crane_id);
 
 	//旋回360°回転PGカウント= モータ1回転カウント×減速比×TTB径/ピニオン径
-	st_work.sl_cnt_pg360 = (INT32)(pspec->base_sl.CntPgR * pspec->base_sl.Gear_ratio* pspec->base_sl.Ddrm1 / pspec->base_sl.Ddrm0);
+	st_work.sl_cnt_pg360 = (INT32)(pspec->axis_spec[ID_SLEW].CntPgR * pspec->axis_spec[ID_SLEW].Gear_ratio* pspec->axis_spec[ID_SLEW].Ddrm1 / pspec->axis_spec[ID_SLEW].Ddrm0);
 
 	switch (id) {
 	case CRANE_ID_H6R602:
@@ -235,15 +235,15 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	//### ドライブ制御関連
 	//主巻の速度FB,トルク指令設定
 	{
-		if (pPLC_IO->stat_mh.v_ref != 0) {
-			if (pPLC_IO->stat_mh.brake == 0) {//ブレーキ閉
+		if (pPLC_IO->stat_axis[ID_HOIST].v_ref != 0) {
+			if (pPLC_IO->stat_axis[ID_HOIST].brake == 0) {//ブレーキ閉
 				st_sim_inf.trq_ref_mh = st_work.trq30[ID_HOIST];	//30%トルク指令
 				st_sim_inf.vfb_mh = 0;			//速度FBは0
 			}
 			else {//ブレーキ開
 				st_sim_inf.trq_ref_mh = st_work.trq[ID_HOIST];	//100%トルク指令
 				//inv_ref(ベース100%で0.1%単位表現)
-				st_sim_inf.vfb_mh = (INT16)((double)pPLC_IO->stat_mh.v_ref * pspec->base_mh.Rpm_rated/1000.0);
+				st_sim_inf.vfb_mh = (INT16)((double)pPLC_IO->stat_axis[ID_HOIST].v_ref * pspec->axis_spec[ID_HOIST].Rpm_rated/1000.0);
 			}
 		}
 		else {
@@ -254,15 +254,15 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 
 	//引込の速度FB,トルク指令設定
 	{
-		if (pPLC_IO->stat_bh.v_ref != 0) {
-			if (pPLC_IO->stat_bh.brake == 0) {//ブレーキ閉
-				st_sim_inf.trq_ref_bh = st_work.trq30[ID_BOOM_H];;	//30%トルク指令
+		if (pPLC_IO->stat_axis[ID_BOOM_H].v_ref != 0) {
+			if (pPLC_IO->stat_axis[ID_BOOM_H].brake == 0) {//ブレーキ閉
+				st_sim_inf.trq_ref_bh = st_work.trq30[ID_BOOM_H];	//30%トルク指令
 				st_sim_inf.vfb_bh = 0;			//速度FBは0
 			}
 			else {//ブレーキ開
 				st_sim_inf.trq_ref_bh = st_work.trq[ID_BOOM_H];	//100%トルク指令
 				//inv_ref(ベース100%で0.1%単位表現) vfbはrpm単位で表現
-				st_sim_inf.vfb_bh = (INT16)((double)pPLC_IO->stat_bh.v_ref * pspec->base_bh.Rpm_rated / 1000.0);
+				st_sim_inf.vfb_bh = (INT16)((double)pPLC_IO->stat_axis[ID_BOOM_H].v_ref * pspec->axis_spec[ID_BOOM_H].Rpm_rated / 1000.0);
 			}
 		}
 		else {
@@ -273,11 +273,11 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	
 	//旋回の速度FB
 	{
-		if (pPLC_IO->stat_sl.v_ref != 0) {
-			if (pPLC_IO->stat_sl.brake) //!!!旋回ブレーキは信号ONで閉
+		if (pPLC_IO->stat_axis[ID_SLEW].v_ref != 0) {
+			if (pPLC_IO->stat_axis[ID_SLEW].brake) //!!!旋回ブレーキは信号ONで閉
 				st_sim_inf.vfb_sl = 0;			//速度FBは0
 			else {//ブレーキ開
-				st_sim_inf.vfb_sl = (INT16)((double)pPLC_IO->stat_sl.v_ref * pspec->base_sl.Rpm_rated / 1000.0);
+				st_sim_inf.vfb_sl = (INT16)((double)pPLC_IO->stat_axis[ID_SLEW].v_ref * pspec->axis_spec[ID_SLEW].Rpm_rated / 1000.0);
 			}
 		}
 		else st_sim_inf.vfb_sl = 0;			//速度FBは0
@@ -285,11 +285,11 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 
 	//走行の速度FB,トルク指令設定
 	{
-		if (pPLC_IO->stat_gt.v_ref != 0) {
-			if (pPLC_IO->stat_gt.brake == 0)
+		if (pPLC_IO->stat_axis[ID_GANTRY].v_ref != 0) {
+			if (pPLC_IO->stat_axis[ID_GANTRY].brake == 0)
 				st_sim_inf.vfb_gt = 0;		//速度FBは0
 			else { //ブレーキ開
-				st_sim_inf.vfb_gt = (INT16)((double)pPLC_IO->stat_gt.v_ref * pspec->base_gt.Rpm_rated / 1000.0);
+				st_sim_inf.vfb_gt = (INT16)((double)pPLC_IO->stat_axis[ID_GANTRY].v_ref * pspec->axis_spec[ID_GANTRY].Rpm_rated / 1000.0);
 			}
 		}
 		else st_sim_inf.vfb_gt = 0;			//速度FBは0
@@ -299,30 +299,30 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	//### 位置情報関連
 	//高速カウンタ,アブソコーダフィードバック設定
 	//crane_stat.nd[].vはドラムRPS単位の速度値　PGカウントはモータのRPSでカウント計算
-	if (pPLC_IO->stat_mh.brake) {
-		st_sim_inf.hcount_mh += (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * pspec->base_mh.Gear_ratio * inf.dt * st_work.axis[ID_HOIST].RpsPGCnt);	//主巻PGフィードバック
+	if (pPLC_IO->stat_axis[ID_HOIST].brake) {
+		st_sim_inf.hcount_mh += (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * pspec->axis_spec[ID_HOIST].Gear_ratio * inf.dt * st_work.axis[ID_HOIST].RpsPGCnt);	//主巻PGフィードバック
 		st_sim_inf.absocoder_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v	* inf.dt * st_work.axis[ID_HOIST].RpsABSOCnt)/6;
 	}
 
-	if(pPLC_IO->stat_bh.brake)//!!!引込は正転でPGはマイナスカウント
-		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v  * pspec->base_bh.Gear_ratio * inf.dt * st_work.axis[ID_BOOM_H].RpsPGCnt)/6;
+	if(pPLC_IO->stat_axis[ID_BOOM_H].brake)//!!!引込は正転でPGはマイナスカウント
+		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v  * pspec->axis_spec[ID_BOOM_H].Gear_ratio * inf.dt * st_work.axis[ID_BOOM_H].RpsPGCnt)/6;
 	//下限リミット　入限 
-	if (st_sim_inf.hcount_bh < pspec->base_bh.CntPgSet0) 
-		st_sim_inf.hcount_bh = pspec->base_bh.CntPgSet0;
+	if (st_sim_inf.hcount_bh < pspec->axis_spec[ID_BOOM_H].CntPgSet0) 
+		st_sim_inf.hcount_bh = pspec->axis_spec[ID_BOOM_H].CntPgSet0;
 
 	
 	//!!!旋回ブレーキは信号OFFで開
-	if((!pPLC_IO->stat_sl.brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-0.00005)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>0.00005)))
-		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v * pspec->base_sl.Gear_ratio * inf.dt * st_work.axis[ID_SLEW].RpsPGCnt);
+	if((!pPLC_IO->stat_axis[ID_SLEW].brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-0.00005)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>0.00005)))
+		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v * pspec->axis_spec[ID_SLEW].Gear_ratio * inf.dt * st_work.axis[ID_SLEW].RpsPGCnt);
 
 
 	//プリセット エミュレーションでは2周以上でプリセット値に戻す
-	if (st_sim_inf.hcount_sl > pspec->base_sl.CntPgSet0 + st_work.sl_cnt_pg360 * 2) 
-		st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
-	if (st_sim_inf.hcount_sl < pspec->base_sl.CntPgSet0 - st_work.sl_cnt_pg360 * 2) 
-		st_sim_inf.hcount_sl = (INT32)pspec->base_sl.CntPgSet0;
+	if (st_sim_inf.hcount_sl > pspec->axis_spec[ID_SLEW].CntPgSet0 + st_work.sl_cnt_pg360 * 2) 
+		st_sim_inf.hcount_sl = (INT32)pspec->axis_spec[ID_SLEW].CntPgSet0;
+	if (st_sim_inf.hcount_sl < pspec->axis_spec[ID_SLEW].CntPgSet0 - st_work.sl_cnt_pg360 * 2) 
+		st_sim_inf.hcount_sl = (INT32)pspec->axis_spec[ID_SLEW].CntPgSet0;
 
-	if (pPLC_IO->stat_gt.brake) {
+	if (pPLC_IO->stat_axis[ID_GANTRY].brake) {
 		st_sim_inf.absocoder_gt += (INT32)(pEnv_Inf->crane_stat.nd[ID_GANTRY].v * inf.dt * st_work.axis[ID_GANTRY].RpsABSOCnt);	//他は未使用なので0
 	}
 
@@ -405,10 +405,10 @@ LRESULT CALLBACK CSim::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		st_mon1.wo.str(L""); 
 
-		st_mon1.wo	<< L"[INV Ref V] mh:" << pPLC_IO->stat_mh.v_ref
-					<< L" bh:" << pPLC_IO->stat_bh.v_ref
-					<< L" sl:" << pPLC_IO->stat_sl.v_ref
-					<< L" gt:" << pPLC_IO->stat_gt.v_ref
+		st_mon1.wo	<< L"[INV Ref V] mh:" << pPLC_IO->stat_axis[ID_HOIST].v_ref
+					<< L" bh:" << pPLC_IO->stat_axis[ID_BOOM_H].v_ref
+					<< L" sl:" << pPLC_IO->stat_axis[ID_SLEW].v_ref
+					<< L" gt:" << pPLC_IO->stat_axis[ID_GANTRY].v_ref
 					<< L" \n";
 
 		SetWindowText(st_mon1.hctrl[SIM_ID_MON1_STATIC_INF0], st_mon1.wo.str().c_str());

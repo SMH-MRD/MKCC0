@@ -7,23 +7,9 @@
 
 ST_STRUCTURE	CSpec::st_struct;
 
-ST_AXIS_ITEMS	CSpec::base_mh;
-ST_AXIS_ITEMS	CSpec::base_bh;
-ST_AXIS_ITEMS	CSpec::base_sl;
-ST_AXIS_ITEMS	CSpec::base_gt;
-ST_AXIS_ITEMS	CSpec::base_ah;
-
-ST_AUTO_SPEC	CSpec::auto_mh;
-ST_AUTO_SPEC	CSpec::auto_bh;
-ST_AUTO_SPEC	CSpec::auto_sl;
-ST_AUTO_SPEC	CSpec::auto_gt;
-ST_AUTO_SPEC	CSpec::auto_ah;
-
-ST_REMOTE_SPEC	CSpec::rmt_mh;
-ST_REMOTE_SPEC	CSpec::rmt_bh;
-ST_REMOTE_SPEC	CSpec::rmt_sl;
-ST_REMOTE_SPEC	CSpec::rmt_gt;
-ST_REMOTE_SPEC	CSpec::rmt_ah;
+ST_AXIS_SPEC	CSpec::axis_spec[MOTION_ID_MAX];
+ST_AUTO_SPEC	CSpec::auto_spec[MOTION_ID_MAX];
+ST_REMOTE_SPEC	CSpec::rmt_spec[MOTION_ID_MAX];
 
 //構造
 ST_STRUCTURE	st_struct0 = {
@@ -40,16 +26,17 @@ ST_STRUCTURE	st_struct0 = {
 	52.809,		//起伏上限時d
 	10000.0		//フック重量KG	
 };
-//主巻
-ST_AXIS_ITEMS	base_mh0 = {
+
+ST_AXIS_SPEC	axis_spec0[MOTION_ID_MAX] = { 
+{//主巻
 	ID_HOIST,//INT32 Axis_id
-	
+
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,0.023,0.070,0.140,0.233,0.233},
 		{0.0,0.060,0.182,0.364,0.605,0.605},
 		{0.0,0.0,0.0,0.0,0.0,0.0}
 	},
-	
+
 	{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,-0.023,-0.070,-0.140,-0.233,-0.233},
 		{0.0,-0.06,-0.18,-0.36,-0.60,-0.60},
@@ -57,7 +44,7 @@ ST_AXIS_ITEMS	base_mh0 = {
 	},
 	{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
 	{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
-	
+
 	0.233,			//double V_rated;定格速度（m/s, rad/s：100％)
 	750.0,			// Rpm_rated;	定格回転数（rpm：100％)
 	220.0,			// Kw_rated;	定格出力（kW：100％)
@@ -89,9 +76,9 @@ ST_AXIS_ITEMS	base_mh0 = {
 	387.55,			// Lfull;		フルスパン（m）
 	1.0,			// PsoPreset    位置プリセット値
 	1.0,			// 最大速度比率
-};
-//起伏
-ST_AXIS_ITEMS	base_bh0 = {
+},
+
+{//起伏
 
 	ID_BOOM_H,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
@@ -99,7 +86,7 @@ ST_AXIS_ITEMS	base_bh0 = {
 		{0.0,0.0,0.0,0.0,0.0,0.0},
 		{0.0,0.0,0.0,0.0,0.0,0.0}
 	},
-	
+
 	{//double Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{-0.0,-0.33,-0.1,-0.2,-0.33,-0.33},
 		{0.0,0.0,0.0,0.0,0.0,0.0},
@@ -138,9 +125,9 @@ ST_AXIS_ITEMS	base_bh0 = {
 	312.015,			// Lfull;		フルスパン（m）
 	1.0,				// PsoPreset    位置プリセット値
 	1.0,				// 最大速度比率
-};
-//旋回
-ST_AXIS_ITEMS	base_sl0 = {
+},
+
+{//旋回
 	ID_SLEW,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,0.00175,0.0175,0.035,0.035,0.035},
@@ -186,9 +173,9 @@ ST_AXIS_ITEMS	base_sl0 = {
 	11.473,				// Lfull;		フルスパン（m）
 	1.0,				// PsoPreset    位置プリセット値
 	1.0,				// 最大速度比率
-};
-//走行
-ST_AXIS_ITEMS	base_gt0 = {
+},
+
+{//走行
 	ID_GANTRY,//INT32 Axis_id;
 	{//double Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 		{0.0,0.058,0.175,0.350,0.580,0.580},
@@ -200,10 +187,10 @@ ST_AXIS_ITEMS	base_gt0 = {
 		{0.0,0.0,0.0,0.0,0.0,0.0},
 		{0.0,0.0,0.0,0.0,0.0,0.0}
 	},
-	
+
 	{2000,5000,10000,25000,0x7FFF,0x7FFF},		//INT16 Notch_pad_f[N_NOTCH_MAX];	//GamePadのノッチ配分
 	{-2000,-5000,-10000,-25000,0x8000,0x8000},	//INT16 Notch_pad_r[N_NOTCH_MAX];	//GamePadのノッチ配分
-	
+
 	0.58,			//double V_rated;定格速度（m/s, rad/s：100％)
 	1700.0,			// Rpm_rated;	定格回転数（rpm：100％)
 	44.0,			// Kw_rated;	定格出力（kW：100％)
@@ -235,53 +222,48 @@ ST_AXIS_ITEMS	base_gt0 = {
 	1000.0,			// Lfull;		フルスパン（m）
 	50.0,			// PsoPreset    位置プリセット値
 	1.0,			// 最大速度比率
-};
-//補巻
-ST_AXIS_ITEMS	base_ah0 = {
+},
+
+{//補巻
 	ID_AHOIST,//INT32 Axis_id;
+},
 };
 
 int CSpec::setup(int crane_id) {
 	switch (crane_id) {
 	case CRANE_ID_H6R602:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_h6r602, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_h6r602, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_h6r602, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl_h6r602, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_h6r602, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_h6r602, sizeof(ST_AXIS_ITEMS));
+		for(int i = 0; i < MOTION_ID_MAX; i++) {
+			memcpy_s(&axis_spec[i], sizeof(ST_AXIS_SPEC), &axis_spec_h6r602[i], sizeof(ST_AXIS_SPEC));
+			memcpy_s(&auto_spec[i], sizeof(ST_AUTO_SPEC), &auto_spec_h6r602[i], sizeof(ST_AUTO_SPEC));
+		}
 	}break;
 	case CRANE_ID_HHGH29:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhgh29, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_hhgh29, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_hhgh29, sizeof(ST_AXIS_ITEMS));
+		for (int i = 0; i < MOTION_ID_MAX; i++) {
+			memcpy_s(&axis_spec[i], sizeof(ST_AXIS_SPEC), &axis_spec_hhgh29[i], sizeof(ST_AXIS_SPEC));
+			memcpy_s(&auto_spec[i], sizeof(ST_AUTO_SPEC), &auto_spec_hhgh29[i], sizeof(ST_AUTO_SPEC));
+		}
 	}break;
 	case CRANE_ID_HHGQ18:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhgq18, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_hhgq18, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_hhgq18, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl_hhgq18, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_hhgq18, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_hhgq18, sizeof(ST_AXIS_ITEMS));
+		for (int i = 0; i < MOTION_ID_MAX; i++) {
+			memcpy_s(&axis_spec[i], sizeof(ST_AXIS_SPEC), &axis_spec_hhgq18[i], sizeof(ST_AXIS_SPEC));
+			memcpy_s(&auto_spec[i], sizeof(ST_AUTO_SPEC), &auto_spec_hhgq18[i], sizeof(ST_AUTO_SPEC));
+		}
 	}break;
 	case CRANE_ID_HHFM08:{
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct_hhfm08, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh_hhfm08, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh_hhfm08, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl_hhfm08, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt_hhfm08, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah_hhfm08, sizeof(ST_AXIS_ITEMS));
+		for (int i = 0; i < MOTION_ID_MAX; i++) {
+			memcpy_s(&axis_spec[i], sizeof(ST_AXIS_SPEC), &axis_spec_hhfm08[i], sizeof(ST_AXIS_SPEC));
+			memcpy_s(&auto_spec[i], sizeof(ST_AUTO_SPEC), &auto_spec_hhfm08[i], sizeof(ST_AUTO_SPEC));
+		}
 	}break;
 	default: {
 		memcpy_s(&st_struct, sizeof(ST_STRUCTURE), &st_struct0, sizeof(ST_STRUCTURE));
-		memcpy_s(&base_mh, sizeof(ST_AXIS_ITEMS), &base_mh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_bh, sizeof(ST_AXIS_ITEMS), &base_bh0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_sl, sizeof(ST_AXIS_ITEMS), &base_sl0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_gt, sizeof(ST_AXIS_ITEMS), &base_gt0, sizeof(ST_AXIS_ITEMS));
-		memcpy_s(&base_ah, sizeof(ST_AXIS_ITEMS), &base_ah0, sizeof(ST_AXIS_ITEMS));
+		for (int i = 0; i < MOTION_ID_MAX; i++) {
+			memcpy_s(&axis_spec[i], sizeof(ST_AXIS_SPEC), &axis_spec0[i], sizeof(ST_AXIS_SPEC));
+		}
 	}break;
 	}
 	return 0;

@@ -51,10 +51,10 @@ public:
 class CVValue : public CValue<double> {
 private:
 	INT32 Axis_id;//軸ID
-	LPST_AXIS_ITEMS p_spec;
+	LPST_AXIS_SPEC p_spec;
 
 public:
-	CVValue(LPST_AXIS_ITEMS _p_spec,INT32 id) {//引数：spec設定値　軸ID
+	CVValue(LPST_AXIS_SPEC _p_spec,INT32 id) {//引数：spec設定値　軸ID
 		p_spec = _p_spec;
 		Axis_id = id;
 	}
@@ -82,10 +82,10 @@ public:
 class CPadNotch :public CValue<INT16> {
 private:
 	INT32 Axis_id;//軸ID
-	LPST_AXIS_ITEMS p_spec;
+	LPST_AXIS_SPEC p_spec;
 
 public:
-	CPadNotch(LPST_AXIS_ITEMS _p_spec, INT32 id) {
+	CPadNotch(LPST_AXIS_SPEC _p_spec, INT32 id) {
 		p_spec = _p_spec;
 		Axis_id = id;
 	}

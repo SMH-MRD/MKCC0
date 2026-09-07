@@ -86,6 +86,13 @@ typedef struct _ST_CRANE_STAT {
 	ST_MOVE_SET	nd[MOTION_ID_MAX];				//ドラム回転動作(n,hz,dhz)
 	ST_MOVE_SET	ld[MOTION_ID_MAX];				//ドラム巻取量　
 
+	//吊荷状態
+	Vector3 rc;									//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
+	Vector3 rl;									//主巻吊荷のクレーン吊点とのx,y,z相対座標
+	Vector3 rcam_m;								//主巻振れセンサ検出x,y,z座標 m
+	double sway_ph_expected[MOTION_ID_MAX];	//振れ位相評価値
+	double sway_amp_expected[MOTION_ID_MAX];	//振れ振幅評価値
+
 	ST_FAULTS_LIST	fault_list;					//故障検出リスト
 	INT32			abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値	
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
@@ -111,13 +118,6 @@ typedef struct _ST_CC_ENV_INF {
 	double Lspan[MOTION_ID_MAX];				//全ロープ長,TTB周長,走行可能距離
 
 	ST_CRANE_STAT crane_stat;					//クレーン状態
-
-	//吊荷状態
-	Vector3 rc;									//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
-	Vector3 rl;									//主巻吊荷のクレーン吊点とのx,y,z相対座標
-	Vector3 rcam_m;								//主巻振れセンサ検出x,y,z座標 m
-	Vector3 sway_ph_expected[MOTION_ID_MAX];	//振れ位相評価値
-	Vector3 sway_amp_expected[MOTION_ID_MAX];	//振れ振幅評価値
 
 	double Tx,Ty;									//振周期		s
 	double wx,wy;									//振角周波数	/s
@@ -146,11 +146,12 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;								//PC制御受付状態
 	INT16 plc_enable;								//PLC有効で端末権利有でOTEリモートモード
 	INT32 ctrl_source;								//主幹状態
-	ST_PLC_AXIS_SET stat_mh;
-	ST_PLC_AXIS_SET stat_bh;
-	ST_PLC_AXIS_SET stat_sl;
-	ST_PLC_AXIS_SET stat_gt;
-	ST_PLC_AXIS_SET stat_ah;
+	//ST_PLC_AXIS_SET stat_mh;
+	//ST_PLC_AXIS_SET stat_bh;
+	//ST_PLC_AXIS_SET stat_sl;
+	//ST_PLC_AXIS_SET stat_gt;
+	//ST_PLC_AXIS_SET stat_ah;
+	ST_PLC_AXIS_SET stat_axis[MOTION_ID_MAX];
 
 	double	weight;									//主巻荷重FB
 	double	weight_ah;								//補巻荷重FB
@@ -163,9 +164,8 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLCからの読み取り信号生値
 	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLCへの書き込み信号生値
 
-	INT16 mh_spd_mode;
-	INT16 ah_spd_mode;
-	INT16 bh_ope_mode;
+	INT16 spd_mode[MOTION_ID_MAX];
+	INT16 accdec_mode[MOTION_ID_MAX];
 	INT16 plc_mode_fb;
 	double v_ratio[MOTION_ID_MAX] = { 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0 };
 
@@ -240,6 +240,9 @@ typedef struct stMotionStep {	//運動要素
 	//recipe
 	int type;								//制御種別
 	ST_MOVE_SET mtg;						//動作目標
+	double _a;								//目標加減速度
+	double _v;								//目標速度
+	double _p;								//目標位置
 	double _t;								//予定継続時間
 	int time_count;							//予定継続時間のカウンタ変換値
 	double opt_d[N_STEP_OPTION_MAX];		//オプションdouble
@@ -422,6 +425,15 @@ typedef struct _ST_JOB_IO {
 
 //## Policy定義構造体
 #pragma region POLICY
+
+#define PTN_ORDINARY                0x00000000  //通常
+#define PTN_1SHOT_AS                0x00000001  //ワンショット振止
+#define PTN_HALF_T_AS               0x00000002  //半周期振止
+#define PTN_2SHOT_AS                0x00000004  //インチング振れ止め
+#define PTN_2SHOT_MOVE0             0x00000008  //インチング移動(振れ抑制無し）
+#define PTN_2SHOT_MOVE_PLUS         0x00000010  //インチング移動(振れ抑制有）
+#define PTN_FULL_T                  0x00000020  //1周期振止
+
 typedef struct _ST_CC_POL_INF {
 
 	WORD pc_fault_map[N_PC_FAULT_BUF];//PC検出故障マップ
@@ -467,29 +479,34 @@ typedef struct _ST_CC_POL_INF {
 
 typedef struct _ST_CC_AXIS_CTRL {
 	double dist_for_target;
-	int auto_active;
 	int status;
 	int notch_ref;
+	int auto_active;
 	double v_ref;
+	double auto_tg_pos;			//自動目標位置
+	bool is_auto_tg_pos_held;	//自動目標位置ホールド中フラグ
 }ST_CC_AXIS_CTRL, * LPST_CC_AXIS_CTRL;
 
 typedef struct _ST_CC_AGENT_INF {
-	//プロセス外から参照可能
-	INT16 pc_ctrl_mode;								//PCからの指令で動作させる軸の指定
-	INT16 pc_ctrl_mode2plc = 0;						//PLCへのPC制御フラグ出力信号
-	ST_CC_AXIS_CTRL st_mh_ctrl;
-	ST_CC_AXIS_CTRL st_bh_ctrl;
-	ST_CC_AXIS_CTRL st_sl_ctrl;
-	ST_CC_AXIS_CTRL st_gt_ctrl;
-	ST_CC_AXIS_CTRL st_ah_ctrl;
 
-	//プロセス内参照用
-	int command_count;								//コマンドレシピ作成呼び出し回数
-	int auto_on_going;								//実行中の自動種別
-	int antisway_on_going;							//実行中振れ止め
-	LPST_COMMAND_SET	st_active_com_inf;			//実行中コマンドセット情報
-	LPST_POS_TARGETS	auto_pos_target;			//自動目標位置
-	LPST_COMMAND_SET    pCom_hot;					//実行中コマンドセット
+	//軸制御
+	INT16 pc_ctrl_mode2plc = 0;						//PLCへのPC制御フラグ出力信号
+	//ST_CC_AXIS_CTRL st_mh_ctrl;
+	//ST_CC_AXIS_CTRL st_bh_ctrl;
+	//ST_CC_AXIS_CTRL st_sl_ctrl;
+	//ST_CC_AXIS_CTRL st_gt_ctrl;
+	//ST_CC_AXIS_CTRL st_ah_ctrl;
+
+	ST_CC_AXIS_CTRL st_axis_ctrl[MOTION_ID_MAX];
+
+	int command_count;							//コマンドレシピ作成呼び出し回数
+	int auto_on_going;							//実行中の自動種別
+	int antisway_on_going;						//実行中振れ止め
+
+	ST_COMMAND_SET st_as_comset;				//振れ止め用コマンドセット
+	ST_COMMAND_SET st_active_com_inf;			//実行中コマンドセット情報
+	
+	LPST_COMMAND_SET    pCom_hot;				//実行中コマンドセット
 	LPST_JOB_SET		pJob_hot;
 
 	//旋回ブレーキ制御
@@ -510,6 +527,9 @@ typedef struct _ST_CC_AGENT_INF {
 #define CC_CS_CODE_OPEPNL_DEACTIVE	0
 #define CC_CS_CODE_OPEPNL_ACTIVE	1
 
+/// <summary>
+/// クライアント（OTE）からのクレーン制御への要求内容を保持する構造体
+/// </summary>
 typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_mode;														//自動モード
 	INT32		antisway_mode;													//振れ止めモード
@@ -524,28 +544,6 @@ typedef struct _ST_CC_CS_CTRL {
 	ST_GPAD_IN gpad_in;	
 
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
-
-
-typedef struct _ST_CC_CS_INF {
-	//自動,遠隔設定（モード）
-	ST_CC_CS_CTRL cs_ctrl;												
-	//OTE関連
-	double ote_camera_height_m;													//操作端末VIEWのカメラ設置高さ
-	UN_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];									//端末ランプ表示指令
-	UN_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];	//端末ノッチランプ表示指令
-	INT16	notch_pos[2][MOTION_ID_MAX];										//ノッチ指定値
-	INT16	ote_mh_spd_mode;													//主巻速度モード
-	INT16	ote_bh_r_mode;														//引込モード
-
-	//JOB関連
-	int command_type;													//PARK,PICK,GRND
-	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
-	//int target_set_z = CS_SEMIAUTO_TG_SEL_FIXED, target_set_xy = CS_SEMIAUTO_TG_SEL_FIXED;		//Z座標目標位置確定
-	LPST_JOB_SET p_active_job;
-	int job_control_status;
-	int grip_status;
-
-}ST_CC_CS_INF, * LPST_CC_CS_INF;
 
 #define N_JOB_TARGET_MAX	10
 #define N_JOB_OPTION_MAX	10
@@ -565,12 +563,37 @@ typedef struct stClientSndMSG {
 
 #define N_CLIENT_MSG_HOLD_MAX	10
 
-typedef struct stClientIO {
+//クライアントからのジョブク要求処理IF構造体
+typedef struct stClientJobIO {
 	int i_rcv_hot;
 	int i_snd_hot;
 	ST_CLIENT_RCV_MSG rmsg[N_CLIENT_MSG_HOLD_MAX];
 	ST_CLIENT_SND_MSG smsg[N_CLIENT_MSG_HOLD_MAX];
-}ST_CLIENT_IO, * LPST_CLIENT_IO;
+}ST_CLIENT_JOB_IO, * LPST_CLIENT_JOB_IO;
+
+typedef struct _ST_CC_CS_INF {
+	//自動,遠隔設定（モード）
+	ST_CC_CS_CTRL cs_ctrl;	
+	ST_CLIENT_JOB_IO job_io;
+
+	//OTE関連
+	double ote_camera_height_m;													//操作端末VIEWのカメラ設置高さ
+	UN_LAMP_COM ote_pb_lamp[N_OTE_PNL_CTRL];									//端末ランプ表示指令
+	UN_LAMP_COM ote_notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];	//端末ノッチランプ表示指令
+	INT16	notch_pos[2][MOTION_ID_MAX];										//ノッチ指定値
+	INT16	ote_mh_spd_mode;													//主巻速度モード
+	INT16	ote_bh_r_mode;														//引込モード
+
+	//JOB関連
+	int command_type;													//PARK,PICK,GRND
+	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
+	//int target_set_z = CS_SEMIAUTO_TG_SEL_FIXED, target_set_xy = CS_SEMIAUTO_TG_SEL_FIXED;		//Z座標目標位置確定
+	LPST_JOB_SET p_active_job;
+	int job_control_status;
+	int grip_status;
+
+}ST_CC_CS_INF, * LPST_CC_CS_INF;
+
 
 #pragma endregion Client Service情報定義構造体
 

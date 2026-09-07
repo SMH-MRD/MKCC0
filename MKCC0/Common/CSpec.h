@@ -39,15 +39,18 @@ typedef struct _ST_STRUCTURE
 #define ACC_MODE_1					1
 #define ACC_MODE_2					2
 
+#define N_ACCDEC					2
+
 #define N_POS_LIMIT_TYPE			4	//軸動作極限
 #define END_LIMIT_POS				0
 #define SPD_LIMIT_POS1				1
 #define SPD_LIMIT_POS2				2
 #define SPD_LIMIT_POS3				3
-typedef struct _ST_AXIS_ITEMS {
+typedef struct _ST_AXIS_SPEC {
 	INT32 Axis_id;
 	double	Notch_spd_f[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
 	double	Notch_spd_r[N_NOTCH_MODE][N_NOTCH_MAX];		//ノッチ指令速度
+	double	accdec[N_ACC_MODE][N_ACCDEC];			//加減速度
 	INT16	Notch_pad_f[N_NOTCH_MAX];					//GamePadのノッチ配分
 	INT16	Notch_pad_r[N_NOTCH_MAX];					//GamePadのノッチ配分
 	
@@ -85,7 +88,7 @@ typedef struct _ST_AXIS_ITEMS {
 	double times_spd;					// 最大速度比率
 
 
-} ST_AXIS_ITEMS, * LPST_AXIS_ITEMS;
+} ST_AXIS_SPEC, * LPST_AXIS_SPEC;
 
 #define N_SWAY_LEVEL				3					//完了,トリガ,制限
 #define N_POS_LEVEL					3					//完了,トリガ,制限
@@ -138,32 +141,35 @@ public:
 
 	int get_crane() { return crane_id; }
 	//共通
-	static ST_STRUCTURE	st_struct;//構造
+	static ST_STRUCTURE		st_struct;//構造
+	static ST_AXIS_SPEC		axis_spec[MOTION_ID_MAX];//軸仕様
+	static ST_AUTO_SPEC		auto_spec[MOTION_ID_MAX];//自動制御仕様
+	static ST_REMOTE_SPEC	rmt_spec[MOTION_ID_MAX];//遠隔制御仕様
 
-	//主巻
-	static ST_AXIS_ITEMS	base_mh;
-	static ST_AUTO_SPEC		auto_mh;
-	static ST_REMOTE_SPEC	rmt_mh;
+	////主巻
+	//static ST_AXIS_SPEC	base_mh;
+	//static ST_AUTO_SPEC		auto_mh;
+	//static ST_REMOTE_SPEC	rmt_mh;
 
-	//起伏
-	static ST_AXIS_ITEMS	base_bh;
-	static ST_AUTO_SPEC		auto_bh;
-	static ST_REMOTE_SPEC	rmt_bh;
+	////起伏
+	//static ST_AXIS_SPEC	base_bh;
+	//static ST_AUTO_SPEC		auto_bh;
+	//static ST_REMOTE_SPEC	rmt_bh;
 
-	//旋回
-	static ST_AXIS_ITEMS	base_sl;
-	static ST_AUTO_SPEC		auto_sl;
-	static ST_REMOTE_SPEC	rmt_sl;
+	////旋回
+	//static ST_AXIS_SPEC	base_sl;
+	//static ST_AUTO_SPEC		auto_sl;
+	//static ST_REMOTE_SPEC	rmt_sl;
 
-	//走行
-	static ST_AXIS_ITEMS	base_gt;
-	static ST_AUTO_SPEC		auto_gt;
-	static ST_REMOTE_SPEC	rmt_gt;
+	////走行
+	//static ST_AXIS_SPEC		base_gt;
+	//static ST_AUTO_SPEC		auto_gt;
+	//static ST_REMOTE_SPEC	rmt_gt;
 
-	//補巻
-	static ST_AXIS_ITEMS	base_ah;
-	static ST_AUTO_SPEC		auto_ah;
-	static ST_REMOTE_SPEC	rmt_ah;
+	////補巻
+	//static ST_AXIS_SPEC	base_ah;
+	//static ST_AUTO_SPEC		auto_ah;
+	//static ST_REMOTE_SPEC	rmt_ah;
 	
 	int setup(int cran_id);
 

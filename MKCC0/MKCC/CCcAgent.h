@@ -124,6 +124,14 @@ typedef struct _ST_AGENT_MON2 {
 #define AGENT_PRM_SLBK_CHK_COUNT_STANDBY   20   //スレーブブレーキチェックシーケンスカウント値　400msec
 #define AGENT_PRM_SLBK_CHK_COUNT_RUNNING   200  //スレーブブレーキチェックシーケンスカウント値　6sec
 
+#define AGENT_AUTO_TRIG_ACK_COUNT                       10
+#define AGENT_CHECK_LARGE_SWAY_m2                       1.0     //起動時に初期振れ大とみなす振れ量mの2乗
+#define AGENT_CHECK_HST_POS_CLEAR_RANGE                 2.0     //自動巻上時に引込、旋回開始可能な巻上到達距離
+#define AGENT_CHECK_BH_POS_CLEAR_HST_DOWN_RANGE         2.0     //自動巻下可能な引込到達距離m
+#define AGENT_CHECK_SLW_POS_CLEAR_HST_DOWN_RANGE_rad    0.17    //自動巻下可能な旋回到達距離m
+#define AGENT_CHECK_BH_POS_CLEAR_SLW_RANGE              3.0     //旋回開始可能な引込到達距離m
+#define AGENT_CHECK_SLW_POS_CLEAR_BH_RANGE_rad          0.5    //引込開始可能な旋回到達距離rad
+
 class CAgent : public CBasicControl
 {
 public:
@@ -166,6 +174,8 @@ private:
     static std::mutex m_AgInfMutex;  // 共有メモリアクセス保護用ミューテックス
     static bool is_site_estop_detected;
 
+    static double cal_step(LPST_COMMAND_SET pCom, int motion);      //自動指令出力値の計算
+	static double cal_dist4target(int motion, bool is_abs_answer);  //目標位置までの距離計算
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
 
@@ -177,14 +187,42 @@ private:
 
     HRESULT(*fp_trans_plc_io_read)(int id) = NULL;  //PLC読み出しデータを共有メモリに展開   
     HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
-    HRESULT(*fp_aux_equipment)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
+    HRESULT(*fp_aux_equipment)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ 
+
+    HRESULT(*fp_set_ref_mh)(int id) = NULL;         //巻速度指令値出力関数ポインタ
+    HRESULT(*fp_set_ref_ah)(int id) = NULL;         //補巻速度指令値出力関数ポインタ
+    HRESULT(*fp_set_ref_x)(int id) = NULL;          //走行速度指令値出力関数ポインタ
+    HRESULT(*fp_set_ref_ph)(int id) = NULL;         //旋回速度指令値出力関数ポインタ
+    HRESULT(*fp_set_ref_y)(int id) = NULL;          //引込,トロリー速度指令値出力関数ポインタ
 
 	static HRESULT trans_plc_io_read_JC(int crane_id);
     static HRESULT trans_plc_io_read_GC(int crane_id);
     static HRESULT trans_plc_io_read_OHC(int crane_id);
+
     static HRESULT plc_io_write_JC(int crane_id);
     static HRESULT plc_io_write_GC(int crane_id);
     static HRESULT plc_io_write_OHC(int crane_id);
+
+	//速度指令値出力関数巻速度指令値出力
+    static HRESULT set_ref_mh_JC(int crane_id);     //巻速度指令値出力
+    static HRESULT set_ref_ah_JC(int crane_id);     //補巻速度指令値出力
+    static HRESULT set_ref_gt_JC(int crane_id);     //走行速度指令値出力
+    static HRESULT set_ref_slew_JC(int crane_id);   //旋回速度指令値出力
+    static HRESULT set_ref_bh_JC(int crane_id);     //引込速度指令値出力
+
+    static HRESULT set_ref_mh_GC(int crane_id);     //巻速度指令値出力
+    static HRESULT set_ref_ah_GC(int crane_id);     //補巻速度指令値出力
+    static HRESULT set_ref_gt_GC(int crane_id);     //走行速度指令値出力
+    static HRESULT set_ref_slew_GC(int crane_id);   //旋回速度指令値出力
+    static HRESULT set_ref_trolly_GC(int crane_id);  //トロリー速度指令値出力
+
+    static HRESULT set_ref_mh_OHC(int crane_id);     //巻速度指令値出力
+    static HRESULT set_ref_ah_OHC(int crane_id);     //補巻速度指令値出力
+    static HRESULT set_ref_gt_OHC(int crane_id);     //走行速度指令値出力
+    static HRESULT set_ref_slew_OHC(int crane_id);  //旋回速度指令値出力
+    static HRESULT set_ref_trolly_OHC(int crane_id);     //トロリー速度指令値出力
+
+	//補助機器の処理関数　リモコン非常停止，旋回ブレーキ等
     static HRESULT aux_equipment_JC(int crane_id);
     static HRESULT aux_equipment_GC(int crane_id);
     static HRESULT aux_equipment_OHC(int crane_id);

@@ -232,6 +232,20 @@ using namespace Gdiplus;
 #define ID_BH_HST               5   //‹N•šƒhƒ‰ƒ€ŽåŠª  ID
 #define ID_H_ASSY               6   //’Ý‹ï“™      ID
 
+#define BIT_SEL_HST         0x00000001
+#define BIT_SEL_TRY         0x00000002
+#define BIT_SEL_BH          0x00000002
+#define BIT_SEL_SLW         0x00000004
+#define BIT_SEL_GNT         0x00000008
+#define BIT_SEL_AH          0x00000010
+#define BIT_SEL_OPR         0x00000020
+#define BIT_SEL_ASS         0x00000040
+#define BIT_SEL_COM         0x00000080
+
+#define BIT_SEL_ALL_0NOTCH  0x10000000
+#define BIT_SEL_STATUS      0xFFFF0000
+
+
 enum ID_AXIS {
     mh = 0,
     bh,

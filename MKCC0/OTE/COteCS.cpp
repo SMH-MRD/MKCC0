@@ -175,13 +175,12 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	//AUXモード設定
 	pOteCsInf->video_delay_chk_req = L_OFF;//映像遅延チェック要求
 
-
 	//モニタウィンドウテキスト	
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0, L"Product");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1, L"Debug");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2, L"Debug2");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"PLC IF");
-	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"GPAD IF");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0,	L"Product");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO1,	L"Debug");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MODE_RADIO2,	L"Debug2");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2,	L"PLC IF");
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1,	L"GPAD IF");
 	set_item_chk_txt();
 	set_panel_tip_txt();
 	//モニタ２ CB状態セット	
@@ -190,11 +189,11 @@ HRESULT COteCS::initialize(LPVOID lpParam) {
 	//else
 	//	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0L);
 
-	st_obj.pad_mh=new CPadNotch(pCrane->get_base_mh(), ID_HOIST);
-	st_obj.pad_bh=new CPadNotch(pCrane->get_base_bh(), ID_BOOM_H);
-	st_obj.pad_sl=new CPadNotch(pCrane->get_base_sl(), ID_SLEW);
-	st_obj.pad_gt=new CPadNotch(pCrane->get_base_gt(), ID_GANTRY);
-	st_obj.pad_ah=new CPadNotch(pCrane->get_base_ah(), ID_AHOIST);
+	st_obj.pad_mh=new CPadNotch(pCrane->get_axis_mh(), ID_HOIST);
+	st_obj.pad_bh=new CPadNotch(pCrane->get_axis_bh(), ID_BOOM_H);
+	st_obj.pad_sl=new CPadNotch(pCrane->get_axis_sl(), ID_SLEW);
+	st_obj.pad_gt=new CPadNotch(pCrane->get_axis_gt(), ID_GANTRY);
+	st_obj.pad_ah=new CPadNotch(pCrane->get_axis_ah(), ID_AHOIST);
 
 	set_func_pb_txt();
 	set_item_chk_txt();
@@ -552,6 +551,9 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->gpad_in.trig_l		= st_obj.trig_l.set(pPad->get_trig_L());
 		pOteCsInf->gpad_in.trig_r		= st_obj.trig_r.set(pPad->get_trig_R());
 
+		pOteCsInf->gpad_in.auto_act		= pPad->chk_on(st_obj.auto_act.set(pPad->get_up()));
+		pOteCsInf->gpad_in.auto_mode = pPad->chk_on(st_obj.auto_mode.set(pPad->get_up()));
+
 		//GamePadのアナログ値をValueオブジェクトにセット⇒ノッチ数に変換して共有メモリにセット
 		st_obj.pad_mh->set(pPad->get_RY());
 		st_obj.pad_bh->set(pPad->get_LY());
@@ -644,6 +646,9 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bypass]			|= pOteCsInf->gpad_in.bypass;
 		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::remote]			|= pOteCsInf->gpad_in.remote;
+
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_act]		|= pOteCsInf->gpad_in.auto_act;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_mode]		|= pOteCsInf->gpad_in.auto_mode;
 
 
 		pOteCsInf->gpad_in.kidou_r;
