@@ -20,6 +20,13 @@
 #define CS_CODE_OTE_REMOTE_ENABLE		0x0001	//PLCへの操作信号有効
 #define CS_CODE_OTE_SOURCE_ENABLE		0x0002	//主幹ON可能
 
+#define CS_JOBSET_STATUS_CLEAR               0x0000
+#define CS_JOBSET_STATUS_DISABLE             0x0000
+#define CS_JOBSET_STATUS_IDLE                0x0001
+#define CS_JOBSET_STATUS_STANDBY             0x0002
+#define CS_JOBSET_STATUS_ACTIVE              0x0004
+
+
 #define CS_ID_MON1_TIMER                51190
 #define CS_ID_MON2_TIMER                51191
 
@@ -150,16 +157,7 @@ typedef struct _ST_CS_MON2 {
 
 }ST_CS_MON2, * LPST_CS_MON2;
 
-class CCcCsOteCtrl {
-public:
-    CCcCsOteCtrl() {};
-    ~CCcCsOteCtrl() {};
 
-    CValue<INT16> remote;
-    CValue<INT16> auto_mode;
-
-
-};
 
 #define OTE_IF_TMOV_COUNTUP             10         // 操作モードの端末のタイムオーバー判定時間
 #define OTE_IF_RELEASE_COUNTUP          30          // 操作モードの端末の応答切れ判定時間
@@ -214,7 +212,8 @@ public:
 private:
     int crane_id;
     static int ote_option_setting;
-      
+	int auto_act_status = 0; //自動運転の状態
+       
     HRESULT(*fp_get_ote_data)(int id) = NULL;       //OTEからの受信データをセット  
     HRESULT(*fp_set_ote_data)(int id) = NULL;       //OTEへの送信データをセット   
     HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  

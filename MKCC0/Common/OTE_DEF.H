@@ -70,6 +70,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	v_delay_save_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ保存起動
 	v_delay_load_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ読み込み起動
 	auto_act,			//自動実行
+	anti_sway,			//振れ止めPB
 	MAX
 };
 
@@ -252,6 +253,10 @@ typedef struct OteUBody {
 	INT16       spar;							//バウンダリ合わせスペア
 	UINT32		target_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
 	INT16		ote_err[4];						//OTE検出異常
+	
+	double		auto_tg_pos[MOTION_ID_MAX];		//自動目標位置
+	INT32		auto_sel[MOTION_ID_MAX];		//自動動作対象軸
+
 	ST_OTE_BODY_AXIS axis[ID_AXIS::Max];
 }ST_OTE_U_BODY, * LPST_OTE_U_BODY;
 

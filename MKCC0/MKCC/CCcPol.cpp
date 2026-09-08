@@ -19,11 +19,10 @@ extern CSharedMem* pAuxCsInfObj;
 
 extern CCrane* pCrane;
 
-extern INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
-extern INT32 aux_lanio_status;						    //LANIO			組み込み状況
-extern INT32 aux_sway_status;						    //振れセンサ	組み込み状況
-extern INT32 aux_gt_pos_sys_status;						//走行位置検出	組み込み状況
-
+extern INT32 aux_slbrk_status;			//旋回ブレーキ	組み込み状況
+extern INT32 aux_lanio_status;			//LANIO			組み込み状況
+extern INT32 aux_sway_status;			//振れセンサ	組み込み状況
+extern INT32 aux_gt_pos_sys_status;		//走行位置検出	組み込み状況
 
 //共有メモリ
 static LPST_CC_ENV_INF		pEnvInf		= NULL;
@@ -37,19 +36,19 @@ static LPST_CC_OTE_INF		pOteInf		= NULL;
 
 static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 
-ST_POL_MON1 CPolicy::st_mon1;
-ST_POL_MON2 CPolicy::st_mon2;
+ST_POL_MON1 CCcPol::st_mon1;
+ST_POL_MON2 CCcPol::st_mon2;
 
-ST_CC_ENV_INF CPolicy::st_work;
+ST_CC_ENV_INF CCcPol::st_work;
 
-CPolicy::CPolicy() {
-
-}
-CPolicy::~CPolicy() {
+CCcPol::CCcPol() {
 
 }
+CCcPol::~CCcPol() {
 
-HRESULT CPolicy::initialize(LPVOID lpParam) {
+}
+
+HRESULT CCcPol::initialize(LPVOID lpParam) {
 
 
 	HRESULT hr = S_OK;
@@ -94,13 +93,13 @@ HRESULT CPolicy::initialize(LPVOID lpParam) {
 	inf.mode_id = BC_ID_MODE0;
 	SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_MODE_RADIO0), BM_SETCHECK, BST_CHECKED, 0L);
 
-	CPolicy* pPolObj = (CPolicy*)lpParam;
+	CCcPol* pPolObj = (CCcPol*)lpParam;
 	int code = 0;
 	return S_OK;
 }
 
 static double check_d;
-HRESULT CPolicy::routine_work(void* pObj) {
+HRESULT CCcPol::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 		wos << L"SWAY X:" << check_d;
@@ -115,7 +114,7 @@ HRESULT CPolicy::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 
 
-int CPolicy::input() {
+int CCcPol::input() {
 
 	if (aux_sway_status) {
 		check_d = pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_p2p;
@@ -123,23 +122,23 @@ int CPolicy::input() {
 	return S_OK;
 }
 
-int CPolicy::parse() {           //メイン処理
+int CCcPol::parse() {           //メイン処理
 //### 制御PC検出異常、警報状態設定処理
  
 	fp_fault_check(crane_id);
 
 	return STAT_OK;
 }
-int CPolicy::output() {          //出力処理
+int CCcPol::output() {          //出力処理
 	return STAT_OK;
 }
 
-int CPolicy::close() {
+int CCcPol::close() {
 
 	return 0;
 }
 
-HRESULT CPolicy::fault_check_JC(int crane_id) {
+HRESULT CCcPol::fault_check_JC(int crane_id) {
 	//## 機上PLC通信異常
 //CC_AGENTでセットされる　PLCヘルシーチェック
 
@@ -165,10 +164,10 @@ HRESULT CPolicy::fault_check_JC(int crane_id) {
 	//CC_AGENTでセットされる
 	return S_OK;
 }
-HRESULT CPolicy::fault_check_GC(int crane_id) {
+HRESULT CCcPol::fault_check_GC(int crane_id) {
 	return S_OK;
 }
-HRESULT CPolicy::fault_check_OHC(int crane_id) {
+HRESULT CCcPol::fault_check_OHC(int crane_id) {
 	return S_OK;
 }
 
@@ -177,7 +176,7 @@ HRESULT CPolicy::fault_check_OHC(int crane_id) {
 /****************************************************************************/
 static wostringstream monwos;
 
-LRESULT CALLBACK CPolicy::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -222,7 +221,7 @@ LRESULT CALLBACK CPolicy::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 };
 
-LRESULT CALLBACK CPolicy::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcPol::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	switch (msg)
 	{
 	case WM_CREATE: {
@@ -258,7 +257,7 @@ LRESULT CALLBACK CPolicy::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	return S_OK;
 }
 
-HWND CPolicy::open_monitor_wnd(HWND h_parent_wnd, int id) {
+HWND CCcPol::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	InitCommonControls();//コモンコントロール初期化
 	HINSTANCE hInst = GetModuleHandle(0);
@@ -317,7 +316,7 @@ HWND CPolicy::open_monitor_wnd(HWND h_parent_wnd, int id) {
 
 	return NULL;
 }
-void CPolicy::close_monitor_wnd(int id) {
+void CCcPol::close_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
 		DestroyWindow(st_mon1.hwnd_mon);
 	else if (id == BC_ID_MON2)
@@ -325,7 +324,7 @@ void CPolicy::close_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CPolicy::show_monitor_wnd(int id) {
+void CCcPol::show_monitor_wnd(int id) {
 	if (id == BC_ID_MON1) {
 		ShowWindow(st_mon1.hwnd_mon, SW_SHOW);
 		UpdateWindow(st_mon1.hwnd_mon);
@@ -337,7 +336,7 @@ void CPolicy::show_monitor_wnd(int id) {
 	else;
 	return;
 }
-void CPolicy::hide_monitor_wnd(int id) {
+void CCcPol::hide_monitor_wnd(int id) {
 	if (id == BC_ID_MON1)
 		ShowWindow(st_mon1.hwnd_mon, SW_HIDE);
 	else if (id == BC_ID_MON2)
@@ -349,7 +348,7 @@ void CPolicy::hide_monitor_wnd(int id) {
 /****************************************************************************/
 /*   タスク設定タブパネルウィンドウのコールバック関数                       */
 /****************************************************************************/
-LRESULT CALLBACK CPolicy::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
+LRESULT CALLBACK CCcPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 	switch (msg) {
 	case WM_COMMAND:
@@ -440,7 +439,7 @@ LRESULT CALLBACK CPolicy::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 };
 
 ///###	タブパネルのListViewにメッセージを出力
-void CPolicy::msg2listview(wstring wstr) {
+void CCcPol::msg2listview(wstring wstr) {
 
 	const wchar_t* pwc; pwc = wstr.c_str();
 
@@ -465,7 +464,7 @@ void CPolicy::msg2listview(wstring wstr) {
 	inf.panel_msglist_count++;
 	return;
 }
-void CPolicy::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
+void CCcPol::set_PNLparam_value(float p1, float p2, float p3, float p4, float p5, float p6) {
 	wstring wstr;
 	wstr += std::to_wstring(p1); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT1), wstr.c_str()); wstr.clear();
 	wstr += std::to_wstring(p2); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT2), wstr.c_str()); wstr.clear();
@@ -475,7 +474,7 @@ void CPolicy::set_PNLparam_value(float p1, float p2, float p3, float p4, float p
 	wstr += std::to_wstring(p6); SetWindowText(GetDlgItem(inf.hwnd_opepane, IDC_TASK_EDIT6), wstr.c_str());
 }
 //タブパネルのEdit Box説明テキストを設定
-void CPolicy::set_panel_tip_txt() {
+void CCcPol::set_panel_tip_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {
@@ -516,7 +515,7 @@ void CPolicy::set_panel_tip_txt() {
 	return;
 }
 //タブパネルのFunctionボタンのStaticテキストを設定
-void CPolicy::set_func_pb_txt() {
+void CCcPol::set_func_pb_txt() {
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO1, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO2, L"-");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_FUNC_RADIO3, L"-");
@@ -526,7 +525,7 @@ void CPolicy::set_func_pb_txt() {
 	return;
 }
 //タブパネルのItem chkテキストを設定
-void CPolicy::set_item_chk_txt() {
+void CCcPol::set_item_chk_txt() {
 	wstring wstr_type; wstring wstr;
 	switch (inf.panel_func_id) {
 	case IDC_TASK_FUNC_RADIO4: {

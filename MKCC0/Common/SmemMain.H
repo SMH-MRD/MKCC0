@@ -146,11 +146,7 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;								//PC制御受付状態
 	INT16 plc_enable;								//PLC有効で端末権利有でOTEリモートモード
 	INT32 ctrl_source;								//主幹状態
-	//ST_PLC_AXIS_SET stat_mh;
-	//ST_PLC_AXIS_SET stat_bh;
-	//ST_PLC_AXIS_SET stat_sl;
-	//ST_PLC_AXIS_SET stat_gt;
-	//ST_PLC_AXIS_SET stat_ah;
+
 	ST_PLC_AXIS_SET stat_axis[MOTION_ID_MAX];
 
 	double	weight;									//主巻荷重FB
@@ -486,16 +482,10 @@ typedef struct _ST_CC_AXIS_CTRL {
 	double auto_tg_pos;			//自動目標位置
 	bool is_auto_tg_pos_held;	//自動目標位置ホールド中フラグ
 }ST_CC_AXIS_CTRL, * LPST_CC_AXIS_CTRL;
-
 typedef struct _ST_CC_AGENT_INF {
 
 	//軸制御
 	INT16 pc_ctrl_mode2plc = 0;						//PLCへのPC制御フラグ出力信号
-	//ST_CC_AXIS_CTRL st_mh_ctrl;
-	//ST_CC_AXIS_CTRL st_bh_ctrl;
-	//ST_CC_AXIS_CTRL st_sl_ctrl;
-	//ST_CC_AXIS_CTRL st_gt_ctrl;
-	//ST_CC_AXIS_CTRL st_ah_ctrl;
 
 	ST_CC_AXIS_CTRL st_axis_ctrl[MOTION_ID_MAX];
 
@@ -533,6 +523,7 @@ typedef struct _ST_CC_AGENT_INF {
 typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_mode;														//自動モード
 	INT32		antisway_mode;													//振れ止めモード
+	INT32		auto_act_status;												//自動起動ステータス
 	INT32		auto_status[MOTION_ID_MAX];
 	INT32		ote_remote_status;												//
 	INT32		ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;					//操作端末の状態　0bit：端末信号有効
@@ -587,10 +578,10 @@ typedef struct _ST_CC_CS_INF {
 	//JOB関連
 	int command_type;													//PARK,PICK,GRND
 	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
-	//int target_set_z = CS_SEMIAUTO_TG_SEL_FIXED, target_set_xy = CS_SEMIAUTO_TG_SEL_FIXED;		//Z座標目標位置確定
+	
 	LPST_JOB_SET p_active_job;
 	int job_control_status;
-	int grip_status;
+	int auto_trigger_status;
 
 }ST_CC_CS_INF, * LPST_CC_CS_INF;
 

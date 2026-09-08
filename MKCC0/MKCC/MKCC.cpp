@@ -339,7 +339,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    ///##Task4 設定 Policy
    {
        /// -タスクインスタンス作成->リスト登録
-       pobj = new CPolicy;
+       pobj = new CCcPol;
        VectCtrlObj.push_back(pobj);
 
        st_task_id.POL = pobj->inf.index = knl_manage_set.num_of_task;

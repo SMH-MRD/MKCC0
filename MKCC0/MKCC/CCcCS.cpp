@@ -6,6 +6,8 @@
 #include "OTE_DEF.H"
 #include "CCrane.H"
 #include "CComm.H"
+#include "CCcPol.h"
+#include "CCcEnv.h"
 
 extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pPlcIoObj;
@@ -46,8 +48,12 @@ static LPST_CC_PLC_IO		pPLC_IO		= NULL;
 static LPST_CC_AGENT_INF	pAgent_Inf	= NULL;
 static LPST_CC_OTE_INF		pOTE_Inf	= NULL;
 static LPST_CC_POL_INF		pPolInf		= NULL;
+static LPST_JOB_IO			pJobIO		= NULL;
 
 static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;	
+
+static CCcPol* pPol = NULL;
+static CCcEnv* pEnv = NULL;
 
 static UN_PLC_IO_WIF* pPlcWIf = NULL;
 static UN_PLC_IO_RIF* pPlcRIf = NULL;
@@ -69,6 +75,8 @@ CCcCS::~CCcCS() {
 
 }
 
+static PINT16	p_ote_pnl_ctrl;
+
 HRESULT CCcCS::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
 
@@ -86,6 +94,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	pCS_Inf		= (LPST_CC_CS_INF)pCsInfObj->get_pMap();
 	pAgent_Inf	= (LPST_CC_AGENT_INF)pAgInfObj->get_pMap();
 	pPolInf		= (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
+	pJobIO		= (LPST_JOB_IO)(pJobIoObj->get_pMap());
 
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
 
@@ -197,6 +206,7 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 	st_ote_work.st_msg_pc_u_snd.head.addr = pUSockOte->addr_in_rcv;
 	st_ote_work.st_msg_pc_m_snd.head.addr = pMSockOte->addr_in_rcv;
 
+	p_ote_pnl_ctrl = (PINT16)&pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[0];
 
 	crane_id = pCrane->st_crane_inf.crane_id;
 	switch (pCrane->st_crane_inf.crane_type) {
@@ -252,8 +262,34 @@ HRESULT CCcCS::routine_work(void* pObj) {
 	return S_OK;
 }
 
+static INT16	pnl_ctrl_buf[N_OTE_PNL_CTRL];		//操作卓PB入力
+static INT32	ote_target_seq_last = 0;			//自動目標位置のシーケンス番号（トリガ検出用）
+
+
 int CCcCS::input() {
 	fp_get_ote_data(crane_id);
+
+	
+
+	//自動/半自動関連
+	if (st_ote_work.st_ote_ctrl.id_ope_active != OTE_NON_OPEMODE_ACTIVE) {//操作有効端末在り
+		if (p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_mode] && !(pnl_ctrl_buf[OTE_PNL_CTRLS::auto_mode])){
+			if (st_cs_work.cs_ctrl.auto_mode == L_ON) {
+				st_cs_work.cs_ctrl.auto_mode = L_OFF;
+				st_cs_work.cs_ctrl.antisway_mode = L_OFF;
+			}
+			else {
+				st_cs_work.cs_ctrl.auto_mode = L_ON;
+				st_cs_work.cs_ctrl.antisway_mode = L_ON;
+			}
+		}
+	}
+	else {
+		//操作関連モードクリア
+		st_cs_work.cs_ctrl.antisway_mode = L_OFF;
+		st_cs_work.cs_ctrl.auto_mode = L_OFF;
+	}
+
 	return S_OK;
 }
 
@@ -261,98 +297,165 @@ int CCcCS::parse() {
 //#### OTE制御
 	ote_control();
 //### OTE送信データ設定
-#if 0
-
-		//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
-		//## ランプ,ブザー表示指令
-	{
-		UN_LAMP_COM* plamp_com = st_ote_work.st_body.lamp;
-		if (!pPLC_IO->plc_enable) {	//PLC通信無効で操作関連モードクリア
-			st_ote_work.st_ote_ctrl.id_ope_active = OTE_NON_OPEMODE_ACTIVE;
-			st_ote_work.st_ote_ctrl.gpad_mode = L_OFF;
-			st_ote_work.st_ote_ctrl.auto_sel = L_OFF;
-			st_ote_work.st_ote_ctrl.auto_mode = L_OFF;
-			//ランプクリア
-			memset(plamp_com, 0, sizeof(UN_LAMP_COM) * N_OTE_PNL_CTRL);
-		}
-		else {
-			//# PLC受信バッファをコピー
-			memcpy(st_ote_work.st_body.buf_io_read, pPLC_IO->buf_io_read, sizeof(UN_PLC_RBUF));
-
-			//クレーンオブジェクトからPLCIFバッファの信号読み取り⇒ランプ出力
-			plamp_com[OTE_PNL_CTRLS::estop].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.estop).i16;
-
-			//#主幹ランプ
-			if (pCrane->pPlc->rval(pPlcRIf->JC.syukan_mc_comp).i16) {
-				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_ON;
-				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_OFF;
-			}
-			else {
-				plamp_com[OTE_PNL_CTRLS::syukan_on].st.com	= CODE_PNL_COM_OFF;
-				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
-			}
-
-			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com	= (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.fault_reset_pb).i16;
-			plamp_com[OTE_PNL_CTRLS::bypass].st.com			= CODE_PNL_COM_ON;
-
-			//#PLC側CSスイッチの状態
-			plamp_com[OTE_PNL_CTRLS::mh_spd_mode].st.com	= (UINT8)pPLC_IO->stat_mh.mode;
-			plamp_com[OTE_PNL_CTRLS::bh_r_mode].st.com		= (UINT8)pPLC_IO->stat_bh.mode;
-			//#自動給脂　動力確立ランプ
-			plamp_com[OTE_PNL_CTRLS::main_power].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.douryoku_ok).i16;
-			plamp_com[OTE_PNL_CTRLS::sl_auto_gr].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.auto_kyusi).i16;
-
-			if(pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::motor_siren])	plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_ON;
-			else                                                    plamp_com[OTE_PNL_CTRLS::motor_siren].st.com = L_OFF;
-			
-			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp1])	plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = L_ON;
-			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp1].st.com = L_OFF;
-
-			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp2])	plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = L_ON;
-			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp2].st.com = L_OFF;
-
-			if (pPLC_IO->plc_pnl_io_fb[OTE_PNL_CTRLS::hd_lamp3])	plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_ON;
-			else                                                    plamp_com[OTE_PNL_CTRLS::hd_lamp3].st.com = L_OFF;
-
-			//#ノッチ信号FB
-			plamp_com[OTE_PNL_CTRLS::notch_mh].st.com = (UINT8)pPLC_IO->stat_mh.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_bh].st.com = (UINT8)pPLC_IO->stat_bh.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_sl].st.com = (UINT8)pPLC_IO->stat_sl.notch_ref;
-			plamp_com[OTE_PNL_CTRLS::notch_gt].st.com = (UINT8)pPLC_IO->stat_gt.notch_ref;
-
-			//#ブザー,故障、警報ランプ
-			plamp_com[OTE_PNL_CTRLS::buzzer].code = pCrane->pPlc->rval(pPlcRIf->JC.fault_bz).i16 & 0x000F;
-			plamp_com[OTE_PNL_CTRLS::fault_lamp].code = pCrane->pPlc->rval(pPlcRIf->JC.fault_pl).i16;
-
-			plamp_com[OTE_PNL_CTRLS::alm_lamp].code = plamp_com[OTE_PNL_CTRLS::fault_lamp].code;
-			plamp_com[OTE_PNL_CTRLS::ope_ready].code = pCrane->pPlc->rval(pPlcRIf->JC.syukairo_comp).i16;
-		}
-
-		//##　故障情報セット
-		set_ote_flt_info();
-
-		//## クレーン状態セット
-		st_ote_work.st_body.st_load_stat[0].m		= (float)pEnv_Inf->crane_stat.m.p;							//荷重
-		st_ote_work.st_body.bh_angle				= (float)(acos(pPLC_IO->r/ pCrane->pSpec->st_struct.Lb));	//起伏角度
-		st_ote_work.st_body.wind_spd				= (float)pPLC_IO->wind_spd;									//風速
-
-		//## 各軸状態
-		st_ote_work.st_body.st_axis_set[ID_HOIST]	= pPLC_IO->stat_mh;	//主巻
-		st_ote_work.st_body.st_axis_set[ID_BOOM_H]	= pPLC_IO->stat_bh;	//引込
-		st_ote_work.st_body.st_axis_set[ID_SLEW]	= pPLC_IO->stat_sl;	//旋回
-		st_ote_work.st_body.st_axis_set[ID_GANTRY]	= pPLC_IO->stat_gt;	//走行
-
-		//## 旋回ブレーキFB
-		st_ote_work.st_body.sl_brk_fb[0]			= pAUX_CS_Inf->fb_slbrk.d16;
-		st_ote_work.st_body.sl_brk_fb[1]			= pAUX_CS_Inf->fb_slbrk.d17;
-		st_ote_work.st_body.sl_brk_fb[2]			= pAUX_CS_Inf->fb_slbrk.d18;
-		st_ote_work.st_body.sl_brk_fb[3]			= (pAUX_CS_Inf->fb_slbrk.d19+200) / 600;			//9000->15
-		st_ote_work.st_body.sl_brk_fb[4]			= pAUX_CS_Inf->fb_slbrk.d20;				//WF
-		st_ote_work.st_body.sl_brk_fb[5]			= (INT16)pAgent_Inf->slew_brake_ctrl_mode;
-}
-#else
 	fp_set_ote_data(crane_id);
-#endif
+
+//### 半自動モード関連
+
+	//半自動登録処理
+
+	LPST_JOB_SET p_job;
+	
+	if (st_cs_work.job_control_status == CS_JOBSET_STATUS_DISABLE) {
+		for (int i = 0; i < N_JOB_LIST; i++) {
+			pJobIO->job_list[i].n_job = 0;
+			pJobIO->job_list[i].i_job_hot = 0;
+		}
+	}
+
+	//イベント処理
+	switch (st_cs_work.job_control_status) {
+
+	case CS_JOBSET_STATUS_DISABLE: {
+		if (st_cs_work.cs_ctrl.auto_mode == L_ON) 
+			st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;
+		break;
+	}
+	case CS_JOBSET_STATUS_IDLE:		//ジョブ無し
+	case CS_JOBSET_STATUS_STANDBY:	//ジョブ有り
+	{
+		p_job = &pJobIO->job_list[ID_JOBTYPE_SEMI].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot];
+
+		//半自動コマンド受け付け処理
+		if(p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_act] && !(pnl_ctrl_buf[OTE_PNL_CTRLS::auto_act])){//自動トリガ
+			//半自動JOB登録 目標位置シーケンス番号更新あればコマンド受付　
+			if (pOTE_Inf->st_msg_ote_u_rcv.body.st.target_seq_no != ote_target_seq_last) {
+				//JOB LIST処理
+				pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 1;
+				pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot = 0;//半自動はバッファ固定
+				pJobIO->job_list[ID_JOBTYPE_SEMI].status[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot] = CS_JOBSET_STATUS_STANDBY;
+
+				//JOB SET処理
+				p_job->status = STAT_TRIGED;
+				p_job->list_id = ID_JOBTYPE_SEMI;
+				p_job->n_com = 1;//JOBのコマンド数　半自動は１	
+				p_job->job_id = 0;
+
+				p_job->type = ID_JOBTYPE_SEMI;
+				p_job->code = pOTE_Inf->st_msg_ote_u_rcv.body.st.target_seq_no;
+				p_job->com_type[0] = ID_JOBIO_COMTYPE_PARK;
+				//目標位置セット
+				p_job->targets[0].pos[ID_HOIST] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_HOIST];
+				p_job->targets[0].pos[ID_BOOM_H] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_BOOM_H];
+				p_job->targets[0].pos[ID_SLEW] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_SLEW];
+				p_job->targets[0].pos[ID_AHOIST] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_AHOIST];
+				p_job->targets[0].pos[ID_GANTRY] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_AHOIST];
+
+				st_cs_work.job_control_status = CS_JOBSET_STATUS_STANDBY;
+
+				//クライアントへ報告
+				wos.str(L"");
+				wos << L"移動コマンド受け付けました　No.=" << pOTE_Inf->st_msg_ote_u_rcv.body.st.target_seq_no;
+				msg2listview(wos.str());
+
+				ote_target_seq_last = pOTE_Inf->st_msg_ote_u_rcv.body.st.target_seq_no;
+			}
+			//振れ止めJOB登録 振れ止めモードONで実行中半自動がない時受付（半自動中断から再開時はスルー）　
+			else if (st_cs_work.cs_ctrl.antisway_mode == L_ON) {
+				if (pJobIO->job_list[ID_JOBTYPE_SEMI].n_job == 0) {//半自動ジョブ実行中でない時
+					//JOB LIST処理
+					pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 1;
+					pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot = 0;//半自動はバッファ固定
+					pJobIO->job_list[ID_JOBTYPE_SEMI].status[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot] = CS_JOBSET_STATUS_STANDBY;
+
+					//JOB SET処理
+					p_job->status = STAT_TRIGED;
+					p_job->list_id = ID_JOBTYPE_SEMI;
+					p_job->n_com = 1;//JOBのコマンド数　半自動は１	
+					p_job->job_id = 0;
+
+					p_job->type = ID_JOBTYPE_ANTISWAY;
+					p_job->code = CODE_JOBIO_COMTYPE_ANTISWAY;
+					p_job->com_type[0] = ID_JOBIO_COMTYPE_ANTISWAY;
+
+					//目標位置セット（現在位置）
+					p_job->targets[0].pos[ID_HOIST] = pPLC_IO->stat_axis[ID_HOIST].pos_fb;
+					p_job->targets[0].pos[ID_BOOM_H] = pPLC_IO->stat_axis[ID_BOOM_H].pos_fb;
+					p_job->targets[0].pos[ID_SLEW] = pPLC_IO->stat_axis[ID_SLEW].pos_fb;
+					p_job->targets[0].pos[ID_AHOIST] = pPLC_IO->stat_axis[ID_AHOIST].pos_fb;
+
+					st_cs_work.job_control_status = CS_JOBSET_STATUS_STANDBY;
+
+					//クライアントへ報告
+					wos.str(L"");
+					wos << L"振れ止めコマンド受け付けました　No.=" << pOTE_Inf->st_msg_ote_u_rcv.body.st.target_seq_no;
+					msg2listview(wos.str());
+				}
+				else {//半自動ジョブ実行中で中断した時はスルー
+					//JOB LIST処理 ⇒　実行中のJOBの状態をキープ
+					//JOB SET処理  ⇒　実行中のJOBの状態をキープ
+					//半自動ジョブ実行中は目標位置Keep
+				}
+			}
+			else;
+		}
+
+		//ジョブが完了していたらIDLE状態
+		if ((st_cs_work.job_control_status == CS_JOBSET_STATUS_STANDBY) && (p_job->status == STAT_END)) {
+			st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;
+			//p_jobのフラグ類はPOLICYのステータス更新呼び出しで更新
+		}
+
+	}break;
+	default:break;
+	}
+
+
+	//現在アクティブなJOB
+	if (st_cs_work.job_control_status == CS_JOBSET_STATUS_DISABLE) {
+		st_cs_work.p_active_job = NULL;
+
+	}
+	else if (pJobIO->job_list[ID_JOBTYPE_SEMI].n_job != 0) {
+		p_job = &(pJobIO->job_list[ID_JOBTYPE_SEMI].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot]);
+		switch (p_job->status) {
+		case STAT_TRIGED://起動待ち
+		case STAT_ACTIVE:
+		case STAT_STANDBY:
+			st_cs_work.p_active_job = p_job;
+			break;
+
+		case STAT_SUSPENDED:
+		case STAT_ABOTED:
+		case STAT_END:
+		case STAT_ABNORMAL_END:
+			st_cs_work.p_active_job = NULL;
+			break;
+		}
+	}
+	else if (pJobIO->job_list[ID_JOBTYPE_JOB].n_job != 0) {
+		p_job = &(pJobIO->job_list[ID_JOBTYPE_JOB].job[pJobIO->job_list[ID_JOBTYPE_JOB].i_job_hot]);
+		switch (p_job->status) {
+		case STAT_TRIGED://起動待ち
+		case STAT_ACTIVE:
+		case STAT_STANDBY:
+			st_cs_work.p_active_job = p_job;
+			break;
+
+		case STAT_SUSPENDED:
+		case STAT_ABOTED:
+		case STAT_END:
+		case STAT_REQ_WAIT:
+			st_cs_work.p_active_job = NULL;
+			break;
+		}
+	}
+	else {
+		st_cs_work.p_active_job = NULL;
+	}
+
+	//自動起動ボタンの判定（AGENT用）JOB判定後の状態を渡すため
+	auto_act_status = st_cs_work.cs_ctrl.auto_act_status = p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_act];
+
 	return S_OK;
 }
 int CCcCS::output() {          //出力処理
@@ -388,6 +491,11 @@ int CCcCS::output() {          //出力処理
 			pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::motor_siren] = L_OFF;
 	}
 	
+	//### OTE操作卓PB入力の保持
+	for (int i = 0; i < N_OTE_PNL_CTRL; i++) {
+		pnl_ctrl_buf[i] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[i];
+	}
+
 	return STAT_OK;
 }
 int CCcCS::close() {
@@ -395,6 +503,7 @@ int CCcCS::close() {
 }
 HRESULT CCcCS::get_ote_data_JC(int crane_id) {
 	ote_option_setting = st_ote_work.st_msg_ote_u_rcv.body.st.ope_mode;
+
 	return S_OK; 
 }
 HRESULT CCcCS::get_ote_data_GC(int crane_id) { 
@@ -472,7 +581,7 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 		set_ote_flt_info();
 
 		//## クレーン状態セット
-		st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m.p;							//荷重
+		st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m.p;				//荷重
 		st_ote_work.st_body.bh_angle = (float)(acos(pPLC_IO->r / pCrane->pSpec->st_struct.Lb));	//起伏角度
 		st_ote_work.st_body.wind_spd = (float)pPLC_IO->wind_spd;									//風速
 

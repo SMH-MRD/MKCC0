@@ -64,11 +64,11 @@ typedef struct _ST_POL_MON2 {
 
 }ST_POL_MON2, * LPST_POL_MON2;
 
-class CPolicy : public CBasicControl
+class CCcPol : public CBasicControl
 {
 public:
-    CPolicy();
-    ~CPolicy();
+    CCcPol();
+    ~CCcPol();
 
     virtual HRESULT initialize(LPVOID lpParam) override;
 
