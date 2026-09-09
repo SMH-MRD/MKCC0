@@ -209,6 +209,16 @@ public:
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
+   //### 自動関連
+    //AGENTからのアクセス関数
+    LPST_JOB_SET get_next_job();                                    //次のJob問い合わせ
+ 
+    //POLICYからのアクセス関数
+    int update_job_status(LPST_JOB_SET pjobset, int fb_code);       //Jobの実行状況アンサバック
+
+    //CLIENTへの報告関数
+    int job_report2client(LPST_JOB_SET pjobset, int fb_code);       //Jobの実行状況報告
+
 private:
     int crane_id;
     static int ote_option_setting;

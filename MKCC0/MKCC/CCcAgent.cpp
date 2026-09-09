@@ -172,6 +172,9 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		break;
 	}
 
+
+
+
 	//### IFウィンドウOPEN
 	if (st_mon2.hwnd_mon == NULL) {
 		WPARAM wp = MAKELONG(inf.index, WM_USER_WPH_OPEN_IF_WND);//HWORD:コマンドコード, LWORD:タスクインデックス
@@ -196,6 +199,11 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		else {
 			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
+	}
+
+
+	for(int i=0;i<MOTION_ID_MAX;i++){
+		pPLC_IO->stat_axis[i].mode = NOTCH_MODE_BASE;
 	}
 
 	//半自動関連

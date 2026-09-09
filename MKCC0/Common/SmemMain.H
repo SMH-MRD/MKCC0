@@ -90,7 +90,7 @@ typedef struct _ST_CRANE_STAT {
 	Vector3 rc;									//クレーン主巻吊点のクレーン基準点とのx,y,z相対座標
 	Vector3 rl;									//主巻吊荷のクレーン吊点とのx,y,z相対座標
 	Vector3 rcam_m;								//主巻振れセンサ検出x,y,z座標 m
-	double sway_ph_expected[MOTION_ID_MAX];	//振れ位相評価値
+	double sway_ph_expected[MOTION_ID_MAX];		//振れ位相評価値
 	double sway_amp_expected[MOTION_ID_MAX];	//振れ振幅評価値
 
 	ST_FAULTS_LIST	fault_list;					//故障検出リスト

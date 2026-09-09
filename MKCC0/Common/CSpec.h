@@ -146,31 +146,6 @@ public:
 	static ST_AUTO_SPEC		auto_spec[MOTION_ID_MAX];//自動制御仕様
 	static ST_REMOTE_SPEC	rmt_spec[MOTION_ID_MAX];//遠隔制御仕様
 
-	////主巻
-	//static ST_AXIS_SPEC	base_mh;
-	//static ST_AUTO_SPEC		auto_mh;
-	//static ST_REMOTE_SPEC	rmt_mh;
-
-	////起伏
-	//static ST_AXIS_SPEC	base_bh;
-	//static ST_AUTO_SPEC		auto_bh;
-	//static ST_REMOTE_SPEC	rmt_bh;
-
-	////旋回
-	//static ST_AXIS_SPEC	base_sl;
-	//static ST_AUTO_SPEC		auto_sl;
-	//static ST_REMOTE_SPEC	rmt_sl;
-
-	////走行
-	//static ST_AXIS_SPEC		base_gt;
-	//static ST_AUTO_SPEC		auto_gt;
-	//static ST_REMOTE_SPEC	rmt_gt;
-
-	////補巻
-	//static ST_AXIS_SPEC	base_ah;
-	//static ST_AUTO_SPEC		auto_ah;
-	//static ST_REMOTE_SPEC	rmt_ah;
-	
 	int setup(int cran_id);
 
 };

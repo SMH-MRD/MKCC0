@@ -265,11 +265,8 @@ HRESULT CCcCS::routine_work(void* pObj) {
 static INT16	pnl_ctrl_buf[N_OTE_PNL_CTRL];		//操作卓PB入力
 static INT32	ote_target_seq_last = 0;			//自動目標位置のシーケンス番号（トリガ検出用）
 
-
 int CCcCS::input() {
 	fp_get_ote_data(crane_id);
-
-	
 
 	//自動/半自動関連
 	if (st_ote_work.st_ote_ctrl.id_ope_active != OTE_NON_OPEMODE_ACTIVE) {//操作有効端末在り
@@ -655,6 +652,129 @@ void CCcCS::ote_control() {
 	return;	
 }
 
+/****************************************************************************/
+/*   他タスクからのアクセス関数												*/
+/****************************************************************************/
+
+/// <summary>
+/// AGENTからの実行待ちJOB問い合わせ応答
+/// </summary>
+/// <returns>LPST_JOB_SET : ジョブセット構造体のポインタ</returns>
+LPST_JOB_SET CCcCS::get_next_job() {
+
+	return st_cs_work.p_active_job;
+}
+
+//### POLICYからのJOB Status更新依頼
+int CCcCS::update_job_status(LPST_JOB_SET pjobset, int fb_code) {
+
+	if (pjobset->list_id == ID_JOBTYPE_JOB) {
+		switch (fb_code) {
+		case STAT_END: {
+			pJobIO->job_list[ID_JOBTYPE_JOB].n_job--;
+			pJobIO->job_list[ID_JOBTYPE_JOB].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot].status = STAT_END;
+
+			job_report2client(pjobset, STAT_END);
+
+			return STAT_ACK;
+			break;
+		}
+		case STAT_ABNORMAL_END: {
+			pJobIO->job_list[ID_JOBTYPE_JOB].n_job--;
+			pJobIO->job_list[ID_JOBTYPE_JOB].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot].status = STAT_END;
+
+			job_report2client(pjobset, STAT_ABNORMAL_END);
+
+			return STAT_ACK;
+		}break;
+		case STAT_ACTIVE:break;
+		case STAT_ABOTED:break;
+		default:break;
+		}
+	}
+	else if (pjobset->list_id == ID_JOBTYPE_SEMI) {//半自動ではコマンド完了＝ジョブ完了
+		switch (fb_code) {
+		case STAT_END: {
+			//正常完了時JOBのホールド数を0クリア
+			pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 0;
+			pjobset->status = STAT_END;
+
+			//実行中ジョブ解除
+			st_cs_work.p_active_job = NULL;
+
+			job_report2client(pjobset, STAT_END);
+
+			return STAT_ACK;
+		}break;
+		case STAT_ABNORMAL_END: {
+			//異常完了時JOBのホールド数を0クリア
+			pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 0;
+			pjobset->status = STAT_ABNORMAL_END;
+
+			//実行中ジョブ解除
+			st_cs_work.p_active_job = NULL;
+
+			job_report2client(pjobset, STAT_ABNORMAL_END);
+
+			return STAT_ACK;
+		}break;
+
+		case STAT_ABOTED: {
+			//ジョブキャンセル時（自動OFF,グリップスイッチOFF等）JOBのホールド数を0クリア
+			pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 0;
+			pjobset->status = STAT_ABOTED;
+
+			//実行中ジョブ解除
+			st_cs_work.p_active_job = NULL;
+
+			job_report2client(pjobset, STAT_ABOTED);
+
+			return STAT_ACK;
+		}break;
+
+		case STAT_STANDBY: {
+			//ジョブ実行報告は、ステータスの更新のみ
+			pjobset->status = STAT_STANDBY;
+
+			job_report2client(pjobset, STAT_STANDBY);
+
+			return STAT_ACK;
+		}break;
+
+		case STAT_ACTIVE: {
+			//ジョブ実行報告は、ステータスの更新のみ
+			pjobset->status = STAT_ACTIVE;
+
+			job_report2client(pjobset, STAT_ACTIVE);
+
+			return STAT_ACK;
+		}break;
+
+		case STAT_SUSPENDED: {
+			//中断時（手動介入）の場合は、ステータスをスタンバイ状態に戻す
+			pjobset->status = STAT_SUSPENDED;
+
+			job_report2client(pjobset, STAT_SUSPENDED);
+
+			return STAT_ACK;
+		}break;
+		default:return STAT_LOGICAL_ERROR;
+		}
+	}
+
+	return STAT_LOGICAL_ERROR;
+};
+
+/****************************************************************************/
+/*   JOB制御															　　*/
+/****************************************************************************/
+
+//クライアントへのフィードバック
+int CCcCS::job_report2client(LPST_JOB_SET pjobset, int fb_code) {       //Jobの実行状況報告
+
+	return STAT_NA;
+
+}
 
 /****************************************************************************/
 /*   通信関数											                    */
