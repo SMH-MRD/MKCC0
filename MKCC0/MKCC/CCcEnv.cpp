@@ -389,11 +389,11 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->nd[ID_HOIST].a = (v_fb - pCrStat->nd[ID_HOIST].v) / dt;
 	pCrStat->nd[ID_HOIST].v	= v_fb;
 
-	v_fb =(double)pPlcIo->stat_axis[ID_BOOM_H].v_fb / 60.0 / pspec->axis_spec[ID_BOOM_H].Gear_ratio;				//起伏(起伏） RPS
+	v_fb =(double)pPlcIo->stat_axis[ID_BOOM_H].v_fb / 60.0 / pspec->axis_spec[ID_BOOM_H].Gear_ratio;			//起伏(起伏） RPS
 	pCrStat->nd[ID_BOOM_H].a = (v_fb - pCrStat->nd[ID_BOOM_H].v) / dt;
 	pCrStat->nd[ID_BOOM_H].v = v_fb;
 
-	v_fb = -pCrStat->nd[ID_BOOM_H].v;						//起伏（主巻） RPS
+	v_fb = -pCrStat->nd[ID_BOOM_H].v;																			//起伏（主巻） RPS
 	pCrStat->nd[ID_BH_HST].a = (v_fb - pCrStat->nd[ID_BH_HST].v) / dt;
 	pCrStat->nd[ID_BH_HST].v = v_fb;
 
@@ -401,7 +401,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->nd[ID_SLEW].a = (v_fb - pCrStat->nd[ID_SLEW].v) / dt;
 	pCrStat->nd[ID_SLEW].v	= v_fb;
 
-	v_fb = (double)pPlcIo->stat_axis[ID_GANTRY].v_fb / 60.0 / pspec->axis_spec[ID_GANTRY].Gear_ratio;				//走行 RPS
+	v_fb = (double)pPlcIo->stat_axis[ID_GANTRY].v_fb / 60.0 / pspec->axis_spec[ID_GANTRY].Gear_ratio;			//走行 RPS
 	pCrStat->nd[ID_GANTRY].a = (v_fb - pCrStat->nd[ID_GANTRY].v) / dt;
 	pCrStat->nd[ID_GANTRY].v = v_fb;
 
@@ -680,6 +680,76 @@ void CCcEnv::refresh_faults_info() {
 	}
 	return;
 }
+
+
+
+/****************************************************************************/
+/*   自動用ヘルパー関数											                    */
+/****************************************************************************/
+
+//位置によるモータ加減速度計算
+double CCcEnv::cal_acc(int motion, double pos) {
+	return 0.0;
+}
+ //位置に応じた加速度を計算(旋回、引込用）
+double CCcEnv::cal_acc_hp(int motion, double R, double pos) {
+	return 0.0;
+}     
+//加減速振れ振角計算rad
+double CCcEnv::get_arad_acc(int motion, double R, double pos) {
+	return 0.0;
+} 
+//振れ角振幅計算rad
+double CCcEnv::get_arad_sway(int motion) {
+	return 0.0;
+}
+//振れ角位相計算rad
+double CCcEnv::get_phase_sway(int motion) {
+	return 0.0;
+}                       
+
+double CCcEnv::cal_sway_amp2(int motion) {
+	return 0.0;
+}
+double CCcEnv::cal_sway_amp(int motion) {
+	return 0.0;
+}
+//停止距離計算
+double CCcEnv::cal_dist4stop(int motion, bool is_abs_answer) {
+	return 0.0;
+} 
+//目標位置までの距離
+double CCcEnv::cal_dist4target(int motion, bool is_abs_answer) {
+	return 0.0;
+} 
+// 0速チェック
+bool CCcEnv::is_speed_0(int motion) {
+	return 0.0;
+}                            
+ // 位置に応じた速度,加速度の比率　起伏のみ
+double CCcEnv::cal_motion_retio(int imotion, double pos) {
+	return 0.0;
+}      
+//振れ周期計算　ロープ長　指定
+double CCcEnv::cal_T(double pos_hst, double R, int motion_id) {
+	return 0.0;
+}  
+//振れ角周波数計算　ロープ長指定
+double CCcEnv::cal_w(double pos_hst, double R, int motion_id) {
+	return 0.0;
+}
+ //振れ角周波数の2乗計算　ロープ長指定
+double CCcEnv::cal_w2(double pos_hst, double R, int motion_id) {
+	return 0.0;
+}
+//ロープ長計算　巻き位置指定
+double CCcEnv::cal_mhl(double pos_hst, double r) {
+	return 0.0;
+}               
+ //最大速度計算
+double CCcEnv::get_vmax(int motion) {
+	return 0.0;
+}                           
 
 /****************************************************************************/
 /*   モニタウィンドウ									                    */

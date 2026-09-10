@@ -116,6 +116,31 @@ public:
 
     virtual HRESULT initialize(LPVOID lpParam) override;
 
+    double cal_acc(int motion, double pos);                   //位置によるモータ加減速度計算
+    double cal_acc_hp(int motion, double R, double pos);      //位置に応じた加速度を計算(旋回、引込用）
+
+    double get_arad_acc(int motion, double R, double pos);   //加減速振れ振角計算rad
+    double get_arad_sway(int motion);                        //振れ角振幅計算rad
+    double get_phase_sway(int motion);                       //振れ角位相計算rad
+
+    double cal_sway_amp2(int motion);
+    double cal_sway_amp(int motion);
+
+    double cal_dist4stop(int motion, bool is_abs_answer);   //停止距離計算
+    double cal_dist4target(int motion, bool is_abs_answer); //目標位置までの距離
+
+    bool is_speed_0(int motion);                            // 0速チェック
+
+    double cal_motion_retio(int imotion, double pos);       // 位置に応じた速度,加速度の比率　起伏のみ
+
+    double cal_T(double pos_hst, double R, int motion_id);  //振れ周期計算　ロープ長　指定
+    double cal_w(double pos_hst, double R, int motion_id);  //振れ角周波数計算　ロープ長指定
+    double cal_w2(double pos_hst, double R, int motion_id); //振れ角周波数の2乗計算　ロープ長指定
+    double cal_mhl(double pos_hst, double r);               //ロープ長計算　巻き位置指定
+
+    double get_vmax(int motion);                            //最大速度
+
+
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
     static LRESULT CALLBACK Mon2Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);

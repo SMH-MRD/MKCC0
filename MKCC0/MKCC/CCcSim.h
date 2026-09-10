@@ -145,6 +145,8 @@ public:
     CSimGC*     pSimGC  = nullptr;
     CSimOHC*    pSimOHC = nullptr;
 
+    CLoad*      pLoad;                                   //ŽåŠª’Ý‰×‚Ìƒ‚ƒfƒ‹
+
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
     static LRESULT CALLBACK Mon1Proc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);

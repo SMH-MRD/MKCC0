@@ -90,6 +90,11 @@ typedef struct _ST_POL_MON2 {
 #define POL_PRM_FB_DELAY_BH_SIM         0.3
 #define POL_PRM_FB_DELAY_SLEW_SIM       0.3
 
+#define CODE_POLICY_DEBUG_DEACTIVE           0
+#define CODE_POLICY_DEBUG_AS_1SHOT          0x0001
+#define CODE_POLICY_DEBUG_AS_2SHOT          0x0002
+#define CODE_POLICY_DEBUG_SIM_MODE          0x0004
+
 /// <summary>
 /// Policyタスクのコマンドワーク構造体
 /// </summary>
@@ -154,8 +159,9 @@ public:
     LPST_COMMAND_SET req_command(LPST_JOB_SET pjob_set);         //Agentからの要求に応じて実行コマンドをセットして返す
     int update_command_status(LPST_COMMAND_SET pcom, int code);  //Agentからのコマンド実行状況報告を受付,次のコマンドあるときはそれを返す
 
-     int debug_mode;
-
+    void set_dbg_mode(int command);
+    int debug_mode;
+ 
 private:
     int crane_id = 0;
 

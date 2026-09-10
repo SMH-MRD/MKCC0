@@ -245,10 +245,6 @@ HRESULT CAgent::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
 
-		//wos << L"  SRBK CHK ENABLE:" << st_work.slew_brake_chk_enable;
-		//wos << L"  SRBK MODE:" << st_work.slew_brake_ctrl_mode;
-		//wos << L"  SRBK CNT:" << slblk_chk_cnt;
-
 		wos << L"  SwayStatus:"<< pAgent_Inf->sway_sensor_status << L"  count:" << pAUX_CS_Inf->msg_server.head.seqno;
 
 		msg2host(wos.str());
@@ -1028,7 +1024,6 @@ HRESULT CAgent::set_ref_gt_OHC(int crane_id) { return S_OK; }
 HRESULT CAgent::set_ref_slew_OHC(int crane_id) { return S_OK; }
 HRESULT CAgent::set_ref_trolly_OHC(int crane_id) { return S_OK; }
 
-
 /* #Agentの自動目標位置までの距離を計算*/
 double CAgent::cal_dist4target(int motion, bool is_abs_answer) {
 	double dist = st_work.st_axis_ctrl[motion].auto_tg_pos - pPLC_IO->stat_axis[motion].pos_fb;
@@ -1043,6 +1038,51 @@ double CAgent::cal_dist4target(int motion, bool is_abs_answer) {
 	return dist;
 }
 
+
+/****************************************************************************/
+/*  コマンドセット実行前初期化処理                                        */
+/*  実行管理ステータスのクリアとコマンド実行中ステータスセット				*/
+/****************************************************************************/
+int CAgent::init_comset(LPST_COMMAND_SET pcom) {
+	if (pcom->com_code.i_list == ID_JOBTYPE_ANTISWAY) {
+		for (int i = 0; i < MOTION_ID_MAX; i++) {
+			pcom->seq[i].seq_status = STAT_END;
+			pcom->seq[i].i_hot_step = 0;
+			pcom->seq[i].sequence_act_count = 0;
+		}
+
+		pcom->seq[ID_BOOM_H].seq_status = STAT_STANDBY;
+		pcom->seq[ID_SLEW].seq_status = STAT_STANDBY;
+
+	}
+	else {
+		for (int i = 0; i < MOTION_ID_MAX; i++) {						//各軸の実行ステータスの初期化
+			if (pcom->seq_mode[i] == L_ON) pcom->seq[i].seq_status = STAT_STANDBY;
+			else						   pcom->seq[i].seq_status = STAT_END;
+			pcom->seq->i_hot_step = 0;
+			pcom->seq->sequence_act_count = 0;
+		}
+	}
+	pcom->com_status = STAT_STANDBY;
+	return 0;
+}
+
+/****************************************************************************/
+/*  コマンドセットアボート処理												*/
+/*  実行管理ステータスのクリアとコマンド実行中ステータスクリア				*/
+/****************************************************************************/
+int CAgent::comset_abot_end(LPST_COMMAND_SET pcom) {
+	for (int i = 0; i < MOTION_ID_MAX; i++) {//全動作のコマンドシーケンスをABOTセット
+		pcom->seq[i].seq_status = STAT_ABOTED;
+		pcom->seq[i].i_hot_step = pcom->seq[i].n_step;
+		pcom->seq[i].sequence_act_count = 0;
+	}
+	return 0;
+}
+
+/****************************************************************************/
+/*   STEP処理		                                                        */
+/****************************************************************************/
 double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 	double v_out = 0.0;
 

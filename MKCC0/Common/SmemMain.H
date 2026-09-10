@@ -260,7 +260,7 @@ typedef struct stMotionStep {	//運動要素
 
 typedef struct _ST_MOTION_SEQ {	
 	//CS set
-	int Axis_id;
+	int axis_id;
 	int motion_type;
 	int option_i;								//オプション条件
 	int direction;								//動作方向(-1,0,+1)
@@ -599,6 +599,29 @@ typedef struct _ST_CC_CS_INF {
 #define SIM_ACTIVE_MODE			0x00000100					//シミュレーション実行モード
 #define SIM_SWAY_PACKET_MODE	0x00000010					//振れセンサパケット送信モード
 #define SIM_N_SENSOR			128							//センサ数
+
+#define PLC_IF_LIMIT_COM_FWD_NORM		0x0000001
+#define PLC_IF_LIMIT_COM_REV_NORM		0x0000002
+#define PLC_IF_LIMIT_COM_FWD_EMR		0x0000004
+#define PLC_IF_LIMIT_COM_REV_EMR		0x0000008
+#define PLC_IF_LIMIT_COM_FWD_SLOW		0x0000010
+#define PLC_IF_LIMIT_COM_REV_SLOW		0x0000020
+#define PLC_IF_LIMIT_COM_FWD_SLOW2		0x0000040
+#define PLC_IF_LIMIT_COM_REV_SLOW2		0x0000080
+#define PLC_IF_LIMIT_COM_FWD_NORM_EX1	0x0000100
+#define PLC_IF_LIMIT_COM_REV_NORM_EX1	0x0000200
+#define PLC_IF_LIMIT_COM_FWD_EMR_EX1	0x0000400
+#define PLC_IF_LIMIT_COM_REV_EMR_EX1	0x0000800
+#define PLC_IF_LIMIT_COM_FWD_NORM_EX2	0x0001000
+#define PLC_IF_LIMIT_COM_REV_NORM_EX2	0x0002000
+#define PLC_IF_LIMIT_COM_FWD_EMR_EX2	0x0004000
+#define PLC_IF_LIMIT_COM_REV_EMR_EX2	0x0008000
+#define PLC_IF_LIMIT_COM_FWD_NORM_EX3	0x0010000
+#define PLC_IF_LIMIT_COM_REV_NORM_EX3	0x0020000
+#define PLC_IF_LIMIT_COM_FWD_EMR_EX3	0x0040000
+#define PLC_IF_LIMIT_COM_REV_EMR_EX3	0x0080000
+
+
 typedef struct StSimulationStatus {
 	DWORD mode;
 	DWORD helthy_cnt;

@@ -32,7 +32,8 @@ public:
     CMob();
     ~CMob();
 
-    int id;
+    int id;         //機器ID
+    int type;       //Mob種別
     double dt;      //計算時間間隔
     Vector3 a;      //加速度ベクトル
     Vector3 r;      //位置ベクトル
@@ -142,8 +143,7 @@ public:
 
   
     void init_crane(double _dt); 
- 
-    void set_v_ref(double hoist_ref, double gantry_ref, double slew_ref, double boomh_ref, double ah_ref);        //速度指令値入力
+     
     void update_break_status();                     //ブレーキ状態, ブレーキ開放経過時間セット
     
     void timeEvolution();                           //時間発展を計算するメソッド

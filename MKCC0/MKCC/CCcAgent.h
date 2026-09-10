@@ -174,6 +174,13 @@ private:
     static std::mutex m_AgInfMutex;  // 共有メモリアクセス保護用ミューテックス
     static bool is_site_estop_detected;
 
+    LPST_JOB_SET        pjob_active;                        //実行中JOB
+    LPST_COMMAND_SET    pCom_hot;                           //実行中コマンド
+    LPST_COMMAND_SET    pCom_as;                            //振れ止め用コマンドセットポインタ（実態は共有メモリ上へ）
+
+    int init_comset(LPST_COMMAND_SET pcom);                 //コマンド初期化
+    int comset_abot_end(LPST_COMMAND_SET pcom);             //コマンド強制終了
+ 
     static double cal_step(LPST_COMMAND_SET pCom, int motion);      //自動指令出力値の計算
 	static double cal_dist4target(int motion, bool is_abs_answer);  //目標位置までの距離計算
     //オーバーライド

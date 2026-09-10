@@ -116,23 +116,6 @@ CSimJC::CSimJC(int _id) {
 }
 CSimJC::~CSimJC() {}
 
-/// <summary>
-/// ドラム速度指令取り込み(rps)
-/// </summary>
-/// <param name="hoist_ref"></param>
-/// <param name="gantry_ref"></param>
-/// <param name="slew_ref"></param>
-/// <param name="boomh_ref"></param>
-/// <param name="ah_ref"></param>
-void CSimJC::set_v_ref(double hoist_ref, double gantry_ref, double slew_ref, double boomh_ref, double ah_ref) {
-	nv_ref[ID_HOIST]	= hoist_ref;
-	nv_ref[ID_BOOM_H]	= boomh_ref;
-	nv_ref[ID_SLEW]		= slew_ref;
-	nv_ref[ID_GANTRY]	= gantry_ref;
-	nv_ref[ID_AHOIST]	= ah_ref;
-	return;
-}
-// ﾄﾙｸT(N・m）= F x R　= J x dω/dt  仕事率P=Tω=Mav　a=Tω/Mv=MT/r
 
 //軸加速度
 void CSimJC::Ac() {	//加速度計算
