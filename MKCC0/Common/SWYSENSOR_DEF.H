@@ -487,9 +487,9 @@ typedef struct TAG_SWAY_DATA {
     double amp_p2p;     // 振れ振幅評価値　Peak2Peak計測
     double amp_cal;     // 振れ振幅評価値　計算　sqrt((speed^2 + acc^2)/(w^2+w^4))=sqrt((speed/w)^2 +(acc/w^2)^2)
     double amp_disp;    // 振れ振幅評価値　表示用　CAL orP2P
-    double ph_cal = 0.0;      // 振れ位相　計算　atan(-(acc/w)/speed)
-    double ph_time = 0.0;     // 振れ位相　振れ速度+-の変化でプリセット後、wtで評価
-    double ph_disp;     // 振れ位相　表示用　CAL or　time
+    double ps_cal = 0.0;      // 振れ位相　計算　atan(-(acc/w)/speed)
+    double ps_time = 0.0;     // 振れ位相　振れ速度+-の変化でプリセット後、wtで評価
+    double ps_disp;     // 振れ位相　表示用　CAL or　time
     double vw;          // v/w
     double aw2;         // a/w/w
 
@@ -600,35 +600,14 @@ typedef struct TAG_APP_CONFIG {
 // ###### ***通信データ
 // ######################################################
 
-#define SW_CLIENT_COM_CAMERA1_0SET     0x00000010
+#define SW_CLIENT_COM_CAMERA1_0SET  0x00000010
+
+#define SWAYSENS_CODE_MODE_PRODUCT  0
+#define SWAYSENS_CODE_MODE_SIMLATOR 1
 
 /// <summary>
 /// 振れセンサIF
 /// </summary>
-typedef struct _SwayClientHead {
-    ST_DEVICE_CODE	myid;		    //装置ID
-//    SOCKADDR_IN		addr;	    //送信元受信アドレス
-    INT16			mask_mode;	        //0:IDLE 1:MASK1のみ　2：MASK2のみ　3：MASK12共使用
-    INT16           filter_type1;       //画像フィルタ処理　ENUM_NOISE_FILTER1の定義で指定
-    INT16           filter_type1_val;   //画像フィルタ処理　設定値
-    INT16           filter_type2;       //画像フィルタ処理　ENUM_NOISE_FILTER2の定義で指定
-    INT16           filter_type2_val;   //画像フィルタ処理　設定値
-    INT16			command;	//コマンドコード(初期化要求等）
-    INT32			status;		//状態
-    INT32 			seqno;		//シーケンス番号(ヘルシーチェック用）	
-}ST_SWAY_CLIENT_HEAD, * LPST_SWAY_CLIENT_HEAD;
-
-typedef struct SwayClientBody {
-    double          tg_distance;
-    double          T[(int)ENUM_AXIS::E_MAX]; //振れ周期
-    double          w[(int)ENUM_AXIS::E_MAX]; //振れ角周波数
-}ST_SWAY_CLIENT_BODY, * LPST_SWAY_CLIENT_BODY;
-
-typedef struct SwayClientMsg {
-    ST_SWAY_CLIENT_HEAD head;
-    ST_SWAY_CLIENT_BODY body;
-}ST_SWAY_CLIENT_MSG, * LPST_SWAY_CLIENT_MSG;
-
 typedef struct _SwayServerHead {
     ST_DEVICE_CODE	myid;		//装置ID
     //    SOCKADDR_IN		addr;		//送信元受信アドレス
@@ -655,8 +634,8 @@ typedef struct _ST_SWAY_DETECT {
     double  v;              //振角速度　PIX/s
     double  amp_p2p;        //Peak to Peakで計測した振れ振幅(角速度の符号切り替わりで判定)
     double  amp_cal;        //振れ角速度から評価した振れ振幅(半周期間の振れ角速度最大値で判定）
-    double  ph_cal;         //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
-    double  ph_time;        //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+    double  ps_cal;         //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
+    double  ps_time;        //振れ位相評価値(振れ角、振れ角速度の符号変化から振れ周期時間カウントで求める
     double  T;              //計測振れ周期s
     double  vw;             // v/w SCATチャート用
 }ST_SWAY_DETECT, * LPST_SWAY_DETECT;
@@ -671,6 +650,34 @@ typedef struct SwayServerMsg {
     ST_SWAY_SERVER_HEAD head;
     ST_SWAY_SERVER_BODY body;
 }ST_SWAY_SERVER_MSG, * LPST_SWAY_SERVER_MSG;
+
+ 
+
+typedef struct _SwayClientHead {
+    ST_DEVICE_CODE	myid;		        //装置ID
+//    SOCKADDR_IN		addr;	        //送信元受信アドレス
+    INT16			mask_mode;	        //0:IDLE 1:MASK1のみ　2：MASK2のみ　3：MASK12共使用
+    INT16           filter_type1;       //画像フィルタ処理　ENUM_NOISE_FILTER1の定義で指定
+    INT16           filter_type1_val;   //画像フィルタ処理　設定値
+    INT16           filter_type2;       //画像フィルタ処理　ENUM_NOISE_FILTER2の定義で指定
+    INT16           filter_type2_val;   //画像フィルタ処理　設定値
+    INT16			command;	        //コマンドコード(初期化要求等）
+    INT32			status;		        //状態（Simulation Mode）
+    INT32 			seqno;		        //シーケンス番号(ヘルシーチェック用）	
+}ST_SWAY_CLIENT_HEAD, * LPST_SWAY_CLIENT_HEAD;
+
+typedef struct SwayClientBody {
+    double          tg_distance;
+    double          T[(int)ENUM_AXIS::E_MAX]; //振れ周期
+    double          w[(int)ENUM_AXIS::E_MAX]; //振れ角周波数
+}ST_SWAY_CLIENT_BODY, * LPST_SWAY_CLIENT_BODY;
+
+typedef struct SwayClientMsg {
+    ST_SWAY_CLIENT_HEAD head;
+    ST_SWAY_CLIENT_BODY body;
+    ST_SWAY_SERVER_BODY sim_body;       //Simulator計算値
+}ST_SWAY_CLIENT_MSG, * LPST_SWAY_CLIENT_MSG;
+
 
 ////送信データコード
 //#define SW_CLIENT_COM_ONCE_DATA        0x00000000

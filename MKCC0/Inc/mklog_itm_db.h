@@ -5,10 +5,10 @@
 #include "..\Common\phisics.h"
 
 typedef struct tagMklogItemUnit {
-	INT32 code;
-	double d100;
-	WCHAR title[16];
-	INT16(*func)(double d);//入力値を100%値に正規化する関数
+	INT32	code;
+	double	d100;
+	WCHAR	title[16];
+	INT16	(*func)(double d);//入力値を100%値に正規化する関数
 }ST_MKLOG_ITEM_UNIT, *LPST_LOG_MKITEM_UNIT;
 
 #define N_MKLOG_ITEM_DB			256
@@ -52,12 +52,12 @@ typedef struct tagMklogItemUnit {
 #define MKLOG_ITEM_SWY1_DTHWY		27
 #define MKLOG_ITEM_SWY1_AMP_CAL_X	28
 #define MKLOG_ITEM_SWY1_AMP_CAL_Y	29
-#define MKLOG_ITEM_SWY1_PH_CAL_X	30
-#define MKLOG_ITEM_SWY1_PH_CAL_Y	31
+#define MKLOG_ITEM_SWY1_PS_CAL_X	30
+#define MKLOG_ITEM_SWY1_PS_CAL_Y	31
 #define MKLOG_ITEM_SWY1_AMP_P2P_X	32
 #define MKLOG_ITEM_SWY1_AMP_P2P_Y	33
-#define MKLOG_ITEM_SWY1_PH_TIME_X	34
-#define MKLOG_ITEM_SWY1_PH_TIME_Y	35
+#define MKLOG_ITEM_SWY1_PS_TIME_X	34
+#define MKLOG_ITEM_SWY1_PS_TIME_Y	35
 #define MKLOG_ITEM_MHL				36
 
 //NOTCH

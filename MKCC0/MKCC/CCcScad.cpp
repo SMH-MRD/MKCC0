@@ -605,12 +605,12 @@ INT16(*CScada::get_func_of_logitem(INT32 code))(double d) {
 
 	case MKLOG_ITEM_SWY1_AMP_CAL_X:return swy1SWYAMP_CAL_X;
 	case MKLOG_ITEM_SWY1_AMP_CAL_Y:return swy1SWYAMP_CAL_Y;
-	case MKLOG_ITEM_SWY1_PH_CAL_X:return swy1SWYPH_CAL_X;
-	case MKLOG_ITEM_SWY1_PH_CAL_Y:return swy1SWYPH_CAL_Y;
+	case MKLOG_ITEM_SWY1_PS_CAL_X:return swy1SWYps_cal_X;
+	case MKLOG_ITEM_SWY1_PS_CAL_Y:return swy1SWYps_cal_Y;
 	case MKLOG_ITEM_SWY1_AMP_P2P_X:return swy1SWYAMP_P2P_X;
 	case MKLOG_ITEM_SWY1_AMP_P2P_Y:return swy1SWYAMP_P2P_Y;
-	case MKLOG_ITEM_SWY1_PH_TIME_X:return swy1SWYPH_TIME_X;
-	case MKLOG_ITEM_SWY1_PH_TIME_Y:return swy1SWYPH_TIME_Y;
+	case MKLOG_ITEM_SWY1_PS_TIME_X:return swy1SWYps_time_X;
+	case MKLOG_ITEM_SWY1_PS_TIME_Y:return swy1SWYps_time_Y;
 	case MKLOG_ITEM_MHL:return l_rope_mh;
 
 	case MKLOG_ITEM_CONTROL_SOURCE:return control_source;

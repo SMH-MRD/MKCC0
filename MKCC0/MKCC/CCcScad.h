@@ -177,12 +177,12 @@ public:
     static INT16 swy1_Ty(double d100);
     static INT16 swy1SWYAMP_CAL_X(double d100);
     static INT16 swy1SWYAMP_CAL_Y(double d100);
-    static INT16 swy1SWYPH_CAL_X(double d100) ;
-    static INT16 swy1SWYPH_CAL_Y(double d100) ;
+    static INT16 swy1SWYps_cal_X(double d100) ;
+    static INT16 swy1SWYps_cal_Y(double d100) ;
     static INT16 swy1SWYAMP_P2P_X(double d100);
     static INT16 swy1SWYAMP_P2P_Y(double d100);
-    static INT16 swy1SWYPH_TIME_X(double d100);
-    static INT16 swy1SWYPH_TIME_Y(double d100);
+    static INT16 swy1SWYps_time_X(double d100);
+    static INT16 swy1SWYps_time_Y(double d100);
 
 
     static INT16 l_rope_mh(double d100);

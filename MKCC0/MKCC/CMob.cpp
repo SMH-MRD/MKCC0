@@ -80,38 +80,6 @@ CSimJC::CSimJC(int _id) {
 	pAxis_sl = pCrane->get_axis_sl();
 	pAxis_gt = pCrane->get_axis_gt();
 	pAxis_ah = pCrane->get_axis_ah();
-
-	//0速とみなす速度上限（ドラム回転速度）
-	accdec_cut_spd_range[ID_HOIST]	= 0.005 * pAxis_mh->Rpm_rated / 60.0 / (pCrane->get_axis_mh()->Gear_ratio);	//0.5%
-	accdec_cut_spd_range[ID_BOOM_H] = 0.005 * pAxis_bh->Rpm_rated / 60.0 / (pCrane->get_axis_bh()->Gear_ratio);	//0.5%
-	accdec_cut_spd_range[ID_SLEW]	= 0.005 * pAxis_sl->Rpm_rated / 60.0 / (pCrane->get_axis_sl()->Gear_ratio);	//0.5%
-	accdec_cut_spd_range[ID_GANTRY] = 0.005 * pAxis_gt->Rpm_rated / 60.0 / (pCrane->get_axis_gt()->Gear_ratio);	//0.5%	
-	accdec_cut_spd_range[ID_AHOIST] = 0.005 * pAxis_ah->Rpm_rated / 60.0 / (pCrane->get_axis_ah()->Gear_ratio);	//0.5%
-	mh_load = pStruct->Whook;	//初期主巻荷重 フック重量
-	ah_load = pStruct->Whook;	//初期補巻荷重 フック重量
-
-	for (int i = 0; i < MOTION_ID_MAX;i++) {
-		is_fwd_endstop[i] = false;
-		is_rev_endstop[i] = false;
-		Tf[i] = 1.0;
-		brk_elaped_time[i] = 0.0;
-		a0[i] = 0.0;
-		v0[i] = 0.0;
-		a_ref[i] = 0.0;
-		v_ref[i] = 0.0;
-		is_fwd_endstop[i] = false;
-		is_rev_endstop[i] = false;
-		trq_fb[i]=0.0;    //モータートルクFB
-		motion_brake[i] = false;
-	}
-
-	r0[ID_GANTRY]	= SIM_INIT_X;
-	r0[ID_HOIST]	= SIM_INIT_MH;	
-	r0[ID_AHOIST]	= SIM_INIT_AH;	
-	r0[ID_BOOM_H]	= SIM_INIT_R;
-	r0[ID_SLEW]		= 0.0;
-
-	source_mode = MOB_MODE_SIM;
 	
 }
 CSimJC::~CSimJC() {}
@@ -269,6 +237,13 @@ void CSimJC::Ac() {	//加速度計算
 	}
 	return;
 }
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="_r"></param>
+/// <param name="_v"></param>
+/// <returns></returns>
 Vector3 CSimJC::A(Vector3& _r, Vector3& _v) {
 	Vector3 vec3;	
 	return vec3;
@@ -293,6 +268,9 @@ void CSimJC::timeEvolution() {
 		}
 	};
 
+
+//Environmentで計算
+#if 0
 	//ドラム位置計算(オイラー法）
 	pSimStat->nd[ID_HOIST].p	+= pSimStat->nd[ID_HOIST].v		* dt;
 	pSimStat->nd[ID_AHOIST].p	+= pSimStat->nd[ID_AHOIST].v	* dt;
@@ -300,7 +278,7 @@ void CSimJC::timeEvolution() {
 	pSimStat->nd[ID_BOOM_H].p	+= pSimStat->nd[ID_BOOM_H].v	* dt;
 	pSimStat->nd[ID_SLEW].p		+= pSimStat->nd[ID_SLEW].v		* dt;
 
-#if 0
+
 	//クレーン状態セット
 	set_d_th_from_nbh();	//引込ドラム回転状態からd,d'd'' th th' th''の状態をセットする
 	set_bh_layer();         //引込ドラム状態をセットする
@@ -419,48 +397,30 @@ void CSimJC::timeEvolution() {
 #endif
 	return;
 }
-void CSimJC::init_crane(double _dt) {
-#if 0	
-	//計算パラメータ
-	Lmb2 = pStruct->Lb * pStruct->Lb; //ブーム長の2乗
-	LmbCosAdb = pspec->Lmb * cos(pspec->Alpa_db);
-	LmLb = pspec->Lm * pspec->Lb;
-	
-	//r0は、各軸アブソコーダの値
-	r0[ID_HOIST]	= SIM_INIT_MH;
-	r0[ID_AHOIST]	= SIM_INIT_AH;
-	r0[ID_GANTRY]	= SIM_INIT_X;
-	r0[ID_SLEW]		= SIM_INIT_TH;
-	r0[ID_BOOM_H]	= SIM_INIT_R;		//旋回半径は主巻吊点位置の半径とする
+void CSimJC::init_crane(int crane_id) {
 
-	//クレーン基準点の初期位置,速度
-	rc.x = 10.0; rc.y = 0.0; rc.z = 0.0;
-	vc.x = 0.0; vc.y = 0.0; vc.z = 0.0;
+	//0速とみなす速度上限（ドラム回転速度）
+	accdec_cut_spd_range[ID_HOIST] = 0.005 * pAxis_mh->Rpm_rated / 60.0 / (pCrane->get_axis_mh()->Gear_ratio);	//0.5%
+	accdec_cut_spd_range[ID_BOOM_H] = 0.005 * pAxis_bh->Rpm_rated / 60.0 / (pCrane->get_axis_bh()->Gear_ratio);	//0.5%
+	accdec_cut_spd_range[ID_SLEW] = 0.005 * pAxis_sl->Rpm_rated / 60.0 / (pCrane->get_axis_sl()->Gear_ratio);	//0.5%
+	accdec_cut_spd_range[ID_GANTRY] = 0.005 * pAxis_gt->Rpm_rated / 60.0 / (pCrane->get_axis_gt()->Gear_ratio);	//0.5%	
+	accdec_cut_spd_range[ID_AHOIST] = 0.005 * pAxis_ah->Rpm_rated / 60.0 / (pCrane->get_axis_ah()->Gear_ratio);	//0.5%
 
-	//ドラム回転位置セット
-	set_nbh_d_ph_th_from_r(r0[ID_BOOM_H]);												//旋回半径より引込ドラム回転量他をセット
-
-	set_nmh_from_mh(r0[ID_HOIST]); 														//主巻揚程より主巻ドラム回転量他をセット
-
-	set_nah_from_ah(r0[ID_AHOIST]); 													//補巻揚程より補巻ドラム回転量他をセット
-
-	slw_rad_per_turn = PI360 * pspec->prm_nw[DRUM_ITEM_DIR][ID_SLEW] / pspec->Dttb;		//ピニオン（モータ）１回転での旋回角度変化量セット
-	set_nsl_from_slr(r0[ID_SLEW]); 														//旋回位置からピニオン回転数をセット
-
-	gnt_m_per_turn = PI180 * pspec->prm_nw[DRUM_ITEM_DIR][ID_GANTRY];					//車輪1回転での移動量セット
-	set_ngt_from_gtm(r0[ID_GANTRY]);													//走行位置から車輪回転数セット
-
-																						//吊点状態セット
-	Vector3 _r(r0[ID_BOOM_H] * cos(r0[ID_SLEW]) + r0[ID_GANTRY], r0[ID_BOOM_H] * sin(r0[ID_SLEW]), pspec->Lp + pspec->Lm * sin(pSimStat->th.p));
-	Vector3 _v(0.0, 0.0, 0.0);
-	init_mob(_dt, _r, _v);
-
-	//ロープ長
-	
-
-	set_v_ref(0.0, 0.0, 0.0, 0.0, 0.0);	//初期速度指令値セット
-	set_fex(0.0, 0.0, 0.0);			//初期外力セット
-		
+	for (int i = 0; i < MOTION_ID_MAX; i++) {
+		is_fwd_endstop[i] = false;
+		is_rev_endstop[i] = false;
+		Tf[i] = 1.0;
+		brk_elaped_time[i] = 0.0;
+		a0[i] = 0.0;
+		v0[i] = 0.0;
+		a_ref[i] = 0.0;
+		v_ref[i] = 0.0;
+		is_fwd_endstop[i] = false;
+		is_rev_endstop[i] = false;
+		trq_fb[i] = 0.0;    //モータートルクFB
+		motion_brake[i] = false;
+	}
+	source_mode = MOB_MODE_SIM;
 	//加速度一次遅れフィルタ時定数
 	Tf[ID_HOIST]	= SIM_TF_HOIST;
 	Tf[ID_BOOM_H]	= SIM_TF_BOOM_H;
@@ -468,23 +428,11 @@ void CSimJC::init_crane(double _dt) {
 	Tf[ID_GANTRY]	= SIM_TF_GANTRY;
 	Tf[ID_AHOIST]	= SIM_TF_AHOIST;
 
-	//計算用定数セット
-	c_phb = (cal_Lb2Lp2 - pSimStat->d.p * pSimStat->d.p) / cal_2LbLp;
-	c_ph = (cal_Lm2Lp2 - pSimStat->d.p * pSimStat->d.p) / cal_2LmLp;
-	
-	cal_Lm2Lp2 = pspec->Lm * pspec->Lm + pspec->Lp * pspec->Lp;
-	cal_2LmLp = 2.0 * pspec->Lm * pspec->Lp;
-	cal_Lb2Lp2 = pspec->Lb * pspec->Lb + pspec->Lp * pspec->Lp;
-	cal_2LbLp = 2.0 * pspec->Lb * pspec->Lp;
-
-	//荷重セット
+	//軸負荷セット
 	for (int i = 0; i < MOTION_ID_MAX; i++) {
-		pSimStat->load[i].m = pSimStat->load[i].wx = pSimStat->load[i].dy = pSimStat->load[i].hz = 0.0;
+		M[i].m = M[i].wx = M[i].dy = M[i].hz = 0.0;
 	}
 
-	pSimStat->load[ID_HOIST].m = pspec->Load0_mh;
-	pSimStat->load[ID_AHOIST].m = pspec->Load0_ah;;
-#endif
 	return;
 }
 // 各モーションのブレーキ状態をセット
@@ -714,10 +662,8 @@ Vector3 CSimOHC::A(Vector3& _r, Vector3& _v) {
 /********************************************************************************/
 
 //吊荷位置の初期化
-void CLoad ::init_mob(double _dt, Vector3& _r, Vector3& _v) {
-	dt = _dt;
-	r.copy(_r);
-	v.copy(_v);
+void CLoad ::init_load(int id) {
+	M.m = pCrane->pSpec->st_struct.Whook;
 	return;
 }
 
@@ -726,11 +672,11 @@ Vector3 CLoad::A(Vector3& r, Vector3& v) {
 	Vector3 L_;
 
 	if (type == ID_AHOIST)
-		L_ = L_.subVectors(r, pCrane->r2);
+		L_ = L_.subVectors(r, pMobBase->r2);
 	else 					
-		L_ = L_.subVectors(r, pCrane->r);
+		L_ = L_.subVectors(r, pMobBase->r);
 
-	double Sdivm = S() / m;
+	double Sdivm = S() / M.m;
 
 	a = L_.clone().multiplyScalor(Sdivm);
 	a.z -= GA;
@@ -744,12 +690,12 @@ Vector3 CLoad::A(Vector3& r, Vector3& v) {
 
 	Vector3 ak, v_;
 	if (type == ID_AHOIST) {
-		ak = hatL.clone().multiplyScalor(-compensationK * ( L_.length() - pCrane->l_ah));
-		v_ = v_.subVectors(v, pCrane->v2);
+		ak = hatL.clone().multiplyScalor(-compensationK * ( L_.length() - pMobBase->l_ah));
+		v_ = v_.subVectors(v, pMobBase->v2);
 	}
 	else {
-		ak = hatL.clone().multiplyScalor(-compensationK * (L_.length() - pCrane->l_mh));
-		v_ = v_.subVectors(v, pCrane->v);
+		ak = hatL.clone().multiplyScalor(-compensationK * (L_.length() - pMobBase->l_mh));
+		v_ = v_.subVectors(v, pMobBase->v);
 	}
 
 
@@ -763,18 +709,18 @@ Vector3 CLoad::A(Vector3& r, Vector3& v) {
 } //Model of acceleration
 
 double  CLoad::S() { //Aの計算部の関係でS/Lとなっている。巻きの加速度分が追加されている。
-	Vector3 v_ = v.clone().sub(pCrane->v);
+	Vector3 v_ = v.clone().sub(pMobBase->v);
 	double v_abs2 = v_.lengthSq();
 	Vector3 vectmp;
 	Vector3 vecL; //= vectmp.subVectors(r, pCrane->r);
 
 	if (type == ID_AHOIST) {
-		vecL = vectmp.subVectors(r, pCrane->r2);
-		return -m * (v_abs2 - pCrane->a.dot(vecL) - GA * vecL.z - (pCrane->a0[ID_AHOIST] * pCrane->l_ah + pCrane->v0[ID_AHOIST] * pCrane->v0[ID_AHOIST])) / (pCrane->l_ah * pCrane->l_ah);
+		vecL = vectmp.subVectors(r, pMobBase->r2);
+		return -M.m * (v_abs2 - pMobBase->a.dot(vecL) - GA * vecL.z - (pMobBase->a0[ID_AHOIST] * pMobBase->l_ah + pMobBase->v0[ID_AHOIST] * pMobBase->v0[ID_AHOIST])) / (pMobBase->l_ah * pMobBase->l_ah);
 	}
 	else {
-		vecL = vectmp.subVectors(r, pCrane->r);
-		return -m * (v_abs2 - pCrane->a.dot(vecL) - GA * vecL.z - (pCrane->a0[ID_HOIST] * pCrane->l_mh + pCrane->v0[ID_HOIST] * pCrane->v0[ID_HOIST])) / (pCrane->l_mh * pCrane->l_mh);
+		vecL = vectmp.subVectors(r, pMobBase->r);
+		return -M.m * (v_abs2 - pMobBase->a.dot(vecL) - GA * vecL.z - (pMobBase->a0[ID_HOIST] * pMobBase->l_mh + pMobBase->v0[ID_HOIST] * pMobBase->v0[ID_HOIST])) / (pMobBase->l_mh * pMobBase->l_mh);
 	}
 	return 0.0;
 }
@@ -783,12 +729,12 @@ void CLoad::update_relative_vec() {//クレーン吊点との相対位置速度
 	Vector3 vectmp;
 
 	if (type == ID_AHOIST) {
-		L = vectmp.subVectors(r, pCrane->r2);
-		vL = vectmp.subVectors(v, pCrane->v2);
+		L = vectmp.subVectors(r, pMobBase->r2);
+		vL = vectmp.subVectors(v, pMobBase->v2);
 	}
 	else {
-		L = vectmp.subVectors(r, pCrane->r);
-		vL = vectmp.subVectors(v, pCrane->v);
+		L = vectmp.subVectors(r, pMobBase->r);
+		vL = vectmp.subVectors(v, pMobBase->v);
 	}
 	return;
 }

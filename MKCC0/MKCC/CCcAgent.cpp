@@ -588,6 +588,11 @@ int CAgent::output() {
 		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::Y] = pEnv_Inf->Ty;
 		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::X] = pEnv_Inf->wx;
 		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::Y] = pEnv_Inf->wy;
+		
+		//SimulationŒvŽZ’lo—Í
+		if (pEnv_Inf->app_common_param.app_mode != MODE_ENV_APP_PRODUCT) {
+			pAUX_CS_Inf->msg_client.sim_body = pSim_Inf->swy_serv_body;
+		}
 	}
 
 

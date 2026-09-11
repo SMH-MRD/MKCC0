@@ -265,9 +265,9 @@ int CAuxScada::parse() {
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_X), wostr.str().c_str());
             wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].amp_disp;;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_AMP_Y), wostr.str().c_str());
-            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::X].ph_disp;
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::X].ps_disp;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_X), wostr.str().c_str());
-            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].ph_disp;
+            wostr.str(L""); wostr << gp_app_imgprc->sway_data[(int)ENUM_AXIS::Y].ps_disp;
             SetWindowText(GetDlgItem(m_cam_dlg_hndl, IDC_STATIC_SWAY_PH_Y), wostr.str().c_str());
                        
             wostr.str(L""); wostr << gp_app_imgprc->target_data[(int)ENUM_IMAGE::MASK_1].size_expected.width;//.area();

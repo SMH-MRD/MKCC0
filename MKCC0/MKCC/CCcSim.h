@@ -74,13 +74,6 @@ typedef struct _ST_SIM_MON2 {
 
 }ST_SIM_MON2, * LPST_SIM_MON2;
 
-typedef struct _ST_SIM_LOAD {//負荷
-    double m;	//質量
-    double wx;	//幅
-    double dy;	//奥行
-    double hz;	//高さ
-}ST_SIM_LOAD, * LPST_SIM_LOAD;
-
 typedef struct _ST_SIM_AXIS {//軸
     double mtrq;					//モータトルクfb
     ST_SIM_LOAD load;				//軸負荷（巻は荷重）
@@ -128,6 +121,9 @@ typedef struct _ST_CC_SIM_WORK {
     INT16 trq30[MOTION_ID_MAX] = { 600,600,600,600,600,600,600,600 };//ブレーキ解放用30%トルク設定値
     INT16 trq[MOTION_ID_MAX] = { 4000,4000,4000,4000,4000,4000,4000,4000 };  //トルク設定値
 
+    ST_SIMULATION_STATUS st_stat;   //共有メモリへの出力セット作業用バッファ
+
+
 }ST_CC_SIM_WORK, * LPST_CC_SIM_WORK;
 
 class CSim : public CBasicControl
@@ -157,7 +153,8 @@ public:
 
     //タスク出力用構造体
     static ST_CC_SIM_INF st_sim_inf;
-    static ST_CC_SIM_WORK st_work;
+    static ST_CC_SIM_WORK st_sim_work;
+
 
     //タブパネルのStaticテキストを設定
     virtual void set_panel_tip_txt() override;
@@ -204,11 +201,17 @@ private:
 	//クレーンタイプ別計算関数
 	HRESULT init_drm_motion_JC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
     HRESULT set_sensor_fb_JC(int id);           //高速カウンタ,アブソコーダ,LS他
+    HRESULT output_JC();
+    HRESULT cal_sway_io_JC();
     
     HRESULT init_drm_motion_GC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
     HRESULT set_sensor_fb_GC(int id);           //高速カウンタ,アブソコーダ,LS他
+    HRESULT output_GC();
     
     HRESULT init_drm_motion_OHC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
     HRESULT set_sensor_fb_OHC(int id);           //高速カウンタ,アブソコーダ,LS他
+    HRESULT output_OHC();
+
+   
     
 };

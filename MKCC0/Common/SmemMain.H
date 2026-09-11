@@ -585,7 +585,6 @@ typedef struct _ST_CC_CS_INF {
 
 }ST_CC_CS_INF, * LPST_CC_CS_INF;
 
-
 #pragma endregion Client Service情報定義構造体
 
 //## シミュレーション信号定義構造体 
@@ -621,6 +620,12 @@ typedef struct _ST_CC_CS_INF {
 #define PLC_IF_LIMIT_COM_FWD_EMR_EX3	0x0040000
 #define PLC_IF_LIMIT_COM_REV_EMR_EX3	0x0080000
 
+typedef struct StSimLoad {//負荷
+	double m;	//質量
+	double wx;	//幅
+	double dy;	//奥行
+	double hz;	//高さ
+}ST_SIM_LOAD, * LPST_SIM_LOAD;
 
 typedef struct StSimulationStatus {
 	DWORD mode;
@@ -671,32 +676,34 @@ typedef struct _ST_CC_SIM_INF {
 //	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLC IFバッファSIMULATION結果(Emulator, Simulation Mode)
 
 //	ST_AUX_ENV_INF aux_io;							//センサ,補機SIMULATION結果(Emulator, Simulation Mode)
-//	ST_SWAY_SERVER_MSG rcv_msg;						//振れセンサセンサ受信バッファ計算値
 
-	INT16 mlim_weight_AI;				//モーメントリミッタ主巻質量 AI入力計算値 
-	INT16 mlim_weight_ah_AI;			//モーメントリミッタ補巻質量 AI入力計算値 
-	INT16 mlim_r_AI;					//モーメントリミッタ半径AI入力計算値
+	ST_SWAY_SERVER_BODY swy_serv_body;				//振れセンサ送信メッセージ計算値
+
+	INT16 mlim_weight_AI;		//モーメントリミッタ主巻質量 AI入力計算値 
+	INT16 mlim_weight_ah_AI;	//モーメントリミッタ補巻質量 AI入力計算値 
+	INT16 mlim_r_AI;			//モーメントリミッタ半径AI入力計算値
 	
-	INT32 hcount_mh;					//主巻高速カウンタ計算値
-	INT32 hcount_bh;					//引込高速カウンタ計算値
-	INT32 hcount_sl;					//旋回高速カウンタ計算値
-	INT32 hcount_ah;					//補巻高速カウンタ計算値
-	INT32 absocoder_mh;					//主巻アブソコーダ計算値
-	INT32 absocoder_gt;					//走行アブソコーダ計算値
-	INT32 absocoder_ah;					//補巻アブソコーダ計算値
+	INT32 hcount_mh;			//主巻高速カウンタ計算値
+	INT32 hcount_bh;			//引込高速カウンタ計算値
+	INT32 hcount_sl;			//旋回高速カウンタ計算値
+	INT32 hcount_ah;			//補巻高速カウンタ計算値
+	INT32 absocoder_mh;			//主巻アブソコーダ計算値
+	INT32 absocoder_gt;			//走行アブソコーダ計算値
+	INT32 absocoder_ah;			//補巻アブソコーダ計算値
 	
-	INT16 vfb_mh;						//主巻速度FB計算値
-	INT16 vfb_bh;						//引込速度FB計算値
-	INT16 vfb_sl;						//旋回速度FB計算値
-	INT16 vfb_gt;						//走行速度FB計算値
-	INT16 vfb_ah;						//補巻速度FB計算値
+	INT16 vfb_mh;				//主巻速度FB計算値
+	INT16 vfb_bh;				//引込速度FB計算値
+	INT16 vfb_sl;				//旋回速度FB計算値
+	INT16 vfb_gt;				//走行速度FB計算値
+	INT16 vfb_ah;				//補巻速度FB計算値
 
-	INT16 trq_ref_mh;					//主巻トルク指令計算値
-	INT16 trq_ref_bh;					//引込トルク指令計算値
-	INT16 trq_ref_ah;					//補巻トルク指令計算値
+	INT16 trq_ref_mh;			//主巻トルク指令計算値
+	INT16 trq_ref_bh;			//引込トルク指令計算値
+	INT16 trq_ref_ah;			//補巻トルク指令計算値
 
-	INT16 wind_spd_AI;					//風速計算値
-	INT16 wind_dir_AI;					//風向計算値
+	INT16 wind_spd_AI;			//風速計算値
+	INT16 wind_dir_AI;			//風向計算値
+
 }ST_CC_SIM_INF, * LPST_CC_SIM_INF;
 #pragma endregion シミュレーション信号定義構造体
 

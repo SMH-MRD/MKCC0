@@ -1208,29 +1208,29 @@ void CAuxPol::proc_sway(int idx)
 		//レンジオーバーで無い時
 		if (st_sway_work.sway_target_range_over[idx] == L_OFF) {
 			psway_data->amp_cal = sqrt(psway_data->vw * psway_data->vw + psway_data->aw2 * psway_data->aw2);
-			psway_data->ph_cal = atan2(psway_data->v * psway_data->w, psway_data->a);
+			psway_data->ps_cal = atan2(psway_data->v * psway_data->w, psway_data->a);
 			//位相の検出遅れ分を補正(実物は遅れ分位相が進んでいる）
-			psway_data->ph_cal += expected_delay_ph;
-			if (psway_data->ph_cal > PI180) psway_data->ph_cal -= PI360;//位相は±πで表現する
+			psway_data->ps_cal += expected_delay_ph;
+			if (psway_data->ps_cal > PI180) psway_data->ps_cal -= PI360;//位相は±πで表現する
 		}
 
 		// p2pロジックで振れゼロ点,振幅,位相を求める
 		psway_data->amp_p2p = (st_sway_work.sway_peak_f[idx] - st_sway_work.sway_peak_r[idx]) / 2.0;	//p2pの値から振幅を求める
 		psway_data->p0 = psway_data->amp_p2p + st_sway_work.sway_peak_r[idx];				//0点
 
-		psway_data->ph_time -= gp_app_system->sample_cycle * psway_data->w;		//時間ベース位相を前回値からサンプルサイクル分進める
+		psway_data->ps_time -= gp_app_system->sample_cycle * psway_data->w;		//時間ベース位相を前回値からサンプルサイクル分進める
 
-		if (psway_data->ph_time < -PI180) psway_data->ph_time += PI360;//位相は±πで表現する
+		if (psway_data->ps_time < -PI180) psway_data->ps_time += PI360;//位相は±πで表現する
 
 		if ((psway_data->v_history[nv - 3] > 0.0) && (psway_data->v < 0.0)) {//振れ角速度符号変化(3scan前と比較）
 			st_sway_work.sway_peak_f[idx] = psway_data->p;				//振れ加速度－で振れ＋peak
-			psway_data->ph_time = 0.0 - expected_delay_ph;
+			psway_data->ps_time = 0.0 - expected_delay_ph;
 			st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_R_PEAK;	//リバース側待ちに切替
 			st_sway_work.sway_peak_chk_count[idx] = 0;
 		}
 		else if ((psway_data->v_history[nv - 3] < 0.0) && (psway_data->v > 0.0)) {
 			st_sway_work.sway_peak_r[idx] = psway_data->p;				//振れ加速度+で振れ-peak
-			psway_data->ph_time = PI180 - expected_delay_ph;
+			psway_data->ps_time = PI180 - expected_delay_ph;
 			st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_F_PEAK;	//フォワード側待ちに切替
 			st_sway_work.sway_peak_chk_count[idx] = 0;
 		}
@@ -1240,7 +1240,7 @@ void CAuxPol::proc_sway(int idx)
 				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_STOP;
 				st_sway_work.sway_peak_f[idx] = psway_data->p;
 				st_sway_work.sway_peak_r[idx] = psway_data->p;
-				psway_data->ph_time = 0.0;
+				psway_data->ps_time = 0.0;
 			}
 
 			if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_R_PEAK) {
@@ -1265,11 +1265,11 @@ void CAuxPol::proc_sway(int idx)
 
 	if (disp_mode == CODE_POL_MAINTE_DISP_P2P) {
 		psway_data->amp_disp = psway_data->amp_p2p;
-		psway_data->ph_disp = psway_data->ph_time;
+		psway_data->ps_disp = psway_data->ps_time;
 	}
 	else {
 		psway_data->amp_disp = psway_data->amp_cal;
-		psway_data->ph_disp = psway_data->ph_cal;
+		psway_data->ps_disp = psway_data->ps_cal;
 	}
 	//----------------------------------------------------------------------------
 	return;

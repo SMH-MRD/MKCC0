@@ -38,12 +38,26 @@ public:
     Vector3 a;      //加速度ベクトル
     Vector3 r;      //位置ベクトル
     Vector3 v;      //速度ベクトル
-    Vector3 L;      //ロープベクトル
-    Vector3 vL;     //ロープ速度ベクトル
+    Vector3 L;      //ロープベクトル(吊荷吊点相対ベクトル)
+    Vector3 vL;     //ロープ速度ベクトル(吊荷吊点相対ベクトル)
     Vector3 fex;    //外力
     Vector3 dr;     //位置ベクトルの変化分
     Vector3 dv;     //速度ベクトルの変化分
     Vector3 R0;     //基準点
+
+    double r0[MOTION_ID_MAX];                       //吊点　位置・角度(m, rad) 起伏は半径
+    double v0[MOTION_ID_MAX];                       //吊点　速度・角速度(m/s, rad/s)
+    double a0[MOTION_ID_MAX];                       //吊点　加速度・角加速度(m/s2, rad/s2)
+
+    Vector3 rc;                                     //クレーン中心点の位置ベクトル
+    Vector3 vc;                                     //クレーン中心点の速度ベクトル
+
+    Vector3 r2;                                     //第2（補巻）吊点位置ベクトル
+    Vector3 v2;                                     //第2（補巻）吊点速度ベクトル
+    Vector3 a2;                                     //第2（補巻）吊点ベクトル
+
+    double l_mh;                                    //巻ロープ長 m
+    double l_ah;                                    //補巻巻ロープ長 m
      
     //加速度ベクトルを与えるメソッド　　継承先で再定義する
     virtual Vector3 A(Vector3& r, Vector3& v); 
@@ -99,31 +113,17 @@ public:
     LPST_CRANE_STAT pCraneStat;
     LPST_CC_PLC_IO  pPLC_IO;
     LPST_SIMULATION_STATUS pSimStat;
-     
-    double M;                                       //クレーン全体質量　Kg
-    double mh_load;                                //主巻荷重
-    double ah_load;                                //補巻荷重
-    double l_mh;                                    //巻ロープ長 m
-    double l_ah;                                    //補巻巻ロープ長 m
 
+    ST_SIM_LOAD M[MOTION_ID_MAX];                   //クレーン軸荷重（走行は全体荷重）
+                                     
+    
     double slw_rad_per_turn;                        //旋回ピニオン1回転の旋回角度
     double gnt_m_per_turn;                          //走行車輪1回転の移動量
     double c_ph, s_ph, c_phb, s_phb;                              //cosφ sinφ
     double cal_Lm2Lp2,cal_Lb2Lp2, cal_2LmLp, cal_2LbLp;                          //ｄ計算用中間変数
  
-    Vector3 rc;                                     //クレーン中心点の位置ベクトル
-    Vector3 vc;                                     //クレーン中心点の速度ベクトル
-
-    Vector3 r2;                                     //第2（補巻）吊点位置ベクトル
-    Vector3 v2;                                     //第2（補巻）吊点速度ベクトル
-    Vector3 a2;                                     //第2（補巻）吊点ベクトル
-
     int source_mode;
-
-    double r0[MOTION_ID_MAX];                       //位置・角度(m)
-    double v0[MOTION_ID_MAX];                       //速度・角速度(m)
-    double a0[MOTION_ID_MAX];                       //加速度・角加速度(m)
-    
+        
     double np[MOTION_ID_MAX];                       //ドラム回転位置
     double nv[MOTION_ID_MAX];                       //ドラム回転速度(%rps)
     double na[MOTION_ID_MAX];                       //ドラム回転加速度(%rps2)
@@ -142,7 +142,7 @@ public:
     bool motion_brake[MOTION_ID_MAX];               //ブレーキ開閉状態
 
   
-    void init_crane(double _dt); 
+    void init_crane(int crane_id); 
      
     void update_break_status();                     //ブレーキ状態, ブレーキ開放経過時間セット
     
@@ -196,7 +196,7 @@ public:
     LPST_SIMULATION_STATUS pSimStat;
 
     double M;                                       //クレーン全体質量　Kg
-    void init_crane(double _dt);
+    void init_crane(int crane_id);                              
 
 private:
     double brk_elaped_time[MOTION_ID_MAX];          //ブレーキ開放経過時間
@@ -249,20 +249,22 @@ private:
 class CLoad : public CMob
 {
 public:
-    CLoad() { m = 10000.0; pCrane = NULL; };
+    CLoad() { M.m = 10000.0; pMobBase = NULL; };
     ~CLoad() {};
 
-    void init_mob(double t, Vector3& r, Vector3& v);
+    void init_load(int id);
     void update_relative_vec();         //吊点との相対ベクトル更新
     Vector3 A(Vector3& r, Vector3& v);  //Model of acceleration
     double S();	//Rope tension
 
-    CSimJC * pCrane;
-    double m;                   //吊荷質量　Kg
+    CMob * pMobBase;//接続クレーン
+
+    ST_SIM_LOAD M; //吊荷質量Kg,サイズ
+         
     int type;                   //吊荷のタイプ
  
-    int set_m(double _m) { m = _m; return(0); }
-    int set_crane(CSimJC* _pCrane) { pCrane = _pCrane; return(0); }
+    int set_m(double _m) { M.m = _m; return(0); }
+    int set_crane(CMob* _pMobBase) { pMobBase =_pMobBase; return(0); }
     int set_type(int _type) { type = _type; return(type); }
 
 private:

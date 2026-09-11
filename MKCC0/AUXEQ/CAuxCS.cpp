@@ -87,20 +87,20 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 	//### 出力用共有メモリ取得
 	out_size = sizeof(ST_AUX_CS_INF);
 	if (OK_SHMEM != pCsInfObj->create_smem(SMEM_AUX_CS_INF_NAME, sizeof(ST_AUX_CS_INF), MUTEX_AUX_CS_INF_NAME)) {
-		return(FALSE);
+		return(S_FALSE);
 	}
 	set_outbuf(pCsInfObj->get_pMap());
 
 	//### 入力用共有メモリ取得
 	if (OK_SHMEM != pEnvInfObj->create_smem(SMEM_AUX_ENV_INF_NAME, sizeof(ST_AUX_ENV_INF), MUTEX_AUX_ENV_INF_NAME)) {
-		return(FALSE);
+		return(S_FALSE);
 	}
 	if (OK_SHMEM != pAgentInfObj->create_smem(SMEM_AUX_AGENT_INF_NAME, sizeof(ST_AUX_AGENT_INF), MUTEX_AUX_AGENT_INF_NAME)) {
-		return(FALSE);
+		return(S_FALSE);
 	}
 
 	if (OK_SHMEM != pScadInfObj->create_smem(SMEM_AUX_SCAD_INF_NAME, sizeof(ST_AUX_SCAD_INF), MUTEX_AUX_SCAD_INF_NAME)) {
-		return(FALSE);
+		return(S_FALSE);
 	}
 
 	pEnvInf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
@@ -236,6 +236,8 @@ int CAuxCS::output() {          //出力処理
 	
 	{
 
+		
+		// LAN IO関連
 		if (lanio_enable) {
 			if (is_lanio_connected == false) {
 				pCsInf->lanio_status = AUX_CS_CODE_LANIO_FAIL;
@@ -249,6 +251,7 @@ int CAuxCS::output() {          //出力処理
 		}
 		pCsInf->fb_lanio_di = st_work.fb_lanio_di;
 
+		//振れセンサ関連
 		if (sway_sensor_enable) {
 			std::lock_guard<std::mutex> lock(m_CSinfMutex);
 
@@ -266,9 +269,9 @@ int CAuxCS::output() {          //出力処理
 			pCsInf->msg_server.head.pix1rad[(int)ENUM_AXIS::Y]	= gp_cnfg_common->PIXperRAD[(int)ENUM_AXIS::Y];
 
 			//ボディ部
-			for (int i = 0; i < (int)ENUM_IMAGE::E_MAX; i++) {
-				pCsInf->msg_server.body.tg_data[i].valid	= gp_app_imgprc->target_data[i].valid;
-				pCsInf->msg_server.body.tg_data[i].value = gp_app_imgprc->target_data[i].max_val;
+			for (int i = 0; i < (int)ENUM_IMAGE_MASK::E_MAX; i++) {
+				pCsInf->msg_server.body.tg_data[i].valid		= gp_app_imgprc->target_data[i].valid;
+				pCsInf->msg_server.body.tg_data[i].value		= gp_app_imgprc->target_data[i].max_val;
 				for (int k = 0; k < (int)ENUM_AXIS::E_MAX; k++) {
 					pCsInf->msg_server.body.tg_data[i].pix[k]	= gp_app_imgprc->target_data[i].pos[k];
 				}
@@ -279,10 +282,15 @@ int CAuxCS::output() {          //出力処理
 				pCsInf->msg_server.body.sway_data[i].v			= gp_app_imgprc->sway_data[i].v;
 				pCsInf->msg_server.body.sway_data[i].amp_cal	= gp_app_imgprc->sway_data[i].amp_cal;
 				pCsInf->msg_server.body.sway_data[i].amp_p2p	= gp_app_imgprc->sway_data[i].amp_p2p;
-				pCsInf->msg_server.body.sway_data[i].ph_cal		= gp_app_imgprc->sway_data[i].ph_cal;
-				pCsInf->msg_server.body.sway_data[i].ph_time	= gp_app_imgprc->sway_data[i].ph_time;
+				pCsInf->msg_server.body.sway_data[i].ps_cal		= gp_app_imgprc->sway_data[i].ps_cal;
+				pCsInf->msg_server.body.sway_data[i].ps_time	= gp_app_imgprc->sway_data[i].ps_time;
 				pCsInf->msg_server.body.sway_data[i].vw			=gp_app_imgprc->sway_data[i].vw;
 				pCsInf->msg_server.body.sway_data[i].T			= gp_app_imgprc->sway_data[i].T;
+			}
+
+			//クライアントがSimulator Mode時は、クライアントのSimulator計算値を折り返す
+			if (pCsInf->msg_client.head.status == SWAYSENS_CODE_MODE_SIMLATOR) {
+				pCsInf->msg_server.body = pCsInf->msg_client.sim_body;
 			}
 		}
 	}
