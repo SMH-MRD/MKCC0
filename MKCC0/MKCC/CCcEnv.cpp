@@ -441,7 +441,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	//###d 
 	//引込入限 = 繰り出し量0　→　ドラム巻取り量=繰り出し量
-	//現在のd値　繰出量/ロープ本数 + 引込入限d値（d0)
+	//現在のd値　繰出量/ロープ本数 + 引込入限d値（d0)の時巻き取り量Lfull
 	pCrStat->d.p	= pspec->st_struct.d0 + (pspec->axis_spec[ID_BOOM_H].Lfull- pCrStat->ld[ID_BOOM_H].p) / pspec->axis_spec[ID_BOOM_H].Nwire0;
 	v_fb			= pCrStat->ld[ID_BOOM_H].v / pspec->axis_spec[ID_BOOM_H].Nwire0;	//現在のd値速度 ロープ巻き取り速度/ロープ本数
 	pCrStat->d.a = (v_fb - pCrStat->d.v)/dt;

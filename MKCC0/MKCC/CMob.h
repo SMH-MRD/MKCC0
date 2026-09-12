@@ -8,14 +8,7 @@
 #include "SmemMain.H"
 
 
-//int cnt_start_delay[MOTION_ID_MAX];  モーター起動遅れ時間sec
-#define SIM_TLOSS_HOIST        1.0    //巻 　      
-#define SIM_TLOSS_GANTRY       0.5   //走行       
-#define SIM_TLOSS_TROLLY       0.3   //横行       
-#define SIM_TLOSS_BOOM_H       0.3   //引込       
-#define SIM_TLOSS_SLEW         0.3   //旋回       
-
-//double Tf[MOTION_ID_MAX];               加速度一時遅れ
+// 加速度一次遅れフィルタ時定数　double Tf[MOTION_ID_MAX];
 #define SIM_TF_HOIST           0.2   //巻 　      
 #define SIM_TF_GANTRY          0.2   //走行       
 #define SIM_TF_TROLLY          0.2   //横行       
@@ -23,6 +16,9 @@
 #define SIM_TF_SLEW            0.2   //旋回
 #define SIM_TF_AHOIST          0.2   //横行  
 
+#define SIM_TRQ_FB_P100        1000  //トルクFB　100%値
+
+#define SIM_VRESET_COUNT       1000 //速度指令0継続で速度を強制的に0にするカウント値
 
 //Moving Objectクラス
 class CMob
@@ -110,66 +106,39 @@ public:
     LPST_AXIS_SPEC pAxis_gt;
     LPST_AXIS_SPEC pAxis_ah;
 
-    LPST_CRANE_STAT pCraneStat;
-    LPST_CC_PLC_IO  pPLC_IO;
     LPST_SIMULATION_STATUS pSimStat;
 
     ST_SIM_LOAD M[MOTION_ID_MAX];                   //クレーン軸荷重（走行は全体荷重）
-                                     
-    
-    double slw_rad_per_turn;                        //旋回ピニオン1回転の旋回角度
-    double gnt_m_per_turn;                          //走行車輪1回転の移動量
-    double c_ph, s_ph, c_phb, s_phb;                              //cosφ sinφ
-    double cal_Lm2Lp2,cal_Lb2Lp2, cal_2LmLp, cal_2LbLp;                          //ｄ計算用中間変数
  
     int source_mode;
         
-    double np[MOTION_ID_MAX];                       //ドラム回転位置
-    double nv[MOTION_ID_MAX];                       //ドラム回転速度(%rps)
-    double na[MOTION_ID_MAX];                       //ドラム回転加速度(%rps2)
-    double knv[MOTION_ID_MAX];                      //%rps→rps変換係数
- 
-    double v_ref[MOTION_ID_MAX];                    //速度・角速度指令
-    double a_ref[MOTION_ID_MAX];                    //加速度・角加速度指令
+     double nv[MOTION_ID_MAX];                       //ドラム回転速度(%rps)
+     double na[MOTION_ID_MAX];                       //ドラム回転加速度(%rps2)
+     double nv_ref[MOTION_ID_MAX];                    //ドラム回転速度・角速度指令
+     double na_ref[MOTION_ID_MAX];                    //ドラム加速度・角加速度指令
 
-    double nv_ref[MOTION_ID_MAX];                    //ドラム回転速度・角速度指令
-    double na_ref[MOTION_ID_MAX];                    //ドラム加速度・角加速度指令
-  
+     double nacc_spec[MOTION_ID_MAX];
+     double ndec_spec[MOTION_ID_MAX];
+
+
     bool is_fwd_endstop[MOTION_ID_MAX];             //正転極限判定
     bool is_rev_endstop[MOTION_ID_MAX];             //逆転極限判定
  
     double trq_fb[MOTION_ID_MAX];                   //モータートルクFB
     bool motion_brake[MOTION_ID_MAX];               //ブレーキ開閉状態
-
-  
+      
     void init_crane(int crane_id); 
-     
-    void update_break_status();                     //ブレーキ状態, ブレーキ開放経過時間セット
-    
+    void get_crane_status(LPST_CRANE_STAT pstat, LPST_CC_PLC_IO pplcio);
     void timeEvolution();                           //時間発展を計算するメソッド
-       
     void set_mode(int _mode) { source_mode = _mode;return; }
 
-    void set_nbh_d_ph_th_from_r(double r);          //旋回半径からd　起伏角を計算してセットする
-    void set_nmh_from_mh( double mh);               //主巻揚程から主巻ドラム回転数をセットする
-    void set_nah_from_ah(double mh);                //dと補巻揚程から補巻ドラム回転数をセットする
-    void set_nsl_from_slr(double sl_rad);           //旋回位置(rad)から旋回ピニオン回転数をセットする
-    void set_ngt_from_gtm(double gt_m);             //走行位置から走行車輪回転数をセットする
-
-    void set_d_th_from_nbh();                       //引込ドラム回転状態からd,θの状態をセットする
-    void set_bh_layer();                            //引込ドラム状態をセットする
-    void set_mh_layer();                            //主巻ドラム状態、ロープ状態をセットする
-    void set_ah_layer();                            //主巻ドラム状態、ロープ状態をセットする
-    void set_sl_layer();                            //旋回ドラム状態をセットする
-    void set_gt_layer();                            //走行ドラム状態をセットする
-
 private:
+    int v_reset_count[MOTION_ID_MAX];
     double brk_elaped_time[MOTION_ID_MAX];          //ブレーキ開放経過時間
-    double Tf[MOTION_ID_MAX];                       //加速度一時遅れ
+    double Tf[MOTION_ID_MAX];                       //一次遅れフィルタ時定数
 
     Vector3 A(Vector3& _r, Vector3& _v);            //吊点加速度計算（旋回、引込方向をxy方向に変換
     void Ac();                                      //クレーン加速度計算 SIM mode, PLC mode
-
 
     double accdec_cut_spd_range[MOTION_ID_MAX];     //加減速指令を0にする速度指令とFBの差の範囲
  };

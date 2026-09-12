@@ -864,14 +864,14 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 	pCrane->pPlc->wval(pPlcWIf->JC.absocoder_gt, pSim_Inf->absocoder_gt);
 
 	//速度FB(rpm)
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb_mh);
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb_bh);
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb_sl);
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb_gt);
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb[ID_HOIST]);
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb[ID_BOOM_H]);
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb[ID_SLEW]);
+	pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb[ID_GANTRY]);
 
 	//トルク指令(INV出力）
-	pCrane->pPlc->wval(pPlcWIf->JC.trqref_mh, pSim_Inf->trq_ref_mh);
-	pCrane->pPlc->wval(pPlcWIf->JC.trqref_bh, pSim_Inf->trq_ref_bh);
+	pCrane->pPlc->wval(pPlcWIf->JC.trqref_mh, pSim_Inf->trq_ref[ID_HOIST]);
+	pCrane->pPlc->wval(pPlcWIf->JC.trqref_bh, pSim_Inf->trq_ref[ID_BOOM_H]);
 
 	//モーメントリミッタフック質量,半径
 	pCrane->pPlc->wval(pPlcWIf->JC.mlim_weight_ai, pSim_Inf->mlim_weight_AI);//0.1t単位
@@ -897,8 +897,8 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		
 		pCrane->pPlc->wval(pPlcWIf->JC.hcounter_ah, pSim_Inf->hcount_ah);
 		pCrane->pPlc->wval(pPlcWIf->JC.absocoder_ah, pSim_Inf->absocoder_ah);
-		pCrane->pPlc->wval(pPlcWIf->JC.trqref_ah, pSim_Inf->trq_ref_ah);
-		pCrane->pPlc->wval(pPlcWIf->JC.vfb_ah, pSim_Inf->vfb_ah);
+		pCrane->pPlc->wval(pPlcWIf->JC.trqref_ah, pSim_Inf->trq_ref[ID_AHOIST]);
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_ah, pSim_Inf->vfb[ID_AHOIST]);
 
 		//Notch信号
 		if (pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_TMOV] & FLTS_MASK_ERR_OTE_TMOV) {//操作端末タイムオーバー

@@ -598,6 +598,7 @@ typedef struct _ST_CC_CS_INF {
 #define SIM_ACTIVE_MODE			0x00000100					//シミュレーション実行モード
 #define SIM_SWAY_PACKET_MODE	0x00000010					//振れセンサパケット送信モード
 #define SIM_N_SENSOR			128							//センサ数
+#define SIM_N_AXIS				5							//シミュレーション対象軸数
 
 #define PLC_IF_LIMIT_COM_FWD_NORM		0x0000001
 #define PLC_IF_LIMIT_COM_REV_NORM		0x0000002
@@ -634,26 +635,24 @@ typedef struct StSimulationStatus {
 	LPST_SWAY_STAT p_sway_io;
 	Vector3 L, vL;											//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）
 	Vector3 L2, vL2;										//ﾛｰﾌﾟﾍﾞｸﾄﾙ(補巻振れ）
-	double a_fb[MOTION_ID_MAX];								//軸座標加速度fb
-	double v_fb[MOTION_ID_MAX];								//軸座標速度fb
-	double pos[MOTION_ID_MAX];								//軸座標位置fb
-	double mtrq[MOTION_ID_MAX];								//モータトルクfb
+	double a_fb[SIM_N_AXIS];								//軸座標加速度fb
+	double v_fb[SIM_N_AXIS];								//軸座標速度fb
+	double pos[SIM_N_AXIS];								//軸座標位置fb
+	double mtrq[SIM_N_AXIS];								//モータトルクfb
 	double rad_cam_x, rad_cam_y, w_cam_x, w_cam_y;			//カメラ座標振れ角,振れ角速度
 	double kbh;												//引込半径に依存する速度、加速度補正係数
 	ST_SWAY_SERVER_MSG rcv_msg;
 	ST_SWAY_CLIENT_MSG snd_msg;
 	INT32 sonsor[SIM_N_SENSOR];								//センサ状態
 
-	ST_MOVE_SET	nd[MOTION_ID_MAX];							//ドラム回転動作
+	ST_MOVE_SET	nd[SIM_N_AXIS];					//ドラム回転動作
 	ST_MOVE_SET	d;									//ポスト‐起伏シーブ間状態（距離・速度・加速度）
-	ST_MOVE_SET	db;									//ジブポスト‐起伏シーブ間状態（距離・速度・加速度）
-	ST_MOVE_SET	ph;									//φ
-	ST_MOVE_SET	phb;								//φ
-	ST_MOVE_SET	th;									//θ
+	ST_MOVE_SET	ph;									//旋回角度φ
+	ST_MOVE_SET	th;									//起伏角度θ
 
-	UINT32 i_layer[MOTION_ID_MAX];					//ドラム現在層数
-	double n_layer[MOTION_ID_MAX];					//ドラム現在層巻取数
-	double l_drum[MOTION_ID_MAX];					//ドラム巻取り量
+	UINT32 i_layer[SIM_N_AXIS];					//ドラム現在層数
+	double n_layer[SIM_N_AXIS];					//ドラム現在層巻取数
+	double l_drum[SIM_N_AXIS];					//ドラム巻取り量
 
 	ST_MOVE_SET	lrm;								//主巻ロープ長
 	ST_MOVE_SET	lra;								//補巻ロープ長
@@ -672,11 +671,6 @@ typedef struct _ST_CC_SIM_INF {
 	DWORD mode;
 	DWORD helthy_cnt;
 
-//	INT16 buf_io_read[CC_MC_SIZE_W_READ];			//PLC IFバッファSIMULATION結果(Simulation Mode)
-//	INT16 buf_io_write[CC_MC_SIZE_W_WRITE];			//PLC IFバッファSIMULATION結果(Emulator, Simulation Mode)
-
-//	ST_AUX_ENV_INF aux_io;							//センサ,補機SIMULATION結果(Emulator, Simulation Mode)
-
 	ST_SWAY_SERVER_BODY swy_serv_body;				//振れセンサ送信メッセージ計算値
 
 	INT16 mlim_weight_AI;		//モーメントリミッタ主巻質量 AI入力計算値 
@@ -691,16 +685,9 @@ typedef struct _ST_CC_SIM_INF {
 	INT32 absocoder_gt;			//走行アブソコーダ計算値
 	INT32 absocoder_ah;			//補巻アブソコーダ計算値
 	
-	INT16 vfb_mh;				//主巻速度FB計算値
-	INT16 vfb_bh;				//引込速度FB計算値
-	INT16 vfb_sl;				//旋回速度FB計算値
-	INT16 vfb_gt;				//走行速度FB計算値
-	INT16 vfb_ah;				//補巻速度FB計算値
-
-	INT16 trq_ref_mh;			//主巻トルク指令計算値
-	INT16 trq_ref_bh;			//引込トルク指令計算値
-	INT16 trq_ref_ah;			//補巻トルク指令計算値
-
+	INT16 vfb[SIM_N_AXIS];		//速度FB計算値
+	INT16 trq_ref[SIM_N_AXIS];	//主巻トルク指令計算値
+	
 	INT16 wind_spd_AI;			//風速計算値
 	INT16 wind_dir_AI;			//風向計算値
 

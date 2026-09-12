@@ -103,13 +103,7 @@ HRESULT CSim::routine_work(void* pObj) {
 static UINT32	gpad_mode_last = L_OFF;
 int CSim::input() {
 	st_sim_work.helthy_cnt++;
-	//PLC 指令は100%→1.0　ドラム回転速度指令でセット
 
-	pSimJC->nv_ref[ID_HOIST]	= pPLC_IO->stat_axis[ID_HOIST].v_ref	* pCrane->pSpec->axis_spec[ID_HOIST].Rpm_rated	/ 6000;//定格rpmの100%が1000→RPSに変換
-	pSimJC->nv_ref[ID_BOOM_H]	= pPLC_IO->stat_axis[ID_BOOM_H].v_ref	* pCrane->pSpec->axis_spec[ID_BOOM_H].Rpm_rated / 6000;//定格rpmの100%が1000→RPSに変換
-	pSimJC->nv_ref[ID_SLEW]		= pPLC_IO->stat_axis[ID_SLEW].v_ref		* pCrane->pSpec->axis_spec[ID_SLEW].Rpm_rated	/ 6000;//定格rpmの100%が1000→RPSに変換
-	pSimJC->nv_ref[ID_GANTRY]	= pPLC_IO->stat_axis[ID_GANTRY].v_ref	* pCrane->pSpec->axis_spec[ID_GANTRY].Rpm_rated / 6000;//定格rpmの100%が1000→RPSに変換
-	pSimJC->nv_ref[ID_AHOIST]	= pPLC_IO->stat_axis[ID_AHOIST].v_ref	* pCrane->pSpec->axis_spec[ID_AHOIST].Rpm_rated / 6000;//定格rpmの100%が1000→RPSに変換
 		
 	//スキャンタイムセット dtはマルチメディアタイマ　コールバックでセット
 	pSimJC->set_dt(inf.dt);
@@ -132,7 +126,7 @@ int CSim::input() {
 	case CRANE_TYPE_ID_JC:
 	default:
 	{
-		pSimJC->update_break_status();	//ブレーキ状態更新
+		pSimJC->get_crane_status(&pEnv_Inf->crane_stat, pPLC_IO);	//ブレーキ状態更新
 	}break;
 	}
 	return S_OK;
@@ -141,7 +135,7 @@ int CSim::parse() {						//メイン処理
 	switch (crane_type) {
 	case CRANE_TYPE_ID_JC:
 	default: {
-		pSimJC->timeEvolution();		//クレーンの位置,速度計算
+		pSimJC->timeEvolution();		//クレーンのドラム速度計算
 		set_sensor_fb_JC(crane_id);		// センサフィードバック設定
 
 		pLoad->timeEvolution();			//吊荷の位置,速度計算
@@ -165,9 +159,7 @@ int CSim::output() {
 void CSim::setup_JC(int id) {
 
 	pSimJC = new CSimJC(id);			//クレーンオブジェクトインスタンス
-	pSimJC->pCraneStat = &(pEnv_Inf->crane_stat);
 	pSimJC->pSimStat = &st_sim_work.st_stat;
-	pSimJC->pPLC_IO = pPLC_IO;
 
 	pLoad = new CLoad();				//吊荷オブジェクとインスタンス
 	pLoad->pMobBase = (CMob*)pSimJC;	//吊荷とクレーンを紐付け
@@ -260,69 +252,10 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	//速度FB,トルク指令
 	//主巻の速度FB,トルク指令設定
 	
-	//### ドライブ制御関連
-	//主巻の速度FB,トルク指令設定
-	{
-		if (pPLC_IO->stat_axis[ID_HOIST].v_ref != 0) {
-			if (pPLC_IO->stat_axis[ID_HOIST].brake == 0) {//ブレーキ閉
-				st_sim_inf.trq_ref_mh = st_sim_work.trq30[ID_HOIST];	//30%トルク指令
-				st_sim_inf.vfb_mh = 0;			//速度FBは0
-			}
-			else {//ブレーキ開
-				st_sim_inf.trq_ref_mh = st_sim_work.trq[ID_HOIST];	//100%トルク指令
-				//inv_ref(ベース100%で0.1%単位表現)
-				st_sim_inf.vfb_mh = (INT16)((double)pPLC_IO->stat_axis[ID_HOIST].v_ref * pspec->axis_spec[ID_HOIST].Rpm_rated/1000.0);
-			}
-		}
-		else {
-			st_sim_inf.trq_ref_mh = 0;	//停止時は速度0
-			st_sim_inf.vfb_mh = 0;			//速度FBは0
-		}
+	for (int i = 0; i < SIM_N_AXIS; i++) {
+		st_sim_inf.trq_ref[i] = pSimJC->trq_fb[i];
+		st_sim_inf.vfb[i] = (INT16)pSimJC->nv[i];
 	}
-
-	//引込の速度FB,トルク指令設定
-	{
-		if (pPLC_IO->stat_axis[ID_BOOM_H].v_ref != 0) {
-			if (pPLC_IO->stat_axis[ID_BOOM_H].brake == 0) {//ブレーキ閉
-				st_sim_inf.trq_ref_bh = st_sim_work.trq30[ID_BOOM_H];	//30%トルク指令
-				st_sim_inf.vfb_bh = 0;			//速度FBは0
-			}
-			else {//ブレーキ開
-				st_sim_inf.trq_ref_bh = st_sim_work.trq[ID_BOOM_H];	//100%トルク指令
-				//inv_ref(ベース100%で0.1%単位表現) vfbはrpm単位で表現
-				st_sim_inf.vfb_bh = (INT16)((double)pPLC_IO->stat_axis[ID_BOOM_H].v_ref * pspec->axis_spec[ID_BOOM_H].Rpm_rated / 1000.0);
-			}
-		}
-		else {
-			st_sim_inf.trq_ref_bh = 0;	//停止時は速度0
-			st_sim_inf.vfb_bh = 0;		//速度FBは0
-		}
-	}
-	
-	//旋回の速度FB
-	{
-		if (pPLC_IO->stat_axis[ID_SLEW].v_ref != 0) {
-			if (pPLC_IO->stat_axis[ID_SLEW].brake) //!!!旋回ブレーキは信号ONで閉
-				st_sim_inf.vfb_sl = 0;			//速度FBは0
-			else {//ブレーキ開
-				st_sim_inf.vfb_sl = (INT16)((double)pPLC_IO->stat_axis[ID_SLEW].v_ref * pspec->axis_spec[ID_SLEW].Rpm_rated / 1000.0);
-			}
-		}
-		else st_sim_inf.vfb_sl = 0;			//速度FBは0
-	}
-
-	//走行の速度FB,トルク指令設定
-	{
-		if (pPLC_IO->stat_axis[ID_GANTRY].v_ref != 0) {
-			if (pPLC_IO->stat_axis[ID_GANTRY].brake == 0)
-				st_sim_inf.vfb_gt = 0;		//速度FBは0
-			else { //ブレーキ開
-				st_sim_inf.vfb_gt = (INT16)((double)pPLC_IO->stat_axis[ID_GANTRY].v_ref * pspec->axis_spec[ID_GANTRY].Rpm_rated / 1000.0);
-			}
-		}
-		else st_sim_inf.vfb_gt = 0;			//速度FBは0
-	}
-
 
 	//### 位置情報関連
 	//高速カウンタ,アブソコーダフィードバック設定
