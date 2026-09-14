@@ -107,9 +107,9 @@ ST_JC_PLC_IO_R plc_io_rdef_h6r602 = {
 	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,36},//target_v_ah　目標速度は、100％速度が1000
 
 	//インバータトルク指令
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,78},//inv_trqref_mh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,79},//inv_trqref_bh
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,79},//inv_trqref_ah
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,75},//inv_trqref_mhuuj
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,76},//inv_trqref_bh
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,77},//inv_trqref_ah
 
 	//SIM　高速カウンタ　アブソコーダ
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,86},	//hcounter_mh

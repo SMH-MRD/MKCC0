@@ -87,8 +87,8 @@ private:
 #define SIM_INIT_X                  50.0       //走行初期値 m
 #define SIM_INIT_M                  10000.0    //荷重初期値 kg
 
-#define MOB_MODE_SIM                0
-#define MOB_MODE_PLC                1
+#define MOB_MODE_SIM                0   //PCのみのシミュレーションモード
+#define MOB_MODE_PLC                1   //エミュレータモード
 
 
 class CSimJC : public CMob

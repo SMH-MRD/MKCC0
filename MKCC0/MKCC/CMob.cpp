@@ -88,7 +88,10 @@ void CSimJC::Ac() {	//加速度計算
 	for (int i = 0; i < SIM_N_AXIS; i++) {
 	//## ドラム加速指令計算
 		//速度指令に未達(ドラム回転速度　指令>FB）
-		if ((nv_ref[i] - nv[i]) > accdec_cut_spd_range[i]) {
+		if ((motion_brake[i] == false) && 0) {//ブレーキ閉
+			na_ref[i] = 0.0;
+		}
+		else if ((nv_ref[i] - nv[i]) > accdec_cut_spd_range[i]) {
 			if (nv_ref[i] > 0.0) na_ref[i] = nacc_spec[i];			//正転加速指令
 			else				 na_ref[i] = ndec_spec[i];			//逆転減速指令
 		}
@@ -108,12 +111,8 @@ void CSimJC::Ac() {	//加速度計算
 
 	//## ドラム加速度FB計算　当面指令に対して一次遅れフィルタを入れる形で計算
 		//一次遅れフィルタ式　Yk = (dt*Xk+Tf*Yk-1)/(dt+Tf)
-		if ((motion_brake[i]) || (source_mode != MOB_MODE_SIM)) {
-			na[i] = (dt * na_ref[i] + Tf[i] * pSimStat->nd[i].a) / (dt + Tf[i]);
-		}
-		else {
-			na[i] = 0.0;
-		}
+	
+		na[i] = (dt * na_ref[i] + Tf[i] * na[i]) / (dt + Tf[i]);
 		//0リミット
 		if ((na[i] < 0.00001) && (na[i] > -0.00001))	na[i] = 0.0;
 	}
@@ -141,7 +140,7 @@ void CSimJC::timeEvolution() {
 		//トルクFB
 		if (na_ref[i] != 0) {//加速指令!=0
 			//トルクFB
-			if (motion_brake[i] != 0) {//ブレーキ閉
+			if (motion_brake[i] == false) {//ブレーキ閉
 				trq_fb[i] = SIM_TRQ_FB_P100 * 0.3;	//30%トルク指令
 			}
 			else {//ブレーキ開
@@ -153,7 +152,6 @@ void CSimJC::timeEvolution() {
 		}
 
 		//速度FB(オイラー法）
-
 		nv[i] += na[i] * dt;
 		if (v_reset_count[i] >= SIM_VRESET_COUNT) nv[i] = 0.0;	//強制リセット
 
@@ -220,8 +218,16 @@ void CSimJC::get_crane_status(LPST_CRANE_STAT pstat, LPST_CC_PLC_IO pplc) {
 
 	for (int i = 0; i < SIM_N_AXIS; i++) {
 		//速度指令値　取り込みPLC 指令は100%→1.0　ドラム回転速度指令でセット
-		nv_ref[i] = (double)pplc->stat_axis[i].v_ref * pCrane->pSpec->axis_spec[ID_HOIST].Rpm_rated / 6000.0;//定格rpmの100%が1000→RPSに変換
-		motion_brake[i] = pplc->stat_axis[i].brake;
+		nv_ref[i] = (double)pplc->stat_axis[i].v_ref * pCrane->pSpec->axis_spec[i].Rpm_rated / 60000.0;//定格rpmの100%が1000→RPSに変換→1000*60で割る
+		if (i == ID_SLEW) {//旋回は油圧ブレーキ
+			if (pplc->stat_axis[i].brake)	motion_brake[i] = false; //PLC信号 ONでブレーキ閉
+			else							motion_brake[i] = true;
+		}
+		else {
+			if (pplc->stat_axis[i].brake)	motion_brake[i] = true; //PLC信号 ONでブレーキ開
+			else							motion_brake[i] = false;
+		}
+
 	}
 
 	pSimStat->th = pstat->bh_th;

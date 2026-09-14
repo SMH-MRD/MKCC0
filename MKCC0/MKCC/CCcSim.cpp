@@ -114,7 +114,6 @@ int CSim::input() {
 		pSimJC->is_fwd_endstop[i] = pPLC_IO->stat_axis[i].limit & PLC_IF_LIMIT_COM_FWD_EMR;
 		pSimJC->is_rev_endstop[i] = pPLC_IO->stat_axis[i].limit & PLC_IF_LIMIT_COM_REV_EMR;
 	}
-	return 0;
 
 	switch (crane_type) {
 	case CRANE_TYPE_ID_OHC:
@@ -126,7 +125,7 @@ int CSim::input() {
 	case CRANE_TYPE_ID_JC:
 	default:
 	{
-		pSimJC->get_crane_status(&pEnv_Inf->crane_stat, pPLC_IO);	//ブレーキ状態更新
+		pSimJC->get_crane_status(&pEnv_Inf->crane_stat, pPLC_IO);	//クレーン状態取り込み
 	}break;
 	}
 	return S_OK;
@@ -254,7 +253,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	
 	for (int i = 0; i < SIM_N_AXIS; i++) {
 		st_sim_inf.trq_ref[i] = pSimJC->trq_fb[i];
-		st_sim_inf.vfb[i] = (INT16)pSimJC->nv[i];
+		st_sim_inf.vfb[i] = (INT16)(pSimJC->nv[i] * 60.0);//PLC FBはrpm
 	}
 
 	//### 位置情報関連
@@ -273,7 +272,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	if(pPLC_IO->stat_axis[ID_BOOM_H].brake)//!!!引込は正転でPGはマイナスカウント
 		
 		//##########################################################################################
-		//!!!!!! /6を入れないとアブソコーダのカウントが6倍位早くなってしまう　原因不明　宿題
+		//!!!!!! /6を入れないとPGのカウントが6倍位早くなってしまう　原因不明　宿題
 		//#########################################################################################
 		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v  * pspec->axis_spec[ID_BOOM_H].Gear_ratio * inf.dt * st_sim_work.axis[ID_BOOM_H].RpsPGCnt)/6;
 		//st_sim_inf.hcount_bh -= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v * pspec->axis_spec[ID_BOOM_H].Gear_ratio * inf.dt * st_work.axis[ID_BOOM_H].RpsPGCnt);
@@ -287,7 +286,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v * pspec->axis_spec[ID_SLEW].Gear_ratio * inf.dt * st_sim_work.axis[ID_SLEW].RpsPGCnt);
 
 
-	//プリセット エミュレーションでは2周以上でプリセット値に戻す
+	//プリセット エミュレーションでは旋回2周以上でプリセット値に戻す
 	if (st_sim_inf.hcount_sl > pspec->axis_spec[ID_SLEW].CntPgSet0 + st_sim_work.sl_cnt_pg360 * 2)
 		st_sim_inf.hcount_sl = (INT32)pspec->axis_spec[ID_SLEW].CntPgSet0;
 	if (st_sim_inf.hcount_sl < pspec->axis_spec[ID_SLEW].CntPgSet0 - st_sim_work.sl_cnt_pg360 * 2)
