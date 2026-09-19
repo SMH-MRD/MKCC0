@@ -40,14 +40,14 @@ void CMob::set_dt(double _dt) {
 Vector3 CMob::V(Vector3& r, Vector3& v) {
 	return v.clone();
 }
-//オイラー方による時間発展
+//ルンゲクッタ方による時間発展
 void CMob::timeEvolution() {
 
 	Vector3 v1 = V(r, v);
 	Vector3 a1 = A(r, v);
 
-	Vector3 _v1 = Vector3(r.x + v1.x * dt / 2.0, r.y + v1.y * dt / 2.0, r.z + v1.z * dt / 2.0);
-	Vector3 _a1 = Vector3(v.x + a1.x * dt / 2.0, v.y + a1.y * dt / 2.0, v.z + a1.z * dt / 2.0);
+	Vector3 _v1 = Vector3(r.x + v1.x * dt / 2.0, r.y + v1.y * dt / 2.0, r.z + v1.z * dt / 2.0);//半歩進んだ位置のr(_v1となっているのでv1と勘違いした）
+	Vector3 _a1 = Vector3(v.x + a1.x * dt / 2.0, v.y + a1.y * dt / 2.0, v.z + a1.z * dt / 2.0);//半歩進んだ位置のv(_a1となっているのでa1と勘違いした）
 	Vector3 v2 = V(_v1, _a1);
 	Vector3 a2 = A(_v1, _a1);
 
@@ -61,9 +61,16 @@ void CMob::timeEvolution() {
 	Vector3 v4 = V(_v3, _a3);
 	Vector3 a4 = A(_v3, _a3);
 
-	dr.x = dt * v.x;
-	dr.y = dt * v.y;
-	dr.z = dt * v.z;
+
+
+	//dr.x = dt * v.x;
+	//dr.y = dt * v.y;
+	//dr.z = dt * v.z;
+
+	dr.x = dt / 6.0 * (v1.x + 2.0 * v2.x + 2.0 * v3.x + v4.x);
+	dr.y = dt / 6.0 * (v1.y + 2.0 * v2.y + 2.0 * v3.y + v4.y);
+	dr.z = dt / 6.0 * (v1.z + 2.0 * v2.z + 2.0 * v3.z + v4.z);
+
 	dv.x = dt / 6.0 * (a1.x + 2.0 * a2.x + 2.0 * a3.x + a4.x);
 	dv.y = dt / 6.0 * (a1.y + 2.0 * a2.y + 2.0 * a3.y + a4.y);
 	dv.z = dt / 6.0 * (a1.z + 2.0 * a2.z + 2.0 * a3.z + a4.z);
@@ -135,7 +142,7 @@ void CSimJC::timeEvolution() {
 	Ac();
 
 //### ドライブ制御関連
-
+	//トルク・速度　FB計算
 	for (int i = 0; i < SIM_N_AXIS; i++) {
 		//トルクFB
 		if (na_ref[i] != 0) {//加速指令!=0
@@ -153,7 +160,7 @@ void CSimJC::timeEvolution() {
 
 		//速度FB(オイラー法）
 		nv[i] += na[i] * dt;
-		if (v_reset_count[i] >= SIM_VRESET_COUNT) nv[i] = 0.0;	//強制リセット
+		if (v_reset_count[i] >= SIM_VRESET_COUNT) nv[i] = 0.0;	//速度指令0が一定時間以上で強制的に0
 
 		//チェックカウント処理
 		if (nv_ref[i] != 0.0) {
@@ -234,6 +241,15 @@ void CSimJC::get_crane_status(LPST_CRANE_STAT pstat, LPST_CC_PLC_IO pplc) {
 	pSimStat->ph = pstat->sl_ph;
 	pSimStat->d	 = pstat->d;
 	pSimStat->lrm = pstat->mhl;
+
+	l_mh = pstat->mhl.p;//ロープ長
+
+	r.copy(pstat->r);
+	v.copy(pstat->v);
+	a.copy(pstat->a);
+
+
+
 	return;
 }
 
@@ -258,40 +274,22 @@ void CLoad ::init_load(int id) {
 }
 
 Vector3 CLoad::A(Vector3& r, Vector3& v) {
-	Vector3 a;
-	Vector3 L_;
 
-	if (type == ID_AHOIST)
-		L_ = L_.subVectors(r, pMobBase->r2);
-	else 					
-		L_ = L_.subVectors(r, pMobBase->r);
+	Vector3 L_ = L_.subVectors(r, pMobBase->r);		//吊荷と吊点の相対ベクトル（直行座標）
 
-	double Sdivm = S() / M.m;
+	double Sdivm = S() / M.m;	//張力/吊荷質量 a=F/m
 
-	a = L_.clone().multiplyScalor(Sdivm);
+	Vector3 a = L_.clone().multiplyScalor(Sdivm);
 	a.z -= GA;
-
-	double temp_d = L_.length();
-
+	
 	//計算誤差によるロープ長ずれ補正
 	Vector3 hatL = L_.clone().normalize();
 	// 補正ばね弾性力
-	//Vector3 ak = hatL.clone().multiplyScalor(-compensationK * (pCrane->l_mh - L_.length()));
-
-	Vector3 ak, v_;
-	if (type == ID_AHOIST) {
-		ak = hatL.clone().multiplyScalor(-compensationK * ( L_.length() - pMobBase->l_ah));
-		v_ = v_.subVectors(v, pMobBase->v2);
-	}
-	else {
-		ak = hatL.clone().multiplyScalor(-compensationK * (L_.length() - pMobBase->l_mh));
-		v_ = v_.subVectors(v, pMobBase->v);
-	}
-
-
+	Vector3 ak = hatL.clone().multiplyScalor(-compensationK * (pMobBase->l_mh - L_.length()));
+	Vector3	v_ = v_.subVectors(v, pMobBase->v);
 	// 補正粘性抵抗力
 	Vector3 agamma = hatL.clone().multiplyScalor(-compensationGamma * v_.dot(hatL));
-	
+			
 	// 張力にひもの長さの補正力を加える
 	a.add(ak).add(agamma);
 
@@ -299,33 +297,17 @@ Vector3 CLoad::A(Vector3& r, Vector3& v) {
 } //Model of acceleration
 
 double  CLoad::S() { //Aの計算部の関係でS/Lとなっている。巻きの加速度分が追加されている。
-	Vector3 v_ = v.clone().sub(pMobBase->v);
-	double v_abs2 = v_.lengthSq();
-	Vector3 vectmp;
-	Vector3 vecL; //= vectmp.subVectors(r, pCrane->r);
 
-	if (type == ID_AHOIST) {
-		vecL = vectmp.subVectors(r, pMobBase->r2);
-		return -M.m * (v_abs2 - pMobBase->a.dot(vecL) - GA * vecL.z - (pMobBase->a0[ID_AHOIST] * pMobBase->l_ah + pMobBase->v0[ID_AHOIST] * pMobBase->v0[ID_AHOIST])) / (pMobBase->l_ah * pMobBase->l_ah);
-	}
-	else {
-		vecL = vectmp.subVectors(r, pMobBase->r);
-		return -M.m * (v_abs2 - pMobBase->a.dot(vecL) - GA * vecL.z - (pMobBase->a0[ID_HOIST] * pMobBase->l_mh + pMobBase->v0[ID_HOIST] * pMobBase->v0[ID_HOIST])) / (pMobBase->l_mh * pMobBase->l_mh);
-	}
-	return 0.0;
+	Vector3 v_ = v.clone().sub(pMobBase->v);	//吊荷-吊点間相対速度ベクトル
+	double v_abs2 = v_.lengthSq();				//吊荷-吊点間相対速度ベクトル距離の2乗
+	Vector3 vecL = vecL.subVectors(r, pMobBase->r);
+
+	return  -M.m * (v_abs2 - pMobBase->a.dot(vecL) - GA * vecL.z ) / (pMobBase->l_mh * pMobBase->l_mh);
 }
 
 void CLoad::update_relative_vec() {//クレーン吊点との相対位置速度
-	Vector3 vectmp;
-
-	if (type == ID_AHOIST) {
-		L = vectmp.subVectors(r, pMobBase->r2);
-		vL = vectmp.subVectors(v, pMobBase->v2);
-	}
-	else {
-		L = vectmp.subVectors(r, pMobBase->r);
-		vL = vectmp.subVectors(v, pMobBase->v);
-	}
+	L	= L.subVectors(r, pMobBase->r);
+	vL	= vL.subVectors(v, pMobBase->v);
 	return;
 }
 

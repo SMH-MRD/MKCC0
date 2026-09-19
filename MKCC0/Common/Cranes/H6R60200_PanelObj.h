@@ -131,6 +131,7 @@ static ST_OBJ_PROPERTY sub_set_props_h6r602[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO	,Point(225,210)	,Size(50,30)	,L"-"	},
 
 	{ID_SUB_PNL_COM_OBJ_V_DELAY		,Point(45,270)	,Size(50,30)	,L"-"	},
+	{ID_SUB_PNL_CAM_OBJ_CAMERA_BK	,Point(0,0)	,Size(640,500)		,L"CamBk"	},
 };
 static ST_OBJ_PROPERTY gwin_set_props_h6r602[N_GWIN_OBJ] = {
 	//グラフィックMAINウィンドウ

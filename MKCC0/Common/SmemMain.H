@@ -65,20 +65,22 @@ typedef struct _ST_CRANE_STAT {
 
 	ST_MOVE_SET	sl_ph;							//旋回角度
 	ST_MOVE_SET bh_th;							//起伏角度
-	ST_MOVE_SET r;								//旋回半径
+	ST_MOVE_SET R;								//旋回半径
 	ST_MOVE_SET gt;								//走行
 	ST_MOVE_SET	m;								//吊荷質量
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
 	ST_MOVE_SET	mhl;							//主巻ロープ長
 	ST_MOVE_SET	dh;								//d部の高さ（吊点高さ-上部ポスト高さ）
 
-	ST_MOVE_SET hpx;							//吊点位置x
-	ST_MOVE_SET hpy;							//吊点位置y
-	ST_MOVE_SET hpz;							//吊点位置z
+	Vector3 a;									//加速度ベクトル
+	Vector3 r;									//位置ベクトル
+	Vector3 v;									//速度ベクトル
 
-	ST_MOVE_SET ldx;							//吊荷位置x
-	ST_MOVE_SET ldy;							//吊荷位置y
-	ST_MOVE_SET ldz;							//吊荷位置z
+	//計算用
+	double cos_ph;
+	double sin_ph;
+	double cos_th;
+	double sin_th;
 
 	//ドラム状態
 	INT32		i_layer[MOTION_ID_MAX];			//ドラム現在層数

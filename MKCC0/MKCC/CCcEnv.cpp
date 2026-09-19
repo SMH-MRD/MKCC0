@@ -456,10 +456,10 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->dh.v = v_fb;
 
 	//### 旋回半径
-	pCrStat->r.p = sqrt(d2 - pCrStat->dh.p * pCrStat->dh.p);	//旋回半径
-	v_fb = (pCrStat->d.p * pCrStat->d.v - pCrStat->dh.p * pCrStat->dh.v) / pCrStat->r.p;
-	pCrStat->r.a = (v_fb - pCrStat->r.v) / dt;
-	pCrStat->r.v = v_fb;
+	pCrStat->R.p = sqrt(d2 - pCrStat->dh.p * pCrStat->dh.p);	//旋回半径
+	v_fb = (pCrStat->d.p * pCrStat->d.v - pCrStat->dh.p * pCrStat->dh.v) / pCrStat->R.p;
+	pCrStat->R.a = (v_fb - pCrStat->R.v) / dt;
+	pCrStat->R.v = v_fb;
 
 	//### 主巻ロープ長
 	//主巻ロープ長 = ( ロープ全長- 主巻ドラム巻取量 - 起伏(主巻）ドラム巻取量 - (d値×ジブ部ロープ本数))/吊部ロープ本数
@@ -470,31 +470,60 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->mhl.v = v_fb;
 
 	//起伏角
-	pCrStat->bh_th.p = acos(pCrStat->r.p / Lb);
+	pCrStat->bh_th.p = acos(pCrStat->R.p / Lb);
+
 	if (pCrStat->dh.p < 0.0) pCrStat->bh_th.p *= -1.0;
-	pCrStat->bh_th.v = -pCrStat->r.v / (Lb * sin(pCrStat->bh_th.p));
+	double cos_th = pCrStat->cos_th = cos(pCrStat->bh_th.p);
+	double sin_th = pCrStat->sin_th = sin(pCrStat->bh_th.p);
+
+	// θ'= acos(X)' = -X'/sqrt(1-X^2) = -R'/sqrt(Lb^2 - R^2) = -R'/Lbsinθ
+	v_fb = -pCrStat->R.v /Lb/sin_th;
+	// θ'' = -(R''/sinθ-R'(1/sinθ)')/Lb = -(R''/sinθ-R'θ'(cosθ/sinθ^2)) /Lb = θ'(R"/R' - θ'cosθ/sinθ)
+	pCrStat->bh_th.a = v_fb * (pCrStat->R.a / pCrStat->R.v - v_fb * cos_th / sin_th);
+
+	pCrStat->bh_th.v = v_fb;
 
 	//旋回角度(rad)
 	LONG count_sl = (LONG)(hcount_sl - pspec->axis_spec[ID_SLEW].CntPgSet0) % (LONG)(pspec->axis_spec[ID_SLEW].Kp * 360);//180度カウント数/180
 	pCrStat->sl_ph.p = count_sl / pspec->axis_spec[ID_SLEW].Kp * RAD1DEG;
 	if (pCrStat->sl_ph.p > PI180) pCrStat->sl_ph.p -= PI360;
-	
+	double cos_ph = pCrStat->cos_ph = cos(pCrStat->sl_ph.p);
+	double sin_ph = pCrStat->sin_ph = sin(pCrStat->sl_ph.p);
+
 	// 360°回転数　= （TTB円周/旋回ドラム円周）＝ TTB径/ピニオン径 →　ピニオン1回転あたりの旋回角度 = 360°/360°回転数
 	// rad/s　=　RPS　×　360°/（TTB径/ピニオン径）×　π　/　180°
 	// rad/s　=　RPS　×　2　×　π　×　ピニオン径　/　TTB径　
 	v_fb = pCrStat->nd[ID_SLEW].v * PI360 * pspec->axis_spec[ID_SLEW].Ddrm0 / pspec->axis_spec[ID_SLEW].Ddrm1;
 	pCrStat->sl_ph.a = (v_fb - pCrStat->sl_ph.v) / dt;
 	pCrStat->sl_ph.v = v_fb;
+	
+	//吊点ベクトル
 
-	//吊点高さ
-	pCrStat->hpz.p = pspec->st_struct.Hp + pspec->st_struct.Ha + pCrStat->dh.p;
-	pCrStat->hpz.v = pCrStat->dh.v;
-	pCrStat->hpz.a = pCrStat->dh.a;
+	pCrStat->r.x = pCrStat->R.p * cos_ph + pPlcIo->stat_axis[ID_GANTRY].pos_fb;
+	pCrStat->r.y = pCrStat->R.p * sin_ph;
+	pCrStat->r.z = pspec->st_struct.Hp + pspec->st_struct.Lb * sin_th;
+
+	//(Rcosφ）' = R'cosφ+Rcosφ’=　R'cosφ+R(φ’-sinφ) (Rsinφ）' = R'sinφ+Rsinφ’=　R'sinφ+R(φ’cosφ) v_fbはrpm
+	pCrStat->v.x = pCrStat->R.v * cos_ph - pCrStat->R.p * pCrStat->sl_ph.v * sin_ph + pCrStat->nd[ID_GANTRY].v * pEnvInf->Cdrm[ID_GANTRY][1];
+	pCrStat->v.y = pCrStat->R.v * sin_ph + pCrStat->R.p * pCrStat->sl_ph.v * cos_ph;
+	pCrStat->v.z = pspec->st_struct.Lb * pCrStat->bh_th.v * cos_th;
+
+	//(Rcosφ）'' = (R''-Rφ'^2)cosφ - (2R'φ'+Rφ'')sinφ = C1cosφ - C2sinφ　(Rsinφ）'' = (R''-Rφ'^2)sinφ + (2R'φ'+Rφ'')cosφ = C1sinφ + C2cosφ
+	double C1 = pCrStat->R.a - pCrStat->R.p * pCrStat->sl_ph.v * pCrStat->sl_ph.v;
+	double C2 = 2.0 * pCrStat->R.v * pCrStat->sl_ph.v + pCrStat->R.p * pCrStat->sl_ph.a * pCrStat->sl_ph.a;
+
+	pCrStat->a.x = C1 * cos_ph - C2 * sin_ph + pCrStat->nd[ID_GANTRY].a * pEnvInf->Cdrm[ID_GANTRY][1];
+	pCrStat->a.y = C1 * sin_ph + C2 * cos_ph;
+	pCrStat->a.z = pspec->st_struct.Lb * (pCrStat->bh_th.a * cos_th - pCrStat->bh_th.v * pCrStat->bh_th.v * sin_th);
+	
+	//pCrStat->hpz.p = pspec->st_struct.Hp + pspec->st_struct.Ha + pCrStat->dh.p;
+	//pCrStat->hpz.v = pCrStat->dh.v;
+	//pCrStat->hpz.a = pCrStat->dh.a;
 
 	//揚程 Simulation側の揚程値を使用する
-	pCrStat->ldz.p = pCrStat->hpz.p - pCrStat->mhl.p;
-	pCrStat->ldz.v = - pCrStat->mhl.v;
-	pCrStat->ldz.a = -pCrStat->mhl.a;
+	//pCrStat->ldz.p = pCrStat->hpz.p - pCrStat->mhl.p;
+	//pCrStat->ldz.v = - pCrStat->mhl.v;
+	//pCrStat->ldz.a = -pCrStat->mhl.a;
 
 	//### 荷重・位置状態セット ###
 	//荷重
@@ -504,6 +533,10 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	double dL = (double)(pPlcIo->stat_axis[ID_GANTRY].absocoder - pCrStat->abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->axis_spec[ID_GANTRY].CntAbsR;//ドラム回転数
 	dL *= PI180 * pCrane->pSpec->axis_spec[ID_GANTRY].Ddrm0;
 	pCrStat->gt.p = pCrane->pSpec->axis_spec[ID_GANTRY].PosPreset + dL;
+	//速度= Rω(ドラム回転数）
+	v_fb = 0.5 * pspec->axis_spec[ID_GANTRY].Ddrm0 * pCrStat->nd[ID_GANTRY].v ;
+	pCrStat->gt.a = (v_fb - pCrStat->gt.v) / dt;
+	pCrStat->gt.v = v_fb;
 
 
 	//ロープ長（PLC側の揚程値を使用）

@@ -95,8 +95,8 @@ HRESULT COteScad::initialize(LPVOID lpParam) {
 	pEnvObj = (COteEnv*)VectCtrlObj[st_task_id.ENV];
 
 	//### パネル関連セットアップ
-	CPanelBase::hr_init_setting = CPanelBase::setup_common_base(pOteUI);					//ベースクラス初期化
-	CMainPanelWindow::set_up(pOteUI, pOteCsInf, pOteCCIf, pOteEnvInf, pOteAuxAgInf, pOteAuxPolInf);						//メインパネルセットアップ
+	CPanelBase::hr_init_setting = CPanelBase::setup_common_base(pOteUI);								//ベースクラス初期化
+	CMainPanelWindow::set_up(pOteUI, pOteCsInf, pOteCCIf, pOteEnvInf, pOteAuxAgInf, pOteAuxPolInf);		//メインパネルセットアップ
 
 	//###  オペレーションパネル設定
 	//Function mode RADIO1

@@ -1211,6 +1211,35 @@ void CSubPanelWindow::OnPaintFlt(HDC hdc, HWND hwnd) {
 	return;
 }
 
+static bool is_cam_bk_update_required;
+static int  cam_bk_hold = 0;
+
+void CSubPanelWindow::OnPaintCam(HDC hdc, HWND hwnd) {
+	int width = SUB_PNL_WND_W;
+	int height = SUB_PNL_WND_H;
+
+	Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
+	// 1. 背景画像の描画(pbmp_bkに描画）
+	pPanelBase->psubobjs->img_camera_bk->update();// memGraphics.DrawImage(g_pBgImage, 0, 0, width, height);
+
+	// 2. 文字列の描画(pbmp_infに描画）
+//	pPanelBase->psubobjs->str_flt_message->update();//memGraphics.DrawString(wo.str().c_str(), -1, &font, pointF, &blackBrush);
+
+	// バックバッファに画像集約
+	//
+	Status drawStatus = pPanelBase->psubobjs->pgraphic_bk->DrawImage(
+		pPanelBase->psubobjs->pbmp_inf,
+		destRect,
+		0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H,
+		UnitPixel,
+		&pPanelBase->psubobjs->attr
+	);
+
+	// 集約バックバッファの内容を一度に画面に転送
+	pPanelBase->psubobjs->pgraphic->DrawImage(pPanelBase->psubobjs->pbmp_bk, 0, 0);
+	return;
+}
+
 static wostringstream monwos;
 LRESULT CALLBACK CSubPanelWindow::WndProcFlt(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
@@ -2189,18 +2218,116 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-    case WM_CREATE: {
-        SetWindowText(hwnd, L"カメラ");
-    }break;
+	switch (uMsg) {
+	case WM_CREATE: {
 
-    case WM_DESTROY:
-        // PostQuitMessage(0);
-        return 0;
-    case WM_CLOSE:
-        DestroyWindow(hwnd);
-        return 0;
-    }
+		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
+		//グラフィックオブジェクトの初期化
+
+		switch (crane_id) {
+		case CRANE_ID_H6R602:
+		case CRANE_ID_HHGQ18:
+		case CRANE_ID_HHGH29:
+		default:
+		{
+			pPanelBase->psubobjs->setup_jc_graphics(hwnd);
+		}
+		}
+
+		pPanelBase->psubobjs->refresh_obj_graphics();
+
+		pPanelBase->psubobjs->colorkey.SetValue(Color::Black);//黒を透過
+		Status status = pPanelBase->psubobjs->attr.SetColorKey(
+			pPanelBase->psubobjs->colorkey,
+			pPanelBase->psubobjs->colorkey,
+			ColorAdjustTypeDefault // DefaultではなくBitmapを指定する方が明確
+		);
+		SetWindowText(hwnd, L"CAMERA");
+
+		//表示更新用タイマー
+		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
+
+		//ウィンドウにコントロール追加
+		//PB 
+		//CPbCtrl* ppb = pPanelBase->psubobjs->pb_disp_flt_plcmap;
+		//ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+		//CB
+		CCbCtrl* pcb = pPanelBase->psubobjs->cb_disp_history;
+		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+		//pcb = pPanelBase->psubobjs->cb_disp_flt_heavy1;
+		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
+		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+
+		//背景
+		//Switch Image Windowハンドルセット（パネルウィンドウ）
+		pPanelBase->psubobjs->img_camera_bk->set_wnd(hwnd);
+		pPanelBase->psubobjs->img_camera_bk->set(0);
+		pPanelBase->psubobjs->img_camera_bk->update();
+
+		is_flt_bk_update_required = true;//背景再描画フラグON
+		flt_bk_hold = 0;				 //背景色初期値0
+
+		//初期値セット
+		//SendMessage(pPanelBase->psubobjs->cb_disp_history->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
+		//SendMessage(pPanelBase->psubobjs->cb_disp_flt_heavy1->hWnd, BM_SETCHECK, BST_CHECKED, 0);
+
+	}break;
+
+	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
+		InvalidateRect(hwnd, NULL, TRUE); // ウィンドウ全体を再描画
+	}
+	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
+		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
+		SetBkMode((HDC)wParam, TRANSPARENT);
+	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
+
+	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
+		pPanelBase->psubobjs->pgraphic->FillRectangle(pPanelBase->psubobjs->pBrushBk, pPanelBase->psubobjs->rc_panel);
+	}return 1; // 背景を処理したことを示す
+
+	case WM_NOTIFY: {
+	}break;
+
+	case WM_TIMER: {
+		cnt_disp_update_required++; //更新カウンタ
+
+	}break;
+	case WM_COMMAND: {
+		INT16 code = 0;
+		int wmId = LOWORD(wParam);
+		// 選択されたメニューの解析:
+		switch (wmId)
+		{
+		default:
+			return DefWindowProc(hPnlWnd, uMsg, wParam, lParam);
+		}
+	}break;
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		OnPaintCam(hdc, hwnd);
+		EndPaint(hwnd, &ps);
+	}break;
+	case WM_DRAWITEM: {//ランプ表示を更新 TIMERイベントで状態変化チェックしてInvalidiateRectで呼び出し
+		DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*)lParam;
+		Gdiplus::Graphics gra(pDIS->hDC);
+
+	}return true;
+	case WM_DESTROY: {
+		//表示更新用タイマー
+		KillTimer(hPnlWnd, ID_SUB_PANEL_TIMER);
+		flt_cnt_hold = 0;
+		// PostQuitMessage(0);
+	}return 0;
+	case WM_CLOSE: {
+		DestroyWindow(hwnd);
+	}return 0;
+	}
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 LRESULT CALLBACK CSubPanelWindow::WndProcStat(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

@@ -584,6 +584,8 @@ void CMainPanelObj::refresh_obj_graphics() {
 //### サブオペレーションパネルウィンドウオブジェクト　セットアップ ###
 static Image* img_cs_mode0; static Image* img_cs_mode1; static Image* img_cs_mode2; static Image* img_cs_mode3;
 static Image* img_flt_bk_gr; static Image* img_flt_bk_rd; static Image* img_flt_bk_yl; static Image* img_flt_bk_bl;
+static Image* img_cam_bk;
+
 HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 
 	switch (_crane_id) {
@@ -591,6 +593,7 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	{
 		img_cs_mode0 = new Image(L"../Img/H6R602/cs_mode0.png"); img_cs_mode1 = new Image(L"../Img/H6R602/cs_mode1.png"); img_cs_mode2 = new Image(L"../Img/H6R602/cs_mode2.png"); img_cs_mode3 = new Image(L"../Img/H6R602/cs_mode3.png");
 		img_flt_bk_gr = new Image(L"../Img/H6R602/bk_sub_gr.png"); img_flt_bk_rd = new Image(L"../Img/H6R602/bk_sub_rd.png"); img_flt_bk_yl = new Image(L"../Img/H6R602/bk_sub_yl.png"); img_flt_bk_bl = new Image(L"../Img/H6R602/bk_sub_bl.png");
+		img_cam_bk = new Image(L"../Img/H6R602/camera_bk.png"); 
 		for (int i = 0; i < N_SUB_PNL_OBJ; i++) sub_set_props[i] = sub_set_props_h6r602[i];
 	}break;
 
@@ -614,6 +617,7 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	Image* pimg_cs_mh_spd_mode[N_IMG_SWITCH_MAX]	= { img_cs_mode0, img_cs_mode1 , img_cs_mode2, img_cs_mode3, img_cs_mode0, img_cs_mode0, img_cs_mode0, img_cs_mode0 };
 	Image* pimg_cs_bh_r_mode[N_IMG_SWITCH_MAX]		= { img_cs_mode0, img_cs_mode1 , img_cs_mode2, img_cs_mode3, img_cs_mode0, img_cs_mode0, img_cs_mode0, img_cs_mode0 };
 	Image* pimg_flt_bk[N_IMG_SWITCH_MAX]			= { img_flt_bk_gr, img_flt_bk_bl , img_flt_bk_yl, img_flt_bk_rd, img_flt_bk_gr, img_flt_bk_gr, img_flt_bk_gr, img_flt_bk_gr };
+	Image* pimg_cam_bk[N_IMG_SWITCH_MAX]			= { img_cam_bk, img_cam_bk , img_cam_bk, img_cam_bk, img_cam_bk, img_cam_bk, img_cam_bk, img_cam_bk };
 
 	//設定ウィンドウオブジェクト
 	int i = 0;	cb_mh_spd_mode0 = new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_MHSPD_0, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -713,6 +717,10 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	i++; st_deff_seq_no = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	
 	i++; st_v_delay = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	
+	//カメラサブウィンドウ
+	i++; img_camera_bk = new CSwitchImg(ID_SUB_PNL_FLT_OBJ_IMG_BK, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cam_bk, 5, 3, pgraphic_bk);
+
 	return S_OK;
 }
 HRESULT CSubPanelObj::setup_gc_obj(int _crane_id) {
@@ -771,6 +779,7 @@ void CSubPanelObj::delete_obj() {
 	delete st_data_lost;
 	delete pb_setting_update;
 	delete st_v_delay;
+	delete img_camera_bk;
 
 	delete img_cs_mode0; delete img_cs_mode1; delete img_cs_mode2; delete img_cs_mode3;
 	delete img_flt_bk_gr; delete img_flt_bk_rd; delete img_flt_bk_yl; delete img_flt_bk_bl;
@@ -796,6 +805,7 @@ void CSubPanelObj::refresh_obj_graphics() {
 
 	img_flt_bk->refresh_graphics(pgraphic_bk);
 	str_flt_message->refresh_graphics(pgraphic_inf);
+	img_camera_bk->refresh_graphics(pgraphic_bk);
 
 	return;
 }

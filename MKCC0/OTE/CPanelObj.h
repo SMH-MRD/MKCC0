@@ -285,6 +285,7 @@ public:
 #define ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO			60366
 #define ID_SUB_PNL_COM_OBJ_V_DELAY				60367
 
+#define ID_SUB_PNL_CAM_OBJ_CAMERA_BK			60368
 
 class CSubPanelObj :public CPanelObjBase
 {
@@ -361,7 +362,7 @@ public:
 	CStaticCtrl* st_ah_fb_abs;
 
 	//故障表示サブウィンドウのオブジェクト
-	CSwitchImg* img_flt_bk;			//PLC通信インジケータ
+	CSwitchImg* img_flt_bk;			//故障ウィンドウ背景
 	CPbCtrl* pb_flt_next;			//次表示PB
 	CCbCtrl* cb_disp_history;		//履歴表示チェックBOX
 	CCbCtrl* cb_disp_interlock;		//主巻速度モード選択ラジオボタン
@@ -393,6 +394,10 @@ public:
 	CStaticCtrl* st_rcv_seq_no;			//受信シーケンス番号
 	CStaticCtrl* st_deff_seq_no;		//シーケンス番号差
 	CStaticCtrl* st_v_delay;			//遅延表示
+
+	//カメラサブウィンドウ
+	CSwitchImg* img_camera_bk;			//カメラウィンドウ背景
+
 
 	virtual HRESULT setup_jc_obj(int crane_id);
 	virtual HRESULT setup_gc_obj(int crane_id);

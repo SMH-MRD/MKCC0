@@ -211,8 +211,8 @@ private:
 
 
 //ŒvZŒë·‹zûˆ—@•R’·‚³•â³—Í•â³‚Î‚Ë’e«—Í{•â³”S«’ïR—Í
-#define compensationK 0.5                           //•R’·‚³•â³’e«ŒW”
-#define compensationGamma 0.5                       //•R’·‚³”S«ŒW”
+#define compensationK 0.03                          //•R’·‚³•â³’e«ŒW”
+#define compensationGamma 0.0002                     //•R’·‚³”S«ŒW”
 
 //’İ‰×ƒNƒ‰ƒX
 class CLoad : public CMob

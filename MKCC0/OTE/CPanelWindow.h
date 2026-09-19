@@ -49,7 +49,8 @@ public:
 	static void ClearFltListView(HWND hlv, bool is_init,int i);
 	static void DeleteFltListItem(HWND hlv,int i);
 	static void OnPaintFlt(HDC hdc,HWND hwnd);
-	
+	static void OnPaintCam(HDC hdc, HWND hwnd);
+		
 	static int close();
 	static void set_up(LPST_OTE_UI _pUi, LPST_OTE_CS_INF _pCsInf, LPST_OTE_CC_IF _pCcIf, LPST_OTE_ENV_INF pOteEnvInf, LPST_OTE_AUX_AGENT_INF _pOteAuxAgInf, LPST_OTE_AUX_POL_INF _pOteAuxPolInf,int _crane_id);
 	

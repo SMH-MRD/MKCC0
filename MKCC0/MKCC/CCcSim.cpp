@@ -105,7 +105,7 @@ int CSim::input() {
 	st_sim_work.helthy_cnt++;
 
 		
-	//スキャンタイムセット dtはマルチメディアタイマ　コールバックでセット
+	//スキャンタイムセット dtはスレッドのrun()でセット
 	pSimJC->set_dt(inf.dt);
 	pLoad->set_dt(inf.dt);
 	
@@ -124,8 +124,8 @@ int CSim::input() {
 	}break;
 	case CRANE_TYPE_ID_JC:
 	default:
-	{
-		pSimJC->get_crane_status(&pEnv_Inf->crane_stat, pPLC_IO);	//クレーン状態取り込み
+	{	//クレーン状態取り込み(　共有メモリのアドレスをセット)
+		pSimJC->get_crane_status(&pEnv_Inf->crane_stat, pPLC_IO);	
 	}break;
 	}
 	return S_OK;
@@ -135,7 +135,7 @@ int CSim::parse() {						//メイン処理
 	case CRANE_TYPE_ID_JC:
 	default: {
 		pSimJC->timeEvolution();		//クレーンのドラム速度計算
-		set_sensor_fb_JC(crane_id);		// センサフィードバック設定
+		set_sensor_fb_JC(crane_id);		// センサフィードバック設定　速度FB,トルク指令　高速カウンタ,アブソコーダフィードバック設定，荷重値
 
 		pLoad->timeEvolution();			//吊荷の位置,速度計算
 		pLoad->r.add(pLoad->dr);		//吊荷位置更新
@@ -249,8 +249,7 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 
 HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコーダ,LS他
 	//速度FB,トルク指令
-	//主巻の速度FB,トルク指令設定
-	
+		
 	for (int i = 0; i < SIM_N_AXIS; i++) {
 		st_sim_inf.trq_ref[i] = pSimJC->trq_fb[i];
 		st_sim_inf.vfb[i] = (INT16)(pSimJC->nv[i] * 60.0);//PLC FBはrpm
@@ -305,7 +304,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		st_sim_inf.mlim_weight_AI = (INT16)(st_sim_work.weight_mh / 330000.0 * 1600);		//荷重　0－330t→ 0-1600(2V))
 
 		//旋回半径	
-		st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.r.p - 21.0) / 41.0 * 1600.0);	//モーメントリミッタ半径AI入力計算値(0(21)-41(62)m→AD変換値 0-1600(2V))
+		st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.R.p - 21.0) / 41.0 * 1600.0);	//モーメントリミッタ半径AI入力計算値(0(21)-41(62)m→AD変換値 0-1600(2V))
 	}break;
 	case CRANE_ID_HHGQ18: 
 	{
@@ -314,7 +313,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		st_sim_inf.mlim_weight_AI = (INT16)(st_sim_work.weight_mh / 330000.0 * 1600);		//荷重　0－330t→ 0-1600(2V))
 
 		//旋回半径	
-		st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.r.p - 21.0) / 41.0 * 1600.0);	//モーメントリミッタ半径AI入力計算値(0(21)-41(62)m→AD変換値 0-1600(2V))
+		st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.R.p - 21.0) / 41.0 * 1600.0);	//モーメントリミッタ半径AI入力計算値(0(21)-41(62)m→AD変換値 0-1600(2V))
 	}break;
 	case CRANE_ID_HHGH29: 
 	default:
@@ -324,7 +323,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		st_sim_inf.mlim_weight_AI = (INT16)(st_sim_work.weight_mh / 80000.0 * 1600);			//荷重　フック質量AI入力計算値(kgf→AD変換値 80t->1600(2V))
 
 		//旋回半径	
-		st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.r.p - 30.0) / 50.0 * 1600.0);	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
+		st_sim_inf.mlim_r_AI = (INT16)((pEnv_Inf->crane_stat.R.p - 30.0) / 50.0 * 1600.0);	//モーメントリミッタ半径AI入力計算値(0(30)-50(80)m→AD変換値 0-1600(2V))
 	}break;
 
 	}
