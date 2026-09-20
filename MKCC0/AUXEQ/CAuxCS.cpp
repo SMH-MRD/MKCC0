@@ -57,11 +57,14 @@ extern CSharedMem* pEnvInfObj;
 extern CSharedMem* pAgentInfObj;
 extern CSharedMem* pCsInfObj;
 extern CSharedMem* pScadInfObj;
+extern CSharedMem* pPolInfObj;
+
 
 static LPST_AUX_ENV_INF		pEnvInf;
 static LPST_AUX_CS_INF		pCsInf;
 static LPST_AUX_AGENT_INF	pAgentInf;
 static LPST_AUX_SCAD_INF    pScadInf;
+static LPST_AUX_POL_INF		pPolInf;
 
 static LONG rcv_count_u = 0, snd_count_u = 0;
 
@@ -103,9 +106,14 @@ HRESULT CAuxCS::initialize(LPVOID lpParam) {
 		return(S_FALSE);
 	}
 
+	if (OK_SHMEM != pPolInfObj->create_smem(SMEM_AUX_POL_INF_NAME, sizeof(ST_AUX_POL_INF), MUTEX_AUX_POL_INF_NAME)) {
+		return(FALSE);
+	}
+
 	pEnvInf = (LPST_AUX_ENV_INF)(pEnvInfObj->get_pMap());
 	pAgentInf = (LPST_AUX_AGENT_INF)(pAgentInfObj->get_pMap());
 	pCsInf = (LPST_AUX_CS_INF)pCsInfObj->get_pMap();
+	pPolInf = (LPST_AUX_POL_INF)pPolInfObj->get_pMap();
 
 	if ((pEnvInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL))
 		hr = S_FALSE;
@@ -289,14 +297,14 @@ int CAuxCS::output() {          //出力処理
 			}
 
 			//クライアントがSimulator Mode時は、クライアントのSimulator計算値を折り返す
-			if (pCsInf->msg_client.head.status == SWAYSENS_CODE_MODE_SIMLATOR) {
+			if ((pPolInf->maintenance_mode == CODE_POL_MAINTE_OFF)&&(pCsInf->msg_client.head.status != MODE_ENV_APP_PRODUCT)){
 				pCsInf->msg_server.body = pCsInf->msg_client.sim_body;
 			}
 		}
 	}
 	return S_OK;
 }
-
+	
 int CAuxCS::close() {
 	LELanioEnd();// LANIO終了
 	return 0;

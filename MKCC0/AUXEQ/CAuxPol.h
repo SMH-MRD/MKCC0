@@ -9,10 +9,7 @@
 // define定義
 #pragma region CONSTANT_DEFINITION
 
-#define CODE_POL_MAINTE_OFF             0
-#define CODE_POL_MAINTE_DBG_OVERRIDE    11
-#define CODE_POL_MAINTE_COMCHECK        21
-#define CODE_POL_MAINTE_DISP_P2P        31
+
 
 #define MOVE_AVERAGE_COUNT       1          // 移動平均数
 #define PRM_SWAY_P_HIST_SIZE     10          // 振れ履歴バッファサイズ
@@ -140,6 +137,11 @@ typedef struct _ST_MOVE_AVE_DATA {
 #define POL_CODE_P2P_WAIT_R_PEAK        -1
 #define POL_CODE_P2P_WAIT_STOP          0
 
+#define POL_CODE_SWAY_SOURCE_PRODUCT    0
+#define POL_CODE_SWAY_SOURCE_SIMULATOR  1
+#define POL_CODE_SWAY_SOURCE_DEBUG      2
+
+
 typedef struct _ST_SWAY_WORK {
     double  ph_delay_time;                              // 振れ速度検出のフィルタ他による位相遅れ補正時間
     double  sway_peak_f[(int)ENUM_AXIS::E_MAX];         // 振れ角速度の符号が＋から－に変わったときの振れ角
@@ -165,6 +167,7 @@ public:
     ~CAuxPol();
 
     static ST_SWAY_WORK st_sway_work;
+    static int32_t maintenance_mode;
      
     // メンバー関数
 protected:
@@ -188,10 +191,13 @@ protected:
 
 private:
     HRESULT init_sway_sensor();
-    static int32_t maintenance_mode;
+   
     static int32_t disp_mode;
 
     static ST_MOVE_AVE_DATA m_move_avrg_data; // 輝度移動平均データ
+
+    int sway_source = POL_CODE_SWAY_SOURCE_PRODUCT;
+
     SWAY_ZERO_DATA  m_sway_zero_data; // 振れ中心計測データ
 
     LARGE_INTEGER m_cycle_time_counter; // パフォーマンスカウンター現在値

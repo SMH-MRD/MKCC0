@@ -583,6 +583,10 @@ int CAgent::output() {
 
 		//### 振れセンサへのメッセージ出力
 		pAUX_CS_Inf->msg_client.head.seqno++;
+
+		//アプリケーションモードセット
+		pAUX_CS_Inf->msg_client.head.status = pEnv_Inf->app_common_param.app_mode;
+
 		pAUX_CS_Inf->msg_client.body.tg_distance = pEnv_Inf->l_mh;
 		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::X] = pEnv_Inf->Tx;
 		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::Y] = pEnv_Inf->Ty;

@@ -602,8 +602,6 @@ typedef struct TAG_APP_CONFIG {
 
 #define SW_CLIENT_COM_CAMERA1_0SET  0x00000010
 
-#define SWAYSENS_CODE_MODE_PRODUCT  0
-#define SWAYSENS_CODE_MODE_SIMLATOR 1
 
 /// <summary>
 /// êUÇÍÉZÉìÉTIF

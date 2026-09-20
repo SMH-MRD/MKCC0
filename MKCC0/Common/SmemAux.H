@@ -85,9 +85,13 @@ typedef struct _ST_AUX_SCAD_INF {
 	DWORD helthy_cnt;
 }ST_AUX_SCAD_INF, * LPST_AUX_SCAD_INF;
 
-
+#define CODE_POL_MAINTE_OFF             0
+#define CODE_POL_MAINTE_DBG_OVERRIDE    11
+#define CODE_POL_MAINTE_COMCHECK        21
+#define CODE_POL_MAINTE_DISP_P2P        31
 typedef struct _ST_AUX_POL_INF {
 	DWORD helthy_cnt;
+	int32_t maintenance_mode;
 }ST_AUX_POL_INF, * LPST_AUX_POL_INF;
 
 typedef struct _GE_CAM

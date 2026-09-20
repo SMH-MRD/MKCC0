@@ -2291,8 +2291,11 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		pPanelBase->psubobjs->pgraphic_img->Clear(Color::Transparent);
 
-		INT swy_x = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_X].p + pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_X].p0);
-		INT swy_y = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_Y].p + pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_Y].p0);
+		//INT swy_x = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_X].p + pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_X].p0);
+		//INT swy_y = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_Y].p + pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_Y].p0);
+
+		INT swy_x = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_X].p);
+		INT swy_y = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_Y].p);
 		swy_x /= PRM_SUB_PANEL_CAM_RETIO; swy_x += SUB_PNL_CAM_VIEW_X;//サブパネルウィンドウ上のX座標
 		swy_y /= PRM_SUB_PANEL_CAM_RETIO; swy_y += SUB_PNL_CAM_VIEW_Y;//サブパネルウィンドウ上のY座標
 

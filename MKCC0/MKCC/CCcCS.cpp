@@ -597,7 +597,7 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 		st_ote_work.st_body.sl_brk_fb[5] = (INT16)pAgent_Inf->slew_brake_ctrl_mode;
 
 		//## U‚êƒZƒ“ƒTŒŸoó‘Ô
-		memcpy(&(st_ote_work.st_body.sway_body), &(pAUX_CS_Inf->msg_server.body.sway_data), sizeof(ST_SWAY_SERVER_BODY));
+		memcpy(&(st_ote_work.st_body.sway_body), &(pAUX_CS_Inf->msg_server.body), sizeof(ST_SWAY_SERVER_BODY));
 	}
 	return S_OK;
 }

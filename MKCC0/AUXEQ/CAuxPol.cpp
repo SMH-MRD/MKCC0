@@ -778,8 +778,6 @@ int CAuxPol::parse() {
 			}   // for (uint32_t idx = 0; idx < (uint32_t)(ENUM_IMAGE_MASK::E_MAX); idx++)
 #pragma endregion DETECT TARGET
 
-
-
 		}// if (gp_app_imgprc->status & (uint32_t)(ENUM_PROCCESS_STATUS::IMAGE_ENABLE))
 		else {
 
@@ -882,7 +880,10 @@ int CAuxPol::parse() {
 #pragma endregion SET TARGET POS
 
 		// 制御PCとのIF CHECK　MODE デバッグ用　検出処理なしで強制的に振れデータをセット
-		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE)   proc_dbg_override();
+		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE) {
+			proc_dbg_override();
+		}
+
 
 #pragma region 振れ検出処理
 		for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
@@ -899,6 +900,9 @@ int CAuxPol::parse() {
 	return S_OK;
 }
 int CAuxPol::output() {          //出力処理
+
+	pPolInf->maintenance_mode = maintenance_mode;
+
 	return S_OK;
 }
 int CAuxPol::close() {
@@ -1569,7 +1573,11 @@ void CAuxPol::proc_dbg_override() {
 	for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
 		psway_data = &gp_app_imgprc->sway_data[i];
 		ph_dbug[i] += gp_app_system->sample_cycle * psway_data->w;
+		if (ph_dbug[i] > PI360)ph_dbug[i] = 0.0;
 		gp_app_imgprc->sway_data[i].p = amp_dbug[i] * sin(ph_dbug[i]) + p0_dbug[i];
+
+		if(i==0)gp_app_imgprc->sway_data[i].p = 1024;
+		else gp_app_imgprc->sway_data[i].p = 768;
 	} 
 	return;
 }
