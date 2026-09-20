@@ -1220,15 +1220,13 @@ void CSubPanelWindow::OnPaintCam(HDC hdc, HWND hwnd) {
 
 	Rect destRect(0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H);
 	// 1. 背景画像の描画(pbmp_bkに描画）
-	pPanelBase->psubobjs->img_camera_bk->update();// memGraphics.DrawImage(g_pBgImage, 0, 0, width, height);
+	pPanelBase->psubobjs->img_camera_bk->update();
 
-	// 2. 文字列の描画(pbmp_infに描画）
-//	pPanelBase->psubobjs->str_flt_message->update();//memGraphics.DrawString(wo.str().c_str(), -1, &font, pointF, &blackBrush);
 
 	// バックバッファに画像集約
 	//
 	Status drawStatus = pPanelBase->psubobjs->pgraphic_bk->DrawImage(
-		pPanelBase->psubobjs->pbmp_inf,
+		pPanelBase->psubobjs->pbmp_img,
 		destRect,
 		0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H,
 		UnitPixel,
@@ -2083,13 +2081,6 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
 		//表示更新用タイマー
 		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
 
-		//RADIO BUTTON
-		//CCbCtrl* pcb = pPanelBase->psubobjs->cb_if_line;
-		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_MULTILINE | WS_GROUP,
-		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-		//pcb = pPanelBase->psubobjs->cb_if_wifi;
-		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON |  BS_MULTILINE,
-		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
  
 		//初期値セット
 		//設定値
@@ -2217,6 +2208,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCom(HWND hwnd, UINT uMsg, WPARAM wParam
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
+
+static int idbg = 0;
+static RECT cam_rect = { 0, 0, 600, 480 };
+
 LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_CREATE: {
@@ -2245,7 +2240,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam
 		SetWindowText(hwnd, L"CAMERA");
 
 		//表示更新用タイマー
-		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS, NULL);
+		SetTimer(hwnd, ID_SUB_PANEL_TIMER, ID_SUB_PANEL_TIMER_MS100, NULL);
 
 		//ウィンドウにコントロール追加
 		//PB 
@@ -2293,6 +2288,19 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam
 	}break;
 
 	case WM_TIMER: {
+
+		pPanelBase->psubobjs->pgraphic_img->Clear(Color::Transparent);
+
+		INT swy_x = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_X].p + pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_X].p0);
+		INT swy_y = (INT)(pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_Y].p + pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[ID_Y].p0);
+		swy_x /= PRM_SUB_PANEL_CAM_RETIO; swy_x += SUB_PNL_CAM_VIEW_X;//サブパネルウィンドウ上のX座標
+		swy_y /= PRM_SUB_PANEL_CAM_RETIO; swy_y += SUB_PNL_CAM_VIEW_Y;//サブパネルウィンドウ上のY座標
+
+		idbg++; if (idbg > 600)idbg = 0;
+		Gdiplus::Rect rc(swy_x - PRM_SUB_PANEL_CAM_LED_R, swy_y - PRM_SUB_PANEL_CAM_LED_R, PRM_SUB_PANEL_CAM_LED_D, PRM_SUB_PANEL_CAM_LED_D);
+		pPanelBase->psubobjs->pgraphic_img->FillEllipse(CPanelBase::pdrawing_items->pbrush[ID_PANEL_COLOR_MAZENDA], rc);
+		InvalidateRect(hwnd, &cam_rect, FALSE);
+
 		cnt_disp_update_required++; //更新カウンタ
 
 	}break;

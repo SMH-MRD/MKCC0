@@ -128,7 +128,10 @@ typedef struct _ST_CS_MON2 {
     bool is_monitor_active = false; //モニタ画面表示中フラグ
     bool is_body_disp_mode = false; // 電文表示モードBODY
 
-    wostringstream wo_uni, wo_mpc, wo_mote, wo_work;
+    wostringstream wo_uni;
+    wostringstream wo_mpc;
+    wostringstream wo_mote;
+    wostringstream wo_work;
 
     HWND hctrl[CS_MON2_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,

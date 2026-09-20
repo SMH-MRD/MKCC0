@@ -55,7 +55,7 @@ HRESULT CPanelBase::setup_common_base(LPST_OTE_UI pui) {
 	drawing_items.pbrush[ID_PANEL_COLOR_GREEN]		= new SolidBrush(pallet.color[COLOR_ID_SGREEN]);
 	drawing_items.pbrush[ID_PANEL_COLOR_YELLOW]		= new SolidBrush(pallet.color[COLOR_ID_SYELLOW]);
 	drawing_items.pbrush[ID_PANEL_COLOR_ORANGE]		= new SolidBrush(pallet.color[COLOR_ID_SORANGE]);
-	drawing_items.pbrush[ID_PANEL_COLOR_MAZENDA]	= new SolidBrush(pallet.color[COLOR_ID_SMAZENDA]);
+	drawing_items.pbrush[ID_PANEL_COLOR_MAZENDA]	= new SolidBrush(pallet.color[COLOR_ID_WRED]);
 	drawing_items.pbrush[ID_PANEL_COLOR_BROWN]		= new SolidBrush(pallet.color[COLOR_ID_SBROWN]);
 	drawing_items.pbrush[ID_PANEL_COLOR_LGRAY]		= new SolidBrush(pallet.color[COLOR_ID_LGRAY]);
 

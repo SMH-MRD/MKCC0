@@ -4,6 +4,7 @@
 #include "PLC_DEF.h"
 #include "CPlc.h"
 #include "COMMON_DEF.h"
+#include "SmemAux.H"
 
 
 //操作端末のテキスト,ボタン、ランプ数
@@ -171,7 +172,6 @@ typedef struct _ST_OTE_PC_FLTS_SET {
 	INT16 codes_pc[N_OTE_PC_SET_PC_FLT];	//発生中故障コード
 }ST_OTE_PC_FLTS_SET, * LPST_OTE_PC_FLTS_SET;
 
-
 //デフォルト
 /******* PCユニキャスト通信BODY構造体 ***********/
 typedef struct PcUBody {//デフォルト
@@ -185,6 +185,8 @@ typedef struct PcUBody {//デフォルト
 	float 				bh_angle;												//起伏角度
 	float				wind_spd;
 	INT16				sl_brk_fb[8];											//遠隔旋回ブレーキFB
+	ST_SWAY_SERVER_BODY		sway_body;
+
 }ST_PC_U_BODY, * LPST_PC_U_BODY;
 
 /******* OTEユニキャスト通信BODY構造体 ***********/
@@ -264,7 +266,7 @@ typedef struct OteUBody {
 //			ボディ部UNION定義　
 // BODY部の構造体はクレーンタイプに応じて定義して追加　
 //########################################################
-#define OTE_PRM_SIZE_OF_BODY_I16			600//1200 byte
+#define OTE_PRM_SIZE_OF_BODY_I16			1400//1200 byte
 union UN_PC_M_BODY {
 	INT16			val[OTE_PRM_SIZE_OF_BODY_I16];
 	ST_PC_M_BODY	st;

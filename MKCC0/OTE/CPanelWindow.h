@@ -7,13 +7,23 @@
 #include "SmemAux.h"
 #include "CGraphicWindow.h"
 
-#define SUB_PNL_WND_X             125
-#define SUB_PNL_WND_Y             540
-#define SUB_PNL_WND_W             640
-#define SUB_PNL_WND_H             500
+#define SUB_PNL_WND_X				125
+#define SUB_PNL_WND_Y				540
+#define SUB_PNL_WND_W				640
+#define SUB_PNL_WND_H				500
 
-#define ID_SUB_PANEL_TIMER		  60265
-#define ID_SUB_PANEL_TIMER_MS	  200
+
+
+#define ID_SUB_PANEL_TIMER			60265
+#define ID_SUB_PANEL_TIMER_MS		200
+#define ID_SUB_PANEL_TIMER_MS100	100
+
+#define SUB_PNL_CAM_VIEW_X			40
+#define SUB_PNL_CAM_VIEW_Y			40
+
+#define PRM_SUB_PANEL_CAM_RETIO		4	//振れセンサ解像度/カメラ表示ウィンドウ解像度
+#define PRM_SUB_PANEL_CAM_LED_R		5	//振れセンサターゲット位置表示サイズの半径
+#define PRM_SUB_PANEL_CAM_LED_D		10	//振れセンサターゲット位置表示サイズの直径
 
 class CSubPanelWindow {
 
