@@ -37,6 +37,11 @@ public:
 	double	S();												//Rope tension(張力計算）
 	void	init_crane(double t, Vector3& r, Vector3& v);
 
+	INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
+	INT32 aux_lanio_status;						    //LANIO			組み込み状況
+	INT32 aux_sway_status;						    //振れセンサ	組み込み状況
+	INT32 aux_gtpos_status;				    //走行位置検出	組み込み状況
+
 	//PLC通信バッファ
 	LPST_JC_PLC_IO_R get_plc_rif()	{ if (pPlc != NULL) return &(pPlc->un_plc_io_rif.JC);	return NULL;}
 	LPST_JC_PLC_IO_W get_plc_wif()	{ if (pPlc != NULL) return &(pPlc->un_plc_io_wif.JC);	return NULL;}

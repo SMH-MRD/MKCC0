@@ -6,30 +6,31 @@
 #include "CSHAREDMEM.H"
 #include "SmemMain.H"
 #include "SmemOte.H"
+#include "SmemAux.H"
 #include "CMob.H"
 
-#define SIM_MON1_WND_X     640
-#define SIM_MON1_WND_Y     0
-#define SIM_MON1_WND_W     320
-#define SIM_MON1_WND_H     240
-#define SIM_MON1_N_CTRL    32
-#define SIM_MON1_N_WCHAR   64
+#define SIM_MON1_WND_X                  640
+#define SIM_MON1_WND_Y                  0
+#define SIM_MON1_WND_W                  320
+#define SIM_MON1_WND_H                  240
+#define SIM_MON1_N_CTRL                 32
+#define SIM_MON1_N_WCHAR                64
 
-#define SIM_ID_MON1_CTRL_BASE   56100
-#define SIM_ID_MON1_STATIC_INF0     0
+#define SIM_ID_MON1_CTRL_BASE           56100
+#define SIM_ID_MON1_STATIC_INF0         0
 
-#define SIM_ID_MON2_CTRL_BASE   56140
+#define SIM_ID_MON2_CTRL_BASE           56140
 
-#define SIM_ID_MON1_TIMER  56190
-#define SIM_ID_MON2_TIMER  56191
+#define SIM_ID_MON1_TIMER               56190
+#define SIM_ID_MON2_TIMER               56191
 
-#define SIM_PRM_MON1_TIMER_MS  200
-#define SIM_PRM_MON2_TIMER_MS  200
+#define SIM_PRM_MON1_TIMER_MS           200
+#define SIM_PRM_MON2_TIMER_MS           200
 
 #define SIM_PRM_WIND_SPEED_DEFAULT      5.5     //風速[m/s]初期値
 #define SIM_PRM_WIND_DIR_DEFAULT        10.0    //風向[deg]初期値
 #define SIM_PRM_BHR_DEFAULT             25.0    //旋回半径[m]初期値
-#define SIM_PRM_MH＿LOAD_DEFAULT         0.0    //吊荷荷重[ton]初期値
+#define SIM_PRM_MH＿LOAD_DEFAULT        0.0     //吊荷荷重[ton]初期値
 #define SIM_PRM_GT_POS_DEFAULT          50.0    //走行位置[m]初期値
 #define SIM_PRM_MH_HEIGHT_DEFAULT       30.0    //揚程[m]初期値
 
@@ -141,7 +142,7 @@ public:
     CSimGC*     pSimGC  = nullptr;
     CSimOHC*    pSimOHC = nullptr;
 
-    CLoad*      pLoad;                                   //主巻吊荷のモデル
+  //  CLoad*      pLoad;                                   //主巻吊荷のモデル
 
     LRESULT CALLBACK PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp);
 
@@ -171,13 +172,31 @@ public:
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
+    void reset_sway();//振れをリセット
+
 private:
      static CSpec* pspec;
+     static bool dbg_act_sway_msg;
 
     void setup_JC(int id);
     void setup_GC(int id);
     void setup_OHC(int id);
 
+    	//クレーンタイプ別計算関数
+	HRESULT init_drm_motion_JC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
+    HRESULT set_sensor_fb_JC(int id);           //高速カウンタ,アブソコーダ,LS他
+    HRESULT output_JC();
+    HRESULT cal_sway_io_JC();
+    
+    HRESULT init_drm_motion_GC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
+    HRESULT set_sensor_fb_GC(int id);           //高速カウンタ,アブソコーダ,LS他
+    HRESULT output_GC();
+    
+    HRESULT init_drm_motion_OHC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
+    HRESULT set_sensor_fb_OHC(int id);           //高速カウンタ,アブソコーダ,LS他
+    HRESULT output_OHC();
+ 
+    void set_sway_sensor_msg();
 
     //オーバーライド
 
@@ -198,19 +217,7 @@ private:
     int output();
     int close();
 
-	//クレーンタイプ別計算関数
-	HRESULT init_drm_motion_JC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
-    HRESULT set_sensor_fb_JC(int id);           //高速カウンタ,アブソコーダ,LS他
-    HRESULT output_JC();
-    HRESULT cal_sway_io_JC();
-    
-    HRESULT init_drm_motion_GC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
-    HRESULT set_sensor_fb_GC(int id);           //高速カウンタ,アブソコーダ,LS他
-    HRESULT output_GC();
-    
-    HRESULT init_drm_motion_OHC(int id);         //ドラムパラメータ設定(巻取量,層数,速度,加速度）
-    HRESULT set_sensor_fb_OHC(int id);           //高速カウンタ,アブソコーダ,LS他
-    HRESULT output_OHC();
+
 
    
     

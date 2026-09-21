@@ -296,10 +296,6 @@ int CAuxCS::output() {          //出力処理
 				pCsInf->msg_server.body.sway_data[i].T			= gp_app_imgprc->sway_data[i].T;
 			}
 
-			//クライアントがSimulator Mode時は、クライアントのSimulator計算値を折り返す
-			if ((pPolInf->maintenance_mode == CODE_POL_MAINTE_OFF)&&(pCsInf->msg_client.head.status != MODE_ENV_APP_PRODUCT)){
-				pCsInf->msg_server.body = pCsInf->msg_client.sim_body;
-			}
 		}
 	}
 	return S_OK;

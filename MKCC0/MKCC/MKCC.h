@@ -33,7 +33,7 @@ namespace MKCC
 #define MAIN_WND_MIN_H          100
 
 #define ENV_SCAN_MS			    20
-#define CS_SCAN_MS				100
+#define CS_SCAN_MS				40
 #define AGENT_SCAN_MS			20
 #define POLICY_SCAN_MS			100
 #define SCADA_SCAN_MS			100

@@ -300,6 +300,10 @@ enum ID_AXIS {
 #define PC_TYPE_KEY_OF_INIFILE          L"PC_TYPE"
 #define PC_SERIAL_KEY_OF_INIFILE        L"PC_SERIAL"
 #define PC_OPTION_KEY_OF_INIFILE        L"PC_OPTION"
+#define AUX_SLBRK_KEY_OF_INIFILE        L"AUX_SLBRK"
+#define AUX_SWAY_KEY_OF_INIFILE         L"AUX_SWAY"
+#define AUX_LANIO_KEY_OF_INIFILE        L"AUX_LANIO"
+#define AUX_GTPOS_KEY_OF_INIFILE        L"AUX_GTPOS"
 
 //各セクションの各タスク用の情報を参照するためのキー
 #define MAIN_KEY_OF_INIFILE				L"MAIN"

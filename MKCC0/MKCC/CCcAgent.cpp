@@ -21,10 +21,10 @@ extern CSharedMem* pCsInfObj;
 extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 
-extern INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
-extern INT32 aux_lanio_status;						    //LANIO			組み込み状況
-extern INT32 aux_sway_status;						    //振れセンサ	組み込み状況
-extern INT32 aux_gt_pos_sys_status;						//走行位置検出	組み込み状況
+extern INT32 g_aux_slbrk_status;		//旋回ブレーキ	組み込み状況
+extern INT32 g_aux_lanio_status;		//LANIO			組み込み状況
+extern INT32 g_aux_sway_status;			//振れセンサ	組み込み状況
+extern INT32 g_aux_gtpos_status;		//走行位置検出	組み込み状況
 
 extern CCrane* pCrane;
 
@@ -33,7 +33,7 @@ extern CSharedMem* pAuxCsInfObj;
 extern ST_DEVICE_CODE g_my_code;
 
 //ソケット
-static CMCProtocol* pMCSock;				//MCプロトコルオブジェクトポインタ
+static CMCProtocol* pMCSock;			//MCプロトコルオブジェクトポインタ
 
 //クラススタティックメンバ
 ST_AGENT_MON1 CAgent::st_mon1;
@@ -547,7 +547,7 @@ int CAgent::parse() {
 	fp_aux_equipment(crane_id);
 #endif
 	//### 振れセンサ関連
-	if (aux_sway_status) {
+	if (g_aux_sway_status) {
 		//振れセンサチェック
 		if (inf.total_act % 20 == 0) {
 			if (pAUX_CS_Inf->msg_server.head.seqno != sway_sensor_count_last) {
@@ -577,7 +577,7 @@ int CAgent::output() {
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
 
 	//振れセンサIF
-	if (aux_sway_status) {
+	if (g_aux_sway_status) {
 		
 		std::lock_guard<std::mutex> lock(mtx);//スコープの開始で自動ロック,終了で自動アンロック
 
@@ -595,10 +595,11 @@ int CAgent::output() {
 		
 		//Simulation計算値出力
 		if (pEnv_Inf->app_common_param.app_mode != MODE_ENV_APP_PRODUCT) {
-			pAUX_CS_Inf->msg_client.sim_body = pSim_Inf->swy_serv_body;
+			for (int i = 0; i < (int)ENUM_IMAGE::E_MAX; i++) {
+				pAUX_CS_Inf->msg_client.sim_target[i] = pSim_Inf->sim_target[i];
+			}
 		}
 	}
-
 
 	//PLC IO送信データ出力
 	//送信は 共有メモリに設定後、送信バッファにコピー（受信は直接共有メモリに読み込む）

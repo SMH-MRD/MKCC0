@@ -673,7 +673,7 @@ typedef struct SwayClientBody {
 typedef struct SwayClientMsg {
     ST_SWAY_CLIENT_HEAD head;
     ST_SWAY_CLIENT_BODY body;
-    ST_SWAY_SERVER_BODY sim_body;       //SimulatoråvéZíl
+    ST_TARGET_DETECT   sim_target[(int)ENUM_IMAGE::E_MAX];
 }ST_SWAY_CLIENT_MSG, * LPST_SWAY_CLIENT_MSG;
 
 

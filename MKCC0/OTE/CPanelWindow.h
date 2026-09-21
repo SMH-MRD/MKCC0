@@ -18,7 +18,7 @@
 #define ID_SUB_PANEL_TIMER_MS		200
 #define ID_SUB_PANEL_TIMER_MS100	100
 
-#define SUB_PNL_CAM_VIEW_X			40
+#define SUB_PNL_CAM_VIEW_X			43
 #define SUB_PNL_CAM_VIEW_Y			40
 
 #define PRM_SUB_PANEL_CAM_RETIO		4	//振れセンサ解像度/カメラ表示ウィンドウ解像度

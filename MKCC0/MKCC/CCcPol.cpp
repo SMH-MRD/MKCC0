@@ -27,10 +27,10 @@ extern CSharedMem* pAuxCsInfObj;
 
 extern CCrane* pCrane;
 
-extern INT32 aux_slbrk_status;			//旋回ブレーキ	組み込み状況
-extern INT32 aux_lanio_status;			//LANIO			組み込み状況
-extern INT32 aux_sway_status;			//振れセンサ	組み込み状況
-extern INT32 aux_gt_pos_sys_status;		//走行位置検出	組み込み状況
+extern INT32 g_aux_slbrk_status;			//旋回ブレーキ	組み込み状況
+extern INT32 g_aux_lanio_status;			//LANIO			組み込み状況
+extern INT32 g_aux_sway_status;			//振れセンサ	組み込み状況
+extern INT32 g_aux_gtpos_status;		//走行位置検出	組み込み状況
 
 //共有メモリ
 static LPST_CC_ENV_INF		pEnvInf		= NULL;
@@ -130,7 +130,7 @@ static UINT32	gpad_mode_last = L_OFF;
 
 int CCcPol::input() {
 
-	if (aux_sway_status) {
+	if (g_aux_sway_status) {
 		check_d = pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_p2p;
 	}
 	return S_OK;

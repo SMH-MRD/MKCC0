@@ -34,27 +34,11 @@ public:
     Vector3 a;      //加速度ベクトル
     Vector3 r;      //位置ベクトル
     Vector3 v;      //速度ベクトル
-    Vector3 L;      //ロープベクトル(吊荷吊点相対ベクトル)
-    Vector3 vL;     //ロープ速度ベクトル(吊荷吊点相対ベクトル)
-    Vector3 fex;    //外力
+
     Vector3 dr;     //位置ベクトルの変化分
     Vector3 dv;     //速度ベクトルの変化分
-    Vector3 R0;     //基準点
-
-    double r0[MOTION_ID_MAX];                       //吊点　位置・角度(m, rad) 起伏は半径
-    double v0[MOTION_ID_MAX];                       //吊点　速度・角速度(m/s, rad/s)
-    double a0[MOTION_ID_MAX];                       //吊点　加速度・角加速度(m/s2, rad/s2)
-
-    Vector3 rc;                                     //クレーン中心点の位置ベクトル
-    Vector3 vc;                                     //クレーン中心点の速度ベクトル
-
-    Vector3 r2;                                     //第2（補巻）吊点位置ベクトル
-    Vector3 v2;                                     //第2（補巻）吊点速度ベクトル
-    Vector3 a2;                                     //第2（補巻）吊点ベクトル
-
-    double l_mh;                                    //巻ロープ長 m
-    double l_ah;                                    //補巻巻ロープ長 m
-     
+    Vector3 fex;    //外力
+           
     //加速度ベクトルを与えるメソッド　　継承先で再定義する
     virtual Vector3 A(Vector3& r, Vector3& v); 
     virtual void set_fex(double,double,double);         //外力
@@ -74,6 +58,46 @@ public:
 private:
 
 };
+
+
+//計算誤差吸収処理　紐長さ補正力＝補正ばね弾性力＋補正粘性抵抗力
+#define compensationK 0.03                          //紐長さ補正弾性係数
+#define compensationGamma 0.0002                     //紐長さ粘性係数
+
+//吊荷クラス
+class CLoad : public CMob
+{
+public:
+    CLoad() { M.m = 10000.0; pMobBase = NULL; };
+    ~CLoad() {};
+
+    Vector3 L;          //ロープベクトル(吊荷吊点相対ベクトル:クレーン座標)
+    Vector3 vL;         //ロープ速度ベクトル(吊荷吊点相対ベクトル:クレーン座標)
+    double l_mh;        //巻ロープ長 m
+
+    Vector3 Lcam;      //ロープベクトル(吊荷吊点相対ベクトル:カメラ座標:rad)
+    Vector3 vLcam;     //ロープ速度ベクトル(吊荷吊点相対ベクトル:カメラ座標:rad)
+
+    void init_load(int id);
+    void update_relative_vec();         //吊点との相対ベクトル更新
+    Vector3 A(Vector3& r, Vector3& v);  //Model of acceleration
+    double S();	//Rope tension
+
+    CMob* pMobBase;//接続クレーン
+
+    ST_SIM_LOAD M; //吊荷質量Kg,サイズ
+
+    int type;                   //吊荷のタイプ
+
+    int set_m(double _m) { M.m = _m; return(0); }
+    int set_crane(CMob* _pMobBase) { pMobBase = _pMobBase; return(0); }
+    int set_type(int _type) { type = _type; return(type); }
+
+private:
+
+};
+
+
 
 //クレーンクラス
 //r,vは、吊点の位置と座標
@@ -96,6 +120,17 @@ class CSimJC : public CMob
 public:
 	CSimJC(int _id);
     ~CSimJC();
+
+    Vector3 R0;     //基準点
+    double r0[MOTION_ID_MAX];                       //吊点　位置・角度(m, rad) 起伏は半径
+    double v0[MOTION_ID_MAX];                       //吊点　速度・角速度(m/s, rad/s)
+    double a0[MOTION_ID_MAX];                       //吊点　加速度・角加速度(m/s2, rad/s2)
+
+ 
+    Vector3 rc;                                     //クレーン中心点の位置ベクトル
+    Vector3 vc;                                     //クレーン中心点の速度ベクトル
+
+    CLoad* pLoad;
 
     //各軸の仕様パラメータ
     LPST_STRUCTURE pStruct;
@@ -133,7 +168,7 @@ public:
     void set_mode(int _mode) { source_mode = _mode;return; }
 
 private:
-    int v_reset_count[MOTION_ID_MAX];
+    int v_reset_count[MOTION_ID_MAX];               //速度指令0でFBを0リセットする経過時間
     double brk_elaped_time[MOTION_ID_MAX];          //ブレーキ開放経過時間
     double Tf[MOTION_ID_MAX];                       //一次遅れフィルタ時定数
 
@@ -207,37 +242,6 @@ private:
     void Ac();                                      //クレーン加速度計算 SIM mode, PLC mode
 
     double accdec_cut_spd_range[MOTION_ID_MAX];     //加減速指令を0にする速度指令とFBの差の範囲
-};
-
-
-//計算誤差吸収処理　紐長さ補正力＝補正ばね弾性力＋補正粘性抵抗力
-#define compensationK 0.03                          //紐長さ補正弾性係数
-#define compensationGamma 0.0002                     //紐長さ粘性係数
-
-//吊荷クラス
-class CLoad : public CMob
-{
-public:
-    CLoad() { M.m = 10000.0; pMobBase = NULL; };
-    ~CLoad() {};
-
-    void init_load(int id);
-    void update_relative_vec();         //吊点との相対ベクトル更新
-    Vector3 A(Vector3& r, Vector3& v);  //Model of acceleration
-    double S();	//Rope tension
-
-    CMob * pMobBase;//接続クレーン
-
-    ST_SIM_LOAD M; //吊荷質量Kg,サイズ
-         
-    int type;                   //吊荷のタイプ
- 
-    int set_m(double _m) { M.m = _m; return(0); }
-    int set_crane(CMob* _pMobBase) { pMobBase =_pMobBase; return(0); }
-    int set_type(int _type) { type = _type; return(type); }
-
-private:
-
 };
 
 

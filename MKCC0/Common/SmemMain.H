@@ -673,7 +673,7 @@ typedef struct _ST_CC_SIM_INF {
 	DWORD mode;
 	DWORD helthy_cnt;
 
-	ST_SWAY_SERVER_BODY swy_serv_body;				//振れセンサ送信メッセージ計算値
+	ST_TARGET_DETECT sim_target[(int)ENUM_IMAGE::E_MAX];//振れセンサ検出計算値
 
 	INT16 mlim_weight_AI;		//モーメントリミッタ主巻質量 AI入力計算値 
 	INT16 mlim_weight_ah_AI;	//モーメントリミッタ補巻質量 AI入力計算値 

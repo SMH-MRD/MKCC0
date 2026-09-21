@@ -16,7 +16,6 @@ CMob::CMob() {
 	v = { 0.0,0.0,0.0 };
 	dr = { 0.0,0.0,0.0 };
 	dv = { 0.0,0.0,0.0 };
-	R0 = { 0.0,0.0,0.0};
 }
 
 CMob::~CMob() {}
@@ -242,7 +241,7 @@ void CSimJC::get_crane_status(LPST_CRANE_STAT pstat, LPST_CC_PLC_IO pplc) {
 	pSimStat->d	 = pstat->d;
 	pSimStat->lrm = pstat->mhl;
 
-	l_mh = pstat->mhl.p;//ƒ[ƒv’·
+	pLoad->l_mh = pstat->mhl.p;//ƒ[ƒv’·
 
 	r.copy(pstat->r);
 	v.copy(pstat->v);
@@ -285,7 +284,7 @@ Vector3 CLoad::A(Vector3& r, Vector3& v) {
 	//ŒvZŒë·‚É‚æ‚éƒ[ƒv’·‚¸‚ê•â³
 	Vector3 hatL = L_.clone().normalize();
 	// •â³‚Î‚Ë’e«—Í
-	Vector3 ak = hatL.clone().multiplyScalor(-compensationK * (pMobBase->l_mh - L_.length()));
+	Vector3 ak = hatL.clone().multiplyScalor(-compensationK * (l_mh - L_.length()));
 	Vector3	v_ = v_.subVectors(v, pMobBase->v);
 	// •â³”S«’ïR—Í
 	Vector3 agamma = hatL.clone().multiplyScalor(-compensationGamma * v_.dot(hatL));
@@ -302,7 +301,8 @@ double  CLoad::S() { //A‚ÌŒvZ•”‚ÌŠÖŒW‚ÅS/L‚Æ‚È‚Á‚Ä‚¢‚éBŠª‚«‚Ì‰Á‘¬“x•ª‚ª’Ç‰Á‚³‚
 	double v_abs2 = v_.lengthSq();				//’İ‰×-’İ“_ŠÔ‘Š‘Î‘¬“xƒxƒNƒgƒ‹‹——£‚Ì2æ
 	Vector3 vecL = vecL.subVectors(r, pMobBase->r);
 
-	return  -M.m * (v_abs2 - pMobBase->a.dot(vecL) - GA * vecL.z ) / (pMobBase->l_mh * pMobBase->l_mh);
+
+	return  -M.m * (v_abs2 - pMobBase->a.dot(vecL) - GA * vecL.z ) / (l_mh * l_mh);
 }
 
 void CLoad::update_relative_vec() {//ƒNƒŒ[ƒ“’İ“_‚Æ‚Ì‘Š‘ÎˆÊ’u‘¬“x

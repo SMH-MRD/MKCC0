@@ -49,10 +49,10 @@ static ST_MAIN_WND          st_work_wnd;        //センサーウィンドウ管
 BC_TASK_ID st_task_id;
 vector<CBasicControl*>	    VectCtrlObj;	    //スレッドオブジェクトのポインタ
 
-INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
-INT32 aux_lanio_status;						    //LANIO			組み込み状況
-INT32 aux_sway_status;						    //振れセンサ	組み込み状況
-INT32 aux_gt_pos_sys_status;				    //走行位置検出	組み込み状況
+INT32 g_aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
+INT32 g_aux_lanio_status;						    //LANIO			組み込み状況
+INT32 g_aux_sway_status;						    //振れセンサ	組み込み状況
+INT32 g_aux_gtpos_status;				    //走行位置検出	組み込み状況
 
 static vector<HANDLE>	    VectHevent;		    //マルチスレッド用イベントのハンドル
 static vector<HWND>	        VectTweetHandle;	//メインウィンドウのスレッドツイートメッセージ表示Staticハンドル
@@ -68,6 +68,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 VOID                CloseApp();             //アプリケーション終了処理
+VOID                SetupAuxStatus(INT32 crane_id);//クレーン制御補機の有無効設定
 
 /// スレッド実行のためのゲート関数
 /// 引数　pObj タスククラスインスタンスのポインタ
@@ -223,12 +224,32 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    //プロダクトモード設定
    str_num = GetPrivateProfileString(COMMON_SECT_OF_INIFILE, COMMON_KEY_OF_PRODUCT_MODE, L"0", wbuf, 32, PATH_OF_INIFILE);
    swscanf_s(wbuf, L"%d", &(g_app_common_param.product_mode));
+
+   //補機ステータス設定
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, AUX_SLBRK_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(g_aux_slbrk_status));
+
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, AUX_SWAY_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(g_aux_sway_status));
+
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, AUX_LANIO_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(g_aux_lanio_status));
+
+   str_num = GetPrivateProfileString(SYSTEM_SECT_OF_INIFILE, AUX_GTPOS_KEY_OF_INIFILE, L"0", wbuf, 32, PATH_OF_INIFILE);
+   swscanf_s(wbuf, L"%d", &(g_aux_gtpos_status));
+
     
    //  クレーンオブジェクトセットアップ
    LPST_CC_PLC_IO pPlcIo = (LPST_CC_PLC_IO)pPlcIoObj->get_pMap();
 
    pCrane = new CCrane(g_my_code.machine_id, pPlcIo->buf_io_read, pPlcIo->buf_io_write);
-   LPST_JC_PLC_IO_R pbuf = pCrane->get_plc_rif();
+   pCrane->aux_gtpos_status = g_aux_gtpos_status;
+   pCrane->aux_lanio_status = g_aux_lanio_status;
+   pCrane->aux_slbrk_status = g_aux_slbrk_status;
+   pCrane->aux_sway_status  = g_aux_sway_status;
+
+
+ //  LPST_JC_PLC_IO_R pbuf = pCrane->get_plc_rif();
    
    //コミュニケーションオブジェクトセットアップ
    CComm::setup();
@@ -517,6 +538,7 @@ VOID CloseApp()
     delete pAuxCsInfObj;
     return;
 }
+
 
 //
 //  関数: WndProc(HWND, UINT, WPARAM, LPARAM)

@@ -878,11 +878,17 @@ int CAuxPol::parse() {
 		}
 
 #pragma endregion SET TARGET POS
-
-		// 制御PCとのIF CHECK　MODE デバッグ用　検出処理なしで強制的に振れデータをセット
-		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE) {
+		
+		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE) {				// 制御PCとのIF CHECK　MODE デバッグ用　AUX_POLで振れデータをセット
 			proc_dbg_override();
 		}
+		else if (pCsInf->msg_client.head.status != MODE_ENV_APP_PRODUCT) {	//クライアントがSimulator Mode時　Simulator計算値で振れ,輝度データをセット
+			PSWAY_DATA psway_data;
+			for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
+				gp_app_imgprc->sway_data[i].p = pCsInf->msg_client.sim_target[0].pix[i];
+			}
+		}
+		else;
 
 
 #pragma region 振れ検出処理
@@ -1558,7 +1564,6 @@ void CAuxPol::set_expstime()
 	return;
 }
 
-
 uint32_t pol_counter = 0;
 
 static double ph_dbug[2] = { 0.0, PI90 };
@@ -1576,8 +1581,9 @@ void CAuxPol::proc_dbg_override() {
 		if (ph_dbug[i] > PI360)ph_dbug[i] = 0.0;
 		gp_app_imgprc->sway_data[i].p = amp_dbug[i] * sin(ph_dbug[i]) + p0_dbug[i];
 
-		if(i==0)gp_app_imgprc->sway_data[i].p = 1024;
-		else gp_app_imgprc->sway_data[i].p = 768;
+		// 画面中心
+		//if(i==0)gp_app_imgprc->sway_data[i].p = 1024;
+		//else gp_app_imgprc->sway_data[i].p = 768;
 	} 
 	return;
 }

@@ -24,7 +24,7 @@
 #define GSUB_PNL_ORG_X				138
 #define GSUB_PNL_ORG_Y				500
 #define GSUB_PNL_PIX2M				0.234756//グラフィックm/PIXEL(Hp35.8/164)
-#define GSUB_PNL_PIX2MM				234//グラフィックm/PIXEL(Hp35.8/164)
+#define GSUB_PNL_PIX2MM				234//グラフィックmm/PIXEL(Hp35.8/164)
 
 #define ID_GMAIN_TIMER				60898
 #define ID_GMAIN_TIMER_MS			1000

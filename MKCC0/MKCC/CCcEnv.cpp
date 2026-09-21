@@ -20,10 +20,10 @@ extern CSharedMem* pSimuStatObj;
 extern CSharedMem* pOteInfObj;
 extern CSharedMem* pAuxCsInfObj;
 
-extern INT32 aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
-extern INT32 aux_lanio_status;						    //LANIO			組み込み状況
-extern INT32 aux_sway_status;						    //振れセンサ	組み込み状況
-extern INT32 aux_gt_pos_sys_status;						//走行位置検出	組み込み状況
+extern INT32 g_aux_slbrk_status;						    //旋回ブレーキ	組み込み状況
+extern INT32 g_aux_lanio_status;						    //LANIO			組み込み状況
+extern INT32 g_aux_sway_status;						    //振れセンサ	組み込み状況
+extern INT32 g_aux_gtpos_status;						//走行位置検出	組み込み状況
 
 //ソケット
 static CSockUDP* pUSockCcEnv;	//ユニキャストOTE通信受信用
@@ -201,7 +201,7 @@ HRESULT CCcEnv::routine_work(void* pObj) {
 		if (inf.mode_id == MODE_ENV_APP_SIMURATION)		wos  << L" MODE>>SIMULATOR";
 		else if (inf.mode_id == MODE_ENV_APP_EMURATOR)	wos  << L" MODE>>EMULATOR";
 		else											wos  << L" MODE>>PRODUCT";
-		wos << L"  AUX_SWAY:" << aux_sway_status;
+		wos << L"  AUX_SWAY:" << g_aux_sway_status;
 
 		msg2host(wos.str());
 	}
@@ -1026,12 +1026,12 @@ LRESULT CALLBACK CCcEnv::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 		case IDC_TASK_ITEM_CHECK3: {
 			switch (inf.panel_func_id) {
 			case IDC_TASK_FUNC_RADIO1:
-				if (aux_sway_status == L_ON) {
-					aux_sway_status = L_OFF;
+				if (g_aux_sway_status == L_ON) {
+					g_aux_sway_status = L_OFF;
 					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_UNCHECKED, 0L);
 				}
 				else {
-					aux_sway_status = L_ON;
+					g_aux_sway_status = L_ON;
 					SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK3), BM_SETCHECK, BST_CHECKED, 0L);
 				}
 				break;
