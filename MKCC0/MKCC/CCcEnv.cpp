@@ -464,6 +464,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//### 主巻ロープ長
 	//主巻ロープ長 = ( ロープ全長- 主巻ドラム巻取量 - 起伏(主巻）ドラム巻取量 - (d値×ジブ部ロープ本数))/吊部ロープ本数
 	pCrStat->mhl.p = (pspec->axis_spec[ID_HOIST].Lfull - pCrStat->ld[ID_HOIST].p - pCrStat->ld[ID_BH_HST].p - pCrStat->d.p * pspec->axis_spec[ID_HOIST].Nwire0)/ pspec->axis_spec[ID_HOIST].Nwire1;
+	
 	//主巻ロープ長速度 = 主巻ロープ長の微分
 	v_fb = -(pCrStat->ld[ID_HOIST].v + pCrStat->ld[ID_BH_HST].v + pCrStat->d.v * pspec->axis_spec[ID_HOIST].Nwire0 ) / pspec->axis_spec[ID_HOIST].Nwire1;
 	pCrStat->mhl.a = (v_fb - pCrStat->mhl.v) / dt;
@@ -476,10 +477,10 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	double cos_th = pCrStat->cos_th = cos(pCrStat->bh_th.p);
 	double sin_th = pCrStat->sin_th = sin(pCrStat->bh_th.p);
 
-	// θ'= acos(X)' = -X'/sqrt(1-X^2) = -R'/sqrt(Lb^2 - R^2) = -R'/Lbsinθ
+	// θ'= acos(X)' = -X'/sqrt(1-X^2) = -R'/sqrt(Lb^2 - R^2) = -R'/Lbsinθ  :X=R/Lb
 	v_fb = -pCrStat->R.v /Lb/sin_th;
-	// θ'' = -(R''/sinθ-R'(1/sinθ)')/Lb = -(R''/sinθ-R'θ'(cosθ/sinθ^2)) /Lb = θ'(R"/R' - θ'cosθ/sinθ)
-	pCrStat->bh_th.a = v_fb * (pCrStat->R.a / pCrStat->R.v - v_fb * cos_th / sin_th);
+	// θ'' = -(R''/sinθ+R'(1/sinθ)')/Lb = -(R''/sinθ-R'θ'(cosθ/sinθ^2)) /Lb =-(R''-R'θ'(cosθ/sinθ)) /Lbsinθ
+	pCrStat->bh_th.a = -(pCrStat->R.a  - pCrStat->R.v * v_fb * cos_th/ sin_th)/Lb / sin_th;
 
 	pCrStat->bh_th.v = v_fb;
 
@@ -499,21 +500,21 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	
 	//吊点ベクトル
 
-	pCrStat->r.x = pCrStat->R.p * cos_ph + pPlcIo->stat_axis[ID_GANTRY].pos_fb;
-	pCrStat->r.y = pCrStat->R.p * sin_ph;
+	pCrStat->r.x = pCrStat->R.p * sin_ph + pPlcIo->stat_axis[ID_GANTRY].pos_fb;
+	pCrStat->r.y = pCrStat->R.p * cos_ph;
 	pCrStat->r.z = pspec->st_struct.Hp + pspec->st_struct.Lb * sin_th;
 
-	//(Rcosφ）' = R'cosφ+Rcosφ’=　R'cosφ+R(φ’-sinφ) (Rsinφ）' = R'sinφ+Rsinφ’=　R'sinφ+R(φ’cosφ) v_fbはrpm
-	pCrStat->v.x = pCrStat->R.v * cos_ph - pCrStat->R.p * pCrStat->sl_ph.v * sin_ph + pCrStat->nd[ID_GANTRY].v * pEnvInf->Cdrm[ID_GANTRY][1];
-	pCrStat->v.y = pCrStat->R.v * sin_ph + pCrStat->R.p * pCrStat->sl_ph.v * cos_ph;
+	// (Rsinφ）' = R'sinφ+Rsinφ’=　R'sinφ+R(φ’cosφ)   (Rcosφ）' = R'cosφ+Rcosφ’=　R'cosφ+R(φ’-sinφ) v_fbはrpm
+	pCrStat->v.x = pCrStat->R.v * sin_ph + pCrStat->R.p * pCrStat->sl_ph.v * cos_ph + pCrStat->nd[ID_GANTRY].v * pEnvInf->Cdrm[ID_GANTRY][1];
+	pCrStat->v.y = pCrStat->R.v * cos_ph - pCrStat->R.p * pCrStat->sl_ph.v * sin_ph;
 	pCrStat->v.z = pspec->st_struct.Lb * pCrStat->bh_th.v * cos_th;
 
-	//(Rcosφ）'' = (R''-Rφ'^2)cosφ - (2R'φ'+Rφ'')sinφ = C1cosφ - C2sinφ　(Rsinφ）'' = (R''-Rφ'^2)sinφ + (2R'φ'+Rφ'')cosφ = C1sinφ + C2cosφ
+	//(Rsinφ）'' = (R''-Rφ'^2)sinφ + (2R'φ'+Rφ'')cosφ = C1sinφ + C2cosφ  (Rcosφ）'' = (R''-Rφ'^2)cosφ - (2R'φ'+Rφ'')sinφ = C1cosφ - C2sinφ　
 	double C1 = pCrStat->R.a - pCrStat->R.p * pCrStat->sl_ph.v * pCrStat->sl_ph.v;
 	double C2 = 2.0 * pCrStat->R.v * pCrStat->sl_ph.v + pCrStat->R.p * pCrStat->sl_ph.a * pCrStat->sl_ph.a;
 
-	pCrStat->a.x = C1 * cos_ph - C2 * sin_ph + pCrStat->nd[ID_GANTRY].a * pEnvInf->Cdrm[ID_GANTRY][1];
-	pCrStat->a.y = C1 * sin_ph + C2 * cos_ph;
+	pCrStat->a.x = C1 * sin_ph + C2 * cos_ph + pCrStat->nd[ID_GANTRY].a * pEnvInf->Cdrm[ID_GANTRY][1];
+	pCrStat->a.y = C1 * cos_ph - C2 * sin_ph;
 	pCrStat->a.z = pspec->st_struct.Lb * (pCrStat->bh_th.a * cos_th - pCrStat->bh_th.v * pCrStat->bh_th.v * sin_th);
 	
 	//pCrStat->hpz.p = pspec->st_struct.Hp + pspec->st_struct.Ha + pCrStat->dh.p;
@@ -527,7 +528,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	//### 荷重・位置状態セット ###
 	//荷重
-	pCrStat->m.p = pPlcIo->weight;
+	pCrStat->m_mh = pPlcIo->weight * 100.0;//Kg単位　PLCは0.1ton単位の表現
 
 	//走行位置
 	double dL = (double)(pPlcIo->stat_axis[ID_GANTRY].absocoder - pCrStat->abs_preset_cnt[ID_GANTRY]) / pCrane->pSpec->axis_spec[ID_GANTRY].CntAbsR;//ドラム回転数
@@ -540,17 +541,26 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 
 	//ロープ長（PLC側の揚程値を使用）
-	pEnvInf->l_mh = Hp + sqrt(Lb * Lb - pPlcIo->r * pPlcIo->r) - pPlcIo->h_mh;
+	pEnvInf->crane_stat.mhl.p = Hp + sqrt(Lb * Lb - pPlcIo->r * pPlcIo->r) - pPlcIo->h_mh;
 
 	//振れ周期,各周波数
 	if(pEnvInf->g_ratio_x <= 0.0) pEnvInf->g_ratio_x = 1.0;
 	if(pEnvInf->g_ratio_y <= 0.0) pEnvInf->g_ratio_y = 1.0;
-	pEnvInf->wx		= sqrt(GA * pEnvInf->g_ratio_x / pEnvInf->l_mh);
-	pEnvInf->wy		= sqrt(GA * pEnvInf->g_ratio_y / pEnvInf->l_mh);
+	pEnvInf->wx		= sqrt(GA * pEnvInf->g_ratio_x / pEnvInf->crane_stat.mhl.p);
+	pEnvInf->wy		= sqrt(GA * pEnvInf->g_ratio_y / pEnvInf->crane_stat.mhl.p);
 	//pEnvInf->w2x	= pEnvInf->wx * pEnvInf->wx;
 	//pEnvInf->w2y	= pEnvInf->wy * pEnvInf->wy;
 	pEnvInf->Tx		= PI360 / pEnvInf->wx;
 	pEnvInf->Ty		= PI360 / pEnvInf->wy;
+
+	
+	//シミュレーション実行可能フラグセット
+	if (pPlcIo->stat_axis[ID_HOIST].absocoder >=0) {
+		pEnvInf->b_sim_enable = true;
+	}
+	else {
+		pEnvInf->b_sim_enable = false;
+	}
 
 	return S_OK;
 };

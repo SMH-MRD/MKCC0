@@ -67,14 +67,18 @@ typedef struct _ST_CRANE_STAT {
 	ST_MOVE_SET bh_th;							//起伏角度
 	ST_MOVE_SET R;								//旋回半径
 	ST_MOVE_SET gt;								//走行
-	ST_MOVE_SET	m;								//吊荷質量
 	ST_MOVE_SET	d;								//主巻ポスト‐起伏シーブ間状態（距離・速度・加速度）
 	ST_MOVE_SET	mhl;							//主巻ロープ長
+	ST_MOVE_SET	ahl;							//主巻ロープ長
 	ST_MOVE_SET	dh;								//d部の高さ（吊点高さ-上部ポスト高さ）
+
 
 	Vector3 a;									//加速度ベクトル
 	Vector3 r;									//位置ベクトル
 	Vector3 v;									//速度ベクトル
+
+	double	m_mh;									//吊荷質量
+	double	m_ah;
 
 	//計算用
 	double cos_ph;
@@ -108,6 +112,8 @@ typedef struct _ST_CC_ENV_INF {
 	UINT32	aux_mode = FUNC_DEACTIVE;
 	bool is_tasks_standby_ok;					//タスクの立ち上がり確認
 	bool is_crane_status_ok = false;			//クレーンステータス初期化完了
+
+	bool b_sim_enable = false;					//クレーンステータス初期化完了
 	
 	//Periodical Update	：定周期更新
 	DWORD env_act_count = 0;					//ヘルシー信号
@@ -126,8 +132,6 @@ typedef struct _ST_CC_ENV_INF {
 	double w2x,w2y;									//振角周波数の2乗
 	double g_ratio_x = 1.0;						//振れ周期補正係数　√gの比率で調整
 	double g_ratio_y = 1.0;						//振れ周期補正係数　√gの比率で調整
-	double l_mh;//主巻ロープ長
-	double l_ah;//補巻ロープ長
 
 	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
 	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
@@ -635,17 +639,16 @@ typedef struct StSimulationStatus {
 	DWORD helthy_cnt;
 	LPUN_PLC_WBUF p_plc_w;
 	LPST_SWAY_STAT p_sway_io;
-	Vector3 L, vL;											//ﾛｰﾌﾟﾍﾞｸﾄﾙ(主巻振れ）
-	Vector3 L2, vL2;										//ﾛｰﾌﾟﾍﾞｸﾄﾙ(補巻振れ）
-	double a_fb[SIM_N_AXIS];								//軸座標加速度fb
-	double v_fb[SIM_N_AXIS];								//軸座標速度fb
+
+	double a_fb[SIM_N_AXIS];							//軸座標加速度fb
+	double v_fb[SIM_N_AXIS];							//軸座標速度fb
 	double pos[SIM_N_AXIS];								//軸座標位置fb
-	double mtrq[SIM_N_AXIS];								//モータトルクfb
-	double rad_cam_x, rad_cam_y, w_cam_x, w_cam_y;			//カメラ座標振れ角,振れ角速度
-	double kbh;												//引込半径に依存する速度、加速度補正係数
-	ST_SWAY_SERVER_MSG rcv_msg;
+	double mtrq[SIM_N_AXIS];							//モータトルクfb
+	double rad_cam_x, rad_cam_y, w_cam_x, w_cam_y;		//カメラ座標振れ角,振れ角速度
+	double kbh;											//引込半径に依存する速度、加速度補正係数
+	//ST_SWAY_SERVER_MSG rcv_msg;
 	ST_SWAY_CLIENT_MSG snd_msg;
-	INT32 sonsor[SIM_N_SENSOR];								//センサ状態
+	INT32 sonsor[SIM_N_SENSOR];							//センサ状態
 
 	ST_MOVE_SET	nd[SIM_N_AXIS];					//ドラム回転動作
 	ST_MOVE_SET	d;									//ポスト‐起伏シーブ間状態（距離・速度・加速度）
@@ -656,8 +659,8 @@ typedef struct StSimulationStatus {
 	double n_layer[SIM_N_AXIS];					//ドラム現在層巻取数
 	double l_drum[SIM_N_AXIS];					//ドラム巻取り量
 
-	ST_MOVE_SET	lrm;								//主巻ロープ長
-	ST_MOVE_SET	lra;								//補巻ロープ長
+	ST_MOVE_SET	mhl;								//主巻ロープ長
+	ST_MOVE_SET	ahl;								//補巻ロープ長
 
 	double T;										//主巻振れ周期
 	double Tah;										//補巻振れ周期

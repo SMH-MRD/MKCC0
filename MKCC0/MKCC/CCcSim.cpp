@@ -52,7 +52,6 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	pOTE_Inf	= (LPST_CC_OTE_INF)		pOteInfObj->get_pMap();
 	pSim_Inf	= (LPST_CC_SIM_INF)		pSimuStatObj->get_pMap();
 
-
 	if (pCrane == NULL)return S_FALSE;
 
 	crane_id = pCrane->st_crane_inf.crane_id;
@@ -137,14 +136,19 @@ int CSim::parse() {									//メイン処理
 	switch (crane_type) {
 	case CRANE_TYPE_ID_JC:
 	default: {
-		pSimJC->timeEvolution();					//クレーンのドラム速度計算
-		set_sensor_fb_JC(crane_id);					// センサフィードバック設定　速度FB,トルク指令　高速カウンタ,アブソコーダフィードバック設定，荷重値
 
-		pSimJC->pLoad->timeEvolution();				//吊荷の位置,速度計算
-		pSimJC->pLoad->r.add(pSimJC->pLoad->dr);	//吊荷位置更新
-		pSimJC->pLoad->v.add(pSimJC->pLoad->dv);	//吊荷速度更新
-		pSimJC->pLoad->update_relative_vec();		//吊荷吊点相対ベクトル更新(ロープベクトル　L,vL)
+		if (pEnv_Inf->b_sim_enable == false) {//主幹OFFでリセット
+			reset_sim(&pEnv_Inf->crane_stat);
+		}
+		else {
+			pSimJC->timeEvolution();					//クレーンのドラム速度計算
+			set_sensor_fb_JC(crane_id);					// センサフィードバック設定　速度FB,トルク指令　高速カウンタ,アブソコーダフィードバック設定，荷重値
 
+			pSimJC->pLoad->timeEvolution();				//吊荷の位置,速度計算
+			pSimJC->pLoad->r.add(pSimJC->pLoad->dr);	//吊荷位置更新
+			pSimJC->pLoad->v.add(pSimJC->pLoad->dv);	//吊荷速度更新
+			pSimJC->pLoad->update_relative_vec();		//吊荷吊点相対ベクトル更新(ロープベクトル　L,vL)
+		}
 		//振れセンサ用io計算
 		cal_sway_io_JC();
 	}
@@ -361,9 +365,6 @@ HRESULT CSim::output_JC() {
 	st_sim_work.st_stat.pos[ID_BOOM_H]		= pSimJC->r0[ID_BOOM_H];
 	st_sim_work.st_stat.pos[ID_AHOIST]		= pSimJC->r0[ID_AHOIST];
 
-	st_sim_work.st_stat.L = pSimJC->pLoad->L;
-	st_sim_work.st_stat.vL = pSimJC->pLoad->vL;
-
 	set_sway_sensor_msg();
 
 	return S_OK;
@@ -380,17 +381,15 @@ HRESULT CSim::cal_sway_io_JC() {
 	double sin_ph_sl = -sin(pSimJC->pSimStat->ph.p);   //sin(th_sl)
 	double cos_ph_sl = -cos(pSimJC->pSimStat->ph.p);   //cos(th_sl)
 
-	double L		= pSimJC->pSimStat->lrm.p;   //主巻ロープ長
-	double th_bh	= pSimJC->pSimStat->th.p;    //起伏角度
-	double dth_bh	= pSimJC->pSimStat->th.v;    //起伏角速度
+	double mhl		= pSimJC->pSimStat->mhl.p;   //主巻ロープ長
 
 	//吊荷の相対座標（クレーン座標xyz→カメラ座標 rad）
 	//xrad = x・sinφ - y・cosφ　
-	pSimJC->pLoad->Lcam.x	= asin(((pSimJC->pLoad->L.x)	* sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)	/ L);   //振れ角旋回方向
-	pSimJC->pLoad->Lcam.y   = asin(((pSimJC->pLoad->L.x)	* cos_ph_sl + (pSimJC->pLoad->L.y)	* sin_ph_sl)	/ L);   //振れ角引込方向
+	pSimJC->pLoad->Lcam.x	= asin(((pSimJC->pLoad->L.x)	* sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)	/ mhl);   //振れ角旋回方向
+	pSimJC->pLoad->Lcam.y   = asin(((pSimJC->pLoad->L.x)	* cos_ph_sl + (pSimJC->pLoad->L.y)	* sin_ph_sl)	/ mhl);   //振れ角引込方向
 
-	pSimJC->pLoad->vLcam.x = asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)	/ L);   //振れ角速度旋回方向
-	pSimJC->pLoad->vLcam.y = asin(((pSimJC->pLoad->vL.x)	* cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl)	/ L);   //振れ角速度引込方向
+	pSimJC->pLoad->vLcam.x = asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)	/ mhl);   //振れ角速度旋回方向
+	pSimJC->pLoad->vLcam.y = asin(((pSimJC->pLoad->vL.x)	* cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl)	/ mhl);   //振れ角速度引込方向
 	
 	pSimJC->pLoad->Lcam.z = pSimJC->pLoad->L.z;
 	pSimJC->pLoad->vLcam.z = pSimJC->pLoad->vL.z;
@@ -410,8 +409,8 @@ void CSim::set_sway_sensor_msg() {
 	if (!dbg_act_sway_msg) {
 		//ターゲット情報
 		for (int i = 0; i < (int)ENUM_IMAGE::E_MAX; i++) {
-			st_sim_inf.sim_target[i].pix[ID_X] = pSimJC->pLoad->Lcam.x * PIXperRAD_X;
-			st_sim_inf.sim_target[i].pix[ID_Y] = pSimJC->pLoad->Lcam.x * PIXperRAD_Y;
+			st_sim_inf.sim_target[i].pix[ID_X] = pSimJC->pLoad->Lcam.x * PIXperRAD_X + CAM1_SPEC_PIXEL_H/2.0;
+			st_sim_inf.sim_target[i].pix[ID_Y] = pSimJC->pLoad->Lcam.y * PIXperRAD_Y + CAM1_SPEC_PIXEL_V/2.0;
 			st_sim_inf.sim_target[i].valid = L_ON;
 			st_sim_inf.sim_target[i].value = 240;
 		}
@@ -436,9 +435,20 @@ void CSim::set_sway_sensor_msg() {
 	return;
 }
 
-void CSim::reset_sway() {
-	pSimJC->pLoad->L.x	= pSimJC->pLoad->L.y = 0.0;
-	pSimJC->pLoad->vL.x = pSimJC->pLoad->vL.y = 0.0;
+void CSim::reset_sim(LPST_CRANE_STAT pstat) {
+
+	pSimJC->r.copy(pstat->r);
+	pSimJC->v.copy(pstat->v);
+	pSimJC->a.copy(pstat->a);
+
+	pSimJC->pLoad->r.copy(pSimJC->r);
+	pSimJC->pLoad->r.z -= pstat->mhl.p;
+	if ((pSimJC->pLoad->r.z - pSimJC->r.z) >= -1.0){
+		pSimJC->pLoad->r.z = pSimJC->r.z - 1.0;
+	}
+	pSimJC->pLoad->v.x = pSimJC->pLoad->v.y = pSimJC->pLoad->v.z = 0.0;
+	pSimJC->pLoad->a.x = pSimJC->pLoad->a.y = pSimJC->pLoad->a.z = 0.0;
+
 	return;
 }
 int CSim::close() {
@@ -694,7 +704,7 @@ LRESULT CALLBACK CSim::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 
 			}break;
 			case IDC_TASK_FUNC_RADIO6:
-				reset_sway();
+				reset_sim(&pEnv_Inf->crane_stat);
 				//チェックを外す
 				SendMessage(GetDlgItem(inf.hwnd_opepane, IDC_TASK_ITEM_CHECK2), BM_SETCHECK, BST_UNCHECKED, 0L);
 				break;

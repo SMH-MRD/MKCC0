@@ -1232,34 +1232,36 @@ void CAuxPol::proc_sway(int idx)
 
 		if (psway_data->ps_time < -PI180) psway_data->ps_time += PI360;//位相は±πで表現する
 
-		if ((psway_data->v_history[nv - 3] > 0.0) && (psway_data->v < 0.0)) {//振れ角速度符号変化(3scan前と比較）
-			st_sway_work.sway_peak_f[idx] = psway_data->p;				//振れ加速度－で振れ＋peak
-			psway_data->ps_time = 0.0 - expected_delay_ph;
-			st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_R_PEAK;	//リバース側待ちに切替
-			st_sway_work.sway_peak_chk_count[idx] = 0;
-		}
-		else if ((psway_data->v_history[nv - 3] < 0.0) && (psway_data->v > 0.0)) {
-			st_sway_work.sway_peak_r[idx] = psway_data->p;				//振れ加速度+で振れ-peak
-			psway_data->ps_time = PI180 - expected_delay_ph;
-			st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_F_PEAK;	//フォワード側待ちに切替
-			st_sway_work.sway_peak_chk_count[idx] = 0;
-		}
-		else {
-			st_sway_work.sway_peak_chk_count[idx]++;
-			if (st_sway_work.sway_peak_chk_count[idx] > st_sway_work.sway_T_task_count[idx]) {
-				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_STOP;
-				st_sway_work.sway_peak_f[idx] = psway_data->p;
-				st_sway_work.sway_peak_r[idx] = psway_data->p;
-				psway_data->ps_time = 0.0;
+		if (nv >= 3) {//速度検出3回以上で評価可能
+			if ((psway_data->v_history[nv - 3] > 0.0) && (psway_data->v < 0.0)) {//振れ角速度符号変化(3scan前と比較）
+				st_sway_work.sway_peak_f[idx] = psway_data->p;				//振れ加速度－で振れ＋peak
+				psway_data->ps_time = 0.0 - expected_delay_ph;
+				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_R_PEAK;	//リバース側待ちに切替
+				st_sway_work.sway_peak_chk_count[idx] = 0;
 			}
-
-			if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_R_PEAK) {
-				if (st_sway_work.sway_peak_r[idx] > psway_data->p)
-					st_sway_work.sway_peak_r[idx] = psway_data->p;
+			else if ((psway_data->v_history[nv - 3] < 0.0) && (psway_data->v > 0.0)) {
+				st_sway_work.sway_peak_r[idx] = psway_data->p;				//振れ加速度+で振れ-peak
+				psway_data->ps_time = PI180 - expected_delay_ph;
+				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_F_PEAK;	//フォワード側待ちに切替
+				st_sway_work.sway_peak_chk_count[idx] = 0;
 			}
-			if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_F_PEAK) {
-				if (st_sway_work.sway_peak_f[idx] < psway_data->p)
+			else {
+				st_sway_work.sway_peak_chk_count[idx]++;
+				if (st_sway_work.sway_peak_chk_count[idx] > st_sway_work.sway_T_task_count[idx]) {
+					st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_STOP;
 					st_sway_work.sway_peak_f[idx] = psway_data->p;
+					st_sway_work.sway_peak_r[idx] = psway_data->p;
+					psway_data->ps_time = 0.0;
+				}
+
+				if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_R_PEAK) {
+					if (st_sway_work.sway_peak_r[idx] > psway_data->p)
+						st_sway_work.sway_peak_r[idx] = psway_data->p;
+				}
+				if (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_F_PEAK) {
+					if (st_sway_work.sway_peak_f[idx] < psway_data->p)
+						st_sway_work.sway_peak_f[idx] = psway_data->p;
+				}
 			}
 		}
 	}

@@ -172,7 +172,7 @@ public:
     //タブパネルのFunctionボタンのリセット
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
-    void reset_sway();//振れをリセット
+    void reset_sim(LPST_CRANE_STAT pstat);//シミュレーションリセット
 
 private:
      static CSpec* pspec;
@@ -216,9 +216,5 @@ private:
     int parse();
     int output();
     int close();
-
-
-
-   
     
 };

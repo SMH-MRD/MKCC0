@@ -170,7 +170,7 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;
-	wo.str(L""); wo << L"荷重： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m / 10.0 << L"t";
+	wo.str(L""); wo << L"荷重： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat[ID_OTE_LOAD_MHOIST].m / 1000.0 << L"t";
 	pPanelBase->pgwinobjs->str_load_mh->update(wo.str().c_str());	// 主巻位置書き込み
 	wo.str(L""); wo << L"半径： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb << L"m";
 	pPanelBase->pgwinobjs->str_pos_bh->update(wo.str().c_str());	// 半径書き込み
@@ -324,7 +324,7 @@ void CGraphicWindow::OnPaintSub_JC(HDC hdc, HWND hWnd) {
 
 	int x = GSUB_PNL_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb / GSUB_PNL_PIX2M); // クレーンフックのX座標
 	int y = GSUB_PNL_ORG_Y - INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].pos_fb / GSUB_PNL_PIX2M); // クレーンフックのY座標
-	if (pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat->m > 150.0)	// 荷重がある場合はフック画像を変える
+	if (pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat[ID_OTE_LOAD_MHOIST].m > 15000.0)	// 荷重がある場合はフック画像を変える
 		pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(1);
 	else
 		pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->set(0);

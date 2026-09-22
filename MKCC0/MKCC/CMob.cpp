@@ -236,18 +236,24 @@ void CSimJC::get_crane_status(LPST_CRANE_STAT pstat, LPST_CC_PLC_IO pplc) {
 
 	}
 
-	pSimStat->th = pstat->bh_th;
-	pSimStat->ph = pstat->sl_ph;
-	pSimStat->d	 = pstat->d;
-	pSimStat->lrm = pstat->mhl;
-
-	pLoad->l_mh = pstat->mhl.p;//ロープ長
+	pSimStat->th	= pstat->bh_th;
+	pSimStat->ph	= pstat->sl_ph;
+	pSimStat->d		= pstat->d;
+	pSimStat->mhl	= pstat->mhl;
+	if (pSimStat->mhl.p < 1.0) pSimStat->mhl.p = 1.0;
 
 	r.copy(pstat->r);
 	v.copy(pstat->v);
 	a.copy(pstat->a);
 
 
+
+	//吊荷のロープ長セット
+	pLoad->l_mh = pstat->mhl.p;
+	if (pLoad->l_mh < 1.0) pLoad->l_mh = 1.0;
+	//吊荷の質量セット
+	pLoad->M.m = pstat->m_mh;
+	if (pLoad->M.m < 1000.0) pLoad->M.m = 1000.0;
 
 	return;
 }
@@ -276,7 +282,7 @@ Vector3 CLoad::A(Vector3& r, Vector3& v) {
 
 	Vector3 L_ = L_.subVectors(r, pMobBase->r);		//吊荷と吊点の相対ベクトル（直行座標）
 
-	double Sdivm = S() / M.m;	//張力/吊荷質量 a=F/m
+	double Sdivm = S() / M.m;	//	張力/吊荷質量 a=F/m
 
 	Vector3 a = L_.clone().multiplyScalor(Sdivm);
 	a.z -= GA;

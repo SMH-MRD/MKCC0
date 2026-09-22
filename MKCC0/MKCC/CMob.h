@@ -68,7 +68,9 @@ private:
 class CLoad : public CMob
 {
 public:
-    CLoad() { M.m = 10000.0; pMobBase = NULL; };
+    CLoad() {
+        M.m = 10000.0; pMobBase = NULL; l_mh = 1.0; type = 0;
+    };
     ~CLoad() {};
 
     Vector3 L;          //ロープベクトル(吊荷吊点相対ベクトル:クレーン座標)
@@ -177,7 +179,6 @@ private:
 
     double accdec_cut_spd_range[MOTION_ID_MAX];     //加減速指令を0にする速度指令とFBの差の範囲
  };
-
 
 class CSimGC : public CMob
 {
