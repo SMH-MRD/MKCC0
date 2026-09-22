@@ -286,6 +286,9 @@ public:
 #define ID_SUB_PNL_COM_OBJ_V_DELAY				60367
 
 #define ID_SUB_PNL_CAM_OBJ_CAMERA_BK			60368
+#define ID_SUB_PNL_CAM_OBJ_STR_MHL				60369
+#define ID_SUB_PNL_CAM_OBJ_STR_T				60370
+#define ID_SUB_PNL_CAM_OBJ_STR_KIDO				60371
 
 class CSubPanelObj :public CPanelObjBase
 {
@@ -397,7 +400,9 @@ public:
 
 	//カメラサブウィンドウ
 	CSwitchImg* img_camera_bk;			//カメラウィンドウ背景
-
+	CStringGdi* str_rope_l;				//主巻荷重
+	CStringGdi* str_T_mh;				//周期
+	CStringGdi* str_swy_kido;			//振れセンサ輝度
 
 	virtual HRESULT setup_jc_obj(int crane_id);
 	virtual HRESULT setup_gc_obj(int crane_id);

@@ -112,6 +112,8 @@ enum OTE_PNL_NOTCH {//OTEパネルノッチPB INDEX
 //#define S_OK_WAN_HHGG3801			2       //WAN通信OK
 //#define S_OK_WAN_MENTE01			3       //WAN通信OK
 
+#pragma pack(push, 1)
+
 /******* 共通メッセージヘッダ部 ***********/
 
 /// <summary>
@@ -157,8 +159,9 @@ typedef struct OteMBody {
 #define ID_OTE_LOAD_AHOIST	1
 typedef struct _ST_OTE_LOAD_STAT {
 	ST_XYZ pos;		//吊点からの相対位置
-	double l;		//ロープ長
-	double m;		//質量
+	float l;		//ロープ長
+	float m;		//質量
+	float T;		//周期
 }ST_OTE_LOAD_STAT, * LPST_OTE_LOAD_STAT;
 typedef struct _ST_OTE_PC_MSG {
 	INT16 counter;						//メッセージを更新する毎にカウントアップ
@@ -266,7 +269,7 @@ typedef struct OteUBody {
 //			ボディ部UNION定義　
 // BODY部の構造体はクレーンタイプに応じて定義して追加　
 //########################################################
-#define OTE_PRM_SIZE_OF_BODY_I16			1400//1200 byte
+#define OTE_PRM_SIZE_OF_BODY_I16			680//1200 byte
 union UN_PC_M_BODY {
 	INT16			val[OTE_PRM_SIZE_OF_BODY_I16];
 	ST_PC_M_BODY	st;
@@ -308,6 +311,6 @@ typedef struct OteUMsg {
 	UN_OTE_U_BODY   body;
 }ST_OTE_U_MSG, * LPST_OTE_U_MSG;
 
-
+#pragma pack(pop)
 
 

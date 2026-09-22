@@ -137,18 +137,18 @@ int CSim::parse() {									//メイン処理
 	case CRANE_TYPE_ID_JC:
 	default: {
 
-		if (pEnv_Inf->b_sim_enable == false) {//主幹OFFでリセット
+		if (pPLC_IO->flt_reset_pb) {//故障リセットPBでリセット
 			reset_sim(&pEnv_Inf->crane_stat);
 		}
-		else {
-			pSimJC->timeEvolution();					//クレーンのドラム速度計算
-			set_sensor_fb_JC(crane_id);					// センサフィードバック設定　速度FB,トルク指令　高速カウンタ,アブソコーダフィードバック設定，荷重値
 
-			pSimJC->pLoad->timeEvolution();				//吊荷の位置,速度計算
-			pSimJC->pLoad->r.add(pSimJC->pLoad->dr);	//吊荷位置更新
-			pSimJC->pLoad->v.add(pSimJC->pLoad->dv);	//吊荷速度更新
-			pSimJC->pLoad->update_relative_vec();		//吊荷吊点相対ベクトル更新(ロープベクトル　L,vL)
-		}
+		pSimJC->timeEvolution();					//クレーンのドラム速度計算
+		set_sensor_fb_JC(crane_id);					// センサフィードバック設定　速度FB,トルク指令　高速カウンタ,アブソコーダフィードバック設定，荷重値
+
+		pSimJC->pLoad->timeEvolution();				//吊荷の位置,速度計算
+		pSimJC->pLoad->r.add(pSimJC->pLoad->dr);	//吊荷位置更新
+		pSimJC->pLoad->v.add(pSimJC->pLoad->dv);	//吊荷速度更新
+		pSimJC->pLoad->update_relative_vec();		//吊荷吊点相対ベクトル更新(ロープベクトル　L,vL)
+
 		//振れセンサ用io計算
 		cal_sway_io_JC();
 	}
@@ -385,11 +385,18 @@ HRESULT CSim::cal_sway_io_JC() {
 
 	//吊荷の相対座標（クレーン座標xyz→カメラ座標 rad）
 	//xrad = x・sinφ - y・cosφ　
-	pSimJC->pLoad->Lcam.x	= asin(((pSimJC->pLoad->L.x)	* sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)	/ mhl);   //振れ角旋回方向
-	pSimJC->pLoad->Lcam.y   = asin(((pSimJC->pLoad->L.x)	* cos_ph_sl + (pSimJC->pLoad->L.y)	* sin_ph_sl)	/ mhl);   //振れ角引込方向
+	//pSimJC->pLoad->Lcam.x	= asin(((pSimJC->pLoad->L.x)	* sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)	/ mhl);   //振れ角旋回方向
+	//pSimJC->pLoad->Lcam.y   = asin(((pSimJC->pLoad->L.x)	* cos_ph_sl + (pSimJC->pLoad->L.y)	* sin_ph_sl)	/ mhl);   //振れ角引込方向
 
-	pSimJC->pLoad->vLcam.x = asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)	/ mhl);   //振れ角速度旋回方向
-	pSimJC->pLoad->vLcam.y = asin(((pSimJC->pLoad->vL.x)	* cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl)	/ mhl);   //振れ角速度引込方向
+	//pSimJC->pLoad->vLcam.x = asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)	/ mhl);   //振れ角速度旋回方向
+	//pSimJC->pLoad->vLcam.y = asin(((pSimJC->pLoad->vL.x)	* cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl)	/ mhl);   //振れ角速度引込方向
+
+	pSimJC->pLoad->Lcam.x = -asin(((pSimJC->pLoad->L.x) * cos_ph_sl + (pSimJC->pLoad->L.y) * sin_ph_sl) / mhl);   //振れ角引込方向
+	pSimJC->pLoad->Lcam.y = -asin(((pSimJC->pLoad->L.x)	* sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)	/ mhl);   //振れ角旋回方向
+
+	pSimJC->pLoad->vLcam.x = -asin(((pSimJC->pLoad->vL.x) * cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl) / mhl);   //振れ角速度引込方向
+	pSimJC->pLoad->vLcam.y = -asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)	/ mhl);   //振れ角速度旋回方向
+
 	
 	pSimJC->pLoad->Lcam.z = pSimJC->pLoad->L.z;
 	pSimJC->pLoad->vLcam.z = pSimJC->pLoad->vL.z;

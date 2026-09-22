@@ -133,7 +133,11 @@ static ST_OBJ_PROPERTY sub_set_props_h6r602[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_COM_OBJ_V_DELAY		,Point(45,270)	,Size(50,30)	,L"-"	},
 
 	//Cameraウィンドウ
-	{ID_SUB_PNL_CAM_OBJ_CAMERA_BK	,Point(0,0)	,Size(640,500)		,L"CamBk"	},
+	{ID_SUB_PNL_CAM_OBJ_CAMERA_BK	,Point(0,0)		,Size(640,500)	,L"CamBk"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_MHL		,Point(250,35)	,Size(100,40)	,L"ロープ長"},
+	{ID_SUB_PNL_CAM_OBJ_STR_T		,Point(370,35)	,Size(100,40)	,L"周期"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_KIDO	,Point(490,35)	,Size(100,40)	,L"輝度"	},
+
 };
 static ST_OBJ_PROPERTY gwin_set_props_h6r602[N_GWIN_OBJ] = {
 	//グラフィックMAINウィンドウ

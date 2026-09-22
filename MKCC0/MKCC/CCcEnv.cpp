@@ -555,7 +555,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	
 	//シミュレーション実行可能フラグセット
-	if (pPlcIo->stat_axis[ID_HOIST].absocoder >=0) {
+	if (pPlcIo->ctrl_source) {
 		pEnvInf->b_sim_enable = true;
 	}
 	else {

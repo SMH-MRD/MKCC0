@@ -156,6 +156,13 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO	,Point(225,210)	,Size(50,30)	,L"-"	},
 
 	{ID_SUB_PNL_COM_OBJ_V_DELAY		,Point(45,270)	,Size(50,30)	,L"-"	},
+	
+	//Cameraウィンドウ
+	{ID_SUB_PNL_CAM_OBJ_CAMERA_BK	,Point(0,0)		,Size(640,500)	,L"CamBk"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_MHL		,Point(100,20)	,Size(100,40)	,L"ロープ長"},
+	{ID_SUB_PNL_CAM_OBJ_STR_T		,Point(200,60)	,Size(100,40)	,L"周期"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_KIDO	,Point(100,100)	,Size(100,40)	,L"なんだ"	},
+
 };
 static ST_OBJ_PROPERTY gwin_set_props[N_GWIN_OBJ] = {
 	//グラフィックMAINウィンドウ
@@ -719,8 +726,14 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	i++; st_v_delay = new CStaticCtrl(ID_SUB_PNL_COM_OBJ_DEFF_SEQ_NO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	
 	//カメラサブウィンドウ
-	i++; img_camera_bk = new CSwitchImg(ID_SUB_PNL_FLT_OBJ_IMG_BK, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cam_bk, 5, 3, pgraphic_bk);
-
+	i++; img_camera_bk	= new CSwitchImg(ID_SUB_PNL_FLT_OBJ_IMG_BK, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pimg_cam_bk, 5, 3, pgraphic_bk);
+	
+	i++; str_rope_l		= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_MHL, &sub_set_props[i].pt, & sub_set_props[i].sz, sub_set_props[i].txt,
+										pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_YELLOW], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+	i++; str_T_mh		= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_T, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, 
+										pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_YELLOW], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+	i++; str_swy_kido	= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_KIDO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, 
+										pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_YELLOW], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
 	return S_OK;
 }
 HRESULT CSubPanelObj::setup_gc_obj(int _crane_id) {
@@ -780,6 +793,10 @@ void CSubPanelObj::delete_obj() {
 	delete pb_setting_update;
 	delete st_v_delay;
 	delete img_camera_bk;
+	delete	str_rope_l;
+	delete	str_T_mh;
+	delete	str_swy_kido;
+
 
 	delete img_cs_mode0; delete img_cs_mode1; delete img_cs_mode2; delete img_cs_mode3;
 	delete img_flt_bk_gr; delete img_flt_bk_rd; delete img_flt_bk_yl; delete img_flt_bk_bl;
@@ -806,6 +823,10 @@ void CSubPanelObj::refresh_obj_graphics() {
 	img_flt_bk->refresh_graphics(pgraphic_bk);
 	str_flt_message->refresh_graphics(pgraphic_inf);
 	img_camera_bk->refresh_graphics(pgraphic_bk);
+
+	str_rope_l->refresh_graphics(pgraphic_inf);
+	str_T_mh->refresh_graphics(pgraphic_inf);
+	str_swy_kido->refresh_graphics(pgraphic_inf);
 
 	return;
 }

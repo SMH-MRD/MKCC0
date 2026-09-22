@@ -176,6 +176,8 @@ typedef struct _ST_CC_PLC_IO {
 
 	INT16 e_stop_pb_active;
 	INT16 control_source;
+
+	INT16 flt_reset_pb;
 	
 	PINT16 pflt_buf;
 	PINT16 pcab_bi;

@@ -618,6 +618,8 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 		//###モード
 	pPLC_IO->plc_mode_fb = pCrane->pPlc->rval(pPlcRIf->JC.plc_ctrl_fb).i16;
 
+	pPLC_IO->control_source = pCrane->pPlc->rval(pPlcRIf->JC.syukan_mc_comp).i16;
+
 	pPLC_IO->remote_mode_sw = pCrane->pPlc->rval(pPlcRIf->JC.remote_mode_sw).i16;			//遠隔操作モードスイッチ
 	//###荷重, 揚程,旋回半径
 	pPLC_IO->weight = pCrane->pPlc->rval(pPlcRIf->JC.m).i16;								//MH荷重
@@ -630,9 +632,9 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 
 	//## 位置
 	pPLC_IO->stat_axis[ID_HOIST].pos_fb = (float)pPLC_IO->h_mh;
-	pPLC_IO->stat_axis[ID_BOOM_H].pos_fb = (float)pPLC_IO->r;											//旋回半径
-	pPLC_IO->stat_axis[ID_SLEW].pos_fb = (float)pEnv_Inf->crane_stat.sl_ph.p / RAD1DEG;				//旋回角度 DEG
-	pPLC_IO->stat_axis[ID_GANTRY].pos_fb = (float)pEnv_Inf->crane_stat.gt.p;								//走行位置 
+	pPLC_IO->stat_axis[ID_BOOM_H].pos_fb = (float)pPLC_IO->r;								//旋回半径
+	pPLC_IO->stat_axis[ID_SLEW].pos_fb = (float)pEnv_Inf->crane_stat.sl_ph.p / RAD1DEG;		//旋回角度 DEG
+	pPLC_IO->stat_axis[ID_GANTRY].pos_fb = (float)pEnv_Inf->crane_stat.gt.p;				//走行位置 
 
 	//if (pEnv_Inf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
 	//	pPLC_IO->stat_mh.pos_fb = (float)(pEnv_Inf->crane_stat.ldz.p);
@@ -832,6 +834,10 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 	}
 
 	pCrane->pPlc->wval(pPlcWIf->JC.fault_reset_pb, pOteCtrl[OTE_PNL_CTRLS::fault_reset]);	//故障リセット
+
+	pPLC_IO->flt_reset_pb = pOteCtrl[OTE_PNL_CTRLS::fault_reset];
+
+
 	pCrane->pPlc->wval(pPlcWIf->JC.alarm_stp_pb, pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
 
 	pCrane->pPlc->wval(pPlcWIf->JC.siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);			//モータサイレンスイッチ

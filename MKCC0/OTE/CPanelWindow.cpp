@@ -1222,6 +1222,16 @@ void CSubPanelWindow::OnPaintCam(HDC hdc, HWND hwnd) {
 	// 1. 背景画像の描画(pbmp_bkに描画）
 	pPanelBase->psubobjs->img_camera_bk->update();
 
+	// 3. Info画像の描画(pbmp_inf） 
+	wostringstream wo;
+	wo.str(L""); wo << L"mhl： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat[0].l << L"m";
+	pPanelBase->psubobjs->str_rope_l->update(wo.str().c_str());	// 主巻ロープ長書き込み
+
+	wo.str(L""); wo << L"T  ： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat[0].T << L"s";
+	pPanelBase->psubobjs->str_T_mh->update(wo.str().c_str());	// 振れ周期書き込み
+
+	wo.str(L""); wo << L"輝度： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.sway_body.tg_data[0].value;
+	pPanelBase->psubobjs->str_swy_kido->update(wo.str().c_str());	// 振れ周期書き込み
 
 	// バックバッファに画像集約
 	//
@@ -1231,6 +1241,15 @@ void CSubPanelWindow::OnPaintCam(HDC hdc, HWND hwnd) {
 		0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H,
 		UnitPixel,
 		&pPanelBase->psubobjs->attr
+	);
+
+	// 情報画像を背景画像に書き込み
+	drawStatus = pPanelBase->psubobjs->pgraphic_bk->DrawImage(
+		pPanelBase->psubobjs->pbmp_inf,
+		pPanelBase->psubobjs->rc_panel,
+		0, 0, SUB_PNL_WND_W, SUB_PNL_WND_H,
+		UnitPixel,
+		&pPanelBase->pgsubwinobjs->attr
 	);
 
 	// 集約バックバッファの内容を一度に画面に転送
