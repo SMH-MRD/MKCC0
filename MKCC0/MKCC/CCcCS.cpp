@@ -268,6 +268,17 @@ static INT32	ote_target_seq_last = 0;			//自動目標位置のシーケンス番号（トリガ検
 int CCcCS::input() {
 	fp_get_ote_data(crane_id);
 
+	return S_OK;
+}
+
+int CCcCS::parse() {
+//#### OTE制御
+	ote_control();
+//### OTE送信データ設定
+	fp_set_ote_data(crane_id);
+
+//### 半自動モード関連
+	//モード設定
 	//自動/半自動関連
 	if (st_ote_work.st_ote_ctrl.id_ope_active != OTE_NON_OPEMODE_ACTIVE) {//操作有効端末在り
 		if (p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_mode] && !(pnl_ctrl_buf[OTE_PNL_CTRLS::auto_mode])){
@@ -286,17 +297,6 @@ int CCcCS::input() {
 		st_cs_work.cs_ctrl.antisway_mode = L_OFF;
 		st_cs_work.cs_ctrl.auto_mode = L_OFF;
 	}
-
-	return S_OK;
-}
-
-int CCcCS::parse() {
-//#### OTE制御
-	ote_control();
-//### OTE送信データ設定
-	fp_set_ote_data(crane_id);
-
-//### 半自動モード関連
 
 	//半自動登録処理
 
@@ -537,6 +537,14 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 				plamp_com[OTE_PNL_CTRLS::syukan_off].st.com = CODE_PNL_COM_ON;
 			}
 
+			//#アシスト（AUTO）ランプ
+			if (st_cs_work.cs_ctrl.auto_mode == L_ON) {
+				plamp_com[OTE_PNL_CTRLS::auto_mode].st.com = CODE_PNL_COM_ON;
+			}
+			else {
+				plamp_com[OTE_PNL_CTRLS::auto_mode].st.com = CODE_PNL_COM_OFF;
+			}
+
 			plamp_com[OTE_PNL_CTRLS::fault_reset].st.com = (UINT8)pCrane->pPlc->rval(pPlcRIf->JC.fault_reset_pb).i16;
 			plamp_com[OTE_PNL_CTRLS::bypass].st.com = CODE_PNL_COM_ON;
 
@@ -584,9 +592,6 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 
 		st_ote_work.st_body.bh_angle = (float)(acos(pPLC_IO->r / pCrane->pSpec->st_struct.Lb));	//起伏角度
 		st_ote_work.st_body.wind_spd = (float)pPLC_IO->wind_spd;								//風速
-
-
-
 
 		//## 各軸状態
 		st_ote_work.st_body.st_axis_set[ID_HOIST] = pPLC_IO->stat_axis[ID_HOIST];

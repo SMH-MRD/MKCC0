@@ -35,6 +35,7 @@
 #define ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		60024
 #define ID_MAIN_PNL_OBJ_PB_CRANE_RELEASE	60025
 #define ID_MAIN_PNL_OBJ_STR_CRANE_TXT		60026
+#define ID_MAIN_PNL_OBJ_LMP_ASSIST_FUNC		60027
 
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE1		60030
 #define ID_MAIN_PNL_OBJ_RDO_DISP_MODE2		60031
@@ -171,7 +172,8 @@ public:
 	CCbCtrl		* cb_pnl_notch;		//パネルノッチPB
 	CPbCtrl		* pb_pad_mode;		//ジョイパッドモードPB
 	CLampCtrl	* lmp_pad_mode;		//ジョイパッドモードランプ
-	CPbCtrl		* pb_assist_func;	//アシスト機能設定
+	CPbCtrl		* pb_assist_func;	//アシスト(AUTO）機能設定
+	CLampCtrl	* lmp_assist_func;	//アシスト(AUTO）ランプ
 	CStaticCtrl	* txt_ote_type;		//端末タイプ表示テキスト
 	CPbCtrl		* pb_ote_type_wnd;	//端末タイプ設定ウィンドウ
 	CStaticCtrl	* txt_link_crane;	//接続先クレーン表示テキスト

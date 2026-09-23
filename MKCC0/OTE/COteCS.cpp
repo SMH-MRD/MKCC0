@@ -261,6 +261,7 @@ int COteCS::input(){
 		}
 	}
 
+	//クレーンのエラー情報,OTEのエラー情報で全軸0ノッチ出力
 	if(	
 		(pOteCsInf->ote_error & (FLTS_MASK_ERR_RPC_ESTP | FLTS_MASK_ERR_CPC_RPC_COMM))||
 		(pOteCsInf->ote_interlock & (FLTS_MASK_ERR_OTE_CAM_TM_OVER | FLTS_MASK_IL_CTRL_CC_COM_DELAY|FLTS_MASK_IL_SEAT_SWITCH )) ||
@@ -573,13 +574,13 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]			= (pin_opepnl->st_hhgg38.xin[4] & 0x0020);
 	
 		//旋回ブレーキフットスイッチ(0-15)
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	= pin_opepnl->st_hhgg38.ai_sl_foot;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]			= pin_opepnl->st_hhgg38.ai_sl_foot;
 		//旋回HWブレーキスイッチ		
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_hw_brk]	= (pin_opepnl->st_hhgg38.sl_brk_com & 0x0001);
 		//旋回ブレーキパークスイッチ		
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_park] = (pin_opepnl->st_hhgg38.sl_brk_com & 0x0004);
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_park]		= (pin_opepnl->st_hhgg38.sl_brk_com & 0x0004);
 		//旋回ブレーキリセットスイッチ
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_reset] = (pin_opepnl->st_hhgg38.sl_brk_com & 0x0002);
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk_reset]	= (pin_opepnl->st_hhgg38.sl_brk_com & 0x0002);
 
 
 		//モメンタリスイッチ （ハードSW）
@@ -698,7 +699,6 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_gt]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_gt];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_ah]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_ah];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
-
 	}
 
 	//## ノッチ指令値取り込み

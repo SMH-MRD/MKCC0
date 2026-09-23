@@ -179,6 +179,7 @@ void COteScad::set_panel_io() {
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote] = pPanelBase->pmainobjs->pb_remote->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad] = pPanelBase->pmainobjs->pb_pad_mode->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset] = pPanelBase->pmainobjs->pb_freset->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_mode] = pPanelBase->pmainobjs->pb_assist_func->get();
 
 			
 		//### スイッチ

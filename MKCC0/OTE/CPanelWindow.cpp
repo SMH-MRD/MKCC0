@@ -226,10 +226,12 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		ppb = pPanelBase->pmainobjs->pb_ote_type_wnd;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
-		//アシスト
+		//アシスト(Auto)
 		ppb = pPanelBase->pmainobjs->pb_assist_func;
-		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_assist_func->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+
 		//クレーン選択
 		ppb = pPanelBase->pmainobjs->pb_crane_release;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
@@ -310,7 +312,6 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 			pPanelBase->pmainobjs->pb_remote->update(true);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_PAD_MODE: {
-
 			pPanelBase->pmainobjs->pb_pad_mode->update(true);
 		}break;
 		case ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC: {
@@ -409,7 +410,8 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		//遠隔
 		pPanelBase->pmainobjs->lmp_remote->set(pCsInf->st_body.remote);
 		pPanelBase->pmainobjs->lmp_remote->update();
-
+		
+		//PAD
 		pPanelBase->pmainobjs->lmp_pad_mode->set(pCsInf->st_body.game_pad_mode);
 		pPanelBase->pmainobjs->lmp_pad_mode->update();
 
@@ -420,6 +422,10 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 			pPanelBase->pmainobjs->lmp_freset->set(L_OFF);
 
 		pPanelBase->pmainobjs->lmp_freset->update();
+
+		//アシスト（AUTO）
+		code = pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_mode].code;
+		pPanelBase->pmainobjs->lmp_assist_func->set(code); pPanelBase->pmainobjs->lmp_assist_func->update();
 
 		//# SwitchImg更新(ランプ）
 		//CCとの通信状態表示(受信）
@@ -502,6 +508,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARA
 		}
 		else if (pDIS->CtlID == pos->pb_freset->id) {//FAULTランプ
 			plamp = pos->lmp_freset; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_assist_func->id) {//ASSISTランプ
+			plamp = pos->lmp_assist_func; pfont = plamp->pFont;
 		}
 		else return false;
 
@@ -622,6 +631,12 @@ LRESULT CALLBACK CMainPanelWindow::WndProcJC(HWND hWnd, UINT msg, WPARAM wp, LPA
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
 		pPanelBase->pmainobjs->lmp_pad_mode->set_ctrl(ppb);//ランプにボタンのウィンドウハンドルをセット
 
+		//アシスト
+		ppb = pPanelBase->pmainobjs->pb_assist_func;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE | BS_OWNERDRAW,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+		pPanelBase->pmainobjs->lmp_assist_func->set_ctrl(ppb);//ランプにボタンのボタンコントロールをセット
+				
 		//PB
 		//認証
 		ppb = pPanelBase->pmainobjs->pb_auth;
@@ -631,10 +646,7 @@ LRESULT CALLBACK CMainPanelWindow::WndProcJC(HWND hWnd, UINT msg, WPARAM wp, LPA
 		ppb = pPanelBase->pmainobjs->pb_ote_type_wnd;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
-		//アシスト
-		ppb = pPanelBase->pmainobjs->pb_assist_func;
-		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hWnd, (HMENU)(ppb->id), hInst, NULL));
+
 		//クレーン選択
 		ppb = pPanelBase->pmainobjs->pb_crane_release;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
@@ -685,7 +697,6 @@ LRESULT CALLBACK CMainPanelWindow::WndProcJC(HWND hWnd, UINT msg, WPARAM wp, LPA
 
 		//表示更新用タイマー
 		SetTimer(hWnd, ID_MAIN_PANEL_TIMER, ID_MAIN_PANEL_TIMER_MS, NULL);
-
 
 		if (pSubPanelWnd == NULL) {
 			pSubPanelWnd = new CSubPanelWindow(hInst, hWnd, crane_id, ID_MAIN_PNL_OBJ_RDO_OPT_WND_FLT, pPanelBase);
@@ -818,8 +829,13 @@ LRESULT CALLBACK CMainPanelWindow::WndProcJC(HWND hWnd, UINT msg, WPARAM wp, LPA
 		pPanelBase->pmainobjs->lmp_remote->set(pCsInf->st_body.remote);
 		pPanelBase->pmainobjs->lmp_remote->update();
 
+		//PAD
 		pPanelBase->pmainobjs->lmp_pad_mode->set(pCsInf->st_body.game_pad_mode);
 		pPanelBase->pmainobjs->lmp_pad_mode->update();
+
+		//アシスト（Auto）
+		code = pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_mode].code;
+		pPanelBase->pmainobjs->lmp_assist_func->set(code); pPanelBase->pmainobjs->lmp_assist_func->update();
 
 		//故障リセット
 		if (pUi->pnl_ctrl[OTE_PNL_CTRLS::fault_reset])
@@ -910,6 +926,9 @@ LRESULT CALLBACK CMainPanelWindow::WndProcJC(HWND hWnd, UINT msg, WPARAM wp, LPA
 		}
 		else if (pDIS->CtlID == pos->pb_freset->id) {//FAULTランプ
 			plamp = pos->lmp_freset; pfont = plamp->pFont;
+		}
+		else if (pDIS->CtlID == pos->pb_assist_func->id) {//FAULTランプ
+			plamp = pos->lmp_assist_func; pfont = plamp->pFont;
 		}
 		else return false;
 

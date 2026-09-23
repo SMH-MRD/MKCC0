@@ -46,6 +46,7 @@ static ST_OBJ_PROPERTY main_props[N_MAIN_PNL_OBJ] = {
 		{ID_MAIN_PNL_OBJ_PB_PAD_MODE		,Point(1780,405),Size(100,40)	,L"PAD"				},
 		{ID_MAIN_PNL_OBJ_LMP_PAD_MODE		,Point(1780,405),Size(100,40)	,L"PAD"				},
 		{ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC		,Point(1780,450),Size(100,40)	,L"アシスト"		},
+		{ID_MAIN_PNL_OBJ_LMP_ASSIST_FUNC	,Point(1780,450),Size(100,40)	,L"アシスト"		},
 		{ID_MAIN_PNL_OBJ_TXT_OPE_TYPE		,Point(1780,735),Size(100,30)	,L"端末モード"		},
 		{ID_MAIN_PNL_OBJ_PB_OTE_TYPE_WND	,Point(1780,760),Size(100,40)	,L"端末モード"		},
 		{ID_MAIN_PNL_OBJ_TXT_LINK_CRANE		,Point(1780,820),Size(100,30)	,L"未接続"			},
@@ -413,6 +414,7 @@ HRESULT CMainPanelObj::setup_jc_obj(int _crane_id) {
 	Image* pimg_estop[N_IMG_SWITCH_MAX] = { img_estp_of, img_estp_on, img_estp_of2, img_estp_on2 , img_b80_on, img_w80_of, img_w80_of, img_b80_on };
 	Image* pimg_signal[N_IMG_SWITCH_MAX] = { img_b1_of, img_b1_on , img_y1_on, img_r1_on, img_g1_on, img_b1_of, img_b1_of, img_b1_of };
 	Image* pimg_freset[N_IMG_SWITCH_MAX] = { img_freset_of, img_freset_on, img_w80_of, img_w80_of , img_b80_on, img_w80_of, img_w80_of, img_b80_on };
+	Image* pimg_assist_func[N_IMG_SWITCH_MAX] = { img_w80_of, img_r80_on , img_g80_on, img_w80_of, img_w80_of, img_w80_of, img_w80_of, img_w80_of };
 
 //0 メッセージ,クレーンTXT
 		str_message			= new CStringGdi(ID_MAIN_PNL_OBJ_STR_MESSAGE, &main_props[i].pt, &main_props[i].sz,  main_props[i].txt,
@@ -460,7 +462,8 @@ HRESULT CMainPanelObj::setup_jc_obj(int _crane_id) {
 	lmp_pad_mode->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_14], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 //ASSIST
 	i++;pb_assist_func		= new CPbCtrl(ID_MAIN_PNL_OBJ_PB_ASSIST_FUNC, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-
+	i++;lmp_assist_func		= new CLampCtrl(ID_MAIN_PNL_OBJ_LMP_ASSIST_FUNC, &main_props[i].pt, &main_props[i].sz, main_props[i].txt, pimg_assist_func, 3, 3);
+	lmp_assist_func->set_txt_items(drawing_items.pfont[ID_PANEL_FONT_14], drawing_items.pstrformat[ID_STR_FORMAT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_DGRAY]);
 
 //19-20 端末モード設定TXT/PB
 //操作端末タイプ
@@ -526,6 +529,7 @@ void CMainPanelObj::delete_obj() {
 	delete pb_pad_mode;		
 	delete lmp_pad_mode;	
 	delete pb_assist_func;	
+	delete lmp_assist_func;
 	delete txt_ote_type;	
 	delete pb_ote_type_wnd;	
 	delete pb_freset;
@@ -565,6 +569,7 @@ void CMainPanelObj::refresh_obj_graphics() {
 	pb_pad_mode->refresh_graphics(pgraphic);
 	lmp_pad_mode->refresh_graphics(pgraphic);
 	pb_assist_func->refresh_graphics(pgraphic);
+	lmp_assist_func->refresh_graphics(pgraphic);
 	txt_ote_type->refresh_graphics(pgraphic);
 	pb_ote_type_wnd->refresh_graphics(pgraphic);
 	txt_link_crane->refresh_graphics(pgraphic);

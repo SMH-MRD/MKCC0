@@ -161,10 +161,8 @@ typedef struct _ST_CS_MON2 {
 }ST_CS_MON2, * LPST_CS_MON2;
 
 
-
 #define OTE_IF_TMOV_COUNTUP             10         // 操作モードの端末のタイムオーバー判定時間
 #define OTE_IF_RELEASE_COUNTUP          30          // 操作モードの端末の応答切れ判定時間
-
 
 class CCcCS : public CBasicControl
 {
@@ -185,7 +183,7 @@ public:
     //タスク出力用構造体
     static ST_CC_CS_INF     st_cs_work;
     static ST_CC_OTE_INF    st_ote_work;
-    
+        
     static HRESULT rcv_uni_ote(LPST_OTE_U_MSG pbuf);
 	static HRESULT rcv_mul_pc(LPST_PC_M_MSG pbuf);
     static HRESULT rcv_mul_ote(LPST_OTE_M_MSG pbuf);
@@ -226,7 +224,7 @@ private:
     int crane_id;
     static int ote_option_setting;
 	int auto_act_status = 0; //自動運転の状態
-       
+
     HRESULT(*fp_get_ote_data)(int id) = NULL;       //OTEからの受信データをセット  
     HRESULT(*fp_set_ote_data)(int id) = NULL;       //OTEへの送信データをセット   
     HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
