@@ -226,6 +226,33 @@ public:
 #define ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE		60216
 #define ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD		60217
 
+#define ID_SUB_PNL_SET_OBJ_PB_AUTO_SET			60218
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE1		60219
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE2		60220
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE3		60221
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE4		60222
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE5		60223
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE6		60224
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE7		60225
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE8		60226
+#define ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE		60227
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM1			60228
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM2			60229
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM3			60230
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM4			60231
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM5			60232
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM6			60233
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM7			60234
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM8			60235
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM1		60236
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM2		60237
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM3		60238
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM4		60239
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM5		60240
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM6		60241
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM7		60242
+#define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM8		60243
+#define ID_SUB_PNL_SET_OBJ_ST_AUTO_TYPE			60244
 
 #define ID_SUB_PNL_STAT_OBJ_BASE				60300
 #define ID_SUB_PNL_STAT_OBJ_PB_NEXT				60300
@@ -336,6 +363,37 @@ public:
 	CStaticCtrl	*st_v_delay_auto_set_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット進捗表示テキスト
 	CStaticCtrl	*st_v_delay_prm_io_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
 
+	CPbCtrl* pb_auto_set;						//自動パラメータセットPB
+
+	CCbCtrl* cb_auto_type1;						//自動タイプ選択ラジオボタン
+	CCbCtrl* cb_auto_type2;						//自動タイプ選択ラジオボタン
+	CCbCtrl* cb_auto_type3;						//自動タイプ選択ラジオボタン
+	CCbCtrl* cb_auto_type4;						//自動タイプ選択ラジオボタン
+	CCbCtrl* cb_auto_type5;						//自動タイプ選択ラジオボタン
+	CCbCtrl* cb_auto_type6;						//自動タイプ選択ラジオボタン
+	CCbCtrl* cb_auto_type7;						//自動タイプ選択ラジオボタン
+	CCbCtrl* cb_auto_type8;						//自動タイプ選択ラジオボタン
+	CRadioCtrl* rdo_auto_type;					//自動タイプ選択ラジオボタン
+	
+	CStaticCtrl* st_auto_type;					//自動タイプ設定内容表示
+	CStaticCtrl* st_auto_prm1;					//自動パラメータ設定内容表示
+	CStaticCtrl* st_auto_prm2;					//自動パラメータ設定内容表示
+	CStaticCtrl* st_auto_prm3;					//自動パラメータ設定内容表示
+	CStaticCtrl* st_auto_prm4;					//自動パラメータ設定内容表示
+	CStaticCtrl* st_auto_prm5;					//自動パラメータ設定内容表示
+	CStaticCtrl* st_auto_prm6;					//自動パラメータ設定内容表示
+	CStaticCtrl* st_auto_prm7;					//自動パラメータ設定内容表示
+	CStaticCtrl* st_auto_prm8;					//自動パラメータ設定内容表示
+
+	CEditIntCtrl* ed_auto_prm1;					//自動パラメータ設定内容入力
+	CEditIntCtrl* ed_auto_prm2;					//自動パラメータ設定内容入力
+	CEditIntCtrl* ed_auto_prm3;					//自動パラメータ設定内容入力
+	CEditIntCtrl* ed_auto_prm4;					//自動パラメータ設定内容入力
+	CEditIntCtrl* ed_auto_prm5;					//自動パラメータ設定内容入力
+	CEditIntCtrl* ed_auto_prm6;					//自動パラメータ設定内容入力
+	CEditIntCtrl* ed_auto_prm7;					//自動パラメータ設定内容入力
+	CEditIntCtrl* ed_auto_prm8;					//自動パラメータ設定内容入力
+	
 	//状態表示サブウィンドウのオブジェクト
 	CPbCtrl*	pb_stat_next;		//次表示PB
 	CPbCtrl*	pb_stat_back;		//前表示PB

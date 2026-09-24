@@ -90,6 +90,28 @@ public:
 };
 
 /// <summary>
+/// EditBox コントロール(
+/// </summary>
+class CEditIntCtrl : public CPnlParts<int> {	//エディットBOX
+
+public:
+	CEditIntCtrl(INT32 _id, Point* ppt, Size* psz, LPCWSTR ptext) {
+		set_id(_id);
+		set_base(ppt, psz, ptext);
+	}
+	virtual ~CEditIntCtrl() {}
+	int  update(HWND _hwnd) {				//更新 引数は親ウィンドウのハンドル
+		BOOL success = FALSE;
+		// 3. エディットボックスから int データを取得
+		// 第3引数に BOOL型へのポインタを渡すことで、変換の成否（空文字やオーバーフローなど）を判定できます
+		// 第4引数を TRUE にすると、負の数（マイナス）も許可します
+		value = GetDlgItemInt(_hwnd, id, &success, TRUE);
+
+		return value;		//戻り値はint
+	}
+};
+
+/// <summary>
 /// PB コントロール
 /// ボタンのトリガでカウントをセット→updateメソッドを定周期呼び出しでカウントダウン
 /// </summary>
@@ -321,7 +343,6 @@ public:
 	RECT rect;
 	RectF frc;
 	
-
 	Image* pimg_disp;
 
 	HRESULT setup_flick(INT32 _n_flick, INT32 _fcount, INT32* pid);
@@ -608,6 +629,8 @@ public:
 		return SetWindowText(hWnd, ptext);		//戻り値はテキストカウント値
 	}
 };
+
+
 
 
 

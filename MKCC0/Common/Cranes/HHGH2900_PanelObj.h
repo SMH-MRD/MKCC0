@@ -60,12 +60,12 @@ static ST_OBJ_PROPERTY sub_set_props_hhgh29[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_RDO_BHR		,Point(20,280)	,Size(30,30)	,L"引込モード"	},
 	{ID_SUB_PNL_SET_OBJ_LMP_BHR		,Point(130,290)	,Size(80,80)	,L"引込モード"	},
 
-	{ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE		,Point(380,50)	,Size(100,30)	,L"DeviceON"	},//i=12
-	{ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM	,Point(380,100)	,Size(100,30)	,L"AutoPrm"		},
-	{ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE	,Point(380,160)	,Size(100,30)	,L"SavePrm"		},
-	{ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD	,Point(380,200)	,Size(100,30)	,L"LoadPrm"		},
-	{ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM	,Point(500,105)	,Size(150,30)	,L"STANDBY"		},
-	{ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE	,Point(500,180)	,Size(150,60)	,L"要求待ち"	},
+	{ID_SUB_PNL_SET_OBJ_CB_VDLY_DEVICE		,Point(330,55)	,Size(100,35)	,L"DeviceON"	},//i=12
+	{ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM	,Point(440,55)	,Size(100,35)	,L"AutoPrm"		},
+	{ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_SAVE	,Point(330,100)	,Size(100,35)	,L"SavePrm"		},
+	{ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD	,Point(440,100)	,Size(100,35)	,L"LoadPrm"		},
+	{ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM	,Point(550,60)	,Size(150,35)	,L"STANDBY"		},
+	{ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE	,Point(550,100)	,Size(150,65)	,L"要求待ち"	},
 	
 	//状態サブウィンドウ
 	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=17

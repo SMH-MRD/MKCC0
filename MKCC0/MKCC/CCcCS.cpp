@@ -300,6 +300,7 @@ int CCcCS::parse() {
 
 	//半自動登録処理
 
+	
 	LPST_JOB_SET p_job;
 	
 	if (st_cs_work.job_control_status == CS_JOBSET_STATUS_DISABLE) {
@@ -580,6 +581,18 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 
 			plamp_com[OTE_PNL_CTRLS::alm_lamp].code = plamp_com[OTE_PNL_CTRLS::fault_lamp].code;
 			plamp_com[OTE_PNL_CTRLS::ope_ready].code = pCrane->pPlc->rval(pPlcRIf->JC.syukairo_comp).i16;
+		
+			//#自動関連
+			plamp_com[OTE_PNL_CTRLS::auto_type].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_type];
+			plamp_com[OTE_PNL_CTRLS::auto_prm1].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
+			plamp_com[OTE_PNL_CTRLS::auto_prm2].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
+			plamp_com[OTE_PNL_CTRLS::auto_prm3].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
+			plamp_com[OTE_PNL_CTRLS::auto_prm4].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
+			plamp_com[OTE_PNL_CTRLS::auto_prm5].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
+			plamp_com[OTE_PNL_CTRLS::auto_prm6].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
+			plamp_com[OTE_PNL_CTRLS::auto_prm7].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
+			plamp_com[OTE_PNL_CTRLS::auto_prm8].code = st_ote_work.st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
+		
 		}
 
 		//##　故障情報セット

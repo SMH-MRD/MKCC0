@@ -72,6 +72,16 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	v_delay_load_prm,	//映像遅延自動ﾊﾟﾗﾒｰﾀ読み込み起動
 	auto_act,			//自動実行
 	anti_sway,			//振れ止めPB
+	auto_set,			//自動設定PB
+	auto_type,			//自動タイプ選択
+	auto_prm1,			//自動パラメータ表示
+	auto_prm2,			//自動パラメータ表示
+	auto_prm3,			//自動パラメータ表示
+	auto_prm4,			//自動パラメータ表示
+	auto_prm5,			//自動パラメータ表示
+	auto_prm6,			//自動パラメータ表示
+	auto_prm7,			//自動パラメータ表示
+	auto_prm8,			//自動パラメータ表示
 	MAX
 };
 

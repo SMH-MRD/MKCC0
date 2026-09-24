@@ -699,6 +699,18 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_gt]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_gt];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_ah]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_ah];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
+
+
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
+
 	}
 
 	//## ノッチ指令値取り込み

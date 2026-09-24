@@ -199,6 +199,20 @@ void COteScad::set_panel_io() {
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_load->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = pPanelBase->psubobjs->cb_v_delay_chk_device->get();
 
+		//### 自動設定関連
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pPanelBase->psubobjs->pb_auto_set->get();				//auto set PB
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pPanelBase->psubobjs->rdo_auto_type->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pPanelBase->psubobjs->ed_auto_prm1->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm2]		= pPanelBase->psubobjs->ed_auto_prm2->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm3]		= pPanelBase->psubobjs->ed_auto_prm3->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm4]		= pPanelBase->psubobjs->ed_auto_prm4->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm5]		= pPanelBase->psubobjs->ed_auto_prm5->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm6]		= pPanelBase->psubobjs->ed_auto_prm6->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm7]		= pPanelBase->psubobjs->ed_auto_prm7->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm8]		= pPanelBase->psubobjs->ed_auto_prm8->get();
+
+
+
 		//### ノッチ指令
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_bh];

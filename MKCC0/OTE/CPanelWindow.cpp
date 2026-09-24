@@ -1740,39 +1740,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 
-		//映像遅延検出関連
-				//LABEL 
-		CreateWindowW(TEXT("STATIC"), L"映像遅延検出設定", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			400, 25, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
-
-
-		pcb = pPanelBase->psubobjs->cb_v_delay_chk_device;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_MULTILINE,
-			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
-
-		//STATIC 
-		CStaticCtrl* pst = pPanelBase->psubobjs->st_v_delay_auto_set_status;
-		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
-			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
-		pst = pPanelBase->psubobjs->st_v_delay_prm_io_status;
-		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
-			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
-		//PB
-		CPbCtrl* ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set;
-		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
-
-		ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_save;
-		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
-
-		ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_load;
-		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
-			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
-
 		//Switch Image Windowハンドルセット（パネルウィンドウ）
 		pPanelBase->psubobjs->lmp_mh_spd_mode->set_wnd(hwnd);
-		pPanelBase->psubobjs->lmp_mh_spd_mode->set_wnd(hwnd);
+		pPanelBase->psubobjs->lmp_bh_r_mode->set_wnd(hwnd);
 
 		//初期値セット
 		//巻速度モード
@@ -1817,6 +1787,146 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 			SendMessage(pPanelBase->psubobjs->cb_bh_r_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 		}
+
+		//映像遅延検出関連
+		//LABEL 
+		CreateWindowW(TEXT("STATIC"), L"映像遅延検出設定", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			400, 25, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
+
+
+		pcb = pPanelBase->psubobjs->cb_v_delay_chk_device;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+		//STATIC 
+		CStaticCtrl* pst = pPanelBase->psubobjs->st_v_delay_auto_set_status;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_v_delay_prm_io_status;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		//PB
+		CPbCtrl* ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
+		ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_save;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
+		ppb = pPanelBase->psubobjs->pb_v_delay_chk_prm_load;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
+		//自動設定関連
+		//LABEL 
+		CreateWindowW(TEXT("STATIC"), L"自動設定", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			400, 175, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"Auto Parameter", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			300, 290, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"Auto Type", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			300, 220, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"1:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			300, 320, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"2:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			300, 350, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"3:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			300, 380, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"4:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			300, 410, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"5:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			470, 320, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"6:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			470, 350, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"7:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			470, 380, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"8:", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			470, 410, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+
+		//PB
+		ppb = pPanelBase->psubobjs->pb_auto_set;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+
+		//RADIO BUTTON
+		pcb = pPanelBase->psubobjs->cb_auto_type1;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_auto_type2;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_auto_type3;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_auto_type4;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_auto_type5;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_auto_type6;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_auto_type7;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+		pcb = pPanelBase->psubobjs->cb_auto_type8;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
+
+		pst = pPanelBase->psubobjs->st_auto_type;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm1;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm2;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm3;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm4;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm5;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm6;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm7;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+		pst = pPanelBase->psubobjs->st_auto_prm8;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
+
+		CEditIntCtrl* ped = pPanelBase->psubobjs->ed_auto_prm1;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+		ped = pPanelBase->psubobjs->ed_auto_prm2;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+		ped = pPanelBase->psubobjs->ed_auto_prm3;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+		ped = pPanelBase->psubobjs->ed_auto_prm4;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+		ped = pPanelBase->psubobjs->ed_auto_prm5;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+		ped = pPanelBase->psubobjs->ed_auto_prm6;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+		ped = pPanelBase->psubobjs->ed_auto_prm7;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+		ped = pPanelBase->psubobjs->ed_auto_prm8;
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
+
 	}break;
 
 	case WM_LBUTTONUP: {//マウス左ボタン押下でモニタウィンドウ描画更新
@@ -1844,7 +1954,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pPanelBase->psubobjs->lmp_bh_r_mode->update();	//表示更新
 
 		//操作台モード時または遠隔操作権無効時は、クレーン状態にラジオボタンセット
-		if ((pCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)||(pCsInf->st_body.remote != CODE_PNL_COM_ACTIVE)) {
+		if ((pCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) || (pCsInf->st_body.remote != CODE_PNL_COM_ACTIVE)) {
 			//巻速度モード
 			if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE0) {
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_CHECKED, 0);
@@ -1865,7 +1975,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 			}
 			else if (pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com == CODE_MODE3) {
-				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_CHECKED, 0);  
+				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode3->hWnd, BM_SETCHECK, BST_CHECKED, 0);
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode2->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode0->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 				SendMessage(pPanelBase->psubobjs->cb_mh_spd_mode1->hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
@@ -1944,6 +2054,11 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(false);
 			pPanelBase->psubobjs->pb_v_delay_chk_prm_save->update(false);
 		}
+		//自動設定関連
+		{
+			pPanelBase->psubobjs->pb_auto_set->update(false);
+		}
+
 	}break;
 
 	case WM_COMMAND: {
@@ -1985,6 +2100,29 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		}break;
 		case ID_SUB_PNL_SET_OBJ_PB_VDLY_PRM_LOAD: {
 			pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(true);
+		}break;
+		case ID_SUB_PNL_SET_OBJ_PB_AUTO_SET: {
+			pPanelBase->psubobjs->pb_auto_set->update(true);
+			pPanelBase->psubobjs->ed_auto_prm1->update(hwnd);
+			pPanelBase->psubobjs->ed_auto_prm2->update(hwnd);
+			pPanelBase->psubobjs->ed_auto_prm3->update(hwnd);
+			pPanelBase->psubobjs->ed_auto_prm4->update(hwnd);
+			pPanelBase->psubobjs->ed_auto_prm5->update(hwnd);
+			pPanelBase->psubobjs->ed_auto_prm6->update(hwnd);
+			pPanelBase->psubobjs->ed_auto_prm7->update(hwnd);
+			pPanelBase->psubobjs->ed_auto_prm8->update(hwnd);
+		}break;
+
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE1:
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE2:
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE3:
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE4: 
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE5:
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE6:
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE7:
+		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE8:
+		{
+			code = pPanelBase->psubobjs->rdo_auto_type->update(true);
 		}break;
 
 		default:
