@@ -553,7 +553,7 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->gpad_in.trig_r		= st_obj.trig_r.set(pPad->get_trig_R());
 
 		pOteCsInf->gpad_in.auto_act		= pPad->chk_on(st_obj.auto_act.set(pPad->get_up()));
-		pOteCsInf->gpad_in.auto_mode = pPad->chk_on(st_obj.auto_mode.set(pPad->get_up()));
+		pOteCsInf->gpad_in.auto_mode = pPad->chk_on(st_obj.auto_mode.set(pPad->get_down()));
 
 		//GamePadのアナログ値をValueオブジェクトにセット⇒ノッチ数に変換して共有メモリにセット
 		st_obj.pad_mh->set(pPad->get_RY());
@@ -679,9 +679,9 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::bypass]			|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::bypass]		;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::alm_stop]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::alm_stop]	;
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::motor_siren]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::motor_siren];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_trolley]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hv_trolley]	;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_gantry]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hv_gantry]	;
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_aux]			|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hv_aux]		;
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_trolley]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hv_trolley]	;//	高圧
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_gantry]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hv_gantry]	;//	高圧
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::hv_aux]			|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::hv_aux]		;//	高圧
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camA_adjust]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::camA_adjust];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camB_adjust]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::camB_adjust];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::camAselect]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::camAselect]	;
@@ -700,16 +700,16 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_ah]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_ah];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
 
-
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
 
 	}
 

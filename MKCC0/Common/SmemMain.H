@@ -534,14 +534,18 @@ typedef struct _ST_CC_AGENT_INF {
 #define CC_CS_AUTO_TYPE7			7
 #define CC_CS_AUTO_TYPE8			8
 
+#define CC_CS_DEVICE_INPUT_RMT_DESK		0x00000001
+#define CC_CS_DEVICE_INPUT_OTE_PC		0x00000002
+#define CC_CS_DEVICE_INPUT_GPAD			0x00000004
+
 /// <summary>
 /// クライアント（OTE）からのクレーン制御への要求内容を保持する構造体
 /// </summary>
 typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_mode;														//自動モード
 	INT32		antisway_mode;													//振れ止めモード
-	INT32		auto_act_status;												//自動起動ステータス
-	INT32		auto_type;
+	INT32		auto_act_req;													//自動起動入力ステータス
+	INT32		auto_type;														//自動タイプ設定
 	INT32		auto_status[MOTION_ID_MAX];
 	INT32		ote_remote_status;												//
 	INT32		ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;					//操作端末の状態　0bit：端末信号有効

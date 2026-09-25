@@ -194,14 +194,19 @@ void COteScad::set_panel_io() {
 		else;
 
 		//### 映像遅延チェック操作関連
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_save->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm] = pPanelBase->psubobjs->pb_v_delay_chk_prm_load->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = pPanelBase->psubobjs->cb_v_delay_chk_device->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_auto_prm]	= pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_save_prm]	= pPanelBase->psubobjs->pb_v_delay_chk_prm_save->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_load_prm]	= pPanelBase->psubobjs->pb_v_delay_chk_prm_load->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::v_delay_device]		= pPanelBase->psubobjs->cb_v_delay_chk_device->get();
 
 		//### 自動設定関連
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pPanelBase->psubobjs->pb_auto_set->get();				//auto set PB
+
+		//自動のタイプはauto_setボタンがONの時ラジオボタンの設定値を出力してコマンド送信とする
+		//if (!st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_set])
+		//	pPanelBase->psubobjs->rdo_auto_type->set(-1);
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pPanelBase->psubobjs->rdo_auto_type->get();
+
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pPanelBase->psubobjs->ed_auto_prm1->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm2]		= pPanelBase->psubobjs->ed_auto_prm2->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm3]		= pPanelBase->psubobjs->ed_auto_prm3->get();
@@ -211,7 +216,7 @@ void COteScad::set_panel_io() {
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm7]		= pPanelBase->psubobjs->ed_auto_prm7->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm8]		= pPanelBase->psubobjs->ed_auto_prm8->get();
 
-
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]	= pPanelBase->psubobjs->cb_auto_act_dbg->get();
 
 		//### ノッチ指令
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_mh];

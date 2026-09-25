@@ -1847,6 +1847,11 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		ppb = pPanelBase->psubobjs->pb_auto_set;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+		
+		//CB
+		pcb = pPanelBase->psubobjs->cb_auto_act_dbg;
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_MULTILINE,
+			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 
 		//RADIO BUTTON
 		pcb = pPanelBase->psubobjs->cb_auto_type1;
@@ -1859,7 +1864,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		pcb = pPanelBase->psubobjs->cb_auto_type4;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		pcb = pPanelBase->psubobjs->cb_auto_type5;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
@@ -1868,7 +1873,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		pcb = pPanelBase->psubobjs->cb_auto_type7;
-		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE | WS_GROUP,
+		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
 			pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 		pcb = pPanelBase->psubobjs->cb_auto_type8;
 		pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_MULTILINE,
@@ -1902,29 +1907,30 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 
+
 		CEditIntCtrl* ped = pPanelBase->psubobjs->ed_auto_prm1;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 		ped = pPanelBase->psubobjs->ed_auto_prm2;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 		ped = pPanelBase->psubobjs->ed_auto_prm3;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 		ped = pPanelBase->psubobjs->ed_auto_prm4;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 		ped = pPanelBase->psubobjs->ed_auto_prm5;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 		ped = pPanelBase->psubobjs->ed_auto_prm6;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 		ped = pPanelBase->psubobjs->ed_auto_prm7;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 		ped = pPanelBase->psubobjs->ed_auto_prm8;
-		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_NUMBER,
+		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
 			ped->pt.X, ped->pt.Y, ped->sz.Width, ped->sz.Height, hwnd, (HMENU)(ped->id), hInst, NULL));
 
 	}break;
@@ -1934,7 +1940,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 	}
 	case WM_CTLCOLORSTATIC: {//スタティックテキストの色セット
 		SetTextColor((HDC)wParam, RGB(220, 220, 220)); // ライトグレー
-		SetBkMode((HDC)wParam, TRANSPARENT);
+		SetBkColor((HDC)wParam,  RGB(70, 70, 70));//(LRESULT)GetStockObject(GRAY_BRUSH));
+	//	SetBkMode((HDC)wParam, TRANSPARENT);
 	}return (LRESULT)GetStockObject(NULL_BRUSH); // 背景色に合わせる
 
 	case WM_ERASEBKGND: {//ウィンドウの背景色をグレーに
@@ -2022,9 +2029,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			code = pPanelBase->psubobjs->rdo_bh_r_mode->update(true);
 		}
 
+		wostringstream wos;
 		//映像遅延検出関連
 		{
-			wostringstream wos;
 			wos.str(L"");
 			wos << pOteAuxPolInf->st_img_proc.video_delay_auto_prm_status_wch;
 			SetWindowTextW(pPanelBase->psubobjs->st_v_delay_auto_set_status->hWnd, wos.str().c_str());
@@ -2056,6 +2063,53 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		}
 		//自動設定関連
 		{
+			HWND _hwnd;
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_type->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_type].code + 1;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm1->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm1].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm2->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm2].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm3->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm3].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm4->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm4].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm5->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm5].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm6->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm6].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm7->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm7].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_prm8->hWnd;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_prm8].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
+			//PBの状態更新（カウントダウン）
 			pPanelBase->psubobjs->pb_auto_set->update(false);
 		}
 
@@ -2092,6 +2146,18 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			}
 		}break;
 
+		case ID_SUB_PNL_SET_OBJ_CB_AUTO_ACT: {
+			//映像遅延検出デバイス選択チェックボックス
+			if (BST_CHECKED == SendMessage(pPanelBase->psubobjs->cb_auto_act_dbg->hWnd, BM_GETCHECK, 0, 0)) {
+				//有効
+				pPanelBase->psubobjs->cb_auto_act_dbg->set(true);
+			}
+			else {
+				//無効
+				pPanelBase->psubobjs->cb_auto_act_dbg->set(false);
+			}
+		}break;
+
 		case ID_SUB_PNL_SET_OBJ_PB_VDLY_AUTO_PRM: {
 			pPanelBase->psubobjs->pb_v_delay_chk_prm_auto_set->update(true);
 		}break;
@@ -2102,7 +2168,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			pPanelBase->psubobjs->pb_v_delay_chk_prm_load->update(true);
 		}break;
 		case ID_SUB_PNL_SET_OBJ_PB_AUTO_SET: {
+			pPanelBase->psubobjs->rdo_auto_type->update(false);
+	
 			pPanelBase->psubobjs->pb_auto_set->update(true);
+
 			pPanelBase->psubobjs->ed_auto_prm1->update(hwnd);
 			pPanelBase->psubobjs->ed_auto_prm2->update(hwnd);
 			pPanelBase->psubobjs->ed_auto_prm3->update(hwnd);
@@ -2122,7 +2191,8 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE7:
 		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE8:
 		{
-			code = pPanelBase->psubobjs->rdo_auto_type->update(true);
+		//  AUTO SETボタンで更新　ここでは更新しない
+		// 	code = pPanelBase->psubobjs->rdo_auto_type->update(true);
 		}break;
 
 		default:

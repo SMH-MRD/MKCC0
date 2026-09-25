@@ -95,6 +95,7 @@ static ST_OBJ_PROPERTY sub_set_props_h6r602[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM6		,Point(560,350)	,Size(60,25)	,L"0"	},
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM7		,Point(560,380)	,Size(60,25)	,L"0"	},
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM8		,Point(560,410)	,Size(60,25)	,L"0"	},
+	{ID_SUB_PNL_SET_OBJ_CB_AUTO_ACT			,Point(560,450)	,Size(100,35)	,L"自動起動"},
 
 	//状態サブウィンドウ
 	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=17

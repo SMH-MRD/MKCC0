@@ -82,6 +82,7 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	auto_prm6,			//自動パラメータ表示
 	auto_prm7,			//自動パラメータ表示
 	auto_prm8,			//自動パラメータ表示
+	auto_act_dbg,		//デバッグ用自動起動入力
 	MAX
 };
 

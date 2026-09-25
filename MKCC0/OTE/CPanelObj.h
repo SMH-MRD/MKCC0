@@ -253,6 +253,7 @@ public:
 #define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM7		60242
 #define ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM8		60243
 #define ID_SUB_PNL_SET_OBJ_ST_AUTO_TYPE			60244
+#define ID_SUB_PNL_SET_OBJ_CB_AUTO_ACT			60245
 
 #define ID_SUB_PNL_STAT_OBJ_BASE				60300
 #define ID_SUB_PNL_STAT_OBJ_PB_NEXT				60300
@@ -393,12 +394,14 @@ public:
 	CEditIntCtrl* ed_auto_prm6;					//自動パラメータ設定内容入力
 	CEditIntCtrl* ed_auto_prm7;					//自動パラメータ設定内容入力
 	CEditIntCtrl* ed_auto_prm8;					//自動パラメータ設定内容入力
+
+	CCbCtrl* cb_auto_act_dbg;					//PC WINDOW　PANELの自動起動PB
 	
 	//状態表示サブウィンドウのオブジェクト
 	CPbCtrl*	pb_stat_next;		//次表示PB
 	CPbCtrl*	pb_stat_back;		//前表示PB
 
-	CStaticCtrl* st_mh_notch_dir;
+	CStaticCtrl* st_mh_notch_dir; 
 	CStaticCtrl* st_bh_notch_dir;
 	CStaticCtrl* st_sl_notch_dir;
 	CStaticCtrl* st_gt_notch_dir;

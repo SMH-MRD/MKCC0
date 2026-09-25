@@ -687,6 +687,8 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	i++; ed_auto_prm7				= new CEditIntCtrl(ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM7, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; ed_auto_prm8				= new CEditIntCtrl(ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM8, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
+	i++; cb_auto_act_dbg			= new CCbCtrl(ID_SUB_PNL_SET_OBJ_CB_AUTO_ACT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_YELLOW], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	
 	//# 状態表示ウィンドウオブジェクト
 	i++; pb_stat_next		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_NEXT, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; pb_stat_back		= new CPbCtrl(ID_SUB_PNL_STAT_OBJ_PB_BACK, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -826,6 +828,7 @@ void CSubPanelObj::delete_obj() {
 	delete ed_auto_prm6;
 	delete ed_auto_prm7;
 	delete ed_auto_prm8;
+	delete cb_auto_act_dbg;
 
 	delete pb_stat_next;
 	delete pb_stat_back;
