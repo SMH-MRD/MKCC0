@@ -219,6 +219,8 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
     void setup_v_delay_chk();
 
+    static INT16 job_seq_no;
+
 private:
 
 	int crane_type ; 

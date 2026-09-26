@@ -6,6 +6,7 @@
 #include "COpePanel.h"
 #include "CPanelWindow.h"
 #include "CHelper.h"
+#include "SmemMain.H"
 
 extern vector<CBasicControl*>	VectCtrlObj;
 extern BC_TASK_ID st_task_id;
@@ -205,7 +206,7 @@ void COteScad::set_panel_io() {
 		//自動のタイプはauto_setボタンがONの時ラジオボタンの設定値を出力してコマンド送信とする
 		//if (!st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_set])
 		//	pPanelBase->psubobjs->rdo_auto_type->set(-1);
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pPanelBase->psubobjs->rdo_auto_type->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pPanelBase->psubobjs->rdo_auto_type->get() + CODE_JOB_TYPE_GBC_TEST;
 
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pPanelBase->psubobjs->ed_auto_prm1->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm2]		= pPanelBase->psubobjs->ed_auto_prm2->get();

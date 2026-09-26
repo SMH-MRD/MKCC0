@@ -1,5 +1,8 @@
 #include "CMCProtocol.h"
 #include "CCcAgent.h"
+#include "CCcCs.h"
+#include "CCcPol.h"
+#include "CCcEnv.h"
 #include "resource.h"
 #include "CCrane.h"
 #include "CPlc.h"
@@ -32,6 +35,10 @@ extern CSharedMem* pAuxCsInfObj;
 
 extern ST_DEVICE_CODE g_my_code;
 
+extern BC_TASK_ID				st_task_id;
+extern vector<CBasicControl*>	VectCtrlObj;	    //スレッドオブジェクトのポインタ
+
+
 //ソケット
 static CMCProtocol* pMCSock;			//MCプロトコルオブジェクトポインタ
 
@@ -57,6 +64,10 @@ static LPST_CC_POL_INF		pPolInf		= NULL;
 static LPST_AUX_CS_INF		pAUX_CS_Inf = NULL;
 static LPST_CRANE_STAT		pCraneStat = NULL;
 
+static CCcCS* pCS;
+static CCcPol* pPol;
+static CCcEnv* pEnv;
+
 static PINT16				pOteCtrl	= NULL;	//OTE操作入力信号ポインタ
 static LPUN_PLC_IO_WIF		pPlcWIf		= NULL;
 static LPUN_PLC_IO_RIF		pPlcRIf		= NULL;
@@ -71,6 +82,9 @@ static DWORD slbrk_healthy_last = 0, slbrk_healthy_cnt;
 static INT32 slblk_chk_cnt;
 static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0, slblk_level_fb = 0;
 
+static int auto_on_going_last = AUTO_TYPE_MANUAL;
+static INT32 notch0_last;
+static LPST_COMMAND_SET pCom_hot_last;
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
@@ -108,6 +122,7 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pAUX_CS_Inf = (LPST_AUX_CS_INF)pAuxCsInfObj->get_pMap();
 	pCraneStat = &(pEnv_Inf->crane_stat);
 	
+	pCS = (CCcCS*)VectCtrlObj[st_task_id.CS];
 
 	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL) || (pAUX_CS_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
@@ -428,6 +443,278 @@ int CAgent::parse() {
 			pPolInf->pc_fault_map[FLTS_ID_ERR_OTE_SOURCE_OFF] &= ~FLTS_MASK_ERR_OTE_SOURCE_OFF;
 		}
 	}
+	
+	//### 自動関連処理
+	//###################################################	
+	//各軸条件設定axis_status（FB0,AUTO_ENABLE...)
+	// AgentInf.axis_status
+	// 	振れ止め自動実行可設定
+	// 	速度0状態設定
+	//  PC指令可設定
+	//  自動実行可設定
+	// 
+	// AgentInf_workbuf.pc_ctrl_mode
+	//  自動選択セット 
+	//###################################################
+	{
+		//速度0状態セット
+		if (pEnv_Inf->crane_stat.is_speed0[ID_HOIST])	st_work.st_axis_ctrl[ID_HOIST].status	|= AG_AXIS_STAT_FB0;
+		else											st_work.st_axis_ctrl[ID_HOIST].status	|= AG_AXIS_STAT_FB0;
+		if (pEnv_Inf->crane_stat.is_speed0[ID_BOOM_H])	st_work.st_axis_ctrl[ID_BOOM_H].status	|= AG_AXIS_STAT_FB0;
+		else											st_work.st_axis_ctrl[ID_BOOM_H].status	|= AG_AXIS_STAT_FB0;
+		if (pEnv_Inf->crane_stat.is_speed0[ID_SLEW])	st_work.st_axis_ctrl[ID_SLEW].status	|= AG_AXIS_STAT_FB0;
+		else											st_work.st_axis_ctrl[ID_SLEW].status	|= AG_AXIS_STAT_FB0;
+		if (pEnv_Inf->crane_stat.is_speed0[ID_GANTRY])	st_work.st_axis_ctrl[ID_GANTRY].status	|= AG_AXIS_STAT_FB0;
+		else											st_work.st_axis_ctrl[ID_GANTRY].status	|= AG_AXIS_STAT_FB0;
+		if (pEnv_Inf->crane_stat.is_speed0[ID_AHOIST])	st_work.st_axis_ctrl[ID_AHOIST].status	|= AG_AXIS_STAT_FB0;
+		else											st_work.st_axis_ctrl[ID_AHOIST].status	|= AG_AXIS_STAT_FB0;
+
+		//自動選択軸セット
+		if (pCS_Inf->auto_status[ID_HOIST])	st_work.pc_auto_ctrl_mode		|= BIT_SEL_HST;
+		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_HST;
+		if (pCS_Inf->auto_status[ID_GANTRY]) st_work.pc_auto_ctrl_mode		|= BIT_SEL_GNT;
+		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_GNT;
+		if (pCS_Inf->auto_status[ID_BOOM_H]) st_work.pc_auto_ctrl_mode		|= BIT_SEL_BH;
+		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_BH;
+		if (pCS_Inf->auto_status[ID_SLEW])	st_work.pc_auto_ctrl_mode		|= BIT_SEL_SLW;
+		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_SLW;
+		if (pCS_Inf->auto_status[ID_AHOIST])	st_work.pc_auto_ctrl_mode	|= BIT_SEL_AH;
+		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_AH;
+
+		if (pPLC_IO->ctrl_source != L_ON) {//主幹OFFで自動指令を0にする
+			st_work.pc_auto_ctrl_mode = 0;
+		}
+	}
+
+	//###################################################
+	//# JOBコマンド設定
+	//# コマンドステータス更新
+	//###################################################
+	{
+		if (pCS_Inf->cs_ctrl.auto_mode == L_ON) {	//自動モード
+			if (pjob_active == NULL) {											//前スキャン ジョブ実行中でない
+				if ((pjob_active = pCS->get_next_job()) != NULL) {				//CSにジョブ有
+					if ((pCom_hot = pPol->req_command(pjob_active)) != NULL) {	//POLICYにコマンド展開依頼 (pjob NULLならばNULLが帰ってくる)
+						init_comset(pCom_hot);									//コマンドのフラグ初期化
+						pPol->update_command_status(pCom_hot, STAT_ACTIVE);		//コマンド実行開始報告
+						st_work.command_count++;								//コマンドレシピ作成カウント モニタ用
+					}
+					else {														//コマンドレシピ無し（対象ジョブ完了済or対象jobレシピ無し）
+						pjob_active = NULL;
+					}
+				}
+				else {//ジョブ無し
+					pCom_hot = NULL;
+				}
+			}
+			else {//有効ジョブ有
+				//有効コマンド有（実行中）
+				if (pCom_hot != NULL) {
+					if (pPLC_IO->ctrl_source != L_ON) {	//異常完了
+						comset_abot_end(pCom_hot);										//コマンドABOT　END終了
+						pPol->update_command_status(pCom_hot, STAT_ABNORMAL_END);		//PolicyにAbnomal完了報告
+					}
+					else if (pCS->get_auto_act_input() == L_OFF) {						//起動スイッチOFFでコマンドクリア
+						comset_abot_end(pCom_hot);										//コマンドABOT　END終了
+						pPol->update_command_status(pCom_hot, STAT_ABOTED);				//PolicyにAbot完了報告
+					}
+					else {																	//コマンド状態確認
+						int com_complete = STAT_END;
+						for (int i = 0; i < MOTION_ID_MAX; i++) {
+							if (!(pCom_hot->seq[i].seq_status & STAT_END)) {				//未完シーケンス有（STAT_END　bit OFF)
+								com_complete = STAT_ACTIVE;									//いずれかの軸がシーケンス実行中
+							}
+							else {
+								if (pCom_hot->seq[i].seq_status != STAT_END) {				//正常完了ではない（キャンセルor異常完了）
+									com_complete = pCom_hot->seq[i].seq_status;				//いずれかの軸が正常完了しなかった
+								}
+							}
+						}
+						//完了の時POLICYへステータス報告
+						if (com_complete != STAT_ACTIVE) {									//すべての軸のシーケンス完了
+							st_work.auto_on_going &= ~AUTO_TYPE_JOB_MASK;					//自動制御JOB TYPE（JOB,半自動,クレーン操作）クリア
+							pPol->update_command_status(pCom_hot, com_complete);			//コマンド実行完了報告
+							pCom_hot = NULL;												//コマンドクリア
+						}
+					}
+				}
+				//ジョブ実行中でコマンド無し（JOB完了 or 次コマンドへの切替過程
+				else {
+					if (pCS->get_auto_act_input() == L_ON) {								//グリップスイッチONの時、コマンド再要求
+						pCom_hot = pPol->req_command(pjob_active);						//POLICYにコマンド展開依頼 pjob NULLならばNULLが帰ってくる
+						if (pCom_hot != NULL) {												//次のコマンド有
+							init_comset(pCom_hot);
+							pPol->update_command_status(pCom_hot, STAT_ACTIVE);	//コマンド実行開始報告
+							st_work.command_count++;						//コマンドレシピ作成カウント モニタ用
+							//自動制御モードのセット
+						}
+						else {
+							pjob_active = NULL;
+						}
+					}
+				}
+			}
+		}
+		else {//自動モードOFF コマンド実行中であればABORT報告	
+			if (pCom_hot != NULL) {
+				comset_abot_end(pCom_hot);//コマンドABOT　END終了
+				pPol->update_command_status(pCom_hot, STAT_ABNORMAL_END);		//PolicyにAbnomal完了報告
+			}
+			pCom_hot = NULL;
+			pjob_active = NULL;
+		}
+		st_work.pCom_hot = pCom_hot;		//SCADA表示用
+		st_work.pJob_hot = pjob_active;		//SCADA表示用
+	}
+
+	//###################################################
+	//# 制御モードセット auto_on_going,antisway_on_going
+	//###################################################
+	{
+		//自動制御モードのセット
+		if ((pCS_Inf->cs_ctrl.auto_mode == L_ON) && (pjob_active != NULL)) {//自動制御モードONで実行中JOB有
+			if (pjob_active->type == ID_JOBTYPE_SEMI)		st_work.auto_on_going |= AUTO_TYPE_SEMIAUTO;
+			else if (pjob_active->type == ID_JOBTYPE_JOB)	st_work.auto_on_going |= AUTO_TYPE_JOB;
+			else if (pjob_active->type == ID_JOBTYPE_ANTISWAY) {
+				st_work.auto_on_going |= AUTO_TYPE_FB_ANTI_SWAY;
+				st_work.auto_on_going |= AUTO_TYPE_SEMIAUTO;
+			}
+			else;
+		}
+		else {
+			st_work.auto_on_going &= ~AUTO_TYPE_SEMIAUTO;
+			st_work.auto_on_going &= ~AUTO_TYPE_JOB;
+			st_work.auto_on_going &= ~AUTO_TYPE_FB_ANTI_SWAY;
+		}
+
+		//振れ止めモードセット
+		if (pCS_Inf->cs_ctrl.antisway_mode == L_OFF) {
+			//auto_on_going
+			st_work.auto_on_going &= ~AUTO_TYPE_FB_ANTI_SWAY;
+			//antisway_on_going
+			st_work.antisway_on_going = ANTISWAY_ALL_MANUAL;
+		}
+		else {
+			//		AgentInf_workbuf.auto_on_going |= AUTO_TYPE_FB_ANTI_SWAY;
+
+			if (pCraneStat->notch0 & BIT_SEL_BH) {							//0ノッチ
+				st_work.antisway_on_going |= ANTISWAY_BH_ACTIVE;
+				st_work.antisway_on_going &= ~ANTISWAY_BH_PAUSED;
+			}
+			else {															//ノッチ入り
+				st_work.antisway_on_going |= ANTISWAY_BH_PAUSED;
+				st_work.antisway_on_going &= ~ANTISWAY_BH_ACTIVE;
+			}
+
+			if (pCraneStat->notch0 & BIT_SEL_SLW) {							//0ノッチ
+				st_work.antisway_on_going |= ANTISWAY_SLEW_ACTIVE;
+				st_work.antisway_on_going &= ~ANTISWAY_SLEW_PAUSED;
+			}
+			else {															//ノッチ入り
+				st_work.antisway_on_going |= ANTISWAY_SLEW_PAUSED;
+				st_work.antisway_on_going &= ~ANTISWAY_SLEW_ACTIVE;
+			}
+		}
+	}
+
+	//###################################################
+	//# 振れ止め完了状態セット　antisway_on_going
+	//###################################################
+	{
+		double tmp_amp2, tmp_dist;
+		//引込
+		//振れ振幅、位置ずれともに完了判定レベル以内
+		tmp_amp2 = pEnv->cal_sway_amp2(ID_BOOM_H);
+		tmp_dist = pEnv->cal_dist4target(ID_BOOM_H, true);
+		//振幅、位置とも制御完了レベル以内
+		if ((tmp_amp2 < pCraneStat->spec.as_m2_level[ID_BOOM_H][ID_LV_COMPLE])
+			&& (tmp_dist < pCraneStat->spec.as_pos_level[ID_BOOM_H][ID_LV_COMPLE])) {
+			st_work.antisway_on_going |= ANTISWAY_BH_COMPLETE;
+		}
+		//振れ止め完了状態
+		else if (pAgentInf->antisway_on_going & ANTISWAY_BH_COMPLETE) {	//振れ止め完了フラグON
+			//振幅または位置が振れ止め起動レベル越で完了フラグクリア
+			if ((pEnv->cal_sway_amp2(ID_BOOM_H) > pCraneStat->spec.as_m2_level[ID_BOOM_H][ID_LV_TRIGGER])
+				|| (pEnv->cal_dist4target(ID_BOOM_H, true) > pCraneStat->spec.as_pos_level[ID_BOOM_H][ID_LV_TRIGGER]))
+				st_work.antisway_on_going &= ~ANTISWAY_BH_COMPLETE;
+		}
+		else {
+			st_work.antisway_on_going &= ~ANTISWAY_BH_COMPLETE;
+		}
+		//旋回
+		tmp_amp2 = pEnv->cal_sway_amp2(ID_SLEW);
+		tmp_dist = pEnv->cal_dist4target(ID_SLEW, true);
+		//振幅、位置とも制御完了レベル以内
+		if ((tmp_amp2 < pCraneStat->spec.as_m2_level[ID_SLEW][ID_LV_COMPLE])
+			&& (tmp_dist < pCraneStat->spec.as_pos_level[ID_SLEW][ID_LV_COMPLE])) {
+			st_work.antisway_on_going |= ANTISWAY_SLEW_COMPLETE;
+		}
+		//振れ止め完了状態
+		else if (pAgentInf->antisway_on_going & ANTISWAY_SLEW_COMPLETE) {
+			if ((pEnv->cal_sway_amp2(ID_SLEW) > pCraneStat->spec.as_m2_level[ID_SLEW][ID_LV_TRIGGER])
+				|| (pEnv->cal_dist4target(ID_SLEW, true) > pCraneStat->spec.as_pos_level[ID_SLEW][ID_LV_TRIGGER]))
+				st_work.antisway_on_going &= ~ANTISWAY_SLEW_COMPLETE;
+		}
+		else {
+			st_work.antisway_on_going &= ~ANTISWAY_SLEW_COMPLETE;
+		}
+	}
+
+	//###################################################
+	//# 軸毎のモードセット(PLC指令出力軸の判定）
+	//###################################################
+	{
+		//手動
+		if ((st_work.auto_on_going == AUTO_TYPE_MANUAL)) {
+			st_work.auto_active[ID_HOIST] = st_work.auto_active[ID_BOOM_H] = AgentInf_workbuf.auto_active[ID_SLEW] = AgentInf_workbuf.auto_active[ID_AHOIST] = AUTO_TYPE_MANUAL;
+		}
+		//半自動
+		else if ((st_work.auto_on_going & AUTO_TYPE_SEMIAUTO) || (st_work.auto_on_going & AUTO_TYPE_FB_ANTI_SWAY)) {
+			for (int i = 0; i <= ID_AHOIST; i++) {
+				if (pCS_Inf->auto_status[i] == L_ON)		AgentInf_workbuf.auto_active[i] = AgentInf_workbuf.auto_on_going;
+				else									AgentInf_workbuf.auto_active[i] = AUTO_TYPE_MANUAL;
+			}
+		}
+		//JOB
+		else if (AgentInf_workbuf.auto_on_going & AUTO_TYPE_JOB) {
+			AgentInf_workbuf.auto_active[ID_HOIST] = AgentInf_workbuf.auto_active[ID_BOOM_H] = AgentInf_workbuf.auto_active[ID_SLEW] = AgentInf_workbuf.auto_active[ID_AHOIST] = AgentInf_workbuf.auto_on_going;
+		}
+		else {
+			for (int i = 0; i <= ID_AHOIST; i++) AgentInf_workbuf.auto_active[i] = AUTO_TYPE_MANUAL;
+		}
+	}
+
+	//###################################################
+	//#自動目標位置設定,目標までの距離セット
+	//###################################################
+	{
+		if ((pCom_hot != NULL) && (pCom_hot != pCom_hot_last)) {//JOBトリガ検出
+			st_work.st_axis_ctrl[ID_HOIST].auto_tg_pos	= pCom_hot->target.pos[ID_HOIST];
+			st_work.st_axis_ctrl[ID_AHOIST].auto_tg_pos = pCom_hot->target.pos[ID_AHOIST];
+			st_work.st_axis_ctrl[ID_BOOM_H].auto_tg_pos = pCom_hot->target.pos[ID_BOOM_H];
+			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos = pCom_hot->target.pos[ID_SLEW];
+		}
+		else if (pCom_hot == NULL) {//JOB無し
+			//巻は現在位置
+			st_work.st_axis_ctrl[ID_HOIST].auto_tg_pos	= pPLC_IO->stat_axis[ID_HOIST].pos_fb;
+			st_work.st_axis_ctrl[ID_AHOIST].auto_tg_pos = pPLC_IO->stat_axis[ID_AHOIST].pos_fb;
+			//旋回,起伏も現在位置　振れ止めもJOBの一部として扱う
+			st_work.st_axis_ctrl[ID_BOOM_H].auto_tg_pos = pPLC_IO->stat_axis[ID_BOOM_H].pos_fb;
+			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos = pPLC_IO->stat_axis[ID_SLEW].pos_fb;
+		}
+		else;
+
+		//目標までの距離セット
+		for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
+			st_work.st_axis_ctrl[i].dist_for_target = pEnv->cal_dist4target(i, false);
+		}
+	}
+
+	//###################################################	
+	//# PLCへの出力計算　
+	//###################################################
+
+	
 	//### 各軸指令出力計算
 	fp_set_ref_mh(crane_id);
 	fp_set_ref_ah(crane_id);
@@ -546,6 +833,7 @@ int CAgent::parse() {
 #else
 	fp_aux_equipment(crane_id);
 #endif
+
 	//### 振れセンサ関連
 	if (g_aux_sway_status) {
 		//振れセンサチェック

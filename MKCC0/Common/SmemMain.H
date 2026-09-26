@@ -100,7 +100,12 @@ typedef struct _ST_CRANE_STAT {
 	double sway_amp_expected[MOTION_ID_MAX];	//振れ振幅評価値
 
 	ST_FAULTS_LIST	fault_list;					//故障検出リスト
-	INT32			abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値	
+	INT32			abs_preset_cnt[MOTION_ID_MAX];	//プリセットしたときのアブソコーダカウント値
+
+	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
+	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
+	bool is_speed0[MOTION_ID_MAX];				//速度FB0判定
+
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
 typedef struct _ST_CC_ENV_INF {
@@ -132,9 +137,6 @@ typedef struct _ST_CC_ENV_INF {
 	double w2x,w2y;									//振角周波数の2乗
 	double g_ratio_x = 1.0;						//振れ周期補正係数　√gの比率で調整
 	double g_ratio_y = 1.0;						//振れ周期補正係数　√gの比率で調整
-
-	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
-	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
 
 	INT32 OTE_req_status;						//操作端末要求状態
 
@@ -239,6 +241,10 @@ typedef struct _ST_CC_SCAD_INF {
 //int
 #define ID_STEP_OPT_DIR							0		//動作方向指定のint配列インデックス
 #define ID_STEP_OPT_VFB_DELAY_COUNT				1		//速度FB遅れ時間カウント値
+
+#define CODE_JOB_TYPE_GBC_TEST					256		//GBC TEST用のタイプ識別
+#define CODE_JOB_ITEM_GBC_TEST_SL_LEFT			256		//GBC TEST用のジョブ内容識別
+#define CODE_JOB_ITEM_GBC_TEST_SL_RIGHT			257		//GBC TEST用のジョブ内容識別
 
 typedef struct stMotionStep {	//運動要素
 	//recipe
@@ -379,41 +385,42 @@ typedef struct _ST_COMMAND_SET {
 #define ID_JOBIO_COMTYPE_ANTISWAY			4
 
 #define CODE_JOBIO_COMTYPE_ANTISWAY			-1
-
+//JOB:From-Toの搬送作業（PICK,PARK,GRNDのコマンドの組み合わせ等）　
 typedef struct _ST_JOB_SET {
 	//CS 構成 JOBセット
 	int list_id;								//登録されているJOB list配列のインデックスid
 	int job_id;									//登録されているJOB list内job配列のインデックスid
 	int type;									//JOB種別（JOB,半自動,OPERATION））
 	int code;									//JOB識別コード
-	int n_com;
+	int n_com;									//構成コマンド数
 	ST_POS_TARGETS targets[JOB_COMMAND_MAX];		//目標位置
 	int com_type[JOB_COMMAND_MAX];
 
 	//POLICY 構成コマンド
-	ST_COMMAND_SET com[JOB_COMMAND_MAX];	//コマンドのレシピ
-	int i_hot_com;
+	ST_COMMAND_SET com[JOB_COMMAND_MAX];		//コマンドのレシピ
+	int i_hot_com;								//実行中コマンドインデックス
 	int status;									//JOBの状態
-	SYSTEMTIME time_start;
-	SYSTEMTIME time_end;
+	SYSTEMTIME time_start;						//開始時刻
+	SYSTEMTIME time_end;						//終了時刻
 }ST_JOB_SET, * LPST_JOB_SET;
-
+//設定されているJOBの情報（プロパティ）
 typedef struct _ST_JOB_ORDER {
 	int type;									//JOB種別（JOB,半自動,OPERATION））
 	int job_code;
 }ST_JOB_ORDER, * LPST_JOB_ORDER;
 
 //JOB LIST
-#define N_JOB_LIST						3				//JOB LIST登録数
-#define ID_JOBTYPE_JOB					0				//JOB Type index番号
-#define ID_JOBTYPE_SEMI					1				//SEMIAUTO Type index番号
-#define ID_JOBTYPE_ANTISWAY				2				//FB ANTISWAY Type index番号
-#define JOB_REGIST_MAX					10			//　JOB登録最大数
+//JOBの予約登録が出来るようにLISTにして管理する
+#define N_JOB_LIST						3		//JOB LIST登録数
+#define ID_JOBTYPE_JOB					0		//JOB Type index番号
+#define ID_JOBTYPE_SEMI					1		//SEMIAUTO Type index番号
+#define ID_JOBTYPE_ANTISWAY				2		//FB ANTISWAY Type index番号
+#define JOB_REGIST_MAX					10		//　JOB登録最大数
 
 typedef struct _ST_JOB_LIST {
 	int id;
 	int type;									//JOB種別（JOB,半自動）
-	int n_job;								   //Job数
+	int n_job;									//Job数
 	ST_JOB_SET	 job[JOB_REGIST_MAX];			//登録job
 	ST_JOB_ORDER order[JOB_REGIST_MAX];			//要求job
 
@@ -421,6 +428,7 @@ typedef struct _ST_JOB_LIST {
 	int status[JOB_REGIST_MAX];					//JOB LISTの状態
 }ST_JOB_LIST, * LPST_JOB_LIST;
 
+//フル自動,半自動,振れ止め用各ジョブリストのバッファ
 typedef struct _ST_JOB_IO {
 	ST_JOB_LIST	job_list[N_JOB_LIST];
 }ST_JOB_IO, * LPST_JOB_IO;
@@ -493,8 +501,8 @@ typedef struct _ST_CC_AXIS_CTRL {
 typedef struct _ST_CC_AGENT_INF {
 
 	//軸制御
-	INT16 pc_ctrl_mode2plc = 0;						//PLCへのPC制御フラグ出力信号
-
+	INT16 pc_ctrl_mode2plc	= 0;				//PLCへのPC制御フラグ出力信号
+	INT16 pc_auto_ctrl_mode = 0;				//自動制御軸設定内容
 	ST_CC_AXIS_CTRL st_axis_ctrl[MOTION_ID_MAX];
 
 	int command_count;							//コマンドレシピ作成呼び出し回数
@@ -602,7 +610,9 @@ typedef struct _ST_CC_CS_INF {
 	//JOB関連
 	int command_type;													//PARK,PICK,GRND
 	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
-	
+	INT32		auto_status[MOTION_ID_MAX];								//軸毎自動選択状態等
+	ST_POS_TARGETS semi_auto_selected_target;							//半自動選択目標位置(振れ止め含む）
+
 	LPST_JOB_SET p_active_job;
 	int job_control_status;
 	int auto_trigger_status;
@@ -729,7 +739,6 @@ typedef struct _ST_CC_OTE_CTRL {
 	SOCKADDR_IN	addr_in_active_ote;
 }ST_CC_OTE_CTRL, * LPST_CC_OTE_CTRL;
 // OTEからの要求コード                              　         　	
-
 
 #define CODE_CC_CS_OTE_COM_ERR_SOCK  0x0001	//通信エラー
 #define CODE_CC_CS_OTE_COM_ERR_RCV   0x0002	//メッセージエラー

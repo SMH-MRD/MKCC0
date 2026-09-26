@@ -213,7 +213,8 @@ public:
    //### 自動関連
     //AGENTからのアクセス関数
     LPST_JOB_SET get_next_job();                                    //次のJob問い合わせ
- 
+    INT32 get_auto_act_input(); 
+
     //POLICYからのアクセス関数
     int update_job_status(LPST_JOB_SET pjobset, int fb_code);       //Jobの実行状況アンサバック
 

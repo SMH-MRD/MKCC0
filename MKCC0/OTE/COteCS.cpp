@@ -36,6 +36,7 @@ ST_OTE_CS_OBJ COteCS::st_obj;
 int COteCS::flg_0notch_hold;
 INT16 COteCS::otecs_plc_setting;
 INT16 COteCS::forced_opedesk;
+INT16 COteCS::job_seq_no = 0;
 
 static COteEnv* pEnvObj;
 
@@ -58,6 +59,7 @@ static LARGE_INTEGER start_count_w, end_count_w, start_count_r, end_count_r;  //
 static LARGE_INTEGER frequency;						//システム周波数
 static LONGLONG res_delay_max_w, res_delay_max_r;	//PLC応答時間
 static INT32 read_chk_plc = 0, write_chk_plc = 0;
+static INT16 auto_set_last = L_OFF;
 
 //static LPST_PLC_RBUF_HHGG38 pin_opepnl;
 LPUN_OPE_PLC_RBUF pin_opepnl;
@@ -670,7 +672,7 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		//非常停止
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::estop]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::estop];
 		//旋回フットブレーキ
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]	|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::sl_brk];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::sl_brk]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::sl_brk];
 
 		//モメンタリスイッチ （ハードSW）
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]		|=  pOteUi->pnl_ctrl[OTE_PNL_CTRLS::syukan_on]	;
@@ -700,6 +702,13 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_ah]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_ah];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
 
+		//auto_setのトリガでJOB SEAQUENCE NO更新
+		if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set] && !auto_set_last) {
+			job_seq_no++;
+		}
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::job_sequence_no] = job_seq_no;
+		auto_set_last = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set];
+
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
@@ -710,7 +719,7 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
-
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]	= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg];
 	}
 
 	//## ノッチ指令値取り込み

@@ -2065,7 +2065,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		{
 			HWND _hwnd;
 			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_auto_type->hWnd;
-			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_type].code + 1;
+			wos << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::auto_type].code;
 			SetWindowTextW(_hwnd, wos.str().c_str());
 			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
 
