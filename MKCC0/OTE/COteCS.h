@@ -229,6 +229,8 @@ private:
     HRESULT(*fp_opration_input)(int id) = NULL;             //操作入力信号取り込み
     HRESULT(*fp_fault_check)(int id) = NULL;                //OTE検出異常処理
     HRESULT(*fp_video_delay_check_manage)(int id) = NULL;   //映像遅延チェック機能処理
+    
+    static HRESULT set_auto_target(int job_type);
 
 	static HRESULT operation_input_hhgg38(int id);
     static HRESULT fault_check_hhgg38(int id);

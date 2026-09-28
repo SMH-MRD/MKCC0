@@ -316,13 +316,13 @@ LPST_COMMAND_SET CCcPol::setup_job_command(LPST_JOB_SET pjob, int icom) {
 
 		if (pjob->type == ID_JOBTYPE_SEMI) {
 			for (int k = 0; k < MOTION_ID_MAX; k++) {//OTE動作選択のあるもののみパターン作成
-				if (pCsInf->cs_ctrl.auto_status[k]) pcom_set->seq_mode[k] = L_ON;
+				if (pCsInf->auto_select[k]) pcom_set->seq_mode[k] = L_ON;
 			}
 		}
 		else if (pjob->type == ID_JOBTYPE_ANTISWAY) {
 			for (int k = 0; k < MOTION_ID_MAX; k++) {//旋回、引込でOTE動作選択のあるもののみパターン作成
 				if ((k == ID_BOOM_H) || (k == ID_SLEW)) {
-					if (pCsInf->cs_ctrl.auto_status[k]) pcom_set->seq_mode[k] = L_ON;
+					if (pCsInf->auto_select[k]) pcom_set->seq_mode[k] = L_ON;
 				}
 				else {
 					pcom_set->seq_mode[k] = L_OFF;
@@ -473,14 +473,18 @@ int CCcPol::set_seq_semiauto_bh(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbtyp
 	//#レシピ条件セット
 	//軸ID
 	int id = pseq->axis_id = ID_BOOM_H;
+	int i_spd_mode;
 
 	//移動方向
 	pseq->direction = pwork->motion_dir[id];
 	double D_abs = pwork->dist_for_target_abs[id];	//残り移動距離
 
-	double v2 = pCrane->pSpec->axis_spec[id].Notch_pad_f[NOTCH_2] * pPlcIO->v_ratio[ID_BOOM_H];
-	double v3 = pCrane->pSpec->axis_spec[id].Notch_pad_f[NOTCH_3] * pPlcIO->v_ratio[ID_BOOM_H];
-	double v4 = pCrane->pSpec->axis_spec[id].Notch_pad_f[NOTCH_4] * pPlcIO->v_ratio[ID_BOOM_H];
+	if (i_spd_mode = pPlcIO->stat_axis[ID_BOOM_H].mode) i_spd_mode--;	//ノッチ速度配列インデクスは、mode-1　ただし設定値が無いときは0
+		
+
+	double v2 = pCrane->pSpec->axis_spec[id].Notch_spd_f[i_spd_mode][NOTCH_2] * pPlcIO->v_ratio[ID_BOOM_H];
+	double v3 = pCrane->pSpec->axis_spec[id].Notch_spd_f[i_spd_mode][NOTCH_3] * pPlcIO->v_ratio[ID_BOOM_H];
+	double v4 = pCrane->pSpec->axis_spec[id].Notch_spd_f[i_spd_mode][NOTCH_4] * pPlcIO->v_ratio[ID_BOOM_H];
 	double acc_s = pwork->a_abs[id][POL_ID_START_POINT], acc_e = pwork->a_abs[id][POL_ID_END_POINT];//スタート位置加速度と停止時軸加速度
 	double acc_average = 0.5 * (acc_s + acc_e);
 	double acc_s_hp = pwork->a_hp_abs[id][POL_ID_START_POINT], acc_hp_e = pwork->a_abs[id][POL_ID_END_POINT];//スタート位置加速度と停止時の吊点加速度
@@ -1020,9 +1024,9 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbty
 	pseq->direction = pwork->motion_dir[id];
 	double D_abs = pwork->dist_for_target_abs[id];	//残り移動距離
 
-	double v2 = pCrane->pSpec->axis_spec[id].Notch_pad_f[NOTCH_2] * pPlcIO->v_ratio[ID_SLEW];
-	double v3 = pCrane->pSpec->axis_spec[id].Notch_pad_f[NOTCH_3] * pPlcIO->v_ratio[ID_SLEW];
-	double v4 = pCrane->pSpec->axis_spec[id].Notch_pad_f[NOTCH_4] * pPlcIO->v_ratio[ID_SLEW];
+	double v2 = pCrane->pSpec->axis_spec[id].Notch_spd_f[0][NOTCH_2] * pPlcIO->v_ratio[ID_SLEW];
+	double v3 = pCrane->pSpec->axis_spec[id].Notch_spd_f[0][NOTCH_3] * pPlcIO->v_ratio[ID_SLEW];
+	double v4 = pCrane->pSpec->axis_spec[id].Notch_spd_f[0][NOTCH_4] * pPlcIO->v_ratio[ID_SLEW];
 	double acc_s = pwork->a_abs[id][POL_ID_START_POINT], acc_e = pwork->a_abs[id][POL_ID_END_POINT];//スタート位置加速度と停止時加速度
 	double acc_average = 0.5 * (acc_s + acc_e);
 	double acc_s_hp = pwork->a_hp_abs[id][POL_ID_START_POINT], acc_hp_e = pwork->a_abs[id][POL_ID_END_POINT];//スタート位置加速度と停止時加速度
@@ -1147,57 +1151,6 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbty
 			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
 
 			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-#if 0
-			/*### STEP3 2インチング パラメータ計算###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_CAL_2INCH;					//加速時間出力
-			pelement->_t = 0.0;											// 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = 0.0;											// 出力速度
-
-
-			/*### STEP4 2インチング　 1回目出力###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME_2INCH1;					//加速時間出力
-			pelement->_t = 0.0;											// 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = v_top_abs;									// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-			/*### STEP5 2インチング　 位相待ち###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_PH_2INCH_MOVE;					//加速時間出力
-			pelement->_t = 0.0;											// 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = 0.0;											// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = 0;
-
-			/*### STEP6 2インチング　 2回目出力###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME_2INCH2;					//加速時間出力
-			pelement->_t = 0.0;											// 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = v_top_abs;									// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-			/*### STEP7 2インチング　 減速待ち###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_TIME_2INCH2;					//加速時間出力
-			pelement->_t = 0.0;											// 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = 0.0;											// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-			/*### STEP8 END ###*/
-			//微小位置決め
-			pelement = &(pseq->steps[pseq->n_step++]);						// ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_FINE_POS;								// 微小位置決め
-			pelement->_t = FINE_POS_TIMELIMIT;								// 位置合わせ最大継続時間
-			pelement->_v = pCraneStat->spec.notch_spd_f[id][NOTCH_1];		// １ノッチ速度
-			pelement->_p = st_com_work.target.pos[id];						// 目標位置
-			CHelper::fit_ph_range_upto_pi(&(pelement->_p));					//目標位置の校正
-			D_abs = 0.0;													// 残り距離変更なし
-#endif
 		}
 		else {//2SHOT
 			bool is_sway_over1shot = false; //1回のインチングで完了不可フラグ
@@ -1294,17 +1247,6 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbty
 
 			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		// 目標位置の校正（-180°～180°の表現にする
 
-#if 0
-			/*### STEP5 END ###*/
-			//微小位置決め
-			pelement = &(pseq->steps[pseq->n_step++]);						// ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_FINE_POS;								// 微小位置決め
-			pelement->_t = FINE_POS_TIMELIMIT;								// 位置合わせ最大継続時間
-			pelement->_v = pCraneStat->spec.notch_spd_f[id][NOTCH_1];		// １ノッチ速度
-			pelement->_p = st_com_work.target.pos[id];						// 目標位置
-			CHelper::fit_ph_range_upto_pi(&(pelement->_p));					//目標位置の校正
-			D_abs = 0.0;// 残り距離変更なし
-#endif
 		}
 	}
 
@@ -1586,24 +1528,7 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbty
 		default:return POLICY_PTN_NG;
 		}
 		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-#if 0
-		/*### STEP END ###*/
-		switch (pseq->motion_type) {
-		case PTN_ORDINARY:	//単純移動パターン
-		case PTN_HALF_T_AS:
-		case PTN_2SHOT_MOVE0:
-		{//微小位置決め
-			pelement = &(pseq->steps[pseq->n_step++]);						// ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_FINE_POS;								// 微小位置決め
-			pelement->_t = FINE_POS_TIMELIMIT;								// 位置合わせ最大継続時間
-			pelement->_v = pCraneStat->spec.notch_spd_f[id][NOTCH_1];		// １ノッチ速度
-			pelement->_p = st_com_work.target.pos[id];						// 目標位置
-			CHelper::fit_ph_range_upto_pi(&(pelement->_p));					//目標位置の校正
-			D_abs = 0.0;													// 残り距離変更なし
-		}break;
-		default:return POLICY_PTN_NG;
-		}
-#endif
+
 	}
 	//#######################################################################
 	// JOB

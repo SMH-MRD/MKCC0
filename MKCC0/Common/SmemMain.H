@@ -106,6 +106,7 @@ typedef struct _ST_CRANE_STAT {
 	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
 	bool is_speed0[MOTION_ID_MAX];				//速度FB0判定
 
+
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
 typedef struct _ST_CC_ENV_INF {
@@ -154,6 +155,7 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;								//PC制御受付状態
 	INT16 plc_enable;								//PLC有効で端末権利有でOTEリモートモード
 	INT32 ctrl_source;								//主幹状態
+	INT32 notch0;									//0ノッチフラグビット
 
 	ST_PLC_AXIS_SET stat_axis[MOTION_ID_MAX];
 
@@ -241,10 +243,6 @@ typedef struct _ST_CC_SCAD_INF {
 //int
 #define ID_STEP_OPT_DIR							0		//動作方向指定のint配列インデックス
 #define ID_STEP_OPT_VFB_DELAY_COUNT				1		//速度FB遅れ時間カウント値
-
-#define CODE_JOB_TYPE_GBC_TEST					256		//GBC TEST用のタイプ識別
-#define CODE_JOB_ITEM_GBC_TEST_SL_LEFT			256		//GBC TEST用のジョブ内容識別
-#define CODE_JOB_ITEM_GBC_TEST_SL_RIGHT			257		//GBC TEST用のジョブ内容識別
 
 typedef struct stMotionStep {	//運動要素
 	//recipe
@@ -610,7 +608,7 @@ typedef struct _ST_CC_CS_INF {
 	//JOB関連
 	int command_type;													//PARK,PICK,GRND
 	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
-	INT32		auto_status[MOTION_ID_MAX];								//軸毎自動選択状態等
+	INT32		auto_select[MOTION_ID_MAX];								//軸毎自動選択状態等
 	ST_POS_TARGETS semi_auto_selected_target;							//半自動選択目標位置(振れ止め含む）
 
 	LPST_JOB_SET p_active_job;

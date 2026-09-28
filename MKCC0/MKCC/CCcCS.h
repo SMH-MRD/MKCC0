@@ -23,8 +23,9 @@
 #define CS_JOBSET_STATUS_CLEAR               0x0000
 #define CS_JOBSET_STATUS_DISABLE             0x0000
 #define CS_JOBSET_STATUS_IDLE                0x0001
-#define CS_JOBSET_STATUS_STANDBY             0x0002
-#define CS_JOBSET_STATUS_ACTIVE              0x0004
+#define CS_JOBSET_STATUS_REQ_HOLD            0x0002
+#define CS_JOBSET_STATUS_STANDBY             0x0004
+#define CS_JOBSET_STATUS_ACTIVE              0x0008
 
 
 #define CS_ID_MON1_TIMER                51190

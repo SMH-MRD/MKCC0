@@ -6,6 +6,11 @@
 #include "COMMON_DEF.h"
 #include "SmemAux.H"
 
+//JOB関連
+#define CODE_JOB_TYPE_GBC_TEST					256		//GBC TEST用のタイプ識別
+#define CODE_JOB_ITEM_GBC_TEST_SL_LEFT			256		//GBC TEST用のジョブ内容識別
+#define CODE_JOB_ITEM_GBC_TEST_SL_RIGHT			257		//GBC TEST用のジョブ内容識別
+
 
 //操作端末のテキスト,ボタン、ランプ数
 #define N_OTE_PNL_CTRL				128
@@ -190,16 +195,16 @@ typedef struct _ST_OTE_PC_FLTS_SET {
 //デフォルト
 /******* PCユニキャスト通信BODY構造体 ***********/
 typedef struct PcUBody {//デフォルト
-	UN_LAMP_COM			lamp[N_OTE_PNL_CTRL];									//OTEパネルコントローラ表示指示データ
-	UN_LAMP_COM			notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//ノッチランプ
-	INT16				buf_io_read[CC_MC_SIZE_W_READ];							//PLC READデータ
-	ST_PLC_AXIS_SET		st_axis_set[ID_AXIS::Max];								//動作状態モニタ値
-	ST_OTE_LOAD_STAT	st_load_stat[N_OTE_LOAD_TYPE];							//吊荷状態
-	ST_OTE_PC_MSG		pc_msg;													//メッセージを更新する毎にカウントアップ
-	ST_OTE_PC_FLTS_SET  faults_set;												//発生中故障コード
-	float 				bh_angle;												//起伏角度
-	float				wind_spd;
-	INT16				sl_brk_fb[8];											//遠隔旋回ブレーキFB
+	UN_LAMP_COM				lamp[N_OTE_PNL_CTRL];									//OTEパネルコントローラ表示指示データ
+	UN_LAMP_COM				notch_lamp[N_OTE_PNL_NOTCH_DEVICE][N_OTE_PNL_NOTCH_PBL];//ノッチランプ
+	INT16					buf_io_read[CC_MC_SIZE_W_READ];							//PLC READデータ
+	ST_PLC_AXIS_SET			st_axis_set[ID_AXIS::Max];								//動作状態モニタ値
+	ST_OTE_LOAD_STAT		st_load_stat[N_OTE_LOAD_TYPE];							//吊荷状態
+	ST_OTE_PC_MSG			pc_msg;													//メッセージを更新する毎にカウントアップ
+	ST_OTE_PC_FLTS_SET		faults_set;												//発生中故障コード
+	float 					bh_angle;												//起伏角度
+	float					wind_spd;
+	INT16					sl_brk_fb[8];											//遠隔旋回ブレーキFB
 	ST_SWAY_SERVER_BODY		sway_body;
 
 }ST_PC_U_BODY, * LPST_PC_U_BODY;

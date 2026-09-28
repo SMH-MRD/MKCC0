@@ -161,12 +161,14 @@ public:
 
     void set_dbg_mode(int command);
     int debug_mode;
+
+    ST_CC_POL_INF       st_inf_work;
+    ST_POLICY_COM_WORK  st_com_work;
  
 private:
     int crane_id = 0;
 
-    ST_CC_POL_INF       st_inf_work;
-    ST_POLICY_COM_WORK  st_com_work;
+
     int command_id;
 
     HRESULT(*fp_fault_check)(int id) = NULL;  //異常チェック   

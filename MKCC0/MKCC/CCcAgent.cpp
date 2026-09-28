@@ -83,8 +83,9 @@ static INT32 slblk_chk_cnt;
 static INT16 syukairo_comp_last = 0, slbrk_com_chk_last = 0, slbrk_pressuer_chk = 0, slblk_level_fb = 0;
 
 static int auto_on_going_last = AUTO_TYPE_MANUAL;
-static INT32 notch0_last;
+static INT32 notch0_last;					//ノッチ0判定フラグ前回値
 static LPST_COMMAND_SET pCom_hot_last;
+static double* ptbl_notch_f[MOTION_ID_MAX], *ptbl_notch_r[MOTION_ID_MAX];	//指令速度をノッチに変換するときの参照テーブルアドレス
 
 CAgent::CAgent() {
 	// 共有メモリオブジェクトのインスタンス化
@@ -123,6 +124,8 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 	pCraneStat = &(pEnv_Inf->crane_stat);
 	
 	pCS = (CCcCS*)VectCtrlObj[st_task_id.CS];
+	pPol = (CCcPol*)VectCtrlObj[st_task_id.POL];
+	pEnv = (CCcEnv*)VectCtrlObj[st_task_id.ENV];
 
 	if ((pEnv_Inf == NULL) || (pPLC_IO == NULL) || (pCS_Inf == NULL) || (pAgent_Inf == NULL) || (pOTE_Inf == NULL) || (pAUX_CS_Inf == NULL)){
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
@@ -187,7 +190,10 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		break;
 	}
 
-
+	for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
+		ptbl_notch_f[i] = pCrane->pSpec->axis_spec[i].Notch_spd_f[0];
+		ptbl_notch_r[i] = pCrane->pSpec->axis_spec[i].Notch_spd_r[0];
+	}
 
 
 	//### IFウィンドウOPEN
@@ -215,7 +221,6 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 			wos << L"MCProtocol Init OK"; msg2listview(wos.str());
 		}
 	}
-
 
 	for(int i=0;i<MOTION_ID_MAX;i++){
 		pPLC_IO->stat_axis[i].mode = NOTCH_MODE_BASE;
@@ -470,15 +475,15 @@ int CAgent::parse() {
 		else											st_work.st_axis_ctrl[ID_AHOIST].status	|= AG_AXIS_STAT_FB0;
 
 		//自動選択軸セット
-		if (pCS_Inf->auto_status[ID_HOIST])	st_work.pc_auto_ctrl_mode		|= BIT_SEL_HST;
+		if (pCS_Inf->auto_select[ID_HOIST])	st_work.pc_auto_ctrl_mode		|=  BIT_SEL_HST;
 		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_HST;
-		if (pCS_Inf->auto_status[ID_GANTRY]) st_work.pc_auto_ctrl_mode		|= BIT_SEL_GNT;
+		if (pCS_Inf->auto_select[ID_GANTRY]) st_work.pc_auto_ctrl_mode		|=  BIT_SEL_GNT;
 		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_GNT;
-		if (pCS_Inf->auto_status[ID_BOOM_H]) st_work.pc_auto_ctrl_mode		|= BIT_SEL_BH;
+		if (pCS_Inf->auto_select[ID_BOOM_H]) st_work.pc_auto_ctrl_mode		|=  BIT_SEL_BH;
 		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_BH;
-		if (pCS_Inf->auto_status[ID_SLEW])	st_work.pc_auto_ctrl_mode		|= BIT_SEL_SLW;
+		if (pCS_Inf->auto_select[ID_SLEW])	st_work.pc_auto_ctrl_mode		|=  BIT_SEL_SLW;
 		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_SLW;
-		if (pCS_Inf->auto_status[ID_AHOIST])	st_work.pc_auto_ctrl_mode	|= BIT_SEL_AH;
+		if (pCS_Inf->auto_select[ID_AHOIST])	st_work.pc_auto_ctrl_mode	|=  BIT_SEL_AH;
 		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_AH;
 
 		if (pPLC_IO->ctrl_source != L_ON) {//主幹OFFで自動指令を0にする
@@ -597,20 +602,20 @@ int CAgent::parse() {
 		else {
 			//		AgentInf_workbuf.auto_on_going |= AUTO_TYPE_FB_ANTI_SWAY;
 
-			if (pCraneStat->notch0 & BIT_SEL_BH) {							//0ノッチ
+			if (st_work_plcio.notch0 & BIT_SEL_BH) {							//0ノッチ
 				st_work.antisway_on_going |= ANTISWAY_BH_ACTIVE;
 				st_work.antisway_on_going &= ~ANTISWAY_BH_PAUSED;
 			}
-			else {															//ノッチ入り
+			else {																//ノッチ入り
 				st_work.antisway_on_going |= ANTISWAY_BH_PAUSED;
 				st_work.antisway_on_going &= ~ANTISWAY_BH_ACTIVE;
 			}
 
-			if (pCraneStat->notch0 & BIT_SEL_SLW) {							//0ノッチ
+			if (st_work_plcio.notch0 & BIT_SEL_SLW) {							//0ノッチ
 				st_work.antisway_on_going |= ANTISWAY_SLEW_ACTIVE;
 				st_work.antisway_on_going &= ~ANTISWAY_SLEW_PAUSED;
 			}
-			else {															//ノッチ入り
+			else {																//ノッチ入り
 				st_work.antisway_on_going |= ANTISWAY_SLEW_PAUSED;
 				st_work.antisway_on_going &= ~ANTISWAY_SLEW_ACTIVE;
 			}
@@ -627,15 +632,15 @@ int CAgent::parse() {
 		tmp_amp2 = pEnv->cal_sway_amp2(ID_BOOM_H);
 		tmp_dist = pEnv->cal_dist4target(ID_BOOM_H, true);
 		//振幅、位置とも制御完了レベル以内
-		if ((tmp_amp2 < pCraneStat->spec.as_m2_level[ID_BOOM_H][ID_LV_COMPLE])
-			&& (tmp_dist < pCraneStat->spec.as_pos_level[ID_BOOM_H][ID_LV_COMPLE])) {
+		if ((tmp_amp2 < pCrane->pSpec->auto_spec[ID_BOOM_H].as_m2_level[ID_LV_COMPLE])
+			&& (tmp_dist < pCrane->pSpec->auto_spec[ID_BOOM_H].as_pos_level[ID_LV_COMPLE])) {
 			st_work.antisway_on_going |= ANTISWAY_BH_COMPLETE;
 		}
 		//振れ止め完了状態
-		else if (pAgentInf->antisway_on_going & ANTISWAY_BH_COMPLETE) {	//振れ止め完了フラグON
+		else if (st_work.antisway_on_going & ANTISWAY_BH_COMPLETE) {	//振れ止め完了フラグON
 			//振幅または位置が振れ止め起動レベル越で完了フラグクリア
-			if ((pEnv->cal_sway_amp2(ID_BOOM_H) > pCraneStat->spec.as_m2_level[ID_BOOM_H][ID_LV_TRIGGER])
-				|| (pEnv->cal_dist4target(ID_BOOM_H, true) > pCraneStat->spec.as_pos_level[ID_BOOM_H][ID_LV_TRIGGER]))
+			if ((pEnv->cal_sway_amp2(ID_BOOM_H) > pCrane->pSpec->auto_spec[ID_BOOM_H].as_m2_level[ID_LV_TRIGGER])
+				|| (pEnv->cal_dist4target(ID_BOOM_H, true) > pCrane->pSpec->auto_spec[ID_BOOM_H].as_pos_level[ID_LV_TRIGGER]))
 				st_work.antisway_on_going &= ~ANTISWAY_BH_COMPLETE;
 		}
 		else {
@@ -645,14 +650,14 @@ int CAgent::parse() {
 		tmp_amp2 = pEnv->cal_sway_amp2(ID_SLEW);
 		tmp_dist = pEnv->cal_dist4target(ID_SLEW, true);
 		//振幅、位置とも制御完了レベル以内
-		if ((tmp_amp2 < pCraneStat->spec.as_m2_level[ID_SLEW][ID_LV_COMPLE])
-			&& (tmp_dist < pCraneStat->spec.as_pos_level[ID_SLEW][ID_LV_COMPLE])) {
+		if ((tmp_amp2 < pCrane->pSpec->auto_spec[ID_SLEW].as_m2_level[ID_LV_COMPLE])
+			&& (tmp_dist < pCrane->pSpec->auto_spec[ID_SLEW].as_pos_level[ID_LV_COMPLE])) {
 			st_work.antisway_on_going |= ANTISWAY_SLEW_COMPLETE;
 		}
 		//振れ止め完了状態
-		else if (pAgentInf->antisway_on_going & ANTISWAY_SLEW_COMPLETE) {
-			if ((pEnv->cal_sway_amp2(ID_SLEW) > pCraneStat->spec.as_m2_level[ID_SLEW][ID_LV_TRIGGER])
-				|| (pEnv->cal_dist4target(ID_SLEW, true) > pCraneStat->spec.as_pos_level[ID_SLEW][ID_LV_TRIGGER]))
+		else if (st_work.antisway_on_going & ANTISWAY_SLEW_COMPLETE) {
+			if ((pEnv->cal_sway_amp2(ID_SLEW) > pCrane->pSpec->auto_spec[ID_SLEW].as_m2_level[ID_LV_TRIGGER])
+				|| (pEnv->cal_dist4target(ID_SLEW, true) > pCrane->pSpec->auto_spec[ID_SLEW].as_pos_level[ID_LV_TRIGGER]))
 				st_work.antisway_on_going &= ~ANTISWAY_SLEW_COMPLETE;
 		}
 		else {
@@ -666,21 +671,21 @@ int CAgent::parse() {
 	{
 		//手動
 		if ((st_work.auto_on_going == AUTO_TYPE_MANUAL)) {
-			st_work.auto_active[ID_HOIST] = st_work.auto_active[ID_BOOM_H] = AgentInf_workbuf.auto_active[ID_SLEW] = AgentInf_workbuf.auto_active[ID_AHOIST] = AUTO_TYPE_MANUAL;
+			st_work.st_axis_ctrl[ID_HOIST].auto_active = st_work.st_axis_ctrl[ID_BOOM_H].auto_active = st_work.st_axis_ctrl[ID_SLEW].auto_active = st_work.st_axis_ctrl[ID_AHOIST].auto_active = AUTO_TYPE_MANUAL;
 		}
 		//半自動
 		else if ((st_work.auto_on_going & AUTO_TYPE_SEMIAUTO) || (st_work.auto_on_going & AUTO_TYPE_FB_ANTI_SWAY)) {
 			for (int i = 0; i <= ID_AHOIST; i++) {
-				if (pCS_Inf->auto_status[i] == L_ON)		AgentInf_workbuf.auto_active[i] = AgentInf_workbuf.auto_on_going;
-				else									AgentInf_workbuf.auto_active[i] = AUTO_TYPE_MANUAL;
+				if (pCS_Inf->auto_select[i] == L_ON)	st_work.st_axis_ctrl[i].auto_active = st_work.auto_on_going;
+				else									st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
 			}
 		}
 		//JOB
-		else if (AgentInf_workbuf.auto_on_going & AUTO_TYPE_JOB) {
-			AgentInf_workbuf.auto_active[ID_HOIST] = AgentInf_workbuf.auto_active[ID_BOOM_H] = AgentInf_workbuf.auto_active[ID_SLEW] = AgentInf_workbuf.auto_active[ID_AHOIST] = AgentInf_workbuf.auto_on_going;
+		else if (st_work.auto_on_going & AUTO_TYPE_JOB) {
+			st_work.st_axis_ctrl[ID_HOIST].auto_active = st_work.st_axis_ctrl[ID_BOOM_H].auto_active = st_work.st_axis_ctrl[ID_SLEW].auto_active = st_work.st_axis_ctrl[ID_AHOIST].auto_active = st_work.auto_on_going;
 		}
 		else {
-			for (int i = 0; i <= ID_AHOIST; i++) AgentInf_workbuf.auto_active[i] = AUTO_TYPE_MANUAL;
+			for (int i = 0; i <= ID_AHOIST; i++) st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
 		}
 	}
 
@@ -692,7 +697,7 @@ int CAgent::parse() {
 			st_work.st_axis_ctrl[ID_HOIST].auto_tg_pos	= pCom_hot->target.pos[ID_HOIST];
 			st_work.st_axis_ctrl[ID_AHOIST].auto_tg_pos = pCom_hot->target.pos[ID_AHOIST];
 			st_work.st_axis_ctrl[ID_BOOM_H].auto_tg_pos = pCom_hot->target.pos[ID_BOOM_H];
-			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos = pCom_hot->target.pos[ID_SLEW];
+			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos	= pCom_hot->target.pos[ID_SLEW];
 		}
 		else if (pCom_hot == NULL) {//JOB無し
 			//巻は現在位置
@@ -700,20 +705,19 @@ int CAgent::parse() {
 			st_work.st_axis_ctrl[ID_AHOIST].auto_tg_pos = pPLC_IO->stat_axis[ID_AHOIST].pos_fb;
 			//旋回,起伏も現在位置　振れ止めもJOBの一部として扱う
 			st_work.st_axis_ctrl[ID_BOOM_H].auto_tg_pos = pPLC_IO->stat_axis[ID_BOOM_H].pos_fb;
-			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos = pPLC_IO->stat_axis[ID_SLEW].pos_fb;
+			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos	= pPLC_IO->stat_axis[ID_SLEW].pos_fb;
 		}
 		else;
 
 		//目標までの距離セット
 		for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
-			st_work.st_axis_ctrl[i].dist_for_target = pEnv->cal_dist4target(i, false);
+			st_work.st_axis_ctrl[i].dist_for_target		= pEnv->cal_dist4target(i, false);
 		}
 	}
 
 	//###################################################	
 	//# PLCへの出力計算　
 	//###################################################
-
 	
 	//### 各軸指令出力計算
 	fp_set_ref_mh(crane_id);
@@ -861,6 +865,7 @@ int CAgent::output() {
 
 	//ヘルシー出力
 	pPLC_IO->plc_enable = plc_healthy_chk_count;
+
 	//制御指令出力
 	memcpy_s(pAgent_Inf, sizeof(ST_CC_AGENT_INF), &st_work, sizeof(ST_CC_AGENT_INF));
 
@@ -884,7 +889,7 @@ int CAgent::output() {
 		//Simulation計算値出力
 		if (pEnv_Inf->app_common_param.app_mode != MODE_ENV_APP_PRODUCT) {
 			for (int i = 0; i < (int)ENUM_IMAGE::E_MAX; i++) {
-				pAUX_CS_Inf->msg_client.sim_target[i] = pSim_Inf->sim_target[i];
+				pAUX_CS_Inf->msg_client.sim_target[i] = pSim_Inf->sim_target[i];	//振れセンサターゲット検出状態計算値
 			}
 		}
 	}
@@ -919,10 +924,10 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	pPLC_IO->wind_spd = (double)(pCrane->pPlc->rval(pPlcRIf->JC.wind_spd_01m).i16) / 10.0;	//風速m/s単位
 
 	//## 位置
-	pPLC_IO->stat_axis[ID_HOIST].pos_fb = (float)pPLC_IO->h_mh;
-	pPLC_IO->stat_axis[ID_BOOM_H].pos_fb = (float)pPLC_IO->r;								//旋回半径
-	pPLC_IO->stat_axis[ID_SLEW].pos_fb = (float)pEnv_Inf->crane_stat.sl_ph.p / RAD1DEG;		//旋回角度 DEG
-	pPLC_IO->stat_axis[ID_GANTRY].pos_fb = (float)pEnv_Inf->crane_stat.gt.p;				//走行位置 
+	pPLC_IO->stat_axis[ID_HOIST].pos_fb		= (float)pPLC_IO->h_mh;
+	pPLC_IO->stat_axis[ID_BOOM_H].pos_fb	= (float)pPLC_IO->r;							//旋回半径
+	pPLC_IO->stat_axis[ID_SLEW].pos_fb		= (float)pEnv_Inf->crane_stat.sl_ph.p / RAD1DEG;//旋回角度 DEG
+	pPLC_IO->stat_axis[ID_GANTRY].pos_fb	= (float)pEnv_Inf->crane_stat.gt.p;				//走行位置 
 
 	//if (pEnv_Inf->app_common_param.app_mode == MODE_ENV_APP_EMURATOR) {
 	//	pPLC_IO->stat_mh.pos_fb = (float)(pEnv_Inf->crane_stat.ldz.p);
@@ -940,6 +945,14 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	notch = pCrane->pPlc->rval(pPlcRIf->JC.ah_notch).i16;
 	pPLC_IO->stat_axis[ID_AHOIST].notch_ref = CNotchHelper::get_notch4_by_code(&notch, 0);	//AHノッチFB
 
+	//0ノッチフラグセット
+	pPLC_IO->notch0 = 0;
+	if (pPLC_IO->stat_axis[ID_HOIST].notch_ref == 0) pPLC_IO->notch0	|= BIT_SEL_HST;
+	if (pPLC_IO->stat_axis[ID_BOOM_H].notch_ref == 0) pPLC_IO->notch0	|= BIT_SEL_BH;
+	if (pPLC_IO->stat_axis[ID_SLEW].notch_ref == 0) pPLC_IO->notch0		|= BIT_SEL_SLW;
+	if (pPLC_IO->stat_axis[ID_GANTRY].notch_ref == 0) pPLC_IO->notch0	|= BIT_SEL_GNT;
+	if (pPLC_IO->stat_axis[ID_AHOIST].notch_ref == 0) pPLC_IO->notch0	|= BIT_SEL_AH;
+
 	//## 目標速度
 	pPLC_IO->stat_axis[ID_HOIST].v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_mh).i16;
 	pPLC_IO->stat_axis[ID_BOOM_H].v_ref_tg = pCrane->pPlc->rval(pPlcRIf->JC.target_v_bh).i16;
@@ -949,7 +962,7 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	//## インバータ速度指令(OTE用）inv_ref(ベース100%が1000の表現)
 	//主巻
 	pPLC_IO->stat_axis[ID_HOIST].v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_mh).i16;					//インバータ速度指令（絶対値）
-	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_mh).i16);										//インバータ指令（正転）
+	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_mh).i16);													//インバータ指令（正転）
 	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_ref_mh).i16) pPLC_IO->stat_axis[ID_HOIST].v_ref *= -1;		//インバータ指令（逆転）
 	else  pPLC_IO->stat_axis[ID_HOIST].v_ref = 0;															//インバータ指令（無し）
 	//引込
@@ -959,12 +972,12 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	else  pPLC_IO->stat_axis[ID_BOOM_H].v_ref = 0;															//インバータ指令（無し）
 	//旋回
 	pPLC_IO->stat_axis[ID_SLEW].v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_sl).i16;					//インバータ速度指令（絶対値）
-	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_sl).i16);										//インバータ指令（正転）
+	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_sl).i16);													//インバータ指令（正転）
 	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_ref_sl).i16) pPLC_IO->stat_axis[ID_SLEW].v_ref *= -1;		//インバータ指令（逆転）
 	else  pPLC_IO->stat_axis[ID_SLEW].v_ref = 0;															//インバータ指令（無し）
 	//走行
 	pPLC_IO->stat_axis[ID_GANTRY].v_ref = pCrane->pPlc->rval(pPlcRIf->JC.inv_vref_gt).i16;					//インバータ速度指令（絶対値）
-	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_gt).i16);										//インバータ指令（正転）
+	if (pCrane->pPlc->rval(pPlcRIf->JC.inv_fwd_gt).i16);													//インバータ指令（正転）
 	else if (pCrane->pPlc->rval(pPlcRIf->JC.inv_ref_gt).i16) pPLC_IO->stat_axis[ID_GANTRY].v_ref *= -1;		//インバータ指令（逆転）
 	else  pPLC_IO->stat_axis[ID_GANTRY].v_ref = 0;
 	
@@ -1025,15 +1038,15 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 
 	//### クレーン別処理
 	//## MODE(主巻速度、引込、旋回)
-
-	pPLC_IO->stat_axis[ID_GANTRY].mode;
-	pPLC_IO->stat_axis[ID_SLEW].mode;
+	//旋回,走行は基本モードのみ
+	pPLC_IO->stat_axis[ID_GANTRY].mode	= CODE_MODE1;
+	pPLC_IO->stat_axis[ID_SLEW].mode	= CODE_MODE1;
 
 	switch (crane_id) {
 	case CRANE_ID_HHGQ18: 
 	{
-		pPLC_IO->stat_axis[ID_HOIST].mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_B);
-		pPLC_IO->stat_axis[ID_BOOM_H].mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
+		pPLC_IO->stat_axis[ID_HOIST].mode	= CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.mh_spd_cs).i16, PLC_IO_CS_MH_SPD_MODE, PLC_IO_CS_TYPE_B);
+		pPLC_IO->stat_axis[ID_BOOM_H].mode	= CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
 	}break;
 	case CRANE_ID_H6R602:
 	{
@@ -1055,6 +1068,21 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 		pPLC_IO->stat_axis[ID_BOOM_H].mode = CPlcCSHelper::get_mode_by_code(pCrane->pPlc->rval(pPlcRIf->JC.bh_mode_cs).i16, PLC_IO_CS_BH_R_MODE, PLC_IO_CS_TYPE_A);
 	}break;	
 	}
+
+	//ノッチ速度参照テーブル更新（主巻、補巻）のみ
+	int i_mode = 0;
+	if (pPLC_IO->stat_axis[ID_HOIST].mode > 0) 
+		i_mode = pPLC_IO->stat_axis[ID_HOIST].mode -1;
+	ptbl_notch_f[ID_HOIST]	= pCrane->pSpec->axis_spec[ID_HOIST].Notch_spd_f[i_mode];
+	ptbl_notch_r[ID_AHOIST] = pCrane->pSpec->axis_spec[ID_HOIST].Notch_spd_r[i_mode];
+
+	i_mode = 0;
+	if (pPLC_IO->stat_axis[ID_AHOIST].mode > 0)
+		i_mode = pPLC_IO->stat_axis[ID_HOIST].mode - 1;
+	ptbl_notch_f[ID_AHOIST] = pCrane->pSpec->axis_spec[ID_AHOIST].Notch_spd_f[i_mode];
+	ptbl_notch_r[ID_AHOIST] = pCrane->pSpec->axis_spec[ID_AHOIST].Notch_spd_r[i_mode];
+
+
 	return S_OK;
 }
 HRESULT CAgent::trans_plc_io_read_GC(int crane_id) {
@@ -1100,7 +1128,6 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		//	pAgent_Inf->pc_ctrl_mode2plc &= ~mask;
 		//}
 
-
 		pCrane->pPlc->wval(pPlcWIf->JC.pc_ctrl_mode, pAgent_Inf->pc_ctrl_mode2plc);
 	}
 
@@ -1125,7 +1152,6 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 
 	pPLC_IO->flt_reset_pb = pOteCtrl[OTE_PNL_CTRLS::fault_reset];
 
-
 	pCrane->pPlc->wval(pPlcWIf->JC.alarm_stp_pb, pOteCtrl[OTE_PNL_CTRLS::alm_stop]);		//警報停止
 
 	pCrane->pPlc->wval(pPlcWIf->JC.siren_sw, pOteCtrl[OTE_PNL_CTRLS::motor_siren]);			//モータサイレンスイッチ
@@ -1144,14 +1170,50 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		pCrane->pPlc->wval(pPlcWIf->JC.gt_notch, CNotchHelper::get_code4_by_notch(0, 0));
 		pCrane->pPlc->wval(pPlcWIf->JC.ah_notch, CNotchHelper::get_code4_by_notch(0, 0));
 	}
+	else if (pCS_Inf->cs_ctrl.auto_mode == L_ON) {
+			if (st_work.pc_auto_ctrl_mode & BIT_SEL_HST) {	//自動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.mh_notch, CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_HOIST].v_ref, ptbl_notch_f[ID_HOIST], ptbl_notch_r[ID_HOIST]));
+			}
+			else {											//手動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
+			}
+
+			if (st_work.pc_auto_ctrl_mode & BIT_SEL_BH) {	//自動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.bh_notch, CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_BOOM_H].v_ref, ptbl_notch_f[ID_BOOM_H], ptbl_notch_r[ID_BOOM_H]));
+			}
+			else {											//手動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.bh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
+			}
+
+			if (st_work.pc_auto_ctrl_mode & BIT_SEL_SLW) {	//自動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.sl_notch, CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_SLEW].v_ref, ptbl_notch_f[ID_SLEW], ptbl_notch_r[ID_SLEW]));
+			}
+			else {											//手動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
+			}
+
+			if (st_work.pc_auto_ctrl_mode & BIT_SEL_GNT) {	//自動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.gt_notch, CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_GANTRY].v_ref, ptbl_notch_f[ID_GANTRY], ptbl_notch_r[ID_GANTRY]));
+			}
+			else {											//手動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
+			}
+
+			if (st_work.pc_auto_ctrl_mode & BIT_SEL_AH) {	//自動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.ah_notch, CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_AHOIST].v_ref, ptbl_notch_f[ID_AHOIST], ptbl_notch_r[ID_AHOIST]));
+			}
+			else {											//手動選択時
+				pCrane->pPlc->wval(pPlcWIf->JC.ah_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_ah], 0));
+			}
+	}
 	else {
-		//!!! 主巻と引込はPAD入力の＋が下,出(逆転）
 		pCrane->pPlc->wval(pPlcWIf->JC.mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
 		pCrane->pPlc->wval(pPlcWIf->JC.bh_notch, CNotchHelper::get_code4_by_notch(-pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
 		pCrane->pPlc->wval(pPlcWIf->JC.sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
 		pCrane->pPlc->wval(pPlcWIf->JC.gt_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_gt], 0));
 		pCrane->pPlc->wval(pPlcWIf->JC.ah_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_ah], 0));
 	}
+
 
 	//### SIMULATOR計算値セット(シミュレータモードでないときはPLCロジック内で反映されない）
 	//高速カウンタ・アブソコーダ

@@ -1027,9 +1027,8 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 
 				//接続クレーンIDセット
 				//st_work.id_conected_crane = (pOteCCIf->st_msg_pc_u_rcv.head.myid.serial_no & 0x0000FFFF);		//PCコード
-				st_work.id_conected_crane = pOteCCIf->st_msg_pc_u_rcv.head.myid.machine_id;						//PCコード
-				st_work.crane_product_id = *(UN_PRODUCT_ID*)(pOteCCIf->st_msg_pc_u_rcv.head.myid.crane_id);		//製番コード
-
+				st_work.id_conected_crane	= pOteCCIf->st_msg_pc_u_rcv.head.myid.machine_id;					//PCコード
+				st_work.crane_product_id	= *(UN_PRODUCT_ID*)(pOteCCIf->st_msg_pc_u_rcv.head.myid.crane_id);	//製番コード
 
 				pOteCCIf->msg_rcv_seqno_now = pOteCCIf->st_msg_pc_u_rcv.head.seqno;
 

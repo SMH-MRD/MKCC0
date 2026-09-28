@@ -8,6 +8,7 @@
 #include "COteEnv.h"
 #include "CPanelObj.h"
 #include "CComm.h"
+#include "phisics.h"
 
 extern CSharedMem* pOteEnvInfObj;
 extern CSharedMem* pOteCsInfObj;
@@ -702,23 +703,28 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::asel_ah]			|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::asel_ah];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
 
-		//auto_setのトリガでJOB SEAQUENCE NO更新
+		//auto_setのトリガでJOB SEAQUENCE NO更新して取り込み
 		if (pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set] && !auto_set_last) {
 			job_seq_no++;
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
+			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
+			
+			set_auto_target(pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type]);
 		}
+
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::job_sequence_no] = job_seq_no;
+
+		//!!! pOteCsInf->pnl_ctrl[]毎回一旦リセットされるので前回値はバッファを用意する必要がある
 		auto_set_last = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set];
 
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]	= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg];
 	}
 
@@ -998,6 +1004,44 @@ void COteCS::setup_ctrl_function(int _crane_type, int _crane_id) {
 	crane_type = _crane_type;  crane_id = _crane_id;
 	return;
 }
+
+HRESULT COteCS::set_auto_target(int job_type) {
+
+	//一旦現在位置をセット
+	st_work.st_body.auto_tg_pos[ID_HOIST]	= pOteCCInf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_HOIST].pos_fb;
+	st_work.st_body.auto_tg_pos[ID_BOOM_H]	= pOteCCInf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb;
+	st_work.st_body.auto_tg_pos[ID_SLEW]	= pOteCCInf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].pos_fb;
+	st_work.st_body.auto_tg_pos[ID_GANTRY]	= pOteCCInf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].pos_fb;
+	st_work.st_body.auto_tg_pos[ID_AHOIST]	= pOteCCInf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_AHOIST].pos_fb;
+
+//GBC TEST用
+//自動は旋回のみ　移動量はTOP Speedでの定速時間をPRM1にセット,加速時と減速時の移動量の合計はTOP Speed（Vtop) × 加速時間（T）
+//より、移動量は,Vtop ×　（T +　PRM1）
+	double tacc = pCrane->pSpec->axis_spec->Ta0;
+
+	double d = 0, vtop = 0.0;
+
+	switch (job_type) {
+	case	CODE_JOB_ITEM_GBC_TEST_SL_LEFT: {
+		vtop	= pCrane->pSpec->axis_spec->Notch_spd_f[CODE_MODE1][N_NOTCH_MAX - 1];
+		d = vtop * (tacc + (double)pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] / 10.0); //auto_prm1は、100msec単位の入力
+		st_work.st_body.auto_tg_pos[ID_SLEW] += d;
+	}break;
+	case	CODE_JOB_ITEM_GBC_TEST_SL_RIGHT: {
+		vtop = pCrane->pSpec->axis_spec->Notch_spd_r[CODE_MODE1][N_NOTCH_MAX - 1];
+		d = vtop * (tacc + (double)pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] / 10.0); //auto_prm1は、100msec単位の入力
+		st_work.st_body.auto_tg_pos[ID_SLEW] += d;
+	}break;
+	default:break;
+	}
+
+	//旋回は±180°の表現
+	if (st_work.st_body.auto_tg_pos[ID_SLEW] > PI180) st_work.st_body.auto_tg_pos[ID_SLEW] -= PI360;
+	if (st_work.st_body.auto_tg_pos[ID_SLEW] < -PI180) st_work.st_body.auto_tg_pos[ID_SLEW] += PI360;
+
+	return S_OK;
+}
+
 
 /****************************************************************************/
 /*   モニタウィンドウ									                    */
