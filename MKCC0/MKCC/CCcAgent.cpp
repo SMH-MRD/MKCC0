@@ -190,9 +190,11 @@ HRESULT CAgent::initialize(LPVOID lpParam) {
 		break;
 	}
 
+	//各種初期化
 	for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
 		ptbl_notch_f[i] = pCrane->pSpec->axis_spec[i].Notch_spd_f[0];
 		ptbl_notch_r[i] = pCrane->pSpec->axis_spec[i].Notch_spd_r[0];
+		pPLC_IO->v_ratio[i] = 1.0;
 	}
 
 
@@ -462,32 +464,33 @@ int CAgent::parse() {
 	//  自動選択セット 
 	//###################################################
 	{
-		//速度0状態セット
-		if (pEnv_Inf->crane_stat.is_speed0[ID_HOIST])	st_work.st_axis_ctrl[ID_HOIST].status	|= AG_AXIS_STAT_FB0;
+		//速度0状態セット カウンタ0で速度0判定
+		if (pEnv_Inf->crane_stat.cnt_speed0[ID_HOIST])	st_work.st_axis_ctrl[ID_HOIST].status	&= ~AG_AXIS_STAT_FB0;	
 		else											st_work.st_axis_ctrl[ID_HOIST].status	|= AG_AXIS_STAT_FB0;
-		if (pEnv_Inf->crane_stat.is_speed0[ID_BOOM_H])	st_work.st_axis_ctrl[ID_BOOM_H].status	|= AG_AXIS_STAT_FB0;
-		else											st_work.st_axis_ctrl[ID_BOOM_H].status	|= AG_AXIS_STAT_FB0;
-		if (pEnv_Inf->crane_stat.is_speed0[ID_SLEW])	st_work.st_axis_ctrl[ID_SLEW].status	|= AG_AXIS_STAT_FB0;
+		if (pEnv_Inf->crane_stat.cnt_speed0[ID_BOOM_H])	st_work.st_axis_ctrl[ID_BOOM_H].status	&= ~AG_AXIS_STAT_FB0;
+		else											st_work.st_axis_ctrl[ID_BOOM_H].status	|= AG_AXIS_STAT_FB0; 
+		if (pEnv_Inf->crane_stat.cnt_speed0[ID_SLEW])	st_work.st_axis_ctrl[ID_SLEW].status	&= ~AG_AXIS_STAT_FB0;	
 		else											st_work.st_axis_ctrl[ID_SLEW].status	|= AG_AXIS_STAT_FB0;
-		if (pEnv_Inf->crane_stat.is_speed0[ID_GANTRY])	st_work.st_axis_ctrl[ID_GANTRY].status	|= AG_AXIS_STAT_FB0;
+		if (pEnv_Inf->crane_stat.cnt_speed0[ID_GANTRY])	st_work.st_axis_ctrl[ID_GANTRY].status	&= ~AG_AXIS_STAT_FB0;	
 		else											st_work.st_axis_ctrl[ID_GANTRY].status	|= AG_AXIS_STAT_FB0;
-		if (pEnv_Inf->crane_stat.is_speed0[ID_AHOIST])	st_work.st_axis_ctrl[ID_AHOIST].status	|= AG_AXIS_STAT_FB0;
+		if (pEnv_Inf->crane_stat.cnt_speed0[ID_AHOIST])	st_work.st_axis_ctrl[ID_AHOIST].status	&= ~AG_AXIS_STAT_FB0;
 		else											st_work.st_axis_ctrl[ID_AHOIST].status	|= AG_AXIS_STAT_FB0;
-
+		
 		//自動選択軸セット
-		if (pCS_Inf->auto_select[ID_HOIST])	st_work.pc_auto_ctrl_mode		|=  BIT_SEL_HST;
-		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_HST;
-		if (pCS_Inf->auto_select[ID_GANTRY]) st_work.pc_auto_ctrl_mode		|=  BIT_SEL_GNT;
-		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_GNT;
-		if (pCS_Inf->auto_select[ID_BOOM_H]) st_work.pc_auto_ctrl_mode		|=  BIT_SEL_BH;
-		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_BH;
-		if (pCS_Inf->auto_select[ID_SLEW])	st_work.pc_auto_ctrl_mode		|=  BIT_SEL_SLW;
-		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_SLW;
-		if (pCS_Inf->auto_select[ID_AHOIST])	st_work.pc_auto_ctrl_mode	|=  BIT_SEL_AH;
-		else								st_work.pc_auto_ctrl_mode		&= ~BIT_SEL_AH;
-
 		if (pPLC_IO->ctrl_source != L_ON) {//主幹OFFで自動指令を0にする
 			st_work.pc_auto_ctrl_mode = 0;
+		}
+		else{
+			if (pCS_Inf->cs_ctrl.auto_select[ID_HOIST])			st_work.pc_auto_ctrl_mode |= BIT_SEL_HST;
+			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_HST;
+			if (pCS_Inf->cs_ctrl.auto_select[ID_GANTRY])		st_work.pc_auto_ctrl_mode |= BIT_SEL_GNT;
+			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_GNT;
+			if (pCS_Inf->cs_ctrl.auto_select[ID_BOOM_H])		st_work.pc_auto_ctrl_mode |= BIT_SEL_BH;
+			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_BH;
+			if (pCS_Inf->cs_ctrl.auto_select[ID_SLEW])			st_work.pc_auto_ctrl_mode |= BIT_SEL_SLW;
+			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_SLW;
+			if (pCS_Inf->cs_ctrl.auto_select[ID_AHOIST])		st_work.pc_auto_ctrl_mode |= BIT_SEL_AH;
+			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_AH;
 		}
 	}
 
@@ -675,9 +678,9 @@ int CAgent::parse() {
 		}
 		//半自動
 		else if ((st_work.auto_on_going & AUTO_TYPE_SEMIAUTO) || (st_work.auto_on_going & AUTO_TYPE_FB_ANTI_SWAY)) {
-			for (int i = 0; i <= ID_AHOIST; i++) {
-				if (pCS_Inf->auto_select[i] == L_ON)	st_work.st_axis_ctrl[i].auto_active = st_work.auto_on_going;
-				else									st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
+			for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
+				if (pCS_Inf->cs_ctrl.auto_select[i] == L_ON)	st_work.st_axis_ctrl[i].auto_active = st_work.auto_on_going;
+				else											st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
 			}
 		}
 		//JOB
@@ -1544,7 +1547,7 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		double chk_ph;   //目標位相
 		double ph_io = pCraneStat->sway_ph_expected[motion];			//現在の位相
 
-		if (pCom->seq[motion].motion_type == PTN_2SHOT_MOVE0) {
+		if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_MOVE0) {
 			pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = pStep->opt_i[ID_STEP_OPT_DIR];
 			pStep->status = STAT_END;
 		}
@@ -1688,11 +1691,11 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		}
 
 		if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] == ID_FWD) {
-			if (pCom->seq[motion].motion_type == PTN_2SHOT_AS)	v_out = -pStep->_v;
+			if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS)	v_out = -pStep->_v;
 			else                                                v_out = pStep->_v;
 		}
 		else if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] == ID_REV) {
-			if (pCom->seq[motion].motion_type == PTN_2SHOT_AS)	v_out = pStep->_v;
+			if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS)	v_out = pStep->_v;
 			else                                                v_out = -pStep->_v;
 		}
 		else v_out = 0.0;

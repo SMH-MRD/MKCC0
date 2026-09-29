@@ -4,6 +4,7 @@
 #include "COMMON_DEF.h"
 #include "SPEC_DEF.h"
 #include "OTE_DEF.h"
+#include "JOB_DEF.h"
 #include "PLC_DEF.h"
 #include "CVector3.h"
 #include "CCrane.h"
@@ -61,6 +62,8 @@ typedef struct _ST_FAULTS_LIST {
 	INT16 iw_history=0;												//故障履歴書き込みポインタ
 }ST_FAULTS_LIST, * LPST_FAULTS_LIST;
 
+#define PRM_CHK_COUNT_SPD0		50		//速度FB0判定用カウンタ値
+
 typedef struct _ST_CRANE_STAT {
 
 	ST_MOVE_SET	sl_ph;							//旋回角度
@@ -104,8 +107,7 @@ typedef struct _ST_CRANE_STAT {
 
 	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
 	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
-	bool is_speed0[MOTION_ID_MAX];				//速度FB0判定
-
+	INT32 cnt_speed0[MOTION_ID_MAX];			//速度FB0判定用カウンタ　0で速度0判定
 
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
@@ -141,8 +143,9 @@ typedef struct _ST_CC_ENV_INF {
 
 	INT32 OTE_req_status;						//操作端末要求状態
 
-	INT32 notch0;								//0ノッチ判定総合
+	INT32 notch0;								//0ノッチ判定総合 ビット毎に軸割り当て
 	INT32 auto_active_sw;						//自動実行スイッチ
+
 			 
 }ST_CC_ENV_INF, * LPST_CC_ENV_INF;
 #pragma endregion  クレーン状態定義構造体
@@ -371,18 +374,7 @@ typedef struct _ST_COMMAND_SET {
 //### 運転内容 動作内容の組み合わせで運転内容を実現します
 //		! JOB:From-Toの搬送作業
 #pragma region JOB
-#define JOB_COMMAND_MAX				10			//　JOBを構成するコマンド最大数
-#define MODE_PC_CTRL		0x00000001
-#define MODE_ANTISWAY		0x00010000
-#define MODE_RMOTE_PANEL	0x00000100
 
-#define ID_JOBIO_COMTYPE_PAUSE				0
-#define ID_JOBIO_COMTYPE_PICK				1
-#define ID_JOBIO_COMTYPE_GRND				2
-#define ID_JOBIO_COMTYPE_PARK				3
-#define ID_JOBIO_COMTYPE_ANTISWAY			4
-
-#define CODE_JOBIO_COMTYPE_ANTISWAY			-1
 //JOB:From-Toの搬送作業（PICK,PARK,GRNDのコマンドの組み合わせ等）　
 typedef struct _ST_JOB_SET {
 	//CS 構成 JOBセット
@@ -391,11 +383,11 @@ typedef struct _ST_JOB_SET {
 	int type;									//JOB種別（JOB,半自動,OPERATION））
 	int code;									//JOB識別コード
 	int n_com;									//構成コマンド数
-	ST_POS_TARGETS targets[JOB_COMMAND_MAX];		//目標位置
-	int com_type[JOB_COMMAND_MAX];
+	ST_POS_TARGETS targets[N_JOB_COMMAND_MAX];		//目標位置
+	int com_type[N_JOB_COMMAND_MAX];
 
 	//POLICY 構成コマンド
-	ST_COMMAND_SET com[JOB_COMMAND_MAX];		//コマンドのレシピ
+	ST_COMMAND_SET com[N_JOB_COMMAND_MAX];		//コマンドのレシピ
 	int i_hot_com;								//実行中コマンドインデックス
 	int status;									//JOBの状態
 	SYSTEMTIME time_start;						//開始時刻
@@ -409,21 +401,17 @@ typedef struct _ST_JOB_ORDER {
 
 //JOB LIST
 //JOBの予約登録が出来るようにLISTにして管理する
-#define N_JOB_LIST						3		//JOB LIST登録数
-#define ID_JOBTYPE_JOB					0		//JOB Type index番号
-#define ID_JOBTYPE_SEMI					1		//SEMIAUTO Type index番号
-#define ID_JOBTYPE_ANTISWAY				2		//FB ANTISWAY Type index番号
-#define JOB_REGIST_MAX					10		//　JOB登録最大数
+
 
 typedef struct _ST_JOB_LIST {
 	int id;
 	int type;									//JOB種別（JOB,半自動）
 	int n_job;									//Job数
-	ST_JOB_SET	 job[JOB_REGIST_MAX];			//登録job
-	ST_JOB_ORDER order[JOB_REGIST_MAX];			//要求job
+	ST_JOB_SET	 job[N_JOB_REGIST_MAX];			//登録job
+	ST_JOB_ORDER order[N_JOB_REGIST_MAX];			//要求job
 
 	int i_job_hot;								//次完了待ちJob(実行中or待機中）	  id
-	int status[JOB_REGIST_MAX];					//JOB LISTの状態
+	int status[N_JOB_REGIST_MAX];					//JOB LISTの状態
 }ST_JOB_LIST, * LPST_JOB_LIST;
 
 //フル自動,半自動,振れ止め用各ジョブリストのバッファ
@@ -436,13 +424,13 @@ typedef struct _ST_JOB_IO {
 //## Policy定義構造体
 #pragma region POLICY
 
-#define PTN_ORDINARY                0x00000000  //通常
-#define PTN_1SHOT_AS                0x00000001  //ワンショット振止
-#define PTN_HALF_T_AS               0x00000002  //半周期振止
-#define PTN_2SHOT_AS                0x00000004  //インチング振れ止め
-#define PTN_2SHOT_MOVE0             0x00000008  //インチング移動(振れ抑制無し）
-#define PTN_2SHOT_MOVE_PLUS         0x00000010  //インチング移動(振れ抑制有）
-#define PTN_FULL_T                  0x00000020  //1周期振止
+//#define PTN_ORDINARY                0x00000000  //通常
+//#define PTN_1SHOT_AS                0x00000001  //ワンショット振止
+//#define PTN_HALF_T_AS               0x00000002  //半周期振止
+//#define PTN_2SHOT_AS                0x00000004  //インチング振れ止め
+//#define PTN_2SHOT_MOVE0             0x00000008  //インチング移動(振れ抑制無し）
+//#define PTN_2SHOT_MOVE_PLUS         0x00000010  //インチング移動(振れ抑制有）
+//#define PTN_FULL_T                  0x00000020  //1周期振止
 
 typedef struct _ST_CC_POL_INF {
 
@@ -555,19 +543,18 @@ typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_status[MOTION_ID_MAX];
 	INT32		ote_remote_status;												//
 	INT32		ope_pnl_status = CC_CS_CODE_OPEPNL_DEACTIVE;					//操作端末の状態　0bit：端末信号有効
-	ST_POS_TARGETS semi_auto_selected_target;									//半自動選択目標位置(振れ止め含む）
 	INT16		ote_mh_spd_mode;												//主巻速度モード
 	INT16		ote_bh_r_mode;													//引込モード
 	INT16		remote_estop;
 	INT16		ote_type;
 	INT16		auto_prm[CC_CS_N_AUTO_PRM];										//自動設定パラメータ
-
+	INT16		job_code_available[N_JOB_TYPE_MAX];
+	INT32		auto_select[MOTION_ID_MAX];								//軸毎自動選択状態等
+	ST_POS_TARGETS semi_auto_selected_target;							//半自動選択目標位置(振れ止め含む）
 	ST_GPAD_IN gpad_in;	
 
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
 
-#define N_JOB_TARGET_MAX	10
-#define N_JOB_OPTION_MAX	10
 
 typedef struct stClientRcvMSG {
 	int req_code;
@@ -608,12 +595,10 @@ typedef struct _ST_CC_CS_INF {
 	//JOB関連
 	int command_type;													//PARK,PICK,GRND
 	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
-	INT32		auto_select[MOTION_ID_MAX];								//軸毎自動選択状態等
-	ST_POS_TARGETS semi_auto_selected_target;							//半自動選択目標位置(振れ止め含む）
 
 	LPST_JOB_SET p_active_job;
 	int job_control_status;
-	int auto_trigger_status;
+
 
 }ST_CC_CS_INF, * LPST_CC_CS_INF;
 

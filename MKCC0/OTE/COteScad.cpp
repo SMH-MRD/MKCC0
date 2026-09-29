@@ -174,23 +174,22 @@ void COteScad::set_panel_io() {
 	//st_workにセットしてoutput()で共有メモリへ出力する
 	// !!GamePadの入力はMON1ウィンドウのTIMERでCSの共有メモリのGPAD情報をみてPanelBaseのオブジェクトにセットしている
 	if (pPanelBase != NULL) {
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::estop] = pPanelBase->pmainobjs->cb_estop->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on] = pPanelBase->pmainobjs->pb_syukan_on->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::estop]		= pPanelBase->pmainobjs->cb_estop->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_on]	= pPanelBase->pmainobjs->pb_syukan_on->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::syukan_off] = pPanelBase->pmainobjs->pb_syukan_off->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote] = pPanelBase->pmainobjs->pb_remote->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad] = pPanelBase->pmainobjs->pb_pad_mode->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset] = pPanelBase->pmainobjs->pb_freset->get();
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_mode] = pPanelBase->pmainobjs->pb_assist_func->get();
-
-			
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::remote]		= pPanelBase->pmainobjs->pb_remote->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::game_pad]	= pPanelBase->pmainobjs->pb_pad_mode->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::fault_reset]= pPanelBase->pmainobjs->pb_freset->get();
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_mode]	= pPanelBase->pmainobjs->pb_assist_func->get();
+					
 		//### スイッチ
 		if ((pOteCsInf->st_body.remote != CODE_PNL_COM_ACTIVE) || (pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL)) {
-			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;	
-			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] = pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;		
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::mh_spd_mode].st.com;	
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pOteCCIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::bh_r_mode].st.com;		
 		}
 		else if(pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_PCPNL) {
-			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode] = pPanelBase->psubobjs->rdo_mh_spd_mode->get();
-			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode] = pPanelBase->psubobjs->rdo_bh_r_mode->get();
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::mh_spd_mode]	= pPanelBase->psubobjs->rdo_mh_spd_mode->get();
+			st_work.pnl_ctrl[OTE_PNL_CTRLS::bh_r_mode]		= pPanelBase->psubobjs->rdo_bh_r_mode->get();
 		}
 		else;
 
@@ -206,7 +205,7 @@ void COteScad::set_panel_io() {
 		//自動のタイプはauto_setボタンがONの時ラジオボタンの設定値を出力してコマンド送信とする
 		//if (!st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_set])
 		//	pPanelBase->psubobjs->rdo_auto_type->set(-1);
-		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pPanelBase->psubobjs->rdo_auto_type->get() + CODE_JOB_TYPE_GBC_TEST;
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pPanelBase->psubobjs->rdo_auto_type->get() + ID_JOBTYPE_GBC_TEST0;
 
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pPanelBase->psubobjs->ed_auto_prm1->get();
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm2]		= pPanelBase->psubobjs->ed_auto_prm2->get();

@@ -41,8 +41,6 @@ int CCcCS::auto_act_status = 0;
 INT16 CCcCS::ote_disp_com_hold;
 INT16 CCcCS::disp_mask[N_PLC_FAULT_BUF];
 
-int CCcCS::ote_option_setting;
-
 //共有メモリ
 static LPST_CC_ENV_INF		pEnv_Inf	= NULL;
 static LPST_CC_CS_INF		pCS_Inf		= NULL;
@@ -81,7 +79,6 @@ CCcCS::~CCcCS() {
 }
 
 static PINT16	p_ote_pnl_ctrl;
-
 
 HRESULT CCcCS::initialize(LPVOID lpParam) {
 	HRESULT hr = S_OK;
@@ -243,6 +240,11 @@ HRESULT CCcCS::initialize(LPVOID lpParam) {
 		break;
 	}
 
+	//#################################################
+	//###		JOB関連設定							###
+	//#################################################
+	set_job_available_list(crane_id);//処理可能なJOBのコードリストセット
+
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -355,8 +357,39 @@ int CCcCS::output() {          //出力処理
 int CCcCS::close() {
 	return 0;
 }
+
+HRESULT CCcCS::set_job_available_list(int crane_id) {
+
+	switch (crane_id) {
+	case CRANE_ID_H6R602: {
+		st_cs_work.cs_ctrl.job_code_available[0] = ID_JOBTYPE_GBC_TEST0;
+		st_cs_work.cs_ctrl.job_code_available[1] = ID_JOBTYPE_GBC_TEST1;
+		st_cs_work.cs_ctrl.job_code_available[2] = ID_JOBTYPE_END;
+	}break;
+	case CRANE_ID_HHGH29:
+	case CRANE_ID_HHGQ18:
+	case CRANE_ID_HHFM08:
+	default: {
+		st_cs_work.cs_ctrl.job_code_available[0] = ID_JOBTYPE_END;
+	}break;
+	}
+	return S_OK;
+}
+
+/// <summary>
+///  OTEからの入力データ設定関数
+/// </summary>
+/// <param name="crane_id"></param>
+/// <returns></returns>
 HRESULT CCcCS::get_ote_data_JC(int crane_id) {
-	ote_option_setting = st_ote_work.st_msg_ote_u_rcv.body.st.ope_mode;
+
+	//自動起動ボタン入力
+	if (p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_act] || p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]) {
+		st_cs_work.cs_ctrl.auto_act_req = L_ON;
+	}
+	else {
+		st_cs_work.cs_ctrl.auto_act_req = L_OFF;
+	}
 
 	return S_OK; 
 }
@@ -364,6 +397,12 @@ HRESULT CCcCS::get_ote_data_GC(int crane_id) {
 	return S_OK; 
 }
 HRESULT CCcCS::get_ote_data_OHC(int crane_id) { return S_OK; }
+
+/// <summary>
+/// OTEへの出力データ設定関数
+/// </summary>
+/// <param name="crane_id"></param>
+/// <returns></returns>
 HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 	//## st_ote_work.st_bodyの内容が送信バッファにコピーされる
 	//## ランプ,ブザー表示指令
@@ -517,23 +556,13 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 			st_cs_work.cs_ctrl.antisway_mode = L_OFF;
 			st_cs_work.cs_ctrl.auto_mode = L_OFF;
 		}
-
-		//自動選択軸セット　GBCテスト版　後々、OTEからのメッセージデータでセットするようにする
-		st_cs_work.auto_select[ID_HOIST] = st_cs_work.auto_select[ID_BOOM_H] = st_cs_work.auto_select[ID_SLEW] = st_cs_work.auto_select[ID_GANTRY] = st_cs_work.auto_select[ID_AHOIST] = L_OFF;
-
-		//### GBC対応
-		if (st_cs_work.cs_ctrl.auto_mode == L_ON) {
-			st_cs_work.auto_select[ID_SLEW] = L_ON;
-		}
-
 	}
 
 	//### JOB登録処理 ###
 	if (!(st_cs_work.cs_ctrl.auto_mode)) {
 		//自動モードでない時はクリア
 		st_cs_work.cs_ctrl.auto_type = -1;
-		for (int i = ID_HOIST; i <= ID_AHOIST; i++) st_cs_work.auto_select[i] = STAT_MANUAL;
-
+		
 		//JOBステータスが残っていたら全ジョブクリア
 		if (st_cs_work.job_control_status != CS_JOBSET_STATUS_DISABLE) {
 			for (int i = 0; i < N_JOB_LIST; i++) {
@@ -543,122 +572,136 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 		}
 		st_cs_work.job_control_status = CS_JOBSET_STATUS_DISABLE;	//自動制御フラグクリア
 	}
-
-	//イベント処理
-	switch (st_cs_work.job_control_status) {
-
-	case CS_JOBSET_STATUS_DISABLE: {
-		if (st_cs_work.cs_ctrl.auto_mode == L_ON)
-			st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;
-	}break;
-	case CS_JOBSET_STATUS_IDLE:		//ジョブ無し
-	{
-		if (pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_set]) {//auto_setがジョブ送信コマンドになっている
-			st_cs_work.cs_ctrl.auto_type = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_type];
-			st_cs_work.cs_ctrl.auto_prm[0] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
-			st_cs_work.cs_ctrl.auto_prm[1] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
-			st_cs_work.cs_ctrl.auto_prm[2] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
-			st_cs_work.cs_ctrl.auto_prm[3] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
-			st_cs_work.cs_ctrl.auto_prm[4] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
-			st_cs_work.cs_ctrl.auto_prm[5] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
-			st_cs_work.cs_ctrl.auto_prm[6] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
-			st_cs_work.cs_ctrl.auto_prm[7] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
-
-			st_cs_work.job_control_status = CS_JOBSET_STATUS_REQ_HOLD;			//JOB受信ステータス
-		}
-	}break;
-	case CS_JOBSET_STATUS_REQ_HOLD: {	//ジョブ有り
-		//半自動JOB登録 目標位置シーケンス番号更新あればコマンド受付　
-
-		if (p_ote_pnl_ctrl[OTE_PNL_CTRLS::job_sequence_no] != job_seq_no_last) {
-			//JOB LIST処理
-			pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 1;
-			pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot = 0;//半自動はバッファ固定
-			pJobIO->job_list[ID_JOBTYPE_SEMI].status[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot] = CS_JOBSET_STATUS_STANDBY;
-			
-			//JOB SET処理			
-			p_job = &pJobIO->job_list[ID_JOBTYPE_SEMI].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot];
-			p_job->status = STAT_TRIGED;
-			p_job->list_id = ID_JOBTYPE_SEMI;
-			p_job->n_com = 1;//JOBのコマンド数　半自動は１	
-			p_job->job_id = 0;
-
-			p_job->type = ID_JOBTYPE_SEMI;
-			p_job->code = p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_type];
-			p_job->com_type[0] = ID_JOBIO_COMTYPE_PARK;
-			//目標位置セット
-			p_job->targets[0].pos[ID_HOIST]		= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_HOIST];
-			p_job->targets[0].pos[ID_BOOM_H]	= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_BOOM_H];
-			p_job->targets[0].pos[ID_SLEW]		= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_SLEW];
-			p_job->targets[0].pos[ID_AHOIST]	= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_AHOIST];
-			p_job->targets[0].pos[ID_GANTRY]	= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_GANTRY];
-
-			st_cs_work.job_control_status = CS_JOBSET_STATUS_STANDBY;
-
-			job_seq_no_last = p_ote_pnl_ctrl[OTE_PNL_CTRLS::job_sequence_no];
-		}
-	}break;
-	case CS_JOBSET_STATUS_STANDBY:	//ジョブ有り
-	{
-
-		//半自動コマンド受け付け処理
-		if ((p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_act] && !pnl_ctrl_buf[OTE_PNL_CTRLS::auto_act])||
-			(p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg] && !pnl_ctrl_buf[OTE_PNL_CTRLS::auto_act_dbg])) {//自動トリガ
-		}
-
-		//ジョブが完了していたらIDLE状態
-		if ((st_cs_work.job_control_status == CS_JOBSET_STATUS_STANDBY) && (p_job->status == STAT_END)) {
-			st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;
-			//p_jobのフラグ類はPOLICYのステータス更新呼び出しで更新
-		}
-
-	}break;
-	default:break;
-	}
-
-	//現在アクティブなJOB
-	if (st_cs_work.job_control_status == CS_JOBSET_STATUS_DISABLE) {
-		st_cs_work.p_active_job = NULL;
-
-	}
-	else if (pJobIO->job_list[ID_JOBTYPE_SEMI].n_job != 0) {
-		p_job = &(pJobIO->job_list[ID_JOBTYPE_SEMI].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot]);
-		switch (p_job->status) {
-		case STAT_TRIGED://起動待ち
-		case STAT_ACTIVE:
-		case STAT_STANDBY:
-			st_cs_work.p_active_job = p_job;
-			break;
-
-		case STAT_SUSPENDED:
-		case STAT_ABOTED:
-		case STAT_END:
-		case STAT_ABNORMAL_END:
-			st_cs_work.p_active_job = NULL;
-			break;
-		}
-	}
-	else if (pJobIO->job_list[ID_JOBTYPE_JOB].n_job != 0) {
-		p_job = &(pJobIO->job_list[ID_JOBTYPE_JOB].job[pJobIO->job_list[ID_JOBTYPE_JOB].i_job_hot]);
-		switch (p_job->status) {
-		case STAT_TRIGED://起動待ち
-		case STAT_ACTIVE:
-		case STAT_STANDBY:
-			st_cs_work.p_active_job = p_job;
-			break;
-
-		case STAT_SUSPENDED:
-		case STAT_ABOTED:
-		case STAT_END:
-		case STAT_REQ_WAIT:
-			st_cs_work.p_active_job = NULL;
-			break;
-		}
-	}
 	else {
-		st_cs_work.p_active_job = NULL;
-	}
 
+		//イベント処理
+		switch (st_cs_work.job_control_status) {
+
+		case CS_JOBSET_STATUS_DISABLE: {
+			if (st_cs_work.cs_ctrl.auto_mode == L_ON)
+				st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;
+		}break;
+		case CS_JOBSET_STATUS_IDLE:		//ジョブ無し
+		{
+			if (pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_set]) {//auto_setがジョブ送信コマンドになっている
+				st_cs_work.cs_ctrl.auto_type = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_type];
+				st_cs_work.cs_ctrl.auto_prm[0] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
+				st_cs_work.cs_ctrl.auto_prm[1] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
+				st_cs_work.cs_ctrl.auto_prm[2] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
+				st_cs_work.cs_ctrl.auto_prm[3] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
+				st_cs_work.cs_ctrl.auto_prm[4] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
+				st_cs_work.cs_ctrl.auto_prm[5] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
+				st_cs_work.cs_ctrl.auto_prm[6] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
+				st_cs_work.cs_ctrl.auto_prm[7] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
+
+				//対応可能なジョブかどうか判定
+				for (int i = 0; i < N_JOB_TYPE_MAX; i++) {
+					if (pCS_Inf->cs_ctrl.job_code_available[i] == st_cs_work.cs_ctrl.auto_type) {
+						st_cs_work.job_control_status = CS_JOBSET_STATUS_REQ_HOLD;			//JOB受信ステータスへ以降
+						break;
+					}
+					else if (pCS_Inf->cs_ctrl.job_code_available[i] == ID_JOBTYPE_END) {
+						st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;				//JOB受信ステータスへ以降
+					}
+					else;
+				}
+	
+			}
+		}break;
+		case CS_JOBSET_STATUS_REQ_HOLD: {	//ジョブ有り
+			//半自動JOB登録 目標位置シーケンス番号更新あればコマンド受付　
+
+			if (pOTE_Inf->st_msg_ote_u_rcv.body.st.job_seq_no != job_seq_no_last) {
+				//JOB LIST処理
+				pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 1;
+				pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot = 0;//半自動はバッファ固定
+				pJobIO->job_list[ID_JOBTYPE_SEMI].status[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot] = CS_JOBSET_STATUS_STANDBY;
+
+				//JOB SET処理			
+				p_job = &pJobIO->job_list[ID_JOBTYPE_SEMI].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot];
+				p_job->status = STAT_TRIGED;
+				p_job->list_id = ID_JOBTYPE_SEMI;
+				p_job->n_com = 1;//JOBのコマンド数　半自動は１	
+				p_job->job_id = 0;
+
+				p_job->type = ID_JOBTYPE_SEMI;
+				p_job->code = p_ote_pnl_ctrl[OTE_PNL_CTRLS::auto_type];
+				p_job->com_type[0] = ID_JOBIO_COMTYPE_PARK;
+				
+				//自動選択軸設定
+				for (int i = ID_HOIST; i <= ID_AHOIST; i++) 
+					st_cs_work.cs_ctrl.auto_select[i] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_sel[i];
+				
+				//目標位置セット
+				p_job->targets[0].pos[ID_HOIST]		= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_HOIST];
+				p_job->targets[0].pos[ID_BOOM_H]	= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_BOOM_H];
+				p_job->targets[0].pos[ID_SLEW]		= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_SLEW];
+				p_job->targets[0].pos[ID_AHOIST]	= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_AHOIST];
+				p_job->targets[0].pos[ID_GANTRY]	= pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[ID_GANTRY];
+
+				st_cs_work.job_control_status = CS_JOBSET_STATUS_STANDBY;
+			}
+			else {	//ジョブシーケンスNoの更新がなければIDLE状態へ
+				st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;
+			}
+			job_seq_no_last = pOTE_Inf->st_msg_ote_u_rcv.body.st.job_seq_no;
+
+		}break;
+		case CS_JOBSET_STATUS_STANDBY:	//ジョブ有り
+		{
+			//ジョブが完了していたらIDLE状態
+			if ((st_cs_work.job_control_status == CS_JOBSET_STATUS_STANDBY) && (p_job->status == STAT_END)) {
+				st_cs_work.job_control_status = CS_JOBSET_STATUS_IDLE;
+				//p_jobのフラグ類はPOLICYのステータス更新呼び出しで更新
+			}
+
+		}break;
+		default:break;
+		}
+
+		//現在アクティブなJOB
+		if (st_cs_work.job_control_status == CS_JOBSET_STATUS_DISABLE) {
+			st_cs_work.p_active_job = NULL;
+
+		}
+		else if (pJobIO->job_list[ID_JOBTYPE_SEMI].n_job != 0) {
+			p_job = &(pJobIO->job_list[ID_JOBTYPE_SEMI].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot]);
+			switch (p_job->status) {
+			case STAT_TRIGED://起動待ち
+			case STAT_ACTIVE:
+			case STAT_STANDBY:
+				st_cs_work.p_active_job = p_job;
+				break;
+
+			case STAT_SUSPENDED:
+			case STAT_ABOTED:
+			case STAT_END:
+			case STAT_ABNORMAL_END:
+				st_cs_work.p_active_job = NULL;
+				break;
+			}
+		}
+		else if (pJobIO->job_list[ID_JOBTYPE_JOB].n_job != 0) {
+			p_job = &(pJobIO->job_list[ID_JOBTYPE_JOB].job[pJobIO->job_list[ID_JOBTYPE_JOB].i_job_hot]);
+			switch (p_job->status) {
+			case STAT_TRIGED://起動待ち
+			case STAT_ACTIVE:
+			case STAT_STANDBY:
+				st_cs_work.p_active_job = p_job;
+				break;
+
+			case STAT_SUSPENDED:
+			case STAT_ABOTED:
+			case STAT_END:
+			case STAT_REQ_WAIT:
+				st_cs_work.p_active_job = NULL;
+				break;
+			}
+		}
+		else {
+			st_cs_work.p_active_job = NULL;
+		}
+	}
 	//自動起動ボタンの判定（AGENT用）JOB判定後の状態を渡すため
 	auto_act_status = st_cs_work.cs_ctrl.auto_act_req;
 	return S_OK; 

@@ -224,8 +224,7 @@ public:
 
 private:
     int crane_id;
-    static int ote_option_setting;
-	int static auto_act_status; //自動運転の状態
+ 	int static auto_act_status; //自動運転の状態
 
     HRESULT(*fp_get_ote_data)(int id) = NULL;       //OTEからの受信データをセット  
     HRESULT(*fp_set_ote_data)(int id) = NULL;       //OTEへの送信データをセット   
@@ -248,6 +247,8 @@ private:
 	static void set_ote_flt_info();
 
     void ote_control();
+
+    HRESULT set_job_available_list(int crane_id);
 
     virtual HRESULT routine_work(void* pObj) override;
 

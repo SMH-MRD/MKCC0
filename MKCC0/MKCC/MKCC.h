@@ -39,11 +39,11 @@ namespace MKCC
 #define SCADA_SCAN_MS			100
 #define SIM_SCAN_MS			    20
 
-#define NAME_OF_INIFILE					L"mkcc"			//iniファイルファイル名
-#define EXT_OF_INIFILE					L"ini"			//iniファイル拡張子
-#define PATH_OF_INIFILE					pszInifile		//iniファイルパス
+#define NAME_OF_INIFILE			L"mkcc"			//iniファイルファイル名
+#define EXT_OF_INIFILE			L"ini"			//iniファイル拡張子
+#define PATH_OF_INIFILE			pszInifile		//iniファイルパス
 
-#define VERSION_CODE					L"MCC260425M0"		//バージョンコード
+#define VERSION_CODE			L"MCC260425M0"		//バージョンコード
 
 //-ID定義 Mainスレッド用　5100 +α
 #define ID_TASK_SET_TAB				5098

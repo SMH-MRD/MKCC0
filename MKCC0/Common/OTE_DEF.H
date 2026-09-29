@@ -6,11 +6,6 @@
 #include "COMMON_DEF.h"
 #include "SmemAux.H"
 
-//JOB関連
-#define CODE_JOB_TYPE_GBC_TEST					256		//GBC TEST用のタイプ識別
-#define CODE_JOB_ITEM_GBC_TEST_SL_LEFT			256		//GBC TEST用のジョブ内容識別
-#define CODE_JOB_ITEM_GBC_TEST_SL_RIGHT			257		//GBC TEST用のジョブ内容識別
-
 
 //操作端末のテキスト,ボタン、ランプ数
 #define N_OTE_PNL_CTRL				128
@@ -88,7 +83,6 @@ enum OTE_PNL_CTRLS {//OTEパネルPB INDEX
 	auto_prm7,			//自動パラメータ表示
 	auto_prm8,			//自動パラメータ表示
 	auto_act_dbg,		//デバッグ用自動起動入力
-	job_sequence_no,	//JOBシーケンス番号
 	MAX
 };
 
@@ -273,7 +267,7 @@ typedef struct OteUBody {
 	INT16		pnl_ctrl[N_OTE_PNL_CTRL];		//操作卓PB入力
 	INT16		ote_type;						//操作卓タイプ
 	INT16       spar;							//バウンダリ合わせスペア
-	UINT32		target_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
+	UINT32		job_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
 	INT16		ote_err[4];						//OTE検出異常
 	
 	double		auto_tg_pos[MOTION_ID_MAX];		//自動目標位置

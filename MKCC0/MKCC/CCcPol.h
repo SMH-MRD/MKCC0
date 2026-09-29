@@ -65,16 +65,9 @@ typedef struct _ST_POL_MON2 {
 }ST_POL_MON2, * LPST_POL_MON2;
 
 
-#define PTN_ORDINARY                0x00000000  //通常
-#define PTN_1SHOT_AS                0x00000001  //ワンショット振止
-#define PTN_HALF_T_AS               0x00000002  //半周期振止
-#define PTN_2SHOT_AS                0x00000004  //インチング振れ止め
-#define PTN_2SHOT_MOVE0             0x00000008  //インチング移動(振れ抑制無し）
-#define PTN_2SHOT_MOVE_PLUS         0x00000010  //インチング移動(振れ抑制有）
-#define PTN_FULL_T                  0x00000020  //1周期振止
-
 #define POLICY_PTN_OK               1
 #define POLICY_PTN_NG               0
+#define POLICY_PTN_NA               -1
 
 #define N_AUTO_PARAM                8
 

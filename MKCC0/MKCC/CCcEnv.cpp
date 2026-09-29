@@ -552,15 +552,21 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//pEnvInf->w2y	= pEnvInf->wy * pEnvInf->wy;
 	pEnvInf->Tx		= PI360 / pEnvInf->wx;
 	pEnvInf->Ty		= PI360 / pEnvInf->wy;
+		
+	//速度FB 0判定
+	for (int i = 0; i < ID_AHOIST; i++) {
+		double v_fb_chk = pCrane->pSpec->axis_spec->Notch_spd_f[CODE_MODE1][1]/2.0;//１ノッチ速度の半分
+		double v = pPlcIo->stat_axis[i].v_fb;
 
-	
-	//シミュレーション実行可能フラグセット
-	if (pPlcIo->ctrl_source) {
-		pEnvInf->b_sim_enable = true;
+		if ((v < v_fb_chk)&&(v > -v_fb_chk)) {
+			if (--pEnvInf->crane_stat.cnt_speed0[i] < 0)
+				pEnvInf->crane_stat.cnt_speed0[i] = 0;
+		}
+		else {
+			pEnvInf->crane_stat.cnt_speed0[i] = PRM_CHK_COUNT_SPD0;
+		}
 	}
-	else {
-		pEnvInf->b_sim_enable = false;
-	}
+
 
 	return S_OK;
 };

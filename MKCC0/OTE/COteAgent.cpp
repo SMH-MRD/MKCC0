@@ -316,21 +316,31 @@ int COteAgent::parse() {
 
 //##################### 送信データ解析　############################################
 //### 送信バッファセット　
+	{
+		//#　操作信号
+		INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.pnl_ctrl;//送信バッファのOTE操作信号情報部のポインタ
+		//OTE操作信号情報部のポインタに、Csタスクで取り込んだ操作パネル信号情報をコピー　
+		// Csタスクは、操作台,GamePad,PC Windowからの操作信号を取りまとめ、共有メモリにセットしている
+		memcpy_s(pctrl, sizeof(INT16) * OTE_PNL_CTRLS::MAX, pOteCsInf->pnl_ctrl, sizeof(INT16) * OTE_PNL_CTRLS::MAX);
 
-//#　操作信号
-	INT16* pctrl = st_work.st_msg_ote_u_snd.body.st.pnl_ctrl;//送信バッファのOTE操作信号情報部のポインタ
-	//OTE操作信号情報部のポインタに、Csタスクで取り込んだ操作パネル信号情報をコピー　
-	// Csタスクは、操作台,GamePad,PC Windowからの操作信号を取りまとめ、共有メモリにセットしている
-	memcpy_s(pctrl, sizeof(INT16) * OTE_PNL_CTRLS::MAX, pOteCsInf->pnl_ctrl, sizeof(INT16)* OTE_PNL_CTRLS::MAX);
+		//#故障信号要求コード
+			//SCADAタスクがPC Windowの操作パネル入力から取得した故障表示要求コード
+		st_work.st_msg_ote_u_snd.body.st.faults_disp_req = pOteUI->flt_req_code;	//故障信号要求コード
 
-//#故障信号要求コード
-	//SCADAタスクがPC Windowの操作パネル入力から取得した故障表示要求コード
-	st_work.st_msg_ote_u_snd.body.st.faults_disp_req = pOteUI->flt_req_code;	//故障信号要求コード
+		//#オプション機能要求
+		//CsタスクがPLCの入力信号から取得したオプション機能要求コード
+		st_work.st_msg_ote_u_snd.body.st.ope_mode = (INT16)pOteCsInf->ote_option;	//オプション機能要求コード
 
-	//#オプション機能要求
-	//CsタスクがPLCの入力信号から取得したオプション機能要求コード
-	st_work.st_msg_ote_u_snd.body.st.ope_mode = (INT16)pOteCsInf->ote_option;	//オプション機能要求コード
-//##################### クレーンとの通信チェック　###################################
+		//#自動JOB関連
+		st_work.st_msg_ote_u_snd.body.st.job_seq_no = pOteCsInf->st_body.job_seq_no;
+		for (int i = 0; i < MOTION_ID_MAX; i++) {
+			st_work.st_msg_ote_u_snd.body.st.auto_tg_pos[i] = pOteCsInf->st_body.auto_tg_pos[i];
+			st_work.st_msg_ote_u_snd.body.st.auto_sel[i] = pOteCsInf->st_body.auto_sel[i];
+		}
+	}
+
+	
+	//##################### クレーンとの通信チェック　###################################
 	//CC通信状態ステータスセット（モニタ用）
 	pOteCCIf->cc_com_stat_r = st_work.cc_com_stat_r; 
 	pOteCCIf->cc_com_stat_s = st_work.cc_com_stat_s;
