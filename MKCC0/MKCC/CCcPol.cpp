@@ -308,32 +308,20 @@ LPST_COMMAND_SET CCcPol::setup_job_command(LPST_JOB_SET pjob, int icom) {
 
 		LPST_COMMAND_SET pcom_set = &pjob->com[icom];
 
-		//半自動は、巻、旋回、引込 補巻が対象
-		for (int i = ID_HOIST; i < ID_AHOIST; i++) pcom_set->seq_mode[i] = L_OFF;//パターン作成フラグ(seq_mode)クリア
+		if ((pjob->type != ID_JOBTYPE_ANTISWAY) && (pjob->type != ID_JOBTYPE_SEMI) && (pjob->type != ID_JOBTYPE_JOB)) {
+			return NULL;
+		}
 
-		if (pjob->type == ID_JOBTYPE_SEMI) {
-			for (int k = 0; k < MOTION_ID_MAX; k++) {//OTE動作選択のあるもののみパターン作成
-				if (pCsInf->cs_ctrl.auto_select[k]) pcom_set->seq_mode[k] = L_ON;
-			}
+		//自動は、巻、旋回、引込 補巻が対象
+		for (int k = ID_HOIST; k < ID_AHOIST; k++) {//OTE動作選択のあるもののみパターン作成
+			if (pCsInf->cs_ctrl.auto_select[k])		pcom_set->seq_mode[k] = L_ON;
+			else									pcom_set->seq_mode[k] = L_OFF;
 		}
-		else if (pjob->type == ID_JOBTYPE_ANTISWAY) {
-			for (int k = 0; k < MOTION_ID_MAX; k++) {//旋回、引込でOTE動作選択のあるもののみパターン作成
-				if ((k == ID_BOOM_H) || (k == ID_SLEW)) {
-					if (pCsInf->cs_ctrl.auto_select[k]) pcom_set->seq_mode[k] = L_ON;
-				}
-				else {
-					pcom_set->seq_mode[k] = L_OFF;
-				}
-			}
+		//振れ止めJOBは、巻、走行は対象外
+		if (pjob->type == ID_JOBTYPE_ANTISWAY) {
+			pcom_set->seq_mode[ID_HOIST] = pcom_set->seq_mode[ID_GANTRY] = pcom_set->seq_mode[ID_AHOIST] = L_OFF;
 		}
-		else if (pjob->type == ID_JOBTYPE_JOB) {
-			pcom_set->seq_mode[ID_HOIST] = L_ON;
-			pcom_set->seq_mode[ID_SLEW] = L_ON;
-			pcom_set->seq_mode[ID_BOOM_H] = L_ON;
-			pcom_set->seq_mode[ID_AHOIST] = L_ON;
-		}
-		else return NULL;
-
+	
 		pcom_set->target = pjob->targets[pjob->i_hot_com];//目標位置セット
 
 		set_com_workbuf(pcom_set);	//半自動パターン作成作業用構造体（st_com_work）にデータ取り込み
