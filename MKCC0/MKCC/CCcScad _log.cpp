@@ -77,7 +77,7 @@ INT16 CScada::l_rope_ah(double d100) { if (d100 == 0.0)return 0; return INT16(pE
 INT16 CScada::plc_fault(double dindex)  { return 0; return INT16(pPLC_IO->pflt_buf[(int)dindex]); }
 INT16 CScada::plc_cab_bi(double dindex) { return 0; return INT16(pPLC_IO->pcab_bi[(int)dindex]); }
 
-INT16 CScada::control_source(double d100) { if (pPLC_IO->ctrl_source) return 0; else return (INT16)d100; }
+INT16 CScada::control_source(double d100) { if (pPLC_IO->control_source) return 0; else return (INT16)d100; }
 INT16 CScada::e_stop(double d100) { if (pPLC_IO->e_stop_pb_active) return (INT16)d100; else return 0; }
 INT16 CScada::auto_active_sw(double d100) { if (pEnv_Inf->auto_active_sw) return (INT16)d100; else return 0; }
 INT16 CScada::slbrk_pswitch(double d100) { if (pPLC_IO->stat_axis[ID_SLEW].brake) return (INT16)d100; else return 0; }

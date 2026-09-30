@@ -573,7 +573,6 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 		st_cs_work.job_control_status = CS_JOBSET_STATUS_DISABLE;	//自動制御フラグクリア
 	}
 	else {
-
 		//イベント処理
 		switch (st_cs_work.job_control_status) {
 
@@ -594,7 +593,7 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 				st_cs_work.cs_ctrl.auto_prm[6] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
 				st_cs_work.cs_ctrl.auto_prm[7] = pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
 
-				//対応可能なジョブかどうか判定
+				//対応可能なジョブかどうか判定 登録リストにあるジョブかどうか判定
 				for (int i = 0; i < N_JOB_TYPE_MAX; i++) {
 					if (pCS_Inf->cs_ctrl.job_code_available[i] == st_cs_work.cs_ctrl.auto_type) {
 						st_cs_work.job_control_status = CS_JOBSET_STATUS_REQ_HOLD;			//JOB受信ステータスへ以降
@@ -605,7 +604,6 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 					}
 					else;
 				}
-	
 			}
 		}break;
 		case CS_JOBSET_STATUS_REQ_HOLD: {	//ジョブ有り

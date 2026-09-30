@@ -566,8 +566,6 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 			pEnvInf->crane_stat.cnt_speed0[i] = PRM_CHK_COUNT_SPD0;
 		}
 	}
-
-
 	return S_OK;
 };
 
@@ -736,13 +734,55 @@ void CCcEnv::refresh_faults_info() {
 /*   自動用ヘルパー関数											                    */
 /****************************************************************************/
 
-//位置によるモータ加減速度計算
+//仕様の加減速度（旋回はrad/s2）
 double CCcEnv::cal_acc(int motion, double pos) {
-	return 0.0;
+	double acc = 0.0;
+
+	switch (motion) {
+	case ID_HOIST: {
+		acc = pCrane->pSpec->axis_spec[ID_HOIST].accdec[ID_FWD][ID_ACC];
+	}break;
+	case ID_AHOIST: {
+		acc = pCrane->pSpec->axis_spec[ID_AHOIST].accdec[ID_FWD][ID_ACC];
+	}break;
+	case ID_BOOM_H: {
+		acc = pCrane->pSpec->axis_spec[ID_BOOM_H].accdec[ID_FWD][ID_ACC];
+	}break;
+	case ID_SLEW: {
+		acc = pCrane->pSpec->axis_spec[ID_SLEW].accdec[ID_FWD][ID_ACC];
+	}break;
+	case ID_GANTRY: {
+		acc = pCrane->pSpec->axis_spec[ID_GANTRY].accdec[ID_FWD][ID_ACC];
+	}break;
+
+	default:return 0.0;
+	}
+	return acc;      //吊点の加速振れ計算
 }
- //位置に応じた加速度を計算(旋回、引込用）
+
+/****************************************************************************/
+/*　吊点の加減速度計算（※旋回もm/s2：回転角加速度×R)　オーバーロード（旋回半径現在値 or 指定）
+/****************************************************************************/
 double CCcEnv::cal_acc_hp(int motion, double R, double pos) {
-	return 0.0;
+	double acc = 0.0;
+
+	switch (motion) {
+	case ID_HOIST: {
+		acc = pCrane->pSpec->axis_spec[ID_HOIST].accdec[ID_FWD][ID_ACC];
+	}break;
+	case ID_AHOIST: {
+		acc = pCrane->pSpec->axis_spec[ID_AHOIST].accdec[ID_FWD][ID_ACC];
+	}break;
+	case ID_BOOM_H: {//EXCEL計算シートから導出　100%速度の時の acc = -0.0052*R + 0.3514;
+		acc = -0.0052 * R + 0.3514;
+	}break;
+	case ID_SLEW: {//d=Rθ　d''=Rθ''　　rad/s2
+		acc = pCrane->pSpec->axis_spec[ID_SLEW].accdec[ID_FWD][ID_ACC] * R;
+		//	acc = 0.00398 * R; 
+	}break;
+	default:return 0.0;
+	}
+	return acc;
 }     
 //加減速振れ振角計算rad
 double CCcEnv::get_arad_acc(int motion, double R, double pos) {
@@ -781,23 +821,39 @@ double CCcEnv::cal_motion_retio(int imotion, double pos) {
 }      
 //振れ周期計算　ロープ長　指定
 double CCcEnv::cal_T(double pos_hst, double R, int motion_id) {
-	return 0.0;
+	return PI360 / cal_w(pos_hst, R, motion_id);
 }  
 //振れ角周波数計算　ロープ長指定
 double CCcEnv::cal_w(double pos_hst, double R, int motion_id) {
-	return 0.0;
+	return sqrt(cal_w2(pos_hst, R, motion_id));
 }
  //振れ角周波数の2乗計算　ロープ長指定
 double CCcEnv::cal_w2(double pos_hst, double R, int motion_id) {
-	return 0.0;
+	double ans = cal_mhl(pos_hst, R);
+	if (ans > 1.0) {//ロープ長下限より大
+		if (motion_id == ID_SLEW) {
+			ans = GA * pEnvInf->g_ratio_x / ans;
+		}
+		else if (motion_id == ID_BOOM_H) {
+			ans = GA * pEnvInf->g_ratio_y / ans;
+		}
+		else {
+			ans = GA / ans;
+		}
+	}
+	return ans;
 }
 //ロープ長計算　巻き位置指定
 double CCcEnv::cal_mhl(double pos_hst, double r) {
-	return 0.0;
+	double  tmp = pCrane->pSpec->st_struct.Lb * pCrane->pSpec->st_struct.Lb - r * r;
+	if (tmp < 0.0)tmp = 0.0;
+	double l = pCrane->pSpec->st_struct.Hp + sqrt(tmp) - pos_hst;
+	if (l < 0.0)l = 1.0;
+	return l;
 }               
  //最大速度計算
 double CCcEnv::get_vmax(int motion) {
-	return 0.0;
+	return pCrane->pSpec->axis_spec[motion].Notch_spd_f[pPlcIo->stat_axis[motion].mode][N_NOTCH_MAX - 1];
 }                           
 
 /****************************************************************************/

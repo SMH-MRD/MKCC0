@@ -463,36 +463,6 @@ int CAgent::parse() {
 	// AgentInf_workbuf.pc_ctrl_mode
 	//  自動選択セット 
 	//###################################################
-	{
-		//速度0状態セット カウンタ0で速度0判定
-		if (pEnv_Inf->crane_stat.cnt_speed0[ID_HOIST])	st_work.st_axis_ctrl[ID_HOIST].status	&= ~AG_AXIS_STAT_FB0;	
-		else											st_work.st_axis_ctrl[ID_HOIST].status	|= AG_AXIS_STAT_FB0;
-		if (pEnv_Inf->crane_stat.cnt_speed0[ID_BOOM_H])	st_work.st_axis_ctrl[ID_BOOM_H].status	&= ~AG_AXIS_STAT_FB0;
-		else											st_work.st_axis_ctrl[ID_BOOM_H].status	|= AG_AXIS_STAT_FB0; 
-		if (pEnv_Inf->crane_stat.cnt_speed0[ID_SLEW])	st_work.st_axis_ctrl[ID_SLEW].status	&= ~AG_AXIS_STAT_FB0;	
-		else											st_work.st_axis_ctrl[ID_SLEW].status	|= AG_AXIS_STAT_FB0;
-		if (pEnv_Inf->crane_stat.cnt_speed0[ID_GANTRY])	st_work.st_axis_ctrl[ID_GANTRY].status	&= ~AG_AXIS_STAT_FB0;	
-		else											st_work.st_axis_ctrl[ID_GANTRY].status	|= AG_AXIS_STAT_FB0;
-		if (pEnv_Inf->crane_stat.cnt_speed0[ID_AHOIST])	st_work.st_axis_ctrl[ID_AHOIST].status	&= ~AG_AXIS_STAT_FB0;
-		else											st_work.st_axis_ctrl[ID_AHOIST].status	|= AG_AXIS_STAT_FB0;
-		
-		//自動選択軸セット
-		if (pPLC_IO->ctrl_source != L_ON) {//主幹OFFで自動指令を0にする
-			st_work.pc_auto_ctrl_mode = 0;
-		}
-		else{
-			if (pCS_Inf->cs_ctrl.auto_select[ID_HOIST])			st_work.pc_auto_ctrl_mode |= BIT_SEL_HST;
-			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_HST;
-			if (pCS_Inf->cs_ctrl.auto_select[ID_GANTRY])		st_work.pc_auto_ctrl_mode |= BIT_SEL_GNT;
-			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_GNT;
-			if (pCS_Inf->cs_ctrl.auto_select[ID_BOOM_H])		st_work.pc_auto_ctrl_mode |= BIT_SEL_BH;
-			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_BH;
-			if (pCS_Inf->cs_ctrl.auto_select[ID_SLEW])			st_work.pc_auto_ctrl_mode |= BIT_SEL_SLW;
-			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_SLW;
-			if (pCS_Inf->cs_ctrl.auto_select[ID_AHOIST])		st_work.pc_auto_ctrl_mode |= BIT_SEL_AH;
-			else										st_work.pc_auto_ctrl_mode &= ~BIT_SEL_AH;
-		}
-	}
 
 	//###################################################
 	//# JOBコマンド設定
@@ -500,6 +470,37 @@ int CAgent::parse() {
 	//###################################################
 	{
 		if (pCS_Inf->cs_ctrl.auto_mode == L_ON) {	//自動モード
+			//JOB関連フラグセット
+			{
+				if (pEnv_Inf->crane_stat.cnt_speed0[ID_HOIST])	st_work.st_axis_ctrl[ID_HOIST].status &= ~AG_AXIS_STAT_FB0;
+				else											st_work.st_axis_ctrl[ID_HOIST].status |= AG_AXIS_STAT_FB0;
+				if (pEnv_Inf->crane_stat.cnt_speed0[ID_BOOM_H])	st_work.st_axis_ctrl[ID_BOOM_H].status &= ~AG_AXIS_STAT_FB0;
+				else											st_work.st_axis_ctrl[ID_BOOM_H].status |= AG_AXIS_STAT_FB0;
+				if (pEnv_Inf->crane_stat.cnt_speed0[ID_SLEW])	st_work.st_axis_ctrl[ID_SLEW].status &= ~AG_AXIS_STAT_FB0;
+				else											st_work.st_axis_ctrl[ID_SLEW].status |= AG_AXIS_STAT_FB0;
+				if (pEnv_Inf->crane_stat.cnt_speed0[ID_GANTRY])	st_work.st_axis_ctrl[ID_GANTRY].status &= ~AG_AXIS_STAT_FB0;
+				else											st_work.st_axis_ctrl[ID_GANTRY].status |= AG_AXIS_STAT_FB0;
+				if (pEnv_Inf->crane_stat.cnt_speed0[ID_AHOIST])	st_work.st_axis_ctrl[ID_AHOIST].status &= ~AG_AXIS_STAT_FB0;
+				else											st_work.st_axis_ctrl[ID_AHOIST].status |= AG_AXIS_STAT_FB0;
+
+				//自動選択軸セット
+				if (pPLC_IO->control_source != L_ON) {//主幹OFFで自動指令を0にする
+					st_work.pc_auto_ctrl_mode = 0;
+				}
+				else {
+					if (pCS_Inf->cs_ctrl.auto_select[ID_HOIST])		st_work.pc_auto_ctrl_mode |= BIT_SEL_HST;
+					else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_HST;
+					if (pCS_Inf->cs_ctrl.auto_select[ID_GANTRY])	st_work.pc_auto_ctrl_mode |= BIT_SEL_GNT;
+					else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_GNT;
+					if (pCS_Inf->cs_ctrl.auto_select[ID_BOOM_H])	st_work.pc_auto_ctrl_mode |= BIT_SEL_BH;
+					else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_BH;
+					if (pCS_Inf->cs_ctrl.auto_select[ID_SLEW])		st_work.pc_auto_ctrl_mode |= BIT_SEL_SLW;
+					else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_SLW;
+					if (pCS_Inf->cs_ctrl.auto_select[ID_AHOIST])	st_work.pc_auto_ctrl_mode |= BIT_SEL_AH;
+					else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_AH;
+				}
+			}
+
 			if (pjob_active == NULL) {											//前スキャン ジョブ実行中でない
 				if ((pjob_active = pCS->get_next_job()) != NULL) {				//CSにジョブ有
 					if ((pCom_hot = pPol->req_command(pjob_active)) != NULL) {	//POLICYにコマンド展開依頼 (pjob NULLならばNULLが帰ってくる)
@@ -518,7 +519,7 @@ int CAgent::parse() {
 			else {//有効ジョブ有
 				//有効コマンド有（実行中）
 				if (pCom_hot != NULL) {
-					if (pPLC_IO->ctrl_source != L_ON) {	//異常完了
+					if (pPLC_IO->control_source != L_ON) {	//異常完了
 						comset_abot_end(pCom_hot);										//コマンドABOT　END終了
 						pPol->update_command_status(pCom_hot, STAT_ABNORMAL_END);		//PolicyにAbnomal完了報告
 					}

@@ -232,9 +232,8 @@ LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set) {
 	}
 	else;
 
-
 	if (pcom_set != NULL) {
-		//### コマンドコードセット
+		//### コマンドコードセット(ジョブリストとの紐づけ）
 		pcom_set->com_code.i_list = pjob_set->list_id;
 		pcom_set->com_code.i_job = pjob_set->job_id;
 		pcom_set->com_code.type = pjob_set->type;
@@ -277,19 +276,17 @@ int CCcPol::update_command_status(LPST_COMMAND_SET pcom, int code) {
 			pCS->update_job_status(pjob_set, STAT_SUSPENDED);	//JOBのステータス更新
 		}
 		else {
-			pcom_seq->com_status = code;							//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pjob_set, STAT_ABOTED);			//JOBのステータス更新
+			pcom_seq->com_status = code;						//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pjob_set, STAT_ABOTED);		//JOBのステータス更新
 		}
-
 	}break;
 
-					//コマンド開始
+	//コマンド開始
 	case STAT_ACTIVE: {
 		pCS->update_job_status(pjob_set, STAT_ACTIVE);			//JOBのステータス更新
 		pcom_seq->com_status = code;							//コマンドのステータスを報告内容に更新
 	}break;
-
-					//実行中断
+	//実行中断
 	case STAT_SUSPENDED: {
 		pcom_seq->com_status = code;							//コマンドのステータスを報告内容に更新
 		pCS->update_job_status(pjob_set, STAT_SUSPENDED);		//JOBのステータス更新
@@ -312,7 +309,7 @@ LPST_COMMAND_SET CCcPol::setup_job_command(LPST_JOB_SET pjob, int icom) {
 		LPST_COMMAND_SET pcom_set = &pjob->com[icom];
 
 		//半自動は、巻、旋回、引込 補巻が対象
-		for (int i = ID_HOIST; i < ID_AHOIST; i++) pcom_set->seq_mode[i] = L_OFF;//パターン作成フラグクリア
+		for (int i = ID_HOIST; i < ID_AHOIST; i++) pcom_set->seq_mode[i] = L_OFF;//パターン作成フラグ(seq_mode)クリア
 
 		if (pjob->type == ID_JOBTYPE_SEMI) {
 			for (int k = 0; k < MOTION_ID_MAX; k++) {//OTE動作選択のあるもののみパターン作成
@@ -381,10 +378,12 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 		}
 
 		if (st_com_work.dist_for_target[i] < -pCrane->pSpec->auto_spec[i].as_pos_level[ID_LV_TRIGGER]) {
+			//目標が逆転側で位置決め完了範囲外
 			st_com_work.motion_dir[i] = ID_REV;
 			st_com_work.dist_for_target_abs[i] = -1.0 * st_com_work.dist_for_target[i];
 		}
 		else if (st_com_work.dist_for_target[i] > pCrane->pSpec->auto_spec[i].as_pos_level[ID_LV_TRIGGER]) {
+			//目標が正転側で位置決め完了範囲外
 			st_com_work.motion_dir[i] = ID_FWD;
 			st_com_work.dist_for_target_abs[i] = st_com_work.dist_for_target[i];
 		}
@@ -402,8 +401,8 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 		st_com_work.vmax_abs[i] = pCrane->pSpec->axis_spec[i].Notch_spd_f[pPlcIO->stat_axis[i].mode][NOTCH_MAX - 1];
 
 		//動作軸加速度（開始位置,終了位置）
-		st_com_work.a_abs[i][POL_ID_START_POINT] = pEnv->cal_acc(i, pPlcIO->stat_axis[i].pos_fb);
-		st_com_work.a_abs[i][POL_ID_END_POINT] = pEnv->cal_acc(i, pcom->target.pos[i]);
+		st_com_work.a_abs[i][POL_ID_START_POINT]	= pEnv->cal_acc(i, pPlcIO->stat_axis[i].pos_fb);
+		st_com_work.a_abs[i][POL_ID_END_POINT]		= pEnv->cal_acc(i, pcom->target.pos[i]);
 		//最大加速時間
 		st_com_work.acc_time2Vmax[i] = st_com_work.vmax_abs[i] / pCrane->pSpec->axis_spec[i].accdec[ID_FWD][ID_ACC];
 		if (st_com_work.acc_time2Vmax[i] < 0.0) st_com_work.acc_time2Vmax[i] *= -1.0;
@@ -415,9 +414,9 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 			st_com_work.a_hp_abs[i][POL_ID_START_POINT] = pEnv->cal_acc_hp(i, pPlcIO->stat_axis[ID_BOOM_H].pos_fb, pPlcIO->stat_axis[i].pos_fb);
 			st_com_work.a_hp_abs[i][POL_ID_END_POINT] = pEnv->cal_acc_hp(i, pcom->target.pos[ID_BOOM_H], pcom->target.pos[i]);
 
-			//加速時振れ中心
+			//加速中振れ中心
 			st_com_work.pp_th0[i][ID_ACC] = st_com_work.a_hp_abs[i][POL_ID_START_POINT] / GA;
-			//減速時振れ中心
+			//減速中振れ中心
 			st_com_work.pp_th0[i][ID_DEC] = -st_com_work.a_hp_abs[i][POL_ID_END_POINT] / GA;
 		}
 	}
@@ -425,9 +424,9 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 	//巻きの目標位置が上の時は、巻上後に旋回引き込み動作をするので目標位置の周期でパターンを作る
 	if (debug_mode & CODE_POLICY_DEBUG_SIM_MODE) {
 		if (st_com_work.target.pos[ID_HOIST] > st_com_work.pos[ID_HOIST]) {
-			st_com_work.T[ID_BOOM_H] = st_com_work.T[ID_SLEW] = pEnv->cal_T(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_HOIST);
-			st_com_work.w[ID_BOOM_H] = st_com_work.w[ID_SLEW] = pEnv->cal_w(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_HOIST);	//振れ角周波数
-			st_com_work.w2[ID_BOOM_H] = st_com_work.w2[ID_SLEW] = pEnv->cal_w2(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_HOIST);							//振れ角周波数2乗
+			st_com_work.T[ID_BOOM_H]	= st_com_work.T[ID_SLEW]	= pEnv->cal_T(st_com_work.target.pos[ID_HOIST],		st_com_work.target.pos[ID_BOOM_H], ID_HOIST);
+			st_com_work.w[ID_BOOM_H]	= st_com_work.w[ID_SLEW]	= pEnv->cal_w(st_com_work.target.pos[ID_HOIST],		st_com_work.target.pos[ID_BOOM_H], ID_HOIST);	//振れ角周波数
+			st_com_work.w2[ID_BOOM_H]	= st_com_work.w2[ID_SLEW]	= pEnv->cal_w2(st_com_work.target.pos[ID_HOIST],	st_com_work.target.pos[ID_BOOM_H], ID_HOIST);							//振れ角周波数2乗
 		}
 		else {
 			//振れ周期
@@ -439,22 +438,22 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 	}
 	else {
 		if (st_com_work.target.pos[ID_HOIST] > st_com_work.pos[ID_HOIST]) {
-			st_com_work.T[ID_BOOM_H] = pEnv->cal_T(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-			st_com_work.T[ID_SLEW] = pEnv->cal_T(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ周期
-			st_com_work.w[ID_BOOM_H] = pEnv->cal_w(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-			st_com_work.w[ID_SLEW] = pEnv->cal_w(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数
-			st_com_work.w2[ID_BOOM_H] = pEnv->cal_w2(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-			st_com_work.w2[ID_SLEW] = pEnv->cal_w2(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数2乗
+			st_com_work.T[ID_BOOM_H]	= pEnv->cal_T(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
+			st_com_work.T[ID_SLEW]		= pEnv->cal_T(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ周期
+			st_com_work.w[ID_BOOM_H]	= pEnv->cal_w(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
+			st_com_work.w[ID_SLEW]		= pEnv->cal_w(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数
+			st_com_work.w2[ID_BOOM_H]	= pEnv->cal_w2(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
+			st_com_work.w2[ID_SLEW]		= pEnv->cal_w2(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数2乗
 		}
 		else {
-			st_com_work.T[ID_BOOM_H] = pEnv->cal_T(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-			st_com_work.T[ID_SLEW] = pEnv->cal_T(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ周期
+			st_com_work.T[ID_BOOM_H]	= pEnv->cal_T(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
+			st_com_work.T[ID_SLEW]		= pEnv->cal_T(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ周期
+																				  
+			st_com_work.w[ID_BOOM_H]	= pEnv->cal_w(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
+			st_com_work.w[ID_SLEW]		= pEnv->cal_w(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数
 
-			st_com_work.w[ID_BOOM_H] = pEnv->cal_w(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-			st_com_work.w[ID_SLEW] = pEnv->cal_w(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数
-
-			st_com_work.w2[ID_BOOM_H] = pEnv->cal_w2(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-			st_com_work.w2[ID_SLEW] = pEnv->cal_w2(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数2乗
+			st_com_work.w2[ID_BOOM_H]	= pEnv->cal_w2(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
+			st_com_work.w2[ID_SLEW]		= pEnv->cal_w2(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数2乗
 		}
 	}
 	return &st_com_work;
@@ -1028,13 +1027,10 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbty
 	//#レシピ条件セット
 //軸ID
 	int id = pseq->axis_id = ID_SLEW;
-
 	pseq->n_step = 0;//パターンシーケンス ステップクリア
 
 	//自動対象外軸の場合ステップ数0でリターン
 	if (!pCsInf->cs_ctrl.auto_select[id]) return POLICY_PTN_NA;
-
-
 
 	//移動方向
 	pseq->direction = pwork->motion_dir[id];

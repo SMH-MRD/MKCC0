@@ -157,7 +157,8 @@ typedef struct _ST_CC_ENV_INF {
 typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;								//PC制御受付状態
 	INT16 plc_enable;								//PLC有効で端末権利有でOTEリモートモード
-	INT32 ctrl_source;								//主幹状態
+	INT16 e_stop_pb_active;
+	INT16 control_source;
 	INT32 notch0;									//0ノッチフラグビット
 
 	ST_PLC_AXIS_SET stat_axis[MOTION_ID_MAX];
@@ -180,10 +181,6 @@ typedef struct _ST_CC_PLC_IO {
 
 	INT16 plc_pnl_io_fb[N_OTE_PNL_CTRL];				//PLC IO コントロールパネルFB信号
 	INT16 remote_mode_sw;								//リモートモードスイッチ
-
-	INT16 e_stop_pb_active;
-	INT16 control_source;
-
 	INT16 flt_reset_pb;
 	
 	PINT16 pflt_buf;
