@@ -10,7 +10,8 @@
 #define N_JOB_TYPE_MAX				128		//登録可能JOBのタイプ数
 #define N_JOB_TARGET_MAX			10
 #define N_JOB_OPTION_MAX			10
-#define N_JOB_COMMAND_MAX			10			//　JOBを構成するコマンド最大数
+#define N_JOB_COMMAND_MAX			10		//JOBを構成するコマンド最大数
+#define N_JOB_PARAM_I16				8		//JOBに設定可能なINT16パラメータ数  
 
 
 //JOB TYPE CODE
@@ -31,15 +32,15 @@
 #define COM_PTN_FULL_T				 0x00000020  //1周期振止
 
 
-#define MODE_PC_CTRL		0x00000001
-#define MODE_ANTISWAY		0x00010000
-#define MODE_RMOTE_PANEL	0x00000100
+#define MODE_PC_CTRL					0x00000001
+#define MODE_ANTISWAY					0x00010000
+#define MODE_RMOTE_PANEL				0x00000100
 
-#define ID_JOBIO_COMTYPE_PAUSE				0
-#define ID_JOBIO_COMTYPE_PICK				1
-#define ID_JOBIO_COMTYPE_GRND				2
-#define ID_JOBIO_COMTYPE_PARK				3
-#define ID_JOBIO_COMTYPE_ANTISWAY			4
-
-#define CODE_JOBIO_COMTYPE_ANTISWAY			-1
-
+#define ID_JOBIO_COMTYPE_PAUSE			0
+#define ID_JOBIO_COMTYPE_PICK			1
+#define ID_JOBIO_COMTYPE_GRND			2
+#define ID_JOBIO_COMTYPE_PARK_POS		3	//停止位置指定移動
+#define ID_JOBIO_COMTYPE_PARK_TIME		4	//移動時間指定移動
+#define ID_JOBIO_COMTYPE_AS_1SHOT		5	//1インチング振れ止め
+#define ID_JOBIO_COMTYPE_AS_2SHOT		6	//2インチング振れ止め
+#define ID_JOBIO_COMTYPE_POS_2SHOT		7	//2インチング位置合わせ

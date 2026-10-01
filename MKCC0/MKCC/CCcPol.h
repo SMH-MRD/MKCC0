@@ -78,8 +78,12 @@ typedef struct _ST_POL_MON2 {
 #define POL_ID_START_POINT          0
 #define POL_ID_END_POINT            1
 
-#define POL_PRM_FB_DELAY_SLEW           0.3
+#define POL_PRM_FB_DELAY_HOIST          0.3
 #define POL_PRM_FB_DELAY_BH             0.3
+#define POL_PRM_FB_DELAY_SLEW           0.3
+#define POL_PRM_FB_DELAY_GANTRY         0.3
+#define POL_PRM_FB_DELAY_AHOIST         0.3
+
 #define POL_PRM_FB_DELAY_BH_SIM         0.3
 #define POL_PRM_FB_DELAY_SLEW_SIM       0.3
 
@@ -105,7 +109,7 @@ typedef struct stPolicyComWork {
     double dist_for_target[MOTION_ID_MAX];                              //目標までの距離符号あり
     double dist_for_target_abs[MOTION_ID_MAX];                          //目標までの距離符号あり
     double pp_th0[MOTION_ID_MAX][ACCDEC_MAX];                           //位相平面の回転中心
-    double vfb_delay_time[MOTION_ID_MAX] = { 0.3,0.3,0.3,POL_PRM_FB_DELAY_BH, POL_PRM_FB_DELAY_SLEW,0.3 }; //フィードバック遅れ時間調整値
+    double vfb_delay_time[MOTION_ID_MAX] = { 0.3,0.3,0.3,0.3,0.3,0.3 }; //フィードバック遅れ時間調整値
 
     ST_POS_TARGETS target;                      //目標位置
     int motion_dir[MOTION_ID_MAX];              //移動方向
@@ -172,10 +176,11 @@ private:
     LPST_COMMAND_SET        setup_job_command(LPST_JOB_SET pjob, int icom);  //実行する半自動のコマンドをセットする
     LPST_POLICY_COM_WORK    set_com_workbuf(LPST_COMMAND_SET pcom);
 
-    int set_seq_semiauto_bh(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
-    int set_seq_semiauto_slw(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
-    int set_seq_semiauto_mh(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
-    int set_seq_semiauto_ah(int jobtype, LPST_MOTION_SEQ pseq, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_seq_semiauto_bh(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_seq_semiauto_mh(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_seq_semiauto_gt(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_seq_semiauto_ah(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
 
     const double param_auto[MOTION_ID_MAX][N_AUTO_PARAM] =
     {

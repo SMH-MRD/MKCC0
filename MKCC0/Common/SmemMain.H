@@ -357,6 +357,7 @@ typedef struct _ST_COMMAND_SET {
 	//POLICY or AGENT SET
 	int option_i[COM_RECIPE_OPTION_N];
 	double option_d[COM_RECIPE_OPTION_N];
+	PINT16 pcom_prm;
 
 	//AGENT SET
 	int com_status;
@@ -375,13 +376,13 @@ typedef struct _ST_COMMAND_SET {
 //JOB:From-Toの搬送作業（PICK,PARK,GRNDのコマンドの組み合わせ等）　
 typedef struct _ST_JOB_SET {
 	//CS 構成 JOBセット
-	int list_id;								//登録されているJOB list配列のインデックスid
-	int job_id;									//登録されているJOB list内job配列のインデックスid
-	int type;									//JOB種別（JOB,半自動,OPERATION））
-	int code;									//JOB識別コード
-	int n_com;									//構成コマンド数
+	int list_id;									//登録されているJOB list配列のインデックスid
+	int job_id;										//登録されているJOB list内job配列のインデックスid
+	int type;										//JOB種別（JOB,半自動,OPERATION））
+	int code;										//JOB識別コード
+	int n_com;										//構成コマンド数
 	ST_POS_TARGETS targets[N_JOB_COMMAND_MAX];		//目標位置
-	int com_type[N_JOB_COMMAND_MAX];
+	INT16 i16prm[N_JOB_PARAM_I16];					//JOBの設定パラメータ
 
 	//POLICY 構成コマンド
 	ST_COMMAND_SET com[N_JOB_COMMAND_MAX];		//コマンドのレシピ
