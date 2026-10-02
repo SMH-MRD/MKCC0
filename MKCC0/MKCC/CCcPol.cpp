@@ -200,7 +200,8 @@ HRESULT CCcPol::fault_check_OHC(int crane_id) {
 /// <returns></returns>
 LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set) {
 
-	if (pjob_set == NULL) return NULL;	//NULL jobにはNULLリターン
+	if (pjob_set == NULL) return NULL;				//NULL jobにはNULLリターン
+	if (!pCS->get_auto_act_input()) return NULL;	//自動起動ボタンがOFFの時はNULLリターン
 
 	int _i_hot_com = pjob_set->i_hot_com;
 	LPST_COMMAND_SET pcom_set = NULL;
@@ -264,26 +265,26 @@ int CCcPol::update_command_status(LPST_COMMAND_SET pcom, int code) {
 	if (pcom == NULL)return STAT_NAK;
 	LPST_JOB_SET pjob_set = &pJobIO->job_list[pcom->com_code.i_list].job[pcom->com_code.i_job];//紐付きJOB
 
-	LPST_COMMAND_SET pcom_seq = &pjob_set->com[pjob_set->i_hot_com];
+	LPST_COMMAND_SET _pcom = &pjob_set->com[pjob_set->i_hot_com];
 	switch (code) {
 		//コマンド終了
 	case STAT_END: {
 		if (pjob_set->n_com == (pjob_set->i_hot_com + 1)) {	//コマンドシーケンスの最後のコマンドの時
-			pcom_seq->com_status = code;							//コマンドのステータスを報告内容に更新
+			_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
 			pCS->update_job_status(pjob_set, STAT_END);				//JOBのステータス更新
 		}
 	}break;
 	case STAT_ABNORMAL_END: {
-		pcom_seq->com_status = code;							//コマンドのステータスを報告内容に更新
+		_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
 		pCS->update_job_status(pjob_set, STAT_ABNORMAL_END);	//JOBのステータス更新
 	}break;
 	case STAT_ABOTED: {
 		if (pCsInf->cs_ctrl.auto_mode == L_ON) {
-			pcom_seq->com_status = STAT_SUSPENDED;				//コマンドのステータスを報告内容に更新
+			_pcom->com_status = STAT_SUSPENDED;				//コマンドのステータスを報告内容に更新
 			pCS->update_job_status(pjob_set, STAT_SUSPENDED);	//JOBのステータス更新
 		}
 		else {
-			pcom_seq->com_status = code;						//コマンドのステータスを報告内容に更新
+			_pcom->com_status = code;						//コマンドのステータスを報告内容に更新
 			pCS->update_job_status(pjob_set, STAT_ABOTED);		//JOBのステータス更新
 		}
 	}break;
@@ -291,11 +292,11 @@ int CCcPol::update_command_status(LPST_COMMAND_SET pcom, int code) {
 	//コマンド開始
 	case STAT_ACTIVE: {
 		pCS->update_job_status(pjob_set, STAT_ACTIVE);			//JOBのステータス更新
-		pcom_seq->com_status = code;							//コマンドのステータスを報告内容に更新
+		_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
 	}break;
 	//実行中断
 	case STAT_SUSPENDED: {
-		pcom_seq->com_status = code;							//コマンドのステータスを報告内容に更新
+		_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
 		pCS->update_job_status(pjob_set, STAT_SUSPENDED);		//JOBのステータス更新
 	}break;
 	default: break;
@@ -1092,8 +1093,8 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 	case ID_JOBIO_COMTYPE_PARK_TIME:
 	default:
 	{
-		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
 		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
 		pelement->_t = TIME_LIMIT_CONFIRMATION;						// 待機時間
 		pelement->_v = 0.0;											// 速度0
 		pelement->_p = pwork->pos[id];								// 目標位置　現在位置
@@ -1114,26 +1115,32 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 		double v_last = pelement->_v;
 		double p_last = pelement->_p;
 
-		pelement->type = CTR_TYPE_VOUT_TIME;							// 指定時間、指定速度出力
 		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
-
+		pelement->type = CTR_TYPE_VOUT_TIME;							// 指定時間、指定速度出力
 		INT16 notch = pcomset->pcom_prm[0];
-		double d_accdec, t_const = (double)(pcomset->pcom_prm[1] / 10);//パラメータ設定　100msec単位　定速時間
-		if (notch < 0) {	//速度指令ノッチ<0
-			pelement->_v = pCrane->pSpec->axis_spec[id].Notch_spd_r[CODE_MODE0][-notch] * pPlcIO->v_ratio[ID_SLEW]; 
-			pelement->_t = -pelement->_v / acc_s + t_const;	
-	
-			d_accdec = 0.5 * v_last * v_last / acc_s;
-			pelement->_p = p_last + pelement->_v * t_const - d_accdec;	// 目標位置
+		if (notch > 4) notch = 4;if (notch < -4) notch = -4;
+		if (notch < 0) {	//逆転ノッチ
+			pelement->_v = pCrane->pSpec->axis_spec[id].Notch_spd_r[CODE_MODE0][-notch]; 
 		}
-		else {
-			pelement->_v = pCrane->pSpec->axis_spec[id].Notch_spd_f[CODE_MODE0][notch] * pPlcIO->v_ratio[ID_SLEW];
-			pelement->_t = -pelement->_v / acc_s + (double)(pcomset->pcom_prm[1] / 10);	//パラメータ設定　100msec単位　定速時間
+		else {				//正転ノッチ
+			pelement->_v = pCrane->pSpec->axis_spec[id].Notch_spd_f[CODE_MODE0][notch];
+		}
 
-			d_accdec = 0.5 * v_last * v_last / acc_s;
-			pelement->_p = p_last + pelement->_v * t_const + d_accdec;	// 目標位置
+		double d_accdec, d_const, t_acc;
+		double t_const = (double)(pcomset->pcom_prm[1] / 10);//パラメータ設定　100msec単位　定速時間
+
+		t_acc = pelement->_v / acc_s; if (t_acc < 0.0)t_acc *= -1.0;
+		pelement->_t = t_acc + t_const;
+		d_accdec = 0.5 * pelement->_v * pelement->_v / acc_s;
+		d_const = pelement->_v * t_const; if (d_const < 0.0) d_const *= -1.0;
+
+		if (notch < 0) {	//逆転ノッチ
+			pelement->_p = p_last - d_const - d_accdec;	// 目標位置
 		}
-		D_abs -= d_accdec;
+		else {				//正転ノッチ
+			pelement->_p = p_last + d_const + d_accdec;	// 目標位置
+		}
+		D_abs -= (d_accdec + d_const);
 
 	}break;
 	}
@@ -1150,22 +1157,23 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 		double v_last = pelement->_v;
 		double p_last = pelement->_p;
 
-		pelement->type = CTR_TYPE_WAIT_TIME;								// 時間待ち
-		pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-		
+		pelement = &(pseq->steps[pseq->n_step++]);			//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_VOUT_TIME;				// 時間待ち	
 		pelement->_v = 0.0;
-		pelement->_t = v_last / acc_e;									//減速速時間
+		pelement->_t = v_last / acc_e;						//減速速時間
+		if (pelement->_t < 0.0)	pelement->_t *= -1.0;
+	
 		double d_accdec = 0.5 * v_last * v_last / acc_e;
 		if (v_last < 0.0) {
-			pelement->_p = p_last - d_accdec;	// 目標位置
+			pelement->_p = p_last - d_accdec;				// 目標位置
 		}
 		else {
-			pelement->_p = p_last + d_accdec;// 目標位置
+			pelement->_p = p_last + d_accdec;				// 目標位置
 		}
 		D_abs -= d_accdec;
 	}break;
 	}
-	CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
+	CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));	//目標位置の校正（-180°～180°の表現にする
 
 #if 0
 	//#######################################################################

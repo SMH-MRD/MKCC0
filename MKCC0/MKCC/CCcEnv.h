@@ -120,9 +120,7 @@ public:
     double cal_acc_hp(int motion, double R, double pos);      //位置に応じた加速度を計算(旋回、引込用）
 
     double get_arad_acc(int motion, double R, double pos);   //加減速振れ振角計算rad
-    double get_arad_sway(int motion);                        //振れ角振幅計算rad
     double get_phase_sway(int motion);                       //振れ角位相計算rad
-
     double cal_sway_amp2(int motion);
     double cal_sway_amp(int motion);
 
@@ -167,6 +165,8 @@ private:
 
     double lbh_d0;//起伏入限時の起伏ドラム巻取り量
 
+    INT32 motion_bit[MOTION_ID_MAX];
+
     //オーバーライド
     virtual HRESULT routine_work(void* pObj) override;
     int input();//入力処理
@@ -179,7 +179,7 @@ private:
 
 	void set_faults_info();
     void refresh_faults_info();
-
+    
  //   void set_drum_param(int id);
   //  static HRESULT set_drum_stat(int id);
 	HRESULT(*fp_set_drum_stat)(int id) = NULL; //ドラムの状態をセットする関数ポインタ   

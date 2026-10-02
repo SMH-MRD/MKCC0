@@ -267,7 +267,7 @@ typedef struct OteUBody {
 	INT16		pnl_ctrl[N_OTE_PNL_CTRL];		//操作卓PB入力
 	INT16		ote_type;						//操作卓タイプ
 	INT16       spar;							//バウンダリ合わせスペア
-	UINT32		job_seq_no;					//自動目標位置のシーケンス番号（トリガ検出用）
+	UINT32		job_seq_no;						//自動目標位置のシーケンス番号（トリガ検出用）
 	INT16		ote_err[4];						//OTE検出異常
 	
 	double		auto_tg_pos[MOTION_ID_MAX];		//自動目標位置

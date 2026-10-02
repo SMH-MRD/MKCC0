@@ -616,7 +616,7 @@ typedef struct _SwayServerHead {
     INT16           filter_type2_val;                   //画像フィルタ処理FB　設定値
     INT16			command;	                        //コマンド応答コード(受付コマンドコード）
     INT32			status;		                        //状態
-    double          pix1rad[(int)ENUM_AXIS::E_MAX];     //1radianあたりのPIXEL数
+    double          pix1rad[(int)ENUM_AXIS::E_MAX];     //1radあたりのPIXEL数
     INT32 			seqno;		                        //シーケンス番号(ヘルシーチェック用）	
 }ST_SWAY_SERVER_HEAD, * LPST_SWAY_SERVER_HEAD;
 

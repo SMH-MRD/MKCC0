@@ -134,6 +134,16 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 	//	fp_set_drum_stat = set_drum_stat;
 		//計算用パラメータ設定
 		pCrStat->abs_preset_cnt[ID_GANTRY] = (INT32)(pCrane->pSpec->axis_spec[ID_GANTRY].PosPreset / pCrane->pSpec->axis_spec[ID_GANTRY].Ddrm0 / PI180 * pCrane->pSpec->axis_spec[ID_GANTRY].CntAbsR);
+	
+		st_work.crane_stat.notch0 = BIT_SEL_MOTION;//全ノッチ0で初期化
+		motion_bit[ID_HOIST]	= BIT_SEL_HST;
+		motion_bit[ID_GANTRY]	= BIT_SEL_GNT;
+		motion_bit[ID_TROLLY]	= BIT_SEL_TRY;
+		motion_bit[ID_BOOM_H]	= BIT_SEL_BH;
+		motion_bit[ID_SLEW]		= BIT_SEL_SLW;
+		motion_bit[ID_OP_ROOM]	= BIT_SEL_OPR;
+		motion_bit[ID_H_ASSY]	= BIT_SEL_ASS;
+			
 	}
 	
 	//### IFウィンドウOPEN
@@ -517,14 +527,6 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->a.y = C1 * cos_ph - C2 * sin_ph;
 	pCrStat->a.z = pspec->st_struct.Lb * (pCrStat->bh_th.a * cos_th - pCrStat->bh_th.v * pCrStat->bh_th.v * sin_th);
 	
-	//pCrStat->hpz.p = pspec->st_struct.Hp + pspec->st_struct.Ha + pCrStat->dh.p;
-	//pCrStat->hpz.v = pCrStat->dh.v;
-	//pCrStat->hpz.a = pCrStat->dh.a;
-
-	//揚程 Simulation側の揚程値を使用する
-	//pCrStat->ldz.p = pCrStat->hpz.p - pCrStat->mhl.p;
-	//pCrStat->ldz.v = - pCrStat->mhl.v;
-	//pCrStat->ldz.a = -pCrStat->mhl.a;
 
 	//### 荷重・位置状態セット ###
 	//荷重
@@ -728,8 +730,6 @@ void CCcEnv::refresh_faults_info() {
 	return;
 }
 
-
-
 /****************************************************************************/
 /*   自動用ヘルパー関数											                    */
 /****************************************************************************/
@@ -786,35 +786,62 @@ double CCcEnv::cal_acc_hp(int motion, double R, double pos) {
 }     
 //加減速振れ振角計算rad
 double CCcEnv::get_arad_acc(int motion, double R, double pos) {
+	if((motion == ID_SLEW)|| (motion == ID_BOOM_H)){
+		return atan(cal_acc_hp(motion, R, pos)/GA);
+	}
 	return 0.0;
 } 
-//振れ角振幅計算rad
-double CCcEnv::get_arad_sway(int motion) {
-	return 0.0;
-}
 //振れ角位相計算rad
 double CCcEnv::get_phase_sway(int motion) {
+	if(motion == ID_SLEW) {
+		return pAUX_CS_Inf->msg_server.body.sway_data[ID_X].ps_time;
+	}
+	if (motion == ID_BOOM_H) {
+		return pAUX_CS_Inf->msg_server.body.sway_data[ID_Y].ps_time;
+	}
 	return 0.0;
 }                       
 
 double CCcEnv::cal_sway_amp2(int motion) {
-	return 0.0;
+	double amp = cal_sway_amp(motion);
+	return amp*amp;
 }
 double CCcEnv::cal_sway_amp(int motion) {
+	if (motion == ID_SLEW) {
+		return (double)pAUX_CS_Inf->msg_server.body.sway_data[ID_X].amp_p2p / pAUX_CS_Inf->msg_server.head.pix1rad[ID_X];
+	}
+	if (motion == ID_BOOM_H) {
+		return (double)pAUX_CS_Inf->msg_server.body.sway_data[ID_Y].amp_p2p / pAUX_CS_Inf->msg_server.head.pix1rad[ID_Y];
+	}
 	return 0.0;
 }
-//停止距離計算
-double CCcEnv::cal_dist4stop(int motion, bool is_abs_answer) {
-	return 0.0;
-} 
+
 //目標位置までの距離
 double CCcEnv::cal_dist4target(int motion, bool is_abs_answer) {
-	return 0.0;
+	double dist = pAgentInf->st_axis_ctrl[motion].auto_tg_pos - pPlcIo->stat_axis[motion].pos_fb;
+
+	if (motion == ID_SLEW) {
+		if (dist > PI180) dist -= PI360;
+		else if (dist < -PI180) dist += PI360;
+		else;
+	}
+
+	if ((is_abs_answer == true) && (dist < 0.0)) dist *= -1.0;
+	return dist;
 } 
 // 0速チェック
 bool CCcEnv::is_speed_0(int motion) {
-	return 0.0;
-}                            
+
+	if (!(st_work.crane_stat.notch0 & motion_bit[motion])) return false;//ノッチ0で無い
+
+	pPlcIo->stat_axis[motion].v_fb;
+	if ((pPlcIo->stat_axis[motion].v_fb >= pCrane->pSpec->axis_spec[motion].Notch_spd_f[CODE_MODE0][NOTCH_1] * SPD0_CHECK_RATIO) ||		// 0速チェック
+		(pPlcIo->stat_axis[motion].v_fb <= pCrane->pSpec->axis_spec[motion].Notch_spd_r[CODE_MODE0][NOTCH_1] * SPD0_CHECK_RATIO)) {		//1ノッチの10％速度以上
+		return false;	//0速でない
+	}
+	return true;
+}
+
  // 位置に応じた速度,加速度の比率　起伏のみ
 double CCcEnv::cal_motion_retio(int imotion, double pos) {
 	return 0.0;

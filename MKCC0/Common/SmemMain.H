@@ -63,6 +63,7 @@ typedef struct _ST_FAULTS_LIST {
 }ST_FAULTS_LIST, * LPST_FAULTS_LIST;
 
 #define PRM_CHK_COUNT_SPD0		50		//速度FB0判定用カウンタ値
+#define SPD0_CHECK_RATIO		0.1		//0速度判定用速度比率　0.1倍以下で0速度判定
 
 typedef struct _ST_CRANE_STAT {
 
@@ -108,6 +109,7 @@ typedef struct _ST_CRANE_STAT {
 	bool is_fwd_endstop[MOTION_ID_MAX];			//正転極限判定
 	bool is_rev_endstop[MOTION_ID_MAX];			//逆転極限判定
 	INT32 cnt_speed0[MOTION_ID_MAX];			//速度FB0判定用カウンタ　0で速度0判定
+	INT32 notch0;								//0ノッチ判定総合
 
 } ST_CRANE_STAT, * LPST_CRANE_STAT;
 
@@ -177,7 +179,7 @@ typedef struct _ST_CC_PLC_IO {
 	INT16 spd_mode[MOTION_ID_MAX];
 	INT16 accdec_mode[MOTION_ID_MAX];
 	INT16 plc_mode_fb;
-	double v_ratio[MOTION_ID_MAX] = { 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0 };
+	double v_ratio[MOTION_ID_MAX] = { 1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0 };//引込速度が旋回半径で変わる分の補正用
 
 	INT16 plc_pnl_io_fb[N_OTE_PNL_CTRL];				//PLC IO コントロールパネルFB信号
 	INT16 remote_mode_sw;								//リモートモードスイッチ
@@ -201,32 +203,6 @@ typedef struct _ST_CC_SCAD_INF {
 //## Job定義構造体
 //### 動作要素　加速、定速、減速等の一連の動作は、この要素の組み合わせで構成します。
 #pragma region MTION STEP
-//レシピ　Type
-#define CTR_TYPE_WAIT_TIME					0x0000	//待機（時間経過待ち）
-#define CTR_TYPE_WAIT_POS_HST				0x0101	//巻到達待ち
-#define CTR_TYPE_WAIT_POS_GNT				0x0102	//走行到達待ち
-#define CTR_TYPE_WAIT_POS_TRY				0x0104	//横行到達待ち
-#define CTR_TYPE_WAIT_POS_BH				0x0108	//引込到達待ち
-#define CTR_TYPE_WAIT_POS_SLW				0x0110	//旋回到達待ち
-#define CTR_TYPE_WAIT_LAND					0x0120	//着床待ち
-#define CTR_TYPE_WAIT_PH_1SHOT				0x0201	//位相待ち ONE SHOT
-#define CTR_TYPE_WAIT_PH_2SHOT_FIRST		0x0202	//2INCH初回位相待ち
-#define CTR_TYPE_WAIT_PH_2SHOT_SECOND		0x0204	//位相待ち TWO INCH　2回目
-#define CTR_TYPE_VOUT_TIME					0x1000  //ステップ速度　時間完了
-#define CTR_TYPE_VOUT_V						0x1001  //ステップ速度　速度到達完了
-#define CTR_TYPE_VOUT_POS					0x1002  //ステップ速度　位置到達完了
-#define CTR_TYPE_VOUT_PHASE     			0x1004  //ステップ速度　位相到達完了
-#define CTR_TYPE_VOUT_LAND					0x1008  //ステップ速度　着床完了
-#define CTR_TYPE_VOUT_TIME_1SHOT			0x1010  //ステップ速度　時間完了
-#define CTR_TYPE_VOUT_TIME_2SHOT1			0x1020  //ステップ速度　時間完了
-#define CTR_TYPE_VOUT_TIME_2SHOT2			0x1040  //ステップ速度　時間完了
-#define CTR_TYPE_AOUT_TIME					0x2000  //加速速度　時間完了
-#define CTR_TYPE_AOUT_V						0x2001  //加速速度　速度到達完了
-#define CTR_TYPE_AOUT_POS					0x2002  //加速速度　位置到達完了
-#define CTR_TYPE_AOUT_PHASE     			0x2004  //加速速度　位相到達完了
-#define CTR_TYPE_AOUT_LAND					0x2008  //加速速度　着床完了
-#define CTR_TYPE_FINE_POS					0x8001	//微小位置合わせ
-#define CTR_TYPE_SMART_SLOW_DOWN			0x8010	//スマートスローダウン
 
 #define TIME_LIMIT_CONFIRMATION				0.1		//パターン出力調整時間 秒
 #define TIME_LIMIT_FINE_POS					10.0	//微小位置合わせ制限時間 秒
@@ -291,38 +267,6 @@ typedef struct _ST_MOTION_SEQ {
 //### 動作内容 目的動作を軸動作シーケンスの組み合わせで実現します
 //		! COMMAND:1つのJOBを、複数のコマンドで構成	PICK GRAND PARK
 #pragma region MTION COMMAND
-/*** コマンド種類 ***/
-#define COM_TYPE_MASK			0x0F00      
-#define COM_TYPE_PICK			0x0100
-#define COM_TYPE_GRND			0x0200
-#define COM_TYPE_PARK			0x0400
-#define COM_TYPE_FROM_TO		0x0800
-#define COM_TYPE_NON 			0x0000
-
-/*** 状態種類 ***/
-#define STAT_MASK               0x00FF      //ステータス部マスク
-#define STAT_NA					0x0000      //適用不可
-#define STAT_MANUAL				0x0000      //適用不可
-#define STAT_STANDBY			0x0001      //スタンバイ
-#define STAT_TRIGED             0x0002      //起動済実行待ち
-#define STAT_ACTIVE             0x0004      //実行中報告
-#define STAT_SUSPENDED          0x0008      //一時停止報告
-
-#define STAT_ABOTED             0x0120      //キャンセル
-#define STAT_END				0x0020      //正常完了
-#define STAT_ABNORMAL_END       0x8020      //異常完了
-#define STAT_SEQ_ERR_END		0x2020      //シーケンス異常完了
-
-#define STAT_REQ_WAIT           0x0080      //要求待ち
-#define STAT_POSITIVE			0x1000		//OK
-#define STAT_SUCCEED			0x1000		//成功
-#define STAT_ACK				0x1001		//正常受付
-#define STAT_NAK				0x8000		//NG
-#define STAT_TIME_OVER			0x8010		//タイムオーバー
-
-#define STAT_LOGICAL_ERROR		0x8004      //整合性異常
-#define STAT_CODE_ERROR			0x8008      //適合コード無し
-
 typedef struct StPosTargets {
 	double pos[MOTION_ID_MAX];
 	bool is_held[MOTION_ID_MAX];				//目標位置ホールド中フラグ
@@ -349,7 +293,6 @@ typedef struct StCommandCode {
 typedef struct _ST_COMMAND_SET {
 	//POLICY SET
 	ST_COM_CODE com_code;
-	int n_seq;									//コマンドで動作する軸の数
 	int seq_mode[MOTION_ID_MAX];				//コマンド動作する軸のID配列（MOTION　RECIPEの対象配列）L_ON or L_OFF
 	ST_MOTION_SEQ seq[MOTION_ID_MAX];
 	ST_POS_TARGETS target;							//目標位置	
@@ -439,28 +382,6 @@ typedef struct _ST_CC_POL_INF {
 
 //## Agent	情報定義構造体
 #pragma region AGENT
-/*** ジョブ,コマンドステータス ***/
-//auto_ongoing用
-#define AUTO_TYPE_JOB_MASK				0x7000      //JOB種別部マスク
-#define AUTO_TYPE_SEL_MASK				0xf000      //自動種別部マスク
-#define AUTO_TYPE_MANUAL				0x0000
-#define AUTO_TYPE_JOB					0x1000      //種別JOB
-#define AUTO_TYPE_SEMIAUTO				0x2000      //種別半自動
-#define AUTO_TYPE_OPERATION				0x4000      //種別クレーン操作
-#define AUTO_TYPE_FB_ANTI_SWAY			0x8000
-//antisway_on_going用
-#define ANTISWAY_ALL_MANUAL				0x00000000      //振れ止め無し
-#define ANTISWAY_BH_ACTIVE				0x00000001      //引込振止実行中
-#define ANTISWAY_BH_PAUSED				0x00000002      //引込振止一時停止
-#define ANTISWAY_BH_COMPLETE			0x00000008      //引込振止完了
-#define ANTISWAY_SLEW_ACTIVE			0x00000010      //旋回振止実行
-#define ANTISWAY_SLEW_PAUSED			0x00000020      //旋回振止一時停止
-#define ANTISWAY_SLEW_COMPLETE			0x00000080      //旋回振止完了 
-//axis_status用
-#define AG_AXIS_STAT_FB0				0x000000001	 //停止中
-#define AG_AXIS_STAT_PC_ENABLE			0x800000000	 //PC指令可
-#define AG_AXIS_STAT_AUTO_ENABLE		0x100000000	 //自動可
-#define AG_AXIS_STAT_ANTISWAY_ENABLE	0x200000000	 //振れ止め可
 
 #define AG_MODE_SLBK_NORMAL				0x000000000
 #define AG_MODE_SLBK_CHECK_STANDBY		0x000000001

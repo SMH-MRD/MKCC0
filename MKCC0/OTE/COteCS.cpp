@@ -1019,22 +1019,29 @@ HRESULT COteCS::set_auto_target(int job_type) {
 	st_work.st_body.auto_tg_pos[ID_AHOIST]	= pOteCCInf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_AHOIST].pos_fb;
 
 //GBC TEST用
-//自動は旋回のみ　移動量はTOP Speedでの定速時間をPRM1にセット,加速時と減速時の移動量の合計はTOP Speed（Vtop) × 加速時間（T）
-//より、移動量は,Vtop ×　（T +　PRM1）
-	double tacc = pCrane->pSpec->axis_spec->Ta0;
-
-	double d = 0, vtop = 0.0;
-
+//自動は旋回のみ　移動量はPRM1にノッチをセット　定速時間をPRM2にセット,加速時と減速時の移動量の合計はTOP Speed（V) ×	加速時間（T）
+//より、移動量は,V ×　（T +　PRM1）
+	
 	switch (job_type) {
 	case	ID_JOBTYPE_GBC_TEST0: {
-		vtop	= pCrane->pSpec->axis_spec->Notch_spd_f[CODE_MODE1][N_NOTCH_MAX - 1];
-		d = vtop * (tacc + (double)pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] / 10.0); //auto_prm1は、100msec単位の入力
+		INT16 notch = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
+		if (notch > 4) notch = 4;if (notch < -4) notch = -4;
+
+		double v,tacc;
+		double acc = pCrane->pSpec->axis_spec[ID_SLEW].accdec[ID_FWD][ID_ACC];
+
+		if (notch < 0) {	//逆転ノッチ
+			v = pCrane->pSpec->axis_spec[ID_SLEW].Notch_spd_r[CODE_MODE0][-notch];
+		}
+		else {				//正転ノッチ
+			v = pCrane->pSpec->axis_spec[ID_SLEW].Notch_spd_f[CODE_MODE0][notch];
+		}
+
+		tacc = v / acc;	//加速時間
+		if (tacc < 0.0) tacc *= -1.0;
+		double d = v * (tacc + (double)pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2] / 10.0); //auto_prm2は、100msec単位の入力
 		st_work.st_body.auto_tg_pos[ID_SLEW] += d;
-	}break;
-	case	ID_JOBTYPE_GBC_TEST1: {
-		vtop = pCrane->pSpec->axis_spec->Notch_spd_r[CODE_MODE1][N_NOTCH_MAX - 1];
-		d = vtop * (tacc + (double)pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] / 10.0); //auto_prm1は、100msec単位の入力
-		st_work.st_body.auto_tg_pos[ID_SLEW] += d;
+
 	}break;
 	default:break;
 	}

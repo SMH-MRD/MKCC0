@@ -244,6 +244,7 @@ using namespace Gdiplus;
 
 #define BIT_SEL_ALL_0NOTCH  0x10000000
 #define BIT_SEL_STATUS      0xFFFF0000
+#define BIT_SEL_MOTION      BIT_SEL_HST|BIT_SEL_GNT|BIT_SEL_BH|BIT_SEL_SLW|BIT_SEL_AH
 
 
 enum ID_AXIS {
