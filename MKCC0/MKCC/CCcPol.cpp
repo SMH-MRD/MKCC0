@@ -2474,10 +2474,44 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		st_mon1.hctrl[POL_ID_MON1_STATIC_GPAD] = CreateWindowW(TEXT("STATIC"), st_mon1.text[POL_ID_MON1_STATIC_GPAD], WS_CHILD | WS_VISIBLE | SS_LEFT,
-			st_mon1.pt[POL_ID_MON1_STATIC_GPAD].x, st_mon1.pt[POL_ID_MON1_STATIC_GPAD].y,
-			st_mon1.sz[POL_ID_MON1_STATIC_GPAD].cx, st_mon1.sz[POL_ID_MON1_STATIC_GPAD].cy,
-			hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + POL_ID_MON1_STATIC_GPAD), hInst, NULL);
+		//STATIC,LABEL
+		for (int i = POL_ID_MON1_STATIC_JOB_LIST_TITLE; i <= POL_ID_MON1_STATIC_COM_HOT; i++) {
+			st_mon1.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
+				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+				hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		}
+		//RADIO PB
+		for (int i = POL_ID_MON1_RADIO_JOBLIST0; i <= POL_ID_MON1_RADIO_COMSET3; i++) {
+			if ((i == POL_ID_MON1_RADIO_JOBLIST0) || (i == POL_ID_MON1_RADIO_JOBSET0) || (i == POL_ID_MON1_RADIO_COMSET0)) {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+			else {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+		}
+		st_mon1.job_list_sel = 1;
+		st_mon1.job_set_sel = 0;
+		st_mon1.com_set_sel = 0;
+
+		SendMessage(st_mon1.hctrl[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0], BM_SETCHECK, BST_CHECKED, 0L);
+		SendMessage(st_mon1.hctrl[st_mon1.job_set_sel + POL_ID_MON1_RADIO_JOBSET0], BM_SETCHECK, BST_CHECKED, 0L);
+		SendMessage(st_mon1.hctrl[st_mon1.com_set_sel + POL_ID_MON1_RADIO_COMSET0], BM_SETCHECK, BST_CHECKED, 0L);
+
+		monwos.str(L""); monwos << "LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
+		monwos.str(L""); monwos << "JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
+		monwos.str(L""); monwos << "COM " << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
+
+		st_mon1.p_job_list	= &pJobIO->job_list[st_mon1.job_list_sel];
+		st_mon1.p_job_set	= &st_mon1.p_job_list->job[st_mon1.job_set_sel];
+		st_mon1.p_com_set	= &st_mon1.p_job_set->com[st_mon1.com_set_sel];
+		st_mon1.p_com_hot	= &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
 
 		//表示更新用タイマー
 		SetTimer(hWnd, POL_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -2487,14 +2521,93 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 	case WM_COMMAND: {
 		int wmId = LOWORD(wp);
 		// 選択されたメニューの解析:
-		switch (wmId)
+		switch (wmId - POL_ID_MON1_CTRL_BASE)
 		{
-		case 1:break;
+		case POL_ID_MON1_RADIO_JOBLIST0: {
+			st_mon1.job_list_sel = 0;
+		}break;
+		case POL_ID_MON1_RADIO_JOBLIST1: {
+			st_mon1.job_list_sel = 1;
+		}break;
+		case POL_ID_MON1_RADIO_JOBLIST2: {
+			st_mon1.job_list_sel = 2;
+		}break;
+		case POL_ID_MON1_RADIO_JOBSET0: {
+			st_mon1.job_set_sel = 0;
+		}break;
+		case POL_ID_MON1_RADIO_JOBSET1: {
+			st_mon1.job_set_sel = 1;
+		}break;
+		case POL_ID_MON1_RADIO_JOBSET2: {
+			st_mon1.job_set_sel = 2;
+		}break;
+		case POL_ID_MON1_RADIO_JOBSET3: {
+			st_mon1.job_set_sel = 3;
+		}break;
+		case POL_ID_MON1_RADIO_COMSET0: {
+			st_mon1.com_set_sel = 0;
+		}break;
+		case POL_ID_MON1_RADIO_COMSET1: {
+			st_mon1.com_set_sel = 1;
+		}break;
+		case POL_ID_MON1_RADIO_COMSET2: {
+			st_mon1.com_set_sel = 2;
+		}break;
+		case POL_ID_MON1_RADIO_COMSET3: {
+			st_mon1.com_set_sel = 3;
+		}break;
 		default:
 			return DefWindowProc(hWnd, msg, wp, lp);
 		}
+		monwos.str(L""); monwos << "LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
+		monwos.str(L""); monwos << "JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
+		monwos.str(L""); monwos << "COM " << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel<< " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
+
+		st_mon1.p_job_list = &pJobIO->job_list[st_mon1.job_list_sel];
+		st_mon1.p_job_set = &st_mon1.p_job_list->job[st_mon1.job_set_sel];
+		st_mon1.p_com_set = &st_mon1.p_job_set->com[st_mon1.com_set_sel];
+		st_mon1.p_com_hot = &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
+
 	}break;
 	case WM_TIMER: {
+			monwos.str(L""); 
+			monwos << "i job hot "<< st_mon1.p_job_list->i_job_hot << "  n job " << st_mon1.p_job_list->n_job << L"\n";
+
+			monwos << "job code  job ";
+			for (int i = 0; i < st_mon1.p_job_list->n_job; i++) {
+				monwos << " " << i << ": " << st_mon1.p_job_list->job[i].code;
+			}
+			monwos << "\n";
+
+			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST], monwos.str().c_str());
+
+			monwos.str(L""); 
+			monwos << "i com hot " << st_mon1.p_job_set->i_hot_com << "  n com " << st_mon1.p_job_set->n_com << L"\n";
+			monwos << "com code  com ";
+			for (int i = 0; i < st_mon1.p_job_set->n_com; i++) {
+				monwos << " " << i << ": " <<  st_mon1.p_job_set->com[i].com_code.type;
+			}
+			monwos << "\n";
+			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_INF], monwos.str().c_str());
+
+			monwos.str(L""); 
+			monwos << "COM CODE  ilist " << st_mon1.p_com_set->com_code.i_list << " ijob " << st_mon1.p_com_set->com_code.i_job << " type " << st_mon1.p_com_set->com_code.type  << "  com status: " << st_mon1.p_com_set->com_status << L"\n";
+			monwos << " MODE MH " << st_mon1.p_com_set->seq_mode[ID_HOIST] << " BH " << st_mon1.p_com_set->seq_mode[ID_BOOM_H] << " SL " << st_mon1.p_com_set->seq_mode[ID_SLEW] << L"\n";
+			monwos << " TG MH "	<< st_mon1.p_com_set->target.pos[ID_HOIST] << " BH " << st_mon1.p_com_set->target.pos[ID_BOOM_H] << " SL " << st_mon1.p_com_set->target.pos[ID_SLEW] << L"\n";
+
+			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_INF], monwos.str().c_str());
+
+			monwos.str(L""); 
+			monwos << "COM CODE  ilist " << st_mon1.p_com_hot->com_code.i_list << " ijob " << st_mon1.p_com_hot->com_code.i_job << " type " << st_mon1.p_com_hot->com_code.type << "  com status: " << st_mon1.p_com_hot->com_status << L"\n";
+			monwos << " SEQ ihot/nstep/code " << " MH: " << st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].n_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].steps[st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step].type;
+			monwos << " BH: " << st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].n_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].steps[st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step].type;
+			monwos << " SL: " << st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].n_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].steps[st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step].type;
+			monwos <<	L"\n";
+
+			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_HOT], monwos.str().c_str());
 	}break;
 
 	case WM_PAINT: {

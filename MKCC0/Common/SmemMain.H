@@ -247,7 +247,7 @@ typedef struct stMotionStep {	//運動要素
 #define SEQ_RECIPE_OPT_I_PH_WAIT_COUNT_2INCH		3
 
 typedef struct _ST_MOTION_SEQ {	
-	//CS set
+	//POL set
 	int axis_id;
 	int motion_type;
 	int option_i;								//オプション条件
@@ -296,11 +296,11 @@ typedef struct _ST_COMMAND_SET {
 	int seq_mode[MOTION_ID_MAX];				//コマンド動作する軸のID配列（MOTION　RECIPEの対象配列）L_ON or L_OFF
 	ST_MOTION_SEQ seq[MOTION_ID_MAX];
 	ST_POS_TARGETS target;							//目標位置	
+	PINT16 pcom_prm;							//OTE設定のコマンドパラメータ配列へのポインタ
 
-	//POLICY or AGENT SET
+	//POLICY or AGENT SET						コマンド実行用バッファ
 	int option_i[COM_RECIPE_OPTION_N];
 	double option_d[COM_RECIPE_OPTION_N];
-	PINT16 pcom_prm;
 
 	//AGENT SET
 	int com_status;
@@ -342,8 +342,6 @@ typedef struct _ST_JOB_ORDER {
 
 //JOB LIST
 //JOBの予約登録が出来るようにLISTにして管理する
-
-
 typedef struct _ST_JOB_LIST {
 	int id;
 	int type;									//JOB種別（JOB,半自動）

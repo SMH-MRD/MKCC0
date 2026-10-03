@@ -8,13 +8,33 @@
 
 #define POL_MON1_WND_X     640
 #define POL_MON1_WND_Y     0
-#define POL_MON1_WND_W     320
-#define POL_MON1_WND_H     240
+#define POL_MON1_WND_W     640
+#define POL_MON1_WND_H     480
 #define POL_MON1_N_CTRL    32
 #define POL_MON1_N_WCHAR   64
 
 #define POL_ID_MON1_CTRL_BASE   54100
-#define POL_ID_MON1_STATIC_GPAD     0
+
+#define POL_ID_MON1_RADIO_JOBLIST0  0
+#define POL_ID_MON1_RADIO_JOBLIST1  1
+#define POL_ID_MON1_RADIO_JOBLIST2  2
+#define POL_ID_MON1_RADIO_JOBSET0   3
+#define POL_ID_MON1_RADIO_JOBSET1   4
+#define POL_ID_MON1_RADIO_JOBSET2   5
+#define POL_ID_MON1_RADIO_JOBSET3   6
+#define POL_ID_MON1_RADIO_COMSET0   7
+#define POL_ID_MON1_RADIO_COMSET1   8
+#define POL_ID_MON1_RADIO_COMSET2   9
+#define POL_ID_MON1_RADIO_COMSET3   10
+
+#define POL_ID_MON1_STATIC_JOB_LIST_TITLE   16
+#define POL_ID_MON1_STATIC_JOB_SET_TITLE    17
+#define POL_ID_MON1_STATIC_COM_SET_TITLE    18
+#define POL_ID_MON1_STATIC_COM_HOT_TITLE    19
+#define POL_ID_MON1_STATIC_JOB_LIST         20
+#define POL_ID_MON1_STATIC_JOB_INF          21
+#define POL_ID_MON1_STATIC_COM_INF          22
+#define POL_ID_MON1_STATIC_COM_HOT          23
 
 #define POL_ID_MON2_CTRL_BASE   541140
 
@@ -27,6 +47,14 @@
 
 typedef struct _ST_POL_MON1 {
     int timer_ms = POL_PRM_MON1_TIMER_MS;
+	int job_list_sel = 1;
+	int job_set_sel = 0;
+	int com_set_sel = 0;
+
+	LPST_JOB_LIST       p_job_list = NULL;
+    LPST_JOB_SET        p_job_set = NULL;
+    LPST_COMMAND_SET    p_com_set = NULL, p_com_hot = NULL;
+
     HWND hwnd_mon;
     HWND hctrl[POL_MON1_N_CTRL] = {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -35,29 +63,29 @@ typedef struct _ST_POL_MON1 {
         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     };
     POINT pt[POL_MON1_N_CTRL] = {
-        5,5, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        460,5, 515,5, 570,5, 405,115, 460,115, 515,115, 570,115,405,225,
+        460,225, 515,225, 570,225, 0,0, 0,0, 0,0, 0,0, 0,0,
+        5,5, 5,115, 5,225, 5,335, 5,30, 5,140, 5,250, 5,360, 
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[POL_MON1_N_CTRL] = {
-        295,190, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
+        50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20,
+        50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,0,0,
+        250,20, 250,20, 250,20, 250,20, 630,80, 630,80, 630,80, 630,80,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
-        0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     WCHAR text[POL_MON1_N_CTRL][POL_MON1_N_WCHAR] = {
-        L"GAME_PAD", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L"",
-        L"", L"", L"", L"", L"", L"", L"", L""
+        L"AS", L"SEMI", L"JOB", L"SET0", L"SET1", L"SET2", L"SET3", L"COM0",
+        L"COM1", L"COM2", L"COM3", L"", L"", L"", L"",L"",
+        L"JOB LIST", L"JOB SET", L"COM SET", L"COM HOT", L"-", L"-", L"-", L"-",
+        L"",L"", L"", L"", L"", L"", L"", L"", 
     };
 }ST_POL_MON1, * LPST_POL_MON1;
 
 #define POL_MON2_WND_X     POL_MON1_WND_X
 #define POL_MON2_WND_Y     POL_MON1_WND_Y + POL_MON1_WND_H   
-#define POL_MON2_WND_W     320
-#define POL_MON2_WND_H     240
+#define POL_MON2_WND_W     640
+#define POL_MON2_WND_H     480
 
 typedef struct _ST_POL_MON2 {
     HWND hwnd_mon;
