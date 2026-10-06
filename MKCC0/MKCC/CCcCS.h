@@ -217,7 +217,7 @@ public:
     INT32 get_auto_act_input(); 
 
     //POLICYからのアクセス関数
-    int update_job_status(LPST_JOB_SET pjobset, int fb_code);       //Jobの実行状況アンサバック
+    int update_job_status(ST_COM_CODE st_comcode, int fb_code);       //Jobの実行状況アンサバック
 
     //CLIENTへの報告関数
     int job_report2client(LPST_JOB_SET pjobset, int fb_code);       //Jobの実行状況報告

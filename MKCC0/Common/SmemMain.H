@@ -275,6 +275,7 @@ typedef struct StPosTargets {
 typedef struct StCommandCode {
 	int i_list;
 	int i_job;
+	int i_com;
 	int type;
 }ST_COM_CODE, * LPST_COM_CODE;
 
@@ -291,11 +292,14 @@ typedef struct StCommandCode {
 #define COM_RECIPE_OPT_I_PH_WAIT_COUNT_2INCH		3
 
 typedef struct _ST_COMMAND_SET {
-	//POLICY SET
+	//CS SET
+	int list_id;								//登録されているJOB list配列のインデ
 	ST_COM_CODE com_code;
+	
+	//POLICY SET
 	int seq_mode[MOTION_ID_MAX];				//コマンド動作する軸のID配列（MOTION　RECIPEの対象配列）L_ON or L_OFF
 	ST_MOTION_SEQ seq[MOTION_ID_MAX];
-	ST_POS_TARGETS target;							//目標位置	
+	ST_POS_TARGETS target;						//目標位置	
 	PINT16 pcom_prm;							//OTE設定のコマンドパラメータ配列へのポインタ
 
 	//POLICY or AGENT SET						コマンド実行用バッファ

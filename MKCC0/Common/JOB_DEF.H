@@ -93,6 +93,7 @@
 #define STAT_END				0x0020      //正常完了
 #define STAT_ABNORMAL_END       0x8020      //異常完了
 #define STAT_SEQ_ERR_END		0x2020      //シーケンス異常完了
+#define STAT_COM_CTRL_ERR_END	0x1020      //コマンド処理異常完了
 
 #define STAT_REQ_WAIT           0x0080      //要求待ち
 #define STAT_POSITIVE			0x1000		//OK

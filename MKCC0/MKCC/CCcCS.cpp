@@ -358,6 +358,11 @@ int CCcCS::close() {
 	return 0;
 }
 
+/// <summary>
+/// クレーンに対応する処理可能なJOBコードリストをセットする
+/// </summary>
+/// <param name="crane_id"></param>
+/// <returns></returns>
 HRESULT CCcCS::set_job_available_list(int crane_id) {
 
 	switch (crane_id) {
@@ -636,10 +641,10 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 				switch (p_job->code) {
 				case ID_JOBTYPE_GBC_TEST0: {//GBC TEST
 					p_job->n_com = 4;	// PARK > 2SHOT > 2SHOT > 2SHOT 
-					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_TIME;
-					p_job->com[1].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;
-					p_job->com[2].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;
-					p_job->com[3].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;
+					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_TIME;	p_job->com[0].com_code.i_com = 0; p_job->com[0].com_code.i_job = 0; p_job->com[0].com_code.i_list = ID_JOBTYPE_SEMI;
+					p_job->com[1].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[0].com_code.i_com = 1; p_job->com[0].com_code.i_job = 0; p_job->com[0].com_code.i_list = ID_JOBTYPE_SEMI;
+					p_job->com[2].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[0].com_code.i_com = 2; p_job->com[0].com_code.i_job = 0; p_job->com[0].com_code.i_list = ID_JOBTYPE_SEMI;
+					p_job->com[3].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[0].com_code.i_com = 3; p_job->com[0].com_code.i_job = 0; p_job->com[0].com_code.i_list = ID_JOBTYPE_SEMI;
 				}break;
 				default: {//JOBのコマンド数　デフォルト １ PARK	
 					p_job->n_com = 1;								
@@ -799,11 +804,37 @@ INT32 CCcCS::get_auto_act_input() {
 
 
 //### POLICYからのJOB Status更新依頼
-int CCcCS::update_job_status(LPST_JOB_SET pjobset, int fb_code) {
+int CCcCS::update_job_status(ST_COM_CODE st_comcode, int fb_com_code) {
+
+
+	LPST_JOB_LIST pjoblist = &pJobIO->job_list[st_comcode.i_list];
+	LPST_JOB_SET pjobset = &pjoblist->job[st_comcode.i_job];
 
 	if (pjobset->list_id == ID_JOBTYPE_JOB) {
-		switch (fb_code) {
+		switch (fb_com_code) {
+
+		case STAT_STANDBY:{
+			if (pjobset->status == STAT_TRIGED) pjobset->status = STAT_STANDBY;
+		}break;
+		
 		case STAT_END: {
+			if (pjobset->n_com <= st_comcode.i_com + 1) {//全コマンド完了時
+				pjobset->status = STAT_END; pjobset->n_com = 0; pjobset->i_hot_com = 0;
+				if(pjoblist->n_job <= st_comcode.i_job){//全ジョブ完了時
+					pjoblist->status[st_comcode.i_job] = STAT_END; pjoblist->n_job = 0; pjoblist->i_job_hot = 0;
+				}
+				else {
+					//次のジョブへ
+					pjoblist->status[st_comcode.i_job] = STAT_END;
+					pjoblist->i_job_hot++;
+					pjobset = &pjoblist->job[pjoblist->i_job_hot];
+					pjobset->status = STAT_STANDBY;
+				}
+			}
+			else { //中途コマンド完了時
+				//次のコマンドへ
+				pjobset->status = STAT_STANDBY;
+			}
 			pJobIO->job_list[ID_JOBTYPE_JOB].n_job--;
 			pJobIO->job_list[ID_JOBTYPE_JOB].job[pJobIO->job_list[ID_JOBTYPE_SEMI].i_job_hot].status = STAT_END;
 
@@ -826,7 +857,7 @@ int CCcCS::update_job_status(LPST_JOB_SET pjobset, int fb_code) {
 		}
 	}
 	else if (pjobset->list_id == ID_JOBTYPE_SEMI) {//半自動ではコマンド完了＝ジョブ完了
-		switch (fb_code) {
+		switch (fb_com_code) {
 		case STAT_END: {
 			//正常完了時JOBのホールド数を0クリア
 			pJobIO->job_list[ID_JOBTYPE_SEMI].n_job = 0;

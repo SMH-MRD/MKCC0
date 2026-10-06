@@ -117,6 +117,8 @@ HRESULT CCcPol::initialize(LPVOID lpParam) {
 	st_com_work.vfb_delay_time[ID_GANTRY]	= POL_PRM_FB_DELAY_GANTRY;
 	st_com_work.vfb_delay_time[ID_AHOIST]	= POL_PRM_FB_DELAY_AHOIST;
 
+	//モニタウィンドウテキスト	
+	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"JOB IF");
 	return S_OK;
 }
 
@@ -198,54 +200,54 @@ HRESULT CCcPol::fault_check_OHC(int crane_id) {
 /// </summary>
 /// <param name="pjob_set"></param>
 /// <returns></returns>
-LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set) {
+LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set) {//AGENTがCSから次実行対象のJOB_SETを取得してPOLにコマンドを要求する
 
 	if (pjob_set == NULL) return NULL;				//NULL jobにはNULLリターン
 	if (!pCS->get_auto_act_input()) return NULL;	//自動起動ボタンがOFFの時はNULLリターン
 
-	int _i_hot_com = pjob_set->i_hot_com;
 	LPST_COMMAND_SET pcom_set = NULL;
 
-	if (pjob_set->status & STAT_TRIGED) {										//JOBのステータスが実行待ち
-		_i_hot_com = pjob_set->i_hot_com = 0;									//起動時は、実行レシピのインデックスは、0
-		pcom_set = setup_job_command(pjob_set, _i_hot_com);
-		pjob_set->com[_i_hot_com].com_status = STAT_STANDBY;					//コマンドステータス更新
-
-		pCS->update_job_status(pjob_set, STAT_STANDBY);							//JOBのステータスをSTANDBYに更新
+	if (pjob_set->status & STAT_TRIGED) {													//JOBのステータスが要求受付、実行待ち状態
+		pjob_set->i_hot_com = 0;															//起動時は、実行レシピのインデックスは、0
+		pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//現在の実行コマンドのシーケンスをセット	
+		pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;						//実行コマンドのコマンドステータス更新
 	}
-	else if (pjob_set->status & STAT_SUSPENDED) {								//JOB中断中
-		pcom_set = setup_job_command(pjob_set, _i_hot_com);						//中断中のコマンドを再計算
-		pjob_set->com[_i_hot_com].com_status = STAT_STANDBY;					//コマンドステータス更新
+	else if (pjob_set->status & STAT_STANDBY) {												//すでに最初のコマンドがセットされて実行待ち状態
+		pjob_set->i_hot_com = 0;															//起動時は、実行レシピのインデックスは、0
+		pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//現在の実行コマンドのシーケンスをセット	
+		pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;						//実行コマンドのコマンドステータス更新
 	}
-	else if (pjob_set->status & STAT_ACTIVE) {									//JOB実行中からの呼び出し＝ 次のコマンド実行待ち
-		if (pjob_set->i_hot_com < (pjob_set->n_com - 1)) {						//次のレシピ有 
+	else if ((pjob_set->status & STAT_SUSPENDED)) {											//JOB開始後、中断中
+		pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//中断中のコマンドを再計算
+		pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;						//コマンドステータス更新
+	}
+	else if (pjob_set->status & STAT_ACTIVE) {												//JOB実行中からの呼び出し＝ 次のコマンド実行待ち
+		if (pjob_set->i_hot_com < (pjob_set->n_com - 1)) {									//実行中コマンドの次のコマンド有 
 			//現在のコマンド完了済で次のコマンド計算　完了していなければ今のコマンドを再計算
-			if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {		//完了している
-				_i_hot_com += 1;
+			if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {					//完了している
+				pjob_set->i_hot_com += 1;
 			}
-			pcom_set = setup_job_command(pjob_set, _i_hot_com);
-			pjob_set->com[_i_hot_com].com_status = STAT_STANDBY;				//コマンドステータス更新
+			pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);
+			pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;				//コマンドステータス更新
 		}
 		else {	//実行中で次コマンド無 
 			//現在のコマンド完了済でNULL　完了していなければ今のコマンドを再計算
 			if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {//完了している
 				pcom_set = NULL;
-				pCS->update_job_status(pjob_set, STAT_SEQ_ERR_END);		//JOBのステータスをSEQ　ERROR　END更新
+				pCS->update_job_status(pjob_set->com[pjob_set->i_hot_com].com_code, STAT_SEQ_ERR_END);		//JOBのステータスをSEQ　ERROR　END更新
 			}
 			else {
-				pcom_set = setup_job_command(pjob_set, _i_hot_com);						//中断中のコマンドを再計算
-				pjob_set->com[_i_hot_com].com_status = STAT_STANDBY;					//コマンドステータス更新
+				pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//中断中のコマンドを再計算
+				pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;					//コマンドステータス更新
 			}
 		}
 	}
 	else;
 
-	if (pcom_set != NULL) {
-		//### コマンドコードセット(ジョブリストとの紐づけ）
-		pcom_set->com_code.i_list = pjob_set->list_id;
-		pcom_set->com_code.i_job = pjob_set->job_id;
-		pcom_set->com_code.type = pjob_set->type;
-	}
+	//CSのJOBリストのコマンド進捗情報を更新
+	pCS->update_job_status(pjob_set->com[pjob_set->i_hot_com].com_code, pjob_set->com[pjob_set->i_hot_com].com_status);
+
+
 	return pcom_set;
 }
 
@@ -257,47 +259,44 @@ LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set) {
 /// <returns></returns>
 int CCcPol::update_command_status(LPST_COMMAND_SET pcom, int code) {
 
-	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//現状　SEMIAUTOの1job　1コマンドのみ対象 それ以外は後で
-	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	if (pcom == NULL)return STAT_NAK;
-	LPST_JOB_SET pjob_set = &pJobIO->job_list[pcom->com_code.i_list].job[pcom->com_code.i_job];//紐付きJOB
 
-	LPST_COMMAND_SET _pcom = &pjob_set->com[pjob_set->i_hot_com];
+	//報告コマンドセットが配置されているJOB SETのアドレスを取得
+	LPST_JOB_SET pjobset = &pJobIO->job_list[pcom->com_code.i_list].job[pcom->com_code.i_job];
+	
 	switch (code) {
 		//コマンド終了
 	case STAT_END: {
-		if (pjob_set->n_com == (pjob_set->i_hot_com + 1)) {	//コマンドシーケンスの最後のコマンドの時
-			_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pjob_set, STAT_END);				//JOBのステータス更新
+		if (pjobset->n_com == (pjobset->i_hot_com + 1)) {		//全コマンド完了時
+			pcom->com_status = code;							//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom->com_code, STAT_END);	//JOBのステータス更新
 		}
+
 	}break;
 	case STAT_ABNORMAL_END: {
-		_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
-		pCS->update_job_status(pjob_set, STAT_ABNORMAL_END);	//JOBのステータス更新
+		pcom->com_status = code;								//コマンドのステータスを報告内容に更新
+		pCS->update_job_status(pcom->com_code, STAT_ABNORMAL_END);	//JOBのステータス更新
 	}break;
 	case STAT_ABOTED: {
 		if (pCsInf->cs_ctrl.auto_mode == L_ON) {
-			_pcom->com_status = STAT_SUSPENDED;				//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pjob_set, STAT_SUSPENDED);	//JOBのステータス更新
+			pcom->com_status = STAT_SUSPENDED;					//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom->com_code, STAT_SUSPENDED);	//JOBのステータス更新
 		}
 		else {
-			_pcom->com_status = code;						//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pjob_set, STAT_ABOTED);		//JOBのステータス更新
+			pcom->com_status = code;							//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom->com_code, STAT_ABOTED);		//JOBのステータス更新
 		}
 	}break;
 
 	//コマンド開始
 	case STAT_ACTIVE: {
-		pCS->update_job_status(pjob_set, STAT_ACTIVE);			//JOBのステータス更新
-		_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
+		pCS->update_job_status(pcom->com_code, STAT_ACTIVE);			//JOBのステータス更新
+		pcom->com_status = code;								//コマンドのステータスを報告内容に更新
 	}break;
 	//実行中断
 	case STAT_SUSPENDED: {
-		_pcom->com_status = code;							//コマンドのステータスを報告内容に更新
-		pCS->update_job_status(pjob_set, STAT_SUSPENDED);		//JOBのステータス更新
+		pcom->com_status = code;								//コマンドのステータスを報告内容に更新
+		pCS->update_job_status(pcom->com_code, STAT_SUSPENDED);		//JOBのステータス更新
 	}break;
 	default: break;
 	}
@@ -2561,9 +2560,9 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 		monwos.str(L""); monwos << "LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
-		monwos.str(L""); monwos << "JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		monwos.str(L""); monwos << "JOB SET" << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
-		monwos.str(L""); monwos << "COM " << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel<< " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		monwos.str(L""); monwos << "COM SET" << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel<< " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
 
 		st_mon1.p_job_list = &pJobIO->job_list[st_mon1.job_list_sel];
