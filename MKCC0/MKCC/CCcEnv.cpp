@@ -41,7 +41,7 @@ ST_CC_ENV_INF CCcEnv::st_work;
 //‹¤—Lƒƒ‚ƒŠ
 static LPST_CC_ENV_INF		pEnvInf;
 static LPST_CC_PLC_IO		pPlcIo;
-static LPST_JOB_IO			pJobIo;
+static LPST_JOB_LIST		pJobList;
 static LPST_CC_POL_INF		pPolInf;
 static LPST_CC_AGENT_INF	pAgentInf;
 static LPST_CC_CS_INF		pCsInf;
@@ -72,7 +72,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 
 	pEnvInf		= (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPlcIo		= (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
-	pJobIo		= (LPST_JOB_IO)(pJobIoObj->get_pMap());
+	pJobList	= (LPST_JOB_LIST)(pJobIoObj->get_pMap());
 	pPolInf		= (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
 	pAgentInf	= (LPST_CC_AGENT_INF)(pAgInfObj->get_pMap());
 	pCsInf		= (LPST_CC_CS_INF)(pCsInfObj->get_pMap());
@@ -83,7 +83,7 @@ HRESULT CCcEnv::initialize(LPVOID lpParam) {
 
 	pCrStat = &(pEnvInf->crane_stat);
 
-	if ((pEnvInf == NULL) || (pPlcIo == NULL) || (pJobIo == NULL) || (pPolInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pSimInf == NULL) || (pOteInf == NULL) || (pAUX_CS_Inf == NULL)) {
+	if ((pEnvInf == NULL) || (pPlcIo == NULL) || (pJobList == NULL) || (pPolInf == NULL) || (pAgentInf == NULL) || (pCsInf == NULL) || (pSimInf == NULL) || (pOteInf == NULL) || (pAUX_CS_Inf == NULL)) {
 		hr = S_FALSE;
 		wos.str(L""); wos << L"Initialize : SMEM NG"; msg2listview(wos.str());
 		return hr;

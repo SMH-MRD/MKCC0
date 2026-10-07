@@ -20,7 +20,7 @@
 /****************************************************************************/
 #define SMEM_CRANE_STAT_CC_NAME			L"CRANE_STAT_CC"
 #define SMEM_PLC_IO_NAME				L"PLC_IO"
-#define SMEM_JOB_IO_NAME				L"JOB_IO"
+#define SMEM_JOB_LIST_NAME				L"JOB_LIST"
 #define SMEM_POL_INF_CC_NAME			L"POL_INF_CC"
 #define SMEM_AGENT_INF_CC_NAME			L"AGENT_INF_CC"
 #define SMEM_CS_INF_CC_NAME				L"CS_INF_CC"
@@ -29,7 +29,7 @@
 
 #define MUTEX_CRANE_STAT_CC_NAME		L"MU_CRANE_STAT_CC"
 #define MUTEX_PLC_IO_NAME				L"MU_PLC_IO"
-#define MUTEX_JOB_IO_NAME				L"MU_JOB_IO"
+#define MUTEX_JOB_LIST_NAME				L"MU_JOB_IO"
 #define MUTEX_POL_INF_CC_NAME			L"MU_POL_INF_CC"
 #define MUTEX_AGENT_INF_CC_NAME			L"MU_AGENT_INF_CC"
 #define MUTEX_CS_INF_CC_NAME			L"MU_CS_INF_CC"
@@ -349,31 +349,19 @@ typedef struct _ST_JOB_ORDER {
 typedef struct _ST_JOB_LIST {
 	int id;
 	int type;									//JOB種別（JOB,半自動）
-	int n_job;									//Job数
+	int n_effective_job;						//残存有効Job数
+	int n_aborted_job;							//中断されたJob数
 	ST_JOB_SET	 job[N_JOB_REGIST_MAX];			//登録job
-	ST_JOB_ORDER order[N_JOB_REGIST_MAX];			//要求job
-
+	ST_JOB_ORDER order[N_JOB_REGIST_MAX];		//要求job
 	int i_job_hot;								//次完了待ちJob(実行中or待機中）	  id
-	int status[N_JOB_REGIST_MAX];					//JOB LISTの状態
+	int i_job_latest;							//最新登録JOBのバッファインデックス
+	int status;									//JOB LISTの状態
 }ST_JOB_LIST, * LPST_JOB_LIST;
-
-//フル自動,半自動,振れ止め用各ジョブリストのバッファ
-typedef struct _ST_JOB_IO {
-	ST_JOB_LIST	job_list[N_JOB_LIST];
-}ST_JOB_IO, * LPST_JOB_IO;
 
 #pragma endregion 作業内容（JOB)定義構造体 
 
 //## Policy定義構造体
 #pragma region POLICY
-
-//#define PTN_ORDINARY                0x00000000  //通常
-//#define PTN_1SHOT_AS                0x00000001  //ワンショット振止
-//#define PTN_HALF_T_AS               0x00000002  //半周期振止
-//#define PTN_2SHOT_AS                0x00000004  //インチング振れ止め
-//#define PTN_2SHOT_MOVE0             0x00000008  //インチング移動(振れ抑制無し）
-//#define PTN_2SHOT_MOVE_PLUS         0x00000010  //インチング移動(振れ抑制有）
-//#define PTN_FULL_T                  0x00000020  //1周期振止
 
 typedef struct _ST_CC_POL_INF {
 
@@ -516,9 +504,7 @@ typedef struct _ST_CC_CS_INF {
 	//JOB関連
 	int command_type;													//PARK,PICK,GRND
 	int tg_sel_trigger_z = L_OFF, tg_sel_trigger_xy = L_OFF;			//目標位置の設定入力（半自動PB、モニタタッチ）があったかどうかの判定値
-
-	LPST_JOB_SET p_active_job;
-	int job_control_status;
+	int job_regist_status;												//ジョブ登録状態
 
 
 }ST_CC_CS_INF, * LPST_CC_CS_INF;

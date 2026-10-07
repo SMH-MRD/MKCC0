@@ -181,8 +181,8 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
     //AGENTアクセス関数
-    LPST_COMMAND_SET req_command(LPST_JOB_SET pjob_set);         //Agentからの要求に応じて実行コマンドをセットして返す
-    int update_command_status(LPST_COMMAND_SET pcom, int code);  //Agentからのコマンド実行状況報告を受付,次のコマンドあるときはそれを返す
+    LPST_COMMAND_SET req_command(LPST_JOB_SET pjob_set,int code);   //Agentからの要求に応じて実行コマンドをセットして返す
+    int update_command_status(LPST_COMMAND_SET pcom, int code);     //Agentからのコマンド実行状況報告を受付,次のコマンドあるときはそれを返す
 
     void set_dbg_mode(int command);
     int debug_mode;

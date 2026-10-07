@@ -508,8 +508,7 @@ int CAgent::parse() {
 			//#########################################################################################################################
 			if (pjob_active == NULL) {											//前スキャン ジョブ実行中でない
 				if ((pjob_active = pCS->get_next_job()) != NULL) {				//CSにジョブ有
-					if ((pCom_hot = pPol->req_command(pjob_active)) != NULL) {	//POLICYにコマンド展開依頼 (pjob NULLならばNULLが帰ってくる)
-						init_comset(pCom_hot);									//コマンドのフラグ初期化
+					if ((pCom_hot = pPol->req_command(pjob_active,STAT_IDLE)) != NULL) {	//POLICYにコマンド展開依頼 (pjob NULLならばNULLが帰ってくる)
 						pPol->update_command_status(pCom_hot, STAT_ACTIVE);		//コマンド実行開始報告
 						st_work.command_count++;								//コマンドレシピ作成カウント モニタ用
 					}
@@ -522,41 +521,42 @@ int CAgent::parse() {
 			else {//有効ジョブ有
 				//有効コマンド有（実行中）
 				if (pCom_hot != NULL) {
-					if (pPLC_IO->control_source != L_ON) {	//異常完了
-						comset_abot_end(pCom_hot);										//コマンドABOT　END終了
-						pPol->update_command_status(pCom_hot, STAT_ABNORMAL_END);		//PolicyにAbnomal完了報告
+					if (pCS->get_auto_act_input() == L_OFF) {						//起動入力 OFFでコマンドクリア
+						comset_abot_end(pCom_hot);									//コマンドABOT　END終了
+						pPol->update_command_status(pCom_hot, STAT_ABORTED);		//PolicyにAbot完了報告
+						pCom_hot != NULL;											//コマンドクリア
 					}
-					else if (pCS->get_auto_act_input() == L_OFF) {						//起動スイッチOFFでコマンドクリア
-						comset_abot_end(pCom_hot);										//コマンドABOT　END終了
-						pPol->update_command_status(pCom_hot, STAT_ABOTED);				//PolicyにAbot完了報告
-					}
-					else {																	//コマンド状態確認
+					else {															//コマンド状態確認
 						int com_complete = STAT_END;
+						//コマンド完了判定（すべての軸のシーケンスが完了しているか）
 						for (int i = ID_HOIST; i < ID_AHOIST; i++) {
-							if (!(pCom_hot->seq[i].seq_status & STAT_END)) {			//未完シーケンス有（STAT_END　bit OFF)
-								com_complete = STAT_ACTIVE;								//いずれかの軸がシーケンス実行中
-								break;
-							}
-							else {														//正常完了ではない（キャンセルor異常完了）
-								if (pCom_hot->seq[i].seq_status != STAT_END) {			//STAT_END bit　ONでそれ以外のbitもONならば異常完了
-									com_complete = pCom_hot->seq[i].seq_status;			//いずれかの軸が正常完了しなかった
+							if (pCS_Inf->cs_ctrl.auto_select[i]) {					//自動制御対象軸
+								if (!(pCom_hot->seq[i].seq_status & STAT_END)) {	//未完シーケンス有（STAT_END　bit OFF)
+									com_complete = STAT_ACTIVE;						//いずれかの軸がシーケンス実行中
+									break;
+								}
+								else {												//正常完了ではない（キャンセルor異常完了）
+									if (pCom_hot->seq[i].seq_status != STAT_END) {	//STAT_END bit　ONでそれ以外のbitもONならば異常完了
+										com_complete = pCom_hot->seq[i].seq_status;	//いずれかの軸が正常完了しなかった
+									}
 								}
 							}
 						}
-						//完了の時POLICYへステータス報告
-						if (com_complete != STAT_ACTIVE) {								//すべての軸のシーケンス完了
-							st_work.auto_on_going &= ~AUTO_TYPE_JOB_MASK;				//自動制御JOB TYPE（JOB,半自動,クレーン操作）クリア
-							pPol->update_command_status(pCom_hot, com_complete);		//コマンド実行完了報告
-							pCom_hot = NULL;											//コマンドクリア
+
+						//完了の時POLICYへステータス報告 + 次のコマンド要求
+						if (com_complete != STAT_ACTIVE) {							//すべての軸のシーケンス完了
+							pPol->update_command_status(pCom_hot, com_complete);	//コマンド実行完了報告
+							pCom_hot = pPol->req_command(pjob_active, STAT_END);
+							if (pCom_hot == NULL) //次のコマンド無し（ジョブ完了）
+								pjob_active = NULL;
 						}
 					}
 				}
 				//ジョブ実行中でコマンド無し（JOB完了 or 次コマンドへの切替過程
 				else {
 					if (pCS->get_auto_act_input() == L_ON) {							//グリップスイッチONの時、コマンド再要求
-						pCom_hot = pPol->req_command(pjob_active);						//POLICYにコマンド展開依頼 pjob NULLならばNULLが帰ってくる
+						pCom_hot = pPol->req_command(pjob_active, STAT_RESTART);						//POLICYにコマンド展開依頼 pjob NULLならばNULLが帰ってくる
 						if (pCom_hot != NULL) {											//次のコマンド有
-							init_comset(pCom_hot);
 							pPol->update_command_status(pCom_hot, STAT_ACTIVE);	//コマンド実行開始報告
 							st_work.command_count++;						//コマンドレシピ作成カウント モニタ用
 							//自動制御モードのセット
@@ -583,93 +583,10 @@ int CAgent::parse() {
 	//###################################################
 	//# 制御モードセット auto_on_going,antisway_on_going
 	//###################################################
-	{
-		//自動制御モードのセット
-		if ((pCS_Inf->cs_ctrl.auto_mode == L_ON) && (pjob_active != NULL)) {//自動制御モードONで実行中JOB有
-			if (pjob_active->type == ID_JOBTYPE_SEMI)				st_work.auto_on_going |= AUTO_TYPE_SEMIAUTO;
-			else if (pjob_active->type == ID_JOBTYPE_JOB)			st_work.auto_on_going |= AUTO_TYPE_JOB;
-			else if (pjob_active->type == ID_JOBTYPE_ANTISWAY) {
-																	st_work.auto_on_going |= AUTO_TYPE_FB_ANTI_SWAY;
-																	st_work.auto_on_going |= AUTO_TYPE_SEMIAUTO;
-			}
-			else;
-		}
-		else {
-			st_work.auto_on_going &= ~AUTO_TYPE_SEMIAUTO;
-			st_work.auto_on_going &= ~AUTO_TYPE_JOB;
-			st_work.auto_on_going &= ~AUTO_TYPE_FB_ANTI_SWAY;
-		}
-
-		//振れ止めモードセット
-		if (pCS_Inf->cs_ctrl.antisway_mode == L_OFF) {
-			st_work.auto_on_going &= ~AUTO_TYPE_FB_ANTI_SWAY;
-			st_work.antisway_on_going = ANTISWAY_ALL_MANUAL;
-		}
-		else {//振れ止めは0ノッチの時のみの有効
-			//引き込み
-			if (st_work_plcio.notch0 & BIT_SEL_BH) {				//0ノッチ
-				st_work.antisway_on_going |= ANTISWAY_BH_ACTIVE;
-				st_work.antisway_on_going &= ~ANTISWAY_BH_PAUSED;
-			}
-			else {													//ノッチ入り
-				st_work.antisway_on_going |= ANTISWAY_BH_PAUSED;
-				st_work.antisway_on_going &= ~ANTISWAY_BH_ACTIVE;
-			}
-			//旋回
-			if (st_work_plcio.notch0 & BIT_SEL_SLW) {				//0ノッチ
-				st_work.antisway_on_going |= ANTISWAY_SLEW_ACTIVE;
-				st_work.antisway_on_going &= ~ANTISWAY_SLEW_PAUSED;
-			}
-			else {													//ノッチ入り
-				st_work.antisway_on_going |= ANTISWAY_SLEW_PAUSED;
-				st_work.antisway_on_going &= ~ANTISWAY_SLEW_ACTIVE;
-			}
-		}
-	}
-
+	
 	//###################################################
 	//# 振れ止め完了状態セット　antisway_on_going
 	//###################################################
-	{
-		double tmp_amp, tmp_dist;
-		//引込
-		//振れ振幅、位置ずれともに完了判定レベル以内
-		tmp_amp = pEnv->cal_sway_amp(ID_BOOM_H);
-		tmp_dist = pEnv->cal_dist4target(ID_BOOM_H, true);
-		//振幅、位置とも制御完了レベル以内
-		if ((tmp_amp < pCrane->pSpec->auto_spec[ID_BOOM_H].as_rad_level[ID_LV_COMPLE])
-			&& (tmp_dist < pCrane->pSpec->auto_spec[ID_BOOM_H].as_pos_level[ID_LV_COMPLE])) {
-			st_work.antisway_on_going |= ANTISWAY_BH_COMPLETE;
-		}
-		//振れ止め完了状態
-		else if (st_work.antisway_on_going & ANTISWAY_BH_COMPLETE) {	//振れ止め完了フラグON
-			//振幅または位置が振れ止め起動レベル越で完了フラグクリア
-			if ((pEnv->cal_sway_amp(ID_BOOM_H) > pCrane->pSpec->auto_spec[ID_BOOM_H].as_rad_level[ID_LV_TRIGGER])
-				|| (pEnv->cal_dist4target(ID_BOOM_H, true) > pCrane->pSpec->auto_spec[ID_BOOM_H].as_pos_level[ID_LV_TRIGGER]))
-				st_work.antisway_on_going &= ~ANTISWAY_BH_COMPLETE;
-		}
-		else {
-			st_work.antisway_on_going &= ~ANTISWAY_BH_COMPLETE;
-		}
-
-		//旋回
-		tmp_amp = pEnv->cal_sway_amp(ID_SLEW);
-		tmp_dist = pEnv->cal_dist4target(ID_SLEW, true);
-		//振幅、位置とも制御完了レベル以内
-		if ((tmp_amp < pCrane->pSpec->auto_spec[ID_SLEW].as_rad_level[ID_LV_COMPLE])
-			&& (tmp_dist < pCrane->pSpec->auto_spec[ID_SLEW].as_pos_level[ID_LV_COMPLE])) {
-			st_work.antisway_on_going |= ANTISWAY_SLEW_COMPLETE;
-		}
-		//振れ止め完了状態
-		else if (st_work.antisway_on_going & ANTISWAY_SLEW_COMPLETE) {
-			if ((pEnv->cal_sway_amp(ID_SLEW) > pCrane->pSpec->auto_spec[ID_SLEW].as_rad_level[ID_LV_TRIGGER])
-				|| (pEnv->cal_dist4target(ID_SLEW, true) > pCrane->pSpec->auto_spec[ID_SLEW].as_pos_level[ID_LV_TRIGGER]))
-				st_work.antisway_on_going &= ~ANTISWAY_SLEW_COMPLETE;
-		}
-		else {
-			st_work.antisway_on_going &= ~ANTISWAY_SLEW_COMPLETE;
-		}
-	}
 
 	//###################################################
 	//# 軸毎のモードセット(PLC指令出力軸の判定）
@@ -1426,40 +1343,12 @@ double CAgent::cal_dist4target(int motion, bool is_abs_answer) {
 }
 
 /****************************************************************************/
-/*  コマンドセット実行前初期化処理                                        */
-/*  実行管理ステータスのクリアとコマンド実行中ステータスセット				*/
-/****************************************************************************/
-int CAgent::init_comset(LPST_COMMAND_SET pcom) {
-	if (pcom->com_code.i_list == ID_JOBTYPE_ANTISWAY) {
-		for (int i = 0; i < MOTION_ID_MAX; i++) {
-			pcom->seq[i].seq_status = STAT_END;
-			pcom->seq[i].i_hot_step = 0;
-			pcom->seq[i].sequence_act_count = 0;
-		}
-
-		pcom->seq[ID_BOOM_H].seq_status = STAT_STANDBY;
-		pcom->seq[ID_SLEW].seq_status = STAT_STANDBY;
-
-	}
-	else {
-		for (int i = 0; i < MOTION_ID_MAX; i++) {						//各軸の実行ステータスの初期化
-			if (pcom->seq_mode[i] == L_ON) pcom->seq[i].seq_status = STAT_STANDBY;
-			else						   pcom->seq[i].seq_status = STAT_END;
-			pcom->seq->i_hot_step = 0;
-			pcom->seq->sequence_act_count = 0;
-		}
-	}
-	pcom->com_status = STAT_STANDBY;
-	return 0;
-}
-
-/****************************************************************************/
 /*  コマンドセットアボート処理												*/
 /*  実行管理ステータスのクリアとコマンド実行中ステータスクリア				*/
 /****************************************************************************/
 int CAgent::comset_abot_end(LPST_COMMAND_SET pcom) {
-	for (int i = 0; i < MOTION_ID_MAX; i++) {//全動作のコマンドシーケンスをABOTセット
-		pcom->seq[i].seq_status = STAT_ABOTED;
+	for (int i = ID_HOIST; i < ID_AHOIST; i++) {//全動作のコマンドシーケンスをABOTセット
+		pcom->seq[i].seq_status = STAT_ABORTED;
 		pcom->seq[i].i_hot_step = pcom->seq[i].n_step;
 		pcom->seq[i].sequence_act_count = 0;
 	}

@@ -35,7 +35,7 @@ extern INT32 g_aux_gtpos_status;		//走行位置検出	組み込み状況
 //共有メモリ
 static LPST_CC_ENV_INF		pEnvInf		= NULL;
 static LPST_CC_PLC_IO		pPlcIO		= NULL;
-static LPST_JOB_IO			pJobIO		= NULL;
+static LPST_JOB_LIST		pJobList	= NULL;
 static LPST_CC_POL_INF		pPolInf		= NULL;
 static LPST_CC_AGENT_INF	pAgentInf	= NULL;
 static LPST_CC_CS_INF		pCsInf		= NULL;
@@ -68,7 +68,7 @@ HRESULT CCcPol::initialize(LPVOID lpParam) {
 
 	pEnvInf = (LPST_CC_ENV_INF)(pEnvInfObj->get_pMap());
 	pPlcIO = (LPST_CC_PLC_IO)(pPlcIoObj->get_pMap());
-	pJobIO = (LPST_JOB_IO)(pJobIoObj->get_pMap());
+	pJobList = (LPST_JOB_LIST)(pJobIoObj->get_pMap());
 	pPolInf = (LPST_CC_POL_INF)(pPolInfObj->get_pMap());
 	pAgentInf = (LPST_CC_AGENT_INF)(pAgInfObj->get_pMap());
 	pCsInf = (LPST_CC_CS_INF)(pCsInfObj->get_pMap());
@@ -200,53 +200,81 @@ HRESULT CCcPol::fault_check_OHC(int crane_id) {
 /// </summary>
 /// <param name="pjob_set"></param>
 /// <returns></returns>
-LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set) {//AGENTがCSから次実行対象のJOB_SETを取得してPOLにコマンドを要求する
-
-	if (pjob_set == NULL) return NULL;				//NULL jobにはNULLリターン
-	if (!pCS->get_auto_act_input()) return NULL;	//自動起動ボタンがOFFの時はNULLリターン
+LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set,int code) {//AGENTがCSから次実行対象のJOB_SETを取得してPOLにコマンドを要求する
 
 	LPST_COMMAND_SET pcom_set = NULL;
 
-	if (pjob_set->status & STAT_TRIGED) {													//JOBのステータスが要求受付、実行待ち状態
-		pjob_set->i_hot_com = 0;															//起動時は、実行レシピのインデックスは、0
-		pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//現在の実行コマンドのシーケンスをセット	
-		pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;						//実行コマンドのコマンドステータス更新
-	}
-	else if (pjob_set->status & STAT_STANDBY) {												//すでに最初のコマンドがセットされて実行待ち状態
-		pjob_set->i_hot_com = 0;															//起動時は、実行レシピのインデックスは、0
-		pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//現在の実行コマンドのシーケンスをセット	
-		pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;						//実行コマンドのコマンドステータス更新
-	}
-	else if ((pjob_set->status & STAT_SUSPENDED)) {											//JOB開始後、中断中
-		pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//中断中のコマンドを再計算
-		pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;						//コマンドステータス更新
-	}
-	else if (pjob_set->status & STAT_ACTIVE) {												//JOB実行中からの呼び出し＝ 次のコマンド実行待ち
-		if (pjob_set->i_hot_com < (pjob_set->n_com - 1)) {									//実行中コマンドの次のコマンド有 
-			//現在のコマンド完了済で次のコマンド計算　完了していなければ今のコマンドを再計算
-			if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {					//完了している
-				pjob_set->i_hot_com += 1;
-			}
-			pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);
-			pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;				//コマンドステータス更新
+	if (pjob_set == NULL)					return NULL;			//NULL jobにはNULLリターン
+
+	if ((code == STAT_IDLE)|| (code == STAT_RESTART)) {	//新規JOBまたは中断からの再開でAGENTがコマンドを要求
+		if (!pCS->get_auto_act_input())			return NULL;		//自動起動ボタンがOFFの時はNULLリターン
+		if (!(pjob_set->status & STAT_ACTIVE))	return NULL;		//実行中JOBでない時はNULLリターン
+
+		if (code == STAT_IDLE) {
+			pjob_set->i_hot_com = 0;
 		}
-		else {	//実行中で次コマンド無 
-			//現在のコマンド完了済でNULL　完了していなければ今のコマンドを再計算
-			if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {//完了している
-				pcom_set = NULL;
-				pCS->update_job_status(pjob_set->com[pjob_set->i_hot_com].com_code, STAT_SEQ_ERR_END);		//JOBのステータスをSEQ　ERROR　END更新
+		else {
+
+			if (pjob_set->i_hot_com < (pjob_set->n_com - 1)) {								//実行中コマンドの次のコマンド有 
+				//現在のコマンド完了済で次のコマンド計算　完了していなければ今のコマンドを再計算
+				if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {				//完了している
+					pjob_set->i_hot_com += 1;
+				}
+				pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);
+				pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;				//コマンドステータス更新
 			}
-			else {
-				pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);						//中断中のコマンドを再計算
-				pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;					//コマンドステータス更新
+			else {	//実行中で次コマンド無 
+				//現在のコマンド完了済でNULL　完了していなければ今のコマンドを再計算
+				if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {//完了している
+					pcom_set = NULL;
+					pCS->update_job_status(pjob_set->com[pjob_set->i_hot_com].com_code, STAT_SEQ_ERR_END);		//JOBのステータスをSEQ　ERROR　END更新
+				}
+				else {
+					pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);			//中断中のコマンドを再計算
+					pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;			//コマンドステータス更新
+				}
 			}
 		}
 	}
-	else;
+	else {
+		//AGENTからのコマンド実行状況報告を受付,次のコマンドあるときはそれを返す
+		pcom_set = &pjob_set->com[pjob_set->i_hot_com];
+		update_command_status(pcom_set, code);
+
+		if (pcom_set == NULL) return NULL;
+
+		//報告コマンドセットが配置されているJOB SETのアドレスを取得
+		LPST_JOB_SET pjobset = &pJobList->job[pcom_set->com_code.i_job];
+
+		switch (code) {
+
+		case STAT_END: {//コマンド正常終了
+			if (pjobset->n_com == (pjobset->i_hot_com + 1)) {			//全コマンド完了時
+				pcom_set->com_status = code;								//コマンドのステータスを報告内容に更新
+				pCS->update_job_status(pcom_set->com_code, STAT_END);		//JOBのステータス更新
+			}
+
+		}break;
+		case STAT_ABNORMAL_END: {
+			pcom_set->com_status = code;									//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom_set->com_code, STAT_ABNORMAL_END);	//JOBのステータス更新
+			pjobset->i_hot_com = pjobset->n_com;						//JOBのコマンドインデックスを最後に更新
+		}break;
+		case STAT_ABORTED: {//実行中断
+			pcom_set->com_status = code;									//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom_set->com_code, STAT_ABORTED);		//JOBのステータス更新
+		}break;
+		 //コマンド開始
+		case STAT_ACTIVE: {
+			pCS->update_job_status(pcom_set->com_code, STAT_ACTIVE);			//JOBのステータス更新
+			pcom_set->com_status = code;								//コマンドのステータスを報告内容に更新
+		}break;
+		default: break;
+		}
+	}
 
 	//CSのJOBリストのコマンド進捗情報を更新
 	pCS->update_job_status(pjob_set->com[pjob_set->i_hot_com].com_code, pjob_set->com[pjob_set->i_hot_com].com_status);
-
 
 	return pcom_set;
 }
@@ -262,41 +290,31 @@ int CCcPol::update_command_status(LPST_COMMAND_SET pcom, int code) {
 	if (pcom == NULL)return STAT_NAK;
 
 	//報告コマンドセットが配置されているJOB SETのアドレスを取得
-	LPST_JOB_SET pjobset = &pJobIO->job_list[pcom->com_code.i_list].job[pcom->com_code.i_job];
+	LPST_JOB_SET pjobset = &pJobList->job[pcom->com_code.i_job];
 	
 	switch (code) {
-		//コマンド終了
-	case STAT_END: {
-		if (pjobset->n_com == (pjobset->i_hot_com + 1)) {		//全コマンド完了時
-			pcom->com_status = code;							//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pcom->com_code, STAT_END);	//JOBのステータス更新
+		
+	case STAT_END: {//コマンド正常終了
+		if (pjobset->n_com == (pjobset->i_hot_com + 1)) {			//全コマンド完了時
+			pcom->com_status = code;								//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom->com_code, STAT_END);		//JOBのステータス更新
 		}
 
 	}break;
 	case STAT_ABNORMAL_END: {
-		pcom->com_status = code;								//コマンドのステータスを報告内容に更新
+		pcom->com_status = code;									//コマンドのステータスを報告内容に更新
 		pCS->update_job_status(pcom->com_code, STAT_ABNORMAL_END);	//JOBのステータス更新
+		pjobset->i_hot_com = pjobset->n_com;						//JOBのコマンドインデックスを最後に更新
 	}break;
-	case STAT_ABOTED: {
-		if (pCsInf->cs_ctrl.auto_mode == L_ON) {
-			pcom->com_status = STAT_SUSPENDED;					//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pcom->com_code, STAT_SUSPENDED);	//JOBのステータス更新
-		}
-		else {
-			pcom->com_status = code;							//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pcom->com_code, STAT_ABOTED);		//JOBのステータス更新
-		}
+	case STAT_ABORTED: {//実行中断
+		pcom->com_status = code;									//コマンドのステータスを報告内容に更新
+		pCS->update_job_status(pcom->com_code, STAT_ABORTED);		//JOBのステータス更新
 	}break;
 
 	//コマンド開始
 	case STAT_ACTIVE: {
 		pCS->update_job_status(pcom->com_code, STAT_ACTIVE);			//JOBのステータス更新
 		pcom->com_status = code;								//コマンドのステータスを報告内容に更新
-	}break;
-	//実行中断
-	case STAT_SUSPENDED: {
-		pcom->com_status = code;								//コマンドのステータスを報告内容に更新
-		pCS->update_job_status(pcom->com_code, STAT_SUSPENDED);		//JOBのステータス更新
 	}break;
 	default: break;
 	}
@@ -485,6 +503,12 @@ int CCcPol::set_seq_semiauto_bh(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 
 	pseq->n_step = 0;													//パターンシーケンス ステップクリア
 	if (!pCsInf->cs_ctrl.auto_select[id]) return  POLICY_PTN_NA;		//自動対象外軸の場合ステップ数0でリターン
+
+	//ステップシーケンス準備完
+	pseq->seq_status = STAT_STANDBY;
+	//実行ステップ初期化
+	pseq->i_hot_step = 0;
+	pseq->sequence_act_count = 0;
 
 	//試験用
 	return  POLICY_PTN_NA;
@@ -1051,7 +1075,7 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
 	pseq->axis_id = id;
 	pseq->n_step = 0;//パターンシーケンス ステップクリア
-
+	
 	//自動対象外軸の場合ステップ数0でリターン
 	if (!pCsInf->cs_ctrl.auto_select[id]) return POLICY_PTN_NA;
 
@@ -1612,6 +1636,7 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 	pseq->seq_status = STAT_STANDBY;
 	//実行ステップ初期化
 	pseq->i_hot_step = 0;
+	pseq->sequence_act_count = 0;
 
 	return POLICY_PTN_OK;
 }
@@ -2175,6 +2200,11 @@ int CCcPol::set_seq_semiauto_mh(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 	//#レシピ条件セット
 	pseq->n_step = 0;														//ステップ数初期化
 
+	//ステップシーケンス準備完
+	pseq->seq_status = STAT_STANDBY;
+	//実行ステップ初期化
+	pseq->i_hot_step = 0;
+	pseq->sequence_act_count = 0;
 	return POLICY_PTN_NA;
 }
 #if 0
@@ -2307,6 +2337,13 @@ int CCcPol::set_seq_semiauto_gt(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 
 	//#レシピ条件セット
 	pseq->n_step = 0;
+
+	//ステップシーケンス準備完
+	pseq->seq_status = STAT_STANDBY;
+	//実行ステップ初期化
+	pseq->i_hot_step = 0;
+	pseq->sequence_act_count = 0;
+
 	return POLICY_PTN_NA;
 }
 
@@ -2326,7 +2363,11 @@ int CCcPol::set_seq_semiauto_ah(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 
 	//#レシピ条件セット
 	pseq->n_step = 0;															//ステップ数初期化
-
+	//ステップシーケンス準備完
+	pseq->seq_status = STAT_STANDBY;
+	//実行ステップ初期化
+	pseq->i_hot_step = 0;
+	pseq->sequence_act_count = 0;
 	return POLICY_PTN_NA;
 }
 #if 0
@@ -2507,7 +2548,6 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		monwos.str(L""); monwos << "COM " << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
 
-		st_mon1.p_job_list	= &pJobIO->job_list[st_mon1.job_list_sel];
 		st_mon1.p_job_set	= &st_mon1.p_job_list->job[st_mon1.job_set_sel];
 		st_mon1.p_com_set	= &st_mon1.p_job_set->com[st_mon1.com_set_sel];
 		st_mon1.p_com_hot	= &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
@@ -2565,18 +2605,17 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		monwos.str(L""); monwos << "COM SET" << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel<< " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
 
-		st_mon1.p_job_list = &pJobIO->job_list[st_mon1.job_list_sel];
-		st_mon1.p_job_set = &st_mon1.p_job_list->job[st_mon1.job_set_sel];
+		st_mon1.p_job_set = &pJobList->job[st_mon1.job_set_sel];
 		st_mon1.p_com_set = &st_mon1.p_job_set->com[st_mon1.com_set_sel];
 		st_mon1.p_com_hot = &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
 
 	}break;
 	case WM_TIMER: {
 			monwos.str(L""); 
-			monwos << "i job hot "<< st_mon1.p_job_list->i_job_hot << "  n job " << st_mon1.p_job_list->n_job << L"\n";
+			monwos << "i job hot "<< st_mon1.p_job_list->i_job_hot << "  n job " << st_mon1.p_job_list->n_effective_job << L"\n";
 
 			monwos << "job code  job ";
-			for (int i = 0; i < st_mon1.p_job_list->n_job; i++) {
+			for (int i = 0; i < st_mon1.p_job_list->n_effective_job; i++) {
 				monwos << " " << i << ": " << st_mon1.p_job_list->job[i].code;
 			}
 			monwos << "\n";

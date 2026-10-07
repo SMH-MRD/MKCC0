@@ -178,7 +178,6 @@ private:
     LPST_COMMAND_SET    pCom_hot;                           //実行中コマンド
     LPST_COMMAND_SET    pCom_as;                            //振れ止め用コマンドセットポインタ（実態は共有メモリ上へ）
 
-    int init_comset(LPST_COMMAND_SET pcom);                 //コマンド初期化
     int comset_abot_end(LPST_COMMAND_SET pcom);             //コマンド強制終了
  
     static double cal_step(LPST_COMMAND_SET pCom, int motion);      //自動指令出力値の計算

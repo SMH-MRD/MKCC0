@@ -21,12 +21,17 @@
 #define CS_CODE_OTE_SOURCE_ENABLE		0x0002	//主幹ON可能
 
 #define CS_JOBSET_STATUS_CLEAR               0x0000
-#define CS_JOBSET_STATUS_DISABLE             0x0000
+//#define CS_JOBSET_STATUS_DISABLE             0x0000
 #define CS_JOBSET_STATUS_IDLE                0x0001
-#define CS_JOBSET_STATUS_REQ_HOLD            0x0002
+//#define CS_JOBSET_STATUS_REQ_HOLD            0x0002
 #define CS_JOBSET_STATUS_STANDBY             0x0004
 #define CS_JOBSET_STATUS_ACTIVE              0x0008
 
+#define CS_JOB_REGIST_STATUS_DISABLE         0x0000
+#define CS_JOB_REGIST_STATUS_IDLE            0x0001
+#define CS_JOB_REGIST_STATUS_REQ_HOLD        0x0002
+#define CS_JOB_REGIST_STATUS_STANDBY         0x0004
+#define CS_JOB_REGIST_STATUS_FULL_UP         0x0008
 
 #define CS_ID_MON1_TIMER                51190
 #define CS_ID_MON2_TIMER                51191
@@ -217,7 +222,7 @@ public:
     INT32 get_auto_act_input(); 
 
     //POLICYからのアクセス関数
-    int update_job_status(ST_COM_CODE st_comcode, int fb_code);       //Jobの実行状況アンサバック
+    int update_job_status(ST_COM_CODE st_comcode, int fb_job_code);       //Jobの実行状況アンサバック
 
     //CLIENTへの報告関数
     int job_report2client(LPST_JOB_SET pjobset, int fb_code);       //Jobの実行状況報告
@@ -249,6 +254,8 @@ private:
     void ote_control();
 
     HRESULT set_job_available_list(int crane_id);
+    static HRESULT clear_job_set(LPST_JOB_SET pjobset);
+    static HRESULT init_job_list(LPST_JOB_LIST pjoblist);
 
     virtual HRESULT routine_work(void* pObj) override;
 

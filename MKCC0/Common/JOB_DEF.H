@@ -13,7 +13,6 @@
 #define N_JOB_COMMAND_MAX			10		//JOBを構成するコマンド最大数
 #define N_JOB_PARAM_I16				8		//JOBに設定可能なINT16パラメータ数  
 
-
 //JOB TYPE CODE
 #define ID_JOBTYPE_JOB				0		//JOB Type index番号
 #define ID_JOBTYPE_SEMI				1		//SEMIAUTO Type index番号
@@ -89,7 +88,9 @@
 #define STAT_ACTIVE             0x0004      //実行中報告
 #define STAT_SUSPENDED          0x0008      //一時停止報告
 
-#define STAT_ABOTED             0x0120      //キャンセル
+#define STAT_IDLE				0x0000      //アイドル状態
+#define STAT_RESTART			0x0001      //再開
+#define STAT_ABORTED            0x0120      //中断
 #define STAT_END				0x0020      //正常完了
 #define STAT_ABNORMAL_END       0x8020      //異常完了
 #define STAT_SEQ_ERR_END		0x2020      //シーケンス異常完了
