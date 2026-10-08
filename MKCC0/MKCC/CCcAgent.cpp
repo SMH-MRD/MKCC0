@@ -471,147 +471,115 @@ int CAgent::parse() {
 	//# JOBコマンド設定
 	//# コマンドステータス更新
 	//###################################################
-	{
-		if (pCS_Inf->cs_ctrl.auto_mode == L_ON) {	//自動モード
-			//JOB関連フラグセット
-				//0速度判定
-			if (pEnv->is_speed_0(ID_HOIST))					st_work.st_axis_ctrl[ID_HOIST].status |= AG_AXIS_STAT_FB0;
-			else											st_work.st_axis_ctrl[ID_HOIST].status &= ~AG_AXIS_STAT_FB0;
-			if (pEnv->is_speed_0(ID_BOOM_H))				st_work.st_axis_ctrl[ID_BOOM_H].status |= AG_AXIS_STAT_FB0;
-			else											st_work.st_axis_ctrl[ID_BOOM_H].status &= ~AG_AXIS_STAT_FB0;
-			if (pEnv->is_speed_0(ID_SLEW))					st_work.st_axis_ctrl[ID_SLEW].status |= AG_AXIS_STAT_FB0;
-			else											st_work.st_axis_ctrl[ID_SLEW].status &= ~AG_AXIS_STAT_FB0;
-			if (pEnv->is_speed_0(ID_GANTRY))				st_work.st_axis_ctrl[ID_GANTRY].status |= AG_AXIS_STAT_FB0;
-			else											st_work.st_axis_ctrl[ID_GANTRY].status &= ~AG_AXIS_STAT_FB0;
-			if (pEnv->is_speed_0(ID_AHOIST))				st_work.st_axis_ctrl[ID_AHOIST].status |= AG_AXIS_STAT_FB0;
-			else											st_work.st_axis_ctrl[ID_AHOIST].status &= ~AG_AXIS_STAT_FB0;
+	if (pCS_Inf->cs_ctrl.auto_mode == L_ON) {	//自動モード
+		//JOB関連フラグセット
+			//0速度判定
+		for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
+			st_work.st_axis_ctrl[i].is_speed0 = pEnv->is_speed_0(i);
+		}
 
-			//自動選択軸セット
-			if (pPLC_IO->control_source != L_ON) {	//主幹OFFで自動指令を0にする
-				st_work.pc_auto_ctrl_mode = 0;
-			}
-			else {
-				if (pCS_Inf->cs_ctrl.auto_select[ID_HOIST])		st_work.pc_auto_ctrl_mode |= BIT_SEL_HST;
-				else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_HST;
-				if (pCS_Inf->cs_ctrl.auto_select[ID_GANTRY])	st_work.pc_auto_ctrl_mode |= BIT_SEL_GNT;
-				else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_GNT;
-				if (pCS_Inf->cs_ctrl.auto_select[ID_BOOM_H])	st_work.pc_auto_ctrl_mode |= BIT_SEL_BH;
-				else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_BH;
-				if (pCS_Inf->cs_ctrl.auto_select[ID_SLEW])		st_work.pc_auto_ctrl_mode |= BIT_SEL_SLW;
-				else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_SLW;
-				if (pCS_Inf->cs_ctrl.auto_select[ID_AHOIST])	st_work.pc_auto_ctrl_mode |= BIT_SEL_AH;
-				else											st_work.pc_auto_ctrl_mode &= ~BIT_SEL_AH;
-			}
-
-			//#########################################################################################################################
-			//### 　　JOBハンドリング
-			//#########################################################################################################################
-			if (pjob_active == NULL) {											//前スキャン ジョブ実行中でない
-				if ((pjob_active = pCS->get_next_job()) != NULL) {				//CSにジョブ有
-					if ((pCom_hot = pPol->req_command(pjob_active,STAT_IDLE)) != NULL) {	//POLICYにコマンド展開依頼 (pjob NULLならばNULLが帰ってくる)
-						pPol->update_command_status(pCom_hot, STAT_ACTIVE);		//コマンド実行開始報告
-						st_work.command_count++;								//コマンドレシピ作成カウント モニタ用
-					}
-					else 	pjob_active = NULL;													//コマンドレシピ無し（対象ジョブ完了済or対象jobレシピ無し）
+		//自動選択軸セット
+		if (pPLC_IO->control_source != L_ON) {	//主幹OFFで自動指令を0にする
+			for (int i = ID_HOIST; i <= ID_AHOIST; i++) st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
+		}
+		else {
+			for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
+				if (pCS_Inf->cs_ctrl.auto_select[i]) {
+					st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_JOB;
 				}
-				else {//ジョブ無し
-					pCom_hot = NULL;
+				else {
+					st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
 				}
 			}
-			else {//有効ジョブ有
-				//有効コマンド有（実行中）
-				if (pCom_hot != NULL) {
-					if (pCS->get_auto_act_input() == L_OFF) {						//起動入力 OFFでコマンドクリア
-						comset_abot_end(pCom_hot);									//コマンドABOT　END終了
-						pPol->update_command_status(pCom_hot, STAT_ABORTED);		//PolicyにAbot完了報告
-						pCom_hot != NULL;											//コマンドクリア
-					}
-					else {															//コマンド状態確認
-						int com_complete = STAT_END;
-						//コマンド完了判定（すべての軸のシーケンスが完了しているか）
-						for (int i = ID_HOIST; i < ID_AHOIST; i++) {
-							if (pCS_Inf->cs_ctrl.auto_select[i]) {					//自動制御対象軸
-								if (!(pCom_hot->seq[i].seq_status & STAT_END)) {	//未完シーケンス有（STAT_END　bit OFF)
-									com_complete = STAT_ACTIVE;						//いずれかの軸がシーケンス実行中
-									break;
-								}
-								else {												//正常完了ではない（キャンセルor異常完了）
-									if (pCom_hot->seq[i].seq_status != STAT_END) {	//STAT_END bit　ONでそれ以外のbitもONならば異常完了
-										com_complete = pCom_hot->seq[i].seq_status;	//いずれかの軸が正常完了しなかった
-									}
+		}
+
+		//#########################################################################################################################
+		//### 　　JOBハンドリング
+		//#########################################################################################################################
+		if (pjob_active == NULL) {											//前スキャン ジョブ実行中でない
+			if ((pjob_active = pCS->get_next_job()) != NULL) {				//CSにジョブ有
+				if ((pCom_hot = pPol->update_command(pjob_active, STAT_IDLE)) != NULL) {	//POLICYにコマンド展開依頼 (pjob NULLならばNULLが帰ってくる)
+					pPol->update_command(pjob_active, STAT_ACTIVE);		//コマンド実行開始報告
+					st_work.command_count++;								//コマンドレシピ作成カウント モニタ用
+				}
+				else 	pjob_active = NULL;													//コマンドレシピ無し（対象ジョブ完了済or対象jobレシピ無し）
+			}
+			else {//ジョブ無し
+				pCom_hot = NULL;
+			}
+		}
+		else {//有効ジョブ有
+
+			if (pCom_hot != NULL) {//有効コマンド有（実行中）
+				if (pCS->get_auto_act_input() == L_OFF) {						//起動入力 OFFでコマンドクリア
+					comset_abot_end(pCom_hot);									//コマンドABOT　END終了
+					pCom_hot = pPol->update_command(pjob_active, STAT_ABORTED);		//PolicyにAbot完了報告→コマンドクリア&ジョブは保持
+				}
+				else {	//コマンド実行中 →完了判定
+					int com_complete = STAT_END;
+					//コマンド完了判定（すべての自動対象軸のシーケンスが完了しているか）
+					for (int i = ID_HOIST; i < ID_AHOIST; i++) {
+						if (pCS_Inf->cs_ctrl.auto_select[i]) {					//自動制御対象軸
+							if (!(pCom_hot->seq[i].seq_status & STAT_END)) {	//未完シーケンス有（STAT_END　bit OFF)
+								com_complete = STAT_ACTIVE;						//いずれかの軸がシーケンス実行中
+								break;
+							}
+							else {//STAT_END bitがON							//正常完了/異常完了）
+								if (pCom_hot->seq[i].seq_status != STAT_END) {	//STAT_END bit　ONでそれ以外のbitもONならば異常完了
+									com_complete = pCom_hot->seq[i].seq_status;	//いずれかの軸が正常完了しなかった
 								}
 							}
 						}
-
-						//完了の時POLICYへステータス報告 + 次のコマンド要求
-						if (com_complete != STAT_ACTIVE) {							//すべての軸のシーケンス完了
-							pPol->update_command_status(pCom_hot, com_complete);	//コマンド実行完了報告
-							pCom_hot = pPol->req_command(pjob_active, STAT_END);
-							if (pCom_hot == NULL) //次のコマンド無し（ジョブ完了）
-								pjob_active = NULL;
-						}
 					}
-				}
-				//ジョブ実行中でコマンド無し（JOB完了 or 次コマンドへの切替過程
-				else {
-					if (pCS->get_auto_act_input() == L_ON) {							//グリップスイッチONの時、コマンド再要求
-						pCom_hot = pPol->req_command(pjob_active, STAT_RESTART);						//POLICYにコマンド展開依頼 pjob NULLならばNULLが帰ってくる
-						if (pCom_hot != NULL) {											//次のコマンド有
-							pPol->update_command_status(pCom_hot, STAT_ACTIVE);	//コマンド実行開始報告
-							st_work.command_count++;						//コマンドレシピ作成カウント モニタ用
-							//自動制御モードのセット
+
+					//完了判定ならばPOLICYへステータス報告+次のコマンド取得
+					if (com_complete & STAT_END) {
+						if (com_complete == STAT_END) {//正常完了
+							pCom_hot = pPol->update_command(pjob_active, STAT_END);
 						}
-						else {
+						else
+						{
+							pCom_hot = pPol->update_command(pjob_active, STAT_ABNORMAL_END);
+						}
+						if (pCom_hot == NULL) //次のコマンド無し（ジョブ完了）
 							pjob_active = NULL;
-						}
 					}
 				}
 			}
-		}
-		else {//自動モードOFF コマンド実行中であればABORT報告	
-			if (pCom_hot != NULL) {
-				comset_abot_end(pCom_hot);//コマンドABOT　END終了
-				pPol->update_command_status(pCom_hot, STAT_ABNORMAL_END);		//PolicyにAbnomal完了報告
+			else {//ジョブ実行中でコマンド無し（JOB完了 or 次コマンドへの切替過程 orABORT後の再開）
+				if (pCS->get_auto_act_input() == L_ON) {							//グリップスイッチONの時、コマンド再要求
+					pCom_hot = pPol->update_command(pjob_active, STAT_RESTART);						//POLICYにコマンド展開依頼 pjob NULLならばNULLが帰ってくる
+					if (pCom_hot != NULL) {											//次のコマンド有
+						pCom_hot = pPol->update_command(pjob_active, STAT_ACTIVE);	//コマンド実行開始報告
+						st_work.command_count++;						//コマンドレシピ作成カウント モニタ用
+					}
+					else {
+						pjob_active = NULL;
+					}
+				}
 			}
-			pCom_hot = NULL;
-			pjob_active = NULL;
-		}
-		st_work.pCom_hot = pCom_hot;		//SCADA表示用
-		st_work.pJob_hot = pjob_active;		//SCADA表示用
-	}
 
-	//###################################################
-	//# 制御モードセット auto_on_going,antisway_on_going
-	//###################################################
+
+		}
+	}
+	else {//自動モードOFF コマンド実行中であれば異常完了報告	
+		if ((pjob_active != NULL) && (pCom_hot != NULL)) {
+			comset_abot_end(pCom_hot);//コマンドABOT　END終了
+			pCom_hot = pPol->update_command(pjob_active, STAT_ABNORMAL_END);		//PolicyにAbnomal完了報告
+		}
+		//# 軸毎のモードセット(PLC指令出力軸の判定）
+		for (int i = ID_HOIST; i <= ID_AHOIST; i++) st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
+
+		pjob_active = NULL;
+	}
+	st_work.pCom_hot = pCom_hot;		//SCADA表示用
+	st_work.pJob_hot = pjob_active;		//SCADA表示用
 	
-	//###################################################
-	//# 振れ止め完了状態セット　antisway_on_going
-	//###################################################
+
+	
+
 
 	//###################################################
-	//# 軸毎のモードセット(PLC指令出力軸の判定）
-	//###################################################
-	{
-		//手動
-		if ((st_work.auto_on_going == AUTO_TYPE_MANUAL)) {
-			st_work.st_axis_ctrl[ID_HOIST].auto_active = st_work.st_axis_ctrl[ID_BOOM_H].auto_active = st_work.st_axis_ctrl[ID_SLEW].auto_active = st_work.st_axis_ctrl[ID_AHOIST].auto_active = AUTO_TYPE_MANUAL;
-		}
-		//半自動
-		else if ((st_work.auto_on_going & AUTO_TYPE_SEMIAUTO) || (st_work.auto_on_going & AUTO_TYPE_FB_ANTI_SWAY)) {
-			for (int i = ID_HOIST; i <= ID_AHOIST; i++) {
-				if (pCS_Inf->cs_ctrl.auto_select[i] == L_ON)	st_work.st_axis_ctrl[i].auto_active = st_work.auto_on_going;
-				else											st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
-			}
-		}
-		//JOB
-		else if (st_work.auto_on_going & AUTO_TYPE_JOB) {
-			st_work.st_axis_ctrl[ID_HOIST].auto_active = st_work.st_axis_ctrl[ID_BOOM_H].auto_active = st_work.st_axis_ctrl[ID_SLEW].auto_active = st_work.st_axis_ctrl[ID_AHOIST].auto_active = st_work.auto_on_going;
-		}
-		else {
-			for (int i = 0; i <= ID_AHOIST; i++) st_work.st_axis_ctrl[i].auto_active = AUTO_TYPE_MANUAL;
-		}
-	}
-		//###################################################
 	//#自動目標位置設定,目標までの距離セット
 	//###################################################
 	{
@@ -620,14 +588,15 @@ int CAgent::parse() {
 			st_work.st_axis_ctrl[ID_AHOIST].auto_tg_pos = pCom_hot->target.pos[ID_AHOIST];
 			st_work.st_axis_ctrl[ID_BOOM_H].auto_tg_pos = pCom_hot->target.pos[ID_BOOM_H];
 			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos	= pCom_hot->target.pos[ID_SLEW];
+			st_work.st_axis_ctrl[ID_GANTRY].auto_tg_pos = pCom_hot->target.pos[ID_GANTRY];
 		}
 		else if (pCom_hot == NULL) {//JOB無し
 			//巻は現在位置
 			st_work.st_axis_ctrl[ID_HOIST].auto_tg_pos	= pPLC_IO->stat_axis[ID_HOIST].pos_fb;
 			st_work.st_axis_ctrl[ID_AHOIST].auto_tg_pos = pPLC_IO->stat_axis[ID_AHOIST].pos_fb;
-			//旋回,起伏も現在位置　振れ止めもJOBの一部として扱う
 			st_work.st_axis_ctrl[ID_BOOM_H].auto_tg_pos = pPLC_IO->stat_axis[ID_BOOM_H].pos_fb;
 			st_work.st_axis_ctrl[ID_SLEW].auto_tg_pos	= pPLC_IO->stat_axis[ID_SLEW].pos_fb;
+			st_work.st_axis_ctrl[ID_GANTRY].auto_tg_pos = pPLC_IO->stat_axis[ID_GANTRY].pos_fb;
 		}
 		else;
 
@@ -1224,95 +1193,69 @@ HRESULT CAgent::plc_io_write_OHC(int crane_id) {
 }
 
 HRESULT CAgent::set_ref_mh_JC(int crane_id){
-	if (st_work.pc_auto_ctrl_mode & BIT_SEL_HST) {
-		if (st_work.st_axis_ctrl[ID_HOIST].auto_active == AUTO_TYPE_MANUAL)
-			st_work.st_axis_ctrl[ID_HOIST].v_ref = 0.0;
-		//JOB実行時
-		else if ((st_work.st_axis_ctrl[ID_HOIST].auto_active & AUTO_TYPE_JOB) ||
-			(st_work.st_axis_ctrl[ID_HOIST].auto_active & AUTO_TYPE_SEMIAUTO)) {
-			if (st_work.pCom_hot == NULL)	st_work.st_axis_ctrl[ID_HOIST].v_ref = 0.0;
-			else				st_work.st_axis_ctrl[ID_HOIST].v_ref = cal_step(st_work.pCom_hot, ID_HOIST);
-		}
-		else
-			st_work.st_axis_ctrl[ID_HOIST].v_ref = 0.0;
+	if (st_work.st_axis_ctrl[ID_HOIST].auto_active == AUTO_TYPE_MANUAL)
+		st_work.st_axis_ctrl[ID_HOIST].v_ref = 0.0;
+	//JOB実行時
+	else if (st_work.st_axis_ctrl[ID_HOIST].auto_active & AUTO_TYPE_JOB) {
+		if (st_work.pCom_hot == NULL)	st_work.st_axis_ctrl[ID_HOIST].v_ref = 0.0;
+		else							st_work.st_axis_ctrl[ID_HOIST].v_ref = cal_step(st_work.pCom_hot, ID_HOIST);
 	}
-	else {
+	else{
 		st_work.st_axis_ctrl[ID_HOIST].v_ref = 0.0;
 	}
 	return S_OK;
 }
 HRESULT CAgent::set_ref_ah_JC(int crane_id){
-	if (st_work.pc_auto_ctrl_mode & BIT_SEL_AH) {
-		if (st_work.st_axis_ctrl[ID_AHOIST].auto_active == AUTO_TYPE_MANUAL)
-			st_work.st_axis_ctrl[ID_AHOIST].v_ref = 0.0;
-		//JOB実行時
-		else if ((st_work.st_axis_ctrl[ID_AHOIST].auto_active & AUTO_TYPE_JOB) ||
-			(st_work.st_axis_ctrl[ID_AHOIST].auto_active & AUTO_TYPE_SEMIAUTO)) {
-			if (st_work.pCom_hot == NULL)	st_work.st_axis_ctrl[ID_AHOIST].v_ref = 0.0;
-			else							st_work.st_axis_ctrl[ID_AHOIST].v_ref = cal_step(st_work.pCom_hot, ID_AHOIST);
-		}
-		else
-			st_work.st_axis_ctrl[ID_AHOIST].v_ref = 0.0;
+	if (st_work.st_axis_ctrl[ID_AHOIST].auto_active == AUTO_TYPE_MANUAL)
+		st_work.st_axis_ctrl[ID_AHOIST].v_ref = 0.0;
+	//JOB実行時
+	else if (st_work.st_axis_ctrl[ID_AHOIST].auto_active & AUTO_TYPE_JOB) {
+		if (st_work.pCom_hot == NULL)	st_work.st_axis_ctrl[ID_AHOIST].v_ref = 0.0;
+		else							st_work.st_axis_ctrl[ID_AHOIST].v_ref = cal_step(st_work.pCom_hot, ID_AHOIST);
 	}
-	else {
+	else{
 		st_work.st_axis_ctrl[ID_AHOIST].v_ref = 0.0;
 	}
 	return S_OK;
 }
 HRESULT CAgent::set_ref_gt_JC(int crane_id) { 
-	if (st_work.pc_auto_ctrl_mode & BIT_SEL_GNT) {
-		if (st_work.st_axis_ctrl[ID_GANTRY].auto_active == AUTO_TYPE_MANUAL)
-			st_work.st_axis_ctrl[ID_GANTRY].v_ref = 0.0;
-		//JOB実行時
-		else if ((st_work.st_axis_ctrl[ID_GANTRY].auto_active & AUTO_TYPE_JOB) ||
-			(st_work.st_axis_ctrl[ID_GANTRY].auto_active & AUTO_TYPE_SEMIAUTO)) {
-			if (st_work.pCom_hot == NULL)	st_work.st_axis_ctrl[ID_GANTRY].v_ref = 0.0;
-			else				st_work.st_axis_ctrl[ID_GANTRY].v_ref = cal_step(st_work.pCom_hot, ID_GANTRY);
-		}
-		else
-			st_work.st_axis_ctrl[ID_GANTRY].v_ref = 0.0;
+	if (st_work.st_axis_ctrl[ID_GANTRY].auto_active == AUTO_TYPE_MANUAL)
+		st_work.st_axis_ctrl[ID_GANTRY].v_ref = 0.0;
+	//JOB実行時
+	else if(st_work.st_axis_ctrl[ID_GANTRY].auto_active & AUTO_TYPE_JOB) {
+		if (st_work.pCom_hot == NULL)	st_work.st_axis_ctrl[ID_GANTRY].v_ref = 0.0;
+		else							st_work.st_axis_ctrl[ID_GANTRY].v_ref = cal_step(st_work.pCom_hot, ID_GANTRY);
 	}
-	else {
+	else{
 		st_work.st_axis_ctrl[ID_GANTRY].v_ref = 0.0;
 	}
 	return S_OK; 
 }
 HRESULT CAgent::set_ref_slew_JC(int crane_id) {
-	if (st_work.pc_auto_ctrl_mode & BIT_SEL_SLW) {
-		if (st_work.st_axis_ctrl[ID_SLEW].auto_active == AUTO_TYPE_MANUAL)
+	if (st_work.st_axis_ctrl[ID_SLEW].auto_active == AUTO_TYPE_MANUAL)
+		st_work.st_axis_ctrl[ID_SLEW].v_ref = 0.0;
+	//JOB実行時
+	else if (st_work.st_axis_ctrl[ID_SLEW].auto_active & AUTO_TYPE_JOB) {
+		if (st_work.pCom_hot == NULL)
 			st_work.st_axis_ctrl[ID_SLEW].v_ref = 0.0;
-		//JOB実行時
-		else if ((st_work.st_axis_ctrl[ID_SLEW].auto_active & AUTO_TYPE_JOB) ||
-			(st_work.st_axis_ctrl[ID_SLEW].auto_active & AUTO_TYPE_SEMIAUTO)) {
-			if (st_work.pCom_hot == NULL)	
-				st_work.st_axis_ctrl[ID_SLEW].v_ref = 0.0;
-			else				
-				st_work.st_axis_ctrl[ID_SLEW].v_ref = cal_step(st_work.pCom_hot, ID_SLEW);
-		}
 		else
-			st_work.st_axis_ctrl[ID_SLEW].v_ref = 0.0;
+			st_work.st_axis_ctrl[ID_SLEW].v_ref = cal_step(st_work.pCom_hot, ID_SLEW);
 	}
-	else {
+	else{
 		st_work.st_axis_ctrl[ID_SLEW].v_ref = 0.0;
 	}
 	return S_OK; 
 }
 HRESULT CAgent::set_ref_bh_JC(int crane_id) {
-	if (st_work.pc_auto_ctrl_mode & BIT_SEL_BH) {
 		if (st_work.st_axis_ctrl[ID_BOOM_H].auto_active == AUTO_TYPE_MANUAL)
 			st_work.st_axis_ctrl[ID_BOOM_H].v_ref = 0.0;
-		//JOB実行時
-		else if ((st_work.st_axis_ctrl[ID_BOOM_H].auto_active & AUTO_TYPE_JOB) ||
-			(st_work.st_axis_ctrl[ID_BOOM_H].auto_active & AUTO_TYPE_SEMIAUTO)) {
+		else if(st_work.st_axis_ctrl[ID_BOOM_H].auto_active & AUTO_TYPE_JOB){
 			if (st_work.pCom_hot == NULL)	st_work.st_axis_ctrl[ID_BOOM_H].v_ref = 0.0;
-			else				st_work.st_axis_ctrl[ID_BOOM_H].v_ref = cal_step(st_work.pCom_hot, ID_BOOM_H);
+			else							st_work.st_axis_ctrl[ID_BOOM_H].v_ref = cal_step(st_work.pCom_hot, ID_BOOM_H);
 		}
-		else
+		else {
 			st_work.st_axis_ctrl[ID_BOOM_H].v_ref = 0.0;
-	}
-	else {
-		st_work.st_axis_ctrl[ID_BOOM_H].v_ref = 0.0;
-	}
+		}
 	return S_OK; 
 }
 
@@ -1349,7 +1292,7 @@ double CAgent::cal_dist4target(int motion, bool is_abs_answer) {
 int CAgent::comset_abot_end(LPST_COMMAND_SET pcom) {
 	for (int i = ID_HOIST; i < ID_AHOIST; i++) {//全動作のコマンドシーケンスをABOTセット
 		pcom->seq[i].seq_status = STAT_ABORTED;
-		pcom->seq[i].i_hot_step = pcom->seq[i].n_step;
+		pcom->seq[i].i_hot_step = pcom->seq[i].n_step-1;
 		pcom->seq[i].sequence_act_count = 0;
 	}
 	return 0;
@@ -1817,25 +1760,6 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		if (pseq->i_hot_step >= pseq->n_step) pCom->seq[motion].seq_status = STAT_END;
 	}
 
-	//モニタ用バッファセット
-	if ((st_work.auto_on_going & AUTO_TYPE_JOB_MASK) && (pCom->seq_mode[motion])) {
-		st_work.st_active_com_inf.seq[motion].seq_status = pCom->seq[motion].seq_status;
-		st_work.st_active_com_inf.com_code = pCom->com_code;
-		st_work.st_active_com_inf.seq[motion].i_hot_step = pCom->seq[motion].i_hot_step;
-		st_work.st_active_com_inf.seq[motion].n_step = pCom->seq[motion].n_step;
-		st_work.st_active_com_inf.seq[motion].steps[st_work.st_active_com_inf.seq[motion].i_hot_step].type = pCom->seq[motion].steps[pCom->seq[motion].i_hot_step].type;
-		st_work.st_active_com_inf.seq[motion].steps[st_work.st_active_com_inf.seq[motion].i_hot_step].act_count = pCom->seq[motion].steps[pCom->seq[motion].i_hot_step].act_count;
-		st_work.st_active_com_inf.seq[motion].steps[st_work.st_active_com_inf.seq[motion].i_hot_step].status = pCom->seq[motion].steps[pCom->seq[motion].i_hot_step].status;
-	}
-	else {
-		st_work.st_active_com_inf.seq[motion].seq_status = STAT_NA;
-		st_work.st_active_com_inf.com_code = pCom->com_code;
-		st_work.st_active_com_inf.seq[motion].i_hot_step = 0;
-		st_work.st_active_com_inf.seq[motion].n_step = 0;
-		st_work.st_active_com_inf.seq[motion].steps[st_work.st_active_com_inf.seq[motion].i_hot_step].type = CTR_TYPE_WAIT_TIME;
-		st_work.st_active_com_inf.seq[motion].steps[st_work.st_active_com_inf.seq[motion].i_hot_step].act_count = 0;
-		st_work.st_active_com_inf.seq[motion].steps[st_work.st_active_com_inf.seq[motion].i_hot_step].status = STAT_NA;
-	}
 	return v_out;
 }
 

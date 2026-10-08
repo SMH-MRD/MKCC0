@@ -10,6 +10,13 @@ using namespace Gdiplus;
 
 ///# ID
 #pragma region ID
+#define TASK_CODE_ENV      0
+#define TASK_CODE_CS       1
+#define TASK_CODE_SCAD     2
+#define TASK_CODE_POLICY   3
+#define TASK_CODE_AGENT    4
+#define TASK_CODE_SIM      5
+
 //ƒNƒŒ[ƒ“í•Ê ID  ”z—ñINDEX
 
 

@@ -556,19 +556,24 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 				st_cs_work.cs_ctrl.antisway_mode = L_ON;
 			}
 		}
-	}
-	else {
-		st_cs_work.cs_ctrl.antisway_mode = L_OFF;
-		st_cs_work.cs_ctrl.auto_mode = L_OFF;
-	}
 
-	//操作有効端末が無い場合はジョブの受付不可
-	if (st_ote_work.st_ote_ctrl.id_ope_active == OTE_NON_OPEMODE_ACTIVE) {
-		st_cs_work.job_regist_status = CS_JOB_REGIST_STATUS_DISABLE;
-	}
-	else {
 		if (st_cs_work.job_regist_status == CS_JOB_REGIST_STATUS_DISABLE) {
 			st_cs_work.job_regist_status = CS_JOBSET_STATUS_IDLE;
+		}
+	}
+	else {//操作有効端末無し
+		st_cs_work.job_regist_status = CS_JOB_REGIST_STATUS_DISABLE;
+		st_cs_work.cs_ctrl.antisway_mode = L_OFF;
+		st_cs_work.cs_ctrl.auto_mode = L_OFF;
+
+		if (pJobList->n_effective_job != 0) {
+			pJobList->n_effective_job = 0;
+			pJobList->i_job_latest = 0;
+			pJobList->i_job_hot = 0;
+			for(int i = 0; i < N_JOB_REGIST_MAX; i++) {
+				pJobList->job[i].type = ID_JOBTYPE_EMPTY;
+				pJobList->job[i].code = ID_JOBTYPE_END;
+			}
 		}
 	}
 
@@ -601,44 +606,47 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 
 		if (st_cs_work.job_regist_status == CS_JOB_REGIST_STATUS_REQ_HOLD) {
 			//JOB LIST情報セット
-			pJobList->n_effective_job++;
-			if (++pJobList->i_job_latest > N_JOB_REGIST_MAX - 1) pJobList->i_job_latest = 0;	//最新JOBのインデックスを更新
+			
+			if (pJobList->n_effective_job < N_JOB_REGIST_MAX) {
 
-			//JOB SET処理			
-			p_job = &pJobList->job[pJobList->i_job_latest];
-			p_job->type = ID_JOBTYPE_SEMI;					//当面JOBは半自動のみ
-			p_job->code = st_cs_work.cs_ctrl.auto_type;
-			p_job->i_hot_com = 0;								//実行中コマンドインデックス	
+				//JOB SET処理			
+				p_job = &pJobList->job[pJobList->i_job_latest];
+				p_job->type = ID_JOBTYPE_JOB;					//当面JOBは半自動のみ
+				p_job->code = st_cs_work.cs_ctrl.auto_type;
+	
+				//目標位置セット
+				for (int i = ID_HOIST; i < ID_AHOIST; i++) { p_job->targets[0].pos[i] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[i]; }
+				//JOBパラメータセット
+				for (int i = 0; i < N_JOB_PARAM_I16; i++) { p_job->i16prm[i] = st_cs_work.cs_ctrl.auto_prm[i]; }
+				//自動選択軸設定
+				for (int i = ID_HOIST; i <= ID_AHOIST; i++) { st_cs_work.cs_ctrl.auto_select[i] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_sel[i]; }
 
-			//目標位置セット
-			for (int i = ID_HOIST; i < ID_AHOIST; i++) { p_job->targets[0].pos[i] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_tg_pos[i]; }
-			//JOBパラメータセット
-			for (int i = 0; i < N_JOB_PARAM_I16; i++) { p_job->i16prm[i] = st_cs_work.cs_ctrl.auto_prm[i]; }
-			//自動選択軸設定
-			for (int i = ID_HOIST; i <= ID_AHOIST; i++) { st_cs_work.cs_ctrl.auto_select[i] = pOTE_Inf->st_msg_ote_u_rcv.body.st.auto_sel[i]; }
+				//コマンド構成セット
+				switch (p_job->code) {
+				case ID_JOBTYPE_GBC_TEST0: {//GBC TEST
+					p_job->n_com = 4;	// PARK > 2SHOT > 2SHOT > 2SHOT 
+					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_TIME;	p_job->com[0].com_code.com_id = 0; p_job->com[0].com_code.job_id = 0; p_job->com[0].com_code.list_id = ID_JOBTYPE_JOB;
+					p_job->com[1].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[1].com_code.com_id = 1; p_job->com[1].com_code.job_id = 0; p_job->com[1].com_code.list_id = ID_JOBTYPE_JOB;
+					p_job->com[2].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[2].com_code.com_id = 2; p_job->com[2].com_code.job_id = 0; p_job->com[2].com_code.list_id = ID_JOBTYPE_JOB;
+					p_job->com[3].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[3].com_code.com_id = 3; p_job->com[3].com_code.job_id = 0; p_job->com[3].com_code.list_id = ID_JOBTYPE_JOB;
+				}break;
+				default: {//JOBのコマンド数　デフォルト １ PARK	
+					p_job->n_com = 1;
+					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_POS;
+				}break;
+				}
+				pJobList->n_effective_job++; 
+				if (pJobList->n_effective_job == 1) {//有効ジョブ数が1(最初のジョブ）なら
+					pJobList->i_job_hot = pJobList->i_job_latest;//実行対象ジョブを登録するジョブに設定
+					p_job->status = STAT_ACTIVE;
+				}
+				else {
+					p_job->status = STAT_STANDBY;
+				}
 
-			//コマンド構成セット
-			switch (p_job->code) {
-			case ID_JOBTYPE_GBC_TEST0: {//GBC TEST
-				p_job->n_com = 4;	// PARK > 2SHOT > 2SHOT > 2SHOT 
-				p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_TIME;	p_job->com[0].com_code.i_com = 0; p_job->com[0].com_code.i_job = 0; p_job->com[0].com_code.i_list = ID_JOBTYPE_SEMI;
-				p_job->com[1].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[1].com_code.i_com = 1; p_job->com[1].com_code.i_job = 0; p_job->com[1].com_code.i_list = ID_JOBTYPE_SEMI;
-				p_job->com[2].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[2].com_code.i_com = 2; p_job->com[2].com_code.i_job = 0; p_job->com[2].com_code.i_list = ID_JOBTYPE_SEMI;
-				p_job->com[3].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[3].com_code.i_com = 3; p_job->com[3].com_code.i_job = 0; p_job->com[3].com_code.i_list = ID_JOBTYPE_SEMI;
-			}break;
-			default: {//JOBのコマンド数　デフォルト １ PARK	
-				p_job->n_com = 1;
-				p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_POS;
-			}break;
-			}
-
-
-			if (pJobList->n_effective_job == 1) {//有効ジョブ数が1なら
-				pJobList->i_job_hot = pJobList->i_job_latest;//実行対象ジョブを登録するジョブに設定
-				p_job->status = STAT_ACTIVE;
-			}
-			else {
-				p_job->status = STAT_STANDBY;
+				//最新JOBのインデックスを更新
+				pJobList->i_job_latest++;
+				if (pJobList->i_job_latest > N_JOB_REGIST_MAX-1)pJobList->i_job_latest = 0;	
 			}
 
 			//JOB登録完了後はジョブ受付待ち状態へ戻す
@@ -772,36 +780,40 @@ INT32 CCcCS::get_auto_act_input() {
 int CCcCS::update_job_status(ST_COM_CODE st_comcode, int fb_job_code) {
 
 	LPST_JOB_LIST pjoblist = pJobList;
-	LPST_JOB_SET pjobset = &pjoblist->job[st_comcode.i_job];
-	LPST_COMMAND_SET pcomset = &pjobset->com[st_comcode.i_com];
+	LPST_JOB_SET pjobset = &pjoblist->job[st_comcode.job_id];
+	LPST_COMMAND_SET pcomset = &pjobset->com[st_comcode.com_id];
 
 	switch (fb_job_code) {
 
-	case STAT_IDLE: {			//CSからの状態遷移コマンド：初期化時(OTEとの接続開始時)
-		pjobset->status = STAT_IDLE;
+	case STAT_IDLE: {	//CSからの状態遷移コマンド：初期化時(OTEとの接続開始時)		
+		pjobset->status = fb_job_code;
 	}break;
-				  //CSからの状態遷移コマンド：JOB受信してコマンド列セット完了時呼び出し
-	case STAT_STANDBY: {
+	case STAT_STANDBY: {//CSからの状態遷移コマンド：JOB受信してコマンド列セット完了時呼び出し
 		pjobset->status = STAT_STANDBY;
 		pjoblist->status = STAT_ACTIVE;	//待機ジョブ有でLISTはACTIVE状態へ
 	}break;
-					 //CSからの状態遷移コマンド：JOB HOTに設定時
-	case STAT_ACTIVE: {
-		pjobset->status = STAT_ACTIVE;
+
+	case STAT_ACTIVE: {//POLICYからの状態遷移コマンド：JOB設定コマンド完了時
+		pjobset->status = fb_job_code;
 		break;
 	}
-					//POLICYからの状態遷移コマンド：JOB設定コマンド完了時
-	case STAT_END: {
-		if (pjobset->n_com <= st_comcode.i_com + 1) {//全コマンド完了確認
-			pjobset->status = STAT_END; pjobset->n_com = 0; pjobset->i_hot_com = 0;
-			if (--pjoblist->n_effective_job < 0)pjoblist->n_effective_job = 0;//ジョブ完了時はジョブ数を減らす
+	case STAT_END: {//POLICYからの状態遷移コマンド：JOB設定コマンド完了時
+		if (st_comcode.com_id >= (pjobset->n_com - 1)) {//全コマンド完了確認(対象コマンドのインデックスが最後のコマンド)
+			
+			pjobset->status = fb_job_code; pjobset->n_com = 0; pjobset->i_hot_com = 0;
 
-			if (pjoblist->n_effective_job == 0) {
-				pjoblist->status = STAT_IDLE;	//ジョブが全て完了したらLISTはIDLE状態へ
+			if (--pjoblist->n_effective_job < 0)//残存ジョブ数を減らす
+				pjoblist->n_effective_job = 0;
+
+			if (pjoblist->n_effective_job == 0) {	//残存ジョブ無し
+				pjoblist->status = STAT_IDLE;		//ジョブが全て完了したらLISTはIDLE状態へ
 			}
-			else {								//次のジョブへ
+			else {									//残存ジョブ在り->次のジョブへ
 				pjoblist->i_job_hot++;
-				if (pjoblist->i_job_hot >= N_JOB_REGIST_MAX) pjoblist->i_job_hot = 0;
+				if (pjoblist->i_job_hot >= N_JOB_REGIST_MAX)	//ジョブインデックス更新　リングバッファ
+					pjoblist->i_job_hot = 0;
+				pjobset = &pjoblist->job[pjoblist->i_job_hot];	//次ジョブステータス更新
+				pjobset->status = STAT_ACTIVE;
 			}
 			job_report2client(pjobset, STAT_END);
 			return STAT_ACK;
@@ -818,14 +830,17 @@ int CCcCS::update_job_status(ST_COM_CODE st_comcode, int fb_job_code) {
 		for (int i = 0; i < N_JOB_REGIST_MAX; i++) {//待機中ジョブもキャンセル
 			pJobList->job[i].status = STAT_ABORTED;
 		}
-		pjobset->status = STAT_ABNORMAL_END;
+		pjobset->status = fb_job_code;				//異常完了ジョブのステータス設定
 		pJobList->n_effective_job = 0;
+		pjoblist->status = STAT_IDLE;				//LISTはIDLE状態へ
+
 		job_report2client(pjobset, STAT_ABNORMAL_END);
 		return STAT_ACK;
 	}break;
 						  //POLICYからの状態遷移コマンド：JOB中断時の報告
 						  //中断時はジョブ数を減らさず、ステータスのみ更新
 	case STAT_ABORTED: {
+		pjobset->status = fb_job_code;				//中断ジョブのステータス設定
 		job_report2client(pjobset, STAT_ABORTED);
 		return STAT_ACK;
 	}break;

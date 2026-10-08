@@ -14,9 +14,10 @@
 #define N_JOB_PARAM_I16				8		//JOBに設定可能なINT16パラメータ数  
 
 //JOB TYPE CODE
-#define ID_JOBTYPE_JOB				0		//JOB Type index番号
-#define ID_JOBTYPE_SEMI				1		//SEMIAUTO Type index番号
-#define ID_JOBTYPE_ANTISWAY			2		//FB ANTISWAY Type index番号
+#define ID_JOBTYPE_JOB				1		//JOB Type index番号
+#define ID_JOBTYPE_SEMI				2		//SEMIAUTO Type index番号
+#define ID_JOBTYPE_ANTISWAY			3		//FB ANTISWAY Type index番号
+#define ID_JOBTYPE_EMPTY		    0		//GBC TEST用のタイプ識別
 #define ID_JOBTYPE_GBC_TEST0		256		//GBC TEST用のタイプ識別
 #define ID_JOBTYPE_GBC_TEST1		257		//GBC TEST用のジョブ内容識別
 #define ID_JOBTYPE_END				-1		//JOB CODEリストの末尾識別用CODE

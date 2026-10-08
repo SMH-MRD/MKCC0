@@ -65,13 +65,13 @@ typedef struct _ST_POL_MON1 {
     POINT pt[POL_MON1_N_CTRL] = {
         460,5, 515,5, 570,5, 405,115, 460,115, 515,115, 570,115,405,225,
         460,225, 515,225, 570,225, 0,0, 0,0, 0,0, 0,0, 0,0,
-        5,5, 5,115, 5,225, 5,335, 5,30, 5,140, 5,250, 5,360, 
+        5,5, 5,75, 5,190, 5,300, 5,30, 5,100, 5,215, 5,325, 
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0
     };
     SIZE sz[POL_MON1_N_CTRL] = {
         50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20, 50,20,
         50,20, 50,20, 50,20, 0,0, 0,0, 0,0, 0,0,0,0,
-        250,20, 250,20, 250,20, 250,20, 630,80, 630,80, 630,80, 630,80,
+        630,20, 630,20, 630,20, 630,20, 630,40, 630,80, 630,80, 630,80,
         0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0,
     };
     WCHAR text[POL_MON1_N_CTRL][POL_MON1_N_WCHAR] = {
@@ -181,8 +181,8 @@ public:
     virtual void reset_panel_func_pb(HWND hDlg) override { return; };
 
     //AGENTアクセス関数
-    LPST_COMMAND_SET req_command(LPST_JOB_SET pjob_set,int code);   //Agentからの要求に応じて実行コマンドをセットして返す
-    int update_command_status(LPST_COMMAND_SET pcom, int code);     //Agentからのコマンド実行状況報告を受付,次のコマンドあるときはそれを返す
+    LPST_COMMAND_SET update_command(LPST_JOB_SET pjob_set,int code);   //Agentからの要求に応じて実行コマンドをセットして返す
+   // int update_command_status(LPST_COMMAND_SET pcom, int code);     //Agentからのコマンド実行状況報告を受付,次のコマンドあるときはそれを返す
 
     void set_dbg_mode(int command);
     int debug_mode;

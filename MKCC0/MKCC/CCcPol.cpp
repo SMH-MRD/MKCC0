@@ -200,127 +200,87 @@ HRESULT CCcPol::fault_check_OHC(int crane_id) {
 /// </summary>
 /// <param name="pjob_set"></param>
 /// <returns></returns>
-LPST_COMMAND_SET CCcPol::req_command(LPST_JOB_SET pjob_set,int code) {//AGENTがCSから次実行対象のJOB_SETを取得してPOLにコマンドを要求する
+LPST_COMMAND_SET CCcPol::update_command(LPST_JOB_SET pjob_set,int code) {//AGENTがCSから次実行対象のJOB_SETを取得してPOLにコマンドを要求する
 
-	LPST_COMMAND_SET pcom_set = NULL;
+	if (pjob_set == NULL)							return NULL;	//NULL jobにはNULLリターン
+	if (pjob_set->i_hot_com > N_JOB_COMMAND_MAX)	return NULL;	//NULL jobにはNULLリターン
+	
+	LPST_COMMAND_SET pcom_set = &pjob_set->com[pjob_set->i_hot_com];
 
-	if (pjob_set == NULL)					return NULL;			//NULL jobにはNULLリターン
-
-	if ((code == STAT_IDLE)|| (code == STAT_RESTART)) {	//新規JOBまたは中断からの再開でAGENTがコマンドを要求
+	if ((code == STAT_IDLE)|| (code == STAT_RESTART)) {				//新規JOBまたは中断からの再開でAGENTがコマンドを要求
 		if (!pCS->get_auto_act_input())			return NULL;		//自動起動ボタンがOFFの時はNULLリターン
 		if (!(pjob_set->status & STAT_ACTIVE))	return NULL;		//実行中JOBでない時はNULLリターン
 
 		if (code == STAT_IDLE) {
+			// 新規JOB要求時は最初のコマンドをセットして返す
 			pjob_set->i_hot_com = 0;
+			pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);				//コマンド生成
+			pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;				//コマンドステータス更新報告
 		}
-		else {
-
-			if (pjob_set->i_hot_com < (pjob_set->n_com - 1)) {								//実行中コマンドの次のコマンド有 
-				//現在のコマンド完了済で次のコマンド計算　完了していなければ今のコマンドを再計算
-				if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {				//完了している
-					pjob_set->i_hot_com += 1;
-				}
-				pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);
-				pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;				//コマンドステータス更新
-			}
-			else {	//実行中で次コマンド無 
-				//現在のコマンド完了済でNULL　完了していなければ今のコマンドを再計算
-				if (pjob_set->com[pjob_set->i_hot_com].com_status & STAT_END) {//完了している
-					pcom_set = NULL;
-					pCS->update_job_status(pjob_set->com[pjob_set->i_hot_com].com_code, STAT_SEQ_ERR_END);		//JOBのステータスをSEQ　ERROR　END更新
-				}
-				else {
-					pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);			//中断中のコマンドを再計算
-					pjob_set->com[pjob_set->i_hot_com].com_status = STAT_STANDBY;			//コマンドステータス更新
-				}
-			}
+		else if (pjob_set->i_hot_com < pjob_set->n_com) {								//実行中コマンドが設定範囲内 
+			pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);				//コマンド再計算生成
+			pcom_set->com_status = STAT_STANDBY;										//コマンドステータス更新報告
 		}
+		else {																			//実行中コマンドが設定範囲外 
+			pcom_set->com_status = STAT_COM_CTRL_ERR_END;								//コマンドステータス更新報告
+			pcom_set = NULL;
+	
+		}
+		//CSのJOBリストのコマンド進捗情報を更新
+		pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);
 	}
-	else {
-		//AGENTからのコマンド実行状況報告を受付,次のコマンドあるときはそれを返す
-		pcom_set = &pjob_set->com[pjob_set->i_hot_com];
-		update_command_status(pcom_set, code);
-
-		if (pcom_set == NULL) return NULL;
-
-		//報告コマンドセットが配置されているJOB SETのアドレスを取得
-		LPST_JOB_SET pjobset = &pJobList->job[pcom_set->com_code.i_job];
-
+	else {	//コマンドの実行状況報告要求
+		//AGENTからのコマンド実行状況報告を受付,コマンド（NULL or 現在のコマンド）を返しCSへ状態報告
 		switch (code) {
 
 		case STAT_END: {//コマンド正常終了
-			if (pjobset->n_com == (pjobset->i_hot_com + 1)) {			//全コマンド完了時
-				pcom_set->com_status = code;								//コマンドのステータスを報告内容に更新
-				pCS->update_job_status(pcom_set->com_code, STAT_END);		//JOBのステータス更新
-			}
+			pcom_set->com_status = code;
+			//次コマンドを設定
 
+			if (pjob_set->i_hot_com < (pjob_set->n_com - 1)) {						//実行中コマンドの次のコマンド有 
+							
+				pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);	//現在のコマンドの完了をCSへ報告
+				//次のコマンド設定
+				pjob_set->i_hot_com++;
+				pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);		//コマンド生成
+				pcom_set->com_status = STAT_STANDBY;								//コマンドステータス更新報告
+							
+				pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);	//次コマンドのステータスをCSへ報告
+			}
+			else {															//次コマンド無し
+				pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);
+				pcom_set = NULL;												//次のコマンド無し
+			}
 		}break;
 		case STAT_ABNORMAL_END: {
-			pcom_set->com_status = code;									//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pcom_set->com_code, STAT_ABNORMAL_END);	//JOBのステータス更新
-			pjobset->i_hot_com = pjobset->n_com;						//JOBのコマンドインデックスを最後に更新
+			pcom_set->com_status = code;										//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);	//CSに報告
+	
+			pjob_set->i_hot_com = pjob_set->n_com-1;							//JOBのコマンドインデックスを最後に更新
+			pcom_set = NULL;													//次のコマンド無し
 		}break;
 		case STAT_ABORTED: {//実行中断
-			pcom_set->com_status = code;									//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pcom_set->com_code, STAT_ABORTED);		//JOBのステータス更新
+			pcom_set->com_status = code;										//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);	//CSに報告
+
+			pcom_set = NULL;													//コマンドクリアのみ
 		}break;
 		 //コマンド開始
 		case STAT_ACTIVE: {
-			pCS->update_job_status(pcom_set->com_code, STAT_ACTIVE);			//JOBのステータス更新
-			pcom_set->com_status = code;								//コマンドのステータスを報告内容に更新
+			pcom_set->com_status = code;										//コマンドのステータスを報告内容に更新
+			pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);	//CSに報告
+
 		}break;
-		default: break;
+		default: {
+			pcom_set->com_status = code;
+			pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);
+			pcom_set = NULL;
+		}break;
 		}
 	}
-
-	//CSのJOBリストのコマンド進捗情報を更新
-	pCS->update_job_status(pjob_set->com[pjob_set->i_hot_com].com_code, pjob_set->com[pjob_set->i_hot_com].com_status);
-
 	return pcom_set;
 }
 
-/// <summary>
-/// CS管理のJOBリストのコマンド進捗情報を更新
-/// </summary>
-/// <param name="pcom"></param>
-/// <param name="code"></param>
-/// <returns></returns>
-int CCcPol::update_command_status(LPST_COMMAND_SET pcom, int code) {
-
-	if (pcom == NULL)return STAT_NAK;
-
-	//報告コマンドセットが配置されているJOB SETのアドレスを取得
-	LPST_JOB_SET pjobset = &pJobList->job[pcom->com_code.i_job];
-	
-	switch (code) {
-		
-	case STAT_END: {//コマンド正常終了
-		if (pjobset->n_com == (pjobset->i_hot_com + 1)) {			//全コマンド完了時
-			pcom->com_status = code;								//コマンドのステータスを報告内容に更新
-			pCS->update_job_status(pcom->com_code, STAT_END);		//JOBのステータス更新
-		}
-
-	}break;
-	case STAT_ABNORMAL_END: {
-		pcom->com_status = code;									//コマンドのステータスを報告内容に更新
-		pCS->update_job_status(pcom->com_code, STAT_ABNORMAL_END);	//JOBのステータス更新
-		pjobset->i_hot_com = pjobset->n_com;						//JOBのコマンドインデックスを最後に更新
-	}break;
-	case STAT_ABORTED: {//実行中断
-		pcom->com_status = code;									//コマンドのステータスを報告内容に更新
-		pCS->update_job_status(pcom->com_code, STAT_ABORTED);		//JOBのステータス更新
-	}break;
-
-	//コマンド開始
-	case STAT_ACTIVE: {
-		pCS->update_job_status(pcom->com_code, STAT_ACTIVE);			//JOBのステータス更新
-		pcom->com_status = code;								//コマンドのステータスを報告内容に更新
-	}break;
-	default: break;
-	}
-	//return req_command(pjob_set);
-	return STAT_ACK;
-}
 
 /// <summary>
 /// JOBセットのコマンド領域設定　→　コマンドシーケンスセット
@@ -2520,19 +2480,20 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
 				hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
 		}
+
 		//RADIO PB
-		for (int i = POL_ID_MON1_RADIO_JOBLIST0; i <= POL_ID_MON1_RADIO_COMSET3; i++) {
-			if ((i == POL_ID_MON1_RADIO_JOBLIST0) || (i == POL_ID_MON1_RADIO_JOBSET0) || (i == POL_ID_MON1_RADIO_COMSET0)) {
-				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
-					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-					hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
-			}
-			else {
-				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
-					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-					hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
-			}
-		}
+		//for (int i = POL_ID_MON1_RADIO_JOBLIST0; i <= POL_ID_MON1_RADIO_COMSET3; i++) {
+		//	if ((i == POL_ID_MON1_RADIO_JOBLIST0) || (i == POL_ID_MON1_RADIO_JOBSET0) || (i == POL_ID_MON1_RADIO_COMSET0)) {
+		//		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
+		//			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+		//			hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		//	}
+		//	else {
+		//		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
+		//			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+		//			hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
+		//	}
+		//}
 		st_mon1.job_list_sel = 1;
 		st_mon1.job_set_sel = 0;
 		st_mon1.com_set_sel = 0;
@@ -2548,6 +2509,7 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		monwos.str(L""); monwos << "COM " << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
 
+		st_mon1.p_job_list	= pJobList;
 		st_mon1.p_job_set	= &st_mon1.p_job_list->job[st_mon1.job_set_sel];
 		st_mon1.p_com_set	= &st_mon1.p_job_set->com[st_mon1.com_set_sel];
 		st_mon1.p_com_hot	= &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
@@ -2562,90 +2524,102 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		// 選択されたメニューの解析:
 		switch (wmId - POL_ID_MON1_CTRL_BASE)
 		{
-		case POL_ID_MON1_RADIO_JOBLIST0: {
-			st_mon1.job_list_sel = 0;
-		}break;
-		case POL_ID_MON1_RADIO_JOBLIST1: {
-			st_mon1.job_list_sel = 1;
-		}break;
-		case POL_ID_MON1_RADIO_JOBLIST2: {
-			st_mon1.job_list_sel = 2;
-		}break;
-		case POL_ID_MON1_RADIO_JOBSET0: {
-			st_mon1.job_set_sel = 0;
-		}break;
-		case POL_ID_MON1_RADIO_JOBSET1: {
-			st_mon1.job_set_sel = 1;
-		}break;
-		case POL_ID_MON1_RADIO_JOBSET2: {
-			st_mon1.job_set_sel = 2;
-		}break;
-		case POL_ID_MON1_RADIO_JOBSET3: {
-			st_mon1.job_set_sel = 3;
-		}break;
-		case POL_ID_MON1_RADIO_COMSET0: {
-			st_mon1.com_set_sel = 0;
-		}break;
-		case POL_ID_MON1_RADIO_COMSET1: {
-			st_mon1.com_set_sel = 1;
-		}break;
-		case POL_ID_MON1_RADIO_COMSET2: {
-			st_mon1.com_set_sel = 2;
-		}break;
-		case POL_ID_MON1_RADIO_COMSET3: {
-			st_mon1.com_set_sel = 3;
-		}break;
-		default:
-			return DefWindowProc(hWnd, msg, wp, lp);
+			//case POL_ID_MON1_RADIO_JOBLIST0: {
+			//	st_mon1.job_list_sel = 0;
+			//}break;
+			//case POL_ID_MON1_RADIO_JOBLIST1: {
+			//	st_mon1.job_list_sel = 1;
+			//}break;
+			//case POL_ID_MON1_RADIO_JOBLIST2: {
+			//	st_mon1.job_list_sel = 2;
+			//}break;
+			//case POL_ID_MON1_RADIO_JOBSET0: {
+			//	st_mon1.job_set_sel = 0;
+			//}break;
+			//case POL_ID_MON1_RADIO_JOBSET1: {
+			//	st_mon1.job_set_sel = 1;
+			//}break;
+			//case POL_ID_MON1_RADIO_JOBSET2: {
+			//	st_mon1.job_set_sel = 2;
+			//}break;
+			//case POL_ID_MON1_RADIO_JOBSET3: {
+			//	st_mon1.job_set_sel = 3;
+			//}break;
+			//case POL_ID_MON1_RADIO_COMSET0: {
+			//	st_mon1.com_set_sel = 0;
+			//}break;
+			//case POL_ID_MON1_RADIO_COMSET1: {
+			//	st_mon1.com_set_sel = 1;
+			//}break;
+			//case POL_ID_MON1_RADIO_COMSET2: {
+			//	st_mon1.com_set_sel = 2;
+			//}break;
+			//case POL_ID_MON1_RADIO_COMSET3: {
+			//	st_mon1.com_set_sel = 3;
+			//}break;
+			//default:
+			//	return DefWindowProc(hWnd, msg, wp, lp);
+			//}
+			//monwos.str(L""); monwos << "LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+			//SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
+			//monwos.str(L""); monwos << "JOB SET" << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+			//SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
+			//monwos.str(L""); monwos << "COM SET" << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel<< " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+			//SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
+
+			//st_mon1.p_job_set = &pJobList->job[st_mon1.job_set_sel];
+			//st_mon1.p_com_set = &st_mon1.p_job_set->com[st_mon1.com_set_sel];
+			//st_mon1.p_com_hot = &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
 		}
-		monwos.str(L""); monwos << "LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
-		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
-		monwos.str(L""); monwos << "JOB SET" << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
-		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
-		monwos.str(L""); monwos << "COM SET" << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel<< " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
-		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
-
-		st_mon1.p_job_set = &pJobList->job[st_mon1.job_set_sel];
-		st_mon1.p_com_set = &st_mon1.p_job_set->com[st_mon1.com_set_sel];
-		st_mon1.p_com_hot = &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
-
 	}break;
 	case WM_TIMER: {
-			monwos.str(L""); 
-			monwos << "i job hot "<< st_mon1.p_job_list->i_job_hot << "  n job " << st_mon1.p_job_list->n_effective_job << L"\n";
+		monwos.str(L"");
+		monwos << "LIST   #jobhot = " << pJobList->i_job_hot << "  #n job " << pJobList->n_effective_job << "  #ilatest " << pJobList->i_job_latest;
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
 
-			monwos << "job code  job ";
-			for (int i = 0; i < st_mon1.p_job_list->n_effective_job; i++) {
-				monwos << " " << i << ": " << st_mon1.p_job_list->job[i].code;
-			}
-			monwos << "\n";
+		monwos.str(L""); monwos << "CODE:";
+		for (int i = 0; i < N_JOB_REGIST_MAX; i++) {
+			monwos << " (" << i << ") " << pJobList->job[i].code;
+		}
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST], monwos.str().c_str());
 
-			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST], monwos.str().c_str());
+		monwos.str(L"");
+		monwos << "JOBHOT  ID: " << pJobList->job[pJobList->i_job_hot].job_id << "  ihotcom: " << pJobList->job[pJobList->i_job_hot].i_hot_com << "  N com: " << pJobList->job[pJobList->i_job_hot].n_com;
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
 
-			monwos.str(L""); 
-			monwos << "i com hot " << st_mon1.p_job_set->i_hot_com << "  n com " << st_mon1.p_job_set->n_com << L"\n";
-			monwos << "com code  com ";
-			for (int i = 0; i < st_mon1.p_job_set->n_com; i++) {
-				monwos << " " << i << ": " <<  st_mon1.p_job_set->com[i].com_code.type;
-			}
-			monwos << "\n";
-			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_INF], monwos.str().c_str());
+		LPST_JOB_SET  pjobset = &pJobList->job[pJobList->i_job_hot];
+		monwos.str(L"");
+		monwos << "COM CODE:";
+		for (int i = 0; i < N_JOB_COMMAND_MAX; i++) {
+			monwos << " (" << i << ")  " << pjobset->com[i].com_code.type;
+		}
+		monwos << "\n";
+		monwos << L"TG0: #MH " << pjobset->com[0].target.pos[ID_HOIST] << " #BH " << pjobset->com[0].target.pos[ID_BOOM_H] << " #SL " << pjobset->com[0].target.pos[ID_SLEW] << L"\n";
+		monwos << L"TG1: #MH " << pjobset->com[1].target.pos[ID_HOIST] << " #BH " << pjobset->com[1].target.pos[ID_BOOM_H] << " #SL " << pjobset->com[1].target.pos[ID_SLEW] << L"\n";
+		monwos << L"TG2: #MH " << pjobset->com[2].target.pos[ID_HOIST] << " #BH " << pjobset->com[2].target.pos[ID_BOOM_H] << " #SL " << pjobset->com[2].target.pos[ID_SLEW] << L"\n";
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_INF], monwos.str().c_str());
 
-			monwos.str(L""); 
-			monwos << "COM CODE  ilist " << st_mon1.p_com_set->com_code.i_list << " ijob " << st_mon1.p_com_set->com_code.i_job << " type " << st_mon1.p_com_set->com_code.type  << "  com status: " << st_mon1.p_com_set->com_status << L"\n";
-			monwos << " MODE MH " << st_mon1.p_com_set->seq_mode[ID_HOIST] << " BH " << st_mon1.p_com_set->seq_mode[ID_BOOM_H] << " SL " << st_mon1.p_com_set->seq_mode[ID_SLEW] << L"\n";
-			monwos << " TG MH "	<< st_mon1.p_com_set->target.pos[ID_HOIST] << " BH " << st_mon1.p_com_set->target.pos[ID_BOOM_H] << " SL " << st_mon1.p_com_set->target.pos[ID_SLEW] << L"\n";
+		LPST_COMMAND_SET pcomset = &pjobset->com[pjobset->i_hot_com];
+		monwos << L"COMHOT CODE: " << pcomset->com_code.type  << L" MODE  #MH " << pcomset->seq_mode[ID_HOIST] << " #BH " << pcomset->seq_mode[ID_BOOM_H] << " #SL " << pcomset->seq_mode[ID_SLEW] << L"\n";
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
+		
+		monwos.str(L"");
+		monwos << "COM[0] STP MH: " << st_mon1.p_com_set->com_code.list_id << " ijob " << st_mon1.p_com_set->com_code.job_id << " type " << st_mon1.p_com_set->com_code.type << "  com status: " << st_mon1.p_com_set->com_status << L"\n";
+		monwos << " MODE MH " << st_mon1.p_com_set->seq_mode[ID_HOIST] << " BH " << st_mon1.p_com_set->seq_mode[ID_BOOM_H] << " SL " << st_mon1.p_com_set->seq_mode[ID_SLEW] << L"\n";
+		monwos << " TG MH " << st_mon1.p_com_set->target.pos[ID_HOIST] << " BH " << st_mon1.p_com_set->target.pos[ID_BOOM_H] << " SL " << st_mon1.p_com_set->target.pos[ID_SLEW] << L"\n";
 
-			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_INF], monwos.str().c_str());
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_INF], monwos.str().c_str());
 
-			monwos.str(L""); 
-			monwos << "COM CODE  ilist " << st_mon1.p_com_hot->com_code.i_list << " ijob " << st_mon1.p_com_hot->com_code.i_job << " type " << st_mon1.p_com_hot->com_code.type << "  com status: " << st_mon1.p_com_hot->com_status << L"\n";
-			monwos << " SEQ ihot/nstep/code " << " MH: " << st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].n_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].steps[st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step].type;
-			monwos << " BH: " << st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].n_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].steps[st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step].type;
-			monwos << " SL: " << st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].n_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].steps[st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step].type;
-			monwos <<	L"\n";
+		monwos.str(L"");
+		monwos << "COM CODE  list_id " << st_mon1.p_com_hot->com_code.list_id << " ijob " << st_mon1.p_com_hot->com_code.job_id << " type " << st_mon1.p_com_hot->com_code.type << "  com status: " << st_mon1.p_com_hot->com_status << L"\n";
+		monwos << " SEQ ihot/nstep/code " << " MH: " << st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].n_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].steps[st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step].type;
+		monwos << " BH: " << st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].n_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].steps[st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step].type;
+		monwos << " SL: " << st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].n_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].steps[st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step].type;
+		monwos << L"\n";
 
-			SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_HOT], monwos.str().c_str());
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_HOT], monwos.str().c_str());
+		
+
 	}break;
 
 	case WM_PAINT: {

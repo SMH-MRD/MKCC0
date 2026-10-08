@@ -273,9 +273,9 @@ typedef struct StPosTargets {
 }ST_POS_TARGETS, * LPST_POS_TARGETS;
 
 typedef struct StCommandCode {
-	int i_list;
-	int i_job;
-	int i_com;
+	int list_id;			
+	int job_id;
+	int com_id;
 	int type;
 }ST_COM_CODE, * LPST_COM_CODE;
 
@@ -362,12 +362,12 @@ typedef struct _ST_JOB_LIST {
 
 //## Policy定義構造体
 #pragma region POLICY
-
 typedef struct _ST_CC_POL_INF {
 
 	WORD pc_fault_map[N_PC_FAULT_BUF];//PC検出故障マップ
 
 }ST_CC_POL_INF, * LPST_CC_POL_INF;
+
 #pragma endregion Policy情報定義構造体
 
 //## Agent	情報定義構造体
@@ -392,6 +392,7 @@ typedef struct _ST_CC_AXIS_CTRL {
 	double v_ref;
 	double auto_tg_pos;			//自動目標位置
 	bool is_auto_tg_pos_held;	//自動目標位置ホールド中フラグ
+	bool is_speed0;
 }ST_CC_AXIS_CTRL, * LPST_CC_AXIS_CTRL;
 typedef struct _ST_CC_AGENT_INF {
 
@@ -401,11 +402,6 @@ typedef struct _ST_CC_AGENT_INF {
 	ST_CC_AXIS_CTRL st_axis_ctrl[MOTION_ID_MAX];
 
 	int command_count;							//コマンドレシピ作成呼び出し回数
-	int auto_on_going;							//実行中の自動種別
-	int antisway_on_going;						//実行中振れ止め
-
-	ST_COMMAND_SET st_as_comset;				//振れ止め用コマンドセット
-	ST_COMMAND_SET st_active_com_inf;			//実行中コマンドセット情報
 	
 	LPST_COMMAND_SET    pCom_hot;				//実行中コマンドセット
 	LPST_JOB_SET		pJob_hot;
@@ -463,7 +459,6 @@ typedef struct _ST_CC_CS_CTRL {
 	ST_GPAD_IN gpad_in;	
 
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
-
 
 typedef struct stClientRcvMSG {
 	int req_code;
