@@ -54,7 +54,9 @@ ST_POL_MON2 CCcPol::st_mon2;
 ST_CC_ENV_INF CCcPol::st_work;
 
 CCcPol::CCcPol() {
-
+	command_id = 0;
+	debug_mode = 0;
+	st_inf_work = {};
 }
 CCcPol::~CCcPol() {
 
@@ -2474,7 +2476,7 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		InitCommonControls();//コモンコントロール初期化
 		HINSTANCE hInst = (HINSTANCE)GetModuleHandle(0);
 		//ウィンドウにコントロール追加
-		//STATIC,LABEL
+		////STATIC,LABEL
 		for (int i = POL_ID_MON1_STATIC_JOB_LIST_TITLE; i <= POL_ID_MON1_STATIC_COM_HOT; i++) {
 			st_mon1.hctrl[i] = CreateWindowW(TEXT("STATIC"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | SS_LEFT,
 				st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
@@ -2483,17 +2485,18 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 
 		//RADIO PB
 		//for (int i = POL_ID_MON1_RADIO_JOBLIST0; i <= POL_ID_MON1_RADIO_COMSET3; i++) {
-		//	if ((i == POL_ID_MON1_RADIO_JOBLIST0) || (i == POL_ID_MON1_RADIO_JOBSET0) || (i == POL_ID_MON1_RADIO_COMSET0)) {
-		//		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
-		//			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-		//			hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
-		//	}
-		//	else {
-		//		st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
-		//			st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
-		//			hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
-		//	}
-		//}
+		for (int i = POL_ID_MON1_RADIO_COMSET0; i <= POL_ID_MON1_RADIO_COMSET3; i++) {
+			if ((i == POL_ID_MON1_RADIO_JOBLIST0) || (i == POL_ID_MON1_RADIO_JOBSET0) || (i == POL_ID_MON1_RADIO_COMSET0)) {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE | WS_GROUP,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+			else {
+				st_mon1.hctrl[i] = CreateWindowW(TEXT("BUTTON"), st_mon1.text[i], WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | BS_PUSHLIKE,
+					st_mon1.pt[i].x, st_mon1.pt[i].y, st_mon1.sz[i].cx, st_mon1.sz[i].cy,
+					hWnd, (HMENU)(POL_ID_MON1_CTRL_BASE + i), hInst, NULL);
+			}
+		}
 		st_mon1.job_list_sel = 1;
 		st_mon1.job_set_sel = 0;
 		st_mon1.com_set_sel = 0;
@@ -2502,17 +2505,12 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		SendMessage(st_mon1.hctrl[st_mon1.job_set_sel + POL_ID_MON1_RADIO_JOBSET0], BM_SETCHECK, BST_CHECKED, 0L);
 		SendMessage(st_mon1.hctrl[st_mon1.com_set_sel + POL_ID_MON1_RADIO_COMSET0], BM_SETCHECK, BST_CHECKED, 0L);
 
-		monwos.str(L""); monwos << "LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		monwos.str(L""); monwos << "#LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
-		monwos.str(L""); monwos << "JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		monwos.str(L""); monwos << "#JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
-		monwos.str(L""); monwos << "COM " << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
+		monwos.str(L""); monwos << "#COM " << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
-
-		st_mon1.p_job_list	= pJobList;
-		st_mon1.p_job_set	= &st_mon1.p_job_list->job[st_mon1.job_set_sel];
-		st_mon1.p_com_set	= &st_mon1.p_job_set->com[st_mon1.com_set_sel];
-		st_mon1.p_com_hot	= &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
 
 		//表示更新用タイマー
 		SetTimer(hWnd, POL_ID_MON1_TIMER, st_mon1.timer_ms, NULL);
@@ -2545,36 +2543,25 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 			//case POL_ID_MON1_RADIO_JOBSET3: {
 			//	st_mon1.job_set_sel = 3;
 			//}break;
-			//case POL_ID_MON1_RADIO_COMSET0: {
-			//	st_mon1.com_set_sel = 0;
-			//}break;
-			//case POL_ID_MON1_RADIO_COMSET1: {
-			//	st_mon1.com_set_sel = 1;
-			//}break;
-			//case POL_ID_MON1_RADIO_COMSET2: {
-			//	st_mon1.com_set_sel = 2;
-			//}break;
-			//case POL_ID_MON1_RADIO_COMSET3: {
-			//	st_mon1.com_set_sel = 3;
-			//}break;
-			//default:
-			//	return DefWindowProc(hWnd, msg, wp, lp);
-			//}
-			//monwos.str(L""); monwos << "LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
-			//SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
-			//monwos.str(L""); monwos << "JOB SET" << st_mon1.job_set_sel << " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
-			//SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
-			//monwos.str(L""); monwos << "COM SET" << st_mon1.com_set_sel << L" : JOB " << st_mon1.job_set_sel<< " :  LIST " << st_mon1.text[st_mon1.job_list_sel + POL_ID_MON1_RADIO_JOBLIST0];
-			//SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
-
-			//st_mon1.p_job_set = &pJobList->job[st_mon1.job_set_sel];
-			//st_mon1.p_com_set = &st_mon1.p_job_set->com[st_mon1.com_set_sel];
-			//st_mon1.p_com_hot = &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
+			case POL_ID_MON1_RADIO_COMSET0: {
+				st_mon1.com_set_sel = 0;
+			}break;
+			case POL_ID_MON1_RADIO_COMSET1: {
+				st_mon1.com_set_sel = 1;
+			}break;
+			case POL_ID_MON1_RADIO_COMSET2: {
+				st_mon1.com_set_sel = 2;
+			}break;
+			case POL_ID_MON1_RADIO_COMSET3: {
+				st_mon1.com_set_sel = 3;
+			}break;
+			default:break;
 		}
 	}break;
 	case WM_TIMER: {
+		//LIST
 		monwos.str(L"");
-		monwos << "LIST   #jobhot = " << pJobList->i_job_hot << "  #n job " << pJobList->n_effective_job << "  #ilatest " << pJobList->i_job_latest;
+		monwos << "#LIST  /jobhot = " << pJobList->i_job_hot << "  /n job " << pJobList->n_effective_job << " /ilatest " << pJobList->i_job_latest;
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST_TITLE], monwos.str().c_str());
 
 		monwos.str(L""); monwos << "CODE:";
@@ -2583,43 +2570,73 @@ LRESULT CALLBACK CCcPol::Mon1Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 		}
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_LIST], monwos.str().c_str());
 
+		//JOB SET
 		monwos.str(L"");
-		monwos << "JOBHOT  ID: " << pJobList->job[pJobList->i_job_hot].job_id << "  ihotcom: " << pJobList->job[pJobList->i_job_hot].i_hot_com << "  N com: " << pJobList->job[pJobList->i_job_hot].n_com;
+		monwos << "#JOBHOT  ID: " << pJobList->job[pJobList->i_job_hot].job_id << "  ihotcom: " << pJobList->job[pJobList->i_job_hot].i_hot_com << "  N com: " << pJobList->job[pJobList->i_job_hot].n_com;
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_SET_TITLE], monwos.str().c_str());
 
-		LPST_JOB_SET  pjobset = &pJobList->job[pJobList->i_job_hot];
+		st_mon1.p_job_set = &pJobList->job[pJobList->i_job_hot];
+
 		monwos.str(L"");
 		monwos << "COM CODE:";
 		for (int i = 0; i < N_JOB_COMMAND_MAX; i++) {
-			monwos << " (" << i << ")  " << pjobset->com[i].com_code.type;
+			monwos << " (" << i << ")  " << st_mon1.p_job_set->com[i].com_code.type;
 		}
 		monwos << "\n";
-		monwos << L"TG0: #MH " << pjobset->com[0].target.pos[ID_HOIST] << " #BH " << pjobset->com[0].target.pos[ID_BOOM_H] << " #SL " << pjobset->com[0].target.pos[ID_SLEW] << L"\n";
-		monwos << L"TG1: #MH " << pjobset->com[1].target.pos[ID_HOIST] << " #BH " << pjobset->com[1].target.pos[ID_BOOM_H] << " #SL " << pjobset->com[1].target.pos[ID_SLEW] << L"\n";
-		monwos << L"TG2: #MH " << pjobset->com[2].target.pos[ID_HOIST] << " #BH " << pjobset->com[2].target.pos[ID_BOOM_H] << " #SL " << pjobset->com[2].target.pos[ID_SLEW] << L"\n";
+		monwos << L"TG0: #MH " << st_mon1.p_job_set->com[0].target.pos[ID_HOIST] << " #BH " << st_mon1.p_job_set->com[0].target.pos[ID_BOOM_H] << " #SL " << st_mon1.p_job_set->com[0].target.pos[ID_SLEW] << L"\n";
+		monwos << L"TG1: #MH " << st_mon1.p_job_set->com[1].target.pos[ID_HOIST] << " #BH " << st_mon1.p_job_set->com[1].target.pos[ID_BOOM_H] << " #SL " << st_mon1.p_job_set->com[1].target.pos[ID_SLEW] << L"\n";
+		monwos << L"TG2: #MH " << st_mon1.p_job_set->com[2].target.pos[ID_HOIST] << " #BH " << st_mon1.p_job_set->com[2].target.pos[ID_BOOM_H] << " #SL " << st_mon1.p_job_set->com[2].target.pos[ID_SLEW] << L"\n";
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_JOB_INF], monwos.str().c_str());
 
-		LPST_COMMAND_SET pcomset = &pjobset->com[pjobset->i_hot_com];
-		monwos << L"COMHOT CODE: " << pcomset->com_code.type  << L" MODE  #MH " << pcomset->seq_mode[ID_HOIST] << " #BH " << pcomset->seq_mode[ID_BOOM_H] << " #SL " << pcomset->seq_mode[ID_SLEW] << L"\n";
+		//COMSET
+		st_mon1.p_com_set = &st_mon1.p_job_set->com[st_mon1.com_set_sel];
+		st_mon1.p_com_hot = &st_mon1.p_job_set->com[st_mon1.p_job_set->i_hot_com];
+
+		monwos.str(L"");
+		monwos << L"#COMSET:" << st_mon1.com_set_sel << L"     COMHOT:" << st_mon1.p_job_set->i_hot_com  << L"\n";
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_SET_TITLE], monwos.str().c_str());
 		
 		monwos.str(L"");
-		monwos << "COM[0] STP MH: " << st_mon1.p_com_set->com_code.list_id << " ijob " << st_mon1.p_com_set->com_code.job_id << " type " << st_mon1.p_com_set->com_code.type << "  com status: " << st_mon1.p_com_set->com_status << L"\n";
-		monwos << " MODE MH " << st_mon1.p_com_set->seq_mode[ID_HOIST] << " BH " << st_mon1.p_com_set->seq_mode[ID_BOOM_H] << " SL " << st_mon1.p_com_set->seq_mode[ID_SLEW] << L"\n";
-		monwos << " TG MH " << st_mon1.p_com_set->target.pos[ID_HOIST] << " BH " << st_mon1.p_com_set->target.pos[ID_BOOM_H] << " SL " << st_mon1.p_com_set->target.pos[ID_SLEW] << L"\n";
-
+		monwos << L"SEQ MH: [MODE]" << st_mon1.p_com_set->seq_mode[ID_HOIST] << L" [nstp] " << st_mon1.p_com_set->seq[ID_HOIST].n_step << L"[stp]";
+		for (int i = 0; i < st_mon1.p_com_set->seq[ID_HOIST].n_step; i++) { monwos << st_mon1.p_com_set->seq[ID_HOIST].steps[i].type << L"/"; };
+		monwos << L"\n";
+		monwos << L"SEQ BH: [MODE]" << st_mon1.p_com_set->seq_mode[ID_BOOM_H] << L" [nstp] " << st_mon1.p_com_set->seq[ID_BOOM_H].n_step << L"[stp]";
+		for (int i = 0; i < st_mon1.p_com_set->seq[ID_BOOM_H].n_step; i++) { monwos << st_mon1.p_com_set->seq[ID_BOOM_H].steps[i].type << L"/"; };
+		monwos << L"\n";
+		monwos << L"SEQ SL: [MODE]" << st_mon1.p_com_set->seq_mode[ID_SLEW] << L" [nstp] " << st_mon1.p_com_set->seq[ID_SLEW].n_step << L"[stp]";
+		for (int i = 0; i < st_mon1.p_com_set->seq[ID_SLEW].n_step; i++) { monwos << st_mon1.p_com_set->seq[ID_SLEW].steps[i].type << L"/"; };
+		monwos << L"\n";
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_INF], monwos.str().c_str());
 
+		//COMHOT
+		LPST_MOTION_SEQ pseq_mh = &st_mon1.p_com_hot->seq[ID_HOIST];
+		int i_step_mh = pseq_mh->i_hot_step;
+		LPST_MOTION_SEQ pseq_bh = &st_mon1.p_com_hot->seq[ID_BOOM_H];
+		int i_step_bh = pseq_bh->i_hot_step;
+		LPST_MOTION_SEQ pseq_sl = &st_mon1.p_com_hot->seq[ID_SLEW];
+		int i_step_sl = pseq_sl->i_hot_step;
+
 		monwos.str(L"");
-		monwos << "COM CODE  list_id " << st_mon1.p_com_hot->com_code.list_id << " ijob " << st_mon1.p_com_hot->com_code.job_id << " type " << st_mon1.p_com_hot->com_code.type << "  com status: " << st_mon1.p_com_hot->com_status << L"\n";
-		monwos << " SEQ ihot/nstep/code " << " MH: " << st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].n_step << " / " << st_mon1.p_com_hot->seq[ID_HOIST].steps[st_mon1.p_com_hot->seq[ID_HOIST].i_hot_step].type;
-		monwos << " BH: " << st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].n_step << " / " << st_mon1.p_com_hot->seq[ID_BOOM_H].steps[st_mon1.p_com_hot->seq[ID_BOOM_H].i_hot_step].type;
-		monwos << " SL: " << st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].n_step << " / " << st_mon1.p_com_hot->seq[ID_SLEW].steps[st_mon1.p_com_hot->seq[ID_SLEW].i_hot_step].type;
+		monwos << "#COM HOT [SEQ TYPE]"<< L"MH/"<<pseq_mh->motion_type << L" BH/" << pseq_bh->motion_type << L" SL/" << pseq_sl->motion_type << L"\n";
+		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_HOT_TITLE], monwos.str().c_str());
+
+		LPST_MOTION_STEP pstep_mh = &pseq_mh->steps[i_step_mh];
+		LPST_MOTION_STEP pstep_bh = &pseq_bh->steps[i_step_bh];
+		LPST_MOTION_STEP pstep_sl = &pseq_sl->steps[i_step_sl];
+
+		monwos.str(L"");
+		monwos << L"[MH] type:"<< pseq_mh->steps[i_step_mh].type << L"/ ihot:" << pseq_mh->i_hot_step << "/ nstp:" << pseq_mh->n_step << "/ Vref:" << pAgentInf->st_axis_ctrl[ID_HOIST].v_ref;
 		monwos << L"\n";
-
+		monwos << L"<STP> stat " << pstep_mh->status << L": act " << pstep_mh->act_count << L"/" << pstep_mh->time_count << L": p " << pstep_mh->_p << L": v " << pstep_mh->_v << L": a " << pstep_mh->_a;
+		monwos << L"\n";
+		monwos << L"[BH] type:" << pseq_bh->steps[i_step_bh].type << L"/ ihot:" << pseq_bh->i_hot_step << "/ nstp:" << pseq_bh->n_step << "/ Vref:" << pAgentInf->st_axis_ctrl[ID_BOOM_H].v_ref;
+		monwos << L"\n";
+		monwos << L"<STP> stat " << pstep_bh->status << L": act " << pstep_bh->act_count << L"/" << pstep_bh->time_count << L": p " << pstep_bh->_p << L": v " << pstep_bh->_v << L": a " << pstep_bh->_a;
+		monwos << L"\n";
+		monwos << L"[SL] type:" << pseq_sl->steps[i_step_sl].type << L"/ ihot:" << pseq_sl->i_hot_step << "/ nstp:" << pseq_sl->n_step << "/ Vref:" << pAgentInf->st_axis_ctrl[ID_SLEW].v_ref;
+		monwos << L"\n";
+		monwos << L"<STP> stat " << pstep_sl->status << L": act " << pstep_sl->act_count << L"/" << pstep_sl->time_count << L": p " << pstep_sl->_p << L": v " << pstep_sl->_v << L": a " << pstep_sl->_a;
 		SetWindowText(st_mon1.hctrl[POL_ID_MON1_STATIC_COM_HOT], monwos.str().c_str());
-		
-
 	}break;
 
 	case WM_PAINT: {
@@ -2797,10 +2814,13 @@ LRESULT CALLBACK CCcPol::PanelProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp) {
 		case IDC_TASK_ITEM_CHECK5:
 		case IDC_TASK_ITEM_CHECK6:
 		{
+			int i_itm = inf.panel_func_id - IDC_TASK_FUNC_RADIO1;
+			if (i_itm > 5) i_itm = 5;
+
 			if (IsDlgButtonChecked(hDlg, LOWORD(wp)) == BST_CHECKED)
-				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = true;
+				inf.panel_act_chk[i_itm][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = true;
 			else
-				inf.panel_act_chk[inf.panel_func_id - IDC_TASK_FUNC_RADIO1][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = false;
+				inf.panel_act_chk[i_itm][LOWORD(wp) - IDC_TASK_ITEM_CHECK1] = false;
 		}break;
 
 		case IDSET:

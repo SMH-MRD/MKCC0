@@ -574,10 +574,6 @@ int CAgent::parse() {
 	}
 	st_work.pCom_hot = pCom_hot;		//SCADA表示用
 	st_work.pJob_hot = pjob_active;		//SCADA表示用
-	
-
-	
-
 
 	//###################################################
 	//#自動目標位置設定,目標までの距離セット
@@ -611,12 +607,18 @@ int CAgent::parse() {
 	//###################################################
 	
 	//### 各軸自動指令出力計算
-	if (pjob_active != NULL) {
+	if (!pPLC_IO->control_source) {//主幹OFFで自動指令を0にする	
+		for (int i = ID_HOIST; i < ID_AHOIST; i++) st_work.st_axis_ctrl[i].v_ref = 0.0;
+	}
+	else if (pjob_active != NULL) {
 		fp_set_ref_mh(crane_id);
 		fp_set_ref_ah(crane_id);
 		fp_set_ref_x(crane_id);
 		fp_set_ref_ph(crane_id);
 		fp_set_ref_y(crane_id);
+	}
+	else {
+		for (int i = ID_HOIST; i < ID_AHOIST; i++) st_work.st_axis_ctrl[i].v_ref = 0.0;
 	}
 
 	//### PLC書き込み信号処理
@@ -1069,7 +1071,7 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		pCrane->pPlc->wval(pPlcWIf->JC.ah_notch, CNotchHelper::get_code4_by_notch(0, 0));
 	}
 	else if((pCS_Inf->cs_ctrl.auto_mode == L_ON)&&(pCS->get_auto_act_input())) {
-		if (st_work.pc_auto_ctrl_mode & BIT_SEL_HST) {	//自動選択時
+		if (st_work.st_axis_ctrl[ID_HOIST].auto_active & AUTO_TYPE_JOB) {	//自動選択時
 			notch = CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_HOIST].v_ref, ptbl_notch_f[ID_HOIST], ptbl_notch_r[ID_HOIST]);
 		}
 		else {											//手動選択時
@@ -1077,8 +1079,7 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		}
 		pCrane->pPlc->wval(pPlcWIf->JC.mh_notch, CNotchHelper::get_code4_by_notch(notch, 0));
 
-
-		if (st_work.pc_auto_ctrl_mode & BIT_SEL_BH) {	//自動選択時
+		if (st_work.st_axis_ctrl[ID_BOOM_H].auto_active & AUTO_TYPE_JOB) {	//自動選択時
 			notch = CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_BOOM_H].v_ref, ptbl_notch_f[ID_BOOM_H], ptbl_notch_r[ID_BOOM_H]);
 		}
 		else {											//手動選択時
@@ -1087,7 +1088,7 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		pCrane->pPlc->wval(pPlcWIf->JC.bh_notch, CNotchHelper::get_code4_by_notch(notch, 0));
 
 
-		if (st_work.pc_auto_ctrl_mode & BIT_SEL_SLW) {	//自動選択時
+		if (st_work.st_axis_ctrl[ID_SLEW].auto_active & AUTO_TYPE_JOB) {	//自動選択時
 			notch = CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_SLEW].v_ref, ptbl_notch_f[ID_SLEW], ptbl_notch_r[ID_SLEW]);
 		}
 		else {											//手動選択時
@@ -1096,7 +1097,7 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		pCrane->pPlc->wval(pPlcWIf->JC.sl_notch, CNotchHelper::get_code4_by_notch(notch, 0));
 
 
-		if (st_work.pc_auto_ctrl_mode & BIT_SEL_GNT) {	//自動選択時
+		if (st_work.st_axis_ctrl[ID_GANTRY].auto_active & AUTO_TYPE_JOB) {	//自動選択時
 			notch = CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_GANTRY].v_ref, ptbl_notch_f[ID_GANTRY], ptbl_notch_r[ID_GANTRY]);
 		}
 		else {											//手動選択時
@@ -1104,7 +1105,7 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		}
 		pCrane->pPlc->wval(pPlcWIf->JC.gt_notch, CNotchHelper::get_code4_by_notch(notch, 0));
 
-		if (st_work.pc_auto_ctrl_mode & BIT_SEL_AH) {	//自動選択時
+		if (st_work.st_axis_ctrl[ID_AHOIST].auto_active & AUTO_TYPE_JOB) {	//自動選択時
 			notch = CNotchHelper::get_notch4_by_v(st_work.st_axis_ctrl[ID_AHOIST].v_ref, ptbl_notch_f[ID_AHOIST], ptbl_notch_r[ID_AHOIST]);
 		}
 		else {											//手動選択時
@@ -1113,6 +1114,8 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		pCrane->pPlc->wval(pPlcWIf->JC.ah_notch, CNotchHelper::get_code4_by_notch(notch, 0));
 	}
 	else {
+		for (int i = ID_HOIST; i < ID_AHOIST; i++) st_work.st_axis_ctrl[i].v_ref = 0.0;
+
 		pCrane->pPlc->wval(pPlcWIf->JC.mh_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_mh], 0));
 		pCrane->pPlc->wval(pPlcWIf->JC.bh_notch, CNotchHelper::get_code4_by_notch(-pOteCtrl[OTE_PNL_CTRLS::notch_bh], 0));
 		pCrane->pPlc->wval(pPlcWIf->JC.sl_notch, CNotchHelper::get_code4_by_notch(pOteCtrl[OTE_PNL_CTRLS::notch_sl], 0));
