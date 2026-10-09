@@ -155,7 +155,7 @@ typedef struct _ST_CC_ENV_INF {
 //## PLC IO定義構造体　PLC通信の情報　
 #pragma region PLC IO
 
-#define PRM_CC_PLC_CHK_COUNT		20//PLCヘルシーチェック用 AGENT SCAN×カウントmsec
+#define PRM_CC_PLC_CHK_COUNT		40//PLCヘルシーチェック用 AGENT SCAN×カウントmsec
 typedef struct _ST_CC_PLC_IO {
 	INT16 pc_ctrl_fb;								//PC制御受付状態
 	INT16 plc_enable;								//PLC有効で端末権利有でOTEリモートモード
@@ -255,6 +255,7 @@ typedef struct _ST_MOTION_SEQ {
 	int n_step;									//動作構成要素数
 	int time_limit;								//タイムオーバー判定値
 	ST_MOTION_STEP steps[M_STEP_MAX];			//動作定義要素配列
+	ST_MOVE_SET seq_target;						//軸単位の目標(位置、速度、加速度)
 
 	//Agent set
 	int i_hot_step;								//実行中要素配列index -1で完了
@@ -295,7 +296,7 @@ typedef struct _ST_COMMAND_SET {
 	//CS SET
 	int list_id;								//登録されているJOB list配列のインデ
 	ST_COM_CODE com_code;
-	
+
 	//POLICY SET
 	int seq_mode[MOTION_ID_MAX];				//コマンド動作する軸のID配列（MOTION　RECIPEの対象配列）L_ON or L_OFF
 	ST_MOTION_SEQ seq[MOTION_ID_MAX];

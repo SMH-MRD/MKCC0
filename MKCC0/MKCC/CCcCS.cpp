@@ -625,6 +625,7 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 				switch (p_job->code) {
 				case ID_JOBTYPE_GBC_TEST0: {//GBC TEST
 					p_job->n_com = 4;	// PARK > 2SHOT > 2SHOT > 2SHOT 
+					int job_id = pJobList->i_job_latest;
 					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_TIME;	p_job->com[0].com_code.com_id = 0; p_job->com[0].com_code.job_id = 0; p_job->com[0].com_code.list_id = ID_JOBTYPE_JOB;
 					p_job->com[1].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[1].com_code.com_id = 1; p_job->com[1].com_code.job_id = 0; p_job->com[1].com_code.list_id = ID_JOBTYPE_JOB;
 					p_job->com[2].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[2].com_code.com_id = 2; p_job->com[2].com_code.job_id = 0; p_job->com[2].com_code.list_id = ID_JOBTYPE_JOB;
