@@ -248,7 +248,6 @@ LPST_COMMAND_SET CCcPol::update_command(LPST_JOB_SET pjob_set,int code) {//AGENT
 				pjob_set->i_hot_com++;
 				pcom_set = setup_job_command(pjob_set, pjob_set->i_hot_com);		//コマンド生成
 				pcom_set->com_status = STAT_STANDBY;								//コマンドステータス更新報告
-							
 				pCS->update_job_status(pcom_set->com_code, pcom_set->com_status);	//次コマンドのステータスをCSへ報告
 			}
 			else {															//次コマンド無し
@@ -284,7 +283,6 @@ LPST_COMMAND_SET CCcPol::update_command(LPST_JOB_SET pjob_set,int code) {//AGENT
 	}
 	return pcom_set;
 }
-
 
 /// <summary>
 /// JOBセットのコマンド領域設定　→　コマンドシーケンスセット
@@ -325,17 +323,16 @@ LPST_COMMAND_SET CCcPol::setup_job_command(LPST_JOB_SET pjob, int icom) {
 			is_fb_antisway = true;
 		}
 
-
 		//#　コマンドセットに目標位置セット
 		pcom_set->target = st_com_work.target;
 		
-		//旋回,引込,巻のレシピセット　set_seq_semiauto_bh(JOBタイプ,レシピアドレス,isFBタイプ,レシピ設定条件バッファアドレス
+		//旋回,引込,巻のレシピセット　set_job_seq_bh(JOBタイプ,レシピアドレス,isFBタイプ,レシピ設定条件バッファアドレス
 		int ptn_stat;
-		ptn_stat = set_seq_semiauto_bh(pjob->code,  pcom_set,	is_fb_antisway, &st_com_work);
-		ptn_stat = set_seq_semiauto_slw(pjob->code, pcom_set,	is_fb_antisway, &st_com_work);
-		ptn_stat = set_seq_semiauto_mh(pjob->code,  pcom_set,	false,			&st_com_work);
-		ptn_stat = set_seq_semiauto_ah(pjob->code,  pcom_set,	false,			&st_com_work);
-		ptn_stat = set_seq_semiauto_gt(pjob->code,	pcom_set,	false,			&st_com_work);
+		ptn_stat = set_job_seq_bh(pjob->code,  pcom_set,	is_fb_antisway, &st_com_work);
+		ptn_stat = set_job_seq_slw(pjob->code, pcom_set,	is_fb_antisway, &st_com_work);
+		ptn_stat = set_job_seq_mh(pjob->code,  pcom_set,	false,			&st_com_work);
+		ptn_stat = set_job_seq_ah(pjob->code,  pcom_set,	false,			&st_com_work);
+		ptn_stat = set_job_seq_gt(pjob->code,	pcom_set,	false,			&st_com_work);
 		return pcom_set;
 	}
 }
@@ -457,7 +454,7 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 /// <returns></returns>
 
 
-int CCcPol::set_seq_semiauto_bh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_bh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 	
 	int id = ID_BOOM_H;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
@@ -481,7 +478,7 @@ int CCcPol::set_seq_semiauto_bh(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 	return POLICY_PTN_OK;
 }
 #if 0
-int CCcPol::set_seq_semiauto_bh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_bh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 
 	int id = ID_BOOM_H;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
@@ -1033,33 +1030,161 @@ int CCcPol::set_seq_semiauto_bh(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 /// <param name="is_fbtype"></param>
 /// <param name="pwork"></param>
 /// <returns></returns>
-int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
-	//#レシピ条件セット
-//軸ID
+int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+	//#共通レシピ条件セット
+	//軸ID
 	int id = ID_SLEW;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
 	pseq->axis_id = id;
 	pseq->n_step = 0;//パターンシーケンス ステップクリア
-	
 	//自動対象外軸の場合ステップ数0でリターン
 	if (!pCsInf->cs_ctrl.auto_select[id]) return POLICY_PTN_NA;
-
-
-	double D,D_abs, v_top, accdec, ctime;
-	//#レシピセット
-	int com_type = pcomset->com_code.type;	//コマンドタイプ
-
-
 	//目標加速度
 	if ((pseq->seq_target.a = pwork->a_abs[id][POL_ID_START_POINT]) == 0.0) 
 		return POLICY_PTN_NG;//加速度が0.0はエラー　0割り防止
 
-	switch (com_type) {
+	int com_type = pcomset->com_code.type;	//コマンドタイプ
+	LPST_MOTION_STEP pelement =&pseq->steps[0];
+	double D, D_abs, v_top_abs, accdec, ctime;
 
+
+	switch (com_type) {
+	case ID_JOBIO_COMTYPE_AS_2SHOT: {
+
+		bool is_sway_over1cycle = false;			//振れ止め：1回のサイクルで完了不可フラグ
+		double tacc, tdec_c;
+
+		//移動方向
+		pseq->direction = ID_SELECT;
+		//目標速度
+		pseq->seq_target.v = pwork->vmax_abs[id];
+		//目標位置
+		pseq->seq_target.p = pwork->pos[id];	//現在位置
+		//残り移動距離
+		D_abs = 0.0;	//目標位置＝現在位置
+
+		v_top_abs = st_com_work.vmax_abs[id];
+
+		pseq->motion_type = COM_PTN_2SHOT_AS;
+
+		//加速振れの4倍までは、１回の加減速で止められる（ただし、加速時間の制限考慮必要）
+		double r0 = pwork->a_hp_abs[id][POL_ID_START_POINT] / GA;
+		double chk_d = pEnvInf->crane_stat.sway_amp_expected[id] / (4.0 * r0);
+
+		double ps;
+		if (chk_d < 2.0) {									//acos(x)の範囲は1.0～-1.0 →　chk_dの上限は2.0
+			is_sway_over1cycle = false;
+			ps = acos(1.0 - chk_d);		//加速位相　		acos(1-Rs/(4.0*r0))　φ=ωtacc
+		}
+		else {
+			is_sway_over1cycle = true;
+			ps = PI180;					//加速位相(時間）　π　φ=ωtacc
+		}
+		//加速時間
+		tacc = ps / st_com_work.w[id];
+		//減速+待機時間
+		for (int i = 0; i < 3; i++) {
+			tdec_c = ((double)i + 0.5) * st_com_work.T[id] - 2.0 * tacc;
+			if (tdec_c > 0) break;
+		}
+		if (tdec_c < 0.0)tdec_c = 0.0;
+	
+	//###############################################################################################
+	// STEP 0 パターン出力位相タイミング待ち待機
+	// AS_2SHOTは、θ0=π or -πでtacc出力→tc=(2n-1）π/ω - 2tacc 0出力→tacc逆出力→tacc待機
+	// ψ=ωtacc　ψ= acos(1-Rs/4r0)
+	//###############################################################################################
+
+		pelement = &(pseq->steps[pseq->n_step++]);			// ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_WAIT_PH_2SHOT_FIRST;		// 位相タイミング待ち(初回） 
+		pelement->_t = st_com_work.T[id] * 2.0;				// タイミングチェック許容時間　振れ2周期分 これ以上条件不成立でエラー
+		pelement->_v = 0.0;									// 速度0
+		pelement->_p = pseq->seq_target.p;					// 目標位置（現在位置）　
+
+		pelement->opt_i[ID_STEP_OPT_DIR] = ID_SELECT;
+
+		//起動開始位相は(2n-1)π　→±PI180
+		double th0 = PI180;
+		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0;
+		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = 0.0;
+
+		//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
+		double dph = pwork->vfb_delay_time[id] * pwork->w[id];
+		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] -= dph;
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_FWD]));
+		pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= dph;
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_REV]));
+
+		D_abs = 0.0;
+
+		//起動判定許容範囲セット		
+		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = PI5;
+
+	//#####  STEP 1 1SHOT 加速 パターンは正転ベース
+		double v_last = pelement->_v;
+		double p_last = pelement->_p;
+
+		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_VOUT_TIME_2SHOT1;						// 開始時に起動方向を決めて指定時間、最大速度指令出力
+		pelement->_a = pseq->seq_target.a;
+		pelement->_v = pseq->seq_target.v;
+		pelement->_t = tacc + pwork->vfb_delay_time[id];				//起動遅れ分付加
+	
+		double d_accdec = 0.5 * pelement->_t* pelement->_t * pelement->_a;//a*t^2/2
+		pelement->_p = p_last + d_accdec;	// 目標位置
+		D_abs += d_accdec;
+
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		//目標位置の校正（-180°～180°の表現にする
+
+	//#####  STEP 2 1SHOT 減速＋位相時間待ち パターンは正転ベース
+		p_last = pelement->_p;
+		double a_last = pelement->_a;
+	
+		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
+		pelement->_t = tdec_c;										// 減速+待機時間
+		pelement->_a = a_last;										// 速度0
+		pelement->_v = 0.0;											// 速度0
+		d_accdec = 0.5 * tacc * tacc * a_last;
+		pelement->_p = p_last + d_accdec;							// 目標位置
+		D_abs += d_accdec;
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));	//目標位置の校正（-180°～180°の表現にする
+
+	//#####  STEP 3 2SHOT 加速
+		v_last = pelement->_v;
+		p_last = pelement->_p;
+
+		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_VOUT_TIME_2SHOT2;						// 開始時に起動方向を決めて指定時間、最大速度指令出力
+		pelement->_a = pseq->seq_target.a;
+		pelement->_v = pseq->seq_target.v;
+		pelement->_t = tacc + pwork->vfb_delay_time[id];					//起動遅れ分付加
+
+		d_accdec = 0.5 * pelement->_t * pelement->_t * pelement->_a;	//a*t^2/2
+		pelement->_p = p_last - d_accdec;	// 目標位置
+		D_abs -= d_accdec;
+
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));	//目標位置の校正（-180°～180°の表現にする
+
+	//#####  STEP 4 2SHOT 減速停止
+		p_last = pelement->_p;
+		a_last = pelement->_a;
+
+		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
+		pelement->_t = tacc;										// 減速時間
+		pelement->_a = a_last;										// 減速度
+		pelement->_v = 0.0;											// 速度0
+		d_accdec = 0.5 * tacc * tacc * a_last;
+		pelement->_p = p_last - d_accdec;							// 目標位置
+		D_abs -= d_accdec;
+
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));	//目標位置の校正（-180°～180°の表現にする
+	}break;
 	case ID_JOBIO_COMTYPE_PARK_TIME:
 	{
 		//移動方向
-		int notch = pcomset->pcom_prm[0];								//ノッチ速度設定値
+		int notch = pcomset->pcom_prm[0];							//ノッチ速度設定値
 		if (notch > NOTCH_4)	notch = NOTCH_4;
 		if (notch < -NOTCH_4)	notch = -NOTCH_4;
 		ctime = (double)pcomset->pcom_prm[1] / 10.0;				//定速時間設定値(0.1秒単位→秒単位）
@@ -1080,83 +1205,26 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 		pseq->seq_target.p = pwork->pos[id] + D;	//現在位置＋移動距離
 
 		//残り移動距離
-		D_abs = D;	
-		if(D_abs <0.0) D_abs *= -1.0;
-	}break;
-	case ID_JOBIO_COMTYPE_AS_2SHOT:
-	{
-		//移動方向
-		pseq->direction = ID_SELECT;
-		//目標速度
-		pseq->seq_target.v = pwork->vmax_abs[id];
-		//目標位置
-		pseq->seq_target.p = pwork->pos[id];	//現在位置
-		//残り移動距離
-		D_abs = 0.0;	//目標位置＝現在位置
-	}break;
-	default: {
-		//移動方向
-		pseq->direction = pwork->motion_dir[id];
-		//目標速度
-		pseq->seq_target.v = 0.0;
-		//目標位置
-		pseq->seq_target.p = st_com_work.target.pos[id];	//現在位置
-		D_abs = pwork->dist_for_target_abs[id];	//残り移動距離
-	}break;
-	}
+		D_abs = D;
+		if (D_abs < 0.0) D_abs *= -1.0;
 
-	double v2 = pCrane->pSpec->axis_spec[id].Notch_spd_f[0][NOTCH_2] * pPlcIO->v_ratio[ID_SLEW];
-	double v3 = pCrane->pSpec->axis_spec[id].Notch_spd_f[0][NOTCH_3] * pPlcIO->v_ratio[ID_SLEW];
-	double v4 = pCrane->pSpec->axis_spec[id].Notch_spd_f[0][NOTCH_4] * pPlcIO->v_ratio[ID_SLEW];
-	double acc_s = pwork->a_abs[id][POL_ID_START_POINT], acc_e = pwork->a_abs[id][POL_ID_END_POINT];			//スタート位置仕様上の加速度と減速速度
-	double acc_average = 0.5 * (acc_s + acc_e);
-	double acc_s_hp = pwork->a_hp_abs[id][POL_ID_START_POINT], acc_hp_e = pwork->a_abs[id][POL_ID_END_POINT];	//スタート位置吊点の加速度と減速度
+		pseq->motion_type = COM_PTN_ORDINARY;
 
-	//# 2段加減速度最低移動距離 起動時の加速距離　+　停止時の減速距離　＝　Ｖ4^2/2αs + 2V3 ×(T/2 - V3/α）+ V4^2/2αe　+　2V3 ×(T/2 - V3/α）
-	//4ノッチ　
-	double checkS4 = 0.5 * v4 * v4 / acc_s + 2.0 * v3 * (0.5 * pwork->T[ID_SLEW] - v3 / acc_s) + 0.5 * v4 * v4 / acc_e + 2.0 * v3 * (0.5 * pwork->T[ID_SLEW] - v3 / acc_e);	//半周期で加速しきらないケースを考慮して定速部は2倍で見積もる
-	//3ノッチ
-	double checkS3 = 0.5 * v3 * v3 / acc_s + 2.0 * v2 * (0.5 * pwork->T[ID_SLEW] - v2 / acc_s) + 0.5 * v3 * v3 / acc_e + 2.0 * v2 * (0.5 * pwork->T[ID_SLEW] - v2 / acc_e);	//半周期で加速しきらないケースを考慮して定速部は2倍で見積もる
-
-	//フィードバック遅れ時間カウント
-	int vfb_delay_count = (int)(pwork->vfb_delay_time[id] / (double)pwork->agent_scan);
-
-	LPST_MOTION_STEP pelement =&pseq->steps[0];
-
-	/*### パターン作成 ###*/
-
-	//#######################################################################
-	// STEP 0 
-	//#######################################################################
-	switch (com_type) {
-	case ID_JOBIO_COMTYPE_AS_2SHOT: 
-	case ID_JOBIO_COMTYPE_PARK_TIME:
-	default:
-	{
+		//#### STEP 0 開始準備待機
 		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
 		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
 		pelement->_t = TIME_LIMIT_CONFIRMATION;						// 待機時間
 		pelement->_v = 0.0;											// 速度0
 		pelement->_p = pwork->pos[id];								// 目標位置　現在位置
 
-	}break;
-	}
-	CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-
-
-	//#######################################################################
-	// STEP 1 
-	//#######################################################################
-	switch (com_type) {
-	case ID_JOBIO_COMTYPE_PARK_TIME:
-	{
+		//#### STEP 1 加速＋定速
 		double v_last = pelement->_v;
 		double p_last = pelement->_p;
 
 		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
 		pelement->type = CTR_TYPE_VOUT_TIME;							// 指定時間、指定速度出力
 		pelement->_a = pseq->seq_target.a;
-		pelement->_v = pseq->seq_target.v; 
+		pelement->_v = pseq->seq_target.v;
 
 		double d_accdec, d_const, t_acc;
 		t_acc = pelement->_v / pelement->_a; if (t_acc < 0.0)t_acc *= -1.0;
@@ -1172,42 +1240,19 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 			pelement->_p = p_last + d_const + d_accdec;	// 目標位置
 		}
 		D_abs -= (d_accdec + d_const);
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
 
-	}break;
-	case ID_JOBIO_COMTYPE_AS_2SHOT: {
-		double v_last = pelement->_v;
-		double p_last = pelement->_p;
-		
-		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
-		pelement->type = CTR_TYPE_VOUT_TIME;							// 指定時間、指定速度出力
-		pelement->_a = pseq->seq_target.a;
-		pelement->_v = pseq->seq_target.v;
-		pelement->_t = 1.0 + pwork->vfb_delay_time[id];
-		double d_accdec = 0.5 * pelement->_v * pelement->_v / pelement->_a;
-		pelement->_p = p_last + d_accdec;	// 目標位置
-
-		D_abs += d_accdec;
-	}break;
-	default:break;//ステップ無し
-	}
-	CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-
-	//#######################################################################
-	// STEP 2 
-	//#######################################################################
-	switch (com_type) {
-	case ID_JOBIO_COMTYPE_PARK_TIME:
-	{
-		double v_last = pelement->_v;
-		double p_last = pelement->_p;
+		//#### STEP 2 減速停止
+		v_last = pelement->_v;
+		p_last = pelement->_p;
 
 		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
 		pelement->type = CTR_TYPE_VOUT_TIME;						// 時間待ち	
 		pelement->_v = 0.0;
-		pelement->_t = v_last / acc_e + pwork->vfb_delay_time[id];	//減速速時間
+		pelement->_t = v_last / pwork->a_abs[id][POL_ID_END_POINT] + pwork->vfb_delay_time[id];	//減速速時間
 		if (pelement->_t < 0.0)	pelement->_t *= -1.0;
-	
-		double d_accdec = 0.5 * v_last * v_last / acc_e;
+
+		d_accdec = 0.5 * v_last * v_last / pwork->a_abs[id][POL_ID_END_POINT];
 		if (v_last < 0.0) {
 			pelement->_p = p_last - d_accdec;				// 目標位置
 		}
@@ -1215,501 +1260,27 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 			pelement->_p = p_last + d_accdec;				// 目標位置
 		}
 		D_abs -= d_accdec;
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
+
 	}break;
-	case ID_JOBIO_COMTYPE_AS_2SHOT: {
-		double a_last = pelement->_a;
-		double p_last = pelement->_p;
-		double t_last = pelement->_t;
+	default: {
+		//移動方向
+		pseq->direction = pwork->motion_dir[id];
+		//目標速度
+		pseq->seq_target.v = 0.0;
+		//目標位置
+		pseq->seq_target.p = st_com_work.target.pos[id];
+		D_abs = pwork->dist_for_target_abs[id];	//残り移動距離
+
+		//#### STEP 0 開始準備待機
 		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
 		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
-		pelement->_t = TIME_LIMIT_CONFIRMATION * 20.0;				// 待機時間
-		pelement->_a = 0.0;											// 速度0
+		pelement->_t = TIME_LIMIT_CONFIRMATION;						// 待機時間
 		pelement->_v = 0.0;											// 速度0
-		pelement->_p = p_last;										// 目標位置　現在位置
-
-		double d_accdec = 0.5 * a_last * t_last* t_last;
-		D_abs += d_accdec;
-
+		pelement->_p = pwork->pos[id];								// 目標位置　現在位置
+		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
 	}break;
-	default: break;													//ステップ無し
 	}
-	CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));	//目標位置の校正（-180°～180°の表現にする
-
-	//#######################################################################
-	// STEP 3 
-	//#######################################################################
-	switch (com_type) {
-	case ID_JOBIO_COMTYPE_PARK_TIME:break;//ステップ無し
-	case ID_JOBIO_COMTYPE_AS_2SHOT: {
-		double v_last = pelement->_v;
-		double p_last = pelement->_p;
-
-		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
-		pelement->type = CTR_TYPE_VOUT_TIME;							// 指定時間、指定速度出力
-		pelement->_a = pseq->seq_target.a;
-		pelement->_v = pseq->seq_target.v;
-		pelement->_t = 1.0 + pwork->vfb_delay_time[id];
-		double d_accdec = 0.5 * pelement->_v * pelement->_v / pelement->_a;
-		pelement->_p = p_last + d_accdec;	// 目標位置
-			
-		D_abs -= d_accdec;
-	}break;
-	default:break;//ステップ無し
-	}
-	CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));	//目標位置の校正（-180°～180°の表現にする
-
-//#######################################################################
-// STEP 4 
-//#######################################################################
-	switch (com_type) {
-	case ID_JOBIO_COMTYPE_PARK_TIME:break;//ステップ無し
-	case ID_JOBIO_COMTYPE_AS_2SHOT: {
-		double v_last = pelement->_v;
-		double p_last = pelement->_p;
-
-		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
-		pelement->type = CTR_TYPE_VOUT_TIME;							// 指定時間、指定速度出力
-		pelement->_a = pseq->seq_target.a;
-		pelement->_v = 0.0;
-		pelement->_t = 1.0 + pwork->vfb_delay_time[id];
-		double d_accdec = 0.5 * pelement->_v * pelement->_v / pelement->_a;
-		pelement->_p = p_last - d_accdec;	// 目標位置
-
-		D_abs -= d_accdec;
-	}break;
-	default:break;//ステップ無し
-	}
-	CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));	//目標位置の校正（-180°～180°の表現にする
-
-
-#if 0
-	//#######################################################################
-	// ANTISWAY
-	//#######################################################################
-	if (jobtype == ID_JOBTYPE_ANTISWAY) {
-		//ワンショット　＋　インチング移動 （目標までの距離が位置決め動作トリガ判定値以上）
-		if (pseq->motion_type == COM_PTN_1SHOT_AS) {
-
-			bool is_sway_over1shot = false; //1回のインチングで完了不可フラグ
-
-			pseq->motion_type = COM_PTN_1SHOT_AS;							//ONE SHOT
-			double v_top_abs = v4;
-			double d_move_abs = 0.0;
-
-			/*### STEP0  タイミング待ち　###*/
-			pelement = &(pseq->steps[pseq->n_step++]);			// ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_PH_1SHOT;			// 位相タイミング待ち(目標へ近づく方で起動を掛ける 
-			pelement->_t = pEnvInf->Tx * 2.0;					// タイミングチェック許容時間　振れ2周期分
-			pelement->_v = 0.0;									// 速度0
-			pelement->_p = pwork->target.pos[id];				// 目標位置　
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		// 目標位置の校正（-180°～180°の表現にする
-
-			//移動方向は選択制度（Agentが決める）
-			pelement->opt_i[ID_STEP_OPT_DIR] = ID_SELECT;
-
-			//加速振れの4倍までは、１回の加減速で止められる（ただし、加速時間の制限考慮必要）
-			double chk_d = pEnvInf->crane_stat.sway_amp_expected[ID_SLEW] / (2.0 * acc_s_hp / GA);
-			if (chk_d > 2.0) {
-				is_sway_over1shot = true;
-				chk_d = 1.9999;
-			}
-
-			double ph = acos(1.0 - chk_d);	//acosの範囲は0～π
-			double th0 = PI180 - ph;
-
-			double ph_delay;
-			if (debug_mode & CODE_POLICY_DEBUG_SIM_MODE) {
-				ph_delay = PI360 * POL_PRM_FB_DELAY_SLEW_SIM / pwork->T[ID_SLEW];
-			}
-			else {
-				ph_delay = PI360 * POL_PRM_FB_DELAY_SLEW / pwork->T[ID_SLEW];
-			}
-			th0 -= ph_delay;	//FB遅れ時間分位相を早める
-
-			pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0 - PI180;
-			if (pelement->opt_d[ID_STEP_OPT_PHASE_FWD] < -PI180) pelement->opt_d[ID_STEP_OPT_PHASE_FWD] += PI360;
-
-			pelement->opt_d[ID_STEP_OPT_PHASE_REV] = th0;
-			if (pelement->opt_d[ID_STEP_OPT_PHASE_REV] > PI180) pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= PI360;
-
-			pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG;
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-
-			/*### STEP1 ワンショット出力###*/
-			pelement->opt_i[ID_STEP_OPT_DIR] = pseq->direction;
-
-			pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME_1SHOT;						//加速時間出力
-
-			pelement->_t = ph / pwork->w[ID_SLEW] * PRM_1SHOT_PH_ADJUST;	//pCraneStat->w * PRM_1SHOT_PH_ADJUST;	// 
-			pelement->_p = (pelement - 1)->_p;								// 目標位置
-			pelement->_v = v_top_abs;										// 出力速度
-
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-			d_move_abs = 0.5 * pelement->_t * pelement->_t * acc_s;		// 第一ステップ完了までの移動距離 (acc_sは軸の加速度）
-			D_abs -= d_move_abs;
-
-			//起動判定許容範囲セット		
-			pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG;
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-			/*### STEP2 ワンショット停止###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME;						//加速時間出力
-			pelement->_t = (pelement - 1)->_t;							// 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = 0.0;											// 出力速度
-
-			d_move_abs = 0.5 * pelement->_t * pelement->_t * acc_s;	// 第一ステップ完了までの移動距離 
-			D_abs -= d_move_abs;
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-		}
-		else {//2SHOT
-			bool is_sway_over1shot = false; //1回のインチングで完了不可フラグ
-			pseq->motion_type = COM_PTN_2SHOT_AS;					//その場振れ止め
-			double v_top_abs = v4;
-			double d_move_abs = 0.0;
-
-			/*### STEP0  タイミング待ち　###*/
-			pelement = &(pseq->steps[pseq->n_step++]);			// ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_PH_2SHOT_FIRST;		// 位相タイミング待ち(初回） 
-			pelement->_t = pEnvInf->Tx * 2.0;					// タイミングチェック許容時間　振れ2周期分
-			pelement->_v = 0.0;									// 速度0
-			pelement->_p = pwork->target.pos[id];				// 目標位置　
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		// 目標位置の校正（-180°～180°の表現にする
-
-			pelement->opt_i[ID_STEP_OPT_DIR] = pseq->direction;
-			//加速振れの4倍までは、１回の加減速で止められる（ただし、加速時間の制限考慮必要）
-			double chk_d = pEnvInf->crane_stat.sway_amp_expected[ID_SLEW] / (4.0 * acc_s_hp / GA);
-			double ph;
-			if (chk_d < 2.0) {
-				is_sway_over1shot = false;
-				ph = acos(1.0 - chk_d);
-			}
-			else {
-				is_sway_over1shot = true;
-				ph = PI180;
-			}
-			//起動開始位相,2回目待機位相
-			double th0 = PI180 - ph;
-			double phc = PI180 - 2.0 * ph;
-
-			//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
-
-			double ph_delay;
-			if (debug_mode & CODE_POLICY_DEBUG_SIM_MODE) {
-				ph_delay = PI360 * POL_PRM_FB_DELAY_SLEW_SIM / pwork->T[ID_SLEW];
-			}
-			else {
-				ph_delay = PI360 * POL_PRM_FB_DELAY_SLEW / pwork->T[ID_SLEW];
-			}
-			//int vfb_delay_count = (int)(pwork->vfb_delay_time[ID_SLEW] / ((double)pwork->agent_scan_ms / 1000.0));
-			phc -= ph_delay;	//FB遅れ時間分位相を早める
-			if (phc < 0.0) phc += PI360;
-
-			th0 -= ph_delay;		//FB遅れ時間分位相を早める
-			//起動判定位相セット
-			pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0 - PI180;
-			if (pelement->opt_d[ID_STEP_OPT_PHASE_FWD] < -PI180)pelement->opt_d[ID_STEP_OPT_PHASE_FWD] += PI360;
-			pelement->opt_d[ID_STEP_OPT_PHASE_REV] = th0;
-			if (pelement->opt_d[ID_STEP_OPT_PHASE_REV] > PI180)pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= PI360;
-			//起動判定許容範囲セット		
-			pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = PI10;
-			//速度FB遅れ分カウント値セット
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-
-			/*### STEP1 2インチング　 1回目出力###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME_2SHOT1;					//加速時間出力
-			pelement->_t = ph / pwork->w[ID_SLEW];						//停止からの起動時は遅れ時間考慮 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置（ターゲット位置）
-			pelement->_v = v_top_abs;									// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		// 目標位置の校正（-180°～180°の表現にする
-
-			/*### STEP2 2インチング　 位相待ち###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_PH_2SHOT_SECOND;				//減速＋2回目起動位相待ち
-			pelement->_t = (pelement - 1)->_t + phc / pwork->w[ID_SLEW];			//減速時間＋位相待ち時間											// 
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = 0.0;											// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = 0;
-
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		// 目標位置の校正（-180°～180°の表現にする
-
-			/*### STEP3 2インチング　 2回目出力###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME_2SHOT2;					//加速時間出力
-			pelement->_t = (pelement - 2)->_t;							// １回目と同じ加速時間
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = v_top_abs;									// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		// 目標位置の校正（-180°～180°の表現にする
-
-			/*### STEP4 2インチング　 減速待ち###*/
-			pelement = &(pseq->steps[pseq->n_step++]);					// ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_V;					// 減速時間出力
-			pelement->_t = (pelement - 1)->_t;							// 加速時間と同じ時間
-			pelement->_p = (pelement - 1)->_p;							// 目標位置
-			pelement->_v = 0.0;											// 出力速度
-			pelement->opt_i[ID_STEP_OPT_VFB_DELAY_COUNT] = vfb_delay_count;
-
-			CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));		// 目標位置の校正（-180°～180°の表現にする
-
-		}
-	}
-
-	//#######################################################################
-	// SEMI AUTO
-	//#######################################################################
-	else if (jobtype == ID_JOBTYPE_SEMI) {
-
-		/*### STEP0  待機　###*/
-			//top_speed計算
-		double v_top_abs = 0.0, v_half = 0.0;
-		double d_move_abs = 0.0, d_accdec, ta_s, ta_e, tcmax;
-		int n = 0, i;
-
-		switch (pseq->motion_type) {
-		case COM_PTN_ORDINARY: {	//単純移動（台形）パターン
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_TIME;						// 時間他軸位置待ち
-			pelement->_t = TIME_LIMIT_CONFIRMATION;						// 待機時間
-			pelement->_v = 0.0;											// 速度0
-			pelement->_p = pwork->pos[id];								// 目標位置　現在位置
-
-			for (i = (NOTCH_MAX - 1); i > 0; i--) {
-				v_top_abs = pCrane->pSpec->axis_spec[id].Notch_spd_f[pPlcIO->spd_mode[ID_SLEW]][i];
-				ta_s = v_top_abs / st_com_work.a_abs[id][POL_ID_START_POINT];		//加速時間(開始地点）
-				ta_e = v_top_abs / st_com_work.a_abs[id][POL_ID_END_POINT];			//減速時間(終了地点）
-				d_accdec = 0.5 * v_top_abs * (ta_s + ta_e);							//加速距離＋減速距離
-				tcmax = (D_abs - d_accdec) / v_top_abs;								//定速度出力時間
-				if (tcmax > 1.0)
-					break;												//定速度出力時間1.0以上でブレーク
-			}
-			v_half = 0.5 * v_top_abs;
-		}break;
-		default:return POLICY_PTN_NG;
-		}
-		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-		ta_s = v_top_abs / acc_s;	ta_e = v_top_abs / acc_e;
-
-
-		/*### STEP1 ###*/
-		switch (pseq->motion_type) {
-		case COM_PTN_ORDINARY: {	//単純移動パターン
-			//1ノッチでも定速度出ないときはSTEPを飛ばす
-			if (tcmax < 0.0)break;
-
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_POS;
-			pelement->_t = tcmax + ta_s;
-			d_move_abs = v_top_abs * tcmax + 0.5 * v_top_abs * v_top_abs / acc_s;	// 減速開始点までの移動距離 
-
-			if (pseq->direction == ID_REV) {
-				pelement->_p = pwork->target.pos[ID_SLEW] + 0.5 * v_top_abs * v_top_abs / acc_e;	// 目標位置
-				pelement->_v = -v_top_abs;															// 出力速度
-			}
-			else {
-				pelement->_p = pwork->target.pos[ID_SLEW] - 0.5 * v_top_abs * v_top_abs / acc_e;// 目標位置
-				pelement->_v = v_top_abs;										// 出力速度
-			}
-			D_abs -= d_move_abs;
-		}break;
-
-		case COM_PTN_HALF_T_AS: {	//2段加減速パターン
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME;								//
-			pelement->_t = 0.5 * pwork->T[ID_SLEW];										// 
-			if (v_half / acc_s > pelement->_t) pelement->_t += pwork->T[ID_SLEW];		//半周期で加速しきらない時＋T
-
-			d_move_abs = v_half * pelement->_t - 0.5 * v_half * v_half / acc_average;	// 第一ステップ完了までの移動距離 
-
-			if (pseq->direction == ID_REV) {
-				pelement->_p = (pelement - 1)->_p - d_move_abs;			// 目標位置
-				pelement->_v = -v_half;									// 出力速度
-			}
-			else {
-				pelement->_p = (pelement - 1)->_p + d_move_abs;			// 目標位置
-				pelement->_v = v_half;									// 出力速度
-			}
-			D_abs -= d_move_abs;
-		}break;
-		case COM_PTN_2SHOT_MOVE0: {	//2段インチングパターン
-			pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME_2SHOT1;					//位置到達待ちステップ出力
-			pelement->_t = v_top_abs / acc_s;							// 
-
-			d_move_abs = 0.5 * v_top_abs * v_top_abs / acc_s;			// 第一ステップ完了までの移動距離 
-
-			if (pseq->direction == ID_REV) {
-				pelement->_p = (pelement - 1)->_p - d_move_abs;// 目標位置
-				pelement->_v = -v4;								// 出力速度
-			}
-			else {
-				pelement->_p = (pelement - 1)->_p + d_move_abs;// 目標位置
-				pelement->_v = v4;								// 出力速度
-			}
-			D_abs -= d_move_abs;
-		}break;
-		default:return POLICY_PTN_NG;
-		}
-
-		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-
-		/*### STEP2 速度ステップ出力 ###*/
-
-		//*****目標位置付近の加速度で再計算*******
-
-		switch (pseq->motion_type) {
-		case COM_PTN_ORDINARY:	//単純移動パターン
-		{																		// 出力するノッチ速度を計算して設定
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_V;									//減速停止
-			pelement->_t = ta_e;												//減速時間
-			pelement->_v = 0.0;													//速度0
-			pelement->_p = st_com_work.target.pos[id];							// 目標位置(遅れ時間1sec考慮）
-			D_abs = 0.0;														// 残り距離更新
-
-		}break;
-
-		case COM_PTN_HALF_T_AS: {	//2段加減速パターン
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_POS;									//位置到達待ちステップ出力
-
-			//	D_abs = 0.5 * pwork->T * v_half;			//減速停止距離
-			if (v_half / acc_e > 0.5 * pwork->T[ID_SLEW]) {
-				D_abs = v_half * v_half / acc_e + 1.5 * pwork->T[ID_SLEW] * v_half;//v_halfの減速時間が半周期を越える時は＋T
-			}
-			else {
-				D_abs = v_half * v_half / acc_e + 0.5 * pwork->T[ID_SLEW] * v_half;
-			}
-
-			pelement->_t = (pwork->dist_for_target_abs[id] - D_abs * 2.0) / v_top_abs + v_half / acc_e;
-
-			if (pseq->direction == ID_REV) {
-				pelement->_p = st_com_work.target.pos[id] + D_abs + 0.3 * v_top_abs;// 目標位置 0.3s　遅れ時間考慮
-				pelement->_v = -v_top_abs;									// 出力速度
-			}
-			else {
-				pelement->_p = st_com_work.target.pos[id] - D_abs - 0.3 * v_top_abs;// 目標位置 0.3s　遅れ時間考慮
-				pelement->_v = v_top_abs;									// 出力速度
-			}
-
-		}break;
-		case COM_PTN_2SHOT_MOVE0: {	//2段インチングパターン
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_WAIT_PH_2SHOT_SECOND;						//時間到達待ちステップ出力
-			pelement->_t = 0.5 * pwork->T[ID_SLEW] - 2.0 * ta_s;								//π-φ
-			if (pelement->_t < 0.0)pelement->_t += pwork->T[ID_SLEW];
-			pelement->_t += ta_s;
-
-			D_abs = v_top_abs * ta_e;						// 残り2回目インチング距離 
-
-			if (pseq->direction == ID_REV) {
-				pelement->_p = st_com_work.target.pos[id] + D_abs;// 目標位置
-				pelement->_v = 0.0;								// 出力速度
-			}
-			else {
-				pelement->_p = st_com_work.target.pos[id] - D_abs;// 目標位置
-				pelement->_v = 0.0;								// 出力速度
-			}
-
-		}break;
-		default:return POLICY_PTN_NG;
-		}
-		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-
-		/*### STEP3 速度ステップ出力 ###*/
-		switch (pseq->motion_type) {
-		case COM_PTN_ORDINARY:	//単純移動パターン
-		{
-			//無し
-		}break;
-
-		case COM_PTN_HALF_T_AS: {	//2段加減速パターン
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME;								//時間到達待ちステップ出力
-
-			D_abs = 0.5 * v_half * v_half / acc_e;			// 第一ステップ完了までの移動距離
-
-			pelement->_t = 0.5 * pwork->T[ID_SLEW];
-			if (v_half / acc_e > 0.5 * pwork->T[ID_SLEW]) pelement->_t += pwork->T[ID_SLEW];
-
-			if (pseq->direction == ID_REV) {
-				pelement->_p = st_com_work.target.pos[id] + D_abs;// 目標位置
-				pelement->_v = -v_half;									// 出力速度
-			}
-			else {
-				pelement->_p = st_com_work.target.pos[id] - D_abs;// 目標位置
-				pelement->_v = v_half;									// 出力速度
-			}
-		}break;
-		case COM_PTN_2SHOT_MOVE0: {	//2段インチングパターン
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_TIME_2SHOT2;							//位置到達待ちステップ出力
-			pelement->_t = v_top_abs / acc_e;									// 
-
-			D_abs = 0.5 * v_top_abs * v_top_abs / acc_e;						// 第一ステップ完了までの移動距離 
-
-			if (pseq->direction == ID_REV) {
-				pelement->_p = st_com_work.target.pos[id] + D_abs;// 目標位置
-				pelement->_v = -v4;								// 出力速度
-			}
-			else {
-				pelement->_p = st_com_work.target.pos[id] - D_abs;// 目標位置
-				pelement->_v = v4;								// 出力速度
-			}
-		}break;
-		default:return POLICY_PTN_NG;
-		}
-
-		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-
-		/*### STEP4 速度ステップ出力 ###*/
-		switch (pseq->motion_type) {
-		case COM_PTN_ORDINARY:	//単純移動パターン
-		{
-		}break;
-
-		case COM_PTN_HALF_T_AS: {	//2段加減速パターン
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_V;									//速度到達待ちステップ出力
-			pelement->_t = v_half / acc_e;										// 
-
-			D_abs = 0.0;
-			pelement->_p = st_com_work.target.pos[id];// 目標位置
-			pelement->_v = 0.0;									// 出力速度
-
-		}break;
-		case COM_PTN_2SHOT_MOVE0: {	//単純移動パターン
-			pelement = &(pseq->steps[pseq->n_step++]);							//ステップのポインタセットして次ステップ用にカウントアップ
-			pelement->type = CTR_TYPE_VOUT_V;									//速度到達待ちステップ出力
-			pelement->_t = v_top_abs / acc_e;										// 
-
-			D_abs = 0.0;
-			pelement->_p = st_com_work.target.pos[id];// 目標位置
-			pelement->_v = 0.0;								// 出力速度
-
-		}break;
-		default:return POLICY_PTN_NG;
-		}
-		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->_p));				//目標位置の校正（-180°～180°の表現にする
-
-	}
-	//#######################################################################
-	// JOB
-	//#######################################################################
-	else {
-		return 0;
-	}
-#endif
 
 	//時間条件のスキャンカウント値セット
 	for (int i = 0; i < pseq->n_step; i++) {
@@ -1725,7 +1296,7 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 	return POLICY_PTN_OK;
 }
 #if 0
-int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 	//#レシピ条件セット
 //軸ID
 	int id = ID_SLEW;//軸ID
@@ -2275,7 +1846,7 @@ int CCcPol::set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_
 /// <param name="is_fbtype"></param>
 /// <param name="pwork"></param>
 /// <returns></returns>
-int CCcPol::set_seq_semiauto_mh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_mh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 
 	int id = ID_HOIST;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
@@ -2292,7 +1863,7 @@ int CCcPol::set_seq_semiauto_mh(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 	return POLICY_PTN_NA;
 }
 #if 0
-int CCcPol::set_seq_semiauto_mh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_mh(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 
 	int id = ID_HOIST;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
@@ -2413,7 +1984,7 @@ int CCcPol::set_seq_semiauto_mh(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 /// <param name="is_fbtype"></param>
 /// <param name="pwork"></param>
 /// <returns></returns>
-int CCcPol::set_seq_semiauto_gt(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_gt(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 
 	int id = ID_GANTRY;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
@@ -2439,7 +2010,7 @@ int CCcPol::set_seq_semiauto_gt(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 /// <param name="is_fbtype"></param>
 /// <param name="pwork"></param>
 /// <returns></returns>
-int CCcPol::set_seq_semiauto_ah(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_ah(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 
 	int id = ID_AHOIST;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];
@@ -2455,7 +2026,7 @@ int CCcPol::set_seq_semiauto_ah(int jobtype, LPST_COMMAND_SET pcomset, bool is_f
 	return POLICY_PTN_NA;
 }
 #if 0
-int CCcPol::set_seq_semiauto_ah(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
+int CCcPol::set_job_seq_ah(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork) {
 
 	int id = ID_AHOIST;//軸ID
 	LPST_MOTION_SEQ pseq = &pcomset->seq[id];

@@ -205,11 +205,11 @@ private:
     LPST_COMMAND_SET        setup_job_command(LPST_JOB_SET pjob, int icom);  //実行する半自動のコマンドをセットする
     LPST_POLICY_COM_WORK    set_com_workbuf(LPST_COMMAND_SET pcom);
 
-    int set_seq_semiauto_bh(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
-    int set_seq_semiauto_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
-    int set_seq_semiauto_mh(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
-    int set_seq_semiauto_gt(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
-    int set_seq_semiauto_ah(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_job_seq_bh(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_job_seq_mh(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_job_seq_gt(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
+    int set_job_seq_ah(int jobtype,  LPST_COMMAND_SET pcomset, bool is_fbtype, LPST_POLICY_COM_WORK pwork);
 
     const double param_auto[MOTION_ID_MAX][N_AUTO_PARAM] =
     {

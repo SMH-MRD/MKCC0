@@ -1391,18 +1391,50 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 			break;
 		}
 	}break;
+	
+	 //#	起動位相待ち（移動方向指定）
 	case CTR_TYPE_WAIT_PH_2SHOT_FIRST: {
 		v_out = 0.0;
 
 		pStep->status = STAT_ACTIVE;
 		bool is_step_abnormal_end = false;
-		double chk_ph;   //目標位相
-		double ph_io = pCraneStat->sway_ph_expected[motion];			//現在の位相
+		double chk_ph;												//目標位相
+		double ph_io = pCraneStat->sway_ph_expected[motion];		//現在の位相
 
-		if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_MOVE0) {
-			pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = pStep->opt_i[ID_STEP_OPT_DIR];
-			pStep->status = STAT_END;
+		//その場振れ止め
+		if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS) {
+			double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+			double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+
+			if (ph_chk_f_n < -PI180) {
+				if ((ph_io > ph_chk_f_n + PI360) && (ph_io < ph_chk_f_p)) pStep->status = STAT_END;
+			}
+			else if (ph_chk_f_p > PI180) {
+				if ((ph_io < ph_chk_f_p - PI360) && (ph_io > ph_chk_f_n)) pStep->status = STAT_END;
+			}
+			else {
+				if ((ph_io < ph_chk_f_p) && (ph_io > ph_chk_f_n)) pStep->status = STAT_END;
+			}
+			if (pStep->status = STAT_END)
+				pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_FWD;
+
+			double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+			double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+			if (ph_chk_r_n < -PI180) {
+				if ((ph_io > ph_chk_r_n + PI360) && (ph_io < ph_chk_r_p)) pStep->status = STAT_END;
+			}
+			else if (ph_chk_r_p > PI180) {
+				if ((ph_io < ph_chk_r_p - PI360) && (ph_io > ph_chk_r_n)) pStep->status = STAT_END;
+			}
+			else {
+				if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n)) pStep->status = STAT_END;
+			}
+			if (pStep->status = STAT_END)
+				pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_REV;
+
 		}
+		
+		//微小移動
 		else {
 
 			pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_STOP;

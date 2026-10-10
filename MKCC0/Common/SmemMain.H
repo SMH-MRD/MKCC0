@@ -261,7 +261,7 @@ typedef struct _ST_MOTION_SEQ {
 	int i_hot_step;								//実行中要素配列index -1で完了
 	int sequence_act_count;						//動作実行時間カウントカウント数
 	int seq_status;								//
-	int opt_agent[SEQ_RECIPE_OPTION_N];
+	int opt_agent[SEQ_RECIPE_OPTION_N];			//AgentがSTEP出力時に前のSTEPの状態を確認するためのバッファ
 	//int fin_code;								//完了コード
 }ST_MOTION_SEQ, * LPST_MOTION_SEQ;
 #pragma endregion 軸動作シーケンス定義構造体
