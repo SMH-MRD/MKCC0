@@ -704,16 +704,17 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
 
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]	= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
-		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8] = pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]	= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg];//デバッグ用起動チェックBOX
+
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm2];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm3];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm4];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm5];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm6];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm7];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_prm8];
 
 		//auto_setのトリガでJOB SEAQUENCE NO更新して取り込み
 		//!!! pOteCsInf->pnl_ctrl[]毎回一旦リセットされるので前回値はバッファを用意する必要がある
@@ -1023,7 +1024,9 @@ HRESULT COteCS::set_auto_target(int job_type) {
 //より、移動量は,V ×　（T +　PRM1）
 	
 	switch (job_type) {
-	case	ID_JOBTYPE_GBC_TEST0: {
+	case	ID_JOBTYPE_GBC_TEST0: 
+	case	ID_JOBTYPE_GBC_TEST1: 
+	case	ID_JOBTYPE_GBC_TEST2: {
 		INT16 notch = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
 		if (notch > 4) notch = 4;if (notch < -4) notch = -4;
 

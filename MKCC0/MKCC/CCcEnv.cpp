@@ -554,6 +554,15 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//pEnvInf->w2y	= pEnvInf->wy * pEnvInf->wy;
 	pEnvInf->Tx		= PI360 / pEnvInf->wx;
 	pEnvInf->Ty		= PI360 / pEnvInf->wy;
+	
+	//振れセンサ検出値
+	if (g_aux_sway_status) {
+		pEnvInf->crane_stat.sway_amp_expected[ID_SLEW]		= pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_p2p / pAUX_CS_Inf->msg_server.head.pix1rad[(int)ENUM_AXIS::X];
+		pEnvInf->crane_stat.sway_ph_expected[ID_SLEW]		= pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].ps_time;
+		pEnvInf->crane_stat.sway_amp_expected[ID_BOOM_H]	= pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].amp_p2p / pAUX_CS_Inf->msg_server.head.pix1rad[(int)ENUM_AXIS::Y];
+		pEnvInf->crane_stat.sway_ph_expected[ID_BOOM_H]		= pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].ps_time;
+	}
+
 		
 	//速度FB 0判定
 	for (int i = 0; i < ID_AHOIST; i++) {

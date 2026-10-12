@@ -136,16 +136,16 @@ typedef struct ST_MKLOG_DB {
 		{ 0x0015,	0.0,		L"-",			NULL },//021 MKLOG_ITEM_SWY1_TIL_Y	傾斜計角度
 		{ 0x0016,	0.0,		L"-",			NULL },//022 MKLOG_ITEM_SWY1_DTIL_X	傾斜計角速度
 		{ 0x0017,	0.0,		L"-",			NULL },//023 MKLOG_ITEM_SWY1_DTIL_Y	傾斜計角速度
-		{ 0x0018,	30.0,		L"SW1Tx      ",	NULL },//024  MKLOG_ITEM_SWY1_TX	振れ周期	
-		{ 0x0019,	30.0,		L"SW1Ty      ",	NULL },//025  MKLOG_ITEM_SWY1_TY	振れ周期	
+		{ 0x0018,	15.0,		L"SW1Tx      ",	NULL },//024  MKLOG_ITEM_SWY1_TX	振れ周期	
+		{ 0x0019,	15.0,		L"SW1Ty      ",	NULL },//025  MKLOG_ITEM_SWY1_TY	振れ周期	
 		{ 0x001a,	512,		L"SW1V/WX    ",	NULL },//026  MKLOG_ITEM_SWY1_DTHWX	dθ/dt/ω	
 		{ 0x001b,	384,		L"SW1V/WY    ",	NULL },//027  MKLOG_ITEM_SWY1_DTHWY	dθ/dt/ω	
-		{ 0x001c,	1024,		L"SW1AMP_CALX", NULL },//028  MKLOG_ITEM_SWY1_AMP_CAL_X		振れ振幅逐次計算式
-		{ 0x001d,	768,		L"SW1AMP_CALY",	NULL },//029  MKLOG_ITEM_SWY1_AMP_CAL_Y		振れ振幅逐次計算式
+		{ 0x001c,	512,		L"SW1AMP_CALX", NULL },//028  MKLOG_ITEM_SWY1_AMP_CAL_X		振れ振幅逐次計算式
+		{ 0x001d,	384,		L"SW1AMP_CALY",	NULL },//029  MKLOG_ITEM_SWY1_AMP_CAL_Y		振れ振幅逐次計算式
 		{ 0x001e,	PI180,		L"SW1PH_CALX" ,	NULL },//030  MKLOG_ITEM_SWY1_PH_CAL_X		振れ位相逐次計算式
 		{ 0x001f,	PI180,		L"SW1PH_CALY" ,	NULL },//031  MKLOG_ITEM_SWY1_PH_CAL_Y		振れ位相逐次計算式
-		{ 0x0020,	1024,		L"SW1AMP_P2PX",	NULL },//032  MKLOG_ITEM_SWY1_AMP_P2P_X		振れ振幅ピーク計測方	
-		{ 0x0021,	768,		L"SW1AMP_P2PY",	NULL },//033  MKLOG_ITEM_SWY1_AMP_P2P_Y		振れ振幅ピーク計測方
+		{ 0x0020,	512,		L"SW1AMP_P2PX",	NULL },//032  MKLOG_ITEM_SWY1_AMP_P2P_X		振れ振幅ピーク計測方	
+		{ 0x0021,	384,		L"SW1AMP_P2PY",	NULL },//033  MKLOG_ITEM_SWY1_AMP_P2P_Y		振れ振幅ピーク計測方
 		{ 0x0022,	PI180,		L"SW1PH_TIMEX",	NULL },//034  MKLOG_ITEM_SWY1_PH_TIME_X		振れ位相時間カウント
 		{ 0x0023,	PI180,		L"SW1PH_TIMEY",	NULL },//035  MKLOG_ITEM_SWY1_PH_TIME_Y		振れ位相時間カウント
 		{ 0x0024,	100.0,		L"MH L"		  ,	NULL },//036　MKLOG_ITEM_MHL				吊点高さ-揚程			

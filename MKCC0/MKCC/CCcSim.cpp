@@ -413,6 +413,7 @@ void CSim::set_sway_sensor_msg() {
 	double PIXperRAD_X	= CAM1_SPEC_PIXEL_H / CAM1_SPEC_ANGLE_RAD_H;
 	double PIXperRAD_Y	= CAM1_SPEC_PIXEL_V / CAM1_SPEC_ANGLE_RAD_V;
 
+	//通常シミュレーション（シミュレーション計算結果を出力
 	if (!dbg_act_sway_msg) {
 		//ターゲット情報
 		for (int i = 0; i < (int)ENUM_IMAGE::E_MAX; i++) {
@@ -422,7 +423,8 @@ void CSim::set_sway_sensor_msg() {
 			st_sim_inf.sim_target[i].value = 240;
 		}
 	}
-	else{//通信デバッグチェック用
+	//通信デバッグチェック用（振れターゲット検出位置を固定正弦波で出力
+	else{
 		//ターゲット情報
 
 		double w = sqrt(GA / pSimJC->pLoad->l_mh);

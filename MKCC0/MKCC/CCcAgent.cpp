@@ -781,7 +781,9 @@ int CAgent::output() {
 		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::X] = pEnv_Inf->wx;
 		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::Y] = pEnv_Inf->wy;
 		
-		//Simulation計算値出力
+		//################################################
+		//########  Simulation計算値出力  ################
+		//########  AUXEQのPOLICYタスクは、msg_client.header.statusがプロダクトモードでない時、sim_targetの値をgp_app_imgprcに取り込む
 		if (pEnv_Inf->app_common_param.app_mode != MODE_ENV_APP_PRODUCT) {
 			for (int i = 0; i < (int)ENUM_IMAGE::E_MAX; i++) {
 				pAUX_CS_Inf->msg_client.sim_target[i] = pSim_Inf->sim_target[i];	//振れセンサターゲット検出状態計算値

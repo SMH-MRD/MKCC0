@@ -1068,8 +1068,8 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pseq->motion_type = COM_PTN_2SHOT_AS;
 
 		//加速振れの4倍までは、１回の加減速で止められる（ただし、加速時間の制限考慮必要）
-		double r0 = pwork->a_hp_abs[id][POL_ID_START_POINT] / GA;
-		double chk_d = pEnvInf->crane_stat.sway_amp_expected[id] / (4.0 * r0);
+		double r0 = pwork->a_hp_abs[id][POL_ID_START_POINT] / GA;				//r0の単位rad
+		double chk_d = pEnvInf->crane_stat.sway_amp_expected[id] / (4.0 * r0);	// pEnvInf->crane_stat.sway_amp_expectedの単位rad
 
 		double ps;
 		if (chk_d < 2.0) {									//acos(x)の範囲は1.0～-1.0 →　chk_dの上限は2.0
@@ -1085,7 +1085,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		//減速+待機時間
 		for (int i = 0; i < 3; i++) {
 			tdec_c = ((double)i + 0.5) * st_com_work.T[id] - 2.0 * tacc;
-			if (tdec_c > 0) break;
+			if (tdec_c > tacc) break;
 		}
 		if (tdec_c < 0.0)tdec_c = 0.0;
 	
@@ -1109,7 +1109,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = 0.0;
 
 		//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
-		double dph = pwork->vfb_delay_time[id] * pwork->w[id];
+		double dph = pwork->vfb_delay_time[id] * pwork->w[id];//起動遅れ時間分の位相
 		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] -= dph;
 		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_FWD]));
 		pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= dph;

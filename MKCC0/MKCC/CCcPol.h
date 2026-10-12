@@ -131,7 +131,7 @@ typedef struct stPolicyComWork {
     double pos[MOTION_ID_MAX];	                                        //現在位置
     double v[MOTION_ID_MAX];	                                        //モータの現在速度
     double a_abs[MOTION_ID_MAX][2];	                                    //モータの加速度　絶対値(スタート位置,目標位置）
-    double a_hp_abs[MOTION_ID_MAX][2];	                                //吊点の加速度　絶対値
+    double a_hp_abs[MOTION_ID_MAX][2];	                                //吊点の加速度　絶対値(m/s2)の単位
     double vmax_abs[MOTION_ID_MAX];                                     //モータの最大速度
     double acc_time2Vmax[MOTION_ID_MAX];                                //最小加速時間
     double dec_time2Vmax[MOTION_ID_MAX];                                //最小減速時間

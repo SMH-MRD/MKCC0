@@ -7,6 +7,7 @@
 #include "CHelper.h"
 #include "CSwayShared.h"
 #include <mutex>
+#include <cmath>
 
 std::mutex auxpol_mtx;//ロックガード用無ミューテックス
 extern std::vector<void*> VectpCTaskObj;    // TaskObjのポインタ
@@ -188,6 +189,14 @@ HRESULT CAuxPol::init_sway_sensor(){
 		gp_app_imgprc->sway_data[axis].v	= 0.0;	// 振れ速度[pixel/s]
 		gp_app_imgprc->sway_data[axis].a	= 0.0;	// 振れ加速度[pixel/s]
 		gp_app_imgprc->sway_data[axis].p0	= 0.0;	// 振れ中心[pixel]
+
+		//フィルタ処理用バッファ初期化
+		for (int i = 0; i < PRM_SWAY_P_HIST_SIZE; i++) {
+			gp_app_imgprc->sway_data->p_history.push_back(0.0);
+		}
+		for (int i = 0; i < PRM_SWAY_V_HIST_SIZE; i++) {
+			gp_app_imgprc->sway_data->v_history.push_back(0.0);
+		}
 	}
 
 	gp_app_imgprc->target_size = 0.0;                                   // ターゲットサイズ(ターゲット検出データの平均)
@@ -719,16 +728,6 @@ int CAuxPol::parse() {
 					}
 					else {
 						ptarget_data->valid = false;
-						//proc_center_gravity()は使わない
-						//pos_x = 0.0;
-						//pos_y = 0.0;
-						//ptarget_data->valid = proc_center_gravity(
-						//	gp_app_imgprc->contours[idx],
-						//	&pos_x,
-						//	&pos_y,
-						//	&ptarget_data->size,// 検出サイズ出力バッファ(長辺)
-						//	gp_cnfg_imgprc->imgprc
-						//); // 検出状態
 					}
 
 					double pos_x_now = pos_x + (double)ptarget_data->roi.x;
@@ -878,14 +877,26 @@ int CAuxPol::parse() {
 		}
 
 #pragma endregion SET TARGET POS
-		
-		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE) {				// 制御PCとのIF CHECK　MODE デバッグ用　AUX_POLで振れデータをセット
+		// 制御PCとのIF CHECK　MODE デバッグ用　AUX_POLのタスクパネルでmaintenance_modeセット　AUX_POLで振れデータをセット
+		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE) {				
 			proc_dbg_override();
 		}
-		else if (pCsInf->msg_client.head.status != MODE_ENV_APP_PRODUCT) {	//クライアントがSimulator Mode時　Simulator計算値で振れ,輝度データをセット
+		//クライアントがSimulator Mode時　Simulator計算値で振れ,輝度データをセット
+		else if (pCsInf->msg_client.head.status != MODE_ENV_APP_PRODUCT) {	
 			PSWAY_DATA psway_data;
 			for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {
-				gp_app_imgprc->sway_data[i].p = pCsInf->msg_client.sim_target[0].pix[i];
+				if (std::isnan(pCsInf->msg_client.sim_target[0].pix[i])) {//Simulator値が非数の時は初期値セット
+					if (i == (int)ENUM_AXIS::X) {
+						gp_app_imgprc->sway_data[i].p = CAM1_SPEC_PIXEL_H/2;
+					}
+					else {
+						gp_app_imgprc->sway_data[i].p = CAM1_SPEC_PIXEL_V/2;
+					}
+
+				}
+				else {
+					gp_app_imgprc->sway_data[i].p = pCsInf->msg_client.sim_target[0].pix[i];
+				}				
 			}
 		}
 		else;
@@ -901,8 +912,8 @@ int CAuxPol::parse() {
 #pragma region シャッタコントロール
 		set_expstime();
 #pragma endregion EXPOSURE_CONTROL
-
 	}//if (g_sway_sensor_enable)
+
 	return S_OK;
 }
 int CAuxPol::output() {          //出力処理
@@ -1181,7 +1192,7 @@ void CAuxPol::proc_sway(int idx)
 	double dt = gp_app_system->sample_cycle;										// タスク実行周期[s]
 	PSWAY_DATA psway_data = &gp_app_imgprc->sway_data[idx];							// 検出結果出力用構造体設定
 
-	//一次遅れフィルタの遅れ理論値 -atan(f：振れ周波数/fc：カットオフ周波数)　
+	//一次遅れフィルタの遅れ理論値 -atan(f：振れ周波数/fc：カットオフ周波数)　=　atan(ωc/ω）
 	double  expected_delay_ph = atan(psway_data->tau * psway_data->w);
 	// double  expected_delay_ph = (psway_data->tau + gp_app_system->sample_cycle) * psway_data->w;
 
@@ -1265,11 +1276,11 @@ void CAuxPol::proc_sway(int idx)
 			}
 		}
 	}
-	else {
+	else {  //if (psway_data->w > 0.0)
 		psway_data->v = psway_data->a = psway_data->vw = psway_data->aw2 = 0.0;
 	}
 
-	//振れ角s速度履歴バッファ更新　加速度,振幅,位相演算用　
+	//振れ角速度履歴バッファ更新　加速度,振幅,位相演算用　
 	psway_data->v_history.push_back(psway_data->v);		// 振れ角今回値は前段のターゲット検出部で導出済のものをセット
 	if (psway_data->v_history.size() > PRM_SWAY_V_HIST_SIZE) {
 		psway_data->v_history.erase(psway_data->v_history.begin());
