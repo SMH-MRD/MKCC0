@@ -1082,11 +1082,18 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		}
 		//加速時間
 		tacc = ps / st_com_work.w[id];
+		
 		//減速+待機時間
-		for (int i = 0; i < 3; i++) {
-			tdec_c = ((double)i + 0.5) * st_com_work.T[id] - 2.0 * tacc;
-			if (tdec_c > tacc) break;
+		if (is_sway_over1cycle == true) {
+			tdec_c = PI360;//１cycleで止められない時はPI180の減速時間+PI180の待機時間
 		}
+		else {
+			for (int i = 0; i < 3; i++) {
+				tdec_c = ((double)i - 0.5) * st_com_work.T[id] - 2.0 * tacc;
+				if (tdec_c > tacc) break;
+			}
+		}	
+
 		if (tdec_c < 0.0)tdec_c = 0.0;
 	
 	//###############################################################################################
@@ -1115,6 +1122,8 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= dph;
 		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_REV]));
 
+		double v_acc = st_com_work.vmax_abs[id];
+
 		D_abs = 0.0;
 
 		//起動判定許容範囲セット		
@@ -1127,7 +1136,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
 		pelement->type = CTR_TYPE_VOUT_TIME_2SHOT1;						// 開始時に起動方向を決めて指定時間、最大速度指令出力
 		pelement->_a = pseq->seq_target.a;
-		pelement->_v = pseq->seq_target.v;
+		pelement->_v = v_acc;
 		pelement->_t = tacc + pwork->vfb_delay_time[id];				//起動遅れ分付加
 	
 		double d_accdec = 0.5 * pelement->_t* pelement->_t * pelement->_a;//a*t^2/2
@@ -1157,7 +1166,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement = &(pseq->steps[pseq->n_step++]);						//ステップのポインタセットして次ステップ用にカウントアップ
 		pelement->type = CTR_TYPE_VOUT_TIME_2SHOT2;						// 開始時に起動方向を決めて指定時間、最大速度指令出力
 		pelement->_a = pseq->seq_target.a;
-		pelement->_v = pseq->seq_target.v;
+		pelement->_v = v_acc;
 		pelement->_t = tacc + pwork->vfb_delay_time[id];					//起動遅れ分付加
 
 		d_accdec = 0.5 * pelement->_t * pelement->_t * pelement->_a;	//a*t^2/2

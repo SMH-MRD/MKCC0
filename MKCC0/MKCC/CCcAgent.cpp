@@ -1402,24 +1402,41 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		bool is_step_abnormal_end = false;
 		double chk_ph;												//目標位相
 		double ph_io = pCraneStat->sway_ph_expected[motion];		//現在の位相
+		//ステップ方向フラグ初期化
+		pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_STOP;
 
-		//その場振れ止め
-		if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS) {
-			double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
-			double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+		//####### 正転側起動チェック ##########
+		//ID_STEP_OPT_PHASE_CHK_RANGE:範囲内チェック幅　ID_STEP_OPT_PHASE_FWD:POLで計算した開始位相
+		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];//正転起動開始check位相範囲マイナス側
+		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];//正転起動開始check位相範囲プラス側
 
-			if (ph_chk_f_n < -PI180) {
-				if ((ph_io > ph_chk_f_n + PI360) && (ph_io < ph_chk_f_p)) pStep->status = STAT_END;
-			}
-			else if (ph_chk_f_p > PI180) {
-				if ((ph_io < ph_chk_f_p - PI360) && (ph_io > ph_chk_f_n)) pStep->status = STAT_END;
+		if (ph_chk_f_n < -PI180) {		//マイナス側レンジが-π未満になった時(プラス側は-PI180の範囲内
+			if ((ph_io > ph_chk_f_n + PI360) && (ph_io < ph_chk_f_p)) //位相　PI180付近以上　&&　位相　-PI180付近以下
+				pStep->status = STAT_END;
+
+			else if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
+				if ((ph_io < ph_chk_f_p - PI360) && (ph_io > ph_chk_f_n)) //位相　-PI180付近以下　&&　位相　PI180付近以上
+					pStep->status = STAT_END;
 			}
 			else {
 				if ((ph_io < ph_chk_f_p) && (ph_io > ph_chk_f_n)) pStep->status = STAT_END;
 			}
-			if (pStep->status = STAT_END)
-				pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_FWD;
 
+
+			//STAT_ENDで2SHOTの移動方向フラグセット
+			if (pStep->status = STAT_END) {
+				if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS) {//その場振れ止め
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = ID_FWD;
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_REV;
+				}
+				else {													//微小移動
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = ID_FWD;
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_FWD;
+				}
+				break;
+			}
+
+			//####### 逆転側起動チェック ##########
 			double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 			double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 			if (ph_chk_r_n < -PI180) {
@@ -1431,66 +1448,22 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 			else {
 				if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n)) pStep->status = STAT_END;
 			}
-			if (pStep->status = STAT_END)
-				pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_REV;
 
+			//STAT_ENDで2SHOTの移動方向フラグセット
+			if (pStep->status = STAT_END) {
+				if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS) {//その場振れ止め
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = ID_REV;
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_FWD;
+				}
+				else {													//微小移動
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = ID_REV;
+					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_REV;
+				}
+				break;
+			}
 		}
 		
-		//微小移動
-		else {
 
-			pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_STOP;
-
-			if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) > PI180) {
-				if ((ph_io < chk_ph - PI360) && (ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_FWD;
-					pStep->status = STAT_END;
-					break;
-				}
-			}
-			else if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) < -PI180) {
-				if ((ph_io > chk_ph + PI360) && (ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_FWD;
-					pStep->status = STAT_END;
-					break;
-				}
-			}
-			else {
-				if ((ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) &&
-					(ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]))
-				{
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_FWD;
-					pStep->status = STAT_END;
-					break;
-				}
-			}
-
-			if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) > PI180) {
-				if ((ph_io < chk_ph - PI360) && (ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_REV;
-					pStep->status = STAT_END;
-					break;
-				}
-			}
-			else if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) < -PI180) {
-				if ((ph_io > chk_ph + PI360) && (ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_REV;
-					pStep->status = STAT_END;
-					break;
-				}
-			}
-			else {
-				if ((ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) &&
-					(ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]))
-				{
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] = ID_REV;
-					pStep->status = STAT_END;
-					break;
-				}
-			}
-
-		}
 
 		//異常完了判定
 		if (pStep->act_count > pStep->time_count) {			//タイムオーバー
@@ -1560,29 +1533,26 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 			pStep->status = STAT_END;
 		}
 
-		if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] == ID_FWD) {
+		if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] == ID_FWD) {
 			v_out = pStep->_v;
 		}
-		else if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] == ID_REV) {
+		else if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] == ID_REV) {
 			v_out = -pStep->_v;
 		}
 		else v_out = 0.0;
 
 	}break;
-								  //2STEPインチング二回目
+	 //2STEPインチング二回目
 	case CTR_TYPE_VOUT_TIME_2SHOT2: {
 		pStep->status = STAT_ACTIVE;
 		if (pStep->act_count >= pStep->time_count) {
 			pStep->status = STAT_END;
 		}
-
-		if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] == ID_FWD) {
-			if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS)	v_out = -pStep->_v;
-			else                                                v_out = pStep->_v;
+		if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] == ID_FWD) {
+			v_out = pStep->_v;
 		}
-		else if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH] == ID_REV) {
-			if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS)	v_out = pStep->_v;
-			else                                                v_out = -pStep->_v;
+		else if (pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] == ID_REV) {
+			v_out = -pStep->_v;
 		}
 		else v_out = 0.0;
 	}break;
