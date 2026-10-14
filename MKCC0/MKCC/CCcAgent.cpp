@@ -939,8 +939,8 @@ HRESULT CAgent::trans_plc_io_read_JC(int crane_id) {
 	//### クレーン別処理
 	//## MODE(主巻速度、引込、旋回)
 	//旋回,走行は基本モードのみ
-	pPLC_IO->stat_axis[ID_GANTRY].mode	= CODE_MODE1;
-	pPLC_IO->stat_axis[ID_SLEW].mode	= CODE_MODE1;
+	pPLC_IO->stat_axis[ID_GANTRY].mode	= CODE_MODE0;
+	pPLC_IO->stat_axis[ID_SLEW].mode	= CODE_MODE0;
 
 	switch (crane_id) {
 	case CRANE_ID_HHGQ18: 
@@ -1324,74 +1324,66 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		v_out = 0.0;
 
 		pStep->status = STAT_ACTIVE;
-
 		bool is_step_abnormal_end = false;
-		double chk_ph;   //目標位相
-		double ph_io = pCraneStat->sway_ph_expected[motion];			//現在の位相
+		double chk_ph;												//目標位相
+		double ph_io = pCraneStat->sway_ph_expected[motion];		//現在の位相
+		//ステップ方向フラグ初期化
+		pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_STOP;
+
+		//####### 正転側起動チェック ##########
+		//ID_STEP_OPT_PHASE_CHK_RANGE:範囲内チェック幅　ID_STEP_OPT_PHASE_FWD:POLで計算した開始位相
+		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲マイナス側
+		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲プラス側
 
 
-		if (pStep->opt_i[ID_STEP_OPT_DIR] != ID_REV) {
-			if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) > PI180) {
-				if ((ph_io < chk_ph - PI360) && (ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_FWD;
-					pStep->status = STAT_END;
-				}
-			}
-			else if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) < -PI180) {
-				if ((ph_io > chk_ph + PI360) && (ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_FWD;
-					pStep->status = STAT_END;
-				}
-			}
-			else {
-				if ((ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) &&
-					(ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]))
-				{
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_FWD;
-					pStep->status = STAT_END;
-				}
-			}
+		if (ph_chk_f_n < -PI180) {
+			if ((ph_io > (ph_chk_f_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_f_p) && (ph_io >= -PI180))) //位相　PI180付近以上　&&　位相　-PI180付近以下
+				pStep->status = STAT_END;
 		}
-		else if (pStep->opt_i[ID_STEP_OPT_DIR] != ID_FWD) {
-			if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) > PI180) {
-				if ((ph_io < chk_ph - PI360) && (ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_REV;
-					pStep->status = STAT_END;
-				}
-			}
-			else if ((chk_ph = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) < -PI180) {
-				if ((ph_io > chk_ph + PI360) && (ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE])) {
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_REV;
-					pStep->status = STAT_END;
-				}
-			}
-			else {
-				if ((ph_io > pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]) &&
-					(ph_io < pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE]))
-				{
-					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_REV;
-					pStep->status = STAT_END;
-				}
-			}
+		else if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
+			if (((ph_io < ph_chk_f_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_f_n) && (ph_io <= PI180)))//位相　-PI180付近以下　&&　位相　PI180付近以上
+				pStep->status = STAT_END;
 		}
-		else;
+		else {
+			if ((ph_io < ph_chk_f_p) && (ph_io > ph_chk_f_n)) pStep->status = STAT_END;
+		}
+		//STAT_ENDで移動方向フラグセット
+		if (pStep->status == STAT_END) {
+			pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_FWD;
+			break;
+		}
+
+		//####### 逆転側起動チェック ##########
+		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+		double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+		if (ph_chk_r_n < -PI180) {
+			if (((ph_io > ph_chk_r_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_r_p) && (ph_io >= -PI180))) pStep->status = STAT_END;
+		}
+		else if (ph_chk_r_p > PI180) {
+			if (((ph_io < ph_chk_r_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_r_n) && (ph_io <= PI180))) pStep->status = STAT_END;
+		}
+		else {
+			if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n)) pStep->status = STAT_END;
+		}
+
+		//STAT_ENDで移動方向フラグセット
+		if (pStep->status == STAT_END) {
+			pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_REV;
+			break;
+		}
+
 
 		//異常完了判定
-		if (pStep->act_count > pStep->time_count) {					//タイムオーバー
-			pStep->status = STAT_TIME_OVER;	is_step_abnormal_end = true;
-		}
-		else if (pCraneStat->sway_amp_expected[motion] == 0.0) {	//振れ振幅完了レベル到達済
-			pStep->status = STAT_END;
+		if (pStep->act_count > pStep->time_count) {			//タイムオーバー
+			pStep->status = STAT_TIME_OVER;
 			is_step_abnormal_end = true;
 		}
-		else;
 
 		if (is_step_abnormal_end) {
-			pCom->option_d[COM_RECIPE_OPT_D_VTOP_1SHOT] = 0.0;
-			pCom->option_i[COM_RECIPE_OPT_I_DIR_1SHOT] = ID_STOP;
 			pStep->status |= STAT_END;
 			break;
 		}
+
 	}break;
 	
 	 //#	起動位相待ち（移動方向指定）
@@ -1407,15 +1399,16 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 
 		//####### 正転側起動チェック ##########
 		//ID_STEP_OPT_PHASE_CHK_RANGE:範囲内チェック幅　ID_STEP_OPT_PHASE_FWD:POLで計算した開始位相
-		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];//正転起動開始check位相範囲マイナス側
-		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];//正転起動開始check位相範囲プラス側
+		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲マイナス側
+		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲プラス側
 
-		if (ph_chk_f_n < -PI180) {		//マイナス側レンジが-π未満になった時(プラス側は-PI180の範囲内
-			if ((ph_io > ph_chk_f_n + PI360) && (ph_io < ph_chk_f_p)) //位相　PI180付近以上　&&　位相　-PI180付近以下
+
+		if (ph_chk_f_n < -PI180){
+			if ((ph_io >(ph_chk_f_n + PI360)&&(ph_io <= PI180)) || ((ph_io < ph_chk_f_p)&&(ph_io >= -PI180))) //位相　PI180付近以上　&&　位相　-PI180付近以下
 				pStep->status = STAT_END;
 		}
 		else if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
-			if ((ph_io < ph_chk_f_p - PI360) && (ph_io > ph_chk_f_n)) //位相　-PI180付近以下　&&　位相　PI180付近以上
+			if (((ph_io < ph_chk_f_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_f_n) && (ph_io <= PI180)) )//位相　-PI180付近以下　&&　位相　PI180付近以上
 				pStep->status = STAT_END;
 		}
 		else {
@@ -1423,7 +1416,7 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		}
 
 		//STAT_ENDで2SHOTの移動方向フラグセット
-		if (pStep->status = STAT_END) {
+		if (pStep->status == STAT_END) {
 				if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS) {//その場振れ止め
 					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = ID_FWD;
 					pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_REV;
@@ -1439,17 +1432,17 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 		double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 		if (ph_chk_r_n < -PI180) {
-			if ((ph_io > ph_chk_r_n + PI360) && (ph_io < ph_chk_r_p)) pStep->status = STAT_END;
+			if (((ph_io > ph_chk_r_n + PI360)&&(ph_io <= PI180)) || ((ph_io < ph_chk_r_p)&&(ph_io >= -PI180))) pStep->status = STAT_END;
 		}
 		else if (ph_chk_r_p > PI180) {
-			if ((ph_io < ph_chk_r_p - PI360) && (ph_io > ph_chk_r_n)) pStep->status = STAT_END;
+			if (((ph_io < ph_chk_r_p - PI360) &&(ph_io >= -PI180))||((ph_io > ph_chk_r_n)&&(ph_io <= PI180))) pStep->status = STAT_END;
 		}
 		else {
 			if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n)) pStep->status = STAT_END;
 		}
 
 		//STAT_ENDで2SHOTの移動方向フラグセット
-		if (pStep->status = STAT_END) {
+		if (pStep->status == STAT_END) {
 			if (pCom->seq[motion].motion_type == COM_PTN_2SHOT_AS) {//その場振れ止め
 				pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = ID_REV;
 				pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_FWD;

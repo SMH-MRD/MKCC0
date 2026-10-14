@@ -161,7 +161,8 @@ static ST_OBJ_PROPERTY sub_set_props[N_SUB_PNL_OBJ] = {
 	//Cameraウィンドウ
 	{ID_SUB_PNL_CAM_OBJ_CAMERA_BK	,Point(0,0)		,Size(640,500)	,L"CamBk"	},
 	{ID_SUB_PNL_CAM_OBJ_STR_MHL		,Point(100,20)	,Size(100,40)	,L"ロープ長"},
-	{ID_SUB_PNL_CAM_OBJ_STR_T		,Point(200,60)	,Size(100,40)	,L"周期"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_TX		,Point(100,60)	,Size(100,40)	,L"Tx"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_TY		,Point(200,60)	,Size(100,40)	,L"Ty"	},
 	{ID_SUB_PNL_CAM_OBJ_STR_KIDO	,Point(100,100)	,Size(100,40)	,L"なんだ"	},
 
 };
@@ -767,7 +768,9 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	
 	i++; str_rope_l		= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_MHL, &sub_set_props[i].pt, & sub_set_props[i].sz, sub_set_props[i].txt,
 										pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_YELLOW], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
-	i++; str_T_mh		= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_T, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, 
+	i++; str_T_mhx		= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_TX, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, 
+										pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_YELLOW], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
+	i++; str_T_mhy		= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_TY, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt,
 										pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_YELLOW], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
 	i++; str_swy_kido	= new CStringGdi(ID_SUB_PNL_CAM_OBJ_STR_KIDO, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, 
 										pgraphic, drawing_items.pstrformat[ID_STR_FORMAT_LEFT_CENTER], drawing_items.pbrush[ID_PANEL_COLOR_YELLOW], drawing_items.pbrush[ID_PANEL_COLOR_BLACK], drawing_items.pfont[ID_PANEL_FONT_14]);
@@ -860,7 +863,8 @@ void CSubPanelObj::delete_obj() {
 	delete st_v_delay;
 	delete img_camera_bk;
 	delete	str_rope_l;
-	delete	str_T_mh;
+	delete	str_T_mhx;
+	delete	str_T_mhy;
 	delete	str_swy_kido;
 
 
@@ -891,7 +895,8 @@ void CSubPanelObj::refresh_obj_graphics() {
 	img_camera_bk->refresh_graphics(pgraphic_bk);
 
 	str_rope_l->refresh_graphics(pgraphic_inf);
-	str_T_mh->refresh_graphics(pgraphic_inf);
+	str_T_mhx->refresh_graphics(pgraphic_inf);
+	str_T_mhy->refresh_graphics(pgraphic_inf);
 	str_swy_kido->refresh_graphics(pgraphic_inf);
 
 	return;

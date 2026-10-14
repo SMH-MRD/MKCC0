@@ -492,7 +492,7 @@ typedef struct TAG_SWAY_DATA {
     double ps_disp;     // 振れ位相　表示用　CAL or　time
     double vw;          // v/w
     double aw2;         // a/w/w
-
+    double T_measure;   //計測振れ周期
     std::vector<double> p_history;
     std::vector<double> v_history;
 
@@ -520,8 +520,7 @@ typedef struct TAG_INFO_IMGPRC_DATA {
     int32_t     exps_step_count;
     double      exps_chk_brightness;                                                                //露光時間調整用輝度
     double      fc;                                                                                 //1次遅れフィルタカットオフ周波数
-
-
+    
     cv::Scalar mean_hsv;    //HSVフォーマットでの平均値
 
     TAG_INFO_IMGPRC_DATA()

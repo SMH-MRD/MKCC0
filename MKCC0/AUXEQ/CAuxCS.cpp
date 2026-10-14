@@ -293,9 +293,8 @@ int CAuxCS::output() {          //o—Íˆ—
 				pCsInf->msg_server.body.sway_data[i].ps_cal		= gp_app_imgprc->sway_data[i].ps_cal;
 				pCsInf->msg_server.body.sway_data[i].ps_time	= gp_app_imgprc->sway_data[i].ps_time;
 				pCsInf->msg_server.body.sway_data[i].vw			= gp_app_imgprc->sway_data[i].vw;
-				pCsInf->msg_server.body.sway_data[i].T			= gp_app_imgprc->sway_data[i].T;
+				pCsInf->msg_server.body.sway_data[i].T			= gp_app_imgprc->sway_data[i].T_measure;
 			}
-
 		}
 	}
 	return S_OK;

@@ -370,7 +370,8 @@ HRESULT CCcCS::set_job_available_list(int crane_id) {
 		st_cs_work.cs_ctrl.job_code_available[0] = ID_JOBTYPE_GBC_TEST0;
 		st_cs_work.cs_ctrl.job_code_available[1] = ID_JOBTYPE_GBC_TEST1;
 		st_cs_work.cs_ctrl.job_code_available[2] = ID_JOBTYPE_GBC_TEST2;
-		st_cs_work.cs_ctrl.job_code_available[3] = ID_JOBTYPE_END;
+		st_cs_work.cs_ctrl.job_code_available[3] = ID_JOBTYPE_GBC_TEST3;
+		st_cs_work.cs_ctrl.job_code_available[4] = ID_JOBTYPE_END;
 	}break;
 	case CRANE_ID_HHGH29:
 	case CRANE_ID_HHGQ18:
@@ -635,15 +636,21 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 				}break;
 				case ID_JOBTYPE_GBC_TEST1:
 				{//GBC TEST
-					p_job->n_com = 1;	// PARK > 2SHOT > 2SHOT > 2SHOT 
+					p_job->n_com = 1;	// PARK
 					int job_id = pJobList->i_job_latest;
 					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_PARK_TIME;	p_job->com[0].com_code.com_id = 0; p_job->com[0].com_code.job_id = job_id; p_job->com[0].com_code.list_id = ID_JOBTYPE_JOB;
 				}break;
 				case ID_JOBTYPE_GBC_TEST2:
 				{//GBC TEST
-					p_job->n_com = 1;	// PARK > 2SHOT > 2SHOT > 2SHOT 
+					p_job->n_com = 1;	//2SHOT 
 					int job_id = pJobList->i_job_latest;
 					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_AS_2SHOT;	p_job->com[0].com_code.com_id = 0; p_job->com[0].com_code.job_id = job_id; p_job->com[0].com_code.list_id = ID_JOBTYPE_JOB;
+				}break;
+				case ID_JOBTYPE_GBC_TEST3:
+				{//GBC TEST
+					p_job->n_com = 1;	//1SHOT 
+					int job_id = pJobList->i_job_latest;
+					p_job->com[0].com_code.type = ID_JOBIO_COMTYPE_AS_1SHOT;	p_job->com[0].com_code.com_id = 0; p_job->com[0].com_code.job_id = job_id; p_job->com[0].com_code.list_id = ID_JOBTYPE_JOB;
 				}break;
 				default: {//JOBのコマンド数　デフォルト １ PARK	
 					p_job->n_com = 1;

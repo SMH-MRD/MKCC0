@@ -1026,7 +1026,8 @@ HRESULT COteCS::set_auto_target(int job_type) {
 	switch (job_type) {
 	case	ID_JOBTYPE_GBC_TEST0: 
 	case	ID_JOBTYPE_GBC_TEST1: 
-	case	ID_JOBTYPE_GBC_TEST2: {
+	case	ID_JOBTYPE_GBC_TEST2:
+	case	ID_JOBTYPE_GBC_TEST3: {
 		INT16 notch = pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_prm1];
 		if (notch > 4) notch = 4;if (notch < -4) notch = -4;
 

@@ -1246,8 +1246,11 @@ void CSubPanelWindow::OnPaintCam(HDC hdc, HWND hwnd) {
 	wo.str(L""); wo << L"mhl： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat[0].l << L"m";
 	pPanelBase->psubobjs->str_rope_l->update(wo.str().c_str());	// 主巻ロープ長書き込み
 
-	wo.str(L""); wo << L"T  ： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.st_load_stat[0].T << L"s";
-	pPanelBase->psubobjs->str_T_mh->update(wo.str().c_str());	// 振れ周期書き込み
+	wo.str(L""); wo << L"Tx： " << std::fixed << std::setprecision(3) << pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[0].T << L"s";
+	pPanelBase->psubobjs->str_T_mhx->update(wo.str().c_str());	// 計測振れ周期x軸書き込み
+
+	wo.str(L""); wo << L"Ty： " << std::fixed << std::setprecision(3) << pCcIf->st_msg_pc_u_rcv.body.st.sway_body.sway_data[1].T << L"s";
+	pPanelBase->psubobjs->str_T_mhy->update(wo.str().c_str());	// 計測振れ周期x軸書き込み
 
 	wo.str(L""); wo << L"輝度： " << std::fixed << std::setprecision(1) << pCcIf->st_msg_pc_u_rcv.body.st.sway_body.tg_data[0].value;
 	pPanelBase->psubobjs->str_swy_kido->update(wo.str().c_str());	// 振れ周期書き込み
@@ -2494,7 +2497,7 @@ LRESULT CALLBACK CSubPanelWindow::WndProcCam(HWND hwnd, UINT uMsg, WPARAM wParam
 		//ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 		//	ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
 		//CB
-		CCbCtrl* pcb = pPanelBase->psubobjs->cb_disp_history;
+		//CCbCtrl* pcb = pPanelBase->psubobjs->cb_disp_history;
 		//pcb->set_wnd(CreateWindowW(TEXT("BUTTON"), pcb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_MULTILINE,
 		//	pcb->pt.X, pcb->pt.Y, pcb->sz.Width, pcb->sz.Height, hwnd, (HMENU)(pcb->id), hInst, NULL));
 

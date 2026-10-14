@@ -62,6 +62,8 @@ static LPST_AUX_AGENT_INF	pAgentInf;
 static LPST_AUX_SCAD_INF	pScadInf;
 static LPST_AUX_POL_INF		pPolInf;
 
+static LONGLONG  sys_count_start_T_measure[(int)(ENUM_AXIS::E_MAX)];
+
 
 /****************************************************************************/
 /*   デフォルト関数											                    */
@@ -126,6 +128,8 @@ HRESULT CAuxPol::initialize(LPVOID lpParam) {
 		}
 	}
 
+	sys_count_start_T_measure[(int)(ENUM_AXIS::X)] = sys_count_start_T_measure[(int)(ENUM_AXIS::Y)] = inf.sys_count.QuadPart;
+
 	//###  オペレーションパネル設定
 	//Function mode RADIO1
 	inf.panel_func_id = IDC_TASK_FUNC_RADIO1;
@@ -156,6 +160,7 @@ static cv::Mat    img_hsv_roi;
 static cv::Mat    img_hsv_bin_roi;
 static cv::Mat    img_mask_roi[(uint32_t)(ENUM_IMAGE_MASK::E_MAX)];
 static cv::Mat    lut;
+
 
 HRESULT CAuxPol::init_sway_sensor(){
 	// 画像処理用画像データ初期化(起動直後のエラー回避用)
@@ -197,6 +202,8 @@ HRESULT CAuxPol::init_sway_sensor(){
 		for (int i = 0; i < PRM_SWAY_V_HIST_SIZE; i++) {
 			gp_app_imgprc->sway_data->v_history.push_back(0.0);
 		}
+
+
 	}
 
 	gp_app_imgprc->target_size = 0.0;                                   // ターゲットサイズ(ターゲット検出データの平均)
@@ -223,6 +230,8 @@ HRESULT CAuxPol::init_sway_sensor(){
 			gp_app_imgprc->sway_data[axis].v_history.push_back(0.0);
 		}
 	}
+
+
 
 	//----------------------------------------------------------------------------
 	// メンバー変数の初期化
@@ -261,6 +270,8 @@ HRESULT CAuxPol::init_sway_sensor(){
 			coef_tg_size_h[idx][axis] = (double)gp_app_imgprc->target_data[idx].size_real.height * gp_cnfg_common->PIXperRAD[axis];
 			coef_tg_size_h[idx][axis] /= 1000.0;	//mm→m変換
 		}
+
+
 	}
 	// LUT Table 初期化
 	lut = cv::Mat(256, 1, CV_8UC3); // LUT:Look Up Table　縦に256画素、横に1画素の、縦に細長い3チャンネル（カラー）画像
@@ -1235,13 +1246,16 @@ void CAuxPol::proc_sway(int idx)
 			if (psway_data->ps_cal > PI180) psway_data->ps_cal -= PI360;//位相は±πで表現する
 		}
 
-		// p2pロジックで振れゼロ点,振幅,位相を求める
+		// p2pロジックで振れゼロ点,振幅,位相,周期を求める
 		psway_data->amp_p2p = (st_sway_work.sway_peak_f[idx] - st_sway_work.sway_peak_r[idx]) / 2.0;	//p2pの値から振幅を求める
 		psway_data->p0 = psway_data->amp_p2p + st_sway_work.sway_peak_r[idx];				//0点
 
 		psway_data->ps_time -= gp_app_system->sample_cycle * psway_data->w;		//時間ベース位相を前回値からサンプルサイクル分進める
 
-		if (psway_data->ps_time < -PI180) psway_data->ps_time += PI360;//位相は±πで表現する
+		if (psway_data->ps_time < -PI180) {
+			psway_data->ps_time += PI360;//位相は±πで表現する
+
+		}
 
 		if (nv >= 3) {//速度検出3回以上で評価可能
 			if ((psway_data->v_history[nv - 3] > 0.0) && (psway_data->v < 0.0)) {//振れ角速度符号変化(3scan前と比較）
@@ -1249,12 +1263,22 @@ void CAuxPol::proc_sway(int idx)
 				psway_data->ps_time = 0.0 - expected_delay_ph;
 				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_R_PEAK;	//リバース側待ちに切替
 				st_sway_work.sway_peak_chk_count[idx] = 0;
+
+				//psway_data->T_measure = (double)((inf.sys_count.QuadPart - sys_count_start_T_measure[idx]) / inf.cnt_unit_ms) / 1000.0;
+				//psway_data->T_measure *= 2.0;//半周期×2
+				//sys_count_start_T_measure[idx] = inf.sys_count.QuadPart;//周期計測開始カウント取り込み
+
 			}
 			else if ((psway_data->v_history[nv - 3] < 0.0) && (psway_data->v > 0.0)) {
 				st_sway_work.sway_peak_r[idx] = psway_data->p;				//振れ加速度+で振れ-peak
 				psway_data->ps_time = PI180 - expected_delay_ph;
 				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_F_PEAK;	//フォワード側待ちに切替
 				st_sway_work.sway_peak_chk_count[idx] = 0;
+
+				//psway_data->T_measure = (double)((inf.sys_count.QuadPart - sys_count_start_T_measure[idx]) / inf.cnt_unit_ms) / 1000.0;
+				//psway_data->T_measure *= 2.0;//半周期×2
+				//sys_count_start_T_measure[idx] = inf.sys_count.QuadPart;//周期計測開始カウント取り込み
+
 			}
 			else {
 				st_sway_work.sway_peak_chk_count[idx]++;
@@ -1279,6 +1303,10 @@ void CAuxPol::proc_sway(int idx)
 	else {  //if (psway_data->w > 0.0)
 		psway_data->v = psway_data->a = psway_data->vw = psway_data->aw2 = 0.0;
 	}
+
+psway_data->T_measure = (double)((inf.sys_count.QuadPart - sys_count_start_T_measure[idx]) / inf.cnt_unit_ms);
+sys_count_start_T_measure[idx] = inf.sys_count.QuadPart;//周期計測開始カウント取り込み
+
 
 	//振れ角速度履歴バッファ更新　加速度,振幅,位相演算用　
 	psway_data->v_history.push_back(psway_data->v);		// 振れ角今回値は前段のターゲット検出部で導出済のものをセット

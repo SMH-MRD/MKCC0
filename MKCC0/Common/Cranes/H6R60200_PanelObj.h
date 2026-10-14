@@ -165,9 +165,10 @@ static ST_OBJ_PROPERTY sub_set_props_h6r602[N_SUB_PNL_OBJ] = {
 
 	//Cameraウィンドウ
 	{ID_SUB_PNL_CAM_OBJ_CAMERA_BK	,Point(0,0)		,Size(640,500)	,L"CamBk"	},
-	{ID_SUB_PNL_CAM_OBJ_STR_MHL		,Point(250,35)	,Size(100,40)	,L"ロープ長"},
-	{ID_SUB_PNL_CAM_OBJ_STR_T		,Point(370,35)	,Size(100,40)	,L"周期"	},
-	{ID_SUB_PNL_CAM_OBJ_STR_KIDO	,Point(490,35)	,Size(100,40)	,L"輝度"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_MHL		,Point(50,35)	,Size(100,40)	,L"ロープ長"},
+	{ID_SUB_PNL_CAM_OBJ_STR_TX		,Point(170,35)	,Size(120,40)	,L"TX"	},
+	{ID_SUB_PNL_CAM_OBJ_STR_TY		,Point(300,35)	,Size(120,40)	,L"TY" },
+	{ID_SUB_PNL_CAM_OBJ_STR_KIDO	,Point(480,35)	,Size(100,40)	,L"輝度"	},
 
 };
 static ST_OBJ_PROPERTY gwin_set_props_h6r602[N_GWIN_OBJ] = {

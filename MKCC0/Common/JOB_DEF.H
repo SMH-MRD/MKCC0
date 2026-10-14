@@ -20,7 +20,8 @@
 #define ID_JOBTYPE_EMPTY		    0		//GBC TEST用のタイプ識別
 #define ID_JOBTYPE_GBC_TEST0		256		//GBC TEST用のタイプ識別(台形+振止め3回）
 #define ID_JOBTYPE_GBC_TEST1		257		//GBC TEST用のジョブ内容識別(台形のみ）
-#define ID_JOBTYPE_GBC_TEST2		258		//GBC TEST用のジョブ内容識別(振止めのみ）
+#define ID_JOBTYPE_GBC_TEST2		258		//GBC TEST用のジョブ内容識別(振止めのみ 2SHOT）
+#define ID_JOBTYPE_GBC_TEST3		259		//GBC TEST用のジョブ内容識別(振止めのみ 1SHOT）
 #define ID_JOBTYPE_END				-1		//JOB CODEリストの末尾識別用CODE
 
 //COMMAND PATTERN
