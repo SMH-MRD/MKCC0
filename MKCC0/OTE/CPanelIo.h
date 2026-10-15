@@ -151,6 +151,9 @@ public:
 		return L_OFF;
 	}
 	HRESULT disp_status() { //枠線を表示させたくないときはPENをONもOFFのPENにする
+		
+		if (pgraphics == nullptr) return S_OK;
+	
 		if (chk_trig()) {	//トリガのタイミングvalueが0⇒！0　!0⇒0で枠線描画　valueの値でpenを変える
 			Pen* ppen = pPenOff;
 			if (value != 0) ppen = pPenOn;

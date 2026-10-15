@@ -1194,6 +1194,7 @@ BOOL CAuxPol::proc_center_gravity2(std::vector<std::vector<cv::Point>> contours,
 /// </scenario>
 /// <param name=""></param>
 
+static int peak_chk_flg_hold[(int)ENUM_AXIS::E_MAX];
 
 void CAuxPol::proc_sway(int idx)
 {
@@ -1263,11 +1264,6 @@ void CAuxPol::proc_sway(int idx)
 				psway_data->ps_time = 0.0 - expected_delay_ph;
 				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_R_PEAK;	//リバース側待ちに切替
 				st_sway_work.sway_peak_chk_count[idx] = 0;
-
-				//psway_data->T_measure = (double)((inf.sys_count.QuadPart - sys_count_start_T_measure[idx]) / inf.cnt_unit_ms) / 1000.0;
-				//psway_data->T_measure *= 2.0;//半周期×2
-				//sys_count_start_T_measure[idx] = inf.sys_count.QuadPart;//周期計測開始カウント取り込み
-
 			}
 			else if ((psway_data->v_history[nv - 3] < 0.0) && (psway_data->v > 0.0)) {
 				st_sway_work.sway_peak_r[idx] = psway_data->p;				//振れ加速度+で振れ-peak
@@ -1275,14 +1271,10 @@ void CAuxPol::proc_sway(int idx)
 				st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_F_PEAK;	//フォワード側待ちに切替
 				st_sway_work.sway_peak_chk_count[idx] = 0;
 
-				//psway_data->T_measure = (double)((inf.sys_count.QuadPart - sys_count_start_T_measure[idx]) / inf.cnt_unit_ms) / 1000.0;
-				//psway_data->T_measure *= 2.0;//半周期×2
-				//sys_count_start_T_measure[idx] = inf.sys_count.QuadPart;//周期計測開始カウント取り込み
-
 			}
 			else {
 				st_sway_work.sway_peak_chk_count[idx]++;
-				if (st_sway_work.sway_peak_chk_count[idx] > st_sway_work.sway_T_task_count[idx]) {
+				if (st_sway_work.sway_peak_chk_count[idx] > st_sway_work.sway_T_task_count[idx]) {//振れ変化なしが一定以上継続
 					st_sway_work.peak_chk_flg[idx] = POL_CODE_P2P_WAIT_STOP;
 					st_sway_work.sway_peak_f[idx] = psway_data->p;
 					st_sway_work.sway_peak_r[idx] = psway_data->p;
@@ -1304,9 +1296,15 @@ void CAuxPol::proc_sway(int idx)
 		psway_data->v = psway_data->a = psway_data->vw = psway_data->aw2 = 0.0;
 	}
 
-psway_data->T_measure = (double)((inf.sys_count.QuadPart - sys_count_start_T_measure[idx]) / inf.cnt_unit_ms);
-sys_count_start_T_measure[idx] = inf.sys_count.QuadPart;//周期計測開始カウント取り込み
-
+	//振れ周期計測
+	if (((peak_chk_flg_hold[idx]== POL_CODE_P2P_WAIT_R_PEAK )&&(st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_F_PEAK))
+		||((peak_chk_flg_hold[idx] == POL_CODE_P2P_WAIT_F_PEAK) && (st_sway_work.peak_chk_flg[idx] == POL_CODE_P2P_WAIT_R_PEAK)))
+	{
+		psway_data->T_measure = (double)((inf.sys_count.QuadPart - sys_count_start_T_measure[idx]) / inf.cnt_unit_ms) / 1000.0;
+		psway_data->T_measure *= 2.0;//半周期×2
+		sys_count_start_T_measure[idx] = inf.sys_count.QuadPart;//周期計測開始カウント取り込み
+	}
+	peak_chk_flg_hold[idx] = st_sway_work.peak_chk_flg[idx];
 
 	//振れ角速度履歴バッファ更新　加速度,振幅,位相演算用　
 	psway_data->v_history.push_back(psway_data->v);		// 振れ角今回値は前段のターゲット検出部で導出済のものをセット

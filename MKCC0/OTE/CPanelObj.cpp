@@ -899,6 +899,10 @@ void CSubPanelObj::refresh_obj_graphics() {
 	str_T_mhy->refresh_graphics(pgraphic_inf);
 	str_swy_kido->refresh_graphics(pgraphic_inf);
 
+	cb_v_delay_chk_device->refresh_graphics(pgraphic);		//映像遅延測定用デバイス強制ON/OFFチェックボックス
+	pb_v_delay_chk_prm_auto_set->refresh_graphics(pgraphic);	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット起動PB
+	pb_v_delay_chk_prm_save->refresh_graphics(pgraphic);		//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブPB
+	pb_auto_set->refresh_graphics(pgraphic);
 	return;
 }
 
