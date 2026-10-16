@@ -6,8 +6,8 @@
 #include "SmemMain.H"
 #include "SmemAux.H"
 
-#define POL_MON1_WND_X     640
-#define POL_MON1_WND_Y     0
+#define POL_MON1_WND_X     880
+#define POL_MON1_WND_Y     600
 #define POL_MON1_WND_W     640
 #define POL_MON1_WND_H     480
 #define POL_MON1_N_CTRL    32

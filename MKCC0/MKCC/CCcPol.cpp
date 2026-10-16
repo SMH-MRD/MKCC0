@@ -48,6 +48,8 @@ static CAgent* pAgent = NULL;
 static CCcEnv* pEnv = NULL;
 static CCcCS* pCS = NULL;
 
+static double check_d, check_d2;
+
 ST_POL_MON1 CCcPol::st_mon1;
 ST_POL_MON2 CCcPol::st_mon2;
 
@@ -124,11 +126,11 @@ HRESULT CCcPol::initialize(LPVOID lpParam) {
 	return S_OK;
 }
 
-static double check_d;
+
 HRESULT CCcPol::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
-		wos << L"SWAY X:" << check_d;
+		wos << L"th0:" << check_d2 << L"PS:" << check_d;
 		msg2host(wos.str());
 	}
 	input();
@@ -141,11 +143,11 @@ static UINT32	gpad_mode_last = L_OFF;
 
 int CCcPol::input() {
 
-	if (g_aux_sway_status) {
-		check_d = pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_p2p;
-	}
+
 	return S_OK;
 }
+
+
 
 int CCcPol::parse() {           //メイン処理
 //### 制御PC検出異常、警報状態設定処理
@@ -1052,7 +1054,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 	case ID_JOBIO_COMTYPE_AS_1SHOT: {
 
 		bool is_sway_over1cycle = false;			//振れ止め：1回のサイクルで完了不可フラグ
-		double tacc;
+		double tacc,th0;
 
 		//移動方向
 		pseq->direction = ID_SELECT;
@@ -1070,15 +1072,19 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		double chk_d = pEnvInf->crane_stat.sway_amp_expected[id] / (2.0 * r0);	// pEnvInf->crane_stat.sway_amp_expectedの単位rad
 
 		double ps;
-	
-		if (chk_d < 1.0) {									//acos(x)の範囲は1.0～-1.0 →　chk_dの上限は2.0
+		if (chk_d < 2.0) {									//acos(x)の範囲は1.0～-1.0 →　chk_dの上限は2.0
 			is_sway_over1cycle = false;
-			ps = acos(1.0 - chk_d);		//加速位相　		acos(1-Rs/(2.0*r0))　φ=ωtacc
+			ps = acos(1.0 - chk_d);						//加速位相　		acos(1-Rs/(2.0*r0))　φ=ωtacc
 		}
 		else {
 			is_sway_over1cycle = true;
-			ps = PI90;					//加速位相(時間）　π　φ=ωtacc
+			ps = PI180;					//加速位相(時間）　π　φ=ωtacc
 		}
+		th0 = -PI180 + ps;
+
+		check_d = ps;
+		check_d2 = th0;
+
 		//加速時間
 		tacc = ps / st_com_work.w[id];
 
@@ -1095,18 +1101,16 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->_p = pseq->seq_target.p;					// 目標位置（現在位置）　
 
 		pelement->opt_i[ID_STEP_OPT_DIR] = ID_SELECT;
-
-		//起動開始位相は(2n-1)π　→±PI180
-		double th0 = PI180-ps;
-		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0 ;
-		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = ps-PI180;
-
+		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0 + PI180;
+		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = th0;
+		//if (pelement->opt_d[ID_STEP_OPT_PHASE_REV] < -PI180) pelement->opt_d[ID_STEP_OPT_PHASE_REV] += PI360;		//起動開始位相は(2n-1)π　→±PI180
+	
 		//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
-		double dph = pwork->vfb_delay_time[id] * pwork->w[id];//起動遅れ時間分の位相
-		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] += dph;
-		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_FWD]));
-		pelement->opt_d[ID_STEP_OPT_PHASE_REV] += dph;
-		CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_REV]));
+		//double dph = pwork->vfb_delay_time[id] * pwork->w[id];//起動遅れ時間分の位相
+		//pelement->opt_d[ID_STEP_OPT_PHASE_FWD] += dph;
+		//CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_FWD]));
+		//pelement->opt_d[ID_STEP_OPT_PHASE_REV] += dph;
+		//CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_REV]));
 	
 		double v_acc = st_com_work.vmax_abs[id];
 
@@ -1114,7 +1118,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 
 		//起動判定許容範囲セット		
 		//pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = PI5;
-		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG * 2.0;
+		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG;//とりあえず検出レンジ幅2°
 
 		//#####  STEP 1 1SHOT 加速 パターンは正転ベース
 		//前パターンの設定保持
@@ -1182,7 +1186,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		double r0 = pwork->a_hp_abs[id][POL_ID_START_POINT] / GA;				//r0の単位rad
 		double chk_d = pEnvInf->crane_stat.sway_amp_expected[id] / (4.0 * r0);	// pEnvInf->crane_stat.sway_amp_expectedの単位rad
 
-		double ps;
+		double ps,psc;
 
 		if (chk_d < 2.0) {									//acos(x)の範囲は1.0～-1.0 →　chk_dの上限は2.0
 			is_sway_over1cycle = false;
@@ -1190,28 +1194,24 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		}
 		else {
 			is_sway_over1cycle = true;
-			ps = PI90;					//加速位相(時間）　　φ=ωtacc
+			ps = PI180;					//加速位相(時間）　　φ=ωtacc
 		}
 		//加速時間
 		tacc = ps / st_com_work.w[id];
-		
-		//減速+待機時間
+
+		//起動位相
+		th0 = PI180 - ps;	//th0 = -(PI180 + ps)だが、psはacosで計算するので常時>0なので+360°にして-180～+180のレンジに合わせる
+
+		//待機時間
 		if (is_sway_over1cycle == true) {
-			tc		= (PI180-2.0*ps)/ st_com_work.w[id];		
-			th0	= (PI180 - ps);									
+			psc = PI180;		
 		}
 		else {
-			for (int i = 0; i < 3; i++) {
-				tc = (((double)i * 2.0 + 1.0) * PI180 - 2.0*ps) / st_com_work.w[id];
-				if (tc >= 0.0) break;
-			}
-			for (int i = 0; i < 3; i++) {
-				th0 = ((double)i * 2.0 + 1.0) * PI180 - ps;
-				if (th0 >= 0.0) break;
-			}
-		}	
-		if (tc < 0.0) tc = 0.0;
-		if (th0 < 0.0) th0 = 0.0;
+			psc = PI180 - 2.0 * ps;
+			if (psc < 0.0) psc += PI360;
+		}
+		tc = psc / st_com_work.w[id];
+
 	
 	//###############################################################################################
 	// STEP 0 パターン出力位相タイミング待ち待機
@@ -1228,8 +1228,9 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->opt_i[ID_STEP_OPT_DIR] = ID_SELECT;
 
 		//起動開始位相は(2n-1)π　→±PI180
-		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0;
-		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = th0+PI180;
+		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0 + PI180;
+		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = th0;
+		if (pelement->opt_d[ID_STEP_OPT_PHASE_REV] > PI180) pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= PI360;
 
 		//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
 		//double dph = pwork->vfb_delay_time[id] * pwork->w[id];//起動遅れ時間分の位相
@@ -1244,7 +1245,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 
 		//起動判定許容範囲セット		
 		//pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = PI5;
-		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG * 2.0;
+		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG;
 
 	//#####  STEP 1 1SHOT 加速 パターンは正転ベース
 		double v_last = pelement->_v;
@@ -1254,7 +1255,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->type = CTR_TYPE_VOUT_TIME_2SHOT1;						// 開始時に起動方向を決めて指定時間、最大速度指令出力
 		pelement->_a = pseq->seq_target.a;
 		pelement->_v = v_acc;
-		pelement->_t = tacc + pwork->vfb_delay_time[id];				//起動遅れ分付加
+		pelement->_t = tacc;// +pwork->vfb_delay_time[id];				//起動遅れ分付加
 	
 		double d_accdec = 0.5 * pelement->_t* pelement->_t * pelement->_a;//a*t^2/2
 		pelement->_p = p_last + d_accdec;	// 目標位置
@@ -1284,7 +1285,7 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->type = CTR_TYPE_VOUT_TIME_2SHOT2;						// 開始時に起動方向を決めて指定時間、最大速度指令出力
 		pelement->_a = pseq->seq_target.a;
 		pelement->_v = v_acc;
-		pelement->_t = tacc + pwork->vfb_delay_time[id];					//起動遅れ分付加
+		pelement->_t = tacc;// +pwork->vfb_delay_time[id];					//起動遅れ分付加
 
 		d_accdec = 0.5 * pelement->_t * pelement->_t * pelement->_a;	//a*t^2/2
 		pelement->_p = p_last - d_accdec;	// 目標位置

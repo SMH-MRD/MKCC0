@@ -438,6 +438,11 @@ int CAuxPol::parse() {
 					else {//重心演算の未完了でターゲット位置が求まっていない場合は、ROIを画面全体に設定する
 						ptarget_data->roi.x = 0; ptarget_data->roi.y = 0;
 						ptarget_data->roi.width = g_img_src_work.width;	ptarget_data->roi.height = g_img_src_work.height;
+
+						//!!#########  クライアントがSimulator Mode時 全画面処理するとPOLの処理時間が数100msecになるのを防止
+						if (pCsInf->msg_client.head.status != MODE_ENV_APP_PRODUCT) {
+							ptarget_data->roi.width = 100;	ptarget_data->roi.height = 100;
+						}
 					}   // if (target_data->valid) else
 				} // ROI処理有効モード　if (gp_cnfg_imgprc->roi.valid)
 				else {//ROI処理無効モードでROIを画面全体に設定する
@@ -888,11 +893,13 @@ int CAuxPol::parse() {
 		}
 
 #pragma endregion SET TARGET POS
-		// 制御PCとのIF CHECK　MODE デバッグ用　AUX_POLのタスクパネルでmaintenance_modeセット　AUX_POLで振れデータをセット
+
+
+		// ##########  制御PCとのIF CHECK　MODE デバッグ用　AUX_POLのタスクパネルでmaintenance_modeセット　AUX_POLで振れデータをセット
 		if (maintenance_mode == CODE_POL_MAINTE_DBG_OVERRIDE) {				
 			proc_dbg_override();
 		}
-		//クライアントがSimulator Mode時　Simulator計算値で振れ,輝度データをセット
+		//!!#########  クライアントがSimulator Mode時　Simulator計算値で振れ,輝度データをセット
 		else if (pCsInf->msg_client.head.status != MODE_ENV_APP_PRODUCT) {	
 			PSWAY_DATA psway_data;
 			for (int i = 0; i < (int)ENUM_AXIS::E_MAX; i++) {

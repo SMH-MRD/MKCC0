@@ -55,8 +55,8 @@ constexpr auto MKLOG_WND_EVENT_Y		= 0;
 constexpr auto MKLOG_WND_EVENT_W		= 640;
 constexpr auto MKLOG_WND_EVENT_H		= 480;
 
-constexpr auto MKLOG_WND_TIME_X			= 800;
-constexpr auto MKLOG_WND_TIME_Y			= 1;
+constexpr auto MKLOG_WND_TIME_X			= 0;//800;
+constexpr auto MKLOG_WND_TIME_Y			= 560;// 1;
 constexpr auto MKLOG_WND_TIME_W			= 780;
 constexpr auto MKLOG_WND_TIME_H			= 760;
 

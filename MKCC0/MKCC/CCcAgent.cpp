@@ -1328,24 +1328,21 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		double chk_ph;												//目標位相
 		double ph_io = pCraneStat->sway_ph_expected[motion];		//現在の位相
 		//ステップ方向フラグ初期化
-		pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_STOP;
+		pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_1SHOT] = ID_STOP;
+
+
 
 		//####### 正転側起動チェック ##########
-		//ID_STEP_OPT_PHASE_CHK_RANGE:範囲内チェック幅　ID_STEP_OPT_PHASE_FWD:POLで計算した開始位相
-		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲マイナス側
-		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲プラス側
+		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] * 20.0;
+		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	
 
-
-		if (ph_chk_f_n < -PI180) {
-			if ((ph_io > (ph_chk_f_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_f_p) && (ph_io >= -PI180))) //位相　PI180付近以上　&&　位相　-PI180付近以下
-				pStep->status = STAT_END;
-		}
-		else if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
+		if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
 			if (((ph_io < ph_chk_f_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_f_n) && (ph_io <= PI180)))//位相　-PI180付近以下　&&　位相　PI180付近以上
 				pStep->status = STAT_END;
 		}
 		else {
-			if ((ph_io < ph_chk_f_p) && (ph_io > ph_chk_f_n)) pStep->status = STAT_END;
+			if ((ph_io < ph_chk_f_p) && (ph_io > ph_chk_f_n))
+				pStep->status = STAT_END;
 		}
 		//STAT_ENDで移動方向フラグセット
 		if (pStep->status == STAT_END) {
@@ -1354,16 +1351,15 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		}
 
 		//####### 逆転側起動チェック ##########
+		double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] * 20.0;
 		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
-		double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 		if (ph_chk_r_n < -PI180) {
-			if (((ph_io > ph_chk_r_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_r_p) && (ph_io >= -PI180))) pStep->status = STAT_END;
-		}
-		else if (ph_chk_r_p > PI180) {
-			if (((ph_io < ph_chk_r_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_r_n) && (ph_io <= PI180))) pStep->status = STAT_END;
+			if (((ph_io > ph_chk_r_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_r_p) && (ph_io >= -PI180))) 
+				pStep->status = STAT_END;
 		}
 		else {
-			if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n)) pStep->status = STAT_END;
+			if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n)) 
+				pStep->status = STAT_END;
 		}
 
 		//STAT_ENDで移動方向フラグセット
@@ -1372,10 +1368,10 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 			break;
 		}
 
-
 		//異常完了判定
 		if (pStep->act_count > pStep->time_count) {			//タイムオーバー
 			pStep->status = STAT_TIME_OVER;
+			pStep->status = STAT_END;
 			is_step_abnormal_end = true;
 		}
 
@@ -1398,9 +1394,10 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_FIRST] = pCom->seq[motion].opt_agent[SEQ_RECIPE_OPT_I_DIR_2INCH_SECOND] = ID_STOP;
 
 		//####### 正転側起動チェック ##########
+	
+		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] -pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲マイナス側
 		//ID_STEP_OPT_PHASE_CHK_RANGE:範囲内チェック幅　ID_STEP_OPT_PHASE_FWD:POLで計算した開始位相
-		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲マイナス側
-		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲プラス側
+		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD];// +pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];	//正転起動開始check位相範囲プラス側
 
 
 		if (ph_chk_f_n < -PI180){
@@ -1429,7 +1426,8 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		}
 
 			//####### 逆転側起動チェック ##########
-		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV] - pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
+		//ID_STEP_OPT_PHASE_CHK_RANGE:範囲内チェック幅　ID_STEP_OPT_PHASE_FWD:POLで計算した開始位相
+		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV];// -pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 		double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 		if (ph_chk_r_n < -PI180) {
 			if (((ph_io > ph_chk_r_n + PI360)&&(ph_io <= PI180)) || ((ph_io < ph_chk_r_p)&&(ph_io >= -PI180))) pStep->status = STAT_END;
