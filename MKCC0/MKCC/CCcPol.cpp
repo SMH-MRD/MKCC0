@@ -1105,20 +1105,24 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = th0;
 		//if (pelement->opt_d[ID_STEP_OPT_PHASE_REV] < -PI180) pelement->opt_d[ID_STEP_OPT_PHASE_REV] += PI360;		//起動開始位相は(2n-1)π　→±PI180
 	
-		//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
-		//double dph = pwork->vfb_delay_time[id] * pwork->w[id];//起動遅れ時間分の位相
-		//pelement->opt_d[ID_STEP_OPT_PHASE_FWD] += dph;
-		//CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_FWD]));
-		//pelement->opt_d[ID_STEP_OPT_PHASE_REV] += dph;
-		//CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_REV]));
+	
 	
 		double v_acc = st_com_work.vmax_abs[id];
 
 		D_abs = pseq->seq_target.a * tacc * tacc;
 
+	
+		//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
+		//OTEパラメータの値をセット
+		double fb_delay_time = (double)pcomset->pcom_prm[JOB_COM_PRM_FB_DELAY] / 1000.0;
+		//下限値リミット設定（AGENTでの検出幅になるので0.0以上必要
+		if (fb_delay_time < pwork->vfb_delay_time[id])
+			fb_delay_time = pwork->vfb_delay_time[id];
+
+		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = fb_delay_time * pwork->w[id];
+		
 		//起動判定許容範囲セット		
-		//pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = PI5;
-		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG;//とりあえず検出レンジ幅2°
+		//pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG * 20.0;//とりあえず検出レンジ幅2°
 
 		//#####  STEP 1 1SHOT 加速 パターンは正転ベース
 		//前パターンの設定保持
@@ -1198,21 +1202,26 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		}
 		//加速時間
 		tacc = ps / st_com_work.w[id];
-
+		
+		
 		//起動位相
-		th0 = PI180 - ps;	//th0 = -(PI180 + ps)だが、psはacosで計算するので常時>0なので+360°にして-180～+180のレンジに合わせる
+		th0 = -PI180 + ps;
+	//	th0 = PI180 - ps;	
+		check_d = ps;
+		check_d2 = th0;
+
 
 		//待機時間
+		//条件 2*φ+φc = (2n+1)π　→ ps=πでφc = π
 		if (is_sway_over1cycle == true) {
 			psc = PI180;		
 		}
 		else {
 			psc = PI180 - 2.0 * ps;
-			if (psc < 0.0) psc += PI360;
+			if (psc < 0.0) psc += PI360;//待機時間がマイナスになる時は1周期分足す
 		}
 		tc = psc / st_com_work.w[id];
 
-	
 	//###############################################################################################
 	// STEP 0 パターン出力位相タイミング待ち待機
 	// AS_2SHOTは、θ0=π or -πでtacc出力→tc=(2n-1）π/ω - 2tacc 0出力→tacc逆出力→tacc待機
@@ -1230,23 +1239,22 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		//起動開始位相は(2n-1)π　→±PI180
 		pelement->opt_d[ID_STEP_OPT_PHASE_FWD] = th0 + PI180;
 		pelement->opt_d[ID_STEP_OPT_PHASE_REV] = th0;
-		if (pelement->opt_d[ID_STEP_OPT_PHASE_REV] > PI180) pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= PI360;
+		//if (pelement->opt_d[ID_STEP_OPT_PHASE_REV] > PI180) pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= PI360;
 
 		//速度FB遅れ分を考慮して開始位相を早める分の補正量を求める
-		//double dph = pwork->vfb_delay_time[id] * pwork->w[id];//起動遅れ時間分の位相
-		//pelement->opt_d[ID_STEP_OPT_PHASE_FWD] -= dph;
-		//CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_FWD]));
-		//pelement->opt_d[ID_STEP_OPT_PHASE_REV] -= dph;
-		//CPhaseHelper::fit_ph_range_upto_pi(&(pelement->opt_d[ID_STEP_OPT_PHASE_REV]));
+		//OTEパラメータの値をセット
+		double fb_delay_time = (double)pcomset->pcom_prm[JOB_COM_PRM_FB_DELAY] / 1000.0;
+		//下限値リミット設定（AGENTでの検出幅になるので0.0以上必要
+		if (fb_delay_time < pwork->vfb_delay_time[id])
+			fb_delay_time = pwork->vfb_delay_time[id];
+
+		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = fb_delay_time * pwork->w[id];
 
 		double v_acc = st_com_work.vmax_abs[id];
 
 		D_abs = 0.0;
 
-		//起動判定許容範囲セット		
-		//pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = PI5;
-		pelement->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE] = RAD1DEG;
-
+	
 	//#####  STEP 1 1SHOT 加速 パターンは正転ベース
 		double v_last = pelement->_v;
 		double p_last = pelement->_p;
@@ -1311,10 +1319,10 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 	case ID_JOBIO_COMTYPE_PARK_TIME:
 	{
 		//移動方向
-		int notch = pcomset->pcom_prm[0];							//ノッチ速度設定値
+		int notch = pcomset->pcom_prm[JOB_COM_PRM_NOTCH];							//ノッチ速度設定値
 		if (notch > NOTCH_4)	notch = NOTCH_4;
 		if (notch < -NOTCH_4)	notch = -NOTCH_4;
-		ctime = (double)pcomset->pcom_prm[1] / 10.0;				//定速時間設定値(0.1秒単位→秒単位）
+		ctime = (double)pcomset->pcom_prm[JOB_COM_PRM_PARK_TIME] / 10.0;				//定速時間設定値(0.1秒単位→秒単位）
 
 		if (notch >= 0) {
 			pseq->direction = ID_FWD;

@@ -109,7 +109,7 @@ typedef struct _ST_POL_MON2 {
 
 #define POL_PRM_FB_DELAY_HOIST          0.3
 #define POL_PRM_FB_DELAY_BH             0.3
-#define POL_PRM_FB_DELAY_SLEW           0.8
+#define POL_PRM_FB_DELAY_SLEW           0.3
 #define POL_PRM_FB_DELAY_GANTRY         0.3
 #define POL_PRM_FB_DELAY_AHOIST         0.3
 

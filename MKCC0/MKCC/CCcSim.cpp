@@ -385,17 +385,18 @@ HRESULT CSim::cal_sway_io_JC() {
 
 	//’Ý‰×‚Ì‘Š‘ÎÀ•WiƒNƒŒ[ƒ“À•Wxyz¨ƒJƒƒ‰À•W radj
 	//xrad = xEsinƒÓ - yEcosƒÓ@
-	//pSimJC->pLoad->Lcam.x	= asin(((pSimJC->pLoad->L.x)	* sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)	/ mhl);   //U‚êŠpù‰ñ•ûŒü
-	//pSimJC->pLoad->Lcam.y   = asin(((pSimJC->pLoad->L.x)	* cos_ph_sl + (pSimJC->pLoad->L.y)	* sin_ph_sl)	/ mhl);   //U‚êŠpˆøž•ûŒü
 
-	//pSimJC->pLoad->vLcam.x = asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)	/ mhl);   //U‚êŠp‘¬“xù‰ñ•ûŒü
-	//pSimJC->pLoad->vLcam.y = asin(((pSimJC->pLoad->vL.x)	* cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl)	/ mhl);   //U‚êŠp‘¬“xˆøž•ûŒü
+	//pSimJC->pLoad->Lcam.x = -asin(((pSimJC->pLoad->L.x)     * cos_ph_sl + (pSimJC->pLoad->L.y)  * sin_ph_sl) / mhl);   //U‚êŠpˆøž•ûŒü
+	//pSimJC->pLoad->Lcam.y = -asin(((pSimJC->pLoad->L.x)	    * sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)/ mhl);   //U‚êŠpù‰ñ•ûŒü
 
-	pSimJC->pLoad->Lcam.x = -asin(((pSimJC->pLoad->L.x) * cos_ph_sl + (pSimJC->pLoad->L.y) * sin_ph_sl) / mhl);   //U‚êŠpˆøž•ûŒü
-	pSimJC->pLoad->Lcam.y = -asin(((pSimJC->pLoad->L.x)	* sin_ph_sl + (pSimJC->pLoad->L.y)	* -cos_ph_sl)	/ mhl);   //U‚êŠpù‰ñ•ûŒü
+	//pSimJC->pLoad->vLcam.x = -asin(((pSimJC->pLoad->vL.x)   * cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl) / mhl);   //U‚êŠp‘¬“xˆøž•ûŒü
+	//pSimJC->pLoad->vLcam.y = -asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)/ mhl);   //U‚êŠp‘¬“xù‰ñ•ûŒü
+
+	pSimJC->pLoad->Lcam.x = -asin(((pSimJC->pLoad->L.x) * cos_ph_sl + (pSimJC->pLoad->L.y) * -sin_ph_sl) / mhl);   //U‚êŠpˆøž•ûŒü
+	pSimJC->pLoad->Lcam.y = -asin(((pSimJC->pLoad->L.x) * sin_ph_sl + (pSimJC->pLoad->L.y) * -cos_ph_sl) / mhl);   //U‚êŠpù‰ñ•ûŒü
 
 	pSimJC->pLoad->vLcam.x = -asin(((pSimJC->pLoad->vL.x) * cos_ph_sl + (pSimJC->pLoad->vL.y) * sin_ph_sl) / mhl);   //U‚êŠp‘¬“xˆøž•ûŒü
-	pSimJC->pLoad->vLcam.y = -asin(((pSimJC->pLoad->vL.x)	* sin_ph_sl + (pSimJC->pLoad->vL.y) * -cos_ph_sl)	/ mhl);   //U‚êŠp‘¬“xù‰ñ•ûŒü
+	pSimJC->pLoad->vLcam.y = -asin(((pSimJC->pLoad->vL.x) * sin_ph_sl + (pSimJC->pLoad->vL.y) * cos_ph_sl) / mhl);   //U‚êŠp‘¬“xù‰ñ•ûŒü
 
 	
 	pSimJC->pLoad->Lcam.z = pSimJC->pLoad->L.z;
