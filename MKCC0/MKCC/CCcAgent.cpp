@@ -1340,6 +1340,10 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 			if (((ph_io < ph_chk_f_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_f_n) && (ph_io <= PI180)))//位相　-PI180付近以下　&&　位相　PI180付近以上
 				pStep->status = STAT_END;
 		}
+		//else if (ph_chk_f_n < -PI180) {
+		//	if (((ph_io > ph_chk_f_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_f_p) && (ph_io >= -PI180)))
+		//		pStep->status = STAT_END;
+		//}
 		else {
 			if ((ph_io < ph_chk_f_p) && (ph_io > ph_chk_f_n))
 				pStep->status = STAT_END;
@@ -1354,14 +1358,15 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		//プラス側は、速度FB遅れを考慮して起動位相を早める（位相は-で回るので
 		double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];// *20.0;
 		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV];// -pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
-		//if (ph_chk_r_n < -PI180) {
-		//	if (((ph_io > ph_chk_r_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_r_p) && (ph_io >= -PI180))) 
-		//		pStep->status = STAT_END;
-		//}
+
 		if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
 			if (((ph_io < ph_chk_f_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_f_n) && (ph_io <= PI180)))//位相　-PI180付近以下　&&　位相　PI180付近以上
 				pStep->status = STAT_END;
 		}
+		//else if (ph_chk_r_n < -PI180) {
+		//	if (((ph_io > ph_chk_r_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_r_p) && (ph_io >= -PI180))) 
+		//		pStep->status = STAT_END;
+		//}
 		else {
 			if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n)) 
 				pStep->status = STAT_END;
@@ -1402,12 +1407,16 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		//####### 正転側起動チェック ##########
 		//プラス側は、速度FB遅れを考慮して起動位相を早める（位相は-で回るので
 		double ph_chk_f_p = pStep->opt_d[ID_STEP_OPT_PHASE_FWD] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
-		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD];
+		double ph_chk_f_n = pStep->opt_d[ID_STEP_OPT_PHASE_FWD];// -pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 
 		if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
 			if (((ph_io < ph_chk_f_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_f_n) && (ph_io <= PI180)))//位相　-PI180付近以下　&&　位相　PI180付近以上
 				pStep->status = STAT_END;
 		}
+	  //else if (ph_chk_f_n < -PI180) {
+	 //	    if (((ph_io > ph_chk_f_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_f_p) && (ph_io >= -PI180)))
+	 //		   pStep->status = STAT_END;
+	 // }
 		else {
 			if ((ph_io < ph_chk_f_p) && (ph_io > ph_chk_f_n))
 				pStep->status = STAT_END;
@@ -1430,12 +1439,16 @@ double CAgent::cal_step(LPST_COMMAND_SET pCom, int motion) {
 		//ID_STEP_OPT_PHASE_CHK_RANGE:範囲内チェック幅　ID_STEP_OPT_PHASE_FWD:POLで計算した開始位相
 		//プラス側は、速度FB遅れを考慮して起動位相を早める（位相は-で回るので
 		double ph_chk_r_p = pStep->opt_d[ID_STEP_OPT_PHASE_REV] + pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
-		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV];
+		double ph_chk_r_n = pStep->opt_d[ID_STEP_OPT_PHASE_REV];// -pStep->opt_d[ID_STEP_OPT_PHASE_CHK_RANGE];
 
 		if (ph_chk_f_p > PI180) {	//プラス側レンジがπ以上になった時(マイナス側はPI180の範囲内
 			if (((ph_io < ph_chk_f_p - PI360) && (ph_io >= -PI180)) || ((ph_io > ph_chk_f_n) && (ph_io <= PI180)))//位相　-PI180付近以下　&&　位相　PI180付近以上
 				pStep->status = STAT_END;
 		}
+	  //else if (ph_chk_r_n < -PI180) {
+	  //	    if (((ph_io > ph_chk_r_n + PI360) && (ph_io <= PI180)) || ((ph_io < ph_chk_r_p) && (ph_io >= -PI180))) 
+	  //		pStep->status = STAT_END;
+	  // }
 		else {
 			if ((ph_io < ph_chk_r_p) && (ph_io > ph_chk_r_n))
 				pStep->status = STAT_END;

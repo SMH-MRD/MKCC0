@@ -68,6 +68,8 @@ static ST_OBJ_PROPERTY sub_set_props_h6r602[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE	,Point(550,100)	,Size(150,65)	,L"要求待ち"	},
 
 	{ID_SUB_PNL_SET_OBJ_PB_AUTO_SET			,Point(550,175)	,Size(80,30)	,L"AUTO SET"},
+	{ID_SUB_PNL_SET_OBJ_PB_JOB_CLR			,Point(300,450)	,Size(80,30)	,L"JOB CLR"},
+
 	{ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE1		,Point(410,220)	,Size(50,25)	,L"移動"	},
 	{ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE2		,Point(465,220)	,Size(50,25)	,L"2SHO"	},
 	{ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE3		,Point(525,220)	,Size(50,25)	,L"1SHO"	},
@@ -87,6 +89,8 @@ static ST_OBJ_PROPERTY sub_set_props_h6r602[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM6		,Point(495,350)	,Size(60,25)	,L"-"	},
 	{ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM7		,Point(495,380)	,Size(60,25)	,L"-"	},
 	{ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM8		,Point(495,410)	,Size(60,25)	,L"-"	},
+	{ID_SUB_PNL_SET_OBJ_ST_JOB_INF			,Point(400,455)	,Size(150,25)	,L"JOB n "},
+
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM1		,Point(395,320)	,Size(60,25)	,L"0"	},
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM2		,Point(395,350)	,Size(60,25)	,L"0"	},
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM3		,Point(395,380)	,Size(60,25)	,L"0"	},
@@ -95,7 +99,7 @@ static ST_OBJ_PROPERTY sub_set_props_h6r602[N_SUB_PNL_OBJ] = {
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM6		,Point(560,350)	,Size(60,25)	,L"0"	},
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM7		,Point(560,380)	,Size(60,25)	,L"0"	},
 	{ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM8		,Point(560,410)	,Size(60,25)	,L"0"	},
-	{ID_SUB_PNL_SET_OBJ_CB_AUTO_ACT			,Point(560,450)	,Size(100,35)	,L"自動起動"},
+	{ID_SUB_PNL_SET_OBJ_CB_AUTO_ACT			,Point(550,450)	,Size(100,35)	,L"自動起動"},
 
 	//状態サブウィンドウ
 	{ID_SUB_PNL_STAT_OBJ_PB_NEXT	,Point(230,420)	,Size(50,30)	,L"NEXT"		},//i=17

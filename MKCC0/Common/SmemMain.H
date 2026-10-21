@@ -459,6 +459,7 @@ typedef struct _ST_CC_CS_CTRL {
 	INT32		auto_select[MOTION_ID_MAX];								//軸毎自動選択状態等
 	ST_POS_TARGETS semi_auto_selected_target;							//半自動選択目標位置(振れ止め含む）
 	ST_GPAD_IN gpad_in;	
+	INT16		job_clear;
 
 }ST_CC_CS_CTRL, * LPST_CC_CS_CTRL;
 

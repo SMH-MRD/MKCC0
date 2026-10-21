@@ -656,8 +656,9 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	i++; st_v_delay_auto_set_status = new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_AUTO_PRM,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_v_delay_prm_io_status	= new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_VDLY_PRM_SAVE,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
-	i++; pb_auto_set				= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_AUTO_SET, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
-	
+	i++; pb_auto_set				= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_AUTO_SET,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+	i++; pb_job_clear				= new CPbCtrl(ID_SUB_PNL_SET_OBJ_PB_JOB_CLR,		&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
+
 	i++; cb_auto_type1				= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE1,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_auto_type2				= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE2,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
 	i++; cb_auto_type3				= new CCbCtrl(ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE3,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt, pgraphic, drawing_items.ppen[ID_PANEL_COLOR_BLACK], drawing_items.ppen[ID_PANEL_COLOR_DGRAY]);
@@ -678,6 +679,7 @@ HRESULT CSubPanelObj::setup_jc_obj(int _crane_id) {
 	i++; st_auto_prm6				= new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM6,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_auto_prm7				= new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM7,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; st_auto_prm8				= new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_AUTO_PRM8,	&sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
+	i++; st_job_inf					= new CStaticCtrl(ID_SUB_PNL_SET_OBJ_ST_JOB_INF, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 
 	i++; ed_auto_prm1				= new CEditIntCtrl(ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM1, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
 	i++; ed_auto_prm2				= new CEditIntCtrl(ID_SUB_PNL_SET_OBJ_EDIT_AUTO_PRM2, &sub_set_props[i].pt, &sub_set_props[i].sz, sub_set_props[i].txt);
@@ -805,6 +807,7 @@ void CSubPanelObj::delete_obj() {
 	delete st_v_delay_prm_io_status;	//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブ進捗表示テキスト
 
 	delete pb_auto_set;
+	delete pb_job_clear;
 	delete cb_auto_type1;
 	delete cb_auto_type2;
 	delete cb_auto_type3;
@@ -823,6 +826,7 @@ void CSubPanelObj::delete_obj() {
 	delete st_auto_prm6;
 	delete st_auto_prm7;
 	delete st_auto_prm8;
+	delete st_job_inf;
 	delete ed_auto_prm1;
 	delete ed_auto_prm2;
 	delete ed_auto_prm3;
@@ -903,6 +907,7 @@ void CSubPanelObj::refresh_obj_graphics() {
 	pb_v_delay_chk_prm_auto_set->refresh_graphics(pgraphic);	//映像遅延測定用ﾊﾟﾗﾒｰﾀ自動セット起動PB
 	pb_v_delay_chk_prm_save->refresh_graphics(pgraphic);		//映像遅延測定用ﾊﾟﾗﾒｰﾀセーブPB
 	pb_auto_set->refresh_graphics(pgraphic);
+	pb_job_clear->refresh_graphics(pgraphic);
 	return;
 }
 

@@ -473,8 +473,9 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 
 	//### 主巻ロープ長
 	//主巻ロープ長 = ( ロープ全長- 主巻ドラム巻取量 - 起伏(主巻）ドラム巻取量 - (d値×ジブ部ロープ本数))/吊部ロープ本数
-	pCrStat->mhl.p = (pspec->axis_spec[ID_HOIST].Lfull - pCrStat->ld[ID_HOIST].p - pCrStat->ld[ID_BH_HST].p - pCrStat->d.p * pspec->axis_spec[ID_HOIST].Nwire0)/ pspec->axis_spec[ID_HOIST].Nwire1;
-	
+//	pCrStat->mhl.p = (pspec->axis_spec[ID_HOIST].Lfull - pCrStat->ld[ID_HOIST].p - pCrStat->ld[ID_BH_HST].p - pCrStat->d.p * pspec->axis_spec[ID_HOIST].Nwire0)/ pspec->axis_spec[ID_HOIST].Nwire1;
+	pCrStat->mhl.p = cal_mhl(pPlcIo->h_mh, pPlcIo->r);
+
 	//主巻ロープ長速度 = 主巻ロープ長の微分
 	v_fb = -(pCrStat->ld[ID_HOIST].v + pCrStat->ld[ID_BH_HST].v + pCrStat->d.v * pspec->axis_spec[ID_HOIST].Nwire0 ) / pspec->axis_spec[ID_HOIST].Nwire1;
 	pCrStat->mhl.a = (v_fb - pCrStat->mhl.v) / dt;
@@ -542,16 +543,14 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->gt.v = v_fb;
 
 
-	//ロープ長（PLC側の揚程値を使用）
-	pEnvInf->crane_stat.mhl.p = Hp + sqrt(Lb * Lb - pPlcIo->r * pPlcIo->r) - pPlcIo->h_mh;
-
-	//振れ周期,各周波数
+	//振れ周期,角周波数
 	if(pEnvInf->g_ratio_x <= 0.0) pEnvInf->g_ratio_x = 1.0;
 	if(pEnvInf->g_ratio_y <= 0.0) pEnvInf->g_ratio_y = 1.0;
-	pEnvInf->wx		= sqrt(GA * pEnvInf->g_ratio_x / pEnvInf->crane_stat.mhl.p);
-	pEnvInf->wy		= sqrt(GA * pEnvInf->g_ratio_y / pEnvInf->crane_stat.mhl.p);
-	//pEnvInf->w2x	= pEnvInf->wx * pEnvInf->wx;
-	//pEnvInf->w2y	= pEnvInf->wy * pEnvInf->wy;
+
+	pEnvInf->w2x	= cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_SLEW);
+	pEnvInf->w2y	= cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_BOOM_H);
+	pEnvInf->wx		= sqrt(pEnvInf->w2x);
+	pEnvInf->wy		= sqrt(pEnvInf->w2y);
 	pEnvInf->Tx		= PI360 / pEnvInf->wx;
 	pEnvInf->Ty		= PI360 / pEnvInf->wy;
 	
@@ -865,7 +864,9 @@ double CCcEnv::cal_w(double pos_hst, double R, int motion_id) {
 }
  //振れ角周波数の2乗計算　ロープ長指定
 double CCcEnv::cal_w2(double pos_hst, double R, int motion_id) {
-	double ans = cal_mhl(pos_hst, R);
+//	double ans = cal_mhl(pos_hst, R);
+	double ans = pCrStat->mhl.p;
+
 	if (ans > 1.0) {//ロープ長下限より大
 		if (motion_id == ID_SLEW) {
 			ans = GA * pEnvInf->g_ratio_x / ans;
@@ -876,6 +877,9 @@ double CCcEnv::cal_w2(double pos_hst, double R, int motion_id) {
 		else {
 			ans = GA / ans;
 		}
+	}
+	else {
+		ans = GA / 1.0;
 	}
 	return ans;
 }

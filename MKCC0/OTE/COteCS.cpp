@@ -704,6 +704,7 @@ HRESULT COteCS::operation_input_hhgg38(int id) {
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::ote_type]		|= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::ote_type];
 
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_set];
+		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::job_clear]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::job_clear];
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]	= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg];//デバッグ用起動チェックBOX
 
 		pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::auto_type]		= pOteUi->pnl_ctrl[OTE_PNL_CTRLS::auto_type];

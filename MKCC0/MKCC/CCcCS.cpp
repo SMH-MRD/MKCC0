@@ -398,6 +398,8 @@ HRESULT CCcCS::get_ote_data_JC(int crane_id) {
 		st_cs_work.cs_ctrl.auto_act_req = L_OFF;
 	}
 
+	st_cs_work.cs_ctrl.job_clear = p_ote_pnl_ctrl[OTE_PNL_CTRLS::job_clear];
+
 	return S_OK; 
 }
 HRESULT CCcCS::get_ote_data_GC(int crane_id) { 
@@ -495,6 +497,9 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 			plamp_com[OTE_PNL_CTRLS::auto_prm6].code = st_cs_work.cs_ctrl.auto_prm[5];
 			plamp_com[OTE_PNL_CTRLS::auto_prm7].code = st_cs_work.cs_ctrl.auto_prm[6];
 			plamp_com[OTE_PNL_CTRLS::auto_prm8].code = st_cs_work.cs_ctrl.auto_prm[7];
+
+			//JOB状態
+			plamp_com[OTE_PNL_CTRLS::job_inf].code = pJobList->n_effective_job;
 		}
 
 		//##　故障情報セット
@@ -580,6 +585,9 @@ HRESULT CCcCS::job_control_JC(int crane_id) {
 	}
 
 //### JOB登録処理 ###
+	//JOB CLEAR
+	if(st_cs_work.cs_ctrl.job_clear)
+		init_job_list(pJobList);
 
 	//OTEのauto_set　PBをジョブ送信コマンドにしている
 	if ((pOTE_Inf->st_msg_ote_u_rcv.body.st.pnl_ctrl[OTE_PNL_CTRLS::auto_set])&& (st_cs_work.job_regist_status == CS_JOB_REGIST_STATUS_IDLE)){

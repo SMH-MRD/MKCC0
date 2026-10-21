@@ -1850,6 +1850,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		ppb = pPanelBase->psubobjs->pb_auto_set;
 		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
 			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
+		ppb = pPanelBase->psubobjs->pb_job_clear;
+		ppb->set_wnd(CreateWindowW(TEXT("BUTTON"), ppb->txt.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_PUSHLIKE,
+			ppb->pt.X, ppb->pt.Y, ppb->sz.Width, ppb->sz.Height, hwnd, (HMENU)(ppb->id), hInst, NULL));
 		
 		//CB
 		pcb = pPanelBase->psubobjs->cb_auto_act_dbg;
@@ -1909,7 +1912,9 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 		pst = pPanelBase->psubobjs->st_auto_prm8;
 		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
 			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
-
+		pst = pPanelBase->psubobjs->st_job_inf;
+		pst->set_wnd(CreateWindowW(TEXT("STATIC"), pst->txt.c_str(), WS_CHILD | WS_VISIBLE | SS_LEFT,
+			pst->pt.X, pst->pt.Y, pst->sz.Width, pst->sz.Height, hwnd, (HMENU)(pst->id), hInst, NULL));
 
 		CEditIntCtrl* ped = pPanelBase->psubobjs->ed_auto_prm1;
 		ped->set_wnd(CreateWindow(TEXT("EDIT"), ped->txt.c_str(), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_RIGHT,
@@ -2112,8 +2117,14 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			SetWindowTextW(_hwnd, wos.str().c_str());
 			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
 
+			wos.str(L""); _hwnd = pPanelBase->psubobjs->st_job_inf->hWnd;
+			wos << L"n Job: " << pCcIf->st_msg_pc_u_rcv.body.st.lamp[OTE_PNL_CTRLS::job_inf].code;
+			SetWindowTextW(_hwnd, wos.str().c_str());
+			InvalidateRect(_hwnd, NULL, TRUE); UpdateWindow(_hwnd);
+
 			//PBの状態更新（カウントダウン）
 			pPanelBase->psubobjs->pb_auto_set->update(false);
+			pPanelBase->psubobjs->pb_job_clear->update(false);
 		}
 
 	}break;
@@ -2183,6 +2194,10 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			pPanelBase->psubobjs->ed_auto_prm6->update(hwnd);
 			pPanelBase->psubobjs->ed_auto_prm7->update(hwnd);
 			pPanelBase->psubobjs->ed_auto_prm8->update(hwnd);
+		}break;
+
+		case ID_SUB_PNL_SET_OBJ_PB_JOB_CLR: {
+			pPanelBase->psubobjs->pb_job_clear->update(true);
 		}break;
 
 		case ID_SUB_PNL_SET_OBJ_RDO_AUTO_TYPE1:

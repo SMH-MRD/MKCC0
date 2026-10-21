@@ -201,6 +201,7 @@ void COteScad::set_panel_io() {
 
 		//### 自動設定関連
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_set]		= pPanelBase->psubobjs->pb_auto_set->get();				//auto set PB
+		st_work.pnl_ctrl[OTE_PNL_CTRLS::job_clear]		= pPanelBase->psubobjs->pb_job_clear->get();			//job clear PB
 
 		//自動のタイプはauto_setボタンがONの時ラジオボタンの設定値を出力してコマンド送信とする
 		//if (!st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_set])
@@ -217,6 +218,7 @@ void COteScad::set_panel_io() {
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_prm8]		= pPanelBase->psubobjs->ed_auto_prm8->get();
 
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::auto_act_dbg]	= pPanelBase->psubobjs->cb_auto_act_dbg->get();
+
 
 		//### ノッチ指令
 		st_work.pnl_ctrl[OTE_PNL_CTRLS::notch_mh];
