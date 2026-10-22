@@ -61,8 +61,8 @@ INT16 CScada::swy1DTHW_Y(double d100) { if (d100 == 0.0)return 0; return  INT16(
 
 //INT16 CScada::swy1_Tx(double d100) { if (d100 == 0.0)       return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].T / d100 * MKLOG_PARAM_DATA_100PER_D); }
 //INT16 CScada::swy1_Ty(double d100) { if (d100 == 0.0)       return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].T / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1_Tx(double d100) { if (d100 == 0.0)           return 0;   return  INT16(pEnv_Inf->Tx / d100 * MKLOG_PARAM_DATA_100PER_D); }
-INT16 CScada::swy1_Ty(double d100) { if (d100 == 0.0)           return 0;   return  INT16(pEnv_Inf->Ty / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1_Tx(double d100) { if (d100 == 0.0)           return 0;   return  INT16(pEnv_Inf->T[ID_SLEW] / d100 * MKLOG_PARAM_DATA_100PER_D); }
+INT16 CScada::swy1_Ty(double d100) { if (d100 == 0.0)           return 0;   return  INT16(pEnv_Inf->T[ID_BOOM_H] / d100 * MKLOG_PARAM_DATA_100PER_D); }
 INT16 CScada::swy1SWYAMP_CAL_X(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].amp_cal / d100 * MKLOG_PARAM_DATA_100PER_D); }
 INT16 CScada::swy1SWYAMP_CAL_Y(double d100) { if (d100 == 0.0)  return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::Y].amp_cal / d100 * MKLOG_PARAM_DATA_100PER_D); }
 INT16 CScada::swy1SWYps_cal_X(double d100) { if (d100 == 0.0)   return 0;   return  INT16(pAUX_CS_Inf->msg_server.body.sway_data[(int)ENUM_AXIS::X].ps_cal / d100 * MKLOG_PARAM_DATA_100PER_D); }

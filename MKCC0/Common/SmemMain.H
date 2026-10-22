@@ -137,9 +137,9 @@ typedef struct _ST_CC_ENV_INF {
 
 	ST_CRANE_STAT crane_stat;					//ƒNƒŒ[ƒ“ó‘Ô
 
-	double Tx,Ty;									//UüŠú		s
-	double wx,wy;									//UŠpü”g”	/s
-	double w2x,w2y;									//UŠpü”g”‚Ì2æ
+	double T[MOTION_ID_MAX];									//UüŠú		s
+	double w[MOTION_ID_MAX];									//UŠpü”g”	/s
+	double w2[MOTION_ID_MAX];									//UŠpü”g”‚Ì2æ
 	double g_ratio_x = 1.0;						//U‚êüŠú•â³ŒW”@ãg‚Ì”ä—¦‚Å’²®
 	double g_ratio_y = 1.0;						//U‚êüŠú•â³ŒW”@ãg‚Ì”ä—¦‚Å’²®
 

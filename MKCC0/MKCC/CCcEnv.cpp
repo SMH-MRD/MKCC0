@@ -547,12 +547,12 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	if(pEnvInf->g_ratio_x <= 0.0) pEnvInf->g_ratio_x = 1.0;
 	if(pEnvInf->g_ratio_y <= 0.0) pEnvInf->g_ratio_y = 1.0;
 
-	pEnvInf->w2x	= cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_SLEW);
-	pEnvInf->w2y	= cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_BOOM_H);
-	pEnvInf->wx		= sqrt(pEnvInf->w2x);
-	pEnvInf->wy		= sqrt(pEnvInf->w2y);
-	pEnvInf->Tx		= PI360 / pEnvInf->wx;
-	pEnvInf->Ty		= PI360 / pEnvInf->wy;
+	pEnvInf->w2[ID_SLEW] = cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_SLEW);
+	pEnvInf->w2[ID_BOOM_H] = cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_BOOM_H);
+	pEnvInf->w[ID_SLEW] = sqrt(pEnvInf->w2[ID_SLEW]);
+	pEnvInf->w[ID_BOOM_H] = sqrt(pEnvInf->w2[ID_BOOM_H]);
+	pEnvInf->T[ID_SLEW] = PI360 / pEnvInf->w[ID_SLEW];
+	pEnvInf->T[ID_BOOM_H] = PI360 / pEnvInf->w[ID_BOOM_H];
 	
 	//振れセンサ検出値
 	if (g_aux_sway_status) {

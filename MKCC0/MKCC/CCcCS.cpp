@@ -508,7 +508,7 @@ HRESULT CCcCS::set_ote_data_JC(int crane_id) {
 		//## クレーン状態セット
 		st_ote_work.st_body.st_load_stat[0].m = (float)pEnv_Inf->crane_stat.m_mh;				//荷重
 		st_ote_work.st_body.st_load_stat[0].l = (float)pEnv_Inf->crane_stat.mhl.p;				//ロープ長
-		st_ote_work.st_body.st_load_stat[0].T = (float)pEnv_Inf->Tx;							//周期
+		st_ote_work.st_body.st_load_stat[0].T = (float)pEnv_Inf->T[ID_SLEW];					//周期
 
 		st_ote_work.st_body.bh_angle = (float)(acos(pPLC_IO->r / pCrane->pSpec->st_struct.Lb));	//起伏角度
 		st_ote_work.st_body.wind_spd = (float)pPLC_IO->wind_spd;								//風速

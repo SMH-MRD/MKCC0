@@ -776,10 +776,10 @@ int CAgent::output() {
 		pAUX_CS_Inf->msg_client.head.status = pEnv_Inf->app_common_param.app_mode;
 
 		pAUX_CS_Inf->msg_client.body.tg_distance = pEnv_Inf->crane_stat.mhl.p;
-		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::X] = pEnv_Inf->Tx;
-		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::Y] = pEnv_Inf->Ty;
-		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::X] = pEnv_Inf->wx;
-		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::Y] = pEnv_Inf->wy;
+		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::X] = pEnv_Inf->T[ID_SLEW];
+		pAUX_CS_Inf->msg_client.body.T[(int)ENUM_AXIS::Y] = pEnv_Inf->T[ID_BOOM_H];
+		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::X] = pEnv_Inf->w[ID_SLEW];
+		pAUX_CS_Inf->msg_client.body.w[(int)ENUM_AXIS::Y] = pEnv_Inf->w[ID_BOOM_H];
 		
 		//################################################
 		//########  SimulationåvéZílèoóÕ  ################

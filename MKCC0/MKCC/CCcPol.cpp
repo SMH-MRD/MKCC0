@@ -130,7 +130,7 @@ HRESULT CCcPol::initialize(LPVOID lpParam) {
 HRESULT CCcPol::routine_work(void* pObj) {
 	if (inf.total_act % 20 == 0) {
 		wos.str(L""); wos << inf.status << L":" << std::setfill(L'0') << std::setw(4) << inf.act_time;
-		wos << L"TxE:"<<pEnvInf->Tx << L"  TxP:" << st_com_work.T[ID_SLEW] << L"  th0:" << check_d2 << L"  PS:" << check_d;
+		wos << L"TxE:"<<pEnvInf->T[ID_SLEW] << L"  TxP:" << st_com_work.T[ID_SLEW] << L"  th0:" << check_d2 << L"  PS:" << check_d;
 		msg2host(wos.str());
 	}
 	input();
@@ -417,10 +417,10 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 		}
 		else {
 			//振れ周期
-			st_com_work.T[ID_BOOM_H]	= pEnvInf->Ty;	st_com_work.T[ID_SLEW]	= pEnvInf->Tx;	
+			st_com_work.T[ID_BOOM_H]	= pEnvInf->T[ID_BOOM_H];	st_com_work.T[ID_SLEW]	= pEnvInf->T[ID_SLEW];
 			//振れ角周波数
-			st_com_work.w[ID_BOOM_H]	= pEnvInf->wy;	st_com_work.w[ID_SLEW]	= pEnvInf->wx;
-			st_com_work.w2[ID_BOOM_H]	= pEnvInf->w2y;	st_com_work.w2[ID_SLEW] = pEnvInf->w2x;
+			st_com_work.w[ID_BOOM_H]	= pEnvInf->w[ID_BOOM_H];	st_com_work.w[ID_SLEW]	= pEnvInf->w[ID_SLEW];
+			st_com_work.w2[ID_BOOM_H]	= pEnvInf->w2[ID_BOOM_H];	st_com_work.w2[ID_SLEW] = pEnvInf->w2[ID_SLEW];
 		}
 	}
 	else {
@@ -445,14 +445,14 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 		//	st_com_work.w2[ID_SLEW]		= pEnv->cal_w2(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//振れ角周波数2乗
 		//}
 
-		st_com_work.T[ID_BOOM_H]	= pEnvInf->Ty;
-		st_com_work.T[ID_SLEW]		= pEnvInf->Tx;//振れ周期
+		st_com_work.T[ID_BOOM_H]	= pEnvInf->T[ID_BOOM_H];
+		st_com_work.T[ID_SLEW]		= pEnvInf->T[ID_SLEW];//振れ周期
 																				  
-		st_com_work.w[ID_BOOM_H]	= pEnvInf->wy;
-		st_com_work.w[ID_SLEW]		= pEnvInf->wx;//振れ角周波数
+		st_com_work.w[ID_BOOM_H]	= pEnvInf->w[ID_BOOM_H];
+		st_com_work.w[ID_SLEW]		= pEnvInf->w[ID_SLEW];//振れ角周波数
 
-		st_com_work.w2[ID_BOOM_H]	= pEnvInf->w2y;
-		st_com_work.w2[ID_SLEW]		= pEnvInf->w2x;//振れ角周波数2乗
+		st_com_work.w2[ID_BOOM_H]	= pEnvInf->w2[ID_BOOM_H];
+		st_com_work.w2[ID_SLEW]		= pEnvInf->w2[ID_SLEW];//振れ角周波数2乗
 	}
 	return &st_com_work;
 }
@@ -1424,7 +1424,8 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		//#### STEP 3 振れ計測用待機時間
 		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
 		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
-		pelement->_t = st_com_work.T[ID_SLEW]/4.0;					// 待機時間 1/4周期
+	//	pelement->_t = st_com_work.T[ID_SLEW]/4.0;					// 待機時間 1/4周期
+		pelement->_t = TIME_LIMIT_CONFIRMATION;						// tとりあえず待ち無し
 		pelement->_v = 0.0;											// 速度0
 		pelement->_p = pelement->_p;								// 目標位置　前回終了位置
 
