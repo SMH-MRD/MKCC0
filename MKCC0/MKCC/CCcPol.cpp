@@ -121,6 +121,8 @@ HRESULT CCcPol::initialize(LPVOID lpParam) {
 	st_com_work.vfb_delay_time[ID_GANTRY]	= POL_PRM_FB_DELAY_GANTRY;
 	st_com_work.vfb_delay_time[ID_AHOIST]	= POL_PRM_FB_DELAY_AHOIST;
 
+	pPolInf->mhl_adjust = 0.0;
+
 	//ƒ‚ƒjƒ^ƒEƒBƒ“ƒhƒEƒeƒLƒXƒg	
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"JOB IF");
 	return S_OK;
@@ -143,6 +145,7 @@ static UINT32	gpad_mode_last = L_OFF;
 
 int CCcPol::input() {
 
+	if (!pCsInf->cs_ctrl.auto_mode) pPolInf->mhl_adjust = 0.0;
 
 	return S_OK;
 }
@@ -408,51 +411,30 @@ LPST_POLICY_COM_WORK   CCcPol::set_com_workbuf(LPST_COMMAND_SET pcom) {
 		}
 	}
 
-	//Šª‚«‚Ì–Ú•WˆÊ’u‚ªã‚ÌŽž‚ÍAŠªãŒã‚Éù‰ñˆø‚«ž‚Ý“®ì‚ð‚·‚é‚Ì‚Å–Ú•WˆÊ’u‚ÌŽüŠú‚Åƒpƒ^[ƒ“‚ðì‚é
+	//U‚êŽüŠú
+
+	pPolInf->mhl_adjust = (double)pcom->pcom_prm[JOB_COM_PRM_ADJUST_MHL_MM] / 1000.0;//ƒ[ƒv’·•â³’l
+
 	if (debug_mode & CODE_POLICY_DEBUG_SIM_MODE) {
+		double l; 
+		//Šª‚«‚Ì–Ú•WˆÊ’u‚ªã‚ÌŽž‚ÍAŠªãŒã‚Éù‰ñˆø‚«ž‚Ý“®ì‚ð‚·‚é‚Ì‚Å–Ú•WˆÊ’u‚ÌŽüŠú‚Åƒpƒ^[ƒ“‚ðì‚é
 		if (st_com_work.target.pos[ID_HOIST] > st_com_work.pos[ID_HOIST]) {
-			st_com_work.T[ID_BOOM_H]	= st_com_work.T[ID_SLEW]	= pEnv->cal_T(st_com_work.target.pos[ID_HOIST],		st_com_work.target.pos[ID_BOOM_H], ID_HOIST);
-			st_com_work.w[ID_BOOM_H]	= st_com_work.w[ID_SLEW]	= pEnv->cal_w(st_com_work.target.pos[ID_HOIST],		st_com_work.target.pos[ID_BOOM_H], ID_HOIST);	//U‚êŠpŽü”g”
-			st_com_work.w2[ID_BOOM_H]	= st_com_work.w2[ID_SLEW]	= pEnv->cal_w2(st_com_work.target.pos[ID_HOIST],	st_com_work.target.pos[ID_BOOM_H], ID_HOIST);							//U‚êŠpŽü”g”2æ
+			l = pEnv->cal_mhl(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], pPolInf->mhl_adjust);
 		}
 		else {
-			//U‚êŽüŠú
-			st_com_work.T[ID_BOOM_H]	= pEnvInf->T[ID_BOOM_H];	st_com_work.T[ID_SLEW]	= pEnvInf->T[ID_SLEW];
-			//U‚êŠpŽü”g”
-			st_com_work.w[ID_BOOM_H]	= pEnvInf->w[ID_BOOM_H];	st_com_work.w[ID_SLEW]	= pEnvInf->w[ID_SLEW];
-			st_com_work.w2[ID_BOOM_H]	= pEnvInf->w2[ID_BOOM_H];	st_com_work.w2[ID_SLEW] = pEnvInf->w2[ID_SLEW];
+			l = pEnv->cal_mhl(st_com_work.pos[ID_HOIST], st_com_work.pos[ID_BOOM_H], pPolInf->mhl_adjust);
 		}
+
+		st_com_work.w2[ID_BOOM_H] = pEnv->cal_w2(l, ID_BOOM_H);		st_com_work.w2[ID_SLEW] = pEnv->cal_w2(l, ID_SLEW);		//U‚êŠpŽü”g”2æ
+		st_com_work.w[ID_BOOM_H] = sqrt(st_com_work.w2[ID_BOOM_H]);	st_com_work.w[ID_SLEW] = sqrt(st_com_work.w2[ID_SLEW]);	//U‚êŠpŽü”g”
+		st_com_work.T[ID_BOOM_H] = PI360 / st_com_work.w[ID_BOOM_H]; st_com_work.T[ID_SLEW] = PI360 / st_com_work.w[ID_SLEW];
 	}
 	else {
-		//if (st_com_work.target.pos[ID_HOIST] > st_com_work.pos[ID_HOIST]) {//ŽåŠªŒ»ÝˆÊ’u‚ª–Ú•WˆÊ’u‚æ‚è‘å‚«‚¢(ƒ[ƒv’·‚ª’Z‚¢jŽž‚Í–Ú•WˆÊ’u‚ÌŽüŠú‚ÅŒvŽZ
-		//	st_com_work.T[ID_BOOM_H]	= pEnv->cal_T(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-		//	st_com_work.T[ID_SLEW]		= pEnv->cal_T(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//U‚êŽüŠú
-		//	
-		//	st_com_work.w[ID_BOOM_H]	= pEnv->cal_w(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-		//	st_com_work.w[ID_SLEW]		= pEnv->cal_w(st_com_work.target.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//U‚êŠpŽü”g”
-		//	
-		//	st_com_work.w2[ID_BOOM_H]	= pEnv->cal_w2(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-		//	st_com_work.w2[ID_SLEW]		= pEnv->cal_w2(st_com_work.target.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//U‚êŠpŽü”g”2æ
-		//}
-		//else {
-		//	st_com_work.T[ID_BOOM_H]	= pEnv->cal_T(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-		//	st_com_work.T[ID_SLEW]		= pEnv->cal_T(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//U‚êŽüŠú
-		//																		  
-		//	st_com_work.w[ID_BOOM_H]	= pEnv->cal_w(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-		//	st_com_work.w[ID_SLEW]		= pEnv->cal_w(st_com_work.pos[ID_HOIST],  st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//U‚êŠpŽü”g”
+		double l = pEnv->cal_mhl(st_com_work.pos[ID_HOIST], st_com_work.pos[ID_BOOM_H], pPolInf->mhl_adjust);
 
-		//	st_com_work.w2[ID_BOOM_H]	= pEnv->cal_w2(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_BOOM_H);
-		//	st_com_work.w2[ID_SLEW]		= pEnv->cal_w2(st_com_work.pos[ID_HOIST], st_com_work.target.pos[ID_BOOM_H], ID_SLEW);//U‚êŠpŽü”g”2æ
-		//}
-
-		st_com_work.T[ID_BOOM_H]	= pEnvInf->T[ID_BOOM_H];
-		st_com_work.T[ID_SLEW]		= pEnvInf->T[ID_SLEW];//U‚êŽüŠú
-																				  
-		st_com_work.w[ID_BOOM_H]	= pEnvInf->w[ID_BOOM_H];
-		st_com_work.w[ID_SLEW]		= pEnvInf->w[ID_SLEW];//U‚êŠpŽü”g”
-
-		st_com_work.w2[ID_BOOM_H]	= pEnvInf->w2[ID_BOOM_H];
-		st_com_work.w2[ID_SLEW]		= pEnvInf->w2[ID_SLEW];//U‚êŠpŽü”g”2æ
+		st_com_work.w2[ID_BOOM_H] = pEnv->cal_w2(l, ID_BOOM_H);		st_com_work.w2[ID_SLEW] = pEnv->cal_w2(l, ID_SLEW);		//U‚êŠpŽü”g”2æ
+		st_com_work.w[ID_BOOM_H] = sqrt(st_com_work.w2[ID_BOOM_H]);	st_com_work.w[ID_SLEW] = sqrt(st_com_work.w2[ID_SLEW]);	//U‚êŠpŽü”g”
+		st_com_work.T[ID_BOOM_H] = PI360 / st_com_work.w[ID_BOOM_H]; st_com_work.T[ID_SLEW] = PI360 / st_com_work.w[ID_SLEW];
 	}
 	return &st_com_work;
 }
@@ -1067,12 +1049,6 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		bool is_sway_over1cycle = false;			//U‚êŽ~‚ßF1‰ñ‚ÌƒTƒCƒNƒ‹‚ÅŠ®—¹•s‰Âƒtƒ‰ƒO
 		double tacc,th0;
 
-		//U‚êŽüŠú•â³
-		double Tadj = (double)pcomset->pcom_prm[JOB_COM_PRM_ADJUST_T_MS] / 1000.0;
-		st_com_work.T[ID_SLEW] += Tadj;
-		st_com_work.w[ID_SLEW] = PI360 / st_com_work.T[ID_SLEW];
-		st_com_work.w2[ID_SLEW] = st_com_work.w[ID_SLEW] * st_com_work.w[ID_SLEW];
-
 		//ˆÚ“®•ûŒü
 		pseq->direction = ID_SELECT;
 		//–Ú•W‘¬“x
@@ -1191,12 +1167,6 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 
 		bool is_sway_over1cycle = false;			//U‚êŽ~‚ßF1‰ñ‚ÌƒTƒCƒNƒ‹‚ÅŠ®—¹•s‰Âƒtƒ‰ƒO
 		double tacc, tc,th0;
-
-		//U‚êŽüŠú•â³
-		double Tadj = (double)pcomset->pcom_prm[JOB_COM_PRM_ADJUST_T_MS] / 1000.0;
-		st_com_work.T[ID_SLEW] += Tadj;
-		st_com_work.w[ID_SLEW] = PI360 / st_com_work.T[ID_SLEW];
-		st_com_work.w2[ID_SLEW] = st_com_work.w[ID_SLEW] * st_com_work.w[ID_SLEW];
 
 		//ˆÚ“®•ûŒü
 		pseq->direction = ID_SELECT;

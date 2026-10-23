@@ -136,4 +136,4 @@
 #define JOB_COM_PRM_NOTCH				0
 #define JOB_COM_PRM_PARK_TIME			1
 #define JOB_COM_PRM_FB_DELAY			2
-#define JOB_COM_PRM_ADJUST_T_MS			3
+#define JOB_COM_PRM_ADJUST_MHL_MM		3

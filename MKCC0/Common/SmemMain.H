@@ -367,6 +367,7 @@ typedef struct _ST_JOB_LIST {
 typedef struct _ST_CC_POL_INF {
 
 	WORD pc_fault_map[N_PC_FAULT_BUF];//PC検出故障マップ
+	double mhl_adjust;//振れ周期評価用ロープ長調整値
 
 }ST_CC_POL_INF, * LPST_CC_POL_INF;
 

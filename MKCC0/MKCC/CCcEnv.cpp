@@ -474,7 +474,7 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	//### 主巻ロープ長
 	//主巻ロープ長 = ( ロープ全長- 主巻ドラム巻取量 - 起伏(主巻）ドラム巻取量 - (d値×ジブ部ロープ本数))/吊部ロープ本数
 //	pCrStat->mhl.p = (pspec->axis_spec[ID_HOIST].Lfull - pCrStat->ld[ID_HOIST].p - pCrStat->ld[ID_BH_HST].p - pCrStat->d.p * pspec->axis_spec[ID_HOIST].Nwire0)/ pspec->axis_spec[ID_HOIST].Nwire1;
-	pCrStat->mhl.p = cal_mhl(pPlcIo->h_mh, pPlcIo->r);
+	pCrStat->mhl.p = cal_mhl(pPlcIo->h_mh, pPlcIo->r,0.0);
 
 	//主巻ロープ長速度 = 主巻ロープ長の微分
 	v_fb = -(pCrStat->ld[ID_HOIST].v + pCrStat->ld[ID_BH_HST].v + pCrStat->d.v * pspec->axis_spec[ID_HOIST].Nwire0 ) / pspec->axis_spec[ID_HOIST].Nwire1;
@@ -542,17 +542,17 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->gt.a = (v_fb - pCrStat->gt.v) / dt;
 	pCrStat->gt.v = v_fb;
 
-
 	//振れ周期,角周波数
 	if(pEnvInf->g_ratio_x <= 0.0) pEnvInf->g_ratio_x = 1.0;
 	if(pEnvInf->g_ratio_y <= 0.0) pEnvInf->g_ratio_y = 1.0;
 
-	pEnvInf->w2[ID_SLEW] = cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_SLEW);
-	pEnvInf->w2[ID_BOOM_H] = cal_w2(pPlcIo->h_mh, pPlcIo->r, ID_BOOM_H);
-	pEnvInf->w[ID_SLEW] = sqrt(pEnvInf->w2[ID_SLEW]);
-	pEnvInf->w[ID_BOOM_H] = sqrt(pEnvInf->w2[ID_BOOM_H]);
-	pEnvInf->T[ID_SLEW] = PI360 / pEnvInf->w[ID_SLEW];
-	pEnvInf->T[ID_BOOM_H] = PI360 / pEnvInf->w[ID_BOOM_H];
+	double l = cal_mhl(pPlcIo->h_mh, pPlcIo->r,pPolInf->mhl_adjust);
+	pEnvInf->w2[ID_SLEW]		= cal_w2(l, ID_SLEW);
+	pEnvInf->w2[ID_BOOM_H]		= cal_w2(l, ID_BOOM_H);
+	pEnvInf->w[ID_SLEW]			= sqrt(pEnvInf->w2[ID_SLEW]);
+	pEnvInf->w[ID_BOOM_H]		= sqrt(pEnvInf->w2[ID_BOOM_H]);
+	pEnvInf->T[ID_SLEW]			= PI360 / pEnvInf->w[ID_SLEW];
+	pEnvInf->T[ID_BOOM_H]		= PI360 / pEnvInf->w[ID_BOOM_H];
 	
 	//振れセンサ検出値
 	if (g_aux_sway_status) {
@@ -855,41 +855,56 @@ double CCcEnv::cal_motion_retio(int imotion, double pos) {
 	return 0.0;
 }      
 //振れ周期計算　ロープ長　指定
-double CCcEnv::cal_T(double pos_hst, double R, int motion_id) {
-	return PI360 / cal_w(pos_hst, R, motion_id);
-}  
-//振れ角周波数計算　ロープ長指定
-double CCcEnv::cal_w(double pos_hst, double R, int motion_id) {
-	return sqrt(cal_w2(pos_hst, R, motion_id));
-}
- //振れ角周波数の2乗計算　ロープ長指定
-double CCcEnv::cal_w2(double pos_hst, double R, int motion_id) {
-//	double ans = cal_mhl(pos_hst, R);
-	double ans = pCrStat->mhl.p;
-
-	if (ans > 1.0) {//ロープ長下限より大
-		if (motion_id == ID_SLEW) {
-			ans = GA * pEnvInf->g_ratio_x / ans;
-		}
-		else if (motion_id == ID_BOOM_H) {
-			ans = GA * pEnvInf->g_ratio_y / ans;
-		}
-		else {
-			ans = GA / ans;
-		}
+double CCcEnv::cal_T(double l, int motion_id) {
+	double T;
+	if (motion_id == ID_SLEW) {
+		T = PI360 / sqrt(GA * pEnvInf->g_ratio_x / l);
+	}
+	else if (motion_id == ID_BOOM_H) {
+		T = PI360 / sqrt(GA * pEnvInf->g_ratio_y / l);
 	}
 	else {
-		ans = GA / 1.0;
+		T = PI360 / sqrt(GA  / l);
 	}
-	return ans;
+	return T;
+}  
+//振れ角周波数計算　ロープ長指定
+double CCcEnv::cal_w(double l, int motion_id) {
+	double w;
+	if (motion_id == ID_SLEW) {
+		w = sqrt(GA * pEnvInf->g_ratio_x / l);
+	}
+	else if (motion_id == ID_BOOM_H) {
+		w = sqrt(GA * pEnvInf->g_ratio_y / l);
+	}
+	else {
+		w = sqrt(GA / l);
+	}
+	return w;
+}
+ //振れ角周波数の2乗計算　ロープ長指定
+double CCcEnv:: cal_w2(double l, int motion_id) {
+	double w2=0.0;
+
+	if (motion_id == ID_SLEW) {
+		w2 = GA * pEnvInf->g_ratio_x / l;
+	}
+	else if (motion_id == ID_BOOM_H) {
+		w2 = GA * pEnvInf->g_ratio_y / l;
+	}
+	else {
+		w2 = GA / l;
+	}
+
+	return w2;
 }
 //ロープ長計算　巻き位置指定
-double CCcEnv::cal_mhl(double pos_hst, double r) {
+double CCcEnv::cal_mhl(double pos_hst, double r,double l_adjust) {
 	double  tmp = pCrane->pSpec->st_struct.Lb * pCrane->pSpec->st_struct.Lb - r * r;
 	if (tmp < 0.0)tmp = 0.0;
 	double l = pCrane->pSpec->st_struct.Hp + sqrt(tmp) - pos_hst;
 	if (l < 0.0)l = 1.0;
-	return l;
+	return l + l_adjust;
 }               
  //最大速度計算
 double CCcEnv::get_vmax(int motion) {

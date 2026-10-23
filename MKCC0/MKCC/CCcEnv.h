@@ -131,10 +131,10 @@ public:
 
     double cal_motion_retio(int imotion, double pos);       // 位置に応じた速度,加速度の比率　起伏のみ
 
-   static  double cal_T(double pos_hst, double R, int motion_id);  //振れ周期計算　ロープ長　指定
-   static  double cal_w(double pos_hst, double R, int motion_id);  //振れ角周波数計算　ロープ長指定
-   static  double cal_w2(double pos_hst, double R, int motion_id); //振れ角周波数の2乗計算　ロープ長指定
-   static double cal_mhl(double pos_hst, double r);               //ロープ長計算　巻き位置指定
+   static  double cal_T(double l, int motion_id);  //振れ周期計算　ロープ長　指定
+   static  double cal_w(double l, int motion_id);  //振れ角周波数計算　ロープ長指定
+   static  double cal_w2(double l, int motion_id); //振れ角周波数の2乗計算　ロープ長指定
+   static double cal_mhl(double pos_hst, double r,double l_adjust);   //ロープ長計算　巻き位置指定
 
     double get_vmax(int motion);                            //最大速度
 
