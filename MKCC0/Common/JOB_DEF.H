@@ -18,10 +18,10 @@
 #define ID_JOBTYPE_SEMI				2		//SEMIAUTO Type index番号
 #define ID_JOBTYPE_ANTISWAY			3		//FB ANTISWAY Type index番号
 #define ID_JOBTYPE_EMPTY		    0		//GBC TEST用のタイプ識別
-#define ID_JOBTYPE_GBC_TEST0		256		//GBC TEST用のタイプ識別(台形+振止め3回）
-#define ID_JOBTYPE_GBC_TEST1		257		//GBC TEST用のジョブ内容識別(台形のみ）
-#define ID_JOBTYPE_GBC_TEST2		258		//GBC TEST用のジョブ内容識別(振止めのみ 2SHOT）
-#define ID_JOBTYPE_GBC_TEST3		259		//GBC TEST用のジョブ内容識別(振止めのみ 1SHOT）
+#define ID_JOBTYPE_GBC_TEST0		256		//GBC TEST用のジョブ内容識別(台形のみ）
+#define ID_JOBTYPE_GBC_TEST1		257		//GBC TEST用のジョブ内容識別(振止めのみ 2SHOT）
+#define ID_JOBTYPE_GBC_TEST2		258		//GBC TEST用のジョブ内容識別(振止めのみ 1SHOT）
+#define ID_JOBTYPE_GBC_TEST3		259		//GBC TEST用のジョブ内容識別1周期待機）
 #define ID_JOBTYPE_END				-1		//JOB CODEリストの末尾識別用CODE
 
 //COMMAND PATTERN
@@ -46,6 +46,7 @@
 #define ID_JOBIO_COMTYPE_AS_1SHOT		5	//1インチング振れ止め
 #define ID_JOBIO_COMTYPE_AS_2SHOT		6	//2インチング振れ止め
 #define ID_JOBIO_COMTYPE_POS_2SHOT		7	//2インチング位置合わせ
+#define ID_JOBIO_COMTYPE_WAIT_TIME_T	8	//振れ1周期時間待ち
 
 //レシピ　Type
 #define CTR_TYPE_WAIT_TIME					0x0000	//待機（時間経過待ち）
@@ -137,3 +138,4 @@
 #define JOB_COM_PRM_PARK_TIME			1
 #define JOB_COM_PRM_FB_DELAY			2
 #define JOB_COM_PRM_ADJUST_MHL_MM		3
+#define JOB_COM_PRM_ADJUST_WAIT_T		4

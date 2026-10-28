@@ -1400,6 +1400,32 @@ int CCcPol::set_job_seq_slw(int jobtype, LPST_COMMAND_SET pcomset, bool is_fbtyp
 		pelement->_p = pelement->_p;								// 目標位置　前回終了位置
 
 	}break;
+	case ID_JOBIO_COMTYPE_WAIT_TIME_T:
+	{
+		//目標位置
+		pseq->seq_target.p = pwork->pos[id];	//現在位置＋移動距離
+
+		//残り移動距離
+		D_abs = 0.0;
+
+		pseq->motion_type = COM_PTN_ORDINARY;
+
+		//#### STEP 0 開始準備待機
+		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
+		pelement->_t = TIME_LIMIT_CONFIRMATION;						// 待機時間
+		pelement->_v = 0.0;											// 速度0
+		pelement->_p = pwork->pos[id];								// 目標位置　現在位置
+
+		//#### STEP 1 振れ計測用待機時間
+		double ratio = 1.0 + (double)pcomset->pcom_prm[JOB_COM_PRM_ADJUST_WAIT_T]/100.0;	//ノッチ速度設定値;
+		pelement = &(pseq->steps[pseq->n_step++]);					//ステップのポインタセットして次ステップ用にカウントアップ
+		pelement->type = CTR_TYPE_WAIT_TIME;						// 時間待ち
+		pelement->_t = st_com_work.T[ID_SLEW] * ratio;				// 待機時間 周期×補正比率
+		pelement->_v = 0.0;											// 速度0
+		pelement->_p = pelement->_p;								// 目標位置　前回終了位置
+
+	}break;
 	default: {
 		//移動方向
 		pseq->direction = pwork->motion_dir[id];

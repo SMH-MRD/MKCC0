@@ -1829,22 +1829,22 @@ LRESULT CALLBACK CSubPanelWindow::WndProcSet(HWND hwnd, UINT uMsg, WPARAM wParam
 			300, 290, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"Auto Type", WS_CHILD | WS_VISIBLE | SS_LEFT,
 			300, 220, 200, 30, hwnd, (HMENU)(100), hInst, NULL);
-		CreateWindowW(TEXT("STATIC"), L"1:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			300, 320, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
-		CreateWindowW(TEXT("STATIC"), L"2:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			300, 350, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
-		CreateWindowW(TEXT("STATIC"), L"3:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			300, 380, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
-		CreateWindowW(TEXT("STATIC"), L"4:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			300, 410, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
-		CreateWindowW(TEXT("STATIC"), L"5:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			470, 320, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"notch", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			280, 320, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"tc.1", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			280, 350, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"td_ms", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			280, 380, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"Lmm ", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			280, 410, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
+		CreateWindowW(TEXT("STATIC"), L"dT % :", WS_CHILD | WS_VISIBLE | SS_LEFT,
+			460, 320, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"6:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			470, 350, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+			460, 350, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"7:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			470, 380, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+			460, 380, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
 		CreateWindowW(TEXT("STATIC"), L"8:", WS_CHILD | WS_VISIBLE | SS_LEFT,
-			470, 410, 15, 25, hwnd, (HMENU)(100), hInst, NULL);
+			460, 410, 40, 25, hwnd, (HMENU)(100), hInst, NULL);
 
 		//PB
 		ppb = pPanelBase->psubobjs->pb_auto_set;

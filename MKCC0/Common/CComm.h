@@ -9,8 +9,8 @@
 #define DEFAULT_MY_PORT					10050
 
 
-#define N_COMM_SET_CRANE			200
-#define N_COMM_SET_OTE				128
+#define N_COMM_SET_CRANE			256
+#define N_COMM_SET_OTE				256
 #define N_COMM_SET_IP_WCHAR			16
 #define N_COMM_SET_PC_LAN_PORT		8
 #define N_COMM_SET_WAN_PORT			2
