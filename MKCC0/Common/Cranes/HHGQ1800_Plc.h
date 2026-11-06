@@ -6,8 +6,8 @@
 ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	//{pi16,mask,type,lp,hp}
 	//PLC制御
-	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1,0},	//plc_healthy;
-	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1,1},	//plc_ctrl_mode;
+	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1,0},	//plc_healthy		
+	{NULL,BITS_WORD,			CODE_PLCIO_WORD,	0,1,1},	//plc_ctrl_mode		
 	//運転室操作台
 	//B220
 	{NULL,BIT0,					CODE_PLCIO_BIT,		0,0,6},	//syukan_on;
@@ -121,8 +121,8 @@ ST_JC_PLC_IO_R plc_io_rdef_hhgq18 = {
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,90},	//absocoder_ah
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,94},	//absocoder_gt
 	//荷重
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},//m荷重
-	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},	//m_ah 荷重
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},		//m荷重
+	{NULL,BITFF,				CODE_PLCIO_WORD,	0,0,4},		//m_ah 荷重
 	//揚程　旋回半径
 	{NULL,BITFF,				CODE_PLCIO_DWORD,	0,0,25},	//h_mh_mm
 	{NULL,BITFF,				CODE_PLCIO_FLOAT,	0,0,27},	//r_bh_m

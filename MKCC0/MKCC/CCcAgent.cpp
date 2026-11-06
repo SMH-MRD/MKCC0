@@ -1135,10 +1135,21 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 	pCrane->pPlc->wval(pPlcWIf->JC.absocoder_gt, pSim_Inf->absocoder_gt);
 
 	//速度FB(rpm)
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb[ID_HOIST]);
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb[ID_BOOM_H]);
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb[ID_SLEW]);
-	pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb[ID_GANTRY]);
+	switch (crane_id) {
+	case CRANE_ID_HHGQ18: {
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb[ID_HOIST] * 64 / 45);	//PLCへの出力は最高速度2250rpmで3200→3200/2250=64/45
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb[ID_BOOM_H] * 64 / 35);			//PLCへの出力は最高速度1750rpmで3200→3200/1750=64/35
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb[ID_SLEW] * 64 / 35);				//PLCへの出力は最高速度1750rpmで3200→3200/1750=64/35
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb[ID_GANTRY]);
+	}break;
+	default: {
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb[ID_HOIST]);			//INVERTER IOの場合はそのままrpm出力
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb[ID_BOOM_H]);
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb[ID_SLEW]);
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb[ID_GANTRY]);
+	}break;
+	}
+
 
 	//トルク指令(INV出力）
 	pCrane->pPlc->wval(pPlcWIf->JC.trqref_mh, pSim_Inf->trq_ref[ID_HOIST]);

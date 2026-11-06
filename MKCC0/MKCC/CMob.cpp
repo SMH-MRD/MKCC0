@@ -147,10 +147,10 @@ void CSimJC::timeEvolution() {
 		if (na_ref[i] != 0) {//加速指令!=0
 			//トルクFB
 			if (motion_brake[i] == false) {//ブレーキ閉
-				trq_fb[i] = SIM_TRQ_FB_P100 * 0.3;	//30%トルク指令
+				trq_fb[i] = SIM_TRQ_FB_P100 * 0.6;	//30%トルク指令
 			}
 			else {//ブレーキ開
-				trq_fb[i] = SIM_TRQ_FB_P100 * 0.8;	//80%トルク指令
+				trq_fb[i] = SIM_TRQ_FB_P100 * 1.0;	//80%トルク指令
 			}
 		}
 		else {

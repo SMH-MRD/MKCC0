@@ -239,9 +239,10 @@ HRESULT CSim::init_drm_motion_JC(int id) {	//ドラムパラメータ設定(巻取量,層数,速
 	case CRANE_ID_HHGQ18:
 	{
 		st_sim_inf.hcount_mh = 98220337;		//主巻PG　(R21,H30）
-		st_sim_inf.hcount_bh = 76676908;		//引込PG　(R21,H30）
+		//		st_sim_inf.hcount_bh = 73185000;		//引込PG　(R21,H30）
+		st_sim_inf.hcount_bh = 75000000;		//引込PG　(R21,H30）
 		st_sim_inf.hcount_sl = 15000000;		//旋回PG　0°
-		st_sim_inf.absocoder_mh = 51274;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
+		st_sim_inf.absocoder_mh = 58117;		//主巻アブソコーダ初期値3層開始位置(R21,H30）
 		st_sim_inf.absocoder_gt = 32595;		//走行アブソコーダ初期値50m 50/(0.5π）* 1024
 	}break;
 	case CRANE_ID_HHGH29: 
@@ -274,18 +275,14 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		//##########################################################################################
 		//!!!!!! /6を入れないとアブソコーダのカウントが6倍位早くなってしまう　原因不明　宿題
 		//#########################################################################################
-		st_sim_inf.absocoder_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v	* inf.dt * st_sim_work.axis[ID_HOIST].RpsABSOCnt)/6;
-		//st_sim_inf.absocoder_mh += (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * inf.dt * st_work.axis[ID_HOIST].RpsABSOCnt);
+		//st_sim_inf.absocoder_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v	* inf.dt * st_sim_work.axis[ID_HOIST].RpsABSOCnt)/6;
+		st_sim_inf.absocoder_mh += (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * inf.dt * st_sim_work.axis[ID_HOIST].RpsABSOCnt);
 	}
 
-	if(pPLC_IO->stat_axis[ID_BOOM_H].brake)//!!!引込は正転でPGはマイナスカウント
-		
-		//##########################################################################################
-		//!!!!!! /6を入れないとPGのカウントが6倍位早くなってしまう　原因不明　宿題
-		//#########################################################################################
-		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v  * pspec->axis_spec[ID_BOOM_H].Gear_ratio * inf.dt * st_sim_work.axis[ID_BOOM_H].RpsPGCnt)/6;
-		//st_sim_inf.hcount_bh -= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v * pspec->axis_spec[ID_BOOM_H].Gear_ratio * inf.dt * st_work.axis[ID_BOOM_H].RpsPGCnt);
-	
+	if(pPLC_IO->stat_axis[ID_BOOM_H].brake)//ブレーキ開
+		//!!!引込は正転でPGはマイナスカウント
+		st_sim_inf.hcount_bh	-= (INT32)(pEnv_Inf->crane_stat.nd[ID_BOOM_H].v  * pspec->axis_spec[ID_BOOM_H].Gear_ratio * inf.dt * st_sim_work.axis[ID_BOOM_H].RpsPGCnt);
+			
 	//下限リミット　入限 
 	if (st_sim_inf.hcount_bh < pspec->axis_spec[ID_BOOM_H].CntPgSet0) 
 		st_sim_inf.hcount_bh = pspec->axis_spec[ID_BOOM_H].CntPgSet0;

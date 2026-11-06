@@ -131,20 +131,21 @@ typedef struct _ST_PLC_WBUF_HHGQ18 {	//制御PC→PLC
 	INT16   ctrl_mode;					//D10201:自動制御フラグ
 	UINT16  cab_ai[4];					//D10202:運転室PLC AI信号【モーメントリミッタ】
 	INT16   cab_bi[4];					//D10206:運転室PLC→電気室PLC b出力
-	INT16   aux_com;					//D10210:補機指令出力 0bit：映像遅延チェックデバイス
-	INT16   spare[1];					//D10211:予備
+	INT16   PC_FAULT[2];				//D10210:PC検出異常
 	INT16   mh_load;					//D10212:主巻荷重
 	INT16   ah_load;					//D10213:補巻荷重
 	INT16   wind_spd;					//D10214:風速
-	INT16   aux_switch_B160;			//D10215:追加リレー出力用
-	INT16   spear[14];					//D10216:予備
+	INT16   aux_switch_B160;			//D10215:遠隔追加スイッチ
+	INT16   OTE_input;					//D10216:OTE入力
+	INT16   wind_dir_AI;				//D10217:電気室風速AI入力
+	INT16   spear[12];					//D10218:予備
 	UINT32  hcounter[4];				//D10230:高速カウンタユニット 
 	UINT32  absocoder[3];				//D10238　アブソコーダ 
 	INT16   pc_fault[N_PLC_FAULT_BUF];	//D10244　PC　FAULT
-	INT16   spare0[8];					//D10244　予備 
-	INT16   spd_fb[5];					//D10270:速度FB（符号付き　3200が最高速度）
-	INT16   trq_ref[3];					//D10274:トルク指令（符号付き　4000/200%）
-	INT16   spear1[22];					//D10276:インバータ速度指令（符号付き　3200が最高速度）
+	INT16   spare0[8];					//D10262　予備 
+	INT16   spd_fb[4];					//D10270:速度FB（符号付き　3200が最高速度）
+	INT16   trq_ref[2];					//D10274:トルク指令（符号付き　4000/200%）
+	INT16   spear1[24];					//D10276:インバータ速度指令（符号付き　3200が最高速度）
 
 }ST_PLC_WBUF_HHGQ18, * LPST_PLC_WBUF_HHGQ18;
 typedef struct _ST_PLC_RBUF_HHGQ18 {
@@ -159,23 +160,23 @@ typedef struct _ST_PLC_RBUF_HHGQ18 {
 	INT16   erm_bo[8];					// D10317:電気室PLC b出力
 	INT32	mh_z;						// D10325:主巻揚程　D1010
 	float	r_mm;						// D10327:引込半径　D2774
-	INT32	ah_Z;						// D10327:予備
-	INT16	wind_dir; 					// D10331:予備
-	INT16	spar1[1];					// D10332:予備
+	INT32	wind_dir;					// D10329:風向計
+	INT16	spar1[2];					// D10331:予備
 	INT16	cv_tg[5];					// D10333:目標速度％
-	INT16	alarm;					// D10337:予備
+	INT16	alarm;						// D10338:故障ブザー信号
 	INT16   plc_fault[N_PLC_FAULT_BUF]; // D10339:故障信号
 	INT16   erm_y[5];					// D10357:電気室PLC Y出力
 	INT16   erm_x[7];					// D10362:電気室PLC X入力
-	INT16   spar3;						//
-	INT16   inv_vref[5];				// D10370:インバータ速度指令
-	INT16   inv_vfb[5];					// D10375:インバータ速度FB
-	INT16   inv_trq[5];					// D10378:インバータトルク指令
-	INT16   spar4;						//
-	INT32   hcount_fb[4];				// D10380:高速カウンタユニット FB値
-	INT32   absocoder_fb[3];			// D10388:アブソコーダ FB値
-	INT16   spar5[49];					// D10396:予備
-	INT16   sl_brk_com;					// D10444:旋回ブレーキ制御信号
+	INT16   spar3;						// D10369:予備
+	INT16   inv_vref[4];				// D10370:インバータ速度指令
+	INT16   inv_vfb[4];					// D10374:インバータ速度FB
+	INT16   inv_trq[4];					// D10378:インバータトルク指令
+	INT32   hcount_fb[4];				// D10382:高速カウンタユニット FB値
+	INT32   absocoder_fb[3];			// D10390:アブソコーダ FB値
+	INT16   spar5[4];					// D10396:予備
+	INT16   fault_code[10];				// D10400:GOT故障表示コード
+	INT16   spar6[40];					// D10410:予備
+	INT16   sl_brk_com;					// D10450:旋回ブレーキ制御信号
 }ST_PLC_RBUF_HHGQ18, * LPST_PLC_RBUF_HHGQ18;
 
 //クレーン

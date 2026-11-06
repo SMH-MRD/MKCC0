@@ -25,7 +25,7 @@
 #define ID_COMM_PC_SLBRK			2	//メインのPCと旋回ブレーキPLC間通信
 #define ID_COMM_PC_WIFI				2	//OTE WIFIポート
 #define ID_COMM_SWAY_SENSOR			3	//振れセンサ
-#define ID_COMM_LANIO				4	//振れセンサ
+#define ID_COMM_LANIO				4	//LANIO
 #define ID_COMM_PC_OPTION			7	//デバッグ用
 
 #define ID_COMM_WAN0				0	//デフォルトのWAN

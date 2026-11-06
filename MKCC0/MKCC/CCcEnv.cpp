@@ -382,7 +382,8 @@ HRESULT CCcEnv::set_stat_JC(int id) {
 	pCrStat->nd[ID_HOIST].p = (pPlcIo->stat_axis[ID_HOIST].absocoder - pspec->axis_spec[ID_HOIST].CntAbsSet0) / pspec->axis_spec[ID_HOIST].CntAbsR		+ pspec->axis_spec[ID_HOIST].NdrmAbsSet0;
 
 	//起伏(起伏）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
-	pCrStat->nd[ID_BOOM_H].p = - (pPlcIo->stat_axis[ID_BOOM_H].pg_count - pspec->axis_spec[ID_BOOM_H].CntPgSet0) / pspec->axis_spec[ID_BOOM_H].CntPgDrumR	+ pspec->axis_spec[ID_BOOM_H].NdrmPgSet0;
+//	pCrStat->nd[ID_BOOM_H].p = - (pPlcIo->stat_axis[ID_BOOM_H].pg_count - pspec->axis_spec[ID_BOOM_H].CntPgSet0) / pspec->axis_spec[ID_BOOM_H].CntPgDrumR	+ pspec->axis_spec[ID_BOOM_H].NdrmPgSet0;
+	pCrStat->nd[ID_BOOM_H].p = pspec->axis_spec[ID_BOOM_H].NdrmPgSet0 - (pPlcIo->stat_axis[ID_BOOM_H].pg_count - pspec->axis_spec[ID_BOOM_H].CntPgSet0) / pspec->axis_spec[ID_BOOM_H].CntPgDrumR;
 
 	//起伏(主巻）ドラム回転　　(pg fb - プリセットカウント）/ドラム1回転pg cnt + プリセットドラム回転数
 	pCrStat->nd[ID_BH_HST].p = pspec->st_struct.Nttl_bh - pCrStat->nd[ID_BOOM_H].p;

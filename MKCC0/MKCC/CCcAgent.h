@@ -192,7 +192,7 @@ private:
 
 
     HRESULT(*fp_trans_plc_io_read)(int id) = NULL;  //PLC読み出しデータを共有メモリに展開   
-    HRESULT(*fp_plc_io_write)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ  
+    HRESULT(*fp_plc_io_write)(int id) = NULL;       //PLCへの書き込みデータを設定  
     HRESULT(*fp_aux_equipment)(int id) = NULL;       //ドラムの状態をセットする関数ポインタ 
 
     HRESULT(*fp_set_ref_mh)(int id) = NULL;         //巻速度指令値出力関数ポインタ

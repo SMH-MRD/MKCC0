@@ -37,7 +37,7 @@ using namespace Gdiplus;
 #define CRANE_ID_H6R602         100     //みらい
 #define CRANE_ID_HHGH29         101     //今造西多度津70tJC　102号  
 #define CRANE_ID_HHGQ18         110     //今造西多度津300tJC 10号
-#define CRANE_ID_HHFM08         102     //今造西多度津1280tGC
+#define CRANE_ID_HHFM08         200     //今造西多度津1280tGC
 #define CRANE_ID_XXXXXX         1       //多度津OHC
 #define CARNE_ID_PC0            0xFF00      //PC単体
 

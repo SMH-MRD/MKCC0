@@ -841,9 +841,10 @@ LRESULT CALLBACK COteAgent::Mon2Proc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) 
 		HRESULT hr;
 		INT32 stat = 0;
 
+		//WAN回線の相手先の情報をセット
 		if (pOteEnvInf->app_common_param.product_mode == OTE_AGENT_MODE_OTE_PORT_WAN)
 			stat |= g_my_code.option;
-
+		//OTEの動作モード設定をセット
 		if(pOteCsInf->st_body.remote){
 			stat |= OTE_STAT_MODE_OPE;
 			hr = snd_uni2pc(set_msg_u(false, OTE_CODE_REQ_OPE_ACTIVE, stat), &pUSockPC->addr_in_dst);
