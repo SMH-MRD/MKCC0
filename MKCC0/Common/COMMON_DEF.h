@@ -18,7 +18,7 @@ using namespace Gdiplus;
 #define TASK_CODE_SIM      5
 
 //クレーン種別 ID  配列INDEX
-
+#define N_CRANE_MAX             256 
 
 //クレーン製番 コード JC 0x100～　GC 0x200～
 

@@ -120,8 +120,8 @@ HRESULT CSwitchImg::update(int x_center, int y_center, float angle, int offset_x
 	// 1.グラフィックオブジェクト現在の状態を保存
 	Gdiplus::GraphicsState state = pgraphics->Save();
 
-	pgraphics->TranslateTransform(x_center, y_center);
-	pgraphics->RotateTransform(angle);
+	pgraphics->TranslateTransform(x_center, y_center);	//座標原点を移動
+	pgraphics->RotateTransform(angle);					//座標軸を回転
 
 	Rect rc_dest(-offset_x,	-offset_y, rc.Width* scale_w,rc.Height* scale_h);
 	

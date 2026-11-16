@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CGamePad.h" />
+    <ClInclude Include="CGraphicPrm.h" />
     <ClInclude Include="CGraphicWindow.h" />
     <ClInclude Include="COpePanel.H" />
     <ClInclude Include="COteAgent.h" />

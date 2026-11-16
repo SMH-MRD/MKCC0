@@ -90,6 +90,9 @@
     <ClInclude Include="CGraphicWindow.h">
       <Filter>UI\Views</Filter>
     </ClInclude>
+    <ClInclude Include="CGraphicPrm.h">
+      <Filter>UI\Views</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CGamePad.cpp">

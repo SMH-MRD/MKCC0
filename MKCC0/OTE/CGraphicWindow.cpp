@@ -9,6 +9,7 @@
 #include "CFaults.h"
 #include "phisics.h"
 #include "SmemMain.H"
+#include "CGraphicPrm.h"
 
 
 extern vector<CBasicControl*>	VectCtrlObj;

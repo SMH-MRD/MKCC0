@@ -9,12 +9,12 @@
 #define GMAIN_PNL_WND_W             1000
 #define GMAIN_PNL_WND_H             1000
 
-#define GMAIN_PNL_ORG_X             500//グラフィッククレーン原点
-#define GMAIN_PNL_ORG_Y             500//グラフィッククレーン原点
-#define GMAIN_PNL_BK_ORG_X          50 //グラフィックク背景IMG原点
-#define GMAIN_PNL_BK_ORG_Y          0 //グラフィックク背景IMG原点
-#define GMAIN_PNL_PIX2M				0.2//グラフィックmm/PIXEL レールスパン10m/50PIXEL
-#define GMAIN_PNL_PIX2MM			200//グラフィックmm/PIXEL レールスパン10m/50PIXEL
+#define GMAIN_PNL_ORG_X             500	//グラフィッククレーン原点
+#define GMAIN_PNL_ORG_Y             500	//グラフィッククレーン原点
+#define GMAIN_PNL_BK_ORG_X          50	//グラフィックク背景IMG原点
+#define GMAIN_PNL_BK_ORG_Y          0	//グラフィックク背景IMG原点
+#define GMAIN_PNL_PIX2M				0.2	//グラフィックmm/PIXEL レールスパン10m/50PIXEL
+#define GMAIN_PNL_PIX2MM			200	//グラフィックmm/PIXEL レールスパン10m/50PIXEL
 
 #define GSUB_PNL_WND_X				125
 #define GSUB_PNL_WND_Y				40
@@ -31,9 +31,20 @@
 #define ID_GSUB_TIMER				60899
 #define ID_GSUB_TIMER_MS			1000
 
+#define N_GRAPHIC_MOB				16	//グラフィックムービングオブジェクト数
+
+typedef struct St_GParam_Obj{
+	POINT org0;	//オブジェクト配置原点座標
+	POINT org1;	//オブジェクトの基準点
+	double angle;	//オブジェクトの回転角度
+	double ratio;	//オブジェクトの拡大縮小率
+} ST_GPARAM_OBJ, *LP_ST_GPARAM_OBJ;
+
+
 class CGraphicWindow
 {
 private:
+	static ST_GPARAM_OBJ mob_prm[N_CRANE_MAX][N_GRAPHIC_MOB];	//オブジェクトの回転角度
 
 public:
 	HINSTANCE hInstance;//インスタンスハンドル
