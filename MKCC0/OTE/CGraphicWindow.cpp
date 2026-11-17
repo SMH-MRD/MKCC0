@@ -18,6 +18,8 @@ extern CCrane* pCrane;
 
 static COteEnv* pEnvObj;
 
+static LP_ST_GPARAM_OBJ pMobPrm0;
+
 HWND CGraphicWindow::hGWnd;
 HWND CGraphicWindow::hGSubWnd;
 HWND CGraphicWindow::hParentWnd;
@@ -30,6 +32,8 @@ LPST_OTE_CC_IF CGraphicWindow::pCcIf;
 LPST_OTE_ENV_INF CGraphicWindow::pOteEnvInf;
 
 Point CGraphicWindow::mouse_pos_main, CGraphicWindow::mouse_pos_sub;
+
+
 
 CGraphicWindow::CGraphicWindow(HINSTANCE _hInstance, HWND hParent, int _crane_id, CPanelBase* _pPanelBase) {
 	
@@ -103,6 +107,8 @@ CGraphicWindow::CGraphicWindow(HINSTANCE _hInstance, HWND hParent, int _crane_id
 		UpdateWindow(hGSubWnd);
 	}
 
+	pMobPrm0 = mob_prm[crane_id];
+
 }
 CGraphicWindow::~CGraphicWindow()
 {
@@ -143,7 +149,9 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 
 	int width = GMAIN_PNL_WND_W;
 	int height = GMAIN_PNL_WND_H;
+	LP_ST_GPARAM_OBJ pPrm;
 
+	//背景の切り出しポイントをクレーン走行位置に応じて設定
 	INT bk_pt_x = GMAIN_PNL_BK_ORG_X + INT(pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_GANTRY].pos_fb / GMAIN_PNL_PIX2M);
 	INT bk_pt_y = GMAIN_PNL_BK_ORG_Y;
 
@@ -157,17 +165,20 @@ void CGraphicWindow::OnPaint_JC(HDC hdc, HWND hWnd) {
 
 	// 2. クレーン画像の描画(pbmp_img） 
 	double angle = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_SLEW].pos_fb;
-	double k = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb / 62.0 * 0.9;
+	double k = pCcIf->st_msg_pc_u_rcv.body.st.st_axis_set[ID_BOOM_H].pos_fb / 62.0 * 0.9;//ブーム長さの倍率（62mを1.0とする）
 
 	if (gwin_count % 10 == 0)//10秒に1回、クレーン画像をクリア（残像残り対策）
 
 		pPanelBase->pgwinobjs->pgraphic_img->Clear(Gdiplus::Color(0, 0, 0, 0));
 
+	pPrm = pMobPrm0 + GOBJ0;
 	pPanelBase->pgwinobjs->lmg_crane_bm_xy->set(0);
-	pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, -angle, 35, 0, 1.0, k);	// クレーンブーム上面画像書き込み
-
+	//pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, -angle, 35, 0, 1.0, k);	// クレーンブーム上面画像書き込み
+	pPanelBase->pgwinobjs->lmg_crane_bm_xy->update(pPrm->org0.x, pPrm->org0.y, -angle, pPrm->org1.x, pPrm->org1.y, 1.0, k);	// クレーンブーム上面画像書き込
+	pPrm = pMobPrm0 + GOBJ1;
 	pPanelBase->pgwinobjs->lmg_crane_potal->set(0);
-	pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, -angle, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
+	//pPanelBase->pgwinobjs->lmg_crane_potal->update(GMAIN_PNL_ORG_X, GMAIN_PNL_ORG_Y, -angle, 25, 65, 1.0, 1.0);	// クレーンポスト上面書き込み
+	pPanelBase->pgwinobjs->lmg_crane_potal->update(pPrm->org0.x, pPrm->org0.y, -angle, pPrm->org1.x, pPrm->org1.y, 1.0, 1.0);	// クレーンポスト上面書き込み
 
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;
@@ -313,6 +324,8 @@ void CGraphicWindow::OnPaintSub_JC(HDC hdc, HWND hWnd) {
 	int width = GSUB_PNL_WND_W;
 	int height = GSUB_PNL_WND_H;
 
+	LP_ST_GPARAM_OBJ pPrm;
+
 	gsubwin_count++; if (gsubwin_count > 1000) gsubwin_count = 0; // カウントをリセット
 
 	// 1. 背景画像の描画(pbmp_bk）
@@ -333,7 +346,9 @@ void CGraphicWindow::OnPaintSub_JC(HDC hdc, HWND hWnd) {
 	pPanelBase->pgsubwinobjs->lmg_crane_hook_mh->update(x, y);	// クレーンフック画像書き込み
 
 	double angle = pCcIf->st_msg_pc_u_rcv.body.st.bh_angle * DEG1RAD; // 起伏角度をDegに変換
-	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145, 340, -angle, 5, 50, 0.9, 0.9);	// クレーンブーム側面画像書き込み
+	pPrm = pMobPrm0 + GOBJ3;
+//	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(145, 340, -angle, 5, 50, 0.9, 0.9);	// クレーンブーム側面画像書き込み
+	pPanelBase->pgsubwinobjs->lmg_crane_bm_yz->update(pPrm->org0.x, pPrm->org0.y, -angle, pPrm->org1.x, pPrm->org1.y, pPrm->ratio, pPrm->ratio);	// クレーンブーム側面画像書き込み
 
 	// 3. Info画像の描画(pbmp_inf） 
 	wostringstream wo;

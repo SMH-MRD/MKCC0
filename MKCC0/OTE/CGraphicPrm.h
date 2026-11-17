@@ -1,6 +1,13 @@
 #pragma once
 #include "CGraphicWindow.h"
 
+//typedef struct St_GParam_Obj {
+//	POINT org0;	//オブジェクト配置原点座標
+//	POINT org1;	//オブジェクトの基準点
+//	double angle;	//オブジェクトの回転角度
+//	double ratio;	//オブジェクトの拡大縮小率
+//} ST_GPARAM_OBJ, * LP_ST_GPARAM_OBJ;
+
 ST_GPARAM_OBJ gprm_default = { {0,0},{0,0}, 0.0, 0.0 };
 
 ST_GPARAM_OBJ CGraphicWindow::mob_prm[N_CRANE_MAX][N_GRAPHIC_MOB] = {
@@ -116,9 +123,23 @@ ST_GPARAM_OBJ CGraphicWindow::mob_prm[N_CRANE_MAX][N_GRAPHIC_MOB] = {
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
 	//CRANE 100 みらい
-	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
+	{
+		{ {GMAIN_PNL_ORG_X,GMAIN_PNL_ORG_Y},{35,0}, 1.0, 1.0 },		//鳥瞰図　ジブ
+		{ {GMAIN_PNL_ORG_X,GMAIN_PNL_ORG_Y},{25, 65}, 0.0, 0.0 },	//鳥瞰図　旋回部
+		{ {0,0},{0,0}, 0.0, 0.0 },
+		{ {145, 340},{5, 50}, 0.0, 0.9 },							//側面図　ジブ
+		{ {0,0},{0,0}, 0.0, 0.0 },
+		gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default
+	},
 	//CRANE 101 西多度津70t 102号
-	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
+	{	
+		{ {GMAIN_PNL_ORG_X,GMAIN_PNL_ORG_Y},{35,0}, 1.0, 1.0 },		//鳥瞰図　ジブ
+		{ {GMAIN_PNL_ORG_X,GMAIN_PNL_ORG_Y},{25, 65}, 0.0, 0.0 },	//鳥瞰図　旋回部
+		{ {0,0},{0,0}, 0.0, 0.0 },
+		{ {145, 340},{5, 50}, 0.0, 0.9 },							//側面図　ジブ
+		{ {0,0},{0,0}, 0.0, 0.0 },
+		gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default 
+	},
 	
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
@@ -129,7 +150,14 @@ ST_GPARAM_OBJ CGraphicWindow::mob_prm[N_CRANE_MAX][N_GRAPHIC_MOB] = {
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
 	//CRANE 110
-	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
+	{
+		{ {GMAIN_PNL_ORG_X,GMAIN_PNL_ORG_Y},{35,0}, 0.0, 1.0 },		//鳥瞰図　ジブ
+		{ {GMAIN_PNL_ORG_X,GMAIN_PNL_ORG_Y},{20, 65}, 0.0, 0.0 },	//鳥瞰図　旋回部
+		{ {0,0},{0,0}, 0.0, 0.0 },
+		{ {145, 380},{5, 50}, 0.0, 0.9 },							//側面図　ジブ
+		{ {0,0},{0,0}, 0.0, 0.0 },
+		gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default
+	},
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },
 	{ gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default,gprm_default },

@@ -32,6 +32,25 @@
 #define ID_GSUB_TIMER_MS			1000
 
 #define N_GRAPHIC_MOB				16	//グラフィックムービングオブジェクト数
+#define GOBJ0						0
+#define GOBJ1						1
+#define GOBJ2						2
+#define GOBJ3						3
+#define GOBJ4						4
+#define GOBJ5						5
+#define GOBJ6						6
+#define GOBJ7						7
+#define GOBJ8						8
+#define GOBJ9						9
+#define GOBJ10						10
+#define GOBJ11						11
+#define GOBJ12						12
+#define GOBJ13						13
+#define GOBJ14						14
+#define GOBJ15						15
+
+
+
 
 typedef struct St_GParam_Obj{
 	POINT org0;	//オブジェクト配置原点座標
