@@ -271,11 +271,6 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	//crane_stat.nd[].vはドラムRPS単位の速度値　PGカウントはモータのRPSでカウント計算
 	if (pPLC_IO->stat_axis[ID_HOIST].brake) {
 		st_sim_inf.hcount_mh += (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * pspec->axis_spec[ID_HOIST].Gear_ratio * inf.dt * st_sim_work.axis[ID_HOIST].RpsPGCnt);	//主巻PGフィードバック
-	
-		//##########################################################################################
-		//!!!!!! /6を入れないとアブソコーダのカウントが6倍位早くなってしまう　原因不明　宿題
-		//#########################################################################################
-		//st_sim_inf.absocoder_mh	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v	* inf.dt * st_sim_work.axis[ID_HOIST].RpsABSOCnt)/6;
 		st_sim_inf.absocoder_mh += (INT32)(pEnv_Inf->crane_stat.nd[ID_HOIST].v * inf.dt * st_sim_work.axis[ID_HOIST].RpsABSOCnt);
 	}
 
@@ -287,7 +282,7 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 	if (st_sim_inf.hcount_bh < pspec->axis_spec[ID_BOOM_H].CntPgSet0) 
 		st_sim_inf.hcount_bh = pspec->axis_spec[ID_BOOM_H].CntPgSet0;
 	
-	//!!!旋回ブレーキは信号OFFで開
+	//!!!旋回ブレーキは信号OFFで開 FBは旋回速度が0でない場合のみカウント計算 
 	if((!pPLC_IO->stat_axis[ID_SLEW].brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-0.00005)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>0.00005)))
 		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v * pspec->axis_spec[ID_SLEW].Gear_ratio * inf.dt * st_sim_work.axis[ID_SLEW].RpsPGCnt);
 
