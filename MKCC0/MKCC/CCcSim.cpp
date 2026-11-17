@@ -82,6 +82,10 @@ HRESULT CSim::initialize(LPVOID lpParam) {
 	set_item_chk_txt();
 	set_panel_tip_txt();
 
+	//旋回軸のPGカウント数の最小値を設定
+	st_sim_work.axis[ID_SLEW].PG_cnt_nv_min = pCrane->pSpec->axis_spec[ID_SLEW].Rpm_rated/pCrane->pSpec->axis_spec[ID_SLEW].Gear_ratio * 0.005/60.0;	//定格0.5%以下のFBはカウントしない
+	st_sim_work.axis[ID_BOOM_H].PG_cnt_nv_min = pCrane->pSpec->axis_spec[ID_BOOM_H].Rpm_rated / pCrane->pSpec->axis_spec[ID_BOOM_H].Gear_ratio * 0.005 / 60.0;	//定格0.5%以下のFBはカウントしない
+
 	return S_OK;
 }
 
@@ -283,8 +287,10 @@ HRESULT CSim::set_sensor_fb_JC(int id) {				//トルク指令,高速カウンタ,アブソコー
 		st_sim_inf.hcount_bh = pspec->axis_spec[ID_BOOM_H].CntPgSet0;
 	
 	//!!!旋回ブレーキは信号OFFで開 FBは旋回速度が0でない場合のみカウント計算 
-	if((!pPLC_IO->stat_axis[ID_SLEW].brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-0.00005)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>0.00005)))
-		st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v * pspec->axis_spec[ID_SLEW].Gear_ratio * inf.dt * st_sim_work.axis[ID_SLEW].RpsPGCnt);
+//	if((!pPLC_IO->stat_axis[ID_SLEW].brake)&&((pEnv_Inf->crane_stat.nd[ID_SLEW].v<-0.00005)||(pEnv_Inf->crane_stat.nd[ID_SLEW].v>0.00005)))
+		if ((!pPLC_IO->stat_axis[ID_SLEW].brake) &&
+			((pEnv_Inf->crane_stat.nd[ID_SLEW].v < -st_sim_work.axis[ID_SLEW].PG_cnt_nv_min) || (pEnv_Inf->crane_stat.nd[ID_SLEW].v > st_sim_work.axis[ID_SLEW].PG_cnt_nv_min)))
+			st_sim_inf.hcount_sl	+= (INT32)(pEnv_Inf->crane_stat.nd[ID_SLEW].v * pspec->axis_spec[ID_SLEW].Gear_ratio * inf.dt * st_sim_work.axis[ID_SLEW].RpsPGCnt);
 
 
 	//プリセット エミュレーションでは旋回2周以上でプリセット値に戻す

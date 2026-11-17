@@ -126,7 +126,7 @@ ST_AXIS_SPEC	axis_spec_hhgh29[MOTION_ID_MAX] = {
 		0.0,				// Pwr_base;	定格必要出力
 		0.0,				// Trq_base;	定格必要トルク
 		4.885128,			// Ia;			慣性モーメント
-		312.015,			// Lfull;		フルスパン（m）
+		336.000,//312.015,			// Lfull;		フルスパン（m）
 		30.0,				// PsoPreset    位置プリセット値
 	},
 	{//旋回
@@ -164,7 +164,7 @@ ST_AXIS_SPEC	axis_spec_hhgh29[MOTION_ID_MAX] = {
 		1.0,				// Ndmizo0;		ドラム溝数0
 		1.0,				// Ndmizo1;		ドラム溝数1
 		2048,				// CntPgR;		PG1回転カウント数×逓倍
-		981811,				// CntPgDrumR　ドラム1回転PGカウント数
+		872041,				// CntPgDrumR　ドラム1回転PGカウント数
 		15000000,			// CntPgSet0;	PGプリセット0カウント値
 		0.0,				// NdrmPgSet0;	PGプリセット0ドラム回転数
 		0.0,				// CntAbsR;		アブソコーダ1回転カウント数×入力軸ギア比

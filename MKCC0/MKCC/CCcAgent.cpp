@@ -1142,6 +1142,12 @@ HRESULT CAgent::plc_io_write_JC(int crane_id) {
 		pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb[ID_SLEW] * 64 / 35);				//PLCへの出力は最高速度1750rpmで3200→3200/1750=64/35
 		pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb[ID_GANTRY]);
 	}break;
+	case CRANE_ID_HHGH29: {
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb[ID_HOIST] * 64 / 45);	//PLCへの出力は最高速度2250rpmで3200→3200/2250=64/45
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb[ID_BOOM_H] * 64 / 35);	//PLCへの出力は最高速度1750rpmで3200→3200/1750=64/35
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_sl, pSim_Inf->vfb[ID_SLEW] * 16 / 9);	//PLCへの出力は最高速度1800rpmで3200→3200/1800=16/9
+		pCrane->pPlc->wval(pPlcWIf->JC.vfb_gt, pSim_Inf->vfb[ID_GANTRY]);
+	}break;
 	default: {
 		pCrane->pPlc->wval(pPlcWIf->JC.vfb_mh, pSim_Inf->vfb[ID_HOIST]);			//INVERTER IOの場合はそのままrpm出力
 		pCrane->pPlc->wval(pPlcWIf->JC.vfb_bh, pSim_Inf->vfb[ID_BOOM_H]);
