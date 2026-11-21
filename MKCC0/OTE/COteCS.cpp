@@ -913,8 +913,8 @@ HRESULT COteCS::video_delay_check_manage_hhgg38(int id) {
 	if ((pOteCsInf->ope_source_mode & OTE_OPE_SOURCE_CODE_OPEPNL) || (forced_opedesk)) {				//遠隔操作卓有効
 		if (
 			(pOteAuxAgInf->v_delay_chk_status & OTEAUXAG_CODE_V_DELAY_TRIG_ON_CHK) ||						//AUXEQからの映像遅延チェック用ランプON指令がある　または
-			(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM)
-			) //AUXEQからの映像遅延自動パラメータセット要求がある
+			(pOteAuxPolInf->st_img_proc.v_delay_auto_prm_step == OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_ON_COM) //AUXEQからの映像遅延自動パラメータセットのためのON要求がある
+			)
 		{
 			pOteCsInf->pnl_ctrl[OTE_PNL_CTRLS::v_delay_device] = L_ON;
 		}

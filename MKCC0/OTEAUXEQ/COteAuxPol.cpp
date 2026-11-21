@@ -204,10 +204,10 @@ HRESULT COteAuxPol::initialize(LPVOID lpParam) {
 	pst_img_proc->param.v_margin = OTEAUXPOL_PRM_V_DELAY_V_MARGIN;
 
 	wos.str(L"");//初期化
-	rc_mat_roi_work				= { AUXPOL_DEFAULT_ROI_X, AUXPOL_DEFAULT_ROI_Y, AUXPOL_DEFAULT_ROI_W,AUXPOL_DEFAULT_ROI_H};
-	pImgPrm->rc_mat_roi_criterion		= { AUXPOL_DEFAULT_ROI_X, AUXPOL_DEFAULT_ROI_Y, AUXPOL_DEFAULT_ROI_W,AUXPOL_DEFAULT_ROI_H };
-	rc_mat_roi_work_disp		= { AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO };
-	rc_mat_roi_criterion_disp	= { AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO };
+	rc_mat_roi_work					= { AUXPOL_DEFAULT_ROI_X, AUXPOL_DEFAULT_ROI_Y, AUXPOL_DEFAULT_ROI_W,AUXPOL_DEFAULT_ROI_H};
+	pImgPrm->rc_mat_roi_criterion	= { AUXPOL_DEFAULT_ROI_X, AUXPOL_DEFAULT_ROI_Y, AUXPOL_DEFAULT_ROI_W,AUXPOL_DEFAULT_ROI_H };
+	rc_mat_roi_work_disp			= { AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO };
+	rc_mat_roi_criterion_disp		= { AUXPOL_DEFAULT_ROI_X / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_Y / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_W / AUXPOL_CAMERA_DISP_RETIO, AUXPOL_DEFAULT_ROI_H / AUXPOL_CAMERA_DISP_RETIO };
 
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK1, L"mon1");
 	SetDlgItemText(inf.hwnd_opepane, IDC_TASK_MON_CHECK2, L"CamChk");
@@ -419,6 +419,7 @@ int COteAuxPol::GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work) {
 	// HSVマスク画像生成
 	cv::Mat m1, m2, local_mask;
 
+	//全体画像でHSVレンジ内のピクセルを抽出してマスク画像を作成
 	if(pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
 		return -1;
 	}
@@ -436,16 +437,16 @@ int COteAuxPol::GetCraneDeviceStatus(LPST_AUXPOL_IMG_PROC pst_work) {
 		mat_mask = local_mask.clone();
 
 	// 3. マスク画像からROI内の白いピクセル数をカウント
-		pst_work->whiteCountInCriterionRoi = cv::countNonZero(mat_mask(pImgPrm->rc_mat_roi_criterion));	//設定した基準Roi内の白いピクセル数をカウント
-		pst_work->whiteCountInWorkRoi = cv::countNonZero(mat_mask(rc_mat_roi_work));				//設定したRoi内の白いピクセル数をカウント	
+		pst_work->whiteCountInCriterionRoi	= cv::countNonZero(mat_mask(pImgPrm->rc_mat_roi_criterion));	//設定した基準Roi内の白いピクセル数をカウント　＃表示用カウント
+		pst_work->whiteCountInWorkRoi = cv::countNonZero(mat_mask(rc_mat_roi_work));					//設定したRoi内の白いピクセル数をカウント	　	＃判定＋表示用カウント
 	}//ロック解除
 
 	int roi_cnt_diff = pst_work->whiteCountInWorkRoi - pst_work->whiteCountInWorkRoi_Last;
 	if ((roi_cnt_diff > pst_work->param.target_chk_base_count / 2) || (pst_work->whiteCountInWorkRoi > pst_work->param.target_chk_base_count / 2)) {
-		pst_work->is_target_detected = L_ON;
+		pst_work->is_target_detected = L_ON;//WORK ROI内の白いピクセル数または前回値からの増分が基準値の半分以上になったらON判定
 	}
 	else if((roi_cnt_diff < -pst_work->param.target_chk_base_count / 2)||(pst_work->whiteCountInWorkRoi < pst_work->param.target_chk_base_count / 4)) {
-		pst_work->is_target_detected = L_OFF;
+		pst_work->is_target_detected = L_OFF;//WORK ROI内の白いピクセル数が基準値の1/4分以下または前回値からの減少分が基準値の半分以上になったらOFF判定
 	}
 	else;
 	
@@ -574,7 +575,7 @@ static int v_delay_off_wait_count = AUXPOL_CODE_VIDEO_CHK_AUTO_ON_COUNT;
 
 HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 
-	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {
+	if (pAuxAgInf->st_usb_cam.hsvMatFrame.empty()) {//カメラ画像の有無チェック
 		if (v_delay_off_wait_count <= 0) {
 			st_aux_pol_inf.st_img_proc.v_delay_auto_prm_step = OTEAUXPOL_CODE_V_DELAY_APARAM_STEP_NULL;
 			st_aux_pol_inf.st_img_proc.video_delay_auto_prm_status = L"画像無し";
@@ -667,7 +668,7 @@ HRESULT COteAuxPol::AutoParameterts_Vdelay(INT32 step) {
 		rc_mat_roi_criterion_disp = get_hsv_criterion(AUXPOL_MODE_AUTO_CAL_AUTO);//表示用ROIのHSV基準値を更新
 
 		//評価値計算エリア更新
-		rc_mat_roi_work_disp = set_work_roi(AUXPOL_MODE_AUTO_CAL_AUTO);
+		rc_mat_roi_work_disp = set_work_roi(AUXPOL_MODE_AUTO_CAL_AUTO);//基準ROIに対して、マージンを付加して評価用ROIを設定（表示用）
 
 		//設定したROIを基に、画像処理のマージンパラメータを自動設定
 		HSV_autoCalibrate(pst_img_proc->param.hsv_filter_mode);
@@ -1622,7 +1623,7 @@ void COteAuxPol::HSV_autoCalibrate(int type) {
 	//ROIが画像サイズを超えないように補正
 	cv::Rect valid = pImgPrm->rc_mat_roi_criterion & cv::Rect(0, 0, width, height);
 	if (valid.width < 0 || valid.height < 0) return;
-	roiHsv = pAuxAgInf->st_usb_cam.hsvMatFrame(valid);
+	roiHsv = pAuxAgInf->st_usb_cam.hsvMatFrame(valid);//rc_mat_roi_criterion領域切り出し
 	
 	// HSV各チャンネルに分離
 	std::vector<cv::Mat> channels;
